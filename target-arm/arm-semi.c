@@ -243,8 +243,9 @@ uint32_t do_arm_semihosting(CPUARMState *env)
               return (uint32_t)-1;
           /* Write to debug console.  stderr is near enough.  */
           if (use_gdb_syscalls()) {
-                gdb_do_syscall(arm_semi_cb, "write,2,%x,1", args);
-                return env->regs[0];
+                // gdb_do_syscall(arm_semi_cb, "write,2,%x,1", args);
+                // return env->regs[0];
+                return write(STDERR_FILENO, &c, 1);
           } else {
                 return write(STDERR_FILENO, &c, 1);
           }
@@ -255,8 +256,9 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             return (uint32_t)-1;
         len = strlen(s);
         if (use_gdb_syscalls()) {
-            gdb_do_syscall(arm_semi_cb, "write,2,%x,%x\n", args, len);
-            ret = env->regs[0];
+            // gdb_do_syscall(arm_semi_cb, "write,2,%x,%x\n", args, len);
+            // ret = env->regs[0];
+            ret = write(STDERR_FILENO, s, len);
         } else {
             ret = write(STDERR_FILENO, s, len);
         }
