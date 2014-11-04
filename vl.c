@@ -128,7 +128,10 @@ static const char *data_dir[16];
 static int data_dir_idx;
 const char *bios_name = NULL;
 enum vga_retrace_method vga_retrace_method = VGA_RETRACE_DUMB;
-DisplayType display_type = DT_DEFAULT;
+
+// [ILG] DisplayType display_type = DT_DEFAULT;
+DisplayType display_type = DT_NOGRAPHIC;
+
 static int display_remote;
 const char* keyboard_layout = NULL;
 ram_addr_t ram_size;
@@ -137,7 +140,11 @@ int mem_prealloc = 0; /* force preallocation of physical target memory */
 bool enable_mlock = false;
 int nb_nics;
 NICInfo nd_table[MAX_NICS];
+
 int autostart;
+// [ILG]
+int with_gdb = 0;
+
 static int rtc_utc = 1;
 static int rtc_date_offset = -1; /* -1 means no change */
 QEMUClockType rtc_clock;
@@ -3181,6 +3188,7 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_gdb:
                 add_device_config(DEV_GDB, optarg);
+                with_gdb = 1;
                 break;
             case QEMU_OPTION_L:
                 if (data_dir_idx < ARRAY_SIZE(data_dir)) {
@@ -3939,7 +3947,8 @@ int main(int argc, char **argv, char **envp)
         if (default_parallel)
             add_device_config(DEV_PARALLEL, "null");
         if (default_serial && default_monitor) {
-            add_device_config(DEV_SERIAL, "mon:stdio");
+            // [ILG] add_device_config(DEV_SERIAL, "mon:stdio");
+            add_device_config(DEV_SERIAL, "null");
         } else if (default_virtcon && default_monitor) {
             add_device_config(DEV_VIRTCON, "mon:stdio");
         } else if (default_sclp && default_monitor) {
@@ -3952,8 +3961,10 @@ int main(int argc, char **argv, char **envp)
             if (default_sclp) {
                 add_device_config(DEV_SCLP, "stdio");
             }
-            if (default_monitor)
-                monitor_parse("stdio", "readline");
+            if (default_monitor) {
+                // [ILG] monitor_parse("stdio", "readline");
+                monitor_parse("null", "readline");
+            }
         }
     } else {
         if (default_serial)
@@ -4342,7 +4353,7 @@ int main(int argc, char **argv, char **envp)
             error_free(local_err);
             exit(1);
         }
-    } else if (autostart) {
+    } else if (autostart && kernel_filename) {
         vm_start();
     }
 

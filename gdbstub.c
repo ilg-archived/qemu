@@ -355,11 +355,20 @@ static enum {
    remote gdb syscalls.  Otherwise use native file IO.  */
 int use_gdb_syscalls(void)
 {
+#define USE_SEMIHOSTING_NATIVE
+#if !defined(USE_SEMIHOSTING_NATIVE)
     if (gdb_syscall_mode == GDB_SYS_UNKNOWN) {
         gdb_syscall_mode = (gdbserver_state ? GDB_SYS_ENABLED
                                             : GDB_SYS_DISABLED);
     }
     return gdb_syscall_mode == GDB_SYS_ENABLED;
+#else
+    // Make semihosting always use native file IO.
+    if (gdb_syscall_mode == GDB_SYS_UNKNOWN) {
+        gdb_syscall_mode = GDB_SYS_DISABLED;
+    }
+    return FALSE;
+#endif
 }
 
 /* Resume execution.  */

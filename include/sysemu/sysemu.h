@@ -105,6 +105,9 @@ typedef enum DisplayType
 
 extern int autostart;
 
+// [ILG]
+extern int with_gdb;
+
 typedef enum {
     VGA_NONE, VGA_STD, VGA_CIRRUS, VGA_VMWARE, VGA_XENFB, VGA_QXL,
     VGA_TCX, VGA_CG3, VGA_DEVICE

@@ -13,6 +13,7 @@
 #include "elf.h"
 #include "sysemu/qtest.h"
 #include "qemu/error-report.h"
+#include "sysemu/sysemu.h"
 
 /* Bitbanded IO.  Each word corresponds to a single bit.  */
 
@@ -235,7 +236,8 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
     big_endian = 0;
 #endif
 
-    if (!kernel_filename && !qtest_enabled()) {
+    // [ILG] if (!kernel_filename && !qtest_enabled()) {
+    if (!kernel_filename && !qtest_enabled() && !with_gdb) {
         fprintf(stderr, "Guest image must be specified (using -kernel)\n");
         exit(1);
     }
