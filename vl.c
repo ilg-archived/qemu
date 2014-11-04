@@ -129,8 +129,7 @@ static int data_dir_idx;
 const char *bios_name = NULL;
 enum vga_retrace_method vga_retrace_method = VGA_RETRACE_DUMB;
 
-// [ILG] DisplayType display_type = DT_DEFAULT;
-DisplayType display_type = DT_NOGRAPHIC;
+DisplayType display_type = DT_DEFAULT;
 
 static int display_remote;
 const char* keyboard_layout = NULL;

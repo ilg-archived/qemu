@@ -1,0 +1,2 @@
+process handle SIGUSR1 -p true -s false -n false 
+process handle SIGUSR2 -p true -s false -n false 
