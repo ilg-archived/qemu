@@ -307,6 +307,8 @@ int qemu_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
         qemu_set_cloexec(ret);
     }
 
+    printf("... Connection from IP: '%s'.\n\n", inet_ntoa(((struct sockaddr_in*)addr)->sin_addr));
+
     return ret;
 }
 

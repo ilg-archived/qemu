@@ -198,6 +198,11 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
     }
     env = &cpu->env;
 
+    printf("Core: '%s', flash: %dKB, RAM: %dKB.\n", cpu_model, flash_size/1024, sram_size/1024);
+    if (kernel_filename){
+        printf("Image: '%s'.\n", kernel_filename);
+    }
+
 #if 0
     /* > 32Mb SRAM gets complicated because it overlaps the bitband area.
        We don't have proper commandline options, so allocate half of memory

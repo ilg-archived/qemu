@@ -2745,6 +2745,8 @@ int main(int argc, char **argv, char **envp)
     atexit(qemu_run_exit_notifiers);
     error_set_progname(argv[0]);
     qemu_init_exec_dir(argv[0]);
+    
+    printf("QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
 
     g_mem_set_vtable(&mem_trace);
 
