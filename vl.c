@@ -2749,7 +2749,7 @@ int main(int argc, char **argv, char **envp)
     qemu_init_exec_dir(argv[0]);
     
     for (optind = 1; optind < argc; optind++) {
-        if (strcmp("-verbose",argv[optind]) == 0) {
+        if (strcmp("-verbose", argv[optind]) == 0 || strcmp("--verbose", argv[optind]) == 0) {
             verbosity_level++;
         }
     }
