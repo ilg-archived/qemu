@@ -15,6 +15,8 @@
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
 
+static struct arm_boot_info armv7m_binfo;
+
 /* Bitbanded IO.  Each word corresponds to a single bit.  */
 
 /* Get the byte address of the real memory for a bitband access.  */
@@ -169,7 +171,9 @@ static void armv7m_reset(void *opaque)
 
 qemu_irq *armv7m_init(MemoryRegion *system_memory,
                       int flash_size, int sram_size,
-                      const char *kernel_filename, const char *cpu_model)
+                      const char *kernel_filename,
+                      const char *kernel_cmdline,
+                      const char *cpu_model)
 {
     ARMCPU *cpu;
     CPUARMState *env;
@@ -249,6 +253,12 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
         exit(1);
     }
 
+    // [ILG] Fill-in a minimalistic boot info, required for semihosting
+    armv7m_binfo.kernel_cmdline = kernel_cmdline;
+    armv7m_binfo.kernel_filename = kernel_filename;
+    
+    env->boot_info = &armv7m_binfo;
+
     if (kernel_filename) {
         image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,
                               NULL, big_endian, ELF_MACHINE, 1);
@@ -261,7 +271,7 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
             exit(1);
         }
     }
-
+    
     /* Hack to map an additional page of ram at the top of the address
        space.  This stops qemu complaining about executing code outside RAM
        when returning from an exception.  */

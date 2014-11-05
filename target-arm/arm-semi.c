@@ -58,6 +58,11 @@
 #define TARGET_SYS_HEAPINFO    0x16
 #define TARGET_SYS_EXIT        0x18
 
+// ADP_Stopped_ApplicationExit is used for exit(0),
+// anything else is implemented as exit(1)
+#define ADP_Stopped_ApplicationExit     ((2 << 16) + 38)
+#define ADP_Stopped_RunTimeError        ((2 << 16) + 35)
+
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
@@ -434,11 +439,19 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             GET_ARG(0);
             GET_ARG(1);
             input_size = arg1;
+            
+            // Warning: the kernel file name is not passed, be sure you
+            // manually define argv[0] in the -append option!
+            
+            const char* cmd_line = ts->boot_info->kernel_cmdline;
+            if (cmd_line == NULL) {
+                cmd_line = "";
+            }
+           
             /* Compute the size of the output string.  */
 #if !defined(CONFIG_USER_ONLY)
-            output_size = strlen(ts->boot_info->kernel_filename)
-                        + 1  /* Separating space.  */
-                        + strlen(ts->boot_info->kernel_cmdline)
+            output_size =
+                        + strlen(cmd_line)
                         + 1; /* Terminating null byte.  */
 #else
             unsigned int i;
@@ -470,9 +483,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
 
             /* Copy the command-line arguments.  */
 #if !defined(CONFIG_USER_ONLY)
-            pstrcpy(output_buffer, output_size, ts->boot_info->kernel_filename);
-            pstrcat(output_buffer, output_size, " ");
-            pstrcat(output_buffer, output_size, ts->boot_info->kernel_cmdline);
+            pstrcat(output_buffer, output_size, cmd_line);
 #else
             if (output_size == 1) {
                 /* Empty command-line.  */
@@ -550,9 +561,12 @@ uint32_t do_arm_semihosting(CPUARMState *env)
 #endif
             return 0;
         }
+            
     case TARGET_SYS_EXIT:
-        gdb_exit(env, 0);
-        exit(0);
+        ret = (args == ADP_Stopped_ApplicationExit) ? 0 : 1;
+        gdb_exit(env, ret);
+        exit(ret);
+            
     default:
         fprintf(stderr, "qemu: Unsupported SemiHosting SWI 0x%02x\n", nr);
         cpu_dump_state(cs, stderr, fprintf, 0);

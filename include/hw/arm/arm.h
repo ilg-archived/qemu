@@ -17,7 +17,9 @@
 /* armv7m.c */
 qemu_irq *armv7m_init(MemoryRegion *system_memory,
                       int flash_size, int sram_size,
-                      const char *kernel_filename, const char *cpu_model);
+                      const char *kernel_filename,
+                      const char *kernel_cmdline,
+                      const char *cpu_model);
 
 /* arm_boot.c */
 struct arm_boot_info {

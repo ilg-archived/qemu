@@ -4102,8 +4102,8 @@ int main(int argc, char **argv, char **envp)
 
     linux_boot = (kernel_filename != NULL);
 
-    if (!linux_boot && *kernel_cmdline != '\0') {
-        fprintf(stderr, "-append only allowed with -kernel option\n");
+    if (*kernel_cmdline != '\0' && !linux_boot && !with_gdb) {
+        fprintf(stderr, "-append only allowed with -kernel or -gdb options\n");
         exit(1);
     }
 
