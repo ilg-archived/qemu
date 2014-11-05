@@ -958,7 +958,9 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
             p++;
         hextomem(mem_buf, p, len);
             
-        printf("Write %4d bytes at 0x%08X-0x%08X.\n", len, addr, addr+len-1);
+        if (verbosity_level > 0) {
+            printf("Write %4d bytes at 0x%08X-0x%08X.\n", len, addr, addr+len-1);
+        }
             
         if (target_memory_rw_debug(s->g_cpu, addr, mem_buf, len,
                                    true) != 0) {
@@ -1701,7 +1703,9 @@ int gdbserver_start(const char *device)
     if (!device)
         return -1;
     
-    printf("GDB Server listening on: '%s'...\n", device);
+    if (verbosity_level > 0) {
+        printf("GDB Server listening on: '%s'...\n", device);
+    }
     
     if (strcmp(device, "none") != 0) {
         if (strstart(device, "tcp:", NULL)) {

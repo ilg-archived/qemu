@@ -27,6 +27,9 @@ STEXI
 Display version information and exit
 ETEXI
 
+DEF("verbose", 0, QEMU_OPTION_verbose,
+    "-verbose        increase the verbosity level\n", QEMU_ARCH_ALL)
+
 DEF("machine", HAS_ARG, QEMU_OPTION_machine, \
     "-machine [type=]name[,prop[=value][,...]]\n"
     "                selects emulated machine ('-machine help' for list)\n"

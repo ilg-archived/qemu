@@ -16,6 +16,7 @@
 #include "net/net.h"
 #include "hw/boards.h"
 #include "exec/address-spaces.h"
+#include "sysemu/sysemu.h"
 
 #define GPIO_A 0
 #define GPIO_B 1
@@ -1223,8 +1224,10 @@ static void stellaris_init(const char *kernel_filename, const char *cpu_model,
     flash_size = ((board->dc0 & 0xffff) + 1) << 1;
     sram_size = (board->dc0 >> 18) + 1;
     
-    printf("Board/machine: '%s'.\n", board->name);
-
+    if (verbosity_level > 0) {
+        printf("Board/machine: '%s'.\n", board->name);
+    }
+    
     pic = armv7m_init(get_system_memory(),
                       flash_size, sram_size, kernel_filename, cpu_model);
 

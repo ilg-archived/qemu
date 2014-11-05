@@ -143,6 +143,7 @@ NICInfo nd_table[MAX_NICS];
 int autostart;
 // [ILG]
 int with_gdb = 0;
+int verbosity_level = 0;
 
 static int rtc_utc = 1;
 static int rtc_date_offset = -1; /* -1 means no change */
@@ -1922,6 +1923,7 @@ typedef struct QEMUOption {
 
 static const QEMUOption qemu_options[] = {
     { "h", 0, QEMU_OPTION_h, QEMU_ARCH_ALL },
+    { "verbose", 0, QEMU_OPTION_verbose, QEMU_ARCH_ALL },
 #define QEMU_OPTIONS_GENERATE_OPTIONS
 #include "qemu-options-wrapper.h"
     { NULL },
@@ -2746,8 +2748,15 @@ int main(int argc, char **argv, char **envp)
     error_set_progname(argv[0]);
     qemu_init_exec_dir(argv[0]);
     
-    printf("QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
-
+    for (optind = 1; optind < argc; optind++) {
+        if (strcmp("-verbose",argv[optind]) == 0) {
+            verbosity_level++;
+        }
+    }
+    if (verbosity_level > 0) {
+        printf("QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
+    }
+            
     g_mem_set_vtable(&mem_trace);
 
     module_call_init(MODULE_INIT_QOM);

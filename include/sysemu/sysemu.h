@@ -107,6 +107,7 @@ extern int autostart;
 
 // [ILG]
 extern int with_gdb;
+extern int verbosity_level;
 
 typedef enum {
     VGA_NONE, VGA_STD, VGA_CIRRUS, VGA_VMWARE, VGA_XENFB, VGA_QXL,
