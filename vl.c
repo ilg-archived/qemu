@@ -2754,7 +2754,7 @@ int main(int argc, char **argv, char **envp)
         }
     }
     if (verbosity_level > 0) {
-        printf("QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
+        printf("GNU ARM Eclipse QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
     }
             
     g_mem_set_vtable(&mem_trace);
@@ -4099,7 +4099,7 @@ int main(int argc, char **argv, char **envp)
         kernel_cmdline = "";
         current_machine->kernel_cmdline = (char *)kernel_cmdline;
     }
-
+    
     linux_boot = (kernel_filename != NULL);
 
     if (*kernel_cmdline != '\0' && !linux_boot && !with_gdb) {

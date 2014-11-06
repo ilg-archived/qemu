@@ -2993,7 +2993,7 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
         }
     }
     if (verbosity_level > 0) {
-        printf("... accepted IP: %s.\n\n", inet_ntoa(((struct sockaddr_in*)addr)->sin_addr));
+        printf("... accepted from IP: %s.\n\n", inet_ntoa(((struct sockaddr_in*)addr)->sin_addr));
     }
     
     if (tcp_chr_add_client(chr, fd) < 0)

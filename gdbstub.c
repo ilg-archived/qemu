@@ -958,7 +958,7 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
             p++;
         hextomem(mem_buf, p, len);
             
-        if (verbosity_level > 0) {
+        if (verbosity_level > 1) {
             printf("Write %4d bytes at 0x%08X-0x%08X.\n", len, addr, addr+len-1);
         }
             

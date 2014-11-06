@@ -203,9 +203,12 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
     env = &cpu->env;
 
     if (verbosity_level > 0) {
-        printf("Core: '%s', flash: %dKB, RAM: %dKB.\n", cpu_model, flash_size/1024, sram_size/1024);
+        printf("Core: '%s', flash: %d KB, RAM: %d KB.\n", cpu_model, flash_size/1024, sram_size/1024);
         if (kernel_filename){
             printf("Image: '%s'.\n", kernel_filename);
+        }
+        if (kernel_cmdline != NULL) {
+            printf("Command line: '%s' (%u bytes).\n", kernel_cmdline, strlen(kernel_cmdline));
         }
     }
 
