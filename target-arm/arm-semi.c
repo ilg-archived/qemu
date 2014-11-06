@@ -483,7 +483,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
 
             /* Copy the command-line arguments.  */
 #if !defined(CONFIG_USER_ONLY)
-            pstrcat(output_buffer, output_size, cmd_line);
+            pstrcpy(output_buffer, output_size, cmd_line);
 #else
             if (output_size == 1) {
                 /* Empty command-line.  */
