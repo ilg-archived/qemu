@@ -12,6 +12,10 @@
 #include "qemu/bitmap.h"
 #include "qom/object.h"
 
+#ifdef __MINGW32__
+#include "mingw-patch.h"
+#endif
+
 /* vl.c */
 
 extern const char *bios_name;

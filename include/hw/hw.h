@@ -14,6 +14,10 @@
 #include "migration/vmstate.h"
 #include "qemu/log.h"
 
+#ifdef __MINGW32__
+#include "mingw-patch.h"
+#endif
+
 #ifdef NEED_CPU_H
 #if TARGET_LONG_BITS == 64
 #define qemu_put_betl qemu_put_be64

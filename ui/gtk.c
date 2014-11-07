@@ -35,7 +35,13 @@
 #define LOCALEDIR "po"
 
 #ifdef _WIN32
+
 # define _WIN32_WINNT 0x0601 /* needed to get definition of MAPVK_VK_TO_VSC */
+
+#if !defined(MAPVK_VK_TO_VSC)
+#define MAPVK_VK_TO_VSC  0
+#endif
+
 #endif
 
 #include "qemu-common.h"

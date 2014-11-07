@@ -18,6 +18,10 @@
 #include "qapi/qmp/qerror.h"
 #include "migration/migration.h"
 
+#ifdef __MINGW32__
+#include "mingw-patch.h"
+#endif
+
 static const AIOCBInfo qed_aiocb_info = {
     .aiocb_size         = sizeof(QEDAIOCB),
 };
