@@ -124,6 +124,9 @@ int main(int argc, char **argv)
 #define MAX_VIRTIO_CONSOLES 1
 #define MAX_SCLP_CONSOLES 1
 
+// [ILG]
+#define BRANDING "GNU ARM Eclipse "
+
 static const char *data_dir[16];
 static int data_dir_idx;
 const char *bios_name = NULL;
@@ -1889,7 +1892,7 @@ static void main_loop(void)
 
 static void version(void)
 {
-    printf("QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION ", Copyright (c) 2003-2008 Fabrice Bellard\n");
+    printf(BRANDING "QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION ", Copyright (c) 2003-2008 Fabrice Bellard\n");
 }
 
 static void help(int exitcode)
@@ -2754,7 +2757,7 @@ int main(int argc, char **argv, char **envp)
         }
     }
     if (verbosity_level > 0) {
-        printf("GNU ARM Eclipse QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
+        printf(BRANDING "QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
     }
             
     g_mem_set_vtable(&mem_trace);
