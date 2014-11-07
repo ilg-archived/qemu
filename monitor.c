@@ -4119,6 +4119,9 @@ static void handle_user_command(Monitor *mon, const char *cmdline)
             qobject_decref(data);
         }
     } else {
+        if (verbosity_level > 0) {
+            printf("Execute 'mon %s'.\n", cmdline);
+        }
         cmd->mhandler.cmd(mon, qdict);
     }
 
