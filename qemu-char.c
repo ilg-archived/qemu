@@ -2963,13 +2963,15 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
 {
     CharDriverState *chr = opaque;
     TCPCharDriver *s = chr->opaque;
-    struct sockaddr_in saddr;
+    struct sockaddr_in6 saddr;
 #ifndef _WIN32
     struct sockaddr_un uaddr;
 #endif
     struct sockaddr *addr;
     socklen_t len;
     int fd;
+
+    char str[INET6_ADDRSTRLEN];
 
     for(;;) {
 #ifndef _WIN32
@@ -2992,8 +2994,18 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
             break;
         }
     }
+    
     if (verbosity_level > 0) {
-        printf("... accepted from IP: %s.\n\n", inet_ntoa(((struct sockaddr_in*)addr)->sin_addr));
+        str[0] = '\0';
+        if (addr->sa_family == AF_INET) {
+            inet_ntop(AF_INET, &(((struct sockaddr_in*)addr)->sin_addr), str, sizeof(str));
+        } else if (addr->sa_family == AF_INET6) {
+            inet_ntop(AF_INET6, &saddr.sin6_addr, str, sizeof(str));
+        }
+        
+        if (strlen(str) > 0) {
+            printf("... accepted from IP: %s.\n\n", str);
+        }
     }
     
     if (tcp_chr_add_client(chr, fd) < 0)
