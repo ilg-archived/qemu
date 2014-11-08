@@ -2579,11 +2579,27 @@ or in multiboot format.
 ETEXI
 
 DEF("append", HAS_ARG, QEMU_OPTION_append, \
-    "-append cmdline use 'cmdline' as kernel command line\n", QEMU_ARCH_ALL)
+    "-append args use 'args' as kernel command line\n", QEMU_ARCH_ALL)
 STEXI
-@item -append @var{cmdline}
+@item -append @var{args}
 @findex -append
-Use @var{cmdline} as kernel command line
+Use @var{args} as kernel command line.
+ETEXI
+
+DEF("load", HAS_ARG, QEMU_OPTION_load, \
+"-load elf use 'elf' as emulated program\n", QEMU_ARCH_ALL)
+STEXI
+@item -load @var{elf}
+@findex -load
+Use @var{elf} as image to emulate. The .text section will be loaded in the flash section.
+ETEXI
+
+DEF("cmdline", HAS_ARG, QEMU_OPTION_cmdline, \
+"-cmdline args use 'args' as emulated program command line\n", QEMU_ARCH_ALL)
+STEXI
+@item -append @var{args}
+@findex -append
+Use @var{args} as emulated program command line.
 ETEXI
 
 DEF("initrd", HAS_ARG, QEMU_OPTION_initrd, \

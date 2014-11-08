@@ -3018,10 +3018,16 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_kernel:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "kernel", optarg);
                 break;
+            case QEMU_OPTION_load:
+                qemu_opts_set(qemu_find_opts("machine"), 0, "kernel", optarg);
+                break;
             case QEMU_OPTION_initrd:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "initrd", optarg);
                 break;
             case QEMU_OPTION_append:
+                qemu_opts_set(qemu_find_opts("machine"), 0, "append", optarg);
+                break;
+            case QEMU_OPTION_cmdline:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "append", optarg);
                 break;
             case QEMU_OPTION_dtb:
