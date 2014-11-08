@@ -576,13 +576,29 @@ fail:
 
 static void inet_addr_to_opts(QemuOpts *opts, const InetSocketAddress *addr)
 {
-    bool ipv4 = addr->ipv4 || !addr->has_ipv4;
-    bool ipv6 = addr->ipv6 || !addr->has_ipv6;
-
-    if (!ipv4 || !ipv6) {
-        qemu_opt_set_bool(opts, "ipv4", ipv4);
-        qemu_opt_set_bool(opts, "ipv6", ipv6);
+    // [ILG]
+    // bool ipv4 = addr->ipv4 || !addr->has_ipv4;
+    // bool ipv6 = addr->ipv6 || !addr->has_ipv6;
+    //
+    // if (!ipv4 || !ipv6) {
+    //     qemu_opt_set_bool(opts, "ipv4", ipv4);
+    //     qemu_opt_set_bool(opts, "ipv6", ipv6);
+    // }
+    
+    if (!addr->has_ipv4 && !addr->has_ipv6) {
+#if defined(__MINGW32__)
+        // If none present, default to ipv4 on windows, otherwise
+        // leave it unspecified, on unix both are enabled.
+        qemu_opt_set_bool(opts, "ipv4", true);
+#else
+        // None, the defaults should enable both
+#endif
+    } else if (addr->has_ipv6) {
+        qemu_opt_set_bool(opts, "ipv6", addr->ipv6);
+    } else if (addr->has_ipv4) {
+        qemu_opt_set_bool(opts, "ipv4", addr->ipv4);
     }
+
     if (addr->has_to) {
         char to[20];
         snprintf(to, sizeof(to), "%d", addr->to);

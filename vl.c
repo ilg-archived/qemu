@@ -3198,6 +3198,7 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_s:
                 add_device_config(DEV_GDB, "tcp::" DEFAULT_GDBSTUB_PORT);
+                with_gdb = 1;
                 break;
             case QEMU_OPTION_gdb:
                 add_device_config(DEV_GDB, optarg);
