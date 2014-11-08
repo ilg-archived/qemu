@@ -2998,13 +2998,17 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
     if (verbosity_level > 0) {
         str[0] = '\0';
         if (addr->sa_family == AF_INET) {
-            inet_ntop(AF_INET, &(((struct sockaddr_in*)addr)->sin_addr), str, sizeof(str));
+            strcpy(str, inet_ntoa(((struct sockaddr_in*)addr)->sin_addr));
         } else if (addr->sa_family == AF_INET6) {
+#if defined(__MINGW32__)
+            strcpy(str, "ipv6 host");
+#else
             inet_ntop(AF_INET6, &saddr.sin6_addr, str, sizeof(str));
+#endif
         }
         
         if (strlen(str) > 0) {
-            printf("... accepted from IP: %s.\n\n", str);
+            printf("... connection accepted from %s.\n\n", str);
         }
     }
     
