@@ -208,7 +208,7 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
             printf("Image: '%s'.\n", kernel_filename);
         }
         if (kernel_cmdline != NULL) {
-            printf("Command line: '%s' (%u bytes).\n", kernel_cmdline, strlen(kernel_cmdline));
+            printf("Command line: '%s' (%d bytes).\n", kernel_cmdline, (int)strlen(kernel_cmdline));
         }
     }
 
