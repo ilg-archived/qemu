@@ -2597,8 +2597,8 @@ ETEXI
 DEF("cmdline", HAS_ARG, QEMU_OPTION_cmdline, \
 "-cmdline args use 'args' as emulated program command line\n", QEMU_ARCH_ALL)
 STEXI
-@item -append @var{args}
-@findex -append
+@item -cmdline @var{args}
+@findex -cmdline
 Use @var{args} as emulated program command line.
 ETEXI
 
