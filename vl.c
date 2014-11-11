@@ -124,9 +124,6 @@ int main(int argc, char **argv)
 #define MAX_VIRTIO_CONSOLES 1
 #define MAX_SCLP_CONSOLES 1
 
-// [ILG]
-#define BRANDING "GNU ARM Eclipse "
-
 static const char *data_dir[16];
 static int data_dir_idx;
 const char *bios_name = NULL;
@@ -146,7 +143,9 @@ NICInfo nd_table[MAX_NICS];
 int autostart;
 // [ILG]
 int with_gdb = 0;
+#if defined(CONFIG_VERBOSE)
 int verbosity_level = 0;
+#endif
 
 static int rtc_utc = 1;
 static int rtc_date_offset = -1; /* -1 means no change */
@@ -1898,7 +1897,11 @@ static void main_loop(void)
 
 static void version(void)
 {
-    printf(BRANDING "QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION ", Copyright (c) 2003-2008 Fabrice Bellard\n");
+    printf(
+#if defined(CONFIG_BRANDING_MESSAGE)
+           CONFIG_BRANDING_MESSAGE " "
+#endif
+           "QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION ", Copyright (c) 2003-2008 Fabrice Bellard\n");
 }
 
 static void help(int exitcode)
@@ -2792,15 +2795,21 @@ int main(int argc, char **argv, char **envp)
     error_set_progname(argv[0]);
     qemu_init_exec_dir(argv[0]);
     
+#if defined(CONFIG_VERBOSE)
     for (optind = 1; optind < argc; optind++) {
         if (strcmp("-verbose", argv[optind]) == 0 || strcmp("--verbose", argv[optind]) == 0) {
             verbosity_level++;
         }
     }
     if (verbosity_level > 0) {
-        printf(BRANDING "QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
+        printf(
+#if defined(CONFIG_BRANDING_MESSAGE)
+               CONFIG_BRANDING_MESSAGE " "
+#endif
+               "QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
     }
-            
+#endif
+    
     g_mem_set_vtable(&mem_trace);
 
     module_call_init(MODULE_INIT_QOM);

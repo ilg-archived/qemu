@@ -111,7 +111,9 @@ extern int autostart;
 
 // [ILG]
 extern int with_gdb;
+#if defined(CONFIG_VERBOSE)
 extern int verbosity_level;
+#endif
 
 typedef enum {
     VGA_NONE, VGA_STD, VGA_CIRRUS, VGA_VMWARE, VGA_XENFB, VGA_QXL,

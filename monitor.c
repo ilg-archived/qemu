@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "config.h"
 #include <dirent.h>
 #include "hw/hw.h"
 #include "monitor/qdev.h"
@@ -4119,9 +4120,11 @@ static void handle_user_command(Monitor *mon, const char *cmdline)
             qobject_decref(data);
         }
     } else {
+#if defined(CONFIG_VERBOSE)
         if (verbosity_level > 0) {
             printf("Execute 'mon %s'.\n", cmdline);
         }
+#endif
         cmd->mhandler.cmd(mon, qdict);
     }
 

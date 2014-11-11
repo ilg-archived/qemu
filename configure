@@ -336,6 +336,10 @@ vhdx=""
 quorum=""
 numa=""
 
+branding_message=""
+semihosting_native="no"
+verbose="no"
+
 # parse CC options first
 for opt do
   optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
@@ -749,6 +753,9 @@ case $target_list in
     tpm="no"
     want_tools="no"
     guest_agent="no"
+    semihosting_native="yes"
+    verbose="yes"
+    branding_message="GNU ARM Eclipse"
     ;;
 esac
 
@@ -5370,6 +5377,18 @@ fi
 
 if test "$numa" = "yes"; then
   echo "CONFIG_NUMA=y" >> $config_host_mak
+fi
+
+if test "$verbose" = "yes"; then
+  echo "CONFIG_VERBOSE=y" >> $config_host_mak
+fi
+
+if test "$semihosting_native" = "yes"; then
+  echo "CONFIG_SEMIHOSTING_NATIVE=y" >> $config_host_mak
+fi
+
+if test ! -z "$branding_message"; then
+  echo "CONFIG_BRANDING_MESSAGE=\"$branding_message\"" >> $config_host_mak
 fi
 
 # build tree in object directory in case the source is not in the current directory

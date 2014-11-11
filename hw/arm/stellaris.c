@@ -6,7 +6,7 @@
  *
  * This code is licensed under the GPL.
  */
-
+#include "config.h"
 #include "hw/sysbus.h"
 #include "hw/ssi.h"
 #include "hw/arm/arm.h"
@@ -1226,9 +1226,11 @@ static void stellaris_init(const char *kernel_filename,
     flash_size = ((board->dc0 & 0xffff) + 1) << 1;
     sram_size = (board->dc0 >> 18) + 1;
     
+#if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
         printf("Board/machine: '%s'.\n", board->name);
     }
+#endif
     
     pic = armv7m_init(get_system_memory(),
                       flash_size, sram_size, kernel_filename, kernel_cmdline, cpu_model);

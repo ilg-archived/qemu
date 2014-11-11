@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "config-host.h"
 #include "qemu-common.h"
 #include "monitor/monitor.h"
 #include "sysemu/sysemu.h"
@@ -2995,6 +2996,7 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
         }
     }
     
+#if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
         str[0] = '\0';
         if (addr->sa_family == AF_INET) {
@@ -3011,6 +3013,7 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
             printf("... connection accepted from %s.\n\n", str);
         }
     }
+#endif
     
     if (tcp_chr_add_client(chr, fd) < 0)
 	close(fd);

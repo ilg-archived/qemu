@@ -7,6 +7,7 @@
  * This code is licensed under the GPL.
  */
 
+#include "config.h"
 #include "hw/sysbus.h"
 #include "hw/arm/arm.h"
 #include "hw/loader.h"
@@ -202,6 +203,7 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
     }
     env = &cpu->env;
 
+#if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
         printf("Core: '%s', flash: %d KB, RAM: %d KB.\n", cpu_model, flash_size/1024, sram_size/1024);
         if (kernel_filename){
@@ -211,6 +213,7 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
             printf("Command line: '%s' (%d bytes).\n", kernel_cmdline, (int)strlen(kernel_cmdline));
         }
     }
+#endif
 
 #if 0
     /* > 32Mb SRAM gets complicated because it overlaps the bitband area.
