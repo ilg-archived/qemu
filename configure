@@ -723,6 +723,36 @@ fi
 werror=""
 
 for opt do
+optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
+case $opt in
+  --target-list=*) target_list="$optarg"
+  ;;
+esac
+done
+
+case $target_list in
+  gnuarmeclipse-softmmu)
+    debug_tcg="yes"
+    debug="yes"
+    strip_opt="no"
+    gtk="no"
+    vnc="no"
+    sdl="no"
+    cocoa="no"
+    xen="no"
+    audio_drv_list=""
+    blobs="no"
+    vhdx="no"
+    uuid="no"
+    curses="no"
+    curl="no"
+    tpm="no"
+    want_tools="no"
+    guest_agent="no"
+    ;;
+esac
+
+for opt do
   optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
   case "$opt" in
   --help|-h) show_help=yes
