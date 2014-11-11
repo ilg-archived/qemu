@@ -3903,9 +3903,9 @@ typedef struct BdrvCoGetBlockStatusData {
 } BdrvCoGetBlockStatusData;
 
 /*
- * Returns true iff the specified sector is present in the disk image. Drivers
- * not implementing the functionality are assumed to not support backing files,
- * hence all their sectors are reported as allocated.
+ * Returns the allocation status of the specified sectors.
+ * Drivers not implementing the functionality are assumed to not support
+ * backing files, hence all their sectors are reported as allocated.
  *
  * If 'sector_num' is beyond the end of the disk image the return value is 0
  * and 'pnum' is set to 0.
@@ -5608,11 +5608,6 @@ void bdrv_img_create(const char *filename, const char *fmt,
             ret = bdrv_open(&bs, backing_file, NULL, NULL, back_flags,
                             backing_drv, &local_err);
             if (ret < 0) {
-                error_setg_errno(errp, -ret, "Could not open '%s': %s",
-                                 backing_file,
-                                 error_get_pretty(local_err));
-                error_free(local_err);
-                local_err = NULL;
                 goto out;
             }
             size = bdrv_getlength(bs);
