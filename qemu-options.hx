@@ -2579,27 +2579,11 @@ or in multiboot format.
 ETEXI
 
 DEF("append", HAS_ARG, QEMU_OPTION_append, \
-    "-append args use 'args' as kernel command line\n", QEMU_ARCH_ALL)
+    "-append cmdline use 'cmdline' as kernel command line\n", QEMU_ARCH_ALL)
 STEXI
-@item -append @var{args}
+@item -append @var{cmdline}
 @findex -append
-Use @var{args} as kernel command line.
-ETEXI
-
-DEF("load", HAS_ARG, QEMU_OPTION_load, \
-"-load elf use 'elf' as emulated program\n", QEMU_ARCH_ALL)
-STEXI
-@item -load @var{elf}
-@findex -load
-Use @var{elf} as image to emulate. The .text section will be loaded in the flash section.
-ETEXI
-
-DEF("cmdline", HAS_ARG, QEMU_OPTION_cmdline, \
-"-cmdline args use 'args' as emulated program command line\n", QEMU_ARCH_ALL)
-STEXI
-@item -cmdline @var{args}
-@findex -cmdline
-Use @var{args} as emulated program command line.
+Use @var{cmdline} as kernel command line
 ETEXI
 
 DEF("initrd", HAS_ARG, QEMU_OPTION_initrd, \
@@ -3235,7 +3219,21 @@ DEF("semihosting", 0, QEMU_OPTION_semihosting,
 STEXI
 @item -semihosting
 @findex -semihosting
-Semihosting mode (ARM, M68K, Xtensa only).
+Enable semihosting mode (ARM, M68K, Xtensa only).
+ETEXI
+DEF("semihosting-config", HAS_ARG, QEMU_OPTION_semihosting_config,
+    "-semihosting-config [enable=on|off,]target=native|gdb|auto[,cmdline=string]   semihosting configuration\n",
+QEMU_ARCH_ARM | QEMU_ARCH_M68K | QEMU_ARCH_XTENSA | QEMU_ARCH_LM32)
+STEXI
+@item -semihosting-config [enable=on|off,]target=native|gdb|auto[,cmdline=string]
+@findex -semihosting-config
+Enable semihosting and define where the semihosting calls will be addressed,
+to QEMU (@code{native}) or to GDB (@code{gdb}). The default is @code{auto}, which means
+@code{gdb} during debug sessions and @code{native} otherwise. The optional
+@code{cmdline} defines the entire command line passed to the application via the
+semihosting SYS_GET_CMDLINE call, including the program name that will be
+passed as argv[0].
+(ARM, M68K, Xtensa only)
 ETEXI
 DEF("old-param", 0, QEMU_OPTION_old_param,
     "-old-param      old param mode\n", QEMU_ARCH_ARM)

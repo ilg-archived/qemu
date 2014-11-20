@@ -128,9 +128,7 @@ static const char *data_dir[16];
 static int data_dir_idx;
 const char *bios_name = NULL;
 enum vga_retrace_method vga_retrace_method = VGA_RETRACE_DUMB;
-
 DisplayType display_type = DT_DEFAULT;
-
 static int display_remote;
 const char* keyboard_layout = NULL;
 ram_addr_t ram_size;
@@ -139,14 +137,11 @@ int mem_prealloc = 0; /* force preallocation of physical target memory */
 bool enable_mlock = false;
 int nb_nics;
 NICInfo nd_table[MAX_NICS];
-
 int autostart;
-// [ILG]
-int with_gdb = 0;
+int with_gdb;
 #if defined(CONFIG_VERBOSE)
 int verbosity_level = 0;
 #endif
-
 static int rtc_utc = 1;
 static int rtc_date_offset = -1; /* -1 means no change */
 QEMUClockType rtc_clock;
@@ -558,6 +553,26 @@ static QemuOptsList qemu_icount_opts = {
         }, {
             .name = "align",
             .type = QEMU_OPT_BOOL,
+        },
+        { /* end of list */ }
+    },
+};
+
+static QemuOptsList qemu_semihosting_config_opts = {
+    .name = "semihosting-config",
+    .implied_opt_name = "enable",
+    .merge_lists = true,
+    .head = QTAILQ_HEAD_INITIALIZER(qemu_semihosting_config_opts.head),
+    .desc = {
+        {
+            .name = "enable",
+            .type = QEMU_OPT_BOOL,
+        }, {
+            .name = "target",
+            .type = QEMU_OPT_STRING,
+        }, {
+            .name = "cmdline",
+            .type = QEMU_OPT_STRING,
         },
         { /* end of list */ }
     },
@@ -2790,11 +2805,12 @@ int main(int argc, char **argv, char **envp)
     uint64_t ram_slots = 0;
     FILE *vmstate_dump_file = NULL;
     Error *main_loop_err = NULL;
+    with_gdb = false;
 
     atexit(qemu_run_exit_notifiers);
     error_set_progname(argv[0]);
     qemu_init_exec_dir(argv[0]);
-    
+
 #if defined(CONFIG_VERBOSE)
     for (optind = 1; optind < argc; optind++) {
         if (strcmp("-verbose", argv[optind]) == 0 || strcmp("--verbose", argv[optind]) == 0) {
@@ -2809,7 +2825,7 @@ int main(int argc, char **argv, char **envp)
                "QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
     }
 #endif
-    
+
     g_mem_set_vtable(&mem_trace);
 
     module_call_init(MODULE_INIT_QOM);
@@ -2840,6 +2856,7 @@ int main(int argc, char **argv, char **envp)
     qemu_add_opts(&qemu_name_opts);
     qemu_add_opts(&qemu_numa_opts);
     qemu_add_opts(&qemu_icount_opts);
+    qemu_add_opts(&qemu_semihosting_config_opts);
 
     runstate_init();
 
@@ -3068,16 +3085,10 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_kernel:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "kernel", optarg);
                 break;
-            case QEMU_OPTION_load:
-                qemu_opts_set(qemu_find_opts("machine"), 0, "kernel", optarg);
-                break;
             case QEMU_OPTION_initrd:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "initrd", optarg);
                 break;
             case QEMU_OPTION_append:
-                qemu_opts_set(qemu_find_opts("machine"), 0, "append", optarg);
-                break;
-            case QEMU_OPTION_cmdline:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "append", optarg);
                 break;
             case QEMU_OPTION_dtb:
@@ -3254,11 +3265,11 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_s:
                 add_device_config(DEV_GDB, "tcp::" DEFAULT_GDBSTUB_PORT);
-                with_gdb = 1;
+                with_gdb = true;
                 break;
             case QEMU_OPTION_gdb:
                 add_device_config(DEV_GDB, optarg);
-                with_gdb = 1;
+                with_gdb = true;
                 break;
             case QEMU_OPTION_L:
                 if (data_dir_idx < ARRAY_SIZE(data_dir)) {
@@ -3655,6 +3666,37 @@ int main(int argc, char **argv, char **envp)
 		break;
             case QEMU_OPTION_semihosting:
                 semihosting_enabled = 1;
+                semihosting_target = SEMIHOSTING_TARGET_AUTO;
+                break;
+            case QEMU_OPTION_semihosting_config:
+                semihosting_enabled = 1;
+                opts = qemu_opts_parse(qemu_find_opts("semihosting-config"),
+                                           optarg, 0);
+                if (opts != NULL) {
+                    semihosting_enabled = qemu_opt_get_bool(opts, "enable",
+                                                            true);
+                    const char *target = qemu_opt_get(opts, "target");
+                    if (target != NULL) {
+                        if (strcmp("native", target) == 0) {
+                            semihosting_target = SEMIHOSTING_TARGET_NATIVE;
+                        } else if (strcmp("gdb", target) == 0) {
+                            semihosting_target = SEMIHOSTING_TARGET_GDB;
+                        } else  if (strcmp("auto", target) == 0) {
+                            semihosting_target = SEMIHOSTING_TARGET_AUTO;
+                        } else {
+                            fprintf(stderr, "Unsupported semihosting-config"
+                                    " %s\n",
+                                optarg);
+                            exit(1);
+                        }
+                    } else {
+                        semihosting_target = SEMIHOSTING_TARGET_AUTO;
+                    }
+                } else {
+                    fprintf(stderr, "Unsupported semihosting-config %s\n",
+                            optarg);
+                    exit(1);
+                }
                 break;
             case QEMU_OPTION_tdf:
                 fprintf(stderr, "Warning: user space PIT time drift fix "
@@ -4017,8 +4059,7 @@ int main(int argc, char **argv, char **envp)
         if (default_parallel)
             add_device_config(DEV_PARALLEL, "null");
         if (default_serial && default_monitor) {
-            // [ILG] add_device_config(DEV_SERIAL, "mon:stdio");
-            add_device_config(DEV_SERIAL, "null");
+            add_device_config(DEV_SERIAL, "mon:stdio");
         } else if (default_virtcon && default_monitor) {
             add_device_config(DEV_VIRTCON, "mon:stdio");
         } else if (default_sclp && default_monitor) {
@@ -4031,10 +4072,8 @@ int main(int argc, char **argv, char **envp)
             if (default_sclp) {
                 add_device_config(DEV_SCLP, "stdio");
             }
-            if (default_monitor) {
-                // [ILG] monitor_parse("stdio", "readline");
-                monitor_parse("null", "readline");
-            }
+            if (default_monitor)
+                monitor_parse("stdio", "readline");
         }
     } else {
         if (default_serial)
@@ -4159,11 +4198,11 @@ int main(int argc, char **argv, char **envp)
         kernel_cmdline = "";
         current_machine->kernel_cmdline = (char *)kernel_cmdline;
     }
-    
+
     linux_boot = (kernel_filename != NULL);
 
-    if (*kernel_cmdline != '\0' && !linux_boot && !with_gdb) {
-        fprintf(stderr, "-append only allowed with -kernel or -gdb options\n");
+    if (!linux_boot && *kernel_cmdline != '\0') {
+        fprintf(stderr, "-append only allowed with -kernel option\n");
         exit(1);
     }
 
@@ -4426,6 +4465,7 @@ int main(int argc, char **argv, char **envp)
             exit(1);
         }
     } else if (autostart && kernel_filename) {
+        /* If an image is defined and no -S is requested, start it. */
         vm_start();
     }
 

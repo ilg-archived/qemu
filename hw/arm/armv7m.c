@@ -15,6 +15,9 @@
 #include "sysemu/qtest.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
+#include "hw/boards.h"
+#include "qemu/option.h"
+#include "qemu/config-file.h"
 
 static struct arm_boot_info armv7m_binfo;
 
@@ -172,9 +175,7 @@ static void armv7m_reset(void *opaque)
 
 qemu_irq *armv7m_init(MemoryRegion *system_memory,
                       int flash_size, int sram_size,
-                      const char *kernel_filename,
-                      const char *kernel_cmdline,
-                      const char *cpu_model)
+                      MachineState *machine)
 {
     ARMCPU *cpu;
     CPUARMState *env;
@@ -189,6 +190,10 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
     MemoryRegion *sram = g_new(MemoryRegion, 1);
     MemoryRegion *flash = g_new(MemoryRegion, 1);
     MemoryRegion *hack = g_new(MemoryRegion, 1);
+
+    const char *kernel_filename = machine->kernel_filename;
+    const char *kernel_cmdline = machine->kernel_cmdline;
+    const char *cpu_model = machine->cpu_model;
 
     flash_size *= 1024;
     sram_size *= 1024;
@@ -205,12 +210,23 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
+        QemuOpts *opts;
+        const char *cmdline;
+        
         printf("Core: '%s', flash: %d KB, RAM: %d KB.\n", cpu_model, flash_size/1024, sram_size/1024);
         if (kernel_filename){
             printf("Image: '%s'.\n", kernel_filename);
         }
-        if (kernel_cmdline != NULL) {
-            printf("Command line: '%s' (%d bytes).\n", kernel_cmdline, (int)strlen(kernel_cmdline));
+        
+        opts = qemu_opts_find(qemu_find_opts("semihosting-config"), NULL);
+        cmdline = qemu_opt_get(opts, "cmdline");
+        
+        if (cmdline == NULL) {
+            cmdline = kernel_cmdline;
+        }
+
+        if (cmdline != NULL) {
+            printf("Command line: '%s' (%d bytes).\n", cmdline, (int)strlen(cmdline));
         }
     }
 #endif
@@ -253,15 +269,14 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
     big_endian = 0;
 #endif
 
-    // [ILG] if (!kernel_filename && !qtest_enabled()) {
     if (!kernel_filename && !qtest_enabled() && !with_gdb) {
         fprintf(stderr, "Guest image must be specified (using -kernel)\n");
         exit(1);
     }
 
-    // [ILG] Fill-in a minimalistic boot info, required for semihosting
+    /* Fill-in a minimalistic boot info, required for semihosting */
     armv7m_binfo.kernel_cmdline = kernel_cmdline;
-    armv7m_binfo.kernel_filename = kernel_filename;
+    armv7m_binfo.kernel_filename = machine->kernel_cmdline;
     
     env->boot_info = &armv7m_binfo;
 
@@ -277,7 +292,7 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
             exit(1);
         }
     }
-    
+
     /* Hack to map an additional page of ram at the top of the address
        space.  This stops qemu complaining about executing code outside RAM
        when returning from an exception.  */

@@ -317,6 +317,8 @@ static GDBState *gdbserver_state;
 
 bool gdb_has_xml;
 
+int semihosting_target = SEMIHOSTING_TARGET_AUTO;
+
 #ifdef CONFIG_USER_ONLY
 /* XXX: This is not thread safe.  Do we care?  */
 static int gdbserver_fd = -1;
@@ -351,23 +353,24 @@ static enum {
     GDB_SYS_DISABLED,
 } gdb_syscall_mode;
 
-/* If gdb is connected when the first semihosting syscall occurs then use
-   remote gdb syscalls.  Otherwise use native file IO.  */
+/* Decide if either remote gdb syscalls or native file IO should be used. */
 int use_gdb_syscalls(void)
 {
-#if !defined(CONFIG_SEMIHOSTING_NATIVE)
+    if (semihosting_target == SEMIHOSTING_TARGET_NATIVE) {
+        /* -semihosting-config target=native */
+        return false;
+    } else if (semihosting_target == SEMIHOSTING_TARGET_GDB) {
+        /* -semihosting-config target=gdb */
+        return true;
+    }
+
+    /* -semihosting-config target=auto */
+    /* On the first call check if gdb is connected and remember. */
     if (gdb_syscall_mode == GDB_SYS_UNKNOWN) {
         gdb_syscall_mode = (gdbserver_state ? GDB_SYS_ENABLED
                                             : GDB_SYS_DISABLED);
     }
     return gdb_syscall_mode == GDB_SYS_ENABLED;
-#else
-    // Make semihosting always use native file IO.
-    if (gdb_syscall_mode == GDB_SYS_UNKNOWN) {
-        gdb_syscall_mode = GDB_SYS_DISABLED;
-    }
-    return FALSE;
-#endif
 }
 
 /* Resume execution.  */
@@ -959,13 +962,13 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
         if (*p == ':')
             p++;
         hextomem(mem_buf, p, len);
-            
+
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level > 1) {
             printf("Write %4d bytes at 0x%08X-0x%08X.\n", len, addr, addr+len-1);
         }
 #endif
-            
+
         if (target_memory_rw_debug(s->g_cpu, addr, mem_buf, len,
                                    true) != 0) {
             put_packet(s, "E14");
@@ -1706,13 +1709,13 @@ int gdbserver_start(const char *device)
 
     if (!device)
         return -1;
-    
+
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
         printf("GDB Server listening on: '%s'...\n", device);
     }
 #endif
-    
+
     if (strcmp(device, "none") != 0) {
         if (strstart(device, "tcp:", NULL)) {
             /* enforce required TCP attributes */
