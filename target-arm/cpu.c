@@ -259,6 +259,12 @@ static bool arm_v7m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
     }
     return ret;
 }
+
+static bool arm_v6m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
+{
+    /* TODO: check v6m differences. */
+    return arm_v7m_cpu_exec_interrupt(cs, interrupt_request);
+}
 #endif
 
 #ifndef CONFIG_USER_ONLY
@@ -687,24 +693,91 @@ static void arm11mpcore_initfn(Object *obj)
     cpu->reset_auxcr = 1;
 }
 
+/* armv6-m profiles */
+
+static void arm_v6m_class_init(ObjectClass *oc, void *data)
+{
+    CPUClass *cc = CPU_CLASS(oc);
+    
+#ifndef CONFIG_USER_ONLY
+    cc->do_interrupt = arm_v6m_cpu_do_interrupt;
+#endif
+    
+    cc->cpu_exec_interrupt = arm_v6m_cpu_exec_interrupt;
+}
+
+static void cortex_m0_initfn(Object *obj)
+{
+    ARMCPU *cpu = ARM_CPU(obj);
+    set_feature(&cpu->env, ARM_FEATURE_V6);
+    /* TODO: check if V6 works with M */
+    set_feature(&cpu->env, ARM_FEATURE_M);
+    cpu->midr = 0x410CC200; /* M0, r0p0 */
+}
+
+static void cortex_m0p_initfn(Object *obj)
+{
+    ARMCPU *cpu = ARM_CPU(obj);
+    set_feature(&cpu->env, ARM_FEATURE_V6);
+    /* TODO: check if V6 works with M */
+    set_feature(&cpu->env, ARM_FEATURE_M);
+    cpu->midr = 0x410CC601; /* M0+, r0p1 */
+}
+
+static void cortex_m1_initfn(Object *obj)
+{
+    ARMCPU *cpu = ARM_CPU(obj);
+    set_feature(&cpu->env, ARM_FEATURE_V6);
+    /* TODO: check if V6 works with M */
+    set_feature(&cpu->env, ARM_FEATURE_M);
+    cpu->midr = 0x411CC210; /* M1, r1p0 */
+}
+
+/* armv7-m profiles */
+
+static void arm_v7m_class_init(ObjectClass *oc, void *data)
+{
+    CPUClass *cc = CPU_CLASS(oc);
+    
+#ifndef CONFIG_USER_ONLY
+    cc->do_interrupt = arm_v7m_cpu_do_interrupt;
+#endif
+    
+    cc->cpu_exec_interrupt = arm_v7m_cpu_exec_interrupt;
+}
+
 static void cortex_m3_initfn(Object *obj)
 {
     ARMCPU *cpu = ARM_CPU(obj);
     set_feature(&cpu->env, ARM_FEATURE_V7);
     set_feature(&cpu->env, ARM_FEATURE_M);
-    cpu->midr = 0x410fc231;
+    cpu->midr = 0x410FC231; /* M3, r0p1 */
 }
 
-static void arm_v7m_class_init(ObjectClass *oc, void *data)
+static void cortex_m4_initfn(Object *obj)
 {
-    CPUClass *cc = CPU_CLASS(oc);
-
-#ifndef CONFIG_USER_ONLY
-    cc->do_interrupt = arm_v7m_cpu_do_interrupt;
-#endif
-
-    cc->cpu_exec_interrupt = arm_v7m_cpu_exec_interrupt;
+    ARMCPU *cpu = ARM_CPU(obj);
+    set_feature(&cpu->env, ARM_FEATURE_V7);
+    set_feature(&cpu->env, ARM_FEATURE_M);
+    /* Currently no SIMD, no FPv4-SP-D16 yet */
+    /* TODO: add more features, as they are implemented */
+    /* set_feature(&cpu->env, ARM_FEATURE_SIMD); */
+    /* set_feature(&cpu->env, ARM_FEATURE_VFP4_SP_D16); */
+    cpu->midr = 0x410FC241; /* M4, r0p1 */
 }
+
+static void cortex_m7_initfn(Object *obj)
+{
+    ARMCPU *cpu = ARM_CPU(obj);
+    set_feature(&cpu->env, ARM_FEATURE_V7);
+    set_feature(&cpu->env, ARM_FEATURE_M);
+    /* Currently no SIMD, no FPv5-SP-D16 yet */
+    /* TODO: add more features, as they are implemented */
+    /* set_feature(&cpu->env, ARM_FEATURE_SIMD); */
+    /* set_feature(&cpu->env, ARM_FEATURE_VFP5_SP_D16); */
+    cpu->midr = 0x410FC270; /* M7, r0p0, TODO: check */
+}
+
 
 static const ARMCPRegInfo cortexa8_cp_reginfo[] = {
     { .name = "L2LOCKDOWN", .cp = 15, .crn = 9, .crm = 0, .opc1 = 1, .opc2 = 0,
@@ -1092,8 +1165,21 @@ static const ARMCPUInfo arm_cpus[] = {
     { .name = "arm1136",     .initfn = arm1136_initfn },
     { .name = "arm1176",     .initfn = arm1176_initfn },
     { .name = "arm11mpcore", .initfn = arm11mpcore_initfn },
+
+    /* Cortex-M cores. Currently only M3 is tested and fully functional.  */
+    { .name = "cortex-m0",   .initfn = cortex_m0_initfn,
+                             .class_init = arm_v6m_class_init },
+    { .name = "cortex-m0p",  .initfn = cortex_m0p_initfn,
+                             .class_init = arm_v6m_class_init },
+    { .name = "cortex-m1",   .initfn = cortex_m1_initfn,
+                             .class_init = arm_v6m_class_init },
     { .name = "cortex-m3",   .initfn = cortex_m3_initfn,
                              .class_init = arm_v7m_class_init },
+    { .name = "cortex-m4",   .initfn = cortex_m4_initfn,
+                             .class_init = arm_v7m_class_init },
+    { .name = "cortex-m7",   .initfn = cortex_m7_initfn,
+                             .class_init = arm_v7m_class_init },
+    
     { .name = "cortex-a8",   .initfn = cortex_a8_initfn },
     { .name = "cortex-a9",   .initfn = cortex_a9_initfn },
     { .name = "cortex-a15",  .initfn = cortex_a15_initfn },

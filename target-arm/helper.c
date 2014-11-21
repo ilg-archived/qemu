@@ -3873,6 +3873,12 @@ static void do_v7m_exception_exit(CPUARMState *env)
        pointer.  */
 }
 
+void arm_v6m_cpu_do_interrupt(CPUState *cs)
+{
+    /* TODO: Rewrite for v6m */
+    return arm_v7m_cpu_do_interrupt(cs);
+}
+
 void arm_v7m_cpu_do_interrupt(CPUState *cs)
 {
     ARMCPU *cpu = ARM_CPU(cs);

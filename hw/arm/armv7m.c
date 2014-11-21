@@ -16,8 +16,6 @@
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
 #include "hw/boards.h"
-#include "qemu/option.h"
-#include "qemu/config-file.h"
 
 static struct arm_boot_info armv7m_binfo;
 
@@ -199,37 +197,14 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
     sram_size *= 1024;
 
     if (cpu_model == NULL) {
-	cpu_model = "cortex-m3";
+        cpu_model = "cortex-m3";
     }
     cpu = cpu_arm_init(cpu_model);
     if (cpu == NULL) {
-        fprintf(stderr, "Unable to find CPU definition\n");
+        fprintf(stderr, "Unable to find CPU definition %s\n", cpu_model);
         exit(1);
     }
     env = &cpu->env;
-
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level > 0) {
-        QemuOpts *opts;
-        const char *cmdline;
-        
-        printf("Core: '%s', flash: %d KB, RAM: %d KB.\n", cpu_model, flash_size/1024, sram_size/1024);
-        if (kernel_filename){
-            printf("Image: '%s'.\n", kernel_filename);
-        }
-        
-        opts = qemu_opts_find(qemu_find_opts("semihosting-config"), NULL);
-        cmdline = qemu_opt_get(opts, "cmdline");
-        
-        if (cmdline == NULL) {
-            cmdline = kernel_cmdline;
-        }
-
-        if (cmdline != NULL) {
-            printf("Command line: '%s' (%d bytes).\n", cmdline, (int)strlen(cmdline));
-        }
-    }
-#endif
 
 #if 0
     /* > 32Mb SRAM gets complicated because it overlaps the bitband area.
@@ -274,7 +249,7 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory,
         exit(1);
     }
 
-    /* Fill-in a minimalistic boot info, required for semihosting */
+    /* Fill-in a minimalistic boot info, required for semihosting.  */
     armv7m_binfo.kernel_cmdline = kernel_cmdline;
     armv7m_binfo.kernel_filename = machine->kernel_cmdline;
     
