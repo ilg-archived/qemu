@@ -2818,7 +2818,7 @@ int main(int argc, char **argv, char **envp)
         }
     }
     if (verbosity_level > 0) {
-        printf(
+        printf( "\n"
 #if defined(CONFIG_BRANDING_MESSAGE)
                CONFIG_BRANDING_MESSAGE " "
 #endif
