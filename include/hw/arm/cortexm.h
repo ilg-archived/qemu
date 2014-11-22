@@ -30,7 +30,7 @@ typedef struct cortex_m_core_info {
     int sram_size_kb;   /* main RAM area, in KB */
 
     /* Not yet used */
-    int has_mmu;        /* true/false */
+    int has_mpu;        /* true/false */
     int has_fpu;        /* true/false */
     int fpu_type;       /* CORTEX_M_FPU_TYPE_* */
     int nvic_bits;      /* bits used for irqs in NVIC */

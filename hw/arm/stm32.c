@@ -49,11 +49,49 @@ void get_system_memory_with_stm32_alias(cortex_m_core_info *cm_info)
     cm_info->system_memory = address_space_mem;
 }
 
+/*
+ Flash size:
+ 8 = 64K
+ B = 128K
+ C = 256K
+ E = 512K
+ F = 768K
+ G = 1024K
+ I = 2048K
+ */
+
+/* ----- STM32F051R8 ----- */
+static cortex_m_core_info stm32f051r8_core_info = {
+    .device_name = "STM32F051R8",
+    .flash_size_kb = 64,
+    .sram_size_kb = 8,
+};
+
+qemu_irq *stm32f051r8_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f051r8_core_info);
+    return cortex_m0_init(&stm32f051r8_core_info, machine);
+}
+
+/* ----- STM32F100RB ----- */
+static cortex_m_core_info stm32f100rb_core_info = {
+    .device_name = "STM32F100RB",
+    .flash_size_kb = 128,
+    .sram_size_kb = 8,
+};
+
+qemu_irq *stm32f100rb_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f100rb_core_info);
+    return cortex_m3_init(&stm32f100rb_core_info, machine);
+}
+
 /* ----- STM32F103RB ----- */
 static cortex_m_core_info stm32f103rb_core_info = {
     .device_name = "STM32F103RB",
     .flash_size_kb = 128,
-    .sram_size_kb = 20
+    .sram_size_kb = 20,
+    .has_mpu = true,
 };
 
 qemu_irq *stm32f103rb_init(MachineState *machine)
@@ -66,7 +104,8 @@ qemu_irq *stm32f103rb_init(MachineState *machine)
 static cortex_m_core_info stm32f107vc_core_info = {
     .device_name = "STM32F107VC",
     .flash_size_kb = 256,
-    .sram_size_kb = 64
+    .sram_size_kb = 64,
+    .has_mpu = true,
 };
 
 qemu_irq *stm32f107vc_init(MachineState *machine)
@@ -75,12 +114,85 @@ qemu_irq *stm32f107vc_init(MachineState *machine)
     return cortex_m3_init(&stm32f107vc_core_info, machine);
 }
 
+/* ----- STM32L152RE ----- */
+static cortex_m_core_info stm32l152re_core_info = {
+    .device_name = "STM32L152RE",
+    .flash_size_kb = 512,
+    .sram_size_kb = 80,
+    .has_mpu = true,
+};
+
+qemu_irq *stm32l152re_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32l152re_core_info);
+    return cortex_m3_init(&stm32l152re_core_info, machine);
+}
+
+/* ----- STM32F205RF ----- */
+static cortex_m_core_info stm32f205rf_core_info = {
+    .device_name = "STM32F205RF",
+    .flash_size_kb = 768,
+    .sram_size_kb = 128, /* No CCM */
+    .has_mpu = true,
+};
+
+qemu_irq *stm32f205rf_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f205rf_core_info);
+    return cortex_m3_init(&stm32f205rf_core_info, machine);
+}
+
+/* ----- STM32F303VC ----- */
+static cortex_m_core_info stm32f303vc_core_info = {
+    .device_name = "STM32F303VC",
+    .flash_size_kb = 256,
+    .sram_size_kb = 40,
+    .has_mpu = true,
+    .has_fpu = true,
+};
+
+qemu_irq *stm32f303vc_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f303vc_core_info);
+    return cortex_m4_init(&stm32f303vc_core_info, machine);
+}
+
+/* ----- STM32F334R8 ----- */
+static cortex_m_core_info stm32f334r8_core_info = {
+    .device_name = "STM32F334R8",
+    .flash_size_kb = 64,
+    .sram_size_kb = 12,
+    .has_mpu = true,
+    .has_fpu = true,
+};
+
+qemu_irq *stm32f334r8_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f334r8_core_info);
+    return cortex_m3_init(&stm32f334r8_core_info, machine);
+}
+
+/* ----- STM32F405RG ----- */
+static cortex_m_core_info stm32f405rg_core_info = {
+    .device_name = "STM32F405RG",
+    .flash_size_kb = 1024,
+    .sram_size_kb = 128, /* 64K CCM not counted */
+    .has_mpu = true,
+    .has_fpu = true,
+};
+
+qemu_irq *stm32f405rg_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f405rg_core_info);
+    return cortex_m4_init(&stm32f405rg_core_info, machine);
+}
+
 /* ----- STM32F407VG ----- */
 static cortex_m_core_info stm32f407vg_core_info = {
     .device_name = "STM32F407VG",
     .flash_size_kb = 1024,
-    .sram_size_kb = 196,
-    .has_mmu = true,
+    .sram_size_kb = 128, /* 64K CCM not counted */
+    .has_mpu = true,
     .has_fpu = true,
 };
 
@@ -94,8 +206,8 @@ qemu_irq *stm32f407vg_init(MachineState *machine)
 static cortex_m_core_info stm32f407zg_core_info = {
     .device_name = "STM32F407ZG",
     .flash_size_kb = 1024,
-    .sram_size_kb = 196,
-    .has_mmu = true,
+    .sram_size_kb = 128, /* 64K CCM not counted */
+    .has_mpu = true,
     .has_fpu = true,
 };
 
@@ -104,3 +216,34 @@ qemu_irq *stm32f407zg_init(MachineState *machine)
     get_system_memory_with_stm32_alias(&stm32f407zg_core_info);
     return cortex_m4_init(&stm32f407zg_core_info, machine);
 }
+
+/* ----- STM32F411RE ----- */
+static cortex_m_core_info stm32f411re_core_info = {
+    .device_name = "STM32F411RE",
+    .flash_size_kb = 512,
+    .sram_size_kb = 128, /* No CCM */
+    .has_mpu = true,
+    .has_fpu = true,
+};
+
+qemu_irq *stm32f411re_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f411re_core_info);
+    return cortex_m4_init(&stm32f411re_core_info, machine);
+}
+
+/* ----- STM32F429ZI ----- */
+static cortex_m_core_info stm32f429zi_core_info = {
+    .device_name = "STM32F429ZI",
+    .flash_size_kb = 2048,
+    .sram_size_kb = 196, /* 64K CCM not counted */
+    .has_mpu = true,
+    .has_fpu = true,
+};
+
+qemu_irq *stm32f429zi_init(MachineState *machine)
+{
+    get_system_memory_with_stm32_alias(&stm32f429zi_core_info);
+    return cortex_m4_init(&stm32f429zi_core_info, machine);
+}
+

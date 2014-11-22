@@ -26,8 +26,8 @@ qemu_irq *cortex_m_init(cortex_m_core_info *cm_info, MachineState *machine)
         const char *cpu_model = machine->cpu_model;
         
         printf("Device: '%s' (%s", cm_info->device_name, cpu_model);
-        if (cm_info->has_mmu) {
-            printf(", MMU");
+        if (cm_info->has_mpu) {
+            printf(", MPU");
         }
         if (cm_info->has_fpu) {
             printf(", FPU");
@@ -58,7 +58,7 @@ qemu_irq *cortex_m_init(cortex_m_core_info *cm_info, MachineState *machine)
 qemu_irq *cortex_m0_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     machine->cpu_model = "cortex-m0";
-    cm_info->has_mmu = false;
+    cm_info->has_mpu = false;
     cm_info->has_fpu = false;
     cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
     return cortex_m_init(cm_info, machine);
@@ -68,7 +68,7 @@ qemu_irq *cortex_m0_init(cortex_m_core_info *cm_info, MachineState *machine)
 qemu_irq *cortex_m0p_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     machine->cpu_model = "cortex-m0p";
-    cm_info->has_mmu = false;
+    cm_info->has_mpu = false;
     cm_info->has_fpu = false;
     cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
     return cortex_m_init(cm_info, machine);

@@ -775,7 +775,7 @@ static void cortex_m7_initfn(Object *obj)
     /* TODO: add more features, as they are implemented */
     /* set_feature(&cpu->env, ARM_FEATURE_SIMD); */
     /* set_feature(&cpu->env, ARM_FEATURE_VFP5_SP_D16); */
-    cpu->midr = 0x410FC270; /* M7, r0p0, TODO: check */
+    cpu->midr = 0x410FC270; /* M7, r0p0, TODO: check, when manual available */
 }
 
 

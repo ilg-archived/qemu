@@ -10,14 +10,22 @@
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
 
+/*
+ * This file defines several STM32 boards.
+ * Where available, the board names follow the CMSIS Packs names.
+ *
+ * In time, this file should probably be split into several specific files
+ * (for example stm32_olimex_bords.c)
+ */
+
 #if 0
 typedef const struct {
     
 } stm32_board_info;
 #endif
 
-/* Common inits for all boards */
-static void stm32_board_init(MachineState *machine, QEMUMachine *qm)
+/* Common inits for all STM32 boards */
+void stm32_board_init(MachineState *machine, QEMUMachine *qm)
 {
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
@@ -26,21 +34,147 @@ static void stm32_board_init(MachineState *machine, QEMUMachine *qm)
 #endif
 }
 
-/* TODO: add NUCLEO boards */
+/* ----- ST NUCLEO-F411RE ----- */
+static void nucleo_f411re_init(MachineState *machine);
+
+static QEMUMachine nucleo_f411re_machine = {
+    .name = "NUCLEO-F411RE",
+    .desc = "ST Nucleo development board for STM32 F4 series",
+    .init = nucleo_f411re_init,
+};
+
+static void nucleo_f411re_init(MachineState *machine)
+{
+    stm32_board_init(machine, &nucleo_f411re_machine);
+    stm32f411re_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- ST NUCLEO-F334R8 ----- */
+static void nucleo_f334r8_init(MachineState *machine);
+
+static QEMUMachine nucleo_f334r8_machine = {
+    .name = "NUCLEO-F334R8",
+    .desc = "ST Nucleo development board for STM32 F3 series",
+    .init = nucleo_f334r8_init,
+};
+
+static void nucleo_f334r8_init(MachineState *machine)
+{
+    stm32_board_init(machine, &nucleo_f334r8_machine);
+    stm32f334r8_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- ST NUCLEO-F103RB ----- */
+static void nucleo_f103rb_init(MachineState *machine);
+
+static QEMUMachine nucleo_f103rb_machine = {
+    .name = "NUCLEO-F103RB",
+    .desc = "ST Nucleo development board for STM32 F1 series",
+    .init = nucleo_f103rb_init,
+};
+
+static void nucleo_f103rb_init(MachineState *machine)
+{
+    stm32_board_init(machine, &nucleo_f103rb_machine);
+    stm32f103rb_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- ST NUCLEO-L152RE ----- */
+static void nucleo_l152re_init(MachineState *machine);
+
+static QEMUMachine nucleo_l152re_machine = {
+    .name = "NUCLEO-L152RE",
+    .desc = "ST Nucleo development board with STM32L152RET6",
+    .init = nucleo_l152re_init,
+};
+
+static void nucleo_l152re_init(MachineState *machine)
+{
+    stm32_board_init(machine, &nucleo_l152re_machine);
+    stm32l152re_init(machine);
+    /* TODO: Add board inits */
+}
 
 /* ----- ST STM32F4-Discovery ----- */
 static void stm32f4_discovery_init(MachineState *machine);
 
 static QEMUMachine stm32f4_discovery_machine = {
     .name = "STM32F4-Discovery",
-    .desc = "Discovery kit for STM32F407/417 line",
+    .desc = "ST Discovery kit for STM32F407/417 lines",
     .init = stm32f4_discovery_init,
 };
 
 static void stm32f4_discovery_init(MachineState *machine)
 {
     stm32_board_init(machine, &stm32f4_discovery_machine);
-    /* qemu_irq *irqs = */ stm32f407vg_init(machine);
+    stm32f407vg_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- ST STM32F429I-Discovery ----- */
+static void stm32f429i_discovery_init(MachineState *machine);
+
+static QEMUMachine stm32f429i_discovery_machine = {
+    .name = "STM32F429I-Discovery",
+    .desc = "ST Discovery kit for STM32F429/439 lines",
+    .init = stm32f429i_discovery_init,
+};
+
+static void stm32f429i_discovery_init(MachineState *machine)
+{
+    stm32_board_init(machine, &stm32f429i_discovery_machine);
+    stm32f429zi_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- ST STM32F3-Discovery ----- */
+static void stm32f3_discovery_init(MachineState *machine);
+
+static QEMUMachine stm32f3_discovery_machine = {
+    .name = "STM32F3-Discovery",
+    .desc = "ST Discovery kit for STM32F303 line",
+    .init = stm32f3_discovery_init,
+};
+
+static void stm32f3_discovery_init(MachineState *machine)
+{
+    stm32_board_init(machine, &stm32f3_discovery_machine);
+    stm32f303vc_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- ST STM32F0-Discovery ----- */
+static void stm32f0_discovery_init(MachineState *machine);
+
+static QEMUMachine stm32f0_discovery_machine = {
+    .name = "STM32F0-Discovery",
+    .desc = "ST Discovery kit for STM32F051 line",
+    .init = stm32f0_discovery_init,
+};
+
+static void stm32f0_discovery_init(MachineState *machine)
+{
+    stm32_board_init(machine, &stm32f0_discovery_machine);
+    stm32f051r8_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- ST STM32VL-Discovery ----- */
+static void stm32vl_discovery_init(MachineState *machine);
+
+static QEMUMachine stm32vl_discovery_machine = {
+    .name = "STM32VL-Discovery",
+    .desc = "ST Discovery kit for STM32F100 Value Line",
+    .init = stm32vl_discovery_init,
+};
+
+static void stm32vl_discovery_init(MachineState *machine)
+{
+    stm32_board_init(machine, &stm32vl_discovery_machine);
+    stm32f100rb_init(machine);
     /* TODO: Add board inits */
 }
 
@@ -49,7 +183,7 @@ static void stm32_h103_init(MachineState *machine);
 
 static QEMUMachine stm32_h103_machine = {
     .name = "STM32-H103",
-    .desc = "Olimex STM32-H103 Dev Board",
+    .desc = "Olimex Header Board for STM32F103RBT6",
     .init = stm32_h103_init,
 };
 
@@ -65,7 +199,7 @@ static void stm32_p103_init(MachineState *machine);
 
 static QEMUMachine stm32_p103_machine = {
     .name = "STM32-P103",
-    .desc = "Olimex STM32-P103 Dev Board",
+    .desc = "Olimex Prototype Board for STM32F103RBT6",
     .init = stm32_p103_init,
 };
 
@@ -76,12 +210,28 @@ static void stm32_p103_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+/* ----- Olimex OLIMEXINO-STM32 ----- */
+static void olimexino_stm32_init(MachineState *machine);
+
+static QEMUMachine olimexino_stm32_machine = {
+    .name = "OLIMEXINO-STM32",
+    .desc = "Olimex Mapple (Arduino-like) Development Board",
+    .init = olimexino_stm32_init,
+};
+
+static void olimexino_stm32_init(MachineState *machine)
+{
+    stm32_board_init(machine, &olimexino_stm32_machine);
+    stm32f103rb_init(machine);
+    /* TODO: Add board inits */
+}
+
 /* ----- Olimex STM32-P107 ----- */
 static void stm32_p107_init(MachineState *machine);
 
 static QEMUMachine stm32_p107_machine = {
     .name = "STM32-P107",
-    .desc = "Olimex STM32-P107 Dev Board",
+    .desc = "Olimex Prototype Board for STM32F107VCT6",
     .init = stm32_p107_init,
 };
 
@@ -97,7 +247,7 @@ static void stm32_p407_init(MachineState *machine);
 
 static QEMUMachine stm32_p407_machine = {
     .name = "STM32-P407",
-    .desc = "Olimex STM32-P407 Dev Board",
+    .desc = "Olimex Development Board for STM32F407ZGT6",
     .init = stm32_p407_init,
 };
 
@@ -108,14 +258,91 @@ static void stm32_p407_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+/* ----- Netduino 2 ----- */
+static void netduino2_init(MachineState *machine);
+
+static QEMUMachine netduino2_machine = {
+    .name = "Netduino2",
+    .desc = "netduino Development Board with STM32F2",
+    .init = netduino2_init,
+};
+
+static void netduino2_init(MachineState *machine)
+{
+    stm32_board_init(machine, &netduino2_machine);
+    stm32f205rf_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- Netduino Plus 2 ----- */
+static void netduinoplus2_init(MachineState *machine);
+
+static QEMUMachine netduinoplus2_machine = {
+    .name = "NetduinoPlus2",
+    .desc = "netduino Development Board with STM32F4",
+    .init = netduinoplus2_init,
+};
+
+static void netduinoplus2_init(MachineState *machine)
+{
+    stm32_board_init(machine, &netduinoplus2_machine);
+    stm32f405rg_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- Netduino Go ----- */
+static void netduinogo_init(MachineState *machine);
+
+static QEMUMachine netduinogo_machine = {
+    .name = "NetduinoGo",
+    .desc = "netduino GoBus Development Board with STM32F4",
+    .init = netduinogo_init,
+};
+
+static void netduinogo_init(MachineState *machine)
+{
+    stm32_board_init(machine, &netduinogo_machine);
+    stm32f405rg_init(machine);
+    /* TODO: Add board inits */
+}
+
+/* ----- Mapple ----- */
+static void mapple_init(MachineState *machine);
+
+static QEMUMachine mapple_machine = {
+    .name = "Mapple",
+    .desc = "LeafLab Arduino-style STM32 microcontroller board",
+    .init = mapple_init,
+};
+
+static void mapple_init(MachineState *machine)
+{
+    stm32_board_init(machine, &mapple_machine);
+    stm32f103rb_init(machine);
+    /* TODO: Add board inits */
+}
+
 /* ----- Boards inits ----- */
 static void stm32_machine_init(void)
 {
-    qemu_register_machine(&stm32_h103_machine);
-    qemu_register_machine(&stm32_p103_machine);
-    qemu_register_machine(&stm32_p107_machine);
-    qemu_register_machine(&stm32_p407_machine);
+    qemu_register_machine(&nucleo_f411re_machine);
+    qemu_register_machine(&nucleo_f334r8_machine);
+    qemu_register_machine(&nucleo_f103rb_machine);
+    qemu_register_machine(&nucleo_l152re_machine);
+    qemu_register_machine(&stm32f429i_discovery_machine);
     qemu_register_machine(&stm32f4_discovery_machine);
+    qemu_register_machine(&stm32f3_discovery_machine);
+    qemu_register_machine(&stm32f0_discovery_machine);
+    qemu_register_machine(&stm32vl_discovery_machine);
+    qemu_register_machine(&stm32_p407_machine);
+    qemu_register_machine(&stm32_p107_machine);
+    qemu_register_machine(&stm32_p103_machine);
+    qemu_register_machine(&stm32_h103_machine);
+    qemu_register_machine(&olimexino_stm32_machine);
+    qemu_register_machine(&netduino2_machine);
+    qemu_register_machine(&netduinoplus2_machine);
+    qemu_register_machine(&netduinogo_machine);
+    qemu_register_machine(&mapple_machine);
 }
 
 machine_init(stm32_machine_init);
