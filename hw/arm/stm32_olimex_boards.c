@@ -79,17 +79,17 @@ static void stm32_p107_board_init(MachineState *machine)
 }
 
 /* ----- Olimex STM32-P407 ----- */
-static void stm32_p407_board_init(MachineState *machine);
+static void stm32_e407_board_init(MachineState *machine);
 
-static QEMUMachine stm32_p407_machine = {
-    .name = "STM32-P407",
+static QEMUMachine stm32_e407_machine = {
+    .name = "STM32-E407",
     .desc = "Olimex Development Board for STM32F407ZGT6 (Experimental)",
-    .init = stm32_p407_board_init,
+    .init = stm32_e407_board_init,
 };
 
-static void stm32_p407_board_init(MachineState *machine)
+static void stm32_e407_board_init(MachineState *machine)
 {
-    stm32_board_init(machine, &stm32_p407_machine);
+    stm32_board_init(machine, &stm32_e407_machine);
     stm32f407zg_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -97,7 +97,7 @@ static void stm32_p407_board_init(MachineState *machine)
 /* ----- Boards inits ----- */
 static void stm32_olimex_machine_init(void)
 {
-    qemu_register_machine(&stm32_p407_machine);
+    qemu_register_machine(&stm32_e407_machine);
     qemu_register_machine(&stm32_p107_machine);
     qemu_register_machine(&stm32_p103_machine);
     qemu_register_machine(&stm32_h103_machine);
