@@ -13,4 +13,5 @@ obj-$(CONFIG_STM32) += stm32_mcus.o stm32_boards.o stm32_olimex_boards.o
 obj-$(CONFIG_STM32) += stm32_duino_boards.o stm32_nucleo_boards.o
 obj-$(CONFIG_KINETIS) += kinetis_mcus.o kinetis_boards.o
 obj-$(CONFIG_LPC) += lpc_mcus.o lpc_boards.o
+obj-$(CONFIG_TIVA) += tiva_mcus.o tiva_boards.o
 

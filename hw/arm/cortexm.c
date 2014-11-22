@@ -11,6 +11,7 @@
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "hw/arm/arm.h"
+#include "exec/address-spaces.h"
 
 /* Common Cortex-M core initialisation routine.  */
 qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
@@ -51,7 +52,11 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
     }
 #endif
     
-    return armv7m_init(cm_info->system_memory, flash_size_kb, sram_size_kb, machine);
+    MemoryRegion *system_memory = cm_info->system_memory;
+    if (system_memory == NULL) {
+        system_memory = get_system_memory();
+    }
+    return armv7m_init(system_memory, flash_size_kb, sram_size_kb, machine);
 }
 
 /* Cortex-M0 initialisation routine.  */

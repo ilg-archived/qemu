@@ -6,7 +6,7 @@
  * This code is licensed under the GPL.
  */
 
-#include "hw/arm/kinetis.h"
+#include "hw/arm/lpc.h"
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
 
@@ -37,7 +37,7 @@ static QEMUMachine lpcxpresso_lpc1769_machine = {
 
 static void lpcxpresso_lpc1769_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &lpcxpresso_lpc1769_machine);
+    lpc_board_init(machine, &lpcxpresso_lpc1769_machine);
     lpc1769fbd100_mcu_init(machine);
     /* TODO: Add board inits */
 }
