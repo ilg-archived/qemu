@@ -9,6 +9,8 @@ obj-$(CONFIG_DIGIC) += digic.o
 obj-y += omap1.o omap2.o strongarm.o
 obj-$(CONFIG_ALLWINNER_A10) += allwinner-a10.o cubieboard.o
 
-obj-$(CONFIG_STM32) += stm32.o stm32_boards.o
-obj-$(CONFIG_KINETIS) += kinetis.o kinetis_boards.o
+obj-$(CONFIG_STM32) += stm32_mcus.o stm32_boards.o stm32_olimex_boards.o
+obj-$(CONFIG_STM32) += stm32_duino_boards.o stm32_nucleo_boards.o
+obj-$(CONFIG_KINETIS) += kinetis_mcus.o kinetis_boards.o
+obj-$(CONFIG_LPC) += lpc_mcus.o lpc_boards.o
 

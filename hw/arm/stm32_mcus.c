@@ -236,7 +236,7 @@ qemu_irq *stm32f411re_mcu_init(MachineState *machine)
 static cortex_m_core_info stm32f429zi_core_info = {
     .device_name = "STM32F429ZI",
     .flash_size_kb = 2048,
-    .sram_size_kb = 196, /* 64K CCM not counted */
+    .sram_size_kb = 192, /* 64K CCM not counted */
     .has_mpu = true,
     .has_fpu = true,
 };

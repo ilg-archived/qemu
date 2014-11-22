@@ -26,9 +26,10 @@ typedef struct cortex_m_core_info {
     const char *device_name; /* the CMSIS official device name */
 
     MemoryRegion *system_memory; /* flash memory region, possibly with alias */
-    int flash_size_kb;  /* main program area, in KB */
-    int sram_size_kb;   /* main RAM area, in KB */
-
+    int flash_size_kb;  /* size of main program area, in KB */
+    int sram_size_kb;   /* size of main RAM area, in KB */
+    int sram_begin;     /* begin address of main RAM area, if not 0x20000000 */
+    
     /* Not yet used */
     int has_mpu;        /* true/false */
     int has_fpu;        /* true/false */
