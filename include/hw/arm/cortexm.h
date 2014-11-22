@@ -36,11 +36,11 @@ typedef struct cortex_m_core_info {
     int nvic_bits;      /* bits used for irqs in NVIC */
 } cortex_m_core_info;
 
-qemu_irq *cortex_m_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *cortex_m0_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *cortex_m0p_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *cortex_m3_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *cortex_m4_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *cortex_m7_init(cortex_m_core_info *cm_info, MachineState *machine);
+qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine);
+qemu_irq *cortex_m0_core_init(cortex_m_core_info *cm_info, MachineState *machine);
+qemu_irq *cortex_m0p_core_init(cortex_m_core_info *cm_info, MachineState *machine);
+qemu_irq *cortex_m3_core_init(cortex_m_core_info *cm_info, MachineState *machine);
+qemu_irq *cortex_m4_core_init(cortex_m_core_info *cm_info, MachineState *machine);
+qemu_irq *cortex_m7_core_init(cortex_m_core_info *cm_info, MachineState *machine);
 
 #endif /* HW_ARM_CORTEXM_H */

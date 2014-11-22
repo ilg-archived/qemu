@@ -13,7 +13,7 @@
 #include "hw/arm/arm.h"
 
 /* Common Cortex-M core initialisation routine.  */
-qemu_irq *cortex_m_init(cortex_m_core_info *cm_info, MachineState *machine)
+qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     int flash_size_kb = cm_info->flash_size_kb;
     int sram_size_kb = cm_info->sram_size_kb;
@@ -55,48 +55,48 @@ qemu_irq *cortex_m_init(cortex_m_core_info *cm_info, MachineState *machine)
 }
 
 /* Cortex-M0 initialisation routine.  */
-qemu_irq *cortex_m0_init(cortex_m_core_info *cm_info, MachineState *machine)
+qemu_irq *cortex_m0_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     machine->cpu_model = "cortex-m0";
     cm_info->has_mpu = false;
     cm_info->has_fpu = false;
     cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-    return cortex_m_init(cm_info, machine);
+    return cortex_m_core_init(cm_info, machine);
 }
 
 /* Cortex-M0+ initialisation routine.  */
-qemu_irq *cortex_m0p_init(cortex_m_core_info *cm_info, MachineState *machine)
+qemu_irq *cortex_m0p_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     machine->cpu_model = "cortex-m0p";
     cm_info->has_mpu = false;
     cm_info->has_fpu = false;
     cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-    return cortex_m_init(cm_info, machine);
+    return cortex_m_core_init(cm_info, machine);
 }
 
 /* Cortex-M3 initialisation routine.  */
-qemu_irq *cortex_m3_init(cortex_m_core_info *cm_info, MachineState *machine)
+qemu_irq *cortex_m3_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     machine->cpu_model = "cortex-m3";
     cm_info->has_fpu = false;
     cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-    return cortex_m_init(cm_info, machine);
+    return cortex_m_core_init(cm_info, machine);
 }
 
 /* Cortex-M4 initialisation routine.  */
-qemu_irq *cortex_m4_init(cortex_m_core_info *cm_info, MachineState *machine)
+qemu_irq *cortex_m4_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     machine->cpu_model = "cortex-m4";
     cm_info->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
-    return cortex_m_init(cm_info, machine);
+    return cortex_m_core_init(cm_info, machine);
 }
 
 /* Cortex-M7 initialisation routine.  */
-qemu_irq *cortex_m7_init(cortex_m_core_info *cm_info, MachineState *machine)
+qemu_irq *cortex_m7_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
     machine->cpu_model = "cortex-m7";
     cm_info->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
-    return cortex_m_init(cm_info, machine);
+    return cortex_m_core_init(cm_info, machine);
 }
 
 /* -------------------------------------------------------------------------- */

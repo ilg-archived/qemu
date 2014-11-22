@@ -67,10 +67,10 @@ static cortex_m_core_info stm32f051r8_core_info = {
     .sram_size_kb = 8,
 };
 
-qemu_irq *stm32f051r8_init(MachineState *machine)
+qemu_irq *stm32f051r8_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f051r8_core_info);
-    return cortex_m0_init(&stm32f051r8_core_info, machine);
+    return cortex_m0_core_init(&stm32f051r8_core_info, machine);
 }
 
 /* ----- STM32F100RB ----- */
@@ -80,10 +80,10 @@ static cortex_m_core_info stm32f100rb_core_info = {
     .sram_size_kb = 8,
 };
 
-qemu_irq *stm32f100rb_init(MachineState *machine)
+qemu_irq *stm32f100rb_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f100rb_core_info);
-    return cortex_m3_init(&stm32f100rb_core_info, machine);
+    return cortex_m3_core_init(&stm32f100rb_core_info, machine);
 }
 
 /* ----- STM32F103RB ----- */
@@ -94,10 +94,10 @@ static cortex_m_core_info stm32f103rb_core_info = {
     .has_mpu = true,
 };
 
-qemu_irq *stm32f103rb_init(MachineState *machine)
+qemu_irq *stm32f103rb_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f103rb_core_info);
-    return cortex_m3_init(&stm32f103rb_core_info, machine);
+    return cortex_m3_core_init(&stm32f103rb_core_info, machine);
 }
 
 /* ----- STM32F107VC ----- */
@@ -108,10 +108,10 @@ static cortex_m_core_info stm32f107vc_core_info = {
     .has_mpu = true,
 };
 
-qemu_irq *stm32f107vc_init(MachineState *machine)
+qemu_irq *stm32f107vc_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f107vc_core_info);
-    return cortex_m3_init(&stm32f107vc_core_info, machine);
+    return cortex_m3_core_init(&stm32f107vc_core_info, machine);
 }
 
 /* ----- STM32L152RE ----- */
@@ -122,10 +122,10 @@ static cortex_m_core_info stm32l152re_core_info = {
     .has_mpu = true,
 };
 
-qemu_irq *stm32l152re_init(MachineState *machine)
+qemu_irq *stm32l152re_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32l152re_core_info);
-    return cortex_m3_init(&stm32l152re_core_info, machine);
+    return cortex_m3_core_init(&stm32l152re_core_info, machine);
 }
 
 /* ----- STM32F205RF ----- */
@@ -136,10 +136,10 @@ static cortex_m_core_info stm32f205rf_core_info = {
     .has_mpu = true,
 };
 
-qemu_irq *stm32f205rf_init(MachineState *machine)
+qemu_irq *stm32f205rf_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f205rf_core_info);
-    return cortex_m3_init(&stm32f205rf_core_info, machine);
+    return cortex_m3_core_init(&stm32f205rf_core_info, machine);
 }
 
 /* ----- STM32F303VC ----- */
@@ -151,10 +151,10 @@ static cortex_m_core_info stm32f303vc_core_info = {
     .has_fpu = true,
 };
 
-qemu_irq *stm32f303vc_init(MachineState *machine)
+qemu_irq *stm32f303vc_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f303vc_core_info);
-    return cortex_m4_init(&stm32f303vc_core_info, machine);
+    return cortex_m4_core_init(&stm32f303vc_core_info, machine);
 }
 
 /* ----- STM32F334R8 ----- */
@@ -166,10 +166,10 @@ static cortex_m_core_info stm32f334r8_core_info = {
     .has_fpu = true,
 };
 
-qemu_irq *stm32f334r8_init(MachineState *machine)
+qemu_irq *stm32f334r8_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f334r8_core_info);
-    return cortex_m3_init(&stm32f334r8_core_info, machine);
+    return cortex_m3_core_init(&stm32f334r8_core_info, machine);
 }
 
 /* ----- STM32F405RG ----- */
@@ -181,10 +181,10 @@ static cortex_m_core_info stm32f405rg_core_info = {
     .has_fpu = true,
 };
 
-qemu_irq *stm32f405rg_init(MachineState *machine)
+qemu_irq *stm32f405rg_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f405rg_core_info);
-    return cortex_m4_init(&stm32f405rg_core_info, machine);
+    return cortex_m4_core_init(&stm32f405rg_core_info, machine);
 }
 
 /* ----- STM32F407VG ----- */
@@ -196,10 +196,10 @@ static cortex_m_core_info stm32f407vg_core_info = {
     .has_fpu = true,
 };
 
-qemu_irq *stm32f407vg_init(MachineState *machine)
+qemu_irq *stm32f407vg_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f407vg_core_info);
-    return cortex_m4_init(&stm32f407vg_core_info, machine);
+    return cortex_m4_core_init(&stm32f407vg_core_info, machine);
 }
 
 /* ----- STM32F407ZG ----- */
@@ -211,10 +211,10 @@ static cortex_m_core_info stm32f407zg_core_info = {
     .has_fpu = true,
 };
 
-qemu_irq *stm32f407zg_init(MachineState *machine)
+qemu_irq *stm32f407zg_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f407zg_core_info);
-    return cortex_m4_init(&stm32f407zg_core_info, machine);
+    return cortex_m4_core_init(&stm32f407zg_core_info, machine);
 }
 
 /* ----- STM32F411RE ----- */
@@ -226,10 +226,10 @@ static cortex_m_core_info stm32f411re_core_info = {
     .has_fpu = true,
 };
 
-qemu_irq *stm32f411re_init(MachineState *machine)
+qemu_irq *stm32f411re_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f411re_core_info);
-    return cortex_m4_init(&stm32f411re_core_info, machine);
+    return cortex_m4_core_init(&stm32f411re_core_info, machine);
 }
 
 /* ----- STM32F429ZI ----- */
@@ -241,9 +241,9 @@ static cortex_m_core_info stm32f429zi_core_info = {
     .has_fpu = true,
 };
 
-qemu_irq *stm32f429zi_init(MachineState *machine)
+qemu_irq *stm32f429zi_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f429zi_core_info);
-    return cortex_m4_init(&stm32f429zi_core_info, machine);
+    return cortex_m4_core_init(&stm32f429zi_core_info, machine);
 }
 
