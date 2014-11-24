@@ -56,7 +56,14 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
     if (system_memory == NULL) {
         system_memory = get_system_memory();
     }
-    return armv7m_init(system_memory, flash_size_kb, sram_size_kb, machine);
+    qemu_irq *pic;
+    pic = armv7m_init(system_memory, flash_size_kb, sram_size_kb, machine);
+    
+    /* Assume 8000000 Hz */
+    /* TODO: compute according to board clock & pll settings */
+    system_clock_scale = 80;
+    
+    return pic;
 }
 
 /* Cortex-M0 initialisation routine.  */
