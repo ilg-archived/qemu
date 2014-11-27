@@ -35,13 +35,7 @@
 #define LOCALEDIR "po"
 
 #ifdef _WIN32
-
 # define _WIN32_WINNT 0x0601 /* needed to get definition of MAPVK_VK_TO_VSC */
-
-#if !defined(MAPVK_VK_TO_VSC)
-#define MAPVK_VK_TO_VSC  0
-#endif
-
 #endif
 
 #include "qemu-common.h"
@@ -1672,10 +1666,9 @@ static GSList *gd_vc_gfx_init(GtkDisplayState *s, VirtualConsole *vc,
                               QemuConsole *con, int idx,
                               GSList *group, GtkWidget *view_menu)
 {
-    Error *local_err = NULL;
     Object *obj;
 
-    obj = object_property_get_link(OBJECT(con), "device", &local_err);
+    obj = object_property_get_link(OBJECT(con), "device", NULL);
     if (obj) {
         vc->label = g_strdup_printf("%s", object_get_typename(obj));
     } else {
@@ -1916,15 +1909,17 @@ void gtk_display_init(DisplayState *ds, bool full_screen, bool grab_on_hover)
 #ifdef VTE_RESIZE_HACK
     {
         VirtualConsole *cur = gd_vc_find_current(s);
-        int i;
+        if (cur) {
+            int i;
 
-        for (i = 0; i < s->nb_vcs; i++) {
-            VirtualConsole *vc = &s->vc[i];
-            if (vc && vc->type == GD_VC_VTE && vc != cur) {
-                gtk_widget_hide(vc->vte.terminal);
+            for (i = 0; i < s->nb_vcs; i++) {
+                VirtualConsole *vc = &s->vc[i];
+                if (vc && vc->type == GD_VC_VTE && vc != cur) {
+                    gtk_widget_hide(vc->vte.terminal);
+                }
             }
+            gd_update_windowsize(cur);
         }
-        gd_update_windowsize(cur);
     }
 #endif
 

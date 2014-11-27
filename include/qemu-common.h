@@ -51,10 +51,6 @@
 #include "sysemu/os-posix.h"
 #endif
 
-#ifdef __MINGW32__
-#include "mingw-patch.h"
-#endif
-
 #ifndef O_LARGEFILE
 #define O_LARGEFILE 0
 #endif

@@ -73,7 +73,11 @@
 #define siglongjmp(env, val) longjmp(env, val)
 
 /* Declaration of ffs() is missing in MinGW's strings.h. */
+#ifdef __MINGW32__
+#define ffs __builtin_ffs
+#else
 int ffs(int i);
+#endif
 
 /* Missing POSIX functions. Don't use MinGW-w64 macros. */
 #undef gmtime_r
