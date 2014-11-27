@@ -47,6 +47,10 @@
 #include "sysemu/os-win32.h"
 #endif
 
+#ifdef __MINGW32__
+#include "sysemu/os-win32.h"
+#endif
+
 #ifdef CONFIG_POSIX
 #include "sysemu/os-posix.h"
 #endif
