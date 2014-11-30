@@ -520,6 +520,7 @@ endif
 installer: $(INSTALLER)
 
 INSTDIR=/tmp/qemu-nsis
+QEMU_NSI_FILE=$(SRC_PATH)/qemu.nsi
 
 $(INSTALLER): $(SRC_PATH)/qemu.nsi
 	make install prefix=${INSTDIR}
@@ -547,7 +548,7 @@ endif # SIGNCODE
                 $(if $(DLL_PATH),-DDLLDIR="$(DLL_PATH)") \
                 -DSRCDIR="$(SRC_PATH)" \
                 -DOUTFILE="$(INSTALLER)" \
-                $(SRC_PATH)/qemu.nsi
+                $(QEMU_NSI_FILE)
 	rm -r ${INSTDIR}
 ifdef SIGNCODE
 	$(SIGNCODE) $(INSTALLER)
