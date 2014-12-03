@@ -756,6 +756,9 @@ case $target_list in
     semihosting_native="yes"
     verbose="yes"
     branding_message="GNU ARM Eclipse"
+    if test "$mingw32" = "yes" ; then
+        prefix="C:/Program Files/GNU ARM Eclipse/QEMU"
+    fi
     ;;
 esac
 

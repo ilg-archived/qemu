@@ -53,9 +53,9 @@ OutFile "${OUTFILE}"
 
 ; The default installation directory.
 !ifdef W64
-InstallDir "$PROGRAMFILES64\GNU ARM Eclipse QEMU"
+InstallDir "$PROGRAMFILES64\GNU ARM Eclipse\QEMU"
 !else
-InstallDir "$PROGRAMFILES\GNU ARM Eclipse QEMU"
+InstallDir "$PROGRAMFILES\GNU ARM Eclipse\QEMU"
 !endif
 
 ; Registry key to check for directory (so if you install again, it will
