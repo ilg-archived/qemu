@@ -19,11 +19,13 @@
 
 ; NSIS_WIN32_MAKENSIS
 
-!define PRODUCT "QEMU_GNU_ARM_Eclipse"
+!define PRODUCT "GNU ARM Eclipse\QEMU"
 !define URL     "http://gnuarmeclipse.livius.net"
 
 !define UNINST_EXE "$INSTDIR\qemu-uninstall.exe"
 !define UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT}"
+
+!define INSTALL_LOCATION_KEY "InstallFolder"
 
 !ifndef BINDIR
 !define BINDIR nsis.tmp
@@ -61,9 +63,9 @@ InstallDir "$PROGRAMFILES\GNU ARM Eclipse\QEMU"
 ; Registry key to check for directory (so if you install again, it will
 ; overwrite the old one automatically)
 !ifdef W64
-InstallDirRegKey HKLM "Software\qemu64-gnuarmeclipse" "Install_Dir"
+InstallDirRegKey HKLM "Software\qemu64-gnuarmeclipse" "${INSTALL_LOCATION_KEY}"
 !else
-InstallDirRegKey HKLM "Software\qemu32-gnuarmeclipse" "Install_Dir"
+InstallDirRegKey HKLM "Software\qemu32-gnuarmeclipse" "${INSTALL_LOCATION_KEY}"
 !endif
 
 ; Request administrator privileges for Windows Vista.
@@ -119,11 +121,11 @@ File "${SRCDIR}\COPYING.LIB"
 File "${SRCDIR}\README"
 File "${SRCDIR}\VERSION"
 
-File /nonfatal "${BINDIR}\*.bmp"
-File /nonfatal "${BINDIR}\*.bin"
-File /nonfatal "${BINDIR}\*.dtb"
-File /nonfatal "${BINDIR}\*.rom"
-File /nonfatal "${BINDIR}\openbios-*"
+; File /nonfatal "${BINDIR}\*.bmp"
+; File /nonfatal "${BINDIR}\*.bin"
+; File /nonfatal "${BINDIR}\*.dtb"
+; File /nonfatal "${BINDIR}\*.rom"
+; File /nonfatal "${BINDIR}\openbios-*"
 
 File /nonfatal /r "${BINDIR}\keymaps"
 !ifdef CONFIG_GTK
@@ -135,21 +137,21 @@ SetRegView 64
 !endif
 
 ; Write the installation path into the registry
-WriteRegStr HKLM SOFTWARE\${PRODUCT} "Install_Dir" "$INSTDIR"
+WriteRegStr HKLM "SOFTWARE\${PRODUCT}" "${INSTALL_LOCATION_KEY}" "$INSTDIR"
 
 ; Write the uninstall keys for Windows
-WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "QEMU"
+WriteRegStr HKLM "${UNINST_KEY}" "DisplayName" "GNU ARM Eclipse QEMU"
 WriteRegStr HKLM "${UNINST_KEY}" "UninstallString" '"${UNINST_EXE}"'
 WriteRegDWORD HKLM "${UNINST_KEY}" "NoModify" 1
 WriteRegDWORD HKLM "${UNINST_KEY}" "NoRepair" 1
 WriteUninstaller "qemu-uninstall.exe"
 SectionEnd
 
-Section "Tools" SectionTools
-SetOutPath "$INSTDIR"
-File /nonfatal "${BINDIR}\qemu-img.exe"
-File /nonfatal "${BINDIR}\qemu-io.exe"
-SectionEnd
+; Section "Tools" SectionTools
+; SetOutPath "$INSTDIR"
+; File /nonfatal "${BINDIR}\qemu-img.exe"
+; File /nonfatal "${BINDIR}\qemu-io.exe"
+; SectionEnd
 
 SectionGroup "System Emulations" SectionSystem
 
@@ -191,7 +193,7 @@ Section "Uninstall"
 SetRegView 64
 !endif
 DeleteRegKey HKLM "${UNINST_KEY}"
-DeleteRegKey HKLM SOFTWARE\${PRODUCT}
+DeleteRegKey HKLM "SOFTWARE\${PRODUCT}"
 
 ; Remove shortcuts, if any
 Delete "$SMPROGRAMS\${PRODUCT}\User Documentation.lnk"
@@ -232,11 +234,11 @@ SectionEnd
 ; Descriptions (mouse-over).
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionSystem}  "System emulation."
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_alpha}  "Alpha system emulation."
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_alphaw} "Alpha system emulation (GUI)."
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_i386}   "PC i386 system emulation."
-!insertmacro MUI_DESCRIPTION_TEXT ${Section_i386w}  "PC i386 system emulation (GUI)."
-!insertmacro MUI_DESCRIPTION_TEXT ${SectionTools} "Tools."
+; !insertmacro MUI_DESCRIPTION_TEXT ${Section_alpha}  "Alpha system emulation."
+; !insertmacro MUI_DESCRIPTION_TEXT ${Section_alphaw} "Alpha system emulation (GUI)."
+; !insertmacro MUI_DESCRIPTION_TEXT ${Section_i386}   "PC i386 system emulation."
+; !insertmacro MUI_DESCRIPTION_TEXT ${Section_i386w}  "PC i386 system emulation (GUI)."
+; !insertmacro MUI_DESCRIPTION_TEXT ${SectionTools} "Tools."
 !ifdef DLLDIR
 !insertmacro MUI_DESCRIPTION_TEXT ${SectionDll}   "Runtime Libraries (DLL)."
 !endif
