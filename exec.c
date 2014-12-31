@@ -434,7 +434,7 @@ static int cpu_common_pre_load(void *opaque)
 {
     CPUState *cpu = opaque;
 
-    cpu->exception_index = 0;
+    cpu->exception_index = -1;
 
     return 0;
 }
@@ -443,7 +443,7 @@ static bool cpu_common_exception_index_needed(void *opaque)
 {
     CPUState *cpu = opaque;
 
-    return cpu->exception_index != 0;
+    return tcg_enabled() && cpu->exception_index != -1;
 }
 
 static const VMStateDescription vmstate_cpu_common_exception_index = {
@@ -840,7 +840,7 @@ static void tlb_reset_dirty_range_all(ram_addr_t start, ram_addr_t length)
 
     block = qemu_get_ram_block(start);
     assert(block == qemu_get_ram_block(end - 1));
-    start1 = (uintptr_t)block->host + (start - block->offset);
+    start1 = (uintptr_t)ramblock_ptr(block, start - block->offset);
     cpu_tlb_reset_dirty_all(start1, length);
 }
 
@@ -1500,7 +1500,7 @@ void qemu_ram_remap(ram_addr_t addr, ram_addr_t length)
     QTAILQ_FOREACH(block, &ram_list.blocks, next) {
         offset = addr - block->offset;
         if (offset < block->length) {
-            vaddr = block->host + offset;
+            vaddr = ramblock_ptr(block, offset);
             if (block->flags & RAM_PREALLOC) {
                 ;
             } else if (xen_enabled()) {
@@ -1551,7 +1551,7 @@ void *qemu_get_ram_block_host_ptr(ram_addr_t addr)
 {
     RAMBlock *block = qemu_get_ram_block(addr);
 
-    return block->host;
+    return ramblock_ptr(block, 0);
 }
 
 /* Return a host pointer to ram allocated with qemu_ram_alloc.
@@ -1578,7 +1578,7 @@ void *qemu_get_ram_ptr(ram_addr_t addr)
                 xen_map_cache(block->offset, block->length, 1);
         }
     }
-    return block->host + (addr - block->offset);
+    return ramblock_ptr(block, addr - block->offset);
 }
 
 /* Return a host pointer to guest's ram. Similar to qemu_get_ram_ptr
@@ -1597,7 +1597,7 @@ static void *qemu_ram_ptr_length(ram_addr_t addr, hwaddr *size)
             if (addr - block->offset < block->length) {
                 if (addr - block->offset + *size > block->length)
                     *size = block->length - addr + block->offset;
-                return block->host + (addr - block->offset);
+                return ramblock_ptr(block, addr - block->offset);
             }
         }
 
@@ -1768,7 +1768,7 @@ static uint64_t subpage_read(void *opaque, hwaddr addr,
                              unsigned len)
 {
     subpage_t *subpage = opaque;
-    uint8_t buf[4];
+    uint8_t buf[8];
 
 #if defined(DEBUG_SUBPAGE)
     printf("%s: subpage %p len %u addr " TARGET_FMT_plx "\n", __func__,
@@ -1782,6 +1782,8 @@ static uint64_t subpage_read(void *opaque, hwaddr addr,
         return lduw_p(buf);
     case 4:
         return ldl_p(buf);
+    case 8:
+        return ldq_p(buf);
     default:
         abort();
     }
@@ -1791,7 +1793,7 @@ static void subpage_write(void *opaque, hwaddr addr,
                           uint64_t value, unsigned len)
 {
     subpage_t *subpage = opaque;
-    uint8_t buf[4];
+    uint8_t buf[8];
 
 #if defined(DEBUG_SUBPAGE)
     printf("%s: subpage %p len %u addr " TARGET_FMT_plx
@@ -1807,6 +1809,9 @@ static void subpage_write(void *opaque, hwaddr addr,
         break;
     case 4:
         stl_p(buf, value);
+        break;
+    case 8:
+        stq_p(buf, value);
         break;
     default:
         abort();
@@ -1830,6 +1835,10 @@ static bool subpage_accepts(void *opaque, hwaddr addr,
 static const MemoryRegionOps subpage_ops = {
     .read = subpage_read,
     .write = subpage_write,
+    .impl.min_access_size = 1,
+    .impl.max_access_size = 8,
+    .valid.min_access_size = 1,
+    .valid.max_access_size = 8,
     .valid.accepts = subpage_accepts,
     .endianness = DEVICE_NATIVE_ENDIAN,
 };

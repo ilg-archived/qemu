@@ -329,8 +329,6 @@ BlockAIOCB *bdrv_aio_ioctl(BlockDriverState *bs,
 void bdrv_invalidate_cache(BlockDriverState *bs, Error **errp);
 void bdrv_invalidate_cache_all(Error **errp);
 
-void bdrv_clear_incoming_migration_all(void);
-
 /* Ensure contents are flushed to disk.  */
 int bdrv_flush(BlockDriverState *bs);
 int coroutine_fn bdrv_co_flush(BlockDriverState *bs);
@@ -374,6 +372,7 @@ BlockDriverState *bdrv_lookup_bs(const char *device,
                                  const char *node_name,
                                  Error **errp);
 bool bdrv_chain_contains(BlockDriverState *top, BlockDriverState *base);
+BlockDriverState *bdrv_next_node(BlockDriverState *bs);
 BlockDriverState *bdrv_next(BlockDriverState *bs);
 int bdrv_is_encrypted(BlockDriverState *bs);
 int bdrv_key_required(BlockDriverState *bs);
@@ -381,6 +380,7 @@ int bdrv_set_key(BlockDriverState *bs, const char *key);
 int bdrv_query_missing_keys(void);
 void bdrv_iterate_format(void (*it)(void *opaque, const char *name),
                          void *opaque);
+const char *bdrv_get_node_name(const BlockDriverState *bs);
 const char *bdrv_get_device_name(const BlockDriverState *bs);
 int bdrv_get_flags(BlockDriverState *bs);
 int bdrv_write_compressed(BlockDriverState *bs, int64_t sector_num,
@@ -399,6 +399,7 @@ void bdrv_get_full_backing_filename(BlockDriverState *bs,
                                     char *dest, size_t sz);
 int bdrv_is_snapshot(BlockDriverState *bs);
 
+int path_has_protocol(const char *path);
 int path_is_absolute(const char *path);
 void path_combine(char *dest, int dest_size,
                   const char *base_path,

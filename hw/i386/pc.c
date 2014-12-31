@@ -282,7 +282,7 @@ static int boot_device2nibble(char boot_device)
     return 0;
 }
 
-static int set_boot_dev(ISADevice *s, const char *boot_device)
+static void set_boot_dev(ISADevice *s, const char *boot_device, Error **errp)
 {
 #define PC_MAX_BOOT_DEVICES 3
     int nbds, bds[3] = { 0, };
@@ -290,25 +290,24 @@ static int set_boot_dev(ISADevice *s, const char *boot_device)
 
     nbds = strlen(boot_device);
     if (nbds > PC_MAX_BOOT_DEVICES) {
-        error_report("Too many boot devices for PC");
-        return(1);
+        error_setg(errp, "Too many boot devices for PC");
+        return;
     }
     for (i = 0; i < nbds; i++) {
         bds[i] = boot_device2nibble(boot_device[i]);
         if (bds[i] == 0) {
-            error_report("Invalid boot device for PC: '%c'",
-                         boot_device[i]);
-            return(1);
+            error_setg(errp, "Invalid boot device for PC: '%c'",
+                       boot_device[i]);
+            return;
         }
     }
     rtc_set_memory(s, 0x3d, (bds[1] << 4) | bds[0]);
     rtc_set_memory(s, 0x38, (bds[2] << 4) | (fd_bootchk ? 0x0 : 0x1));
-    return(0);
 }
 
-static int pc_boot_set(void *opaque, const char *boot_device)
+static void pc_boot_set(void *opaque, const char *boot_device, Error **errp)
 {
-    return set_boot_dev(opaque, boot_device);
+    set_boot_dev(opaque, boot_device, errp);
 }
 
 typedef struct pc_cmos_init_late_arg {
@@ -365,6 +364,7 @@ void pc_cmos_init(ram_addr_t ram_size, ram_addr_t above_4g_mem_size,
     FDriveType fd_type[2] = { FDRIVE_DRV_NONE, FDRIVE_DRV_NONE };
     static pc_cmos_init_late_arg arg;
     PCMachineState *pc_machine = PC_MACHINE(machine);
+    Error *local_err = NULL;
 
     /* various important CMOS locations needed by PC/Bochs bios */
 
@@ -412,7 +412,9 @@ void pc_cmos_init(ram_addr_t ram_size, ram_addr_t above_4g_mem_size,
     object_property_set_link(OBJECT(machine), OBJECT(s),
                              "rtc_state", &error_abort);
 
-    if (set_boot_dev(s, boot_device)) {
+    set_boot_dev(s, boot_device, &local_err);
+    if (local_err) {
+        error_report("%s", error_get_pretty(local_err));
         exit(1);
     }
 
@@ -602,8 +604,7 @@ int e820_add_entry(uint64_t address, uint64_t length, uint32_t type)
     }
 
     /* new "etc/e820" file -- include ram too */
-    e820_table = g_realloc(e820_table,
-                           sizeof(struct e820_entry) * (e820_entries+1));
+    e820_table = g_renew(struct e820_entry, e820_table, e820_entries + 1);
     e820_table[e820_entries].address = cpu_to_le64(address);
     e820_table[e820_entries].length = cpu_to_le64(length);
     e820_table[e820_entries].type = cpu_to_le32(type);
@@ -648,7 +649,7 @@ static FWCfgState *bochs_bios_init(void)
     int i, j;
     unsigned int apic_id_limit = pc_apic_id_limit(max_cpus);
 
-    fw_cfg = fw_cfg_init(BIOS_CFG_IOPORT, BIOS_CFG_IOPORT + 1, 0, 0);
+    fw_cfg = fw_cfg_init_io(BIOS_CFG_IOPORT);
     /* FW_CFG_MAX_CPUS is a bit confusing/problematic on x86:
      *
      * SeaBIOS needs FW_CFG_MAX_CPUS for CPU hotplug, but the CPU hotplug
@@ -1169,7 +1170,7 @@ FWCfgState *xen_load_linux(const char *kernel_filename,
 
     assert(kernel_filename != NULL);
 
-    fw_cfg = fw_cfg_init(BIOS_CFG_IOPORT, BIOS_CFG_IOPORT + 1, 0, 0);
+    fw_cfg = fw_cfg_init_io(BIOS_CFG_IOPORT);
     rom_set_fw(fw_cfg);
 
     load_linux(fw_cfg, kernel_filename, initrd_filename,
@@ -1804,17 +1805,24 @@ static void pc_machine_initfn(Object *obj)
     object_property_add(obj, PC_MACHINE_MEMHP_REGION_SIZE, "int",
                         pc_machine_get_hotplug_memory_region_size,
                         NULL, NULL, NULL, NULL);
+
     pcms->max_ram_below_4g = 1ULL << 32; /* 4G */
     object_property_add(obj, PC_MACHINE_MAX_RAM_BELOW_4G, "size",
                         pc_machine_get_max_ram_below_4g,
                         pc_machine_set_max_ram_below_4g,
                         NULL, NULL, NULL);
+    object_property_set_description(obj, PC_MACHINE_MAX_RAM_BELOW_4G,
+                                    "Maximum ram below the 4G boundary (32bit boundary)",
+                                    NULL);
 
     pcms->vmport = ON_OFF_AUTO_AUTO;
     object_property_add(obj, PC_MACHINE_VMPORT, "OnOffAuto",
                         pc_machine_get_vmport,
                         pc_machine_set_vmport,
                         NULL, NULL, NULL);
+    object_property_set_description(obj, PC_MACHINE_VMPORT,
+                                    "Enable vmport (pc & q35)",
+                                    NULL);
 
     pcms->enforce_aligned_dimm = true;
     object_property_add_bool(obj, PC_MACHINE_ENFORCE_ALIGNED_DIMM,

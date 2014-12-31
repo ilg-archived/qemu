@@ -200,9 +200,6 @@ NodeInfo numa_info[MAX_NODES];
 uint8_t qemu_uuid[16];
 bool qemu_uuid_set;
 
-static QEMUBootSetHandler *boot_set_handler;
-static void *boot_set_opaque;
-
 static NotifierList exit_notifiers =
     NOTIFIER_LIST_INITIALIZER(exit_notifiers);
 
@@ -315,84 +312,12 @@ static QemuOptsList qemu_machine_opts = {
     .merge_lists = true,
     .head = QTAILQ_HEAD_INITIALIZER(qemu_machine_opts.head),
     .desc = {
-        {
-            .name = "type",
-            .type = QEMU_OPT_STRING,
-            .help = "emulated machine"
-        }, {
-            .name = "accel",
-            .type = QEMU_OPT_STRING,
-            .help = "accelerator list",
-        }, {
-            .name = "kernel_irqchip",
-            .type = QEMU_OPT_BOOL,
-            .help = "use KVM in-kernel irqchip",
-        }, {
-            .name = "kvm_shadow_mem",
-            .type = QEMU_OPT_SIZE,
-            .help = "KVM shadow MMU size",
-        }, {
-            .name = "kernel",
-            .type = QEMU_OPT_STRING,
-            .help = "Linux kernel image file",
-        }, {
-            .name = "initrd",
-            .type = QEMU_OPT_STRING,
-            .help = "Linux initial ramdisk file",
-        }, {
-            .name = "append",
-            .type = QEMU_OPT_STRING,
-            .help = "Linux kernel command line",
-        }, {
-            .name = "dtb",
-            .type = QEMU_OPT_STRING,
-            .help = "Linux kernel device tree file",
-        }, {
-            .name = "dumpdtb",
-            .type = QEMU_OPT_STRING,
-            .help = "Dump current dtb to a file and quit",
-        }, {
-            .name = "phandle_start",
-            .type = QEMU_OPT_NUMBER,
-            .help = "The first phandle ID we may generate dynamically",
-        }, {
-            .name = "dt_compatible",
-            .type = QEMU_OPT_STRING,
-            .help = "Overrides the \"compatible\" property of the dt root node",
-        }, {
-            .name = "dump-guest-core",
-            .type = QEMU_OPT_BOOL,
-            .help = "Include guest memory in  a core dump",
-        }, {
-            .name = "mem-merge",
-            .type = QEMU_OPT_BOOL,
-            .help = "enable/disable memory merge support",
-        },{
-            .name = "usb",
-            .type = QEMU_OPT_BOOL,
-            .help = "Set on/off to enable/disable usb",
-        },{
-            .name = "firmware",
-            .type = QEMU_OPT_STRING,
-            .help = "firmware image",
-        },{
-            .name = "kvm-type",
-            .type = QEMU_OPT_STRING,
-            .help = "Specifies the KVM virtualization mode (HV, PR)",
-        },{
-            .name = PC_MACHINE_MAX_RAM_BELOW_4G,
-            .type = QEMU_OPT_SIZE,
-            .help = "maximum ram below the 4G boundary (32bit boundary)",
-        }, {
-            .name = PC_MACHINE_VMPORT,
-            .type = QEMU_OPT_STRING,
-            .help = "Enable vmport (pc & q35)",
-        },{
-            .name = "iommu",
-            .type = QEMU_OPT_BOOL,
-            .help = "Set on/off to enable/disable Intel IOMMU (VT-d)",
-        },
-        { /* End of list */ }
+        /*
+         * no elements => accept any
+         * sanity checking will happen later
+         * when setting machine properties
+         */
+        { }
     },
 };
 
@@ -1206,65 +1131,6 @@ static void default_drive(int enable, int snapshot, BlockInterfaceType type,
 
 }
 
-void qemu_register_boot_set(QEMUBootSetHandler *func, void *opaque)
-{
-    boot_set_handler = func;
-    boot_set_opaque = opaque;
-}
-
-int qemu_boot_set(const char *boot_order)
-{
-    if (!boot_set_handler) {
-        return -EINVAL;
-    }
-    return boot_set_handler(boot_set_opaque, boot_order);
-}
-
-static void validate_bootdevices(const char *devices)
-{
-    /* We just do some generic consistency checks */
-    const char *p;
-    int bitmap = 0;
-
-    for (p = devices; *p != '\0'; p++) {
-        /* Allowed boot devices are:
-         * a-b: floppy disk drives
-         * c-f: IDE disk drives
-         * g-m: machine implementation dependent drives
-         * n-p: network devices
-         * It's up to each machine implementation to check if the given boot
-         * devices match the actual hardware implementation and firmware
-         * features.
-         */
-        if (*p < 'a' || *p > 'p') {
-            fprintf(stderr, "Invalid boot device '%c'\n", *p);
-            exit(1);
-        }
-        if (bitmap & (1 << (*p - 'a'))) {
-            fprintf(stderr, "Boot device '%c' was given twice\n", *p);
-            exit(1);
-        }
-        bitmap |= 1 << (*p - 'a');
-    }
-}
-
-static void restore_boot_order(void *opaque)
-{
-    char *normal_boot_order = opaque;
-    static int first = 1;
-
-    /* Restore boot order and remove ourselves after the first boot */
-    if (first) {
-        first = 0;
-        return;
-    }
-
-    qemu_boot_set(normal_boot_order);
-
-    qemu_unregister_reset(restore_boot_order, normal_boot_order);
-    g_free(normal_boot_order);
-}
-
 static QemuOptsList qemu_smp_opts = {
     .name = "smp-opts",
     .implied_opt_name = "cpus",
@@ -1563,6 +1429,31 @@ MachineInfoList *qmp_query_machines(Error **errp)
 
     g_slist_free(machines);
     return mach_list;
+}
+
+static int machine_help_func(QemuOpts *opts, MachineState *machine)
+{
+    ObjectProperty *prop;
+
+    if (!qemu_opt_has_help_opt(opts)) {
+        return 0;
+    }
+
+    QTAILQ_FOREACH(prop, &OBJECT(machine)->properties, node) {
+        if (!prop->set) {
+            continue;
+        }
+
+        error_printf("%s.%s=%s", MACHINE_GET_CLASS(machine)->name,
+                     prop->name, prop->type);
+        if (prop->description) {
+            error_printf(" (%s)\n", prop->description);
+        } else {
+            error_printf("\n");
+        }
+    }
+
+    return 1;
 }
 
 /***********************************************************/
@@ -2313,7 +2204,7 @@ static int mon_init_func(QemuOpts *opts, void *opaque)
     return 0;
 }
 
-static void monitor_parse(const char *optarg, const char *mode)
+static void monitor_parse(const char *optarg, const char *mode, bool pretty)
 {
     static int monitor_device_index = 0;
     QemuOpts *opts;
@@ -2343,6 +2234,7 @@ static void monitor_parse(const char *optarg, const char *mode)
     }
     qemu_opt_set(opts, "mode", mode);
     qemu_opt_set(opts, "chardev", label);
+    qemu_opt_set_bool(opts, "pretty", pretty);
     if (def)
         qemu_opt_set(opts, "default", "on");
     monitor_device_index++;
@@ -2681,7 +2573,6 @@ static int machine_set_property(const char *name, const char *value,
                                 void *opaque)
 {
     Object *obj = OBJECT(opaque);
-    StringInputVisitor *siv;
     Error *local_err = NULL;
     char *c, *qom_name;
 
@@ -2697,9 +2588,7 @@ static int machine_set_property(const char *name, const char *value,
         }
     }
 
-    siv = string_input_visitor_new(value);
-    object_property_set(obj, string_input_get_visitor(siv), qom_name, &local_err);
-    string_input_visitor_cleanup(siv);
+    object_property_parse(obj, value, qom_name, &local_err);
     g_free(qom_name);
 
     if (local_err) {
@@ -3340,11 +3229,15 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_monitor:
                 default_monitor = 0;
                 if (strncmp(optarg, "none", 4)) {
-                    monitor_parse(optarg, "readline");
+                    monitor_parse(optarg, "readline", false);
                 }
                 break;
             case QEMU_OPTION_qmp:
-                monitor_parse(optarg, "control");
+                monitor_parse(optarg, "control", false);
+                default_monitor = 0;
+                break;
+            case QEMU_OPTION_qmp_pretty:
+                monitor_parse(optarg, "control", true);
                 default_monitor = 0;
                 break;
             case QEMU_OPTION_mon:
@@ -3921,6 +3814,9 @@ int main(int argc, char **argv, char **envp)
 
     current_machine = MACHINE(object_new(object_class_get_name(
                           OBJECT_CLASS(machine_class))));
+    if (machine_help_func(qemu_get_machine_opts(), current_machine)) {
+        exit(0);
+    }
     object_property_add_child(object_get_root(), "machine",
                               OBJECT(current_machine), &error_abort);
     cpu_exec_init_all();
@@ -4073,7 +3969,7 @@ int main(int argc, char **argv, char **envp)
                 add_device_config(DEV_SCLP, "stdio");
             }
             if (default_monitor)
-                monitor_parse("stdio", "readline");
+                monitor_parse("stdio", "readline", false);
         }
     } else {
         if (default_serial)
@@ -4081,7 +3977,7 @@ int main(int argc, char **argv, char **envp)
         if (default_parallel)
             add_device_config(DEV_PARALLEL, "vc:80Cx24C");
         if (default_monitor)
-            monitor_parse("vc:80Cx24C", "readline");
+            monitor_parse("vc:80Cx24C", "readline", false);
         if (default_virtcon)
             add_device_config(DEV_VIRTCON, "vc:80Cx24C");
         if (default_sclp) {
@@ -4175,16 +4071,25 @@ int main(int argc, char **argv, char **envp)
     if (opts) {
         char *normal_boot_order;
         const char *order, *once;
+        Error *local_err = NULL;
 
         order = qemu_opt_get(opts, "order");
         if (order) {
-            validate_bootdevices(order);
+            validate_bootdevices(order, &local_err);
+            if (local_err) {
+                error_report("%s", error_get_pretty(local_err));
+                exit(1);
+            }
             boot_order = order;
         }
 
         once = qemu_opt_get(opts, "once");
         if (once) {
-            validate_bootdevices(once);
+            validate_bootdevices(once, &local_err);
+            if (local_err) {
+                error_report("%s", error_get_pretty(local_err));
+                exit(1);
+            }
             normal_boot_order = g_strdup(boot_order);
             boot_order = once;
             qemu_register_reset(restore_boot_order, normal_boot_order);
