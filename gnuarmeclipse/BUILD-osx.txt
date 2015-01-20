@@ -16,7 +16,7 @@ To build the latest version of the package please use the script from:
   wget https://sourceforge.net/p/gnuarmeclipse/qemu/ci/gnuarmeclipse/tree/gnuarmeclipse/build-qemu-osx.sh?format=raw \
   -O ~/Downloads/build-qemu-osx.sh
 
-  bash ~/Downloads/build-qemu-debian.sh
+  bash ~/Downloads/build-qemu-osx.sh
 
 The script was developped on OS X 10.9.5 with MacPorts 2.3.2. Running it on other 
 versions is possible, but might require some adjustments.
