@@ -59,6 +59,35 @@ then
 
     # exit 0
     # Continue with build
+  elif [ "${ACTION}" == "install" ]
+  then
+
+    # Always clear the destination folder, to have a consistent package.
+    rm -rfv "${INSTALL_FOLDER}/qemu"
+    mkdir -p "${INSTALL_FOLDER}"
+
+    # Transfer the install folder to the final destination. 
+    # Use tar to preserve rights.
+    cd "${QEMU_INSTALL_FOLDER}"
+    tar c -z --owner root --group root -f - qemu | tar x -z -f - -C "${INSTALL_FOLDER}"
+
+    # Display some information about the resulted application.
+    readelf -d "${INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+
+    # Check if the application starts (if all dynamic libraries are available).
+    echo
+    "${INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse" --version
+    RESULT="$?"
+
+    echo
+    if [ "${RESULT}" == "0" ]
+    then
+      echo "Installed. (Configure qemu_path to ${INSTALL_FOLDER}/qemu/bin)."
+    else
+      echo "Install failed."
+    fi
+
+    exit 0
   fi
 fi
 
@@ -112,11 +141,18 @@ mkdir -p "${QEMU_BUILD_FOLDER}/qemu"
 # Be sure all these lines end in '\' to ensure lines are concatenated.
 
 cd "${QEMU_BUILD_FOLDER}/qemu"
+LDFLAGS='-Wl,-rpath=\$$ORIGIN' \
 "${QEMU_GIT_FOLDER}/configure" \
 --target-list="gnuarmeclipse-softmmu" \
 --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
 --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
 --mandir="${QEMU_INSTALL_FOLDER}/qemu/man"
+
+# Note: a very important detail here is LDFLAGS='-Wl,-rpath=\$$ORIGIN which 
+# adds a special record to the ELF file asking the loader to search for the 
+# libraries first in the same folder where the executable is located. The 
+# task is complicated due to the multiple substitutions that are done on 
+# the way, and need to be escaped.
 
 # Do a full build, with documentation.
 
@@ -134,7 +170,93 @@ rm -rfv "${QEMU_INSTALL_FOLDER}/qemu"
 cd "${QEMU_BUILD_FOLDER}/qemu"
 make install install-pdf
 
-# TODO: add shared libraries
+# Copy the dynamic libraries to the same folder where the application file is.
+ILIB=$(find /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu -type f -name 'libz.so.1.*' -print)
+if [ ! -z "${ILIB}" ]
+then
+  /usr/bin/install -c -m 644 "${ILIB}" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libz.so.1")
+else
+  echo 'WARNING: libz.so.1 not copied locally!'
+fi
+
+ILIB=$(find /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu -type f -name 'libgthread-2.0.so.0.*' -print)
+if [ ! -z "${ILIB}" ]
+then
+  /usr/bin/install -c -m 644 "${ILIB}" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libgthread-2.0.so.0")
+else
+  echo 'WARNING: libgthread-2.0.so.0 not copied locally!'
+fi
+
+ILIB=$(find /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu -type f -name 'librt.so.1.*' -print)
+if [ ! -z "${ILIB}" ]
+then
+  /usr/bin/install -c -m 644 "${ILIB}" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "librt.so.1")
+else
+  echo 'WARNING: librt.so.1 not copied locally!'
+fi
+
+if [ -f "/lib/x86_64-linux-gnu/librt.so.1" -o -L "/lib/x86_64-linux-gnu/librt.so.1" ]
+then
+  /usr/bin/install -c -m 644 "/lib/x86_64-linux-gnu/librt.so.1" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "librt.so.1" "librt.so")
+else
+  echo 'WARNING: librt.so not copied locally!'
+fi
+
+ILIB=$(find /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu -type f -name 'libglib-2.0.so.0.*' -print)
+if [ ! -z "${ILIB}" ]
+then
+  /usr/bin/install -c -m 644 "${ILIB}" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libglib-2.0.so.0")
+else
+  echo 'WARNING: libglib-2.0.so.0 not copied locally!'
+fi
+
+ILIB=$(find /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu -type f -name 'libpixman-1.so.0.*' -print)
+if [ ! -z "${ILIB}" ]
+then
+  /usr/bin/install -c -m 644 "${ILIB}" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libpixman-1.so.0")
+else
+  echo 'WARNING: libpixman-1.so.0 not copied locally!'
+fi
+
+if [ -f "/lib/x86_64-linux-gnu/libutil.so.1" -o -L "/lib/x86_64-linux-gnu/libutil.so.1" ]
+then
+  /usr/bin/install -c -m 644 "/lib/x86_64-linux-gnu/libutil.so.1" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "libutil.so.1" "libutil.so")
+else
+  echo 'WARNING: libutil.so.1 not copied locally!'
+fi
+
+if [ -f "/lib/x86_64-linux-gnu/libpthread.so.0" -o -L "/lib/x86_64-linux-gnu/libpthread.so.0" ]
+then
+  /usr/bin/install -c -m 644 "/lib/x86_64-linux-gnu/libpthread.so.0" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "libpthread.so.0" "libpthread.so")
+else
+  echo 'WARNING: libpthread.so.0 not copied locally!'
+fi
+
+ILIB=$(find /lib/x86_64-linux-gnu /usr/lib/x86_64-linux-gnu -type f -name 'libpcre.so.3.*' -print)
+if [ ! -z "${ILIB}" ]
+then
+  /usr/bin/install -c -m 644 "${ILIB}" \
+  "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libpcre.so.3")
+else
+  echo 'WARNING: libpcre.so.3 not copied locally!'
+fi
 
 
 # Copy the license files.
@@ -154,7 +276,7 @@ mkdir -p "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse"
   "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/BUILD.txt"
 /usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/CHANGES.txt" \
   "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/"
-/usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/build-qemu-linux.sh" \
+/usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/build-qemu-debian.sh" \
   "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/"
 
 # Remove useless files
@@ -186,9 +308,9 @@ RESULT="$?"
 echo
 if [ "${RESULT}" == "0" ]
 then
-echo "Build completed."
+  echo "Build completed."
 else
-echo "Build failed."
+  echo "Build failed."
 fi
 
 exit 0
