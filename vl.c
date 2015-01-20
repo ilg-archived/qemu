@@ -1005,10 +1005,14 @@ static int parse_name(QemuOpts *opts, void *opaque)
     return 0;
 }
 
-bool usb_enabled(bool default_usb)
+bool defaults_enabled(void)
 {
-    return qemu_opt_get_bool(qemu_get_machine_opts(), "usb",
-                             has_defaults && default_usb);
+    return has_defaults;
+}
+
+bool usb_enabled(void)
+{
+    return machine_usb(current_machine);
 }
 
 #ifndef _WIN32
@@ -1174,13 +1178,17 @@ static void smp_parse(QemuOpts *opts)
             if (cpus == 0) {
                 cpus = cores * threads * sockets;
             }
-        } else {
-            if (cores == 0) {
-                threads = threads > 0 ? threads : 1;
-                cores = cpus / (sockets * threads);
-            } else {
-                threads = cpus / (cores * sockets);
-            }
+        } else if (cores == 0) {
+            threads = threads > 0 ? threads : 1;
+            cores = cpus / (sockets * threads);
+        } else if (threads == 0) {
+            threads = cpus / (cores * sockets);
+        } else if (sockets * cores * threads < cpus) {
+            fprintf(stderr, "cpu topology: error: "
+                    "sockets (%u) * cores (%u) * threads (%u) < "
+                    "smp_cpus (%u)\n",
+                    sockets, cores, threads, cpus);
+            exit(1);
         }
 
         max_cpus = qemu_opt_get_number(opts, "maxcpus", 0);
@@ -1232,7 +1240,7 @@ static int usb_device_add(const char *devname)
     const char *p;
 #endif
 
-    if (!usb_enabled(false)) {
+    if (!usb_enabled()) {
         return -1;
     }
 
@@ -1264,7 +1272,7 @@ static int usb_device_del(const char *devname)
         return -1;
     }
 
-    if (!usb_enabled(false)) {
+    if (!usb_enabled()) {
         return -1;
     }
 
@@ -2653,6 +2661,92 @@ out:
     return 0;
 }
 
+static void set_memory_options(uint64_t *ram_slots, ram_addr_t *maxram_size)
+{
+    uint64_t sz;
+    const char *mem_str;
+    const char *maxmem_str, *slots_str;
+    const ram_addr_t default_ram_size = (ram_addr_t)DEFAULT_RAM_SIZE *
+                                        1024 * 1024;
+    QemuOpts *opts = qemu_find_opts_singleton("memory");
+
+    sz = 0;
+    mem_str = qemu_opt_get(opts, "size");
+    if (mem_str) {
+        if (!*mem_str) {
+            error_report("missing 'size' option value");
+            exit(EXIT_FAILURE);
+        }
+
+        sz = qemu_opt_get_size(opts, "size", ram_size);
+
+        /* Fix up legacy suffix-less format */
+        if (g_ascii_isdigit(mem_str[strlen(mem_str) - 1])) {
+            uint64_t overflow_check = sz;
+
+            sz <<= 20;
+            if ((sz >> 20) != overflow_check) {
+                error_report("too large 'size' option value");
+                exit(EXIT_FAILURE);
+            }
+        }
+    }
+
+    /* backward compatibility behaviour for case "-m 0" */
+    if (sz == 0) {
+        sz = default_ram_size;
+    }
+
+    sz = QEMU_ALIGN_UP(sz, 8192);
+    ram_size = sz;
+    if (ram_size != sz) {
+        error_report("ram size too large");
+        exit(EXIT_FAILURE);
+    }
+
+    /* store value for the future use */
+    qemu_opt_set_number(opts, "size", ram_size);
+    *maxram_size = ram_size;
+
+    maxmem_str = qemu_opt_get(opts, "maxmem");
+    slots_str = qemu_opt_get(opts, "slots");
+    if (maxmem_str && slots_str) {
+        uint64_t slots;
+
+        sz = qemu_opt_get_size(opts, "maxmem", 0);
+        if (sz < ram_size) {
+            error_report("invalid -m option value: maxmem "
+                    "(0x%" PRIx64 ") <= initial memory (0x"
+                    RAM_ADDR_FMT ")", sz, ram_size);
+            exit(EXIT_FAILURE);
+        }
+
+        slots = qemu_opt_get_number(opts, "slots", 0);
+        if ((sz > ram_size) && !slots) {
+            error_report("invalid -m option value: maxmem "
+                    "(0x%" PRIx64 ") more than initial memory (0x"
+                    RAM_ADDR_FMT ") but no hotplug slots where "
+                    "specified", sz, ram_size);
+            exit(EXIT_FAILURE);
+        }
+
+        if ((sz <= ram_size) && slots) {
+            error_report("invalid -m option value:  %"
+                    PRIu64 " hotplug slots where specified but "
+                    "maxmem (0x%" PRIx64 ") <= initial memory (0x"
+                    RAM_ADDR_FMT ")", slots, sz, ram_size);
+            exit(EXIT_FAILURE);
+        }
+        *maxram_size = sz;
+        *ram_slots = slots;
+    } else if ((!maxmem_str && slots_str) ||
+            (maxmem_str && !slots_str)) {
+        error_report("invalid -m option value: missing "
+                "'%s' option", slots_str ? "maxmem" : "slots");
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(int argc, char **argv, char **envp)
 {
     int i;
@@ -2688,9 +2782,7 @@ int main(int argc, char **argv, char **envp)
     };
     const char *trace_events = NULL;
     const char *trace_file = NULL;
-    const ram_addr_t default_ram_size = (ram_addr_t)DEFAULT_RAM_SIZE *
-                                        1024 * 1024;
-    ram_addr_t maxram_size = default_ram_size;
+    ram_addr_t maxram_size;
     uint64_t ram_slots = 0;
     FILE *vmstate_dump_file = NULL;
     Error *main_loop_err = NULL;
@@ -2757,7 +2849,6 @@ int main(int argc, char **argv, char **envp)
     module_call_init(MODULE_INIT_MACHINE);
     machine_class = find_default_machine();
     cpu_model = NULL;
-    ram_size = default_ram_size;
     snapshot = 0;
     cyls = heads = secs = 0;
     translation = BIOS_ATA_TRANSLATION_AUTO;
@@ -2811,7 +2902,7 @@ int main(int argc, char **argv, char **envp)
         if (optind >= argc)
             break;
         if (argv[optind][0] != '-') {
-	    hda_opts = drive_add(IF_DEFAULT, 0, argv[optind++], HD_OPTS);
+            hda_opts = drive_add(IF_DEFAULT, 0, argv[optind++], HD_OPTS);
         } else {
             const QEMUOption *popt;
 
@@ -2821,9 +2912,6 @@ int main(int argc, char **argv, char **envp)
                 exit(1);
             }
             switch(popt->index) {
-            case QEMU_OPTION_M:
-                machine_class = machine_parse(optarg);
-                break;
             case QEMU_OPTION_no_kvm_irqchip: {
                 olist = qemu_find_opts("machine");
                 qemu_opts_parse(olist, "kernel_irqchip=off", 0);
@@ -2859,15 +2947,15 @@ int main(int argc, char **argv, char **envp)
                 if (drive_def(optarg) == NULL) {
                     exit(1);
                 }
-	        break;
+                break;
             case QEMU_OPTION_set:
                 if (qemu_set_option(optarg) != 0)
                     exit(1);
-	        break;
+                break;
             case QEMU_OPTION_global:
                 if (qemu_global_option(optarg) != 0)
                     exit(1);
-	        break;
+                break;
             case QEMU_OPTION_mtdblock:
                 drive_add(IF_MTD, -1, optarg, MTD_OPTS);
                 break;
@@ -2919,7 +3007,7 @@ int main(int argc, char **argv, char **envp)
                         fprintf(stderr, "qemu: invalid physical CHS format\n");
                         exit(1);
                     }
-		    if (hda_opts != NULL) {
+                    if (hda_opts != NULL) {
                         char num[16];
                         snprintf(num, sizeof(num), "%d", cyls);
                         qemu_opt_set(hda_opts, "cyls", num);
@@ -3047,92 +3135,13 @@ int main(int argc, char **argv, char **envp)
                 version();
                 exit(0);
                 break;
-            case QEMU_OPTION_m: {
-                uint64_t sz;
-                const char *mem_str;
-                const char *maxmem_str, *slots_str;
-
+            case QEMU_OPTION_m:
                 opts = qemu_opts_parse(qemu_find_opts("memory"),
                                        optarg, 1);
                 if (!opts) {
                     exit(EXIT_FAILURE);
                 }
-
-                mem_str = qemu_opt_get(opts, "size");
-                if (!mem_str) {
-                    error_report("invalid -m option, missing 'size' option");
-                    exit(EXIT_FAILURE);
-                }
-                if (!*mem_str) {
-                    error_report("missing 'size' option value");
-                    exit(EXIT_FAILURE);
-                }
-
-                sz = qemu_opt_get_size(opts, "size", ram_size);
-
-                /* Fix up legacy suffix-less format */
-                if (g_ascii_isdigit(mem_str[strlen(mem_str) - 1])) {
-                    uint64_t overflow_check = sz;
-
-                    sz <<= 20;
-                    if ((sz >> 20) != overflow_check) {
-                        error_report("too large 'size' option value");
-                        exit(EXIT_FAILURE);
-                    }
-                }
-
-                /* backward compatibility behaviour for case "-m 0" */
-                if (sz == 0) {
-                    sz = default_ram_size;
-                }
-
-                sz = QEMU_ALIGN_UP(sz, 8192);
-                ram_size = sz;
-                if (ram_size != sz) {
-                    error_report("ram size too large");
-                    exit(EXIT_FAILURE);
-                }
-                maxram_size = ram_size;
-
-                maxmem_str = qemu_opt_get(opts, "maxmem");
-                slots_str = qemu_opt_get(opts, "slots");
-                if (maxmem_str && slots_str) {
-                    uint64_t slots;
-
-                    sz = qemu_opt_get_size(opts, "maxmem", 0);
-                    if (sz < ram_size) {
-                        error_report("invalid -m option value: maxmem "
-                                "(0x%" PRIx64 ") <= initial memory (0x"
-                                RAM_ADDR_FMT ")", sz, ram_size);
-                        exit(EXIT_FAILURE);
-                    }
-
-                    slots = qemu_opt_get_number(opts, "slots", 0);
-                    if ((sz > ram_size) && !slots) {
-                        error_report("invalid -m option value: maxmem "
-                                "(0x%" PRIx64 ") more than initial memory (0x"
-                                RAM_ADDR_FMT ") but no hotplug slots where "
-                                "specified", sz, ram_size);
-                        exit(EXIT_FAILURE);
-                    }
-
-                    if ((sz <= ram_size) && slots) {
-                        error_report("invalid -m option value:  %"
-                                PRIu64 " hotplug slots where specified but "
-                                "maxmem (0x%" PRIx64 ") <= initial memory (0x"
-                                RAM_ADDR_FMT ")", slots, sz, ram_size);
-                        exit(EXIT_FAILURE);
-                    }
-                    maxram_size = sz;
-                    ram_slots = slots;
-                } else if ((!maxmem_str && slots_str) ||
-                           (maxmem_str && !slots_str)) {
-                    error_report("invalid -m option value: missing "
-                            "'%s' option", slots_str ? "maxmem" : "slots");
-                    exit(EXIT_FAILURE);
-                }
                 break;
-            }
 #ifdef CONFIG_TPM
             case QEMU_OPTION_tpmdev:
                 if (tpm_config_parse(qemu_find_opts("tpmdev"), optarg) < 0) {
@@ -3174,9 +3183,9 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_S:
                 autostart = 0;
                 break;
-	    case QEMU_OPTION_k:
-		keyboard_layout = optarg;
-		break;
+            case QEMU_OPTION_k:
+                keyboard_layout = optarg;
+                break;
             case QEMU_OPTION_localtime:
                 rtc_utc = 0;
                 break;
@@ -3384,9 +3393,9 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_debugcon:
                 add_device_config(DEV_DEBUGCON, optarg);
                 break;
-	    case QEMU_OPTION_loadvm:
-		loadvm = optarg;
-		break;
+            case QEMU_OPTION_loadvm:
+                loadvm = optarg;
+                break;
             case QEMU_OPTION_full_screen:
                 full_screen = 1;
                 break;
@@ -3447,15 +3456,12 @@ int main(int argc, char **argv, char **envp)
                 olist = qemu_find_opts("machine");
                 qemu_opts_parse(olist, "accel=kvm", 0);
                 break;
+            case QEMU_OPTION_M:
             case QEMU_OPTION_machine:
                 olist = qemu_find_opts("machine");
                 opts = qemu_opts_parse(olist, optarg, 1);
                 if (!opts) {
                     exit(1);
-                }
-                optarg = qemu_opt_get(opts, "type");
-                if (optarg) {
-                    machine_class = machine_parse(optarg);
                 }
                 break;
              case QEMU_OPTION_no_kvm:
@@ -3501,7 +3507,7 @@ int main(int argc, char **argv, char **envp)
                     exit(1);
                 }
                 break;
-	    case QEMU_OPTION_vnc:
+            case QEMU_OPTION_vnc:
 #ifdef CONFIG_VNC
                 display_remote++;
                 vnc_display = optarg;
@@ -3539,11 +3545,11 @@ int main(int argc, char **argv, char **envp)
                 }
                 qemu_uuid_set = true;
                 break;
-	    case QEMU_OPTION_option_rom:
-		if (nb_option_roms >= MAX_OPTION_ROMS) {
-		    fprintf(stderr, "Too many option ROMs\n");
-		    exit(1);
-		}
+            case QEMU_OPTION_option_rom:
+                if (nb_option_roms >= MAX_OPTION_ROMS) {
+                    fprintf(stderr, "Too many option ROMs\n");
+                    exit(1);
+                }
                 opts = qemu_opts_parse(qemu_find_opts("option-rom"), optarg, 1);
                 if (!opts) {
                     exit(1);
@@ -3555,8 +3561,8 @@ int main(int argc, char **argv, char **envp)
                     fprintf(stderr, "Option ROM file is not specified\n");
                     exit(1);
                 }
-		nb_option_roms++;
-		break;
+                nb_option_roms++;
+                break;
             case QEMU_OPTION_semihosting:
                 semihosting_enabled = 1;
                 semihosting_target = SEMIHOSTING_TARGET_AUTO;
@@ -3779,6 +3785,15 @@ int main(int argc, char **argv, char **envp)
             }
         }
     }
+
+    opts = qemu_get_machine_opts();
+    optarg = qemu_opt_get(opts, "type");
+    if (optarg) {
+        machine_class = machine_parse(optarg);
+    }
+
+    set_memory_options(&ram_slots, &maxram_size);
+
     loc_set_none();
 
     os_daemonize();
@@ -3878,9 +3893,9 @@ int main(int argc, char **argv, char **envp)
     smp_parse(qemu_opts_find(qemu_find_opts("smp-opts"), NULL));
 
     machine_class->max_cpus = machine_class->max_cpus ?: 1; /* Default to UP */
-    if (smp_cpus > machine_class->max_cpus) {
+    if (max_cpus > machine_class->max_cpus) {
         fprintf(stderr, "Number of SMP cpus requested (%d), exceeds max cpus "
-                "supported by machine `%s' (%d)\n", smp_cpus,
+                "supported by machine `%s' (%d)\n", max_cpus,
                 machine_class->name, machine_class->max_cpus);
         exit(1);
     }
@@ -4027,9 +4042,6 @@ int main(int argc, char **argv, char **envp)
         fprintf(stderr, "Could not acquire pid file: %s\n", strerror(errno));
         exit(1);
     }
-
-    /* store value for the future use */
-    qemu_opt_set_number(qemu_find_opts_singleton("memory"), "size", ram_size);
 
     if (qemu_opts_foreach(qemu_find_opts("device"), device_help_func, NULL, 0)
         != 0) {
@@ -4256,7 +4268,7 @@ int main(int argc, char **argv, char **envp)
     set_numa_modes();
 
     /* init USB devices */
-    if (usb_enabled(false)) {
+    if (usb_enabled()) {
         if (foreach_device_config(DEV_USB, usb_parse) < 0)
             exit(1);
     }

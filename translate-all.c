@@ -218,7 +218,7 @@ static int cpu_restore_state_from_tb(CPUState *cpu, TranslationBlock *tb,
 
     gen_intermediate_code_pc(env, tb);
 
-    if (use_icount) {
+    if (tb->cflags & CF_USE_ICOUNT) {
         /* Reset the cycle counter to the start of the block.  */
         cpu->icount_decr.u16.low += tb->icount;
         /* Clear the IO flag.  */
@@ -276,14 +276,14 @@ bool cpu_restore_state(CPUState *cpu, uintptr_t retaddr)
 }
 
 #ifdef _WIN32
-static inline void map_exec(void *addr, long size)
+static __attribute__((unused)) void map_exec(void *addr, long size)
 {
     DWORD old_protect;
     VirtualProtect(addr, size,
                    PAGE_EXECUTE_READWRITE, &old_protect);
 }
 #else
-static inline void map_exec(void *addr, long size)
+static __attribute__((unused)) void map_exec(void *addr, long size)
 {
     unsigned long start, end, page_size;
 
@@ -1045,6 +1045,9 @@ TranslationBlock *tb_gen_code(CPUState *cpu,
     int code_gen_size;
 
     phys_pc = get_page_addr_code(env, pc);
+    if (use_icount) {
+        cflags |= CF_USE_ICOUNT;
+    }
     tb = tb_alloc(pc);
     if (!tb) {
         /* flush must be done */

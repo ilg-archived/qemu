@@ -111,3 +111,4 @@ TAGS
 *~
 common.env
 .project
+/tests/qemu-iotests/common.env
