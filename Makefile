@@ -374,6 +374,10 @@ ifdef CONFIG_VIRTFS
 	$(INSTALL_DATA) fsdev/virtfs-proxy-helper.1 "$(DESTDIR)$(mandir)/man1"
 endif
 
+install-pdf: pdf
+	$(INSTALL_DIR) "$(DESTDIR)$(qemu_docdir)"
+	$(INSTALL_DATA) qemu-doc.pdf  qemu-tech.pdf "$(DESTDIR)$(qemu_docdir)"
+
 install-datadir:
 	$(INSTALL_DIR) "$(DESTDIR)$(qemu_datadir)"
 
@@ -554,28 +558,6 @@ ifdef SIGNCODE
 	$(SIGNCODE) $(INSTALLER)
 endif # SIGNCODE
 endif # CONFIG_WIN
-
-ifdef CONFIG_DARWIN
-
-ndate=$(shell date -u +%Y%m%d%H%M)
-INSTALLER=../../output/gnuarmeclipse-qemu-osx-$(VERSION)-$(ndate).pkg
-PKG_VERSION=$(VERSION)-$(ndate)
-
-.PHONY: installer
-installer: $(INSTALLER)
-
-$(INSTALLER): 
-	echo $(ndate)
-	rm -rf gnuarmeclipse-softmmu/pkg
-	mkdir -p gnuarmeclipse-softmmu/pkg
-	cp -a gnuarmeclipse-softmmu/qemu-system-gnuarmeclipse gnuarmeclipse-softmmu/pkg
-	pkgbuild --identifier ilg.gnuarmeclipse.qemu \
-		--root gnuarmeclipse-softmmu/pkg \
-		--version $(PKG_VERSION) \
-		--install-location Applications/GNU\ ARM\ Eclipse/QEMU \
-		$(INSTALLER)
-
-endif # CONFIG_DARWIN
 
 # Add a dependency on the generated files, so that they are always
 # rebuilt before other object files
