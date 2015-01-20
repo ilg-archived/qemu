@@ -96,6 +96,10 @@ then
     git clone http://git.code.sf.net/p/gnuarmeclipse/qemu gnuarmeclipse-qemu.git
   fi
 
+  # Add DTC module.
+  cd "${QEMU_GIT_FOLDER}"
+  git submodule update --init dtc
+
   # Change to the gnuarmeclipse branch. On subsequent runs use "git pull".
   cd "${QEMU_GIT_FOLDER}"
   git checkout gnuarmeclipse
