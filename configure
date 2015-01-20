@@ -759,6 +759,9 @@ case $target_list in
     if test "$mingw32" = "yes" ; then
         prefix="C:/Program Files/GNU ARM Eclipse/QEMU"
     fi
+    if test "$darwin" = "yes" ; then
+        prefix="/usr/local"
+    fi
     ;;
 esac
 

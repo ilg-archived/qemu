@@ -555,6 +555,28 @@ ifdef SIGNCODE
 endif # SIGNCODE
 endif # CONFIG_WIN
 
+ifdef CONFIG_DARWIN
+
+ndate=$(shell date -u +%Y%m%d%H%M)
+INSTALLER=../../output/gnuarmeclipse-qemu-osx-$(VERSION)-$(ndate).pkg
+PKG_VERSION=$(VERSION)-$(ndate)
+
+.PHONY: installer
+installer: $(INSTALLER)
+
+$(INSTALLER): 
+	echo $(ndate)
+	rm -rf gnuarmeclipse-softmmu/pkg
+	mkdir -p gnuarmeclipse-softmmu/pkg
+	cp -a gnuarmeclipse-softmmu/qemu-system-gnuarmeclipse gnuarmeclipse-softmmu/pkg
+	pkgbuild --identifier ilg.gnuarmeclipse.qemu \
+		--root gnuarmeclipse-softmmu/pkg \
+		--version $(PKG_VERSION) \
+		--install-location Applications/GNU\ ARM\ Eclipse/QEMU \
+		$(INSTALLER)
+
+endif # CONFIG_DARWIN
+
 # Add a dependency on the generated files, so that they are always
 # rebuilt before other object files
 ifneq ($(filter-out %clean,$(MAKECMDGOALS)),$(if $(MAKECMDGOALS),,fail))
