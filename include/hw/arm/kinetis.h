@@ -16,7 +16,6 @@ void kinetis_board_init(MachineState *machine, QEMUMachine *qm);
 
 qemu_irq *mk20dx128vlh5_mcu_init(MachineState *machine);
 qemu_irq *mk64fn1m0vll12_mcu_init(MachineState *machine);
-qemu_irq *mkl25z128vlk4_mcu_init(MachineState *machine);
 qemu_irq *mk60fn1m0vlq12_mcu_init(MachineState *machine);
 qemu_irq *mkl25z128vlk4_mcu_init(MachineState *machine);
 qemu_irq *mkl26z128vlh4_mcu_init(MachineState *machine);
