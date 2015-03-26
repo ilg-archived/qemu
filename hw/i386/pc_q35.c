@@ -50,6 +50,7 @@
 #define MAX_SATA_PORTS     6
 
 static bool has_acpi_build = true;
+static bool rsdp_in_ram = true;
 static bool smbios_defaults = true;
 static bool smbios_legacy_mode;
 static bool smbios_uuid_encoded = true;
@@ -154,6 +155,7 @@ static void pc_q35_init(MachineState *machine)
     guest_info->isapc_ram_fw = false;
     guest_info->has_acpi_build = has_acpi_build;
     guest_info->has_reserved_memory = has_reserved_memory;
+    guest_info->rsdp_in_ram = rsdp_in_ram;
 
     /* Migration was not supported in 2.0 for Q35, so do not bother
      * with this hack (see hw/i386/acpi-build.c).
@@ -265,7 +267,7 @@ static void pc_q35_init(MachineState *machine)
     ide_drive_get(hd, ICH_AHCI(ahci)->ahci.ports);
     ahci_ide_create_devs(ahci, hd);
 
-    if (usb_enabled(false)) {
+    if (usb_enabled()) {
         /* Should we create 6 UHCI according to ich9 spec? */
         ehci_create_ich9_with_companions(host_bus, 0x1d);
     }
@@ -289,6 +291,7 @@ static void pc_q35_init(MachineState *machine)
 
 static void pc_compat_2_2(MachineState *machine)
 {
+    rsdp_in_ram = false;
     x86_cpu_compat_set_features("kvm64", FEAT_1_EDX, 0, CPUID_VME);
     x86_cpu_compat_set_features("kvm32", FEAT_1_EDX, 0, CPUID_VME);
     x86_cpu_compat_set_features("Conroe", FEAT_1_EDX, 0, CPUID_VME);
@@ -307,6 +310,7 @@ static void pc_compat_2_2(MachineState *machine)
     x86_cpu_compat_set_features("Haswell", FEAT_1_ECX, 0, CPUID_EXT_RDRAND);
     x86_cpu_compat_set_features("Broadwell", FEAT_1_ECX, 0, CPUID_EXT_F16C);
     x86_cpu_compat_set_features("Broadwell", FEAT_1_ECX, 0, CPUID_EXT_RDRAND);
+    machine->suppress_vmdesc = true;
 }
 
 static void pc_compat_2_1(MachineState *machine)

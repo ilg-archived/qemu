@@ -167,7 +167,8 @@ typedef struct TCGRelocation {
 } TCGRelocation; 
 
 typedef struct TCGLabel {
-    int has_value;
+    unsigned has_value : 1;
+    unsigned id : 31;
     union {
         uintptr_t value;
         tcg_insn_unit *value_ptr;
@@ -182,8 +183,6 @@ typedef struct TCGPool {
 } TCGPool;
 
 #define TCG_POOL_CHUNK_SIZE 32768
-
-#define TCG_MAX_LABELS 512
 
 #define TCG_MAX_TEMPS 512
 
@@ -448,10 +447,28 @@ typedef struct TCGTempSet {
     unsigned long l[BITS_TO_LONGS(TCG_MAX_TEMPS)];
 } TCGTempSet;
 
+typedef struct TCGOp {
+    TCGOpcode opc   : 8;
+
+    /* The number of out and in parameter for a call.  */
+    unsigned callo  : 2;
+    unsigned calli  : 6;
+
+    /* Index of the arguments for this op, or -1 for zero-operand ops.  */
+    signed args     : 16;
+
+    /* Index of the prex/next op, or -1 for the end of the list.  */
+    signed prev     : 16;
+    signed next     : 16;
+} TCGOp;
+
+QEMU_BUILD_BUG_ON(NB_OPS > 0xff);
+QEMU_BUILD_BUG_ON(OPC_BUF_SIZE >= 0x7fff);
+QEMU_BUILD_BUG_ON(OPPARAM_BUF_SIZE >= 0x7fff);
+
 struct TCGContext {
     uint8_t *pool_cur, *pool_end;
     TCGPool *pool_first, *pool_current, *pool_first_large;
-    TCGLabel *labels;
     int nb_labels;
     int nb_globals;
     int nb_temps;
@@ -469,9 +486,6 @@ struct TCGContext {
                                corresponding output argument needs to be
                                sync to memory. */
     
-    /* tells in which temporary a given register is. It does not take
-       into account fixed registers */
-    int reg_to_temp[TCG_TARGET_NB_REGS];
     TCGRegSet reserved_regs;
     intptr_t current_frame_offset;
     intptr_t frame_start;
@@ -479,8 +493,6 @@ struct TCGContext {
     int frame_reg;
 
     tcg_insn_unit *code_ptr;
-    TCGTemp temps[TCG_MAX_TEMPS]; /* globals first, temps after */
-    TCGTempSet free_temps[TCG_TYPE_COUNT * 2];
 
     GHashTable *helpers;
 
@@ -508,14 +520,10 @@ struct TCGContext {
     int goto_tb_issue_mask;
 #endif
 
-    uint16_t gen_opc_buf[OPC_BUF_SIZE];
-    TCGArg gen_opparam_buf[OPPARAM_BUF_SIZE];
-
-    uint16_t *gen_opc_ptr;
-    TCGArg *gen_opparam_ptr;
-    target_ulong gen_opc_pc[OPC_BUF_SIZE];
-    uint16_t gen_opc_icount[OPC_BUF_SIZE];
-    uint8_t gen_opc_instr_start[OPC_BUF_SIZE];
+    int gen_first_op_idx;
+    int gen_last_op_idx;
+    int gen_next_op_idx;
+    int gen_next_parm_idx;
 
     /* Code generation.  Note that we specifically do not use tcg_insn_unit
        here, because there's too much arithmetic throughout that relies
@@ -533,9 +541,35 @@ struct TCGContext {
 
     /* The TCGBackendData structure is private to tcg-target.c.  */
     struct TCGBackendData *be;
+
+    TCGTempSet free_temps[TCG_TYPE_COUNT * 2];
+    TCGTemp temps[TCG_MAX_TEMPS]; /* globals first, temps after */
+
+    /* tells in which temporary a given register is. It does not take
+       into account fixed registers */
+    int reg_to_temp[TCG_TARGET_NB_REGS];
+
+    TCGOp gen_op_buf[OPC_BUF_SIZE];
+    TCGArg gen_opparam_buf[OPPARAM_BUF_SIZE];
+
+    target_ulong gen_opc_pc[OPC_BUF_SIZE];
+    uint16_t gen_opc_icount[OPC_BUF_SIZE];
+    uint8_t gen_opc_instr_start[OPC_BUF_SIZE];
 };
 
 extern TCGContext tcg_ctx;
+
+/* The number of opcodes emitted so far.  */
+static inline int tcg_op_buf_count(void)
+{
+    return tcg_ctx.gen_next_op_idx;
+}
+
+/* Test for whether to terminate the TB for using too many opcodes.  */
+static inline bool tcg_op_buf_full(void)
+{
+    return tcg_op_buf_count() >= OPC_MAX_SIZE;
+}
 
 /* pool based memory allocation */
 
@@ -706,11 +740,8 @@ void tcg_add_target_add_op_defs(const TCGTargetOpDef *tdefs);
 void tcg_gen_callN(TCGContext *s, void *func,
                    TCGArg ret, int nargs, TCGArg *args);
 
-void tcg_gen_shifti_i64(TCGv_i64 ret, TCGv_i64 arg1,
-                        int c, int right, int arith);
-
-TCGArg *tcg_optimize(TCGContext *s, uint16_t *tcg_opc_ptr, TCGArg *args,
-                     TCGOpDef *tcg_op_def);
+void tcg_op_remove(TCGContext *s, TCGOp *op);
+void tcg_optimize(TCGContext *s);
 
 /* only used for debugging purposes */
 void tcg_dump_ops(TCGContext *s);
@@ -720,6 +751,33 @@ TCGv_i32 tcg_const_i32(int32_t val);
 TCGv_i64 tcg_const_i64(int64_t val);
 TCGv_i32 tcg_const_local_i32(int32_t val);
 TCGv_i64 tcg_const_local_i64(int64_t val);
+
+TCGLabel *gen_new_label(void);
+
+/**
+ * label_arg
+ * @l: label
+ *
+ * Encode a label for storage in the TCG opcode stream.
+ */
+
+static inline TCGArg label_arg(TCGLabel *l)
+{
+    return (uintptr_t)l;
+}
+
+/**
+ * arg_label
+ * @i: value
+ *
+ * The opposite of label_arg.  Retrieve a label from the
+ * encoding of the TCG opcode stream.
+ */
+
+static inline TCGLabel *arg_label(TCGArg i)
+{
+    return (TCGLabel *)(uintptr_t)i;
+}
 
 /**
  * tcg_ptr_byte_diff

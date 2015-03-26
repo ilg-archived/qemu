@@ -82,7 +82,15 @@ typedef size_t (QEMURamSaveFunc)(QEMUFile *f, void *opaque,
                                ram_addr_t block_offset,
                                ram_addr_t offset,
                                size_t size,
-                               int *bytes_sent);
+                               uint64_t *bytes_sent);
+
+/*
+ * Stop any read or write (depending on flags) on the underlying
+ * transport on the QEMUFile.
+ * Existing blocking reads/writes must be woken
+ * Returns 0 on success, -err on error
+ */
+typedef int (QEMUFileShutdownFunc)(void *opaque, bool rd, bool wr);
 
 typedef struct QEMUFileOps {
     QEMUFilePutBufferFunc *put_buffer;
@@ -94,6 +102,7 @@ typedef struct QEMUFileOps {
     QEMURamHookFunc *after_ram_iterate;
     QEMURamHookFunc *hook_ram_load;
     QEMURamSaveFunc *save_page;
+    QEMUFileShutdownFunc *shut_down;
 } QEMUFileOps;
 
 struct QEMUSizedBuffer {
@@ -112,6 +121,7 @@ QEMUFile *qemu_bufopen(const char *mode, QEMUSizedBuffer *input);
 int qemu_get_fd(QEMUFile *f);
 int qemu_fclose(QEMUFile *f);
 int64_t qemu_ftell(QEMUFile *f);
+int64_t qemu_ftell_fast(QEMUFile *f);
 void qemu_put_buffer(QEMUFile *f, const uint8_t *buf, int size);
 void qemu_put_byte(QEMUFile *f, int v);
 /*
@@ -123,7 +133,6 @@ bool qemu_file_mode_is_not_valid(const char *mode);
 bool qemu_file_is_writable(QEMUFile *f);
 
 QEMUSizedBuffer *qsb_create(const uint8_t *buffer, size_t len);
-QEMUSizedBuffer *qsb_clone(const QEMUSizedBuffer *);
 void qsb_free(QEMUSizedBuffer *);
 size_t qsb_set_length(QEMUSizedBuffer *qsb, size_t length);
 size_t qsb_get_length(const QEMUSizedBuffer *qsb);
@@ -177,6 +186,7 @@ void qemu_file_set_rate_limit(QEMUFile *f, int64_t new_rate);
 int64_t qemu_file_get_rate_limit(QEMUFile *f);
 int qemu_file_get_error(QEMUFile *f);
 void qemu_file_set_error(QEMUFile *f, int ret);
+int qemu_file_shutdown(QEMUFile *f);
 void qemu_fflush(QEMUFile *f);
 
 static inline void qemu_put_be64s(QEMUFile *f, const uint64_t *pv)

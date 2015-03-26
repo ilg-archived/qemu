@@ -32,7 +32,7 @@
 #include "trace.h"
 
 struct vfio_group_head vfio_group_list =
-    QLIST_HEAD_INITIALIZER(vfio_address_spaces);
+    QLIST_HEAD_INITIALIZER(vfio_group_list);
 struct vfio_as_head vfio_address_spaces =
     QLIST_HEAD_INITIALIZER(vfio_address_spaces);
 
@@ -201,7 +201,7 @@ static int vfio_dma_unmap(VFIOContainer *container,
     };
 
     if (ioctl(container->fd, VFIO_IOMMU_UNMAP_DMA, &unmap)) {
-        error_report("VFIO_UNMAP_DMA: %d\n", -errno);
+        error_report("VFIO_UNMAP_DMA: %d", -errno);
         return -errno;
     }
 
@@ -234,7 +234,7 @@ static int vfio_dma_map(VFIOContainer *container, hwaddr iova,
         return 0;
     }
 
-    error_report("VFIO_MAP_DMA: %d\n", -errno);
+    error_report("VFIO_MAP_DMA: %d", -errno);
     return -errno;
 }
 
@@ -274,7 +274,7 @@ static void vfio_iommu_map_notify(Notifier *n, void *data)
                                  iotlb->translated_addr,
                                  &xlat, &len, iotlb->perm & IOMMU_WO);
     if (!memory_region_is_ram(mr)) {
-        error_report("iommu map to non memory area %"HWADDR_PRIx"\n",
+        error_report("iommu map to non memory area %"HWADDR_PRIx"",
                      xlat);
         return;
     }
@@ -283,7 +283,7 @@ static void vfio_iommu_map_notify(Notifier *n, void *data)
      * check that it did not truncate too much.
      */
     if (len & iotlb->addr_mask) {
-        error_report("iommu has granularity incompatible with target AS\n");
+        error_report("iommu has granularity incompatible with target AS");
         return;
     }
 
@@ -475,12 +475,12 @@ static void vfio_listener_region_del(MemoryListener *listener,
     }
 }
 
-const MemoryListener vfio_memory_listener = {
+static const MemoryListener vfio_memory_listener = {
     .region_add = vfio_listener_region_add,
     .region_del = vfio_listener_region_del,
 };
 
-void vfio_listener_release(VFIOContainer *container)
+static void vfio_listener_release(VFIOContainer *container)
 {
     memory_listener_unregister(&container->iommu_data.type1.listener);
 }
@@ -493,7 +493,7 @@ int vfio_mmap_region(Object *obj, VFIORegion *region,
     int ret = 0;
     VFIODevice *vbasedev = region->vbasedev;
 
-    if (VFIO_ALLOW_MMAP && size && region->flags &
+    if (vbasedev->allow_mmap && size && region->flags &
         VFIO_REGION_INFO_FLAG_MMAP) {
         int prot = 0;
 
@@ -566,7 +566,7 @@ static void vfio_kvm_device_add_group(VFIOGroup *group)
         };
 
         if (kvm_vm_ioctl(kvm_state, KVM_CREATE_DEVICE, &cd)) {
-            error_report("Failed to create KVM VFIO device: %m\n");
+            error_report("Failed to create KVM VFIO device: %m");
             return;
         }
 
@@ -662,7 +662,10 @@ static int vfio_connect_container(VFIOGroup *group, AddressSpace *as)
     container = g_malloc0(sizeof(*container));
     container->space = space;
     container->fd = fd;
-    if (ioctl(fd, VFIO_CHECK_EXTENSION, VFIO_TYPE1_IOMMU)) {
+    if (ioctl(fd, VFIO_CHECK_EXTENSION, VFIO_TYPE1_IOMMU) ||
+        ioctl(fd, VFIO_CHECK_EXTENSION, VFIO_TYPE1v2_IOMMU)) {
+        bool v2 = !!ioctl(fd, VFIO_CHECK_EXTENSION, VFIO_TYPE1v2_IOMMU);
+
         ret = ioctl(group->fd, VFIO_GROUP_SET_CONTAINER, &fd);
         if (ret) {
             error_report("vfio: failed to set group container: %m");
@@ -670,7 +673,8 @@ static int vfio_connect_container(VFIOGroup *group, AddressSpace *as)
             goto free_container_exit;
         }
 
-        ret = ioctl(fd, VFIO_SET_IOMMU, VFIO_TYPE1_IOMMU);
+        ret = ioctl(fd, VFIO_SET_IOMMU,
+                    v2 ? VFIO_TYPE1v2_IOMMU : VFIO_TYPE1_IOMMU);
         if (ret) {
             error_report("vfio: failed to set iommu for container: %m");
             ret = -errno;
@@ -847,7 +851,7 @@ free_group_exit:
 
 void vfio_put_group(VFIOGroup *group)
 {
-    if (!QLIST_EMPTY(&group->device_list)) {
+    if (!group || !QLIST_EMPTY(&group->device_list)) {
         return;
     }
 
@@ -867,26 +871,27 @@ int vfio_get_device(VFIOGroup *group, const char *name,
                        VFIODevice *vbasedev)
 {
     struct vfio_device_info dev_info = { .argsz = sizeof(dev_info) };
-    int ret;
+    int ret, fd;
 
-    ret = ioctl(group->fd, VFIO_GROUP_GET_DEVICE_FD, name);
-    if (ret < 0) {
+    fd = ioctl(group->fd, VFIO_GROUP_GET_DEVICE_FD, name);
+    if (fd < 0) {
         error_report("vfio: error getting device %s from group %d: %m",
                      name, group->groupid);
         error_printf("Verify all devices in group %d are bound to vfio-<bus> "
                      "or pci-stub and not already in use\n", group->groupid);
+        return fd;
+    }
+
+    ret = ioctl(fd, VFIO_DEVICE_GET_INFO, &dev_info);
+    if (ret) {
+        error_report("vfio: error getting device info: %m");
+        close(fd);
         return ret;
     }
 
-    vbasedev->fd = ret;
+    vbasedev->fd = fd;
     vbasedev->group = group;
     QLIST_INSERT_HEAD(&group->device_list, vbasedev, next);
-
-    ret = ioctl(vbasedev->fd, VFIO_DEVICE_GET_INFO, &dev_info);
-    if (ret) {
-        error_report("vfio: error getting device info: %m");
-        goto error;
-    }
 
     vbasedev->num_irqs = dev_info.num_irqs;
     vbasedev->num_regions = dev_info.num_regions;
@@ -896,18 +901,14 @@ int vfio_get_device(VFIOGroup *group, const char *name,
                           dev_info.num_irqs);
 
     vbasedev->reset_works = !!(dev_info.flags & VFIO_DEVICE_FLAGS_RESET);
-
-    ret = vbasedev->ops->vfio_populate_device(vbasedev);
-
-error:
-    if (ret) {
-        vfio_put_base_device(vbasedev);
-    }
-    return ret;
+    return 0;
 }
 
 void vfio_put_base_device(VFIODevice *vbasedev)
 {
+    if (!vbasedev->group) {
+        return;
+    }
     QLIST_REMOVE(vbasedev, next);
     vbasedev->group = NULL;
     trace_vfio_put_base_device(vbasedev->fd);
@@ -931,8 +932,8 @@ static int vfio_container_do_ioctl(AddressSpace *as, int32_t groupid,
     if (group->container) {
         ret = ioctl(container->fd, req, param);
         if (ret < 0) {
-            error_report("vfio: failed to ioctl container: ret=%d, %s",
-                         ret, strerror(errno));
+            error_report("vfio: failed to ioctl %d to container: ret=%d, %s",
+                         _IOC_NR(req) - VFIO_BASE, ret, strerror(errno));
         }
     }
 
@@ -948,6 +949,7 @@ int vfio_container_ioctl(AddressSpace *as, int32_t groupid,
     switch (req) {
     case VFIO_CHECK_EXTENSION:
     case VFIO_IOMMU_SPAPR_TCE_GET_INFO:
+    case VFIO_EEH_PE_OP:
         break;
     default:
         /* Return an error on unknown requests */

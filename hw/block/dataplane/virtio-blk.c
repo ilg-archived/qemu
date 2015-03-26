@@ -16,7 +16,9 @@
 #include "qemu/iov.h"
 #include "qemu/thread.h"
 #include "qemu/error-report.h"
+#include "hw/virtio/virtio-access.h"
 #include "hw/virtio/dataplane/vring.h"
+#include "hw/virtio/dataplane/vring-accessors.h"
 #include "sysemu/block-backend.h"
 #include "hw/virtio/virtio-blk.h"
 #include "virtio-blk.h"
@@ -75,7 +77,7 @@ static void complete_request_vring(VirtIOBlockReq *req, unsigned char status)
     VirtIOBlockDataPlane *s = req->dev->dataplane;
     stb_p(&req->in->status, status);
 
-    vring_push(&req->dev->dataplane->vring, &req->elem,
+    vring_push(s->vdev, &req->dev->dataplane->vring, &req->elem,
                req->qiov.size + sizeof(*req->in));
 
     /* Suppress notification to guest by BH and its scheduled
@@ -96,9 +98,7 @@ static void handle_notify(EventNotifier *e)
     event_notifier_test_and_clear(&s->host_notifier);
     blk_io_plug(s->conf->conf.blk);
     for (;;) {
-        MultiReqBuffer mrb = {
-            .num_writes = 0,
-        };
+        MultiReqBuffer mrb = {};
         int ret;
 
         /* Disable guest->host notifies to avoid unnecessary vmexits */
@@ -120,7 +120,9 @@ static void handle_notify(EventNotifier *e)
             virtio_blk_handle_request(req, &mrb);
         }
 
-        virtio_submit_multiwrite(s->conf->conf.blk, &mrb);
+        if (mrb.num_reqs) {
+            virtio_blk_submit_multireq(s->conf->conf.blk, &mrb);
+        }
 
         if (likely(ret == -EAGAIN)) { /* vring emptied */
             /* Re-enable guest->host notifies and stop processing the vring.
@@ -198,7 +200,8 @@ void virtio_blk_data_plane_create(VirtIODevice *vdev, VirtIOBlkConf *conf,
     blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_DRIVE_DEL, s->blocker);
     blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_BACKUP_SOURCE, s->blocker);
     blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_CHANGE, s->blocker);
-    blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_COMMIT, s->blocker);
+    blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_COMMIT_SOURCE, s->blocker);
+    blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_COMMIT_TARGET, s->blocker);
     blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_EJECT, s->blocker);
     blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_EXTERNAL_SNAPSHOT, s->blocker);
     blk_op_unblock(conf->conf.blk, BLOCK_OP_TYPE_INTERNAL_SNAPSHOT, s->blocker);

@@ -388,7 +388,7 @@ static ExitStatus gen_store_conditional(DisasContext *ctx, int ra, int rb,
     /* ??? In system mode we are never multi-threaded, so CAS can be
        implemented via a non-atomic load-compare-store sequence.  */
     {
-        int lab_fail, lab_done;
+        TCGLabel *lab_fail, *lab_done;
         TCGv val;
 
         lab_fail = gen_new_label();
@@ -465,7 +465,7 @@ static ExitStatus gen_bcond_internal(DisasContext *ctx, TCGCond cond,
                                      TCGv cmp, int32_t disp)
 {
     uint64_t dest = ctx->pc + (disp << 2);
-    int lab_true = gen_new_label();
+    TCGLabel *lab_true = gen_new_label();
 
     if (use_goto_tb(ctx, dest)) {
         tcg_gen_brcondi_i64(cond, cmp, 0, lab_true);
@@ -1285,7 +1285,7 @@ static int cpu_pr_data(int pr)
     return 0;
 }
 
-static ExitStatus gen_mfpr(TCGv va, int regno)
+static ExitStatus gen_mfpr(DisasContext *ctx, TCGv va, int regno)
 {
     int data = cpu_pr_data(regno);
 
@@ -1295,7 +1295,7 @@ static ExitStatus gen_mfpr(TCGv va, int regno)
 	if (regno == 249) {
 		helper = gen_helper_get_vmtime;
 	}
-        if (use_icount) {
+        if (ctx->tb->cflags & CF_USE_ICOUNT) {
             gen_io_start();
             helper(va);
             gen_io_end();
@@ -2283,7 +2283,7 @@ static ExitStatus translate_one(DisasContext *ctx, uint32_t insn)
         case 0xC000:
             /* RPCC */
             va = dest_gpr(ctx, ra);
-            if (use_icount) {
+            if (ctx->tb->cflags & CF_USE_ICOUNT) {
                 gen_io_start();
                 gen_helper_load_pcc(va, cpu_env);
                 gen_io_end();
@@ -2317,7 +2317,7 @@ static ExitStatus translate_one(DisasContext *ctx, uint32_t insn)
 #ifndef CONFIG_USER_ONLY
         REQUIRE_TB_FLAG(TB_FLAGS_PAL_MODE);
         va = dest_gpr(ctx, ra);
-        ret = gen_mfpr(va, insn & 0xffff);
+        ret = gen_mfpr(ctx, va, insn & 0xffff);
         break;
 #else
         goto invalid_opc;
@@ -2790,7 +2790,6 @@ static inline void gen_intermediate_code_internal(AlphaCPU *cpu,
     target_ulong pc_start;
     target_ulong pc_mask;
     uint32_t insn;
-    uint16_t *gen_opc_end;
     CPUBreakpoint *bp;
     int j, lj = -1;
     ExitStatus ret;
@@ -2798,7 +2797,6 @@ static inline void gen_intermediate_code_internal(AlphaCPU *cpu,
     int max_insns;
 
     pc_start = tb->pc;
-    gen_opc_end = tcg_ctx.gen_opc_buf + OPC_MAX_SIZE;
 
     ctx.tb = tb;
     ctx.pc = pc_start;
@@ -2828,7 +2826,7 @@ static inline void gen_intermediate_code_internal(AlphaCPU *cpu,
         pc_mask = ~TARGET_PAGE_MASK;
     }
 
-    gen_tb_start();
+    gen_tb_start(tb);
     do {
         if (unlikely(!QTAILQ_EMPTY(&cs->breakpoints))) {
             QTAILQ_FOREACH(bp, &cs->breakpoints, entry) {
@@ -2839,11 +2837,12 @@ static inline void gen_intermediate_code_internal(AlphaCPU *cpu,
             }
         }
         if (search_pc) {
-            j = tcg_ctx.gen_opc_ptr - tcg_ctx.gen_opc_buf;
+            j = tcg_op_buf_count();
             if (lj < j) {
                 lj++;
-                while (lj < j)
+                while (lj < j) {
                     tcg_ctx.gen_opc_instr_start[lj++] = 0;
+                }
             }
             tcg_ctx.gen_opc_pc[lj] = ctx.pc;
             tcg_ctx.gen_opc_instr_start[lj] = 1;
@@ -2881,7 +2880,7 @@ static inline void gen_intermediate_code_internal(AlphaCPU *cpu,
            or exhaust instruction count, stop generation.  */
         if (ret == NO_EXIT
             && ((ctx.pc & pc_mask) == 0
-                || tcg_ctx.gen_opc_ptr >= gen_opc_end
+                || tcg_op_buf_full()
                 || num_insns >= max_insns
                 || singlestep
                 || ctx.singlestep_enabled)) {
@@ -2912,12 +2911,13 @@ static inline void gen_intermediate_code_internal(AlphaCPU *cpu,
     }
 
     gen_tb_end(tb, num_insns);
-    *tcg_ctx.gen_opc_ptr = INDEX_op_end;
+
     if (search_pc) {
-        j = tcg_ctx.gen_opc_ptr - tcg_ctx.gen_opc_buf;
+        j = tcg_op_buf_count();
         lj++;
-        while (lj <= j)
+        while (lj <= j) {
             tcg_ctx.gen_opc_instr_start[lj++] = 0;
+        }
     } else {
         tb->size = ctx.pc - pc_start;
         tb->icount = num_insns;

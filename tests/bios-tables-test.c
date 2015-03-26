@@ -40,6 +40,7 @@ typedef struct {
 
 typedef struct {
     const char *machine;
+    const char *variant;
     uint32_t rsdp_addr;
     AcpiRsdpDescriptor rsdp_table;
     AcpiRsdtDescriptorRev1 rsdt_table;
@@ -396,13 +397,14 @@ static void dump_aml_files(test_data *data, bool rebuild)
     int i;
 
     for (i = 0; i < data->tables->len; ++i) {
+        const char *ext = data->variant ? data->variant : "";
         sdt = &g_array_index(data->tables, AcpiSdtTable, i);
         g_assert(sdt->aml);
 
         if (rebuild) {
             uint32_t signature = cpu_to_le32(sdt->header.signature);
-            aml_file = g_strdup_printf("%s/%s/%.4s", data_dir, data->machine,
-                                       (gchar *)&signature);
+            aml_file = g_strdup_printf("%s/%s/%.4s%s", data_dir, data->machine,
+                                       (gchar *)&signature, ext);
             fd = g_open(aml_file, O_WRONLY|O_TRUNC|O_CREAT,
                         S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH);
         } else {
@@ -509,7 +511,7 @@ static GArray *load_expected_aml(test_data *data)
 {
     int i;
     AcpiSdtTable *sdt;
-    gchar *aml_file;
+    gchar *aml_file = NULL;
     GError *error = NULL;
     gboolean ret;
 
@@ -517,6 +519,7 @@ static GArray *load_expected_aml(test_data *data)
     for (i = 0; i < data->tables->len; ++i) {
         AcpiSdtTable exp_sdt;
         uint32_t signature;
+        const char *ext = data->variant ? data->variant : "";
 
         sdt = &g_array_index(data->tables, AcpiSdtTable, i);
 
@@ -524,8 +527,15 @@ static GArray *load_expected_aml(test_data *data)
         exp_sdt.header.signature = sdt->header.signature;
 
         signature = cpu_to_le32(sdt->header.signature);
-        aml_file = g_strdup_printf("%s/%s/%.4s", data_dir, data->machine,
-                                   (gchar *)&signature);
+
+try_again:
+        aml_file = g_strdup_printf("%s/%s/%.4s%s", data_dir, data->machine,
+                                   (gchar *)&signature, ext);
+        if (data->variant && !g_file_test(aml_file, G_FILE_TEST_EXISTS)) {
+            g_free(aml_file);
+            ext = "";
+            goto try_again;
+        }
         exp_sdt.aml_file = aml_file;
         g_assert(g_file_test(aml_file, G_FILE_TEST_EXISTS));
         ret = g_file_get_contents(aml_file, &exp_sdt.aml,
@@ -765,7 +775,7 @@ static void test_acpi_one(const char *params, test_data *data)
     g_free(args);
 }
 
-static void test_acpi_tcg(void)
+static void test_acpi_piix4_tcg(void)
 {
     test_data data;
 
@@ -776,10 +786,38 @@ static void test_acpi_tcg(void)
     data.machine = MACHINE_PC;
     test_acpi_one("-machine accel=tcg", &data);
     free_test_data(&data);
+}
+
+static void test_acpi_piix4_tcg_bridge(void)
+{
+    test_data data;
+
+    memset(&data, 0, sizeof(data));
+    data.machine = MACHINE_PC;
+    data.variant = ".bridge";
+    test_acpi_one("-machine accel=tcg -device pci-bridge,chassis_nr=1", &data);
+    free_test_data(&data);
+}
+
+static void test_acpi_q35_tcg(void)
+{
+    test_data data;
 
     memset(&data, 0, sizeof(data));
     data.machine = MACHINE_Q35;
     test_acpi_one("-machine q35,accel=tcg", &data);
+    free_test_data(&data);
+}
+
+static void test_acpi_q35_tcg_bridge(void)
+{
+    test_data data;
+
+    memset(&data, 0, sizeof(data));
+    data.machine = MACHINE_Q35;
+    data.variant = ".bridge";
+    test_acpi_one("-machine q35,accel=tcg -device pci-bridge,chassis_nr=1",
+                  &data);
     free_test_data(&data);
 }
 
@@ -799,7 +837,10 @@ int main(int argc, char *argv[])
     g_test_init(&argc, &argv, NULL);
 
     if (strcmp(arch, "i386") == 0 || strcmp(arch, "x86_64") == 0) {
-        qtest_add_func("acpi/tcg", test_acpi_tcg);
+        qtest_add_func("acpi/piix4/tcg", test_acpi_piix4_tcg);
+        qtest_add_func("acpi/piix4/tcg/bridge", test_acpi_piix4_tcg_bridge);
+        qtest_add_func("acpi/q35/tcg", test_acpi_q35_tcg);
+        qtest_add_func("acpi/q35/tcg/bridge", test_acpi_q35_tcg_bridge);
     }
     ret = g_test_run();
     unlink(disk);

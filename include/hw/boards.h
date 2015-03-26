@@ -65,6 +65,15 @@ int qemu_register_machine(QEMUMachine *m);
 MachineClass *find_default_machine(void);
 extern MachineState *current_machine;
 
+bool machine_usb(MachineState *machine);
+bool machine_iommu(MachineState *machine);
+bool machine_kernel_irqchip_allowed(MachineState *machine);
+bool machine_kernel_irqchip_required(MachineState *machine);
+int machine_kvm_shadow_mem(MachineState *machine);
+int machine_phandle_start(MachineState *machine);
+bool machine_dump_guest_core(MachineState *machine);
+bool machine_mem_merge(MachineState *machine);
+
 /**
  * MachineClass:
  * @qemu_machine: #QEMUMachine
@@ -73,6 +82,10 @@ extern MachineState *current_machine;
  *    of HotplugHandler object, which handles hotplug operation
  *    for a given @dev. It may return NULL if @dev doesn't require
  *    any actions to be performed by hotplug handler.
+ * @cpu_index_to_socket_id:
+ *    used to provide @cpu_index to socket number mapping, allowing
+ *    a machine to group CPU threads belonging to the same socket/package
+ *    Returns: socket number given cpu_index belongs to.
  */
 struct MachineClass {
     /*< private >*/
@@ -109,6 +122,7 @@ struct MachineClass {
 
     HotplugHandler *(*get_hotplug_handler)(MachineState *machine,
                                            DeviceState *dev);
+    unsigned (*cpu_index_to_socket_id)(unsigned cpu_index);
 };
 
 /**
@@ -122,7 +136,8 @@ struct MachineState {
     /*< public >*/
 
     char *accel;
-    bool kernel_irqchip;
+    bool kernel_irqchip_allowed;
+    bool kernel_irqchip_required;
     int kvm_shadow_mem;
     char *dtb;
     char *dumpdtb;
@@ -133,6 +148,7 @@ struct MachineState {
     bool usb;
     char *firmware;
     bool iommu;
+    bool suppress_vmdesc;
 
     ram_addr_t ram_size;
     ram_addr_t maxram_size;

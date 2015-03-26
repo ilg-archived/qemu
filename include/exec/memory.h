@@ -33,6 +33,7 @@
 #include "qemu/notify.h"
 #include "qapi/error.h"
 #include "qom/object.h"
+#include "qemu/rcu.h"
 
 #define MAX_PHYS_ADDR_SPACE_BITS 62
 #define MAX_PHYS_ADDR            (((hwaddr)1 << MAX_PHYS_ADDR_SPACE_BITS) - 1)
@@ -207,9 +208,13 @@ struct MemoryListener {
  */
 struct AddressSpace {
     /* All fields are private. */
+    struct rcu_head rcu;
     char *name;
     MemoryRegion *root;
+
+    /* Accessed via RCU.  */
     struct FlatView *current_map;
+
     int ioeventfd_nb;
     struct MemoryRegionIoeventfd *ioeventfds;
     struct AddressSpaceDispatch *dispatch;
@@ -321,6 +326,30 @@ void memory_region_init_ram(MemoryRegion *mr,
                             uint64_t size,
                             Error **errp);
 
+/**
+ * memory_region_init_resizeable_ram:  Initialize memory region with resizeable
+ *                                     RAM.  Accesses into the region will
+ *                                     modify memory directly.  Only an initial
+ *                                     portion of this RAM is actually used.
+ *                                     The used size can change across reboots.
+ *
+ * @mr: the #MemoryRegion to be initialized.
+ * @owner: the object that tracks the region's reference count
+ * @name: the name of the region.
+ * @size: used size of the region.
+ * @max_size: max size of the region.
+ * @resized: callback to notify owner about used size change.
+ * @errp: pointer to Error*, to store an error if it happens.
+ */
+void memory_region_init_resizeable_ram(MemoryRegion *mr,
+                                       struct Object *owner,
+                                       const char *name,
+                                       uint64_t size,
+                                       uint64_t max_size,
+                                       void (*resized)(const char*,
+                                                       uint64_t length,
+                                                       void *host),
+                                       Error **errp);
 #ifdef __linux__
 /**
  * memory_region_init_ram_from_file:  Initialize RAM memory region with a
@@ -876,6 +905,16 @@ void memory_region_set_enabled(MemoryRegion *mr, bool enabled);
  * @addr: new address, relative to container region
  */
 void memory_region_set_address(MemoryRegion *mr, hwaddr addr);
+
+/*
+ * memory_region_set_size: dynamically update the size of a region.
+ *
+ * Dynamically updates the size of a region.
+ *
+ * @mr: the region to be updated
+ * @size: used size of the region.
+ */
+void memory_region_set_size(MemoryRegion *mr, uint64_t size);
 
 /*
  * memory_region_set_alias_offset: dynamically update a memory alias's offset

@@ -24,6 +24,7 @@
 
 #include "block/qapi.h"
 #include "block/block_int.h"
+#include "block/write-threshold.h"
 #include "qmp-commands.h"
 #include "qapi-visit.h"
 #include "qapi/qmp-output-visitor.h"
@@ -88,6 +89,8 @@ BlockDeviceInfo *bdrv_block_device_info(BlockDriverState *bs)
         info->has_iops_size = cfg.op_size;
         info->iops_size = cfg.op_size;
     }
+
+    info->write_threshold = bdrv_write_threshold_get(bs);
 
     return info;
 }
@@ -175,7 +178,6 @@ void bdrv_query_image_info(BlockDriverState *bs,
 {
     int64_t size;
     const char *backing_filename;
-    char backing_filename2[1024];
     BlockDriverInfo bdi;
     int ret;
     Error *err = NULL;
@@ -211,10 +213,16 @@ void bdrv_query_image_info(BlockDriverState *bs,
 
     backing_filename = bs->backing_file;
     if (backing_filename[0] != '\0') {
+        char *backing_filename2 = g_malloc0(PATH_MAX);
         info->backing_filename = g_strdup(backing_filename);
         info->has_backing_filename = true;
-        bdrv_get_full_backing_filename(bs, backing_filename2,
-                                       sizeof(backing_filename2));
+        bdrv_get_full_backing_filename(bs, backing_filename2, PATH_MAX, &err);
+        if (err) {
+            error_propagate(errp, err);
+            qapi_free_ImageInfo(info);
+            g_free(backing_filename2);
+            return;
+        }
 
         if (strcmp(backing_filename, backing_filename2) != 0) {
             info->full_backing_filename =
@@ -226,6 +234,7 @@ void bdrv_query_image_info(BlockDriverState *bs,
             info->backing_filename_format = g_strdup(bs->backing_format);
             info->has_backing_filename_format = true;
         }
+        g_free(backing_filename2);
     }
 
     ret = bdrv_query_snapshot_info_list(bs, &info->snapshots, &err);
@@ -329,6 +338,8 @@ static BlockStats *bdrv_query_stats(const BlockDriverState *bs,
     s->stats->wr_bytes = bs->stats.nr_bytes[BLOCK_ACCT_WRITE];
     s->stats->rd_operations = bs->stats.nr_ops[BLOCK_ACCT_READ];
     s->stats->wr_operations = bs->stats.nr_ops[BLOCK_ACCT_WRITE];
+    s->stats->rd_merged = bs->stats.merged[BLOCK_ACCT_READ];
+    s->stats->wr_merged = bs->stats.merged[BLOCK_ACCT_WRITE];
     s->stats->wr_highest_offset =
         bs->stats.wr_highest_sector * BDRV_SECTOR_SIZE;
     s->stats->flush_operations = bs->stats.nr_ops[BLOCK_ACCT_FLUSH];
@@ -403,7 +414,7 @@ BlockStatsList *qmp_query_blockstats(bool has_query_nodes,
 
 static char *get_human_readable_size(char *buf, int buf_size, int64_t size)
 {
-    static const char suffixes[NB_SUFFIXES] = "KMGT";
+    static const char suffixes[NB_SUFFIXES] = {'K', 'M', 'G', 'T'};
     int64_t base;
     int i;
 

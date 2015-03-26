@@ -26,6 +26,7 @@
 #endif
 #include "qemu/thread.h"
 #include "qemu/atomic.h"
+#include "qemu/notify.h"
 
 static bool name_threads;
 
@@ -50,12 +51,8 @@ static void error_exit(int err, const char *msg)
 void qemu_mutex_init(QemuMutex *mutex)
 {
     int err;
-    pthread_mutexattr_t mutexattr;
 
-    pthread_mutexattr_init(&mutexattr);
-    pthread_mutexattr_settype(&mutexattr, PTHREAD_MUTEX_ERRORCHECK);
-    err = pthread_mutex_init(&mutex->lock, &mutexattr);
-    pthread_mutexattr_destroy(&mutexattr);
+    err = pthread_mutex_init(&mutex->lock, NULL);
     if (err)
         error_exit(err, __func__);
 }
@@ -306,11 +303,13 @@ static inline void futex_wait(QemuEvent *ev, unsigned val)
 #else
 static inline void futex_wake(QemuEvent *ev, int n)
 {
+    pthread_mutex_lock(&ev->lock);
     if (n == 1) {
         pthread_cond_signal(&ev->cond);
     } else {
         pthread_cond_broadcast(&ev->cond);
     }
+    pthread_mutex_unlock(&ev->lock);
 }
 
 static inline void futex_wait(QemuEvent *ev, unsigned val)
@@ -400,6 +399,42 @@ void qemu_event_wait(QemuEvent *ev)
         futex_wait(ev, EV_BUSY);
     }
 }
+
+static pthread_key_t exit_key;
+
+union NotifierThreadData {
+    void *ptr;
+    NotifierList list;
+};
+QEMU_BUILD_BUG_ON(sizeof(union NotifierThreadData) != sizeof(void *));
+
+void qemu_thread_atexit_add(Notifier *notifier)
+{
+    union NotifierThreadData ntd;
+    ntd.ptr = pthread_getspecific(exit_key);
+    notifier_list_add(&ntd.list, notifier);
+    pthread_setspecific(exit_key, ntd.ptr);
+}
+
+void qemu_thread_atexit_remove(Notifier *notifier)
+{
+    union NotifierThreadData ntd;
+    ntd.ptr = pthread_getspecific(exit_key);
+    notifier_remove(notifier);
+    pthread_setspecific(exit_key, ntd.ptr);
+}
+
+static void qemu_thread_atexit_run(void *arg)
+{
+    union NotifierThreadData ntd = { .ptr = arg };
+    notifier_list_notify(&ntd.list, NULL);
+}
+
+static void __attribute__((constructor)) qemu_thread_atexit_init(void)
+{
+    pthread_key_create(&exit_key, qemu_thread_atexit_run);
+}
+
 
 /* Attempt to set the threads name; note that this is for debug, so
  * we're not going to fail if we can't set it.

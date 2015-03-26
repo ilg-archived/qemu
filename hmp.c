@@ -16,6 +16,7 @@
 #include "hmp.h"
 #include "net/net.h"
 #include "sysemu/char.h"
+#include "sysemu/block-backend.h"
 #include "qemu/option.h"
 #include "qemu/timer.h"
 #include "qmp-commands.h"
@@ -27,6 +28,10 @@
 #include "ui/console.h"
 #include "block/qapi.h"
 #include "qemu-io.h"
+
+#ifdef CONFIG_SPICE
+#include <spice/enums.h>
+#endif
 
 static void hmp_handle_error(Monitor *mon, Error **errp)
 {
@@ -157,7 +162,8 @@ void hmp_info_migrate(Monitor *mon, const QDict *qdict)
     }
 
     if (info->has_status) {
-        monitor_printf(mon, "Migration status: %s\n", info->status);
+        monitor_printf(mon, "Migration status: %s\n",
+                       MigrationStatus_lookup[info->status]);
         monitor_printf(mon, "total time: %" PRIu64 " milliseconds\n",
                        info->total_time);
         if (info->has_expected_downtime) {
@@ -411,7 +417,7 @@ void hmp_info_block(Monitor *mon, const QDict *qdict)
 
     /* Print BlockBackend information */
     if (!nodes) {
-        block_list = qmp_query_block(false);
+        block_list = qmp_query_block(NULL);
     } else {
         block_list = NULL;
     }
@@ -474,6 +480,8 @@ void hmp_info_blockstats(Monitor *mon, const QDict *qdict)
                        " wr_total_time_ns=%" PRId64
                        " rd_total_time_ns=%" PRId64
                        " flush_total_time_ns=%" PRId64
+                       " rd_merged=%" PRId64
+                       " wr_merged=%" PRId64
                        "\n",
                        stats->value->stats->rd_bytes,
                        stats->value->stats->wr_bytes,
@@ -482,7 +490,9 @@ void hmp_info_blockstats(Monitor *mon, const QDict *qdict)
                        stats->value->stats->flush_operations,
                        stats->value->stats->wr_total_time_ns,
                        stats->value->stats->rd_total_time_ns,
-                       stats->value->stats->flush_total_time_ns);
+                       stats->value->stats->flush_total_time_ns,
+                       stats->value->stats->rd_merged,
+                       stats->value->stats->wr_merged);
     }
 
     qapi_free_BlockStatsList(stats_list);
@@ -535,10 +545,30 @@ out:
     qapi_free_VncInfo(info);
 }
 
+#ifdef CONFIG_SPICE
 void hmp_info_spice(Monitor *mon, const QDict *qdict)
 {
     SpiceChannelList *chan;
     SpiceInfo *info;
+    const char *channel_name;
+    const char * const channel_names[] = {
+        [SPICE_CHANNEL_MAIN] = "main",
+        [SPICE_CHANNEL_DISPLAY] = "display",
+        [SPICE_CHANNEL_INPUTS] = "inputs",
+        [SPICE_CHANNEL_CURSOR] = "cursor",
+        [SPICE_CHANNEL_PLAYBACK] = "playback",
+        [SPICE_CHANNEL_RECORD] = "record",
+        [SPICE_CHANNEL_TUNNEL] = "tunnel",
+        [SPICE_CHANNEL_SMARTCARD] = "smartcard",
+        [SPICE_CHANNEL_USBREDIR] = "usbredir",
+        [SPICE_CHANNEL_PORT] = "port",
+#if 0
+        /* minimum spice-protocol is 0.12.3, webdav was added in 0.12.7,
+         * no easy way to #ifdef (SPICE_CHANNEL_* is a enum).  Disable
+         * as quick fix for build failures with older versions. */
+        [SPICE_CHANNEL_WEBDAV] = "webdav",
+#endif
+    };
 
     info = qmp_query_spice(NULL);
 
@@ -575,12 +605,22 @@ void hmp_info_spice(Monitor *mon, const QDict *qdict)
                            chan->value->connection_id);
             monitor_printf(mon, "     channel: %" PRId64 ":%" PRId64 "\n",
                            chan->value->channel_type, chan->value->channel_id);
+
+            channel_name = "unknown";
+            if (chan->value->channel_type > 0 &&
+                chan->value->channel_type < ARRAY_SIZE(channel_names) &&
+                channel_names[chan->value->channel_type]) {
+                channel_name = channel_names[chan->value->channel_type];
+            }
+
+            monitor_printf(mon, "     channel name: %s\n", channel_name);
         }
     }
 
 out:
     qapi_free_SpiceInfo(info);
 }
+#endif
 
 void hmp_info_balloon(Monitor *mon, const QDict *qdict)
 {
@@ -917,7 +957,7 @@ void hmp_system_wakeup(Monitor *mon, const QDict *qdict)
     qmp_system_wakeup(NULL);
 }
 
-void hmp_inject_nmi(Monitor *mon, const QDict *qdict)
+void hmp_nmi(Monitor *mon, const QDict *qdict)
 {
     Error *err = NULL;
 
@@ -1075,6 +1115,16 @@ void hmp_snapshot_delete_blkdev_internal(Monitor *mon, const QDict *qdict)
 void hmp_migrate_cancel(Monitor *mon, const QDict *qdict)
 {
     qmp_migrate_cancel(NULL);
+}
+
+void hmp_migrate_incoming(Monitor *mon, const QDict *qdict)
+{
+    Error *err = NULL;
+    const char *uri = qdict_get_str(qdict, "uri");
+
+    qmp_migrate_incoming(uri, &err);
+
+    hmp_handle_error(mon, &err);
 }
 
 void hmp_migrate_set_downtime(Monitor *mon, const QDict *qdict)
@@ -1292,21 +1342,21 @@ void hmp_block_job_complete(Monitor *mon, const QDict *qdict)
     hmp_handle_error(mon, &error);
 }
 
-typedef struct MigrationStatus
+typedef struct HMPMigrationStatus
 {
     QEMUTimer *timer;
     Monitor *mon;
     bool is_block_migration;
-} MigrationStatus;
+} HMPMigrationStatus;
 
 static void hmp_migrate_status_cb(void *opaque)
 {
-    MigrationStatus *status = opaque;
+    HMPMigrationStatus *status = opaque;
     MigrationInfo *info;
 
     info = qmp_query_migrate(NULL);
-    if (!info->has_status || strcmp(info->status, "active") == 0 ||
-        strcmp(info->status, "setup") == 0) {
+    if (!info->has_status || info->status == MIGRATION_STATUS_ACTIVE ||
+        info->status == MIGRATION_STATUS_SETUP) {
         if (info->has_disk) {
             int progress;
 
@@ -1349,7 +1399,7 @@ void hmp_migrate(Monitor *mon, const QDict *qdict)
     }
 
     if (!detach) {
-        MigrationStatus *status;
+        HMPMigrationStatus *status;
 
         if (monitor_suspend(mon) < 0) {
             monitor_printf(mon, "terminal does not allow synchronous "
@@ -1526,7 +1576,7 @@ void hmp_closefd(Monitor *mon, const QDict *qdict)
     hmp_handle_error(mon, &err);
 }
 
-void hmp_send_key(Monitor *mon, const QDict *qdict)
+void hmp_sendkey(Monitor *mon, const QDict *qdict)
 {
     const char *keys = qdict_get_str(qdict, "keys");
     KeyValueList *keylist, *head = NULL, *tmp = NULL;
@@ -1595,7 +1645,7 @@ err_out:
     goto out;
 }
 
-void hmp_screen_dump(Monitor *mon, const QDict *qdict)
+void hmp_screendump(Monitor *mon, const QDict *qdict)
 {
     const char *filename = qdict_get_str(qdict, "filename");
     Error *err = NULL;
@@ -1714,14 +1764,14 @@ void hmp_chardev_remove(Monitor *mon, const QDict *qdict)
 
 void hmp_qemu_io(Monitor *mon, const QDict *qdict)
 {
-    BlockDriverState *bs;
+    BlockBackend *blk;
     const char* device = qdict_get_str(qdict, "device");
     const char* command = qdict_get_str(qdict, "command");
     Error *err = NULL;
 
-    bs = bdrv_find(device);
-    if (bs) {
-        qemuio_command(bs, command);
+    blk = blk_by_name(device);
+    if (blk) {
+        qemuio_command(blk, command);
     } else {
         error_set(&err, QERR_DEVICE_NOT_FOUND, device);
     }
@@ -1812,4 +1862,51 @@ void hmp_info_memory_devices(Monitor *mon, const QDict *qdict)
     }
 
     qapi_free_MemoryDeviceInfoList(info_list);
+}
+
+void hmp_qom_list(Monitor *mon, const QDict *qdict)
+{
+    const char *path = qdict_get_try_str(qdict, "path");
+    ObjectPropertyInfoList *list;
+    Error *err = NULL;
+
+    if (path == NULL) {
+        monitor_printf(mon, "/\n");
+        return;
+    }
+
+    list = qmp_qom_list(path, &err);
+    if (err == NULL) {
+        ObjectPropertyInfoList *start = list;
+        while (list != NULL) {
+            ObjectPropertyInfo *value = list->value;
+
+            monitor_printf(mon, "%s (%s)\n",
+                           value->name, value->type);
+            list = list->next;
+        }
+        qapi_free_ObjectPropertyInfoList(start);
+    }
+    hmp_handle_error(mon, &err);
+}
+
+void hmp_qom_set(Monitor *mon, const QDict *qdict)
+{
+    const char *path = qdict_get_str(qdict, "path");
+    const char *property = qdict_get_str(qdict, "property");
+    const char *value = qdict_get_str(qdict, "value");
+    Error *err = NULL;
+    bool ambiguous = false;
+    Object *obj;
+
+    obj = object_resolve_path(path, &ambiguous);
+    if (obj == NULL) {
+        error_set(&err, QERR_DEVICE_NOT_FOUND, path);
+    } else {
+        if (ambiguous) {
+            monitor_printf(mon, "Warning: Path '%s' is ambiguous\n", path);
+        }
+        object_property_parse(obj, value, property, &err);
+    }
+    hmp_handle_error(mon, &err);
 }

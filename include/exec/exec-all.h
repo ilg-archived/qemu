@@ -96,6 +96,8 @@ void tb_invalidate_phys_page_range(tb_page_addr_t start, tb_page_addr_t end,
 void tb_invalidate_phys_range(tb_page_addr_t start, tb_page_addr_t end,
                               int is_cpu_write_access);
 #if !defined(CONFIG_USER_ONLY)
+bool qemu_in_vcpu_thread(void);
+void cpu_reload_memory_map(CPUState *cpu);
 void tcg_cpu_address_space_init(CPUState *cpu, AddressSpace *as);
 /* cputlb.c */
 void tlb_flush_page(CPUState *cpu, target_ulong addr);
@@ -142,10 +144,12 @@ struct TranslationBlock {
     uint64_t flags; /* flags defining in which context the code was generated */
     uint16_t size;      /* size of target code for this block (1 <=
                            size <= TARGET_PAGE_SIZE) */
-    uint16_t cflags;    /* compile flags */
+    uint16_t icount;
+    uint32_t cflags;    /* compile flags */
 #define CF_COUNT_MASK  0x7fff
 #define CF_LAST_IO     0x8000 /* Last insn may be an IO access.  */
 #define CF_NOCACHE     0x10000 /* To be freed after execution */
+#define CF_USE_ICOUNT  0x20000
 
     void *tc_ptr;    /* pointer to the translated code */
     /* next matching tb for physical address. */
@@ -169,7 +173,6 @@ struct TranslationBlock {
        jmp_first */
     struct TranslationBlock *jmp_next[2];
     struct TranslationBlock *jmp_first;
-    uint32_t icount;
 };
 
 #include "exec/spinlock.h"
@@ -336,7 +339,8 @@ extern uintptr_t tci_tb_ptr;
 
 void phys_mem_set_alloc(void *(*alloc)(size_t, uint64_t *align));
 
-struct MemoryRegion *iotlb_to_region(AddressSpace *as, hwaddr index);
+struct MemoryRegion *iotlb_to_region(CPUState *cpu,
+                                     hwaddr index);
 bool io_mem_read(struct MemoryRegion *mr, hwaddr addr,
                  uint64_t *pvalue, unsigned size);
 bool io_mem_write(struct MemoryRegion *mr, hwaddr addr,

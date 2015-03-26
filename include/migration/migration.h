@@ -33,6 +33,7 @@
 #define QEMU_VM_SECTION_END          0x03
 #define QEMU_VM_SECTION_FULL         0x04
 #define QEMU_VM_SUBSECTION           0x05
+#define QEMU_VM_VMDESCRIPTION        0x06
 
 struct MigrationParams {
     bool blk;
@@ -69,10 +70,6 @@ void process_incoming_migration(QEMUFile *f);
 void qemu_start_incoming_migration(const char *uri, Error **errp);
 
 uint64_t migrate_max_downtime(void);
-
-void do_info_migrate_print(Monitor *mon, const QObject *data);
-
-void do_info_migrate(Monitor *mon, QObject **ret_data);
 
 void exec_start_incoming_migration(const char *host_port, Error **errp);
 
@@ -142,7 +139,6 @@ void migrate_add_blocker(Error *reason);
  */
 void migrate_del_blocker(Error *reason);
 
-bool migrate_rdma_pin_all(void);
 bool migrate_zero_blocks(void);
 
 bool migrate_auto_converge(void);
@@ -172,6 +168,6 @@ void ram_control_load_hook(QEMUFile *f, uint64_t flags);
 
 size_t ram_control_save_page(QEMUFile *f, ram_addr_t block_offset,
                              ram_addr_t offset, size_t size,
-                             int *bytes_sent);
+                             uint64_t *bytes_sent);
 
 #endif

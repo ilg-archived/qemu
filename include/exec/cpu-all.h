@@ -24,6 +24,7 @@
 #include "exec/memory.h"
 #include "qemu/thread.h"
 #include "qom/cpu.h"
+#include "qemu/rcu.h"
 
 /* some important defines:
  *
@@ -115,43 +116,9 @@ static inline void tswap64s(uint64_t *s)
 #define bswaptls(s) bswap64s(s)
 #endif
 
-/* CPU memory access without any memory or io remapping */
-
-/*
- * the generic syntax for the memory accesses is:
- *
- * load: ld{type}{sign}{size}{endian}_{access_type}(ptr)
- *
- * store: st{type}{size}{endian}_{access_type}(ptr, val)
- *
- * type is:
- * (empty): integer access
- *   f    : float access
- *
- * sign is:
- * (empty): for floats or 32 bit size
- *   u    : unsigned
- *   s    : signed
- *
- * size is:
- *   b: 8 bits
- *   w: 16 bits
- *   l: 32 bits
- *   q: 64 bits
- *
- * endian is:
- * (empty): target cpu endianness or 8 bit access
- *   r    : reversed target cpu endianness (not implemented yet)
- *   be   : big endian (not implemented yet)
- *   le   : little endian (not implemented yet)
- *
- * access_type is:
- *   raw    : host memory access
- *   user   : user mode access using soft MMU
- *   kernel : kernel mode access using soft MMU
+/* Target-endianness CPU memory access functions. These fit into the
+ * {ld,st}{type}{sign}{size}{endian}_p naming scheme described in bswap.h.
  */
-
-/* target-endianness CPU memory access functions */
 #if defined(TARGET_WORDS_BIGENDIAN)
 #define lduw_p(p) lduw_be_p(p)
 #define ldsw_p(p) ldsw_be_p(p)
@@ -299,23 +266,27 @@ CPUArchState *cpu_copy(CPUArchState *env);
 
 /* memory API */
 
-typedef struct RAMBlock {
+typedef struct RAMBlock RAMBlock;
+
+struct RAMBlock {
+    struct rcu_head rcu;
     struct MemoryRegion *mr;
     uint8_t *host;
     ram_addr_t offset;
-    ram_addr_t length;
+    ram_addr_t used_length;
+    ram_addr_t max_length;
+    void (*resized)(const char*, uint64_t length, void *host);
     uint32_t flags;
+    /* Protected by iothread lock.  */
     char idstr[256];
-    /* Reads can take either the iothread or the ramlist lock.
-     * Writes must take both locks.
-     */
-    QTAILQ_ENTRY(RAMBlock) next;
+    /* RCU-enabled, writes protected by the ramlist lock */
+    QLIST_ENTRY(RAMBlock) next;
     int fd;
-} RAMBlock;
+};
 
 static inline void *ramblock_ptr(RAMBlock *block, ram_addr_t offset)
 {
-    assert(offset < block->length);
+    assert(offset < block->used_length);
     assert(block->host);
     return (char *)block->host + offset;
 }
@@ -325,8 +296,8 @@ typedef struct RAMList {
     /* Protected by the iothread lock.  */
     unsigned long *dirty_memory[DIRTY_MEMORY_NUM];
     RAMBlock *mru_block;
-    /* Protected by the ramlist lock.  */
-    QTAILQ_HEAD(, RAMBlock) blocks;
+    /* RCU-enabled, writes protected by the ramlist lock. */
+    QLIST_HEAD(, RAMBlock) blocks;
     uint32_t version;
 } RAMList;
 extern RAMList ram_list;

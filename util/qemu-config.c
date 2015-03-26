@@ -32,8 +32,7 @@ QemuOptsList *qemu_find_opts(const char *group)
 
     ret = find_list(vm_config_groups, group, &local_err);
     if (local_err) {
-        error_report("%s", error_get_pretty(local_err));
-        error_free(local_err);
+        error_report_err(local_err);
     }
 
     return ret;
@@ -220,6 +219,7 @@ void qemu_add_opts(QemuOptsList *list)
 
 int qemu_set_option(const char *str)
 {
+    Error *local_err = NULL;
     char group[64], id[64], arg[64];
     QemuOptsList *list;
     QemuOpts *opts;
@@ -243,7 +243,9 @@ int qemu_set_option(const char *str)
         return -1;
     }
 
-    if (qemu_opt_set(opts, arg, str+offset+1) == -1) {
+    qemu_opt_set(opts, arg, str + offset + 1, &local_err);
+    if (local_err) {
+        error_report_err(local_err);
         return -1;
     }
     return 0;
@@ -314,8 +316,7 @@ int qemu_config_parse(FILE *fp, QemuOptsList **lists, const char *fname)
             /* group with id */
             list = find_list(lists, group, &local_err);
             if (local_err) {
-                error_report("%s", error_get_pretty(local_err));
-                error_free(local_err);
+                error_report_err(local_err);
                 goto out;
             }
             opts = qemu_opts_create(list, id, 1, NULL);
@@ -325,8 +326,7 @@ int qemu_config_parse(FILE *fp, QemuOptsList **lists, const char *fname)
             /* group without id */
             list = find_list(lists, group, &local_err);
             if (local_err) {
-                error_report("%s", error_get_pretty(local_err));
-                error_free(local_err);
+                error_report_err(local_err);
                 goto out;
             }
             opts = qemu_opts_create(list, NULL, 0, &error_abort);
@@ -338,7 +338,9 @@ int qemu_config_parse(FILE *fp, QemuOptsList **lists, const char *fname)
                 error_report("no group defined");
                 goto out;
             }
-            if (qemu_opt_set(opts, arg, value) != 0) {
+            qemu_opt_set(opts, arg, value, &local_err);
+            if (local_err) {
+                error_report_err(local_err);
                 goto out;
             }
             continue;

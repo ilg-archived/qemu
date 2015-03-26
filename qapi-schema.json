@@ -410,19 +410,43 @@
            'cache-miss': 'int', 'cache-miss-rate': 'number',
            'overflow': 'int' } }
 
+# @MigrationStatus:
+#
+# An enumeration of migration status.
+#
+# @none: no migration has ever happened.
+#
+# @setup: migration process has been initiated.
+#
+# @cancelling: in the process of cancelling migration.
+#
+# @cancelled: cancelling migration is finished.
+#
+# @active: in the process of doing migration.
+#
+# @completed: migration is finished.
+#
+# @failed: some error occurred during migration process.
+#
+# Since: 2.3
+#
+##
+{ 'enum': 'MigrationStatus',
+  'data': [ 'none', 'setup', 'cancelling', 'cancelled',
+            'active', 'completed', 'failed' ] }
+
 ##
 # @MigrationInfo
 #
 # Information about current migration process.
 #
-# @status: #optional string describing the current migration status.
-#          As of 0.14.0 this can be 'setup', 'active', 'completed', 'failed' or
-#          'cancelled'. If this field is not returned, no migration process
+# @status: #optional @MigrationStatus describing the current migration status.
+#          If this field is not returned, no migration process
 #          has been initiated
 #
 # @ram: #optional @MigrationStats containing detailed migration
 #       status, only returned if status is 'active' or
-#       'completed'. 'comppleted' (since 1.2)
+#       'completed'(since 1.2)
 #
 # @disk: #optional @MigrationStats containing detailed disk migration
 #        status, only returned if status is 'active' and it is a block
@@ -453,7 +477,7 @@
 # Since: 0.14.0
 ##
 { 'type': 'MigrationInfo',
-  'data': {'*status': 'str', '*ram': 'MigrationStats',
+  'data': {'*status': 'MigrationStatus', '*ram': 'MigrationStats',
            '*disk': 'MigrationStats',
            '*xbzrle-cache': 'XBZRLECacheStats',
            '*total-time': 'int',
@@ -672,12 +696,15 @@
 #
 # @family: address family
 #
+# @websocket: true in case the socket is a websocket (since 2.3).
+#
 # Since: 2.1
 ##
 { 'type': 'VncBasicInfo',
   'data': { 'host': 'str',
             'service': 'str',
-            'family': 'NetworkAddressFamily' } }
+            'family': 'NetworkAddressFamily',
+            'websocket': 'bool' } }
 
 ##
 # @VncServerInfo
@@ -751,6 +778,63 @@
            '*service': 'str', '*auth': 'str', '*clients': ['VncClientInfo']} }
 
 ##
+# @VncPriAuth:
+#
+# vnc primary authentication method.
+#
+# Since: 2.3
+##
+{ 'enum': 'VncPrimaryAuth',
+  'data': [ 'none', 'vnc', 'ra2', 'ra2ne', 'tight', 'ultra',
+            'tls', 'vencrypt', 'sasl' ] }
+
+##
+# @VncVencryptSubAuth:
+#
+# vnc sub authentication method with vencrypt.
+#
+# Since: 2.3
+##
+{ 'enum': 'VncVencryptSubAuth',
+  'data': [ 'plain',
+            'tls-none',  'x509-none',
+            'tls-vnc',   'x509-vnc',
+            'tls-plain', 'x509-plain',
+            'tls-sasl',  'x509-sasl' ] }
+
+##
+# @VncInfo2:
+#
+# Information about a vnc server
+#
+# @id: vnc server name.
+#
+# @server: A list of @VncBasincInfo describing all listening sockets.
+#          The list can be empty (in case the vnc server is disabled).
+#          It also may have multiple entries: normal + websocket,
+#          possibly also ipv4 + ipv6 in the future.
+#
+# @clients: A list of @VncClientInfo of all currently connected clients.
+#           The list can be empty, for obvious reasons.
+#
+# @auth: The current authentication type used by the server
+#
+# @vencrypt: #optional The vencrypt sub authentication type used by the server,
+#            only specified in case auth == vencrypt.
+#
+# @display: #optional The display device the vnc server is linked to.
+#
+# Since: 2.3
+##
+{ 'type': 'VncInfo2',
+  'data': { 'id'        : 'str',
+            'server'    : ['VncBasicInfo'],
+            'clients'   : ['VncClientInfo'],
+            'auth'      : 'VncPrimaryAuth',
+            '*vencrypt' : 'VncVencryptSubAuth',
+            '*display'  : 'str' } }
+
+##
 # @query-vnc:
 #
 # Returns information about the current VNC server
@@ -760,6 +844,17 @@
 # Since: 0.14.0
 ##
 { 'command': 'query-vnc', 'returns': 'VncInfo' }
+
+##
+# @query-vnc-servers:
+#
+# Returns a list of vnc servers.  The list can be empty.
+#
+# Returns: a list of @VncInfo2
+#
+# Since: 2.3
+##
+{ 'command': 'query-vnc-servers', 'returns': ['VncInfo2'] }
 
 ##
 # @SpiceBasicInfo
@@ -800,9 +895,9 @@
 # @connection-id: SPICE connection id number.  All channels with the same id
 #                 belong to the same SPICE session.
 #
-# @connection-type: SPICE channel type number.  "1" is the main control
-#                   channel, filter for this one if you want to track spice
-#                   sessions only
+# @channel-type: SPICE channel type number.  "1" is the main control
+#                channel, filter for this one if you want to track spice
+#                sessions only
 #
 # @channel-id: SPICE channel ID number.  Usually "0", might be different when
 #              multiple channels of the same type exist, such as multiple
@@ -1254,11 +1349,19 @@
 #
 # A discriminated record of operations that can be performed with
 # @transaction.
+#
+# Since 1.1
+#
+# drive-backup since 1.6
+# abort since 1.6
+# blockdev-snapshot-internal-sync since 1.7
+# blockdev-backup since 2.3
 ##
 { 'union': 'TransactionAction',
   'data': {
        'blockdev-snapshot-sync': 'BlockdevSnapshot',
        'drive-backup': 'DriveBackup',
+       'blockdev-backup': 'BlockdevBackup',
        'abort': 'Abort',
        'blockdev-snapshot-internal-sync': 'BlockdevSnapshotInternal'
    } }
@@ -1658,6 +1761,24 @@
 ##
 { 'command': 'migrate',
   'data': {'uri': 'str', '*blk': 'bool', '*inc': 'bool', '*detach': 'bool' } }
+
+##
+# @migrate-incoming
+#
+# Start an incoming migration, the qemu must have been started
+# with -incoming defer
+#
+# @uri: The Uniform Resource Identifier identifying the source or
+#       address to listen on
+#
+# Returns: nothing on success
+#
+# Since: 2.3
+# Note: It's a bad idea to use a string for the uri, but it needs to stay
+# compatible with -incoming and the format of the uri is already exposed
+# above libvirt
+##
+{ 'command': 'migrate-incoming', 'data': {'uri': 'str' } }
 
 # @xen-save-devices-state:
 #
@@ -3250,6 +3371,18 @@
 # Send input event(s) to guest.
 #
 # @console: #optional console to send event(s) to.
+#           This parameter can be used to send the input event to
+#           specific input devices in case (a) multiple input devices
+#           of the same kind are added to the virtual machine and (b)
+#           you have configured input routing (see docs/multiseat.txt)
+#           for those input devices.  If input routing is not
+#           configured this parameter has no effect.
+#           If @console is missing, only devices that aren't associated
+#           with a console are admissible.
+#           If @console is specified, it must exist, and both devices
+#           associated with that console and devices not associated with a
+#           console are admissible, but the former take precedence.
+
 #
 # @events: List of InputEvent union.
 #

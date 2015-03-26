@@ -159,6 +159,7 @@ _filter_qemu()
 {
     sed -e "s#\\(^\\|(qemu) \\)$(basename $QEMU_PROG):#\1QEMU_PROG:#" \
         -e 's#^QEMU [0-9]\+\.[0-9]\+\.[0-9]\+ monitor#QEMU X.Y.Z monitor#' \
+        -e '/main-loop: WARNING: I\/O thread spun for [0-9]\+ iterations/d' \
         -e $'s#\r##' # QEMU monitor uses \r\n line endings
 }
 
@@ -191,7 +192,8 @@ _filter_img_create()
         -e "s# block_size=[0-9]\\+##g" \
         -e "s# block_state_zero=\\(on\\|off\\)##g" \
         -e "s# log_size=[0-9]\\+##g" \
-        -e "s/archipelago:a/TEST_DIR\//g"
+        -e "s/archipelago:a/TEST_DIR\//g" \
+        -e "s# refcount_bits=[0-9]\\+##g"
 }
 
 _filter_img_info()
@@ -199,6 +201,7 @@ _filter_img_info()
     sed -e "s#$IMGPROTO:$TEST_DIR#TEST_DIR#g" \
         -e "s#$TEST_DIR#TEST_DIR#g" \
         -e "s#$IMGFMT#IMGFMT#g" \
+        -e 's#nbd://127.0.0.1:10810$#TEST_DIR/t.IMGFMT#g' \
         -e "/encrypted: yes/d" \
         -e "/cluster_size: [0-9]\\+/d" \
         -e "/table_size: [0-9]\\+/d" \
@@ -223,4 +226,4 @@ _filter_qemu_img_map()
 }
 
 # make sure this script returns success
-/bin/true
+true

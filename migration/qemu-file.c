@@ -30,6 +30,18 @@
 #include "migration/qemu-file-internal.h"
 #include "trace.h"
 
+/*
+ * Stop a file from being read/written - not all backing files can do this
+ * typically only sockets can.
+ */
+int qemu_file_shutdown(QEMUFile *f)
+{
+    if (!f->ops->shut_down) {
+        return -ENOSYS;
+    }
+    return f->ops->shut_down(f->opaque, true, true);
+}
+
 bool qemu_file_mode_is_not_valid(const char *mode)
 {
     if (mode == NULL ||
@@ -149,7 +161,8 @@ void ram_control_load_hook(QEMUFile *f, uint64_t flags)
 }
 
 size_t ram_control_save_page(QEMUFile *f, ram_addr_t block_offset,
-                         ram_addr_t offset, size_t size, int *bytes_sent)
+                             ram_addr_t offset, size_t size,
+                             uint64_t *bytes_sent)
 {
     if (f->ops->save_page) {
         int ret = f->ops->save_page(f, f->opaque, block_offset,
@@ -440,6 +453,22 @@ int qemu_get_byte(QEMUFile *f)
     return result;
 }
 
+int64_t qemu_ftell_fast(QEMUFile *f)
+{
+    int64_t ret = f->pos;
+    int i;
+
+    if (f->ops->writev_buffer) {
+        for (i = 0; i < f->iovcnt; i++) {
+            ret += f->iov[i].iov_len;
+        }
+    } else {
+        ret += f->buf_index;
+    }
+
+    return ret;
+}
+
 int64_t qemu_ftell(QEMUFile *f)
 {
     qemu_fflush(f);
@@ -503,7 +532,7 @@ unsigned int qemu_get_be16(QEMUFile *f)
 unsigned int qemu_get_be32(QEMUFile *f)
 {
     unsigned int v;
-    v = qemu_get_byte(f) << 24;
+    v = (unsigned int)qemu_get_byte(f) << 24;
     v |= qemu_get_byte(f) << 16;
     v |= qemu_get_byte(f) << 8;
     v |= qemu_get_byte(f);

@@ -1767,9 +1767,18 @@ static void xhci_xfer_report(XHCITransfer *xfer)
             break;
         }
 
-        if (!reported && ((trb->control & TRB_TR_IOC) ||
-                          (shortpkt && (trb->control & TRB_TR_ISP)) ||
-                          (xfer->status != CC_SUCCESS && left == 0))) {
+        /*
+         * XHCI 1.1, 4.11.3.1 Transfer Event TRB -- "each Transfer TRB
+         * encountered with its IOC flag set to '1' shall generate a Transfer
+         * Event."
+         *
+         * Otherwise, longer transfers can have multiple data TRBs (for scatter
+         * gather). Short transfers and errors should be reported once per
+         * transfer only.
+         */
+        if ((trb->control & TRB_TR_IOC) ||
+            (!reported && ((shortpkt && (trb->control & TRB_TR_ISP)) ||
+                           (xfer->status != CC_SUCCESS && left == 0)))) {
             event.slotid = xfer->slotid;
             event.epid = xfer->epid;
             event.length = (trb->status & 0x1ffff) - chunk;
@@ -3567,7 +3576,7 @@ static void usb_xhci_init(XHCIState *xhci)
     }
 }
 
-static int usb_xhci_initfn(struct PCIDevice *dev)
+static void usb_xhci_realize(struct PCIDevice *dev, Error **errp)
 {
     int i, ret;
 
@@ -3646,8 +3655,6 @@ static int usb_xhci_initfn(struct PCIDevice *dev)
                   &xhci->mem, 0, OFF_MSIX_PBA,
                   0x90);
     }
-
-    return 0;
 }
 
 static void usb_xhci_exit(PCIDevice *dev)
@@ -3855,7 +3862,7 @@ static const VMStateDescription vmstate_xhci = {
 
         /* Runtime Registers & state */
         VMSTATE_INT64(mfindex_start,  XHCIState),
-        VMSTATE_TIMER(mfwrap_timer,   XHCIState),
+        VMSTATE_TIMER_PTR(mfwrap_timer,   XHCIState),
         VMSTATE_STRUCT(cmd_ring, XHCIState, 1, vmstate_xhci_ring, XHCIRing),
 
         VMSTATE_END_OF_LIST()
@@ -3887,7 +3894,7 @@ static void xhci_class_init(ObjectClass *klass, void *data)
     dc->props   = xhci_properties;
     dc->reset   = xhci_reset;
     set_bit(DEVICE_CATEGORY_USB, dc->categories);
-    k->init         = usb_xhci_initfn;
+    k->realize      = usb_xhci_realize;
     k->exit         = usb_xhci_exit;
     k->vendor_id    = PCI_VENDOR_ID_NEC;
     k->device_id    = PCI_DEVICE_ID_NEC_UPD720200;

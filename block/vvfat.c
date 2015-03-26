@@ -2909,8 +2909,8 @@ static int enable_write_target(BDRVVVFATState *s, Error **errp)
 
     array_init(&(s->commits), sizeof(commit_t));
 
-    s->qcow_filename = g_malloc(1024);
-    ret = get_tmp_filename(s->qcow_filename, 1024);
+    s->qcow_filename = g_malloc(PATH_MAX);
+    ret = get_tmp_filename(s->qcow_filename, PATH_MAX);
     if (ret < 0) {
         error_setg_errno(errp, -ret, "can't create temporary file");
         goto err;
@@ -2924,8 +2924,9 @@ static int enable_write_target(BDRVVVFATState *s, Error **errp)
     }
 
     opts = qemu_opts_create(bdrv_qcow->create_opts, NULL, 0, &error_abort);
-    qemu_opt_set_number(opts, BLOCK_OPT_SIZE, s->sector_count * 512);
-    qemu_opt_set(opts, BLOCK_OPT_BACKING_FILE, "fat:");
+    qemu_opt_set_number(opts, BLOCK_OPT_SIZE, s->sector_count * 512,
+                        &error_abort);
+    qemu_opt_set(opts, BLOCK_OPT_BACKING_FILE, "fat:", &error_abort);
 
     ret = bdrv_create(bdrv_qcow, s->qcow_filename, opts, errp);
     qemu_opts_del(opts);

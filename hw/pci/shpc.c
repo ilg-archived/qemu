@@ -159,7 +159,7 @@ static void shpc_interrupt_update(PCIDevice *d)
     for (slot = 0; slot < shpc->nslots; ++slot) {
         uint8_t event = shpc->config[SHPC_SLOT_EVENT_LATCH(slot)];
         uint8_t disable = shpc->config[SHPC_SLOT_EVENT_SERR_INT_DIS(d, slot)];
-        uint32_t mask = 1 << SHPC_IDX_TO_LOGICAL(slot);
+        uint32_t mask = 1U << SHPC_IDX_TO_LOGICAL(slot);
         if (event & ~disable) {
             int_locator |= mask;
         }
@@ -663,13 +663,22 @@ void shpc_cleanup(PCIDevice *d, MemoryRegion *bar)
     SHPCDevice *shpc = d->shpc;
     d->cap_present &= ~QEMU_PCI_CAP_SHPC;
     memory_region_del_subregion(bar, &shpc->mmio);
-    object_unparent(OBJECT(&shpc->mmio));
     /* TODO: cleanup config space changes? */
+}
+
+void shpc_free(PCIDevice *d)
+{
+    SHPCDevice *shpc = d->shpc;
+    if (!shpc) {
+        return;
+    }
+    object_unparent(OBJECT(&shpc->mmio));
     g_free(shpc->config);
     g_free(shpc->cmask);
     g_free(shpc->wmask);
     g_free(shpc->w1cmask);
     g_free(shpc);
+    d->shpc = NULL;
 }
 
 void shpc_cap_write_config(PCIDevice *d, uint32_t addr, uint32_t val, int l)

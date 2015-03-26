@@ -1344,7 +1344,7 @@ static void n8x0_init(MachineState *machine,
     n8x0_dss_setup(s);
     n8x0_cbus_setup(s);
     n8x0_uart_setup(s);
-    if (usb_enabled(false)) {
+    if (usb_enabled()) {
         n8x0_usb_setup(s);
     }
 
@@ -1403,12 +1403,12 @@ static struct arm_boot_info n810_binfo = {
 
 static void n800_init(MachineState *machine)
 {
-    return n8x0_init(machine, &n800_binfo, 800);
+    n8x0_init(machine, &n800_binfo, 800);
 }
 
 static void n810_init(MachineState *machine)
 {
-    return n8x0_init(machine, &n810_binfo, 810);
+    n8x0_init(machine, &n810_binfo, 810);
 }
 
 static QEMUMachine n800_machine = {

@@ -559,8 +559,7 @@ static void usb_msd_password_cb(void *opaque, int err)
     }
 
     if (local_err) {
-        qerror_report_err(local_err);
-        error_free(local_err);
+        error_report_err(local_err);
         qdev_unplug(&s->dev.qdev, NULL);
     }
 }
@@ -610,7 +609,25 @@ static void usb_msd_realize_storage(USBDevice *dev, Error **errp)
         return;
     }
 
+    bdrv_add_key(blk_bs(blk), NULL, &err);
+    if (err) {
+        if (monitor_cur_is_qmp()) {
+            error_propagate(errp, err);
+            return;
+        }
+        error_free(err);
+        err = NULL;
+        if (cur_mon) {
+            monitor_read_bdrv_key_start(cur_mon, blk_bs(blk),
+                                        usb_msd_password_cb, s);
+            s->dev.auto_attach = 0;
+        } else {
+            autostart = 0;
+        }
+    }
+
     blkconf_serial(&s->conf, &dev->serial);
+    blkconf_blocksizes(&s->conf);
 
     /*
      * Hack alert: this pretends to be a block device, but it's really
@@ -637,16 +654,6 @@ static void usb_msd_realize_storage(USBDevice *dev, Error **errp)
     }
     usb_msd_handle_reset(dev);
     s->scsi_dev = scsi_dev;
-
-    if (bdrv_key_required(blk_bs(blk))) {
-        if (cur_mon) {
-            monitor_read_bdrv_key_start(cur_mon, blk_bs(blk),
-                                        usb_msd_password_cb, s);
-            s->dev.auto_attach = 0;
-        } else {
-            autostart = 0;
-        }
-    }
 }
 
 static void usb_msd_realize_bot(USBDevice *dev, Error **errp)
@@ -663,6 +670,7 @@ static void usb_msd_realize_bot(USBDevice *dev, Error **errp)
 static USBDevice *usb_msd_init(USBBus *bus, const char *filename)
 {
     static int nr=0;
+    Error *err = NULL;
     char id[8];
     QemuOpts *opts;
     DriveInfo *dinfo;
@@ -683,7 +691,7 @@ static USBDevice *usb_msd_init(USBBus *bus, const char *filename)
         if (strstart(filename, "format=", &p2)) {
             int len = MIN(p1 - p2, sizeof(fmt));
             pstrcpy(fmt, len, p2);
-            qemu_opt_set(opts, "format", fmt);
+            qemu_opt_set(opts, "format", fmt, &error_abort);
         } else if (*filename != ':') {
             error_report("unrecognized USB mass-storage option %s", filename);
             return NULL;
@@ -694,8 +702,8 @@ static USBDevice *usb_msd_init(USBBus *bus, const char *filename)
         error_report("block device specification needed");
         return NULL;
     }
-    qemu_opt_set(opts, "file", filename);
-    qemu_opt_set(opts, "if", "none");
+    qemu_opt_set(opts, "file", filename, &error_abort);
+    qemu_opt_set(opts, "if", "none", &error_abort);
 
     /* create host drive */
     dinfo = drive_new(opts, 0);
@@ -706,17 +714,13 @@ static USBDevice *usb_msd_init(USBBus *bus, const char *filename)
 
     /* create guest device */
     dev = usb_create(bus, "usb-storage");
-    if (!dev) {
-        return NULL;
-    }
-    if (qdev_prop_set_drive(&dev->qdev, "drive",
-                            blk_by_legacy_dinfo(dinfo)) < 0) {
+    qdev_prop_set_drive(&dev->qdev, "drive", blk_by_legacy_dinfo(dinfo),
+                        &err);
+    if (err) {
+        error_report_err(err);
         object_unparent(OBJECT(dev));
         return NULL;
     }
-    if (qdev_init(&dev->qdev) < 0)
-        return NULL;
-
     return dev;
 }
 

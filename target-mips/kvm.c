@@ -40,7 +40,7 @@ unsigned long kvm_arch_vcpu_id(CPUState *cs)
     return cs->cpu_index;
 }
 
-int kvm_arch_init(KVMState *s)
+int kvm_arch_init(MachineState *ms, KVMState *s)
 {
     /* MIPS has 128 signals */
     kvm_set_sigmask_len(s, 16);
@@ -687,4 +687,10 @@ int kvm_arch_get_registers(CPUState *cs)
     kvm_mips_get_cp0_registers(cs);
 
     return ret;
+}
+
+int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
+                             uint64_t address, uint32_t data)
+{
+    return 0;
 }

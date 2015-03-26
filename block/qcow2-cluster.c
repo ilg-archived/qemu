@@ -1640,7 +1640,7 @@ static int expand_zero_clusters_in_l1(BlockDriverState *bs, uint64_t *l1_table,
     for (i = 0; i < l1_size; i++) {
         uint64_t l2_offset = l1_table[i] & L1E_OFFSET_MASK;
         bool l2_dirty = false;
-        int l2_refcount;
+        uint64_t l2_refcount;
 
         if (!l2_offset) {
             /* unallocated */
@@ -1649,6 +1649,14 @@ static int expand_zero_clusters_in_l1(BlockDriverState *bs, uint64_t *l1_table,
                 status_cb(bs, *visited_l1_entries, l1_entries);
             }
             continue;
+        }
+
+        if (offset_into_cluster(s, l2_offset)) {
+            qcow2_signal_corruption(bs, true, -1, -1, "L2 table offset %#"
+                                    PRIx64 " unaligned (L1 index: %#x)",
+                                    l2_offset, i);
+            ret = -EIO;
+            goto fail;
         }
 
         if (is_active_l1) {
@@ -1664,9 +1672,9 @@ static int expand_zero_clusters_in_l1(BlockDriverState *bs, uint64_t *l1_table,
             goto fail;
         }
 
-        l2_refcount = qcow2_get_refcount(bs, l2_offset >> s->cluster_bits);
-        if (l2_refcount < 0) {
-            ret = l2_refcount;
+        ret = qcow2_get_refcount(bs, l2_offset >> s->cluster_bits,
+                                 &l2_refcount);
+        if (ret < 0) {
             goto fail;
         }
 
@@ -1699,7 +1707,8 @@ static int expand_zero_clusters_in_l1(BlockDriverState *bs, uint64_t *l1_table,
                     /* For shared L2 tables, set the refcount accordingly (it is
                      * already 1 and needs to be l2_refcount) */
                     ret = qcow2_update_cluster_refcount(bs,
-                            offset >> s->cluster_bits, l2_refcount - 1,
+                            offset >> s->cluster_bits,
+                            refcount_diff(1, l2_refcount), false,
                             QCOW2_DISCARD_OTHER);
                     if (ret < 0) {
                         qcow2_free_clusters(bs, offset, s->cluster_size,
@@ -1707,6 +1716,19 @@ static int expand_zero_clusters_in_l1(BlockDriverState *bs, uint64_t *l1_table,
                         goto fail;
                     }
                 }
+            }
+
+            if (offset_into_cluster(s, offset)) {
+                qcow2_signal_corruption(bs, true, -1, -1, "Data cluster offset "
+                                        "%#" PRIx64 " unaligned (L2 offset: %#"
+                                        PRIx64 ", L2 index: %#x)", offset,
+                                        l2_offset, j);
+                if (!preallocated) {
+                    qcow2_free_clusters(bs, offset, s->cluster_size,
+                                        QCOW2_DISCARD_ALWAYS);
+                }
+                ret = -EIO;
+                goto fail;
             }
 
             ret = qcow2_pre_write_overlap_check(bs, 0, offset, s->cluster_size);

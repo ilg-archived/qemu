@@ -99,6 +99,14 @@ struct %(name)s
 
     ret += generate_struct_fields(members)
 
+    # Make sure that all structs have at least one field; this avoids
+    # potential issues with attempting to malloc space for zero-length structs
+    # in C, and also incompatibility with C++ (where an empty struct is size 1).
+    if not base and not members:
+            ret += mcgen('''
+    char qapi_dummy_field_for_empty_struct;
+''')
+
     if len(fieldname):
         fieldname = " " + fieldname
     ret += mcgen('''
@@ -115,16 +123,19 @@ const char *%(name)s_lookup[] = {
                          name=name)
     i = 0
     for value in values:
+        index = generate_enum_full_value(name, value)
         ret += mcgen('''
-    "%(value)s",
+    [%(index)s] = "%(value)s",
 ''',
-                     value=value)
+                     index = index, value = value)
 
+    max_index = generate_enum_full_value(name, 'MAX')
     ret += mcgen('''
-    NULL,
+    [%(max_index)s] = NULL,
 };
 
-''')
+''',
+        max_index=max_index)
     return ret
 
 def generate_enum(name, values):

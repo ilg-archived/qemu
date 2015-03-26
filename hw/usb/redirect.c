@@ -1273,8 +1273,7 @@ static void usbredir_do_attach(void *opaque)
 
     usb_device_attach(&dev->dev, &local_err);
     if (local_err) {
-        error_report("%s", error_get_pretty(local_err));
-        error_free(local_err);
+        error_report_err(local_err);
         WARNING("rejecting device due to speed mismatch\n");
         usbredir_reject_device(dev);
     }
@@ -2438,7 +2437,7 @@ static const VMStateDescription usbredir_vmstate = {
     .post_load = usbredir_post_load,
     .fields = (VMStateField[]) {
         VMSTATE_USB_DEVICE(dev, USBRedirDevice),
-        VMSTATE_TIMER(attach_timer, USBRedirDevice),
+        VMSTATE_TIMER_PTR(attach_timer, USBRedirDevice),
         {
             .name         = "parser",
             .version_id   = 0,

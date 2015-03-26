@@ -60,6 +60,17 @@ typedef enum {
     BDRV_REQ_MAY_UNMAP    = 0x4,
 } BdrvRequestFlags;
 
+typedef struct BlockSizes {
+    uint32_t phys;
+    uint32_t log;
+} BlockSizes;
+
+typedef struct HDGeometry {
+    uint32_t heads;
+    uint32_t sectors;
+    uint32_t cylinders;
+} HDGeometry;
+
 #define BDRV_O_RDWR        0x0002
 #define BDRV_O_SNAPSHOT    0x0008 /* open the file read only and save writes in a snapshot */
 #define BDRV_O_TEMPORARY   0x0010 /* delete the file after use */
@@ -82,6 +93,9 @@ typedef enum {
 #define BDRV_SECTOR_BITS   9
 #define BDRV_SECTOR_SIZE   (1ULL << BDRV_SECTOR_BITS)
 #define BDRV_SECTOR_MASK   ~(BDRV_SECTOR_SIZE - 1)
+
+#define BDRV_REQUEST_MAX_SECTORS MIN(SIZE_MAX >> BDRV_SECTOR_BITS, \
+                                     INT_MAX >> BDRV_SECTOR_BITS)
 
 /*
  * Allocation status flags
@@ -133,7 +147,8 @@ typedef enum BlockOpType {
     BLOCK_OP_TYPE_BACKUP_SOURCE,
     BLOCK_OP_TYPE_BACKUP_TARGET,
     BLOCK_OP_TYPE_CHANGE,
-    BLOCK_OP_TYPE_COMMIT,
+    BLOCK_OP_TYPE_COMMIT_SOURCE,
+    BLOCK_OP_TYPE_COMMIT_TARGET,
     BLOCK_OP_TYPE_DATAPLANE,
     BLOCK_OP_TYPE_DRIVE_DEL,
     BLOCK_OP_TYPE_EJECT,
@@ -164,7 +179,8 @@ void bdrv_io_limits_disable(BlockDriverState *bs);
 void bdrv_init(void);
 void bdrv_init_with_whitelist(void);
 BlockDriver *bdrv_find_protocol(const char *filename,
-                                bool allow_protocol_prefix);
+                                bool allow_protocol_prefix,
+                                Error **errp);
 BlockDriver *bdrv_find_format(const char *format_name);
 BlockDriver *bdrv_find_whitelisted_format(const char *format_name,
                                           bool readonly);
@@ -365,7 +381,6 @@ int bdrv_media_changed(BlockDriverState *bs);
 void bdrv_lock_medium(BlockDriverState *bs, bool locked);
 void bdrv_eject(BlockDriverState *bs, bool eject_flag);
 const char *bdrv_get_format_name(BlockDriverState *bs);
-BlockDriverState *bdrv_find(const char *name);
 BlockDriverState *bdrv_find_node(const char *node_name);
 BlockDeviceInfoList *bdrv_named_nodes_list(void);
 BlockDriverState *bdrv_lookup_bs(const char *device,
@@ -377,6 +392,7 @@ BlockDriverState *bdrv_next(BlockDriverState *bs);
 int bdrv_is_encrypted(BlockDriverState *bs);
 int bdrv_key_required(BlockDriverState *bs);
 int bdrv_set_key(BlockDriverState *bs, const char *key);
+void bdrv_add_key(BlockDriverState *bs, const char *key, Error **errp);
 int bdrv_query_missing_keys(void);
 void bdrv_iterate_format(void (*it)(void *opaque, const char *name),
                          void *opaque);
@@ -396,7 +412,11 @@ const char *bdrv_get_encrypted_filename(BlockDriverState *bs);
 void bdrv_get_backing_filename(BlockDriverState *bs,
                                char *filename, int filename_size);
 void bdrv_get_full_backing_filename(BlockDriverState *bs,
-                                    char *dest, size_t sz);
+                                    char *dest, size_t sz, Error **errp);
+void bdrv_get_full_backing_filename_from_filename(const char *backed,
+                                                  const char *backing,
+                                                  char *dest, size_t sz,
+                                                  Error **errp);
 int bdrv_is_snapshot(BlockDriverState *bs);
 
 int path_has_protocol(const char *path);
@@ -434,8 +454,10 @@ BdrvDirtyBitmap *bdrv_create_dirty_bitmap(BlockDriverState *bs, int granularity,
 void bdrv_release_dirty_bitmap(BlockDriverState *bs, BdrvDirtyBitmap *bitmap);
 BlockDirtyInfoList *bdrv_query_dirty_bitmaps(BlockDriverState *bs);
 int bdrv_get_dirty(BlockDriverState *bs, BdrvDirtyBitmap *bitmap, int64_t sector);
-void bdrv_set_dirty(BlockDriverState *bs, int64_t cur_sector, int nr_sectors);
-void bdrv_reset_dirty(BlockDriverState *bs, int64_t cur_sector, int nr_sectors);
+void bdrv_set_dirty_bitmap(BlockDriverState *bs, BdrvDirtyBitmap *bitmap,
+                           int64_t cur_sector, int nr_sectors);
+void bdrv_reset_dirty_bitmap(BlockDriverState *bs, BdrvDirtyBitmap *bitmap,
+                             int64_t cur_sector, int nr_sectors);
 void bdrv_dirty_iter_init(BlockDriverState *bs,
                           BdrvDirtyBitmap *bitmap, struct HBitmapIter *hbi);
 int64_t bdrv_get_dirty_count(BlockDriverState *bs, BdrvDirtyBitmap *bitmap);
@@ -535,10 +557,11 @@ AioContext *bdrv_get_aio_context(BlockDriverState *bs);
  * Changes the #AioContext used for fd handlers, timers, and BHs by this
  * BlockDriverState and all its children.
  *
- * This function must be called from the old #AioContext or with a lock held so
- * the old #AioContext is not executing.
+ * This function must be called with iothread lock held.
  */
 void bdrv_set_aio_context(BlockDriverState *bs, AioContext *new_context);
+int bdrv_probe_blocksizes(BlockDriverState *bs, BlockSizes *bsz);
+int bdrv_probe_geometry(BlockDriverState *bs, HDGeometry *geo);
 
 void bdrv_io_plug(BlockDriverState *bs);
 void bdrv_io_unplug(BlockDriverState *bs);

@@ -150,7 +150,7 @@ static const TypeInfo host_arm_cpu_type_info = {
     .class_size = sizeof(ARMHostCPUClass),
 };
 
-int kvm_arch_init(KVMState *s)
+int kvm_arch_init(MachineState *ms, KVMState *s)
 {
     /* For ARM interrupt delivery is always asynchronous,
      * whether we are using an in-kernel VGIC or not.
@@ -546,5 +546,11 @@ int kvm_arch_irqchip_create(KVMState *s)
         return 1;
     }
 
+    return 0;
+}
+
+int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
+                             uint64_t address, uint32_t data)
+{
     return 0;
 }

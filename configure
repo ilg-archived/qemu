@@ -309,10 +309,11 @@ rbd=""
 smartcard_nss=""
 libusb=""
 usb_redir=""
-glx=""
+opengl=""
 zlib="yes"
 lzo=""
 snappy=""
+bzip2=""
 guest_agent=""
 guest_agent_with_vss="no"
 vss_win32_sdk=""
@@ -1066,9 +1067,9 @@ for opt do
   ;;
   --enable-vhost-scsi) vhost_scsi="yes"
   ;;
-  --disable-glx) glx="no"
+  --disable-opengl) opengl="no"
   ;;
-  --enable-glx) glx="yes"
+  --enable-opengl) opengl="yes"
   ;;
   --disable-rbd) rbd="no"
   ;;
@@ -1099,6 +1100,10 @@ for opt do
   --disable-snappy) snappy="no"
   ;;
   --enable-snappy) snappy="yes"
+  ;;
+  --disable-bzip2) bzip2="no"
+  ;;
+  --enable-bzip2) bzip2="yes"
   ;;
   --enable-guest-agent) guest_agent="yes"
   ;;
@@ -1414,6 +1419,8 @@ Advanced options (experts only):
   --enable-usb-redir       enable usb network redirection support
   --enable-lzo             enable the support of lzo compression library
   --enable-snappy          enable the support of snappy compression library
+  --enable-bzip2           enable the support of bzip2 compression library (for
+                           reading bzip2-compressed dmg images)
   --disable-guest-agent    disable building of the QEMU Guest Agent
   --enable-guest-agent     enable building of the QEMU Guest Agent
   --with-vss-sdk=SDK-path  enable Windows VSS support in QEMU Guest Agent
@@ -1860,6 +1867,24 @@ EOF
 fi
 
 ##########################################
+# bzip2 check
+
+if test "$bzip2" != "no" ; then
+    cat > $TMPC << EOF
+#include <bzlib.h>
+int main(void) { BZ2_bzlibVersion(); return 0; }
+EOF
+    if compile_prog "" "-lbz2" ; then
+        bzip2="yes"
+    else
+        if test "$bzip2" = "yes"; then
+            feature_not_found "libbzip2" "Install libbzip2 devel"
+        fi
+        bzip2="no"
+    fi
+fi
+
+##########################################
 # libseccomp check
 
 if test "$seccomp" != "no" ; then
@@ -1870,7 +1895,7 @@ if test "$seccomp" != "no" ; then
 	seccomp="yes"
     else
 	if test "$seccomp" = "yes"; then
-            feature_not_found "libseccomp" "Install libseccomp devel >= 2.1.0"
+            feature_not_found "libseccomp" "Install libseccomp devel >= 2.1.1"
 	fi
 	seccomp="no"
     fi
@@ -1900,6 +1925,32 @@ EOF
     xen=no
 
   # Xen unstable
+  elif
+      cat > $TMPC <<EOF &&
+#include <xenctrl.h>
+#include <xenstore.h>
+#include <stdint.h>
+#include <xen/hvm/hvm_info_table.h>
+#if !defined(HVM_MAX_VCPUS)
+# error HVM_MAX_VCPUS not defined
+#endif
+int main(void) {
+  xc_interface *xc;
+  xs_daemon_open();
+  xc = xc_interface_open(0, 0, 0);
+  xc_hvm_set_mem_type(0, 0, HVMMEM_ram_ro, 0, 0);
+  xc_gnttab_open(NULL, 0);
+  xc_domain_add_to_physmap(0, 0, XENMAPSPACE_gmfn, 0, 0);
+  xc_hvm_inject_msi(xc, 0, 0xf0000000, 0x00000000);
+  xc_hvm_create_ioreq_server(xc, 0, 0, NULL);
+  return 0;
+}
+EOF
+      compile_prog "" "$xen_libs"
+    then
+    xen_ctrl_version=450
+    xen=yes
+
   elif
       cat > $TMPC <<EOF &&
 #include <xenctrl.h>
@@ -2074,6 +2125,15 @@ if test "$sparse" != "no" ; then
 fi
 
 ##########################################
+# X11 probe
+x11_cflags=
+x11_libs=-lX11
+if $pkg_config --exists "x11"; then
+    x11_cflags=`$pkg_config --cflags x11`
+    x11_libs=`$pkg_config --libs x11`
+fi
+
+##########################################
 # GTK probe
 
 if test "$gtkabi" = ""; then
@@ -2100,7 +2160,8 @@ if test "$gtk" != "no"; then
         gtk_cflags=`$pkg_config --cflags $gtkpackage`
         gtk_libs=`$pkg_config --libs $gtkpackage`
         if $pkg_config --exists "$gtkx11package >= $gtkversion"; then
-            gtk_libs="$gtk_libs -lX11"
+            gtk_cflags="$gtk_cflags $x11_cflags"
+            gtk_libs="$gtk_libs $x11_libs"
         fi
         libs_softmmu="$gtk_libs $libs_softmmu"
         gtk="yes"
@@ -2225,8 +2286,9 @@ if test "$sdl" = "yes" ; then
 #endif
 int main(void) { return 0; }
 EOF
-  if compile_prog "$sdl_cflags" "$sdl_libs" ; then
-    sdl_libs="$sdl_libs -lX11"
+  if compile_prog "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs" ; then
+    sdl_cflags="$sdl_cflags $x11_cflags"
+    sdl_libs="$sdl_libs $x11_libs"
   fi
   libs_softmmu="$sdl_libs $libs_softmmu"
 fi
@@ -3096,23 +3158,35 @@ fi
 libs_softmmu="$libs_softmmu $fdt_libs"
 
 ##########################################
+# opengl probe (for sdl2, milkymist-tmu2)
+
 # GLX probe, used by milkymist-tmu2
-if test "$glx" != "no" ; then
-  glx_libs="-lGL -lX11"
-  cat > $TMPC << EOF
+# this is temporary, code will be switched to egl mid-term.
+cat > $TMPC << EOF
 #include <X11/Xlib.h>
 #include <GL/gl.h>
 #include <GL/glx.h>
 int main(void) { glBegin(0); glXQueryVersion(0,0,0); return 0; }
 EOF
-  if compile_prog "" "-lGL -lX11" ; then
-    glx=yes
+if compile_prog "" "-lGL -lX11" ; then
+  have_glx=yes
+else
+  have_glx=no
+fi
+
+if test "$opengl" != "no" ; then
+  opengl_pkgs="gl"
+  if $pkg_config $opengl_pkgs x11 && test "$have_glx" = "yes"; then
+    opengl_cflags="$($pkg_config --cflags $opengl_pkgs) $x11_cflags"
+    opengl_libs="$($pkg_config --libs $opengl_pkgs) $x11_libs"
+    opengl=yes
   else
-    if test "$glx" = "yes" ; then
-      feature_not_found "glx" "Install GL devel (e.g. MESA)"
+    if test "$opengl" = "yes" ; then
+      feature_not_found "opengl" "Install GL devel (e.g. MESA)"
     fi
-    glx_libs=
-    glx=no
+    opengl_cflags=""
+    opengl_libs=""
+    opengl=no
   fi
 fi
 
@@ -3347,6 +3421,22 @@ int main(void)
 EOF
 if compile_prog "" "" ; then
   fallocate_punch_hole=yes
+fi
+
+# check that fallocate supports range zeroing inside the file
+fallocate_zero_range=no
+cat > $TMPC << EOF
+#include <fcntl.h>
+#include <linux/falloc.h>
+
+int main(void)
+{
+    fallocate(0, FALLOC_FL_ZERO_RANGE, 0, 0);
+    return 0;
+}
+EOF
+if compile_prog "" "" ; then
+  fallocate_zero_range=yes
 fi
 
 # check for posix_fallocate
@@ -4323,6 +4413,9 @@ if test -n "$sparc_cpu"; then
     echo "Target Sparc Arch $sparc_cpu"
 fi
 echo "xen support       $xen"
+if test "$xen" = "yes" ; then
+  echo "xen ctrl version  $xen_ctrl_version"
+fi
 echo "brlapi support    $brlapi"
 echo "bluez  support    $bluez"
 echo "Documentation     $docs"
@@ -4360,7 +4453,7 @@ echo "xfsctl support    $xfs"
 echo "nss used          $smartcard_nss"
 echo "libusb            $libusb"
 echo "usb net redir     $usb_redir"
-echo "GLX support       $glx"
+echo "OpenGL support    $opengl"
 echo "libiscsi support  $libiscsi"
 echo "libnfs support    $libnfs"
 echo "build guest agent $guest_agent"
@@ -4380,6 +4473,7 @@ echo "vhdx              $vhdx"
 echo "Quorum            $quorum"
 echo "lzo support       $lzo"
 echo "snappy support    $snappy"
+echo "bzip2 support     $bzip2"
 echo "NUMA host support $numa"
 
 if test "$sdl_too_old" = "yes"; then
@@ -4578,6 +4672,9 @@ fi
 if test "$fallocate_punch_hole" = "yes" ; then
   echo "CONFIG_FALLOCATE_PUNCH_HOLE=y" >> $config_host_mak
 fi
+if test "$fallocate_zero_range" = "yes" ; then
+  echo "CONFIG_FALLOCATE_ZERO_RANGE=y" >> $config_host_mak
+fi
 if test "$posix_fallocate" = "yes" ; then
   echo "CONFIG_POSIX_FALLOCATE=y" >> $config_host_mak
 fi
@@ -4722,9 +4819,10 @@ if test "$usb_redir" = "yes" ; then
   echo "CONFIG_USB_REDIR=y" >> $config_host_mak
 fi
 
-if test "$glx" = "yes" ; then
-  echo "CONFIG_GLX=y" >> $config_host_mak
-  echo "GLX_LIBS=$glx_libs" >> $config_host_mak
+if test "$opengl" = "yes" ; then
+  echo "CONFIG_OPENGL=y" >> $config_host_mak
+  echo "OPENGL_CFLAGS=$opengl_cflags" >> $config_host_mak
+  echo "OPENGL_LIBS=$opengl_libs" >> $config_host_mak
 fi
 
 if test "$lzo" = "yes" ; then
@@ -4733,6 +4831,11 @@ fi
 
 if test "$snappy" = "yes" ; then
   echo "CONFIG_SNAPPY=y" >> $config_host_mak
+fi
+
+if test "$bzip2" = "yes" ; then
+  echo "CONFIG_BZIP2=y" >> $config_host_mak
+  echo "BZIP2_LIBS=-lbz2" >> $config_host_mak
 fi
 
 if test "$libiscsi" = "yes" ; then
@@ -4949,6 +5052,7 @@ echo "QEMU_CFLAGS=$QEMU_CFLAGS" >> $config_host_mak
 echo "QEMU_INCLUDES=$QEMU_INCLUDES" >> $config_host_mak
 if test "$sparse" = "yes" ; then
   echo "CC           := REAL_CC=\"\$(CC)\" cgcc"       >> $config_host_mak
+  echo "CPP          := REAL_CC=\"\$(CPP)\" cgcc"      >> $config_host_mak
   echo "CXX          := REAL_CC=\"\$(CXX)\" cgcc"      >> $config_host_mak
   echo "HOST_CC      := REAL_CC=\"\$(HOST_CC)\" cgcc"  >> $config_host_mak
   echo "QEMU_CFLAGS  += -Wbitwise -Wno-transparent-union -Wno-old-initializer -Wno-non-pointer-null" >> $config_host_mak
@@ -5209,7 +5313,9 @@ case "$target_name" in
       \( "$target_name" = "ppcemb" -a "$cpu" = "ppc64" \) -o \
       \( "$target_name" = "mipsel" -a "$cpu" = "mips" \) -o \
       \( "$target_name" = "x86_64" -a "$cpu" = "i386"   \) -o \
-      \( "$target_name" = "i386"   -a "$cpu" = "x86_64" \) \) ; then
+      \( "$target_name" = "i386"   -a "$cpu" = "x86_64" \) -o \
+      \( "$target_name" = "x86_64" -a "$cpu" = "x32"   \) -o \
+      \( "$target_name" = "i386"   -a "$cpu" = "x32" \) \) ; then
       echo "CONFIG_KVM=y" >> $config_target_mak
       if test "$vhost_net" = "yes" ; then
         echo "CONFIG_VHOST_NET=y" >> $config_target_mak

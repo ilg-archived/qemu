@@ -189,6 +189,56 @@ int qdev_init(DeviceState *dev)
     return 0;
 }
 
+static QTAILQ_HEAD(device_listeners, DeviceListener) device_listeners
+    = QTAILQ_HEAD_INITIALIZER(device_listeners);
+
+enum ListenerDirection { Forward, Reverse };
+
+#define DEVICE_LISTENER_CALL(_callback, _direction, _args...)     \
+    do {                                                          \
+        DeviceListener *_listener;                                \
+                                                                  \
+        switch (_direction) {                                     \
+        case Forward:                                             \
+            QTAILQ_FOREACH(_listener, &device_listeners, link) {  \
+                if (_listener->_callback) {                       \
+                    _listener->_callback(_listener, ##_args);     \
+                }                                                 \
+            }                                                     \
+            break;                                                \
+        case Reverse:                                             \
+            QTAILQ_FOREACH_REVERSE(_listener, &device_listeners,  \
+                                   device_listeners, link) {      \
+                if (_listener->_callback) {                       \
+                    _listener->_callback(_listener, ##_args);     \
+                }                                                 \
+            }                                                     \
+            break;                                                \
+        default:                                                  \
+            abort();                                              \
+        }                                                         \
+    } while (0)
+
+static int device_listener_add(DeviceState *dev, void *opaque)
+{
+    DEVICE_LISTENER_CALL(realize, Forward, dev);
+
+    return 0;
+}
+
+void device_listener_register(DeviceListener *listener)
+{
+    QTAILQ_INSERT_TAIL(&device_listeners, listener, link);
+
+    qbus_walk_children(sysbus_get_default(), NULL, NULL, device_listener_add,
+                       NULL, NULL);
+}
+
+void device_listener_unregister(DeviceListener *listener)
+{
+    QTAILQ_REMOVE(&device_listeners, listener, link);
+}
+
 static void device_realize(DeviceState *dev, Error **errp)
 {
     DeviceClass *dc = DEVICE_GET_CLASS(dev);
@@ -323,10 +373,15 @@ void qdev_simple_device_unplug_cb(HotplugHandler *hotplug_dev,
    way is somewhat unclean, and best avoided.  */
 void qdev_init_nofail(DeviceState *dev)
 {
-    const char *typename = object_get_typename(OBJECT(dev));
+    Error *err = NULL;
 
-    if (qdev_init(dev) < 0) {
-        error_report("Initialization of device %s failed", typename);
+    assert(!dev->realized);
+
+    object_property_set_bool(OBJECT(dev), true, "realized", &err);
+    if (err) {
+        error_report("Initialization of device %s failed: %s",
+                     object_get_typename(OBJECT(dev)),
+                     error_get_pretty(err));
         exit(1);
     }
 }
@@ -446,8 +501,9 @@ void qdev_connect_gpio_out_named(DeviceState *dev, const char *name, int n,
          * with an error without doing anything.  If it has none, it will
          * never fail.  So we can just call it with a NULL Error pointer.
          */
-        object_property_add_child(qdev_get_machine(), "non-qdev-gpio[*]",
-                                  OBJECT(pin), NULL);
+        object_property_add_child(container_get(qdev_get_machine(),
+                                                "/unattached"),
+                                  "non-qdev-gpio[*]", OBJECT(pin), NULL);
     }
     object_property_set_link(OBJECT(dev), OBJECT(pin), propname, &error_abort);
     g_free(propname);
@@ -768,6 +824,13 @@ static char *qdev_get_fw_dev_path_from_handler(BusState *bus, DeviceState *dev)
     return d;
 }
 
+char *qdev_get_own_fw_dev_path_from_handler(BusState *bus, DeviceState *dev)
+{
+    Object *obj = OBJECT(dev);
+
+    return fw_path_provider_try_get_dev_path(obj, bus, dev);
+}
+
 static int qdev_get_fw_dev_path_helper(DeviceState *dev, char *p, int size)
 {
     int l = 0;
@@ -938,7 +1001,12 @@ void qdev_alias_all_properties(DeviceState *target, Object *source)
 static int qdev_add_hotpluggable_device(Object *obj, void *opaque)
 {
     GSList **list = opaque;
-    DeviceState *dev = DEVICE(obj);
+    DeviceState *dev = (DeviceState *)object_dynamic_cast(OBJECT(obj),
+                                                          TYPE_DEVICE);
+
+    if (dev == NULL) {
+        return 0;
+    }
 
     if (dev->realized && object_property_get_bool(obj, "hotpluggable", NULL)) {
         *list = g_slist_append(*list, dev);
@@ -994,6 +1062,8 @@ static void device_set_realized(Object *obj, bool value, Error **errp)
             goto fail;
         }
 
+        DEVICE_LISTENER_CALL(realize, Forward, dev);
+
         hotplug_ctrl = qdev_get_hotplug_handler(dev);
         if (hotplug_ctrl) {
             hotplug_handler_plug(hotplug_ctrl, dev, &local_err);
@@ -1035,6 +1105,7 @@ static void device_set_realized(Object *obj, bool value, Error **errp)
             dc->unrealize(dev, local_errp);
         }
         dev->pending_deleted_event = true;
+        DEVICE_LISTENER_CALL(unrealize, Reverse, dev);
     }
 
     if (local_err != NULL) {
@@ -1126,13 +1197,7 @@ static void device_initfn(Object *obj)
 
 static void device_post_init(Object *obj)
 {
-    Error *err = NULL;
-    qdev_prop_set_globals(DEVICE(obj), &err);
-    if (err) {
-        qerror_report_err(err);
-        error_free(err);
-        exit(EXIT_FAILURE);
-    }
+    qdev_prop_set_globals(DEVICE(obj));
 }
 
 /* Unlink device from bus and free the structure.  */

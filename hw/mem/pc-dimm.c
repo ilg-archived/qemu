@@ -22,6 +22,44 @@
 #include "qemu/config-file.h"
 #include "qapi/visitor.h"
 #include "qemu/range.h"
+#include "sysemu/numa.h"
+
+typedef struct pc_dimms_capacity {
+     uint64_t size;
+     Error    **errp;
+} pc_dimms_capacity;
+
+static int pc_existing_dimms_capacity_internal(Object *obj, void *opaque)
+{
+    pc_dimms_capacity *cap = opaque;
+    uint64_t *size = &cap->size;
+
+    if (object_dynamic_cast(obj, TYPE_PC_DIMM)) {
+        DeviceState *dev = DEVICE(obj);
+
+        if (dev->realized) {
+            (*size) += object_property_get_int(obj, PC_DIMM_SIZE_PROP,
+                cap->errp);
+        }
+
+        if (cap->errp && *cap->errp) {
+            return 1;
+        }
+    }
+    object_child_foreach(obj, pc_existing_dimms_capacity_internal, opaque);
+    return 0;
+}
+
+uint64_t pc_existing_dimms_capacity(Error **errp)
+{
+    pc_dimms_capacity cap;
+
+    cap.size = 0;
+    cap.errp = errp;
+
+    pc_existing_dimms_capacity_internal(qdev_get_machine(), &cap);
+    return cap.size;
+}
 
 int qmp_pc_dimm_device_list(Object *obj, void *opaque)
 {
@@ -60,6 +98,32 @@ int qmp_pc_dimm_device_list(Object *obj, void *opaque)
 
     object_child_foreach(obj, qmp_pc_dimm_device_list, opaque);
     return 0;
+}
+
+ram_addr_t get_current_ram_size(void)
+{
+    MemoryDeviceInfoList *info_list = NULL;
+    MemoryDeviceInfoList **prev = &info_list;
+    MemoryDeviceInfoList *info;
+    ram_addr_t size = ram_size;
+
+    qmp_pc_dimm_device_list(qdev_get_machine(), &prev);
+    for (info = info_list; info; info = info->next) {
+        MemoryDeviceInfo *value = info->value;
+
+        if (value) {
+            switch (value->kind) {
+            case MEMORY_DEVICE_INFO_KIND_DIMM:
+                size += value->dimm->size;
+                break;
+            default:
+                break;
+            }
+        }
+    }
+    qapi_free_MemoryDeviceInfoList(info_list);
+
+    return size;
 }
 
 static int pc_dimm_slot2bitmap(Object *obj, void *opaque)
@@ -287,6 +351,7 @@ static void pc_dimm_class_init(ObjectClass *oc, void *data)
 
     dc->realize = pc_dimm_realize;
     dc->props = pc_dimm_properties;
+    dc->desc = "DIMM memory module";
 
     ddc->get_memory_region = pc_dimm_get_memory_region;
 }

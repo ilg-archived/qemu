@@ -23,7 +23,6 @@
 #include "qemu-common.h"
 
 #define TARGET_LONG_BITS 32
-#define TARGET_HAS_ICE 1
 
 #define ELF_MACHINE	EM_SH
 
@@ -222,14 +221,7 @@ int cpu_sh4_is_cached(CPUSH4State * env, target_ulong addr);
 
 void cpu_load_tlb(CPUSH4State * env);
 
-static inline CPUSH4State *cpu_init(const char *cpu_model)
-{
-    SuperHCPU *cpu = cpu_sh4_init(cpu_model);
-    if (cpu == NULL) {
-        return NULL;
-    }
-    return &cpu->env;
-}
+#define cpu_init(cpu_model) CPU(cpu_sh4_init(cpu_model))
 
 #define cpu_exec cpu_sh4_exec
 #define cpu_gen_code cpu_sh4_gen_code

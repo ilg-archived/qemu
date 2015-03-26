@@ -645,11 +645,20 @@ static int serial_post_load(void *opaque, int version_id)
 static bool serial_thr_ipending_needed(void *opaque)
 {
     SerialState *s = opaque;
-    bool expected_value = ((s->iir & UART_IIR_ID) == UART_IIR_THRI);
-    return s->thr_ipending != expected_value;
+
+    if (s->ier & UART_IER_THRI) {
+        bool expected_value = ((s->iir & UART_IIR_ID) == UART_IIR_THRI);
+        return s->thr_ipending != expected_value;
+    } else {
+        /* LSR.THRE will be sampled again when the interrupt is
+         * enabled.  thr_ipending is not used in this case, do
+         * not migrate it.
+         */
+        return false;
+    }
 }
 
-const VMStateDescription vmstate_serial_thr_ipending = {
+static const VMStateDescription vmstate_serial_thr_ipending = {
     .name = "serial/thr_ipending",
     .version_id = 1,
     .minimum_version_id = 1,
@@ -665,7 +674,7 @@ static bool serial_tsr_needed(void *opaque)
     return s->tsr_retry != 0;
 }
 
-const VMStateDescription vmstate_serial_tsr = {
+static const VMStateDescription vmstate_serial_tsr = {
     .name = "serial/tsr",
     .version_id = 1,
     .minimum_version_id = 1,
@@ -684,7 +693,7 @@ static bool serial_recv_fifo_needed(void *opaque)
 
 }
 
-const VMStateDescription vmstate_serial_recv_fifo = {
+static const VMStateDescription vmstate_serial_recv_fifo = {
     .name = "serial/recv_fifo",
     .version_id = 1,
     .minimum_version_id = 1,
@@ -700,7 +709,7 @@ static bool serial_xmit_fifo_needed(void *opaque)
     return !fifo8_is_empty(&s->xmit_fifo);
 }
 
-const VMStateDescription vmstate_serial_xmit_fifo = {
+static const VMStateDescription vmstate_serial_xmit_fifo = {
     .name = "serial/xmit_fifo",
     .version_id = 1,
     .minimum_version_id = 1,
@@ -716,12 +725,12 @@ static bool serial_fifo_timeout_timer_needed(void *opaque)
     return timer_pending(s->fifo_timeout_timer);
 }
 
-const VMStateDescription vmstate_serial_fifo_timeout_timer = {
+static const VMStateDescription vmstate_serial_fifo_timeout_timer = {
     .name = "serial/fifo_timeout_timer",
     .version_id = 1,
     .minimum_version_id = 1,
     .fields = (VMStateField[]) {
-        VMSTATE_TIMER(fifo_timeout_timer, SerialState),
+        VMSTATE_TIMER_PTR(fifo_timeout_timer, SerialState),
         VMSTATE_END_OF_LIST()
     }
 };
@@ -732,7 +741,7 @@ static bool serial_timeout_ipending_needed(void *opaque)
     return s->timeout_ipending != 0;
 }
 
-const VMStateDescription vmstate_serial_timeout_ipending = {
+static const VMStateDescription vmstate_serial_timeout_ipending = {
     .name = "serial/timeout_ipending",
     .version_id = 1,
     .minimum_version_id = 1,
@@ -748,13 +757,13 @@ static bool serial_poll_needed(void *opaque)
     return s->poll_msl >= 0;
 }
 
-const VMStateDescription vmstate_serial_poll = {
+static const VMStateDescription vmstate_serial_poll = {
     .name = "serial/poll",
     .version_id = 1,
     .minimum_version_id = 1,
     .fields = (VMStateField[]) {
         VMSTATE_INT32(poll_msl, SerialState),
-        VMSTATE_TIMER(modem_status_poll, SerialState),
+        VMSTATE_TIMER_PTR(modem_status_poll, SerialState),
         VMSTATE_END_OF_LIST()
     }
 };
@@ -897,8 +906,7 @@ SerialState *serial_init(int base, qemu_irq irq, int baudbase,
     s->chr = chr;
     serial_realize_core(s, &err);
     if (err != NULL) {
-        error_report("%s", error_get_pretty(err));
-        error_free(err);
+        error_report_err(err);
         exit(1);
     }
 
@@ -961,8 +969,7 @@ SerialState *serial_mm_init(MemoryRegion *address_space,
 
     serial_realize_core(s, &err);
     if (err != NULL) {
-        error_report("%s", error_get_pretty(err));
-        error_free(err);
+        error_report_err(err);
         exit(1);
     }
     vmstate_register(NULL, base, &vmstate_serial, s);

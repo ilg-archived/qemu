@@ -223,7 +223,7 @@ static void init_cpus(const char *cpu_model, const char *privdev,
         }
         object_property_set_bool(cpuobj, true, "realized", &err);
         if (err) {
-            error_report("%s", error_get_pretty(err));
+            error_report_err(err);
             exit(1);
         }
     }
@@ -515,9 +515,9 @@ static pflash_t *ve_pflash_cfi01_register(hwaddr base, const char *name,
 {
     DeviceState *dev = qdev_create(NULL, "cfi.pflash01");
 
-    if (di && qdev_prop_set_drive(dev, "drive",
-                                  blk_by_legacy_dinfo(di))) {
-        abort();
+    if (di) {
+        qdev_prop_set_drive(dev, "drive", blk_by_legacy_dinfo(di),
+                            &error_abort);
     }
 
     qdev_prop_set_uint32(dev, "num-blocks",
@@ -562,7 +562,7 @@ static void vexpress_common_init(MachineState *machine)
      * If a bios file was provided, attempt to map it into memory
      */
     if (bios_name) {
-        const char *fn;
+        char *fn;
 
         if (drive_get(IF_PFLASH, 0, 0)) {
             error_report("The contents of the first flash device may be "
@@ -576,6 +576,7 @@ static void vexpress_common_init(MachineState *machine)
             error_report("Could not load ROM image '%s'", bios_name);
             exit(1);
         }
+        g_free(fn);
     }
 
     /* Motherboard peripherals: the wiring is the same but the

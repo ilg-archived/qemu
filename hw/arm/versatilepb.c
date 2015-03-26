@@ -213,14 +213,14 @@ static void versatile_init(MachineState *machine, int board_id)
     if (object_property_find(cpuobj, "has_el3", NULL)) {
         object_property_set_bool(cpuobj, false, "has_el3", &err);
         if (err) {
-            error_report("%s", error_get_pretty(err));
+            error_report_err(err);
             exit(1);
         }
     }
 
     object_property_set_bool(cpuobj, true, "realized", &err);
     if (err) {
-        error_report("%s", error_get_pretty(err));
+        error_report_err(err);
         exit(1);
     }
 
@@ -281,7 +281,7 @@ static void versatile_init(MachineState *machine, int board_id)
             pci_nic_init_nofail(nd, pci_bus, "rtl8139", NULL);
         }
     }
-    if (usb_enabled(false)) {
+    if (usb_enabled()) {
         pci_create_simple(pci_bus, -1, "pci-ohci");
     }
     n = drive_get_max_bus(IF_SCSI);

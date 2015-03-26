@@ -32,8 +32,6 @@
 
 #define MAX_QREGS 32
 
-#define TARGET_HAS_ICE 1
-
 #define ELF_MACHINE	EM_68K
 
 #define EXCP_ACCESS         2   /* Access (MMU) error.  */
@@ -214,14 +212,7 @@ void register_m68k_insns (CPUM68KState *env);
 #define TARGET_PHYS_ADDR_SPACE_BITS 32
 #define TARGET_VIRT_ADDR_SPACE_BITS 32
 
-static inline CPUM68KState *cpu_init(const char *cpu_model)
-{
-    M68kCPU *cpu = cpu_m68k_init(cpu_model);
-    if (cpu == NULL) {
-        return NULL;
-    }
-    return &cpu->env;
-}
+#define cpu_init(cpu_model) CPU(cpu_m68k_init(cpu_model))
 
 #define cpu_exec cpu_m68k_exec
 #define cpu_gen_code cpu_m68k_gen_code

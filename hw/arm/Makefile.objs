@@ -3,11 +3,14 @@ obj-$(CONFIG_DIGIC) += digic_boards.o
 obj-y += integratorcp.o kzm.o mainstone.o musicpal.o nseries.o
 obj-y += omap_sx1.o palm.o realview.o spitz.o stellaris.o
 obj-y += tosa.o versatilepb.o vexpress.o virt.o xilinx_zynq.o z2.o
+obj-y += netduino2.o
 
 obj-y += armv7m.o exynos4210.o pxa2xx.o pxa2xx_gpio.o pxa2xx_pic.o
 obj-$(CONFIG_DIGIC) += digic.o
 obj-y += omap1.o omap2.o strongarm.o
 obj-$(CONFIG_ALLWINNER_A10) += allwinner-a10.o cubieboard.o
+obj-$(CONFIG_STM32F205_SOC) += stm32f205_soc.o
+
 
 # Cortex-M files
 obj-y += cortexm.o
@@ -18,4 +21,3 @@ obj-$(CONFIG_LPC) += lpc_mcus.o lpc_boards.o
 obj-$(CONFIG_TIVA) += tiva_mcus.o tiva_boards.o
 obj-$(CONFIG_XMC) += xmc_mcus.o xmc_boards.o
 obj-$(CONFIG_SAM) += sam_mcus.o sam_boards.o
-

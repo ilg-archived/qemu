@@ -61,15 +61,23 @@ static SDL_PixelFormat host_format;
 static int scaling_active = 0;
 static Notifier mouse_mode_notifier;
 
+#if 0
+#define DEBUG_SDL
+#endif
+
 static void sdl_update(DisplayChangeListener *dcl,
                        int x, int y, int w, int h)
 {
-    //    printf("updating x=%d y=%d w=%d h=%d\n", x, y, w, h);
     SDL_Rect rec;
     rec.x = x;
     rec.y = y;
     rec.w = w;
     rec.h = h;
+
+#ifdef DEBUG_SDL
+    printf("SDL: Updating x=%d y=%d w=%d h=%d (scaling: %d)\n",
+           x, y, w, h, scaling_active);
+#endif
 
     if (guest_screen) {
         if (!scaling_active) {
@@ -89,7 +97,9 @@ static void do_sdl_resize(int width, int height, int bpp)
     int flags;
     SDL_Surface *tmp_screen;
 
-    //    printf("resizing to %d %d\n", w, h);
+#ifdef DEBUG_SDL
+    printf("SDL: Resizing to %dx%d bpp %d\n", width, height, bpp);
+#endif
 
     flags = SDL_HWSURFACE | SDL_ASYNCBLIT | SDL_HWACCEL;
     if (gui_fullscreen) {
@@ -125,12 +135,13 @@ static void do_sdl_resize(int width, int height, int bpp)
 static void sdl_switch(DisplayChangeListener *dcl,
                        DisplaySurface *new_surface)
 {
-    PixelFormat pf = qemu_pixelformat_from_pixman(new_surface->format);
+    PixelFormat pf;
 
     /* temporary hack: allows to call sdl_switch to handle scaling changes */
     if (new_surface) {
         surface = new_surface;
     }
+    pf = qemu_pixelformat_from_pixman(surface->format);
 
     if (!scaling_active) {
         do_sdl_resize(surface_width(surface), surface_height(surface), 0);
@@ -143,12 +154,31 @@ static void sdl_switch(DisplayChangeListener *dcl,
     if (guest_screen != NULL) {
         SDL_FreeSurface(guest_screen);
     }
+
+#ifdef DEBUG_SDL
+    printf("SDL: Creating surface with masks: %08x %08x %08x %08x\n",
+           pf.rmask, pf.gmask, pf.bmask, pf.amask);
+#endif
+
     guest_screen = SDL_CreateRGBSurfaceFrom
         (surface_data(surface),
          surface_width(surface), surface_height(surface),
          surface_bits_per_pixel(surface), surface_stride(surface),
          pf.rmask, pf.gmask,
          pf.bmask, pf.amask);
+}
+
+static bool sdl_check_format(DisplayChangeListener *dcl,
+                             pixman_format_code_t format)
+{
+    /*
+     * We let SDL convert for us a few more formats than,
+     * the native ones. Thes are the ones I have tested.
+     */
+    return (format == PIXMAN_x8r8g8b8 ||
+            format == PIXMAN_b8g8r8x8 ||
+            format == PIXMAN_x1r5g5b5 ||
+            format == PIXMAN_r5g6b5);
 }
 
 /* generic keyboard conversion */
@@ -472,6 +502,10 @@ static void sdl_send_mouse_event(int dx, int dy, int x, int y, int state)
 static void sdl_scale(int width, int height)
 {
     int bpp = real_screen->format->BitsPerPixel;
+
+#ifdef DEBUG_SDL
+    printf("SDL: Scaling to %dx%d bpp %d\n", width, height, bpp);
+#endif
 
     if (bpp != 16 && bpp != 32) {
         bpp = 32;
@@ -865,12 +899,13 @@ static void sdl_cleanup(void)
 }
 
 static const DisplayChangeListenerOps dcl_ops = {
-    .dpy_name          = "sdl",
-    .dpy_gfx_update    = sdl_update,
-    .dpy_gfx_switch    = sdl_switch,
-    .dpy_refresh       = sdl_refresh,
-    .dpy_mouse_set     = sdl_mouse_warp,
-    .dpy_cursor_define = sdl_mouse_define,
+    .dpy_name             = "sdl",
+    .dpy_gfx_update       = sdl_update,
+    .dpy_gfx_switch       = sdl_switch,
+    .dpy_gfx_check_format = sdl_check_format,
+    .dpy_refresh          = sdl_refresh,
+    .dpy_mouse_set        = sdl_mouse_warp,
+    .dpy_cursor_define    = sdl_mouse_define,
 };
 
 void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)

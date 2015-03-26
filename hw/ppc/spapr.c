@@ -25,6 +25,7 @@
  *
  */
 #include "sysemu/sysemu.h"
+#include "sysemu/numa.h"
 #include "hw/hw.h"
 #include "hw/fw-path-provider.h"
 #include "elf.h"
@@ -109,47 +110,42 @@ struct sPAPRMachineState {
 sPAPREnvironment *spapr;
 
 static XICSState *try_create_xics(const char *type, int nr_servers,
-                                  int nr_irqs)
+                                  int nr_irqs, Error **errp)
 {
+    Error *err = NULL;
     DeviceState *dev;
 
     dev = qdev_create(NULL, type);
     qdev_prop_set_uint32(dev, "nr_servers", nr_servers);
     qdev_prop_set_uint32(dev, "nr_irqs", nr_irqs);
-    if (qdev_init(dev) < 0) {
+    object_property_set_bool(OBJECT(dev), true, "realized", &err);
+    if (err) {
+        error_propagate(errp, err);
+        object_unparent(OBJECT(dev));
         return NULL;
     }
-
     return XICS_COMMON(dev);
 }
 
-static XICSState *xics_system_init(int nr_servers, int nr_irqs)
+static XICSState *xics_system_init(MachineState *machine,
+                                   int nr_servers, int nr_irqs)
 {
     XICSState *icp = NULL;
 
     if (kvm_enabled()) {
-        QemuOpts *machine_opts = qemu_get_machine_opts();
-        bool irqchip_allowed = qemu_opt_get_bool(machine_opts,
-                                                "kernel_irqchip", true);
-        bool irqchip_required = qemu_opt_get_bool(machine_opts,
-                                                  "kernel_irqchip", false);
-        if (irqchip_allowed) {
-            icp = try_create_xics(TYPE_KVM_XICS, nr_servers, nr_irqs);
-        }
+        Error *err = NULL;
 
-        if (irqchip_required && !icp) {
-            perror("Failed to create in-kernel XICS\n");
-            abort();
+        if (machine_kernel_irqchip_allowed(machine)) {
+            icp = try_create_xics(TYPE_KVM_XICS, nr_servers, nr_irqs, &err);
+        }
+        if (machine_kernel_irqchip_required(machine) && !icp) {
+            error_report("kernel_irqchip requested but unavailable: %s",
+                         error_get_pretty(err));
         }
     }
 
     if (!icp) {
-        icp = try_create_xics(TYPE_XICS, nr_servers, nr_irqs);
-    }
-
-    if (!icp) {
-        perror("Failed to create XICS\n");
-        abort();
+        icp = try_create_xics(TYPE_XICS, nr_servers, nr_irqs, &error_abort);
     }
 
     return icp;
@@ -819,9 +815,16 @@ static void emulate_spapr_hypercall(PowerPCCPU *cpu)
     }
 }
 
+#define HPTE(_table, _i)   (void *)(((uint64_t *)(_table)) + ((_i) * 2))
+#define HPTE_VALID(_hpte)  (tswap64(*((uint64_t *)(_hpte))) & HPTE64_V_VALID)
+#define HPTE_DIRTY(_hpte)  (tswap64(*((uint64_t *)(_hpte))) & HPTE64_V_HPTE_DIRTY)
+#define CLEAN_HPTE(_hpte)  ((*(uint64_t *)(_hpte)) &= tswap64(~HPTE64_V_HPTE_DIRTY))
+#define DIRTY_HPTE(_hpte)  ((*(uint64_t *)(_hpte)) |= tswap64(HPTE64_V_HPTE_DIRTY))
+
 static void spapr_reset_htab(sPAPREnvironment *spapr)
 {
     long shift;
+    int index;
 
     /* allocate hash page table.  For now we always make this 16mb,
      * later we should probably make it scale to the size of guest
@@ -833,6 +836,11 @@ static void spapr_reset_htab(sPAPREnvironment *spapr)
         /* Kernel handles htab, we don't need to allocate one */
         spapr->htab_shift = shift;
         kvmppc_kern_htab = true;
+
+        /* Tell readers to update their file descriptor */
+        if (spapr->htab_fd >= 0) {
+            spapr->htab_fd_stale = true;
+        }
     } else {
         if (!spapr->htab) {
             /* Allocate an htab if we don't yet have one */
@@ -841,6 +849,10 @@ static void spapr_reset_htab(sPAPREnvironment *spapr)
 
         /* And clear it */
         memset(spapr->htab, 0, HTAB_SIZE(spapr));
+
+        for (index = 0; index < HTAB_SIZE(spapr) / HASH_PTE_SIZE_64; index++) {
+            DIRTY_HPTE(HPTE(spapr->htab, index));
+        }
     }
 
     /* Update the RMA size if necessary */
@@ -865,6 +877,28 @@ static int find_unknown_sysbus_device(SysBusDevice *sbdev, void *opaque)
     }
 
     return 0;
+}
+
+/*
+ * A guest reset will cause spapr->htab_fd to become stale if being used.
+ * Reopen the file descriptor to make sure the whole HTAB is properly read.
+ */
+static int spapr_check_htab_fd(sPAPREnvironment *spapr)
+{
+    int rc = 0;
+
+    if (spapr->htab_fd_stale) {
+        close(spapr->htab_fd);
+        spapr->htab_fd = kvmppc_get_htab_fd(false);
+        if (spapr->htab_fd < 0) {
+            error_report("Unable to open fd for reading hash table from KVM: "
+                    "%s", strerror(errno));
+            rc = -1;
+        }
+        spapr->htab_fd_stale = false;
+    }
+
+    return rc;
 }
 
 static void ppc_spapr_reset(void)
@@ -955,6 +989,17 @@ static void spapr_create_nvram(sPAPREnvironment *spapr)
     spapr->nvram = (struct sPAPRNVRAM *)dev;
 }
 
+static void spapr_rtc_create(sPAPREnvironment *spapr)
+{
+    DeviceState *dev = qdev_create(NULL, TYPE_SPAPR_RTC);
+
+    qdev_init_nofail(dev);
+    spapr->rtc = dev;
+
+    object_property_add_alias(qdev_get_machine(), "rtc-time",
+                              OBJECT(spapr->rtc), "date", NULL);
+}
+
 /* Returns whether we want to use VGA or not */
 static int spapr_vga_init(PCIBus *pci_bus)
 {
@@ -972,24 +1017,43 @@ static int spapr_vga_init(PCIBus *pci_bus)
     }
 }
 
+static int spapr_post_load(void *opaque, int version_id)
+{
+    sPAPREnvironment *spapr = (sPAPREnvironment *)opaque;
+    int err = 0;
+
+    /* In earlier versions, there was no seperate qdev for the PAPR
+     * RTC, so the RTC offset was stored directly in sPAPREnvironment.
+     * So when migrating from those versions, poke the incoming offset
+     * value into the RTC device */
+    if (version_id < 3) {
+        err = spapr_rtc_import_offset(spapr->rtc, spapr->rtc_offset);
+    }
+
+    return err;
+}
+
+static bool version_before_3(void *opaque, int version_id)
+{
+    return version_id < 3;
+}
+
 static const VMStateDescription vmstate_spapr = {
     .name = "spapr",
-    .version_id = 2,
+    .version_id = 3,
     .minimum_version_id = 1,
+    .post_load = spapr_post_load,
     .fields = (VMStateField[]) {
-        VMSTATE_UNUSED(4), /* used to be @next_irq */
+        /* used to be @next_irq */
+        VMSTATE_UNUSED_BUFFER(version_before_3, 0, 4),
 
         /* RTC offset */
-        VMSTATE_UINT64(rtc_offset, sPAPREnvironment),
+        VMSTATE_UINT64_TEST(rtc_offset, sPAPREnvironment, version_before_3),
+
         VMSTATE_PPC_TIMEBASE_V(tb, sPAPREnvironment, 2),
         VMSTATE_END_OF_LIST()
     },
 };
-
-#define HPTE(_table, _i)   (void *)(((uint64_t *)(_table)) + ((_i) * 2))
-#define HPTE_VALID(_hpte)  (tswap64(*((uint64_t *)(_hpte))) & HPTE64_V_VALID)
-#define HPTE_DIRTY(_hpte)  (tswap64(*((uint64_t *)(_hpte))) & HPTE64_V_HPTE_DIRTY)
-#define CLEAN_HPTE(_hpte)  ((*(uint64_t *)(_hpte)) &= tswap64(~HPTE64_V_HPTE_DIRTY))
 
 static int htab_save_setup(QEMUFile *f, void *opaque)
 {
@@ -1005,6 +1069,7 @@ static int htab_save_setup(QEMUFile *f, void *opaque)
         assert(kvm_enabled());
 
         spapr->htab_fd = kvmppc_get_htab_fd(false);
+        spapr->htab_fd_stale = false;
         if (spapr->htab_fd < 0) {
             fprintf(stderr, "Unable to open fd for reading hash table from KVM: %s\n",
                     strerror(errno));
@@ -1037,7 +1102,7 @@ static void htab_save_first_pass(QEMUFile *f, sPAPREnvironment *spapr,
 
         /* Consume valid HPTEs */
         chunkstart = index;
-        while ((index < htabslots)
+        while ((index < htabslots) && (index - chunkstart < USHRT_MAX)
                && HPTE_VALID(HPTE(spapr->htab, index))) {
             index++;
             CLEAN_HPTE(HPTE(spapr->htab, index));
@@ -1089,7 +1154,7 @@ static int htab_save_later_pass(QEMUFile *f, sPAPREnvironment *spapr,
 
         chunkstart = index;
         /* Consume valid dirty HPTEs */
-        while ((index < htabslots)
+        while ((index < htabslots) && (index - chunkstart < USHRT_MAX)
                && HPTE_DIRTY(HPTE(spapr->htab, index))
                && HPTE_VALID(HPTE(spapr->htab, index))) {
             CLEAN_HPTE(HPTE(spapr->htab, index));
@@ -1099,7 +1164,7 @@ static int htab_save_later_pass(QEMUFile *f, sPAPREnvironment *spapr,
 
         invalidstart = index;
         /* Consume invalid dirty HPTEs */
-        while ((index < htabslots)
+        while ((index < htabslots) && (index - invalidstart < USHRT_MAX)
                && HPTE_DIRTY(HPTE(spapr->htab, index))
                && !HPTE_VALID(HPTE(spapr->htab, index))) {
             CLEAN_HPTE(HPTE(spapr->htab, index));
@@ -1157,6 +1222,11 @@ static int htab_save_iterate(QEMUFile *f, void *opaque)
     if (!spapr->htab) {
         assert(kvm_enabled());
 
+        rc = spapr_check_htab_fd(spapr);
+        if (rc < 0) {
+            return rc;
+        }
+
         rc = kvmppc_save_htab(f, spapr->htab_fd,
                               MAX_KVM_BUF_SIZE, MAX_ITERATION_NS);
         if (rc < 0) {
@@ -1187,6 +1257,11 @@ static int htab_save_complete(QEMUFile *f, void *opaque)
         int rc;
 
         assert(kvm_enabled());
+
+        rc = spapr_check_htab_fd(spapr);
+        if (rc < 0) {
+            return rc;
+        }
 
         rc = kvmppc_save_htab(f, spapr->htab_fd, MAX_KVM_BUF_SIZE, -1);
         if (rc < 0) {
@@ -1376,7 +1451,8 @@ static void ppc_spapr_init(MachineState *machine)
     }
 
     /* Set up Interrupt Controller before we create the VCPUs */
-    spapr->icp = xics_system_init(smp_cpus * kvmppc_smt_threads() / smp_threads,
+    spapr->icp = xics_system_init(machine,
+                                  smp_cpus * kvmppc_smt_threads() / smp_threads,
                                   XICS_IRQS);
 
     /* init CPUs */
@@ -1438,13 +1514,16 @@ static void ppc_spapr_init(MachineState *machine)
     }
     if (spapr->rtas_size > RTAS_MAX_SIZE) {
         hw_error("RTAS too big ! 0x%zx bytes (max is 0x%x)\n",
-                 spapr->rtas_size, RTAS_MAX_SIZE);
+                 (size_t)spapr->rtas_size, RTAS_MAX_SIZE);
         exit(1);
     }
     g_free(filename);
 
     /* Set up EPOW events infrastructure */
     spapr_events_init(spapr);
+
+    /* Set up the RTC RTAS interfaces */
+    spapr_rtc_create(spapr);
 
     /* Set up VIO bus */
     spapr->vio_bus = spapr_vio_bus_init();
@@ -1484,13 +1563,17 @@ static void ppc_spapr_init(MachineState *machine)
     /* Graphics */
     if (spapr_vga_init(phb->bus)) {
         spapr->has_graphics = true;
+        machine->usb |= defaults_enabled();
     }
 
-    if (usb_enabled(spapr->has_graphics)) {
+    if (machine->usb) {
         pci_create_simple(phb->bus, -1, "pci-ohci");
+
         if (spapr->has_graphics) {
-            usbdevice_create("keyboard");
-            usbdevice_create("mouse");
+            USBBus *usb_bus = usb_bus_find(-1);
+
+            usb_create_simple(usb_bus, "usb-kbd");
+            usb_create_simple(usb_bus, "usb-mouse");
         }
     }
 
@@ -1580,7 +1663,7 @@ static int spapr_kvm_type(const char *vm_type)
 }
 
 /*
- * Implementation of an interface to adjust firmware patch
+ * Implementation of an interface to adjust firmware path
  * for the bootindex property handling.
  */
 static char *spapr_get_fw_dev_path(FWPathProvider *p, BusState *bus,
@@ -1710,11 +1793,22 @@ static const TypeInfo spapr_machine_info = {
     },
 };
 
+#define SPAPR_COMPAT_2_2 \
+        {\
+            .driver   = TYPE_SPAPR_PCI_HOST_BRIDGE,\
+            .property = "mem_win_size",\
+            .value    = "0x20000000",\
+        }
+
+#define SPAPR_COMPAT_2_1 \
+        SPAPR_COMPAT_2_2
+
 static void spapr_machine_2_1_class_init(ObjectClass *oc, void *data)
 {
     MachineClass *mc = MACHINE_CLASS(oc);
     static GlobalProperty compat_props[] = {
         HW_COMPAT_2_1,
+        SPAPR_COMPAT_2_1,
         { /* end of list */ }
     };
 
@@ -1731,12 +1825,15 @@ static const TypeInfo spapr_machine_2_1_info = {
 
 static void spapr_machine_2_2_class_init(ObjectClass *oc, void *data)
 {
+    static GlobalProperty compat_props[] = {
+        SPAPR_COMPAT_2_2,
+        { /* end of list */ }
+    };
     MachineClass *mc = MACHINE_CLASS(oc);
 
     mc->name = "pseries-2.2";
     mc->desc = "pSeries Logical Partition (PAPR compliant) v2.2";
-    mc->alias = "pseries";
-    mc->is_default = 1;
+    mc->compat_props = compat_props;
 }
 
 static const TypeInfo spapr_machine_2_2_info = {
@@ -1745,11 +1842,28 @@ static const TypeInfo spapr_machine_2_2_info = {
     .class_init    = spapr_machine_2_2_class_init,
 };
 
+static void spapr_machine_2_3_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->name = "pseries-2.3";
+    mc->desc = "pSeries Logical Partition (PAPR compliant) v2.3";
+    mc->alias = "pseries";
+    mc->is_default = 1;
+}
+
+static const TypeInfo spapr_machine_2_3_info = {
+    .name          = TYPE_SPAPR_MACHINE "2.3",
+    .parent        = TYPE_SPAPR_MACHINE,
+    .class_init    = spapr_machine_2_3_class_init,
+};
+
 static void spapr_machine_register_types(void)
 {
     type_register_static(&spapr_machine_info);
     type_register_static(&spapr_machine_2_1_info);
     type_register_static(&spapr_machine_2_2_info);
+    type_register_static(&spapr_machine_2_3_info);
 }
 
 type_init(spapr_machine_register_types)

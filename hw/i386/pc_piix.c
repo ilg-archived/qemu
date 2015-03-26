@@ -60,6 +60,7 @@ static const int ide_iobase2[MAX_IDE_BUS] = { 0x3f6, 0x376 };
 static const int ide_irq[MAX_IDE_BUS] = { 14, 15 };
 
 static bool has_acpi_build = true;
+static bool rsdp_in_ram = true;
 static int legacy_acpi_table_size;
 static bool smbios_defaults = true;
 static bool smbios_legacy_mode;
@@ -168,6 +169,7 @@ static void pc_init1(MachineState *machine,
 
     guest_info->isapc_ram_fw = !pci_enabled;
     guest_info->has_reserved_memory = has_reserved_memory;
+    guest_info->rsdp_in_ram = rsdp_in_ram;
 
     if (smbios_defaults) {
         MachineClass *mc = MACHINE_GET_CLASS(machine);
@@ -208,7 +210,7 @@ static void pc_init1(MachineState *machine,
     } else {
         pci_bus = NULL;
         i440fx_state = NULL;
-        isa_bus = isa_bus_new(NULL, system_io);
+        isa_bus = isa_bus_new(NULL, get_system_memory(), system_io);
         no_hpet = 1;
     }
     isa_bus_irqs(isa_bus, gsi);
@@ -274,7 +276,7 @@ static void pc_init1(MachineState *machine,
     pc_cmos_init(below_4g_mem_size, above_4g_mem_size, machine->boot_order,
                  machine, floppy, idebus[0], idebus[1], rtc_state);
 
-    if (pci_enabled && usb_enabled(false)) {
+    if (pci_enabled && usb_enabled()) {
         pci_create_simple(pci_bus, piix3_devfn + 2, "piix3-usb-uhci");
     }
 
@@ -310,6 +312,7 @@ static void pc_init_pci(MachineState *machine)
 
 static void pc_compat_2_2(MachineState *machine)
 {
+    rsdp_in_ram = false;
     x86_cpu_compat_set_features("kvm64", FEAT_1_EDX, 0, CPUID_VME);
     x86_cpu_compat_set_features("kvm32", FEAT_1_EDX, 0, CPUID_VME);
     x86_cpu_compat_set_features("Conroe", FEAT_1_EDX, 0, CPUID_VME);
@@ -328,6 +331,7 @@ static void pc_compat_2_2(MachineState *machine)
     x86_cpu_compat_set_features("Haswell", FEAT_1_ECX, 0, CPUID_EXT_RDRAND);
     x86_cpu_compat_set_features("Broadwell", FEAT_1_ECX, 0, CPUID_EXT_F16C);
     x86_cpu_compat_set_features("Broadwell", FEAT_1_ECX, 0, CPUID_EXT_RDRAND);
+    machine->suppress_vmdesc = true;
 }
 
 static void pc_compat_2_1(MachineState *machine)
@@ -406,7 +410,7 @@ static void pc_compat_1_3(MachineState *machine)
 static void pc_compat_1_2(MachineState *machine)
 {
     pc_compat_1_3(machine);
-    x86_cpu_compat_kvm_no_autoenable(FEAT_KVM, KVM_FEATURE_PV_EOI);
+    x86_cpu_compat_kvm_no_autoenable(FEAT_KVM, 1 << KVM_FEATURE_PV_EOI);
 }
 
 static void pc_init_pci_2_2(MachineState *machine)
@@ -483,7 +487,7 @@ static void pc_init_isa(MachineState *machine)
     if (!machine->cpu_model) {
         machine->cpu_model = "486";
     }
-    x86_cpu_compat_kvm_no_autoenable(FEAT_KVM, KVM_FEATURE_PV_EOI);
+    x86_cpu_compat_kvm_no_autoenable(FEAT_KVM, 1 << KVM_FEATURE_PV_EOI);
     enable_compat_apic_id_mode();
     pc_init1(machine, 0, 1);
 }
