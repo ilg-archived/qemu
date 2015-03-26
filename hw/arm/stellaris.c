@@ -6,7 +6,7 @@
  *
  * This code is licensed under the GPL.
  */
-#include "config.h"
+
 #include "hw/sysbus.h"
 #include "hw/ssi.h"
 #include "hw/arm/arm.h"
@@ -16,7 +16,6 @@
 #include "net/net.h"
 #include "hw/boards.h"
 #include "exec/address-spaces.h"
-#include "sysemu/sysemu.h"
 
 #define GPIO_A 0
 #define GPIO_B 1
@@ -1201,7 +1200,7 @@ static stellaris_board_info stellaris_boards[] = {
   }
 };
 
-static void stellaris_init(MachineState *machine,
+static void stellaris_init(const char *kernel_filename, const char *cpu_model,
                            stellaris_board_info *board)
 {
     static const int uart_irq[] = {5, 6, 33, 34};
@@ -1355,12 +1354,16 @@ static void stellaris_init(MachineState *machine,
 /* FIXME: Figure out how to generate these from stellaris_boards.  */
 static void lm3s811evb_init(MachineState *machine)
 {
-    stellaris_init(machine, &stellaris_boards[0]);
+    const char *cpu_model = machine->cpu_model;
+    const char *kernel_filename = machine->kernel_filename;
+    stellaris_init(kernel_filename, cpu_model, &stellaris_boards[0]);
 }
 
 static void lm3s6965evb_init(MachineState *machine)
 {
-    stellaris_init(machine, &stellaris_boards[1]);
+    const char *cpu_model = machine->cpu_model;
+    const char *kernel_filename = machine->kernel_filename;
+    stellaris_init(kernel_filename, cpu_model, &stellaris_boards[1]);
 }
 
 static QEMUMachine lm3s811evb_machine = {

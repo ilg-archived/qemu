@@ -578,29 +578,35 @@ fail:
 
 static void inet_addr_to_opts(QemuOpts *opts, const InetSocketAddress *addr)
 {
-    // [ILG]
-    // bool ipv4 = addr->ipv4 || !addr->has_ipv4;
-    // bool ipv6 = addr->ipv6 || !addr->has_ipv6;
-    //
-    // if (!ipv4 || !ipv6) {
-    //     qemu_opt_set_bool(opts, "ipv4", ipv4);
-    //     qemu_opt_set_bool(opts, "ipv6", ipv6);
-    // }
-    
+#if defined(GNU_ARM_ECLIPSE)
+
     if (!addr->has_ipv4 && !addr->has_ipv6) {
 #if defined(__MINGW32__)
         // If none present, default to ipv4 on windows, otherwise
         // leave it unspecified, on unix both are enabled.
-        qemu_opt_set_bool(opts, "ipv4", true);
+        qemu_opt_set_bool(opts, "ipv4", true, &error_abort);
 #else
         // None, the defaults should enable both
 #endif
     } else if (addr->has_ipv6) {
-        qemu_opt_set_bool(opts, "ipv6", addr->ipv6);
+        qemu_opt_set_bool(opts, "ipv6", addr->ipv6, &error_abort);
     } else if (addr->has_ipv4) {
-        qemu_opt_set_bool(opts, "ipv4", addr->ipv4);
+        qemu_opt_set_bool(opts, "ipv4", addr->ipv4, &error_abort);
     }
+    
+    if (addr->has_to) {
+        char to[20];
+        snprintf(to, sizeof(to), "%d", addr->to);
+        qemu_opt_set(opts, "to", to, &error_abort);
+    }
+    qemu_opt_set(opts, "host", addr->host, &error_abort);
+    qemu_opt_set(opts, "port", addr->port, &error_abort);
 
+#else
+    
+    bool ipv4 = addr->ipv4 || !addr->has_ipv4;
+    bool ipv6 = addr->ipv6 || !addr->has_ipv6;
+    
     if (!ipv4 || !ipv6) {
         qemu_opt_set_bool(opts, "ipv4", ipv4, &error_abort);
         qemu_opt_set_bool(opts, "ipv6", ipv6, &error_abort);
@@ -610,6 +616,8 @@ static void inet_addr_to_opts(QemuOpts *opts, const InetSocketAddress *addr)
     }
     qemu_opt_set(opts, "host", addr->host, &error_abort);
     qemu_opt_set(opts, "port", addr->port, &error_abort);
+
+#endif /* defined(GNU_ARM_ECLIPSE) */
 }
 
 int inet_listen(const char *str, char *ostr, int olen,

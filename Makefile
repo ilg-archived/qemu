@@ -378,6 +378,10 @@ ifdef CONFIG_VIRTFS
 	$(INSTALL_DATA) fsdev/virtfs-proxy-helper.1 "$(DESTDIR)$(mandir)/man1"
 endif
 
+install-pdf: pdf
+	$(INSTALL_DIR) "$(DESTDIR)$(qemu_docdir)"
+	$(INSTALL_DATA) qemu-doc.pdf  qemu-tech.pdf "$(DESTDIR)$(qemu_docdir)"
+
 install-datadir:
 	$(INSTALL_DIR) "$(DESTDIR)$(qemu_datadir)"
 

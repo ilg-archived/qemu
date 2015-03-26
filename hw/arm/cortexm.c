@@ -57,7 +57,7 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
         system_memory = get_system_memory();
     }
     qemu_irq *pic;
-    pic = armv7m_init(system_memory, flash_size_kb, sram_size_kb, machine);
+    pic = cortexm_armv7m_init(system_memory, flash_size_kb, sram_size_kb, machine);
     
     /* Assume 8000000 Hz */
     /* TODO: compute according to board clock & pll settings */

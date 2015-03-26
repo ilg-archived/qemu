@@ -1,0 +1,36 @@
+
+The following changes were applied to the QEMU master branch:
+
+[2014-11-04 to 08]
+
+- semihosting fixed
+- verbosity added, including the connection message, required by plug-in
+- branding added
+
+[2014-11-20]
+
+- cortex-m intial implementation
+- most stm32 boards added
+- Kinetis & LPC boards added
+- tiva board added
+
+[2014-11-24]
+
+- set default system_clock_scale = 80
+
+[2014-11-25]
+
+- sam & xmc added boards added
+
+[2014-11-30]
+
+- custom definitions for the Windows setup creator.
+
+[2015-01-20]
+
+- build script for OS X added.
+
+
+
+Liviu Ionescu
+
