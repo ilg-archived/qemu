@@ -1,24 +1,24 @@
 
-This package was build on a Debian x64 machine, using the script provided in
+This package was build on a Debian machine, using the script provided in
 
-  gnuarmeclipse/build-qemu-debian.sh
+  gnuarmeclipse/scripts/build-qemu.sh
 
 To run it, first be sure the the packages required in the Prerequisites 
 section are installed, then copy the script and execute it with bash:
 
-  bash build-qemu-debian.sh
+  bash build-qemu.sh
 
 The output of the build script is a .tgz install in the ${QEMU_WORK}/output 
 folder.
 
 To build the latest version of the package please use the script from:
 
-  wget https://sourceforge.net/p/gnuarmeclipse/qemu/ci/gnuarmeclipse/tree/gnuarmeclipse/build-qemu-debian.sh?format=raw \
+  wget https://sourceforge.net/p/gnuarmeclipse/qemu/ci/gnuarmeclipse/tree/gnuarmeclipse/scripts/build-qemu.sh?format=raw \
   -O ~/Downloads/build-qemu-debian.sh
 
-  bash ~/Downloads/build-qemu-debian.sh
+  bash ~/Downloads/build-qemu.sh
 
-The script was developped on Debian x64. Running it on other GNU/Linux
+The script was developed on Debian. Running it on other GNU/Linux
 distributions is possible, but might require some adjustments.
 
 Up-to-date build informations are available in the GNU ARM Eclipse project wiki:
