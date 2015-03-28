@@ -14,14 +14,14 @@
 #include "sysemu/qtest.h"
 #include "qemu/error-report.h"
 
-#if defined(GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "config.h"
 #include "sysemu/sysemu.h"
 #include "hw/arm/cortexm.h"
 #include "hw/boards.h"
 
 static struct arm_boot_info armv7m_binfo;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /* Bitbanded IO.  Each word corresponds to a single bit.  */
 
@@ -175,7 +175,7 @@ static void armv7m_reset(void *opaque)
    mem_size is in bytes.
    Returns the NVIC array.  */
 
-#if defined(GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 
 /* Init CPU and memory for a v7-M based board.
  flash_size and sram_size are in kb.
@@ -289,7 +289,7 @@ qemu_irq *cortexm_armv7m_init(MemoryRegion *system_memory,
     return pic;
 }
 
-#endif /* defined(GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 qemu_irq *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
                       const char *kernel_filename, const char *cpu_model)

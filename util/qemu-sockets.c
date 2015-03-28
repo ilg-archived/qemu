@@ -578,8 +578,8 @@ fail:
 
 static void inet_addr_to_opts(QemuOpts *opts, const InetSocketAddress *addr)
 {
-#if defined(GNU_ARM_ECLIPSE)
-
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    
     if (!addr->has_ipv4 && !addr->has_ipv6) {
 #if defined(__MINGW32__)
         // If none present, default to ipv4 on windows, otherwise
@@ -617,7 +617,7 @@ static void inet_addr_to_opts(QemuOpts *opts, const InetSocketAddress *addr)
     qemu_opt_set(opts, "host", addr->host, &error_abort);
     qemu_opt_set(opts, "port", addr->port, &error_abort);
 
-#endif /* defined(GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 }
 
 int inet_listen(const char *str, char *ostr, int olen,
