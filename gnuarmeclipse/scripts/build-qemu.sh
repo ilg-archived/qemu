@@ -31,6 +31,7 @@ UNAME="$(uname)"
 if [ "${UNAME}" == "Darwin" ]
 then
   DISTRO_BITS="64"
+  DISTRO_MACHINE="x86_64"
   TARGET_GENERIC="osx"
 
   # Prepare MacPorts environment.
@@ -51,10 +52,8 @@ then
 
   TARGET_GENERIC="linux"
 
-  if [ ! -z "${DISTRO_NAME}" ]
+  if [ -z "${DISTRO_NAME}" ]
   then
-    echo $(lsb_release -i)
-  else
     echo "Please install the lsb core package and rerun."
     DISTRO_NAME="linux"
   fi
@@ -96,6 +95,14 @@ do
   elif [ "$1" == "checkout-stable" ]
   then
     ACTION_GIT="$1"
+  elif [ "$1" == "-win32" ]
+  then
+    TARGET_GENERIC="win"
+    TARGET_BITS="32"
+  elif [ "$1" == "-win64" ]
+  then
+    TARGET_GENERIC="win"
+    TARGET_BITS="64"
   else
     echo "Unknown action/option $1"
     exit 1
@@ -146,10 +153,24 @@ then
   QEMU_TARGET_LONG="${DISTRO_NAME}${TARGET_BITS}"
 elif [ "${TARGET_GENERIC}" == "win" ]
 then
-  exit 1
+
+  # Decide which cross toolchain to use.
+  if [ ${TARGET_BITS} == "32" ]
+  then
+    CROSS_COMPILE_PREFIX="i686-w64-mingw32"
+  elif [ ${TARGET_BITS} == "64" ]
+  then
+    CROSS_COMPILE_PREFIX="x86_64-w64-mingw32"
+  else
+    exit 1
+  fi
+
+  MAKE_JOBS=${MAKE_JOBS:-"-j4"}
+  QEMU_TARGET_LONG="${TARGET_GENERIC}${TARGET_BITS}"
+
 fi
 
-# PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-""}
+PKG_CONFIG_PATH=${PKG_CONFIG_PATH:-""}
 PKG_CONFIG_LIBDIR=${PKG_CONFIG_LIBDIR:-""}
 
 # ----- Local variables -----
@@ -163,16 +184,7 @@ QEMU_OUTPUT="${QEMU_WORK_FOLDER}/output"
 WGET="wget"
 WGET_OUT="-O"
 
-# ----- Test if some tools are present -----
-
-echo
-echo "Test tools..."
-echo
-gcc --version
-git --version
-automake --version
-
-# ----- Process actions -----
+# ----- Process clean -----
 
 if [ "${ACTION_CLEAN}" == "clean" ]
 then
@@ -187,6 +199,27 @@ then
   echo "Clean completed. Proceed with a regular build."
   exit 0
 fi
+
+# ----- Test if main tools are present -----
+
+echo
+echo "Validate tools..."
+echo
+gcc --version 2>/dev/null | egrep -e 'gcc|clang'
+git --version
+automake --version 2>/dev/null | grep automake
+if [ "${TARGET_GENERIC}" == "win" ]
+then
+  ${CROSS_COMPILE_PREFIX}-gcc --version | grep gcc
+  unix2dos --version 2>&1 | grep unix2dos
+  echo "makensis $(makensis -VERSION)"
+fi
+
+echo
+echo "Build on ${UNAME} for target \"${QEMU_TARGET_LONG}\"."
+
+
+# ----- Process git actions -----
 
 if [ "${ACTION_GIT}" == "pull" ]
 then
@@ -264,9 +297,338 @@ fi
 cd "${QEMU_GIT_FOLDER}"
 QEMU_GIT_HEAD=$(git symbolic-ref -q --short HEAD)
 
-
 # On first run, create the build folder.
 mkdir -p "${QEMU_BUILD_FOLDER}/qemu"
+
+# ----- Build the Zlib library -----
+
+# The zlib library is available from
+#   http://www.zlib.net
+# with source files ready to download from SourceForge
+#   https://sourceforge.net/projects/libpng/files/zlib
+
+ZLIB_VERSION="1.2.8"
+ZLIB_FOLDER="zlib-${ZLIB_VERSION}"
+ZLIB_ARCHIVE="${ZLIB_FOLDER}.tar.gz"
+ZLIB_DOWNLOAD_URL="http://sourceforge.net/projects/libpng/files/\
+zlib/${ZLIB_VERSION}/${ZLIB_ARCHIVE}"
+
+if [ ! -f "${QEMU_DOWNLOAD_FOLDER}/${ZLIB_ARCHIVE}" ]
+then
+  mkdir -p "${QEMU_DOWNLOAD_FOLDER}"
+
+  cd "${QEMU_DOWNLOAD_FOLDER}"
+  "${WGET}" "${ZLIB_DOWNLOAD_URL}" "${WGET_OUT}" "${ZLIB_ARCHIVE}"
+fi
+
+# Unpack the new Zlib library.
+if [ ! -d "${QEMU_WORK_FOLDER}/${ZLIB_FOLDER}" ]
+then
+  cd "${QEMU_WORK_FOLDER}"
+  tar -xzvf "${QEMU_DOWNLOAD_FOLDER}/${ZLIB_ARCHIVE}"
+fi
+
+# Build and install the new Zlib library.
+if [ ! \( -d "${QEMU_BUILD_FOLDER}/${ZLIB_FOLDER}" \) -o \
+     ! \( -f "${QEMU_INSTALL_FOLDER}/lib/libz.a" -o \
+          -f "${QEMU_INSTALL_FOLDER}/lib64/libz.a" \) ]
+then
+  rm -rf "${QEMU_BUILD_FOLDER}/${ZLIB_FOLDER}"
+  mkdir -p "${QEMU_BUILD_FOLDER}/${ZLIB_FOLDER}"
+
+  mkdir -p "${QEMU_INSTALL_FOLDER}"
+
+  echo
+  echo "configure ${ZLIB_FOLDER}..."
+
+  cd "${QEMU_BUILD_FOLDER}/${ZLIB_FOLDER}"
+
+  # The zlib configure knows only in-place builds,
+  # so copy the source tree here.
+  cp -r "${QEMU_WORK_FOLDER}/${ZLIB_FOLDER}/"* .
+
+  if [ "${TARGET_GENERIC}" == "win" ]
+  then
+
+    # Configure cross build. The zlib configure does not know --host,
+    # so pass the cross tools manually.
+    CFLAGS="-m${TARGET_BITS}" \
+    CC=${CROSS_COMPILE_PREFIX}-gcc \
+    LD=${CROSS_COMPILE_PREFIX}-ld \
+    AS=${CROSS_COMPILE_PREFIX}-as \
+    \
+    bash "./configure" \
+      --static \
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+
+  else
+
+    # Configure native
+    CFLAGS="-m${TARGET_BITS}" \
+    \
+    bash "./configure" \
+      --static \
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+
+  fi
+
+  echo
+  echo "make ${ZLIB_FOLDER}..."
+
+  # Build. 'all' better be explicit.
+  make ${MAKE_JOBS} all install
+
+  # Please note that Zlib generates a lib/pkgconfig/zlib.pc file.
+fi
+
+# ----- Build the iconv library -----
+
+# The iconv library is available from
+#   https://www.gnu.org/software/libiconv/
+# with source files ready to download from
+#   http://ftpmirror.gnu.org/libiconv
+
+ICONV_VERSION="1.14"
+ICONV_VERSION_RELEASE="${ICONV_VERSION}"
+ICONV_FOLDER="libiconv-${ICONV_VERSION_RELEASE}"
+ICONV_ARCHIVE="${ICONV_FOLDER}.tar.gz"
+ICONV_DOWNLOAD_URL="http://ftpmirror.gnu.org/libiconv/${ICONV_ARCHIVE}"
+
+if [ ! -f "${QEMU_DOWNLOAD_FOLDER}/${ICONV_ARCHIVE}" ]
+then
+  mkdir -p "${QEMU_DOWNLOAD_FOLDER}"
+
+  cd "${QEMU_DOWNLOAD_FOLDER}"
+  "${WGET}" "${ICONV_DOWNLOAD_URL}" "${WGET_OUT}" "${ICONV_ARCHIVE}"
+fi
+
+# Unpack the iconv library.
+if [ ! -d "${QEMU_WORK_FOLDER}/${ICONV_FOLDER}" ]
+then
+  cd "${QEMU_WORK_FOLDER}"
+  tar -xzvf "${QEMU_DOWNLOAD_FOLDER}/${ICONV_ARCHIVE}"
+fi
+
+# Build and install the iconv library.
+if [ ! \( -d "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}" \) -o \
+     ! \( -f "${QEMU_INSTALL_FOLDER}/lib/libiconv.a" -o \
+          -f "${QEMU_INSTALL_FOLDER}/lib64/libiconv.a" \) ]
+then
+  rm -rf "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}"
+  mkdir -p "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}"
+
+  mkdir -p "${QEMU_INSTALL_FOLDER}"
+
+  echo
+  echo "configure ${ICONV_FOLDER}..."
+
+  if [ "${TARGET_GENERIC}" == "win" ]
+  then
+
+    # Configure cross
+    # The bash is required to keep libtool happy, otherwise it crashes.
+    cd "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}"
+    CFLAGS="-m${TARGET_BITS}" \
+    CONFIG_SHELL="/bin/bash" \
+    \
+    bash  "${QEMU_WORK_FOLDER}/${ICONV_FOLDER}/configure" \
+      --host="${CROSS_COMPILE_PREFIX}" \
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --program-prefix="${CROSS_COMPILE_PREFIX}" \
+      --enable-static \
+      --disable-shared \
+
+  else
+
+    # Configure native
+    cd "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}"
+    CFLAGS="-m${TARGET_BITS}" \
+    CONFIG_SHELL="/bin/bash" \
+    \
+    bash "${QEMU_WORK_FOLDER}/${ICONV_FOLDER}/configure" \
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --enable-static \
+      --disable-shared \
+
+  fi
+
+  echo
+  echo "make ${ICONV_FOLDER}..."
+
+  # Build. 'all' must be explicit.
+  make ${MAKE_JOBS} all install
+
+  # Please note that libiconv does not create pkgconfig files and needs to be
+  # refered manually.
+
+fi
+
+exit
+
+# ----- Build the gettext library -----
+
+# The gettext library is available from
+#   https://www.gnu.org/software/gettext/
+# with source files ready to download from
+#   http://ftp.gnu.org/gnu/gettext/
+
+GETTEXT_VERSION="0.19"
+GETTEXT_VERSION_RELEASE="${GETTEXT_VERSION}.4"
+GETTEXT_FOLDER="gettext-${GETTEXT_VERSION_RELEASE}"
+GETTEXT_ARCHIVE="${GETTEXT_FOLDER}.tar.gz"
+GETTEXT_DOWNLOAD_URL="http://ftp.gnu.org/gnu/gettext/${GETTEXT_ARCHIVE}"
+
+if [ ! -f "${QEMU_DOWNLOAD_FOLDER}/${GETTEXT_ARCHIVE}" ]
+then
+  mkdir -p "${QEMU_DOWNLOAD_FOLDER}"
+
+  cd "${QEMU_DOWNLOAD_FOLDER}"
+  "${WGET}" "${GETTEXT_DOWNLOAD_URL}" "${WGET_OUT}" "${GETTEXT_ARCHIVE}"
+fi
+
+# Unpack the gettext library.
+if [ ! -d "${QEMU_WORK_FOLDER}/${GETTEXT_FOLDER}" ]
+then
+  cd "${QEMU_WORK_FOLDER}"
+  tar -xzvf "${QEMU_DOWNLOAD_FOLDER}/${GETTEXT_ARCHIVE}"
+fi
+
+# Build and install the gettext library.
+if [ ! \( -d "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}" \) -o \
+     ! \( -f "${QEMU_INSTALL_FOLDER}/lib/libintl.a" -o \
+          -f "${QEMU_INSTALL_FOLDER}/lib64/libintl.a" \) ]
+then
+  rm -rf "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
+  mkdir -p "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
+
+  mkdir -p "${QEMU_INSTALL_FOLDER}"
+
+  echo
+  echo "configure ${GETTEXT_FOLDER}..."
+
+  if [ "${TARGET_GENERIC}" == "win" ]
+  then
+
+    # Configure cross
+    cd "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
+    CFLAGS="-m${TARGET_BITS}" \
+    \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    bash  "${QEMU_WORK_FOLDER}/${GETTEXT_FOLDER}/configure" \
+      --host="${CROSS_COMPILE_PREFIX}" \
+      --prefix="${QEMU_INSTALL_FOLDER}"
+
+  else
+
+    # Configure native
+    cd "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
+    CFLAGS="-m${TARGET_BITS}" \
+    \
+    bash "${QEMU_WORK_FOLDER}/${GETTEXT_FOLDER}/configure" \
+      --prefix="${QEMU_INSTALL_FOLDER}"
+
+  fi
+
+  echo
+  echo "make ${GETTEXT_FOLDER}..."
+
+  # Build
+  make ${MAKE_JOBS} install
+
+fi
+
+
+# ----- Build the GLib library -----
+
+# The GLib library is available from
+#   https://developer.gnome.org/glib/
+# with source files ready to download from
+#   http://ftp.gnome.org/pub/GNOME/sources/glib/
+
+GLIB_VERSION="2.28"
+GLIB_VERSION_RELEASE="${GLIB_VERSION}.7"
+GLIB_ARCHIVE="glib-${GLIB_VERSION_RELEASE}.tar.gz"
+GLIB_FOLDER="glib-${GLIB_VERSION_RELEASE}"
+GLIB_DOWNLOAD_URL="http://ftp.gnome.org/pub/GNOME/sources/glib/\
+${GLIB_VERSION}/${GLIB_ARCHIVE}"
+
+if [ ! -f "${QEMU_DOWNLOAD_FOLDER}/${GLIB_ARCHIVE}" ]
+then
+  mkdir -p "${QEMU_DOWNLOAD_FOLDER}"
+
+  cd "${QEMU_DOWNLOAD_FOLDER}"
+  "${WGET}" "${GLIB_DOWNLOAD_URL}" "${WGET_OUT}" "${GLIB_ARCHIVE}"
+fi
+
+# Unpack the GLib library.
+if [ ! -d "${QEMU_WORK_FOLDER}/${GLIB_FOLDER}" ]
+then
+  cd "${QEMU_WORK_FOLDER}"
+  tar -xzvf "${QEMU_DOWNLOAD_FOLDER}/${GLIB_ARCHIVE}"
+fi
+
+# Build and install the GLib library.
+if [ ! \( -d "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}" \) -o \
+     ! \( -f "${QEMU_INSTALL_FOLDER}/lib/libg.a" -o \
+          -f "${QEMU_INSTALL_FOLDER}/lib64/libg.a" \) ]
+then
+  rm -rf "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}"
+  mkdir -p "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}"
+
+  mkdir -p "${QEMU_INSTALL_FOLDER}"
+
+  echo
+  echo "configure ${GLIB_FOLDER}..."
+
+  if [ "${TARGET_GENERIC}" == "win" ]
+  then
+
+    # Configure cross
+    cd "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}"
+    CFLAGS="-m${TARGET_BITS}" \
+    \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    ZLIB_CFLAGS="-I${QEMU_INSTALL_FOLDER}/include" \
+    ZLIB_LIBS="-L${QEMU_INSTALL_FOLDER}/lib" \
+    bash  "${QEMU_WORK_FOLDER}/${GLIB_FOLDER}/configure" \
+      --host="${CROSS_COMPILE_PREFIX}" \
+      --prefix="${QEMU_INSTALL_FOLDER}"
+
+  else
+
+    # Configure native
+    cd "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}"
+    CFLAGS="-m${TARGET_BITS}" \
+    \
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    ZLIB_CFLAGS="-I${QEMU_INSTALL_FOLDER}/include" \
+    ZLIB_LIBS="-L${QEMU_INSTALL_FOLDER}/lib" \
+    bash "${QEMU_WORK_FOLDER}/${GLIB_FOLDER}/configure" \
+      --prefix="${QEMU_INSTALL_FOLDER}"
+
+  fi
+
+  echo
+  echo "make ${GLIB_FOLDER}..."
+
+  # Build
+  make ${MAKE_JOBS} install
+
+fi
+
+exit
+# ----- Build QEMU -----
 
 # Configure QEMU.
 
@@ -279,40 +641,62 @@ then
   # All variables below are passed on the command line before 'configure'.
   # Be sure all these lines end in '\' to ensure lines are concatenated.
 
-if [ "${TARGET_GENERIC}" == "osx" ]
-then
+  if [ "${TARGET_GENERIC}" == "osx" ]
+  then
 
-  cd "${QEMU_BUILD_FOLDER}/qemu"
-  "${QEMU_GIT_FOLDER}/configure" \
-    --extra-cflags="-DGNU_ARM_ECLIPSE=1 -pipe" \
-    --target-list="gnuarmeclipse-softmmu" \
-    --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
-    --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
-    --mandir="${QEMU_INSTALL_FOLDER}/qemu/man"
+    # OS X target
+    cd "${QEMU_BUILD_FOLDER}/qemu"
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    "${QEMU_GIT_FOLDER}/configure" \
+      --extra-cflags="-pipe" \
+      --target-list="gnuarmeclipse-softmmu" \
+      --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
+      --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
+      --mandir="${QEMU_INSTALL_FOLDER}/qemu/man"
 
-elif [ "${TARGET_GENERIC}" == "linux" ]
-then
+  elif [ "${TARGET_GENERIC}" == "linux" ]
+  then
 
-  # Linux target
-  cd "${QEMU_BUILD_FOLDER}/qemu"
-  LDFLAGS='-Wl,-rpath=\$$ORIGIN' \
-  "${QEMU_GIT_FOLDER}/configure" \
-    --extra-cflags="-DGNU_ARM_ECLIPSE=1 -pipe" \
-    --target-list="gnuarmeclipse-softmmu" \
-    --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
-    --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
-    --mandir="${QEMU_INSTALL_FOLDER}/qemu/man"
+    # Linux target
+    cd "${QEMU_BUILD_FOLDER}/qemu"
+    LDFLAGS='-Wl,-rpath=\$$ORIGIN' \
+    "${QEMU_GIT_FOLDER}/configure" \
+      --extra-cflags="-pipe" \
+      --target-list="gnuarmeclipse-softmmu" \
+      --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
+      --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
+      --mandir="${QEMU_INSTALL_FOLDER}/qemu/man"
 
-  # Note: a very important detail here is LDFLAGS='-Wl,-rpath=\$$ORIGIN which
-  # adds a special record to the ELF file asking the loader to search for the
-  # libraries first in the same folder where the executable is located. The
-  # task is complicated due to the multiple substitutions that are done on
-  # the way, and need to be escaped.
+    # Note: a very important detail here is LDFLAGS='-Wl,-rpath=\$$ORIGIN which
+    # adds a special record to the ELF file asking the loader to search for the
+    # libraries first in the same folder where the executable is located. The
+    # task is complicated due to the multiple substitutions that are done on
+    # the way, and need to be escaped.
 
-elif [ "${TARGET_GENERIC}" == "win" ]
-then
-  exit 1
-fi
+  elif [ "${TARGET_GENERIC}" == "win" ]
+  then
+
+    # Windows target, 32/64-bit
+    cd "${QEMU_BUILD_FOLDER}/qemu"
+    export BASH_X=-x
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    bash $BASH_X "${QEMU_GIT_FOLDER}/configure" \
+      --cross-prefix="${CROSS_COMPILE_PREFIX}-" \
+      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
+      --extra-ldflags="-L${QEMU_INSTALL_FOLDER}/lib" \
+      --target-list="gnuarmeclipse-softmmu" \
+      --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
+      --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
+      --mandir="${QEMU_INSTALL_FOLDER}/qemu/man"
+
+  fi
 
 fi
 
@@ -332,10 +716,10 @@ rm -rf "${QEMU_INSTALL_FOLDER}/qemu"
 cd "${QEMU_BUILD_FOLDER}/qemu"
 make install install-pdf
 
-strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-
 if [ "${TARGET_GENERIC}" == "osx" ]
 then
+
+strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
 
 # ----- Copy OS X dynamic libraries -----
 
@@ -492,6 +876,8 @@ then
 
 # ----- Copy GNU/Linux dynamic libraries -----
 
+strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+
 # Copy the dynamic libraries to the same folder where the application file is.
 ILIB=$(find /lib/${DISTRO_MACHINE}-linux-gnu /usr/lib/${DISTRO_MACHINE}-linux-gnu -type f -name 'libz.so.1.*' -print)
 if [ ! -z "${ILIB}" ]
@@ -582,6 +968,10 @@ fi
 
 elif [ "${TARGET_GENERIC}" == "win" ]
 then
+
+  ${CROSS_COMPILE_PREFIX}-strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+
+  echo "not yet implemented"
   exit 1
 fi
 
@@ -625,7 +1015,14 @@ mkdir -p "${QEMU_OUTPUT}"
 # The UTC date part in the name of the archive.
 OUTFILE_DATE=${OUTFILE_DATE:-$(date -u +%Y%m%d%H%M)}
 
-OUTFILE_VERSION=$(cat "${QEMU_GIT_FOLDER}/VERSION")-${OUTFILE_DATE}
+if [ "${QEMU_GIT_HEAD}" == "gnuarmeclipse" ]
+then
+  OUTFILE_VERSION=$(cat "${QEMU_GIT_FOLDER}/VERSION")-${OUTFILE_DATE}
+elif [ "${QEMU_GIT_HEAD}" == "gnuarmeclipse-dev" ]
+then
+  OUTFILE_VERSION=$(cat "${QEMU_GIT_FOLDER}/VERSION")-${OUTFILE_DATE}-dev
+fi
+
 
 echo
 echo "create distribution package..."
@@ -690,6 +1087,7 @@ then
   echo "Build completed."
   echo "Distribution file ${QEMU_DISTRIBUTION} created."
 else
+  echo "not yet implemented"
   echo "Buld failed."
 fi
 
