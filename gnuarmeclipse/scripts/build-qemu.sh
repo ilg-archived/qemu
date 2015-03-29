@@ -376,7 +376,8 @@ then
   echo "make ${ZLIB_FOLDER}..."
 
   # Build. 'all' better be explicit.
-  make ${MAKE_JOBS} all install
+  make ${MAKE_JOBS} all
+  make install
 
   # Please note that Zlib generates a lib/pkgconfig/zlib.pc file.
 fi
@@ -428,6 +429,7 @@ then
     # Configure cross
     # The bash is required to keep libtool happy, otherwise it crashes.
     cd "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}"
+
     CFLAGS="-m${TARGET_BITS}" \
     CONFIG_SHELL="/bin/bash" \
     \
@@ -436,19 +438,20 @@ then
       --prefix="${QEMU_INSTALL_FOLDER}" \
       --program-prefix="${CROSS_COMPILE_PREFIX}" \
       --enable-static \
-      --disable-shared \
+      --enable-shared \
 
   else
 
     # Configure native
     cd "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}"
+
     CFLAGS="-m${TARGET_BITS}" \
     CONFIG_SHELL="/bin/bash" \
     \
     bash "${QEMU_WORK_FOLDER}/${ICONV_FOLDER}/configure" \
       --prefix="${QEMU_INSTALL_FOLDER}" \
       --enable-static \
-      --disable-shared \
+      --enable-shared \
 
   fi
 
@@ -456,14 +459,13 @@ then
   echo "make ${ICONV_FOLDER}..."
 
   # Build. 'all' must be explicit.
-  make ${MAKE_JOBS} all install
+  make ${MAKE_JOBS} all
+  make install
 
   # Please note that libiconv does not create pkgconfig files and needs to be
   # refered manually.
 
 fi
-
-exit
 
 # ----- Build the gettext library -----
 
@@ -499,37 +501,44 @@ if [ ! \( -d "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}" \) -o \
           -f "${QEMU_INSTALL_FOLDER}/lib64/libintl.a" \) ]
 then
   rm -rf "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
-  mkdir -p "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
+  mkdir -p "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}/gettext-runtime"
 
   mkdir -p "${QEMU_INSTALL_FOLDER}"
 
   echo
-  echo "configure ${GETTEXT_FOLDER}..."
+  echo "configure ${GETTEXT_FOLDER}/gettext-runtime..."
 
   if [ "${TARGET_GENERIC}" == "win" ]
   then
 
     # Configure cross
-    cd "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
-    CFLAGS="-m${TARGET_BITS}" \
+    cd "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}/gettext-runtime"
+
+    CFLAGS="-m${TARGET_BITS} -I${QEMU_INSTALL_FOLDER}/include" \
+    LDFLAGS="-L${QEMU_INSTALL_FOLDER}/lib" \
     \
-    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
-    PKG_CONFIG_PATH=\
-"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
-"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
-    \
-    bash  "${QEMU_WORK_FOLDER}/${GETTEXT_FOLDER}/configure" \
+    bash "${QEMU_WORK_FOLDER}/${GETTEXT_FOLDER}/gettext-runtime/configure" \
       --host="${CROSS_COMPILE_PREFIX}" \
-      --prefix="${QEMU_INSTALL_FOLDER}"
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --disable-java \
+      --enable-static \
+      --enable-shared \
+      --disable-libtool-lock \
 
   else
 
     # Configure native
-    cd "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}"
-    CFLAGS="-m${TARGET_BITS}" \
+    cd "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}/gettext-runtime"
+
+    CFLAGS="-m${TARGET_BITS} -I${QEMU_INSTALL_FOLDER}/include" \
+    LDFLAGS="-L${QEMU_INSTALL_FOLDER}/lib" \
     \
-    bash "${QEMU_WORK_FOLDER}/${GETTEXT_FOLDER}/configure" \
-      --prefix="${QEMU_INSTALL_FOLDER}"
+    bash "${QEMU_WORK_FOLDER}/${GETTEXT_FOLDER}/gettext-runtime/configure" \
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --disable-java \
+      --enable-static \
+      --enable-shared \
+      --disable-libtool-lock \
 
   fi
 
@@ -537,10 +546,13 @@ then
   echo "make ${GETTEXT_FOLDER}..."
 
   # Build
-  make ${MAKE_JOBS} install
+  make ${MAKE_JOBS}
+  make install
+
+  # Please note that gettext does not create pkgconfig files and needs to be
+  # refered manually.
 
 fi
-
 
 # ----- Build the GLib library -----
 
@@ -551,8 +563,8 @@ fi
 
 GLIB_VERSION="2.28"
 GLIB_VERSION_RELEASE="${GLIB_VERSION}.7"
-GLIB_ARCHIVE="glib-${GLIB_VERSION_RELEASE}.tar.gz"
 GLIB_FOLDER="glib-${GLIB_VERSION_RELEASE}"
+GLIB_ARCHIVE="${GLIB_FOLDER}.tar.gz"
 GLIB_DOWNLOAD_URL="http://ftp.gnome.org/pub/GNOME/sources/glib/\
 ${GLIB_VERSION}/${GLIB_ARCHIVE}"
 
@@ -589,7 +601,10 @@ then
 
     # Configure cross
     cd "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}"
-    CFLAGS="-m${TARGET_BITS}" \
+
+    CONFIG_SHELL="/bin/bash" \
+    CFLAGS="-m${TARGET_BITS} -I${QEMU_INSTALL_FOLDER}/include" \
+    LDFLAGS="-L${QEMU_INSTALL_FOLDER}/lib" \
     \
     PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
     PKG_CONFIG_PATH=\
@@ -598,15 +613,24 @@ then
     \
     ZLIB_CFLAGS="-I${QEMU_INSTALL_FOLDER}/include" \
     ZLIB_LIBS="-L${QEMU_INSTALL_FOLDER}/lib" \
+    \
     bash  "${QEMU_WORK_FOLDER}/${GLIB_FOLDER}/configure" \
       --host="${CROSS_COMPILE_PREFIX}" \
-      --prefix="${QEMU_INSTALL_FOLDER}"
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --enable-static \
+      --disable-shared \
+      --disable-selinux \
+      --with-pcre=internal \
+      --with-libiconv=no \
 
   else
 
     # Configure native
     cd "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}"
-    CFLAGS="-m${TARGET_BITS}" \
+
+    CONFIG_SHELL="/bin/bash" \
+    CFLAGS="-m${TARGET_BITS} -I${QEMU_INSTALL_FOLDER}/include" \
+    LDFLAGS="-L${QEMU_INSTALL_FOLDER}/lib" \
     \
     PKG_CONFIG_PATH=\
 "${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
@@ -614,8 +638,13 @@ then
     \
     ZLIB_CFLAGS="-I${QEMU_INSTALL_FOLDER}/include" \
     ZLIB_LIBS="-L${QEMU_INSTALL_FOLDER}/lib" \
+    \
     bash "${QEMU_WORK_FOLDER}/${GLIB_FOLDER}/configure" \
-      --prefix="${QEMU_INSTALL_FOLDER}"
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --enable-static \
+      --disable-shared \
+      --disable-selinux \
+      --with-pcre=internal \
 
   fi
 
@@ -623,7 +652,8 @@ then
   echo "make ${GLIB_FOLDER}..."
 
   # Build
-  make ${MAKE_JOBS} install
+  make ${MAKE_JOBS}
+  make install
 
 fi
 
