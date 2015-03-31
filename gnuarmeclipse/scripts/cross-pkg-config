@@ -6,13 +6,13 @@ triplet=`basename $0 | sed -e 's:-pkg-config::'`
 # TODO: check if PKG_CONFIG_LIBDIR is needed if PKG_CONFIG_PATH is defined
 # Is PKG_CONFIG_LIBDIR a single folder or a path?
 PKG_CONFIG_PATH=${PKG_CONFIG_PATH}:/usr/lib/${triplet}/pkgconfig:/usr/${triplet}/lib/pkgconfig \
-pkg-config --define-variable=prefix=$PKG_CONFIG_PREFIX $@
+pkg-config $@
 RET=$?
 if true
 then
-  OUT=$(pkg-config --define-variable=prefix=$PKG_CONFIG_PREFIX $@)
-  echo "$PKG_CONFIG_PATH" >&2
-  echo "$PKG_CONFIG_LIBDIR" >&2
-  echo "pkg-config --define-variable=prefix=$PKG_CONFIG_PREFIX $@ -> $RET [$OUT]" >&2
+  OUT=$(pkg-config $@)
+  echo "PATH: $PKG_CONFIG_PATH" >&2
+  echo "LIBDIR: $PKG_CONFIG_LIBDIR" >&2
+  echo "pkg-config $@ -> $RET [$OUT]" >&2
 fi
 exit ${RET}

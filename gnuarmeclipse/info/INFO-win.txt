@@ -1,6 +1,5 @@
 
-This is the GNU ARM Eclipse version of QEMU for Debian and
-most other GNU/Linux distributions.
+This is the GNU ARM Eclipse version of QEMU for Windows.
 
 If generally follows the official releases.
 
