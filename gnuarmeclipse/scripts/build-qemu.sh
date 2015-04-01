@@ -853,6 +853,103 @@ then
 fi
 
 
+# ----- Build the pixman library -----
+
+# Although available as a submodule in the QEMU git, we prefer to build
+# the library separately, to have a better control.
+PIXMAN_VERSION="0.32.6"
+PIXMAN_FOLDER="pixman-${PIXMAN_VERSION}"
+PIXMAN_ARCHIVE="${PIXMAN_FOLDER}.tar.bz2"
+PIXMAN_DOWNLOAD_URL="http://xorg.freedesktop.org/releases/individual/lib/\
+${PIXMAN_ARCHIVE}"
+
+if [ ! -f "${QEMU_DOWNLOAD_FOLDER}/${PIXMAN_ARCHIVE}" ]
+then
+  mkdir -p "${QEMU_DOWNLOAD_FOLDER}"
+
+  cd "${QEMU_DOWNLOAD_FOLDER}"
+  "${WGET}" "${PIXMAN_DOWNLOAD_URL}" "${WGET_OUT}" "${PIXMAN_ARCHIVE}"
+fi
+
+# Build and install the new Zlib library.
+if [ ! \( -d "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}" \) -o \
+     ! \( -f "${QEMU_INSTALL_FOLDER}/lib/libpixman-1.a" -o \
+          -f "${QEMU_INSTALL_FOLDER}/lib64/libpixman-1.a" \) ]
+then
+  # Clean build folder.
+  rm -rf "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}"
+
+  # Prepare install folder.
+  mkdir -p "${QEMU_INSTALL_FOLDER}"
+
+  # Unpack locally.
+  cd "${QEMU_BUILD_FOLDER}"
+  tar -xjf "${QEMU_DOWNLOAD_FOLDER}/${PIXMAN_ARCHIVE}"
+
+  if [ "${TARGET_GENERIC}" == "win" ]
+  then
+
+    # See https://aur.archlinux.org/packages/mingw-w64-pixman/
+
+    echo
+    echo "configure ${PIXMAN_FOLDER}..."
+
+    cd "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}"
+
+    # Configure cross
+    CFLAGS="-m${TARGET_BITS} -pipe" \
+    LDFLAGS="-v" \
+    \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    bash "./configure" \
+      --host="${CROSS_COMPILE_PREFIX}" \
+      \
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --disable-gtk \
+      --enable-static \
+      --disable-shared \
+
+  else
+
+    # See: https://www.archlinux.org/packages/extra/x86_64/pixman/
+
+    echo
+    echo "configure ${PIXMAN_FOLDER}..."
+
+    cd "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}"
+
+    # Configure native
+    CFLAGS="-m${TARGET_BITS} -pipe" \
+    LDFLAGS="-v" \
+    \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/pkg-config-dbg" \
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    bash "./configure" \
+      --prefix="${QEMU_INSTALL_FOLDER}" \
+      --disable-gtk \
+      --enable-static \
+      --disable-shared \
+
+  fi
+
+  echo
+  echo "make ${PIXMAN_FOLDER}..."
+
+  # Build. 'all' better be explicit.
+  make ${MAKE_JOBS} all
+  make install
+
+  # Please note that PIXMAN generates a lib/pkgconfig/pixman-1.pc file.
+fi
+
+
 # ----- Build QEMU -----
 
 # Configure QEMU.
@@ -872,8 +969,6 @@ then
     # OS X target
     cd "${QEMU_BUILD_FOLDER}/qemu"
 
-    LDFLAGS="-v" \
-    \
     PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/pkg-config-dbg" \
     PKG_CONFIG_PATH=\
 "${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
@@ -887,7 +982,7 @@ then
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --without-system-pixman \
+      --static \
 
   elif [ "${TARGET_GENERIC}" == "linux" ]
   then
@@ -895,7 +990,7 @@ then
     # Linux target
     cd "${QEMU_BUILD_FOLDER}/qemu"
 
-    LDFLAGS='-v -Wl,-rpath=\$$ORIGIN' \
+    LDFLAGS="-v -Wl,-rpath=\$\$ORIGIN" \
     \
     PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/pkg-config-dbg" \
     PKG_CONFIG_PATH=\
@@ -910,7 +1005,7 @@ then
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --without-system-pixman \
+      --static \
 
     # Note: a very important detail here is LDFLAGS='-Wl,-rpath=\$$ORIGIN which
     # adds a special record to the ELF file asking the loader to search for the
@@ -924,7 +1019,7 @@ then
     # Windows target, 32/64-bit
     cd "${QEMU_BUILD_FOLDER}/qemu"
 
-    LDFLAGS="-v -L${QEMU_INSTALL_FOLDER}/lib" \
+    LDFLAGS="-L${QEMU_INSTALL_FOLDER}/lib" \
     \
     PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
     PKG_CONFIG_PATH=\
@@ -935,13 +1030,13 @@ then
       --cross-prefix="${CROSS_COMPILE_PREFIX}-" \
       \
       --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
-      --extra-ldflags="-L${QEMU_INSTALL_FOLDER}/lib" \
+      --extra-ldflags="-v" \
       --target-list="gnuarmeclipse-softmmu" \
       --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --without-system-pixman \
+      --static \
 
   fi
 
@@ -1141,99 +1236,9 @@ otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 elif [ "${TARGET_GENERIC}" == "linux" ]
 then
 
-# ----- Copy GNU/Linux dynamic libraries -----
+  strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
 
-#strip "${QEMU_INSTALL_FOLDER}/lib/"*.a
-
-strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-
-# Copy the dynamic libraries to the same folder where the application file is.
-ILIB=$(find /lib/${DISTRO_MACHINE}-linux-gnu /usr/lib/${DISTRO_MACHINE}-linux-gnu -type f -name 'libz.so.1.*' -print)
-if [ ! -z "${ILIB}" ]
-then
-  /usr/bin/install -c -m 644 "${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libz.so.1")
-else
-  echo 'WARNING: libz.so.1 not copied locally!'
-fi
-
-ILIB=$(find /lib/${DISTRO_MACHINE}-linux-gnu /usr/lib/${DISTRO_MACHINE}-linux-gnu -type f -name 'libgthread-2.0.so.0.*' -print)
-if [ ! -z "${ILIB}" ]
-then
-  /usr/bin/install -c -m 644 "${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libgthread-2.0.so.0")
-else
-  echo 'WARNING: libgthread-2.0.so.0 not copied locally!'
-fi
-
-ILIB=$(find /lib/${DISTRO_MACHINE}-linux-gnu /usr/lib/${DISTRO_MACHINE}-linux-gnu -type f -name 'librt.so.1.*' -print)
-if [ ! -z "${ILIB}" ]
-then
-  /usr/bin/install -c -m 644 "${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "librt.so.1")
-else
-  echo 'WARNING: librt.so.1 not copied locally!'
-fi
-
-if [ -f "/lib/${DISTRO_MACHINE}-linux-gnu/librt.so.1" -o -L "/lib/${DISTRO_MACHINE}-linux-gnu/librt.so.1" ]
-then
-  /usr/bin/install -c -m 644 "/lib/${DISTRO_MACHINE}-linux-gnu/librt.so.1" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "librt.so.1" "librt.so")
-else
-  echo 'WARNING: librt.so not copied locally!'
-fi
-
-ILIB=$(find /lib/${DISTRO_MACHINE}-linux-gnu /usr/lib/${DISTRO_MACHINE}-linux-gnu -type f -name 'libglib-2.0.so.0.*' -print)
-if [ ! -z "${ILIB}" ]
-then
-  /usr/bin/install -c -m 644 "${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libglib-2.0.so.0")
-else
-  echo 'WARNING: libglib-2.0.so.0 not copied locally!'
-fi
-
-ILIB=$(find /lib/${DISTRO_MACHINE}-linux-gnu /usr/lib/${DISTRO_MACHINE}-linux-gnu -type f -name 'libpixman-1.so.0.*' -print)
-if [ ! -z "${ILIB}" ]
-then
-  /usr/bin/install -c -m 644 "${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libpixman-1.so.0")
-else
-  echo 'WARNING: libpixman-1.so.0 not copied locally!'
-fi
-
-if [ -f "/lib/${DISTRO_MACHINE}-linux-gnu/libutil.so.1" -o -L "/lib/${DISTRO_MACHINE}-linux-gnu/libutil.so.1" ]
-then
-  /usr/bin/install -c -m 644 "/lib/${DISTRO_MACHINE}-linux-gnu/libutil.so.1" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "libutil.so.1" "libutil.so")
-else
-  echo 'WARNING: libutil.so.1 not copied locally!'
-fi
-
-if [ -f "/lib/${DISTRO_MACHINE}-linux-gnu/libpthread.so.0" -o -L "/lib/${DISTRO_MACHINE}-linux-gnu/libpthread.so.0" ]
-then
-  /usr/bin/install -c -m 644 "/lib/${DISTRO_MACHINE}-linux-gnu/libpthread.so.0" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "libpthread.so.0" "libpthread.so")
-else
-  echo 'WARNING: libpthread.so.0 not copied locally!'
-fi
-
-ILIB=$(find /lib/${DISTRO_MACHINE}-linux-gnu /usr/lib/${DISTRO_MACHINE}-linux-gnu -type f -name 'libpcre.so.3.*' -print)
-if [ ! -z "${ILIB}" ]
-then
-  /usr/bin/install -c -m 644 "${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  (cd "${QEMU_INSTALL_FOLDER}/qemu/bin"; ln -s "$(basename ${ILIB})" "libpcre.so.3")
-else
-  echo 'WARNING: libpcre.so.3 not copied locally!'
-fi
+  # No static libraries to copy.
 
 elif [ "${TARGET_GENERIC}" == "win" ]
 then
@@ -1243,6 +1248,7 @@ then
   echo
   echo "Copy dynamic libs..."
 
+  # Although the build is static, the mingw-w64 specific dlls need to be present.
 
   function copy_gcc_dll {
 
@@ -1283,8 +1289,6 @@ then
     cp -v "${PTHREAD_PATH}" "${QEMU_INSTALL_FOLDER}/qemu/bin"
   fi
 
-  # Update list if new libs are added.
-
   # Actually not referred (the static versions were used).
   # cp "${QEMU_INSTALL_FOLDER}/bin/libintl-8.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
   # cp "${QEMU_INSTALL_FOLDER}/bin/libiconv-2.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
@@ -1309,7 +1313,11 @@ echo "Copy license files..."
 
 function copy_info {
 
+  # $1 - absolute path to input folder
+  # $2 - name of output folder below QEMU_INSTALL_FOLDER
 
+  # Iterate all files in a folder and install some of them in the
+  # destination folder
   for f in "$1/"*
   do
     if [ -f "$f" ]
@@ -1330,6 +1338,7 @@ copy_info "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}" "${ICONV_FOLDER}"
 copy_info "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}" "${GETTEXT_FOLDER}"
 copy_info "${QEMU_BUILD_FOLDER}/${LIBFFI_FOLDER}" "${LIBFFI_FOLDER}"
 copy_info "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}" "${GLIB_FOLDER}"
+copy_info "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}" "${PIXMAN_FOLDER}"
 
 if [ "${TARGET_GENERIC}" == "win" ]
 then
@@ -1343,21 +1352,21 @@ fi
 echo
 echo "Copy info files..."
 
-/usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/info/INFO-${TARGET_GENERIC}.txt" \
+/usr/bin/install -v -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/info/INFO-${TARGET_GENERIC}.txt" \
   "${QEMU_INSTALL_FOLDER}/qemu/INFO.txt"
 do_unix2dos "${QEMU_INSTALL_FOLDER}/qemu/INFO.txt"
 
 mkdir -p "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse"
 
-/usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/info/BUILD-${TARGET_GENERIC}.txt" \
+/usr/bin/install -v -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/info/BUILD-${TARGET_GENERIC}.txt" \
   "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/BUILD.txt"
 do_unix2dos "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/BUILD.txt"
 
-/usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/info/CHANGES.txt" \
+/usr/bin/install -v -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/info/CHANGES.txt" \
   "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/"
 do_unix2dos "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/CHANGES.txt"
 
-/usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/build-qemu.sh" \
+/usr/bin/install -v -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/build-qemu.sh" \
   "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/"
 do_unix2dos "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/build-qemu.sh"
 
@@ -1427,14 +1436,14 @@ ${QEMU_TARGET_LONG}-${OUTFILE_VERSION}.tgz
 
   # Display some information about the created application.
   echo
-  readelf -d "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+  readelf -d "${QEMU_INSTALL_FOLDER}/qemu/${OUTFILE_VERSION}/bin/qemu-system-gnuarmeclipse"
 
   echo
-  ls -l "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  ls -l "${QEMU_INSTALL_FOLDER}/qemu/${OUTFILE_VERSION}/bin"
 
   # Check if the application starts (if all dynamic libraries are available).
   echo
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse" --version
+  "${QEMU_INSTALL_FOLDER}/qemu/${OUTFILE_VERSION}/bin/qemu-system-gnuarmeclipse" --version
   RESULT="$?"
 
 elif [ "${TARGET_GENERIC}" == "win" ]
