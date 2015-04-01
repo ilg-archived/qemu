@@ -13,18 +13,32 @@ IFS=$'\n\t'
 #
 # sudo port install libtool automake autoconf pkgconfig wget
 # sudo port install texinfo texlive
+#
 
-# On Debian it produces a TGZ that expands
+# On Ubuntu it can cross build Windows 32/64-bit setups.
+#
+# Prerequisites:
+#
+# sudo apt-get install gcc g++ git make m4 python sed tar unzip wget
+# sudo apt-get install libtool pkg-config automake autoconf autotools-dev
+# sudo apt-get install texinfo texlive bison flex doxygen
+# sudo apt-get install nsis dos2unix
+#
+# MinGW-W64 prerequisites:
+# sudo apt-get install mingw-w64 mingw-w64-tools mingw-w64-i686-dev mingw-w64-x86-64-dev
+#
+
+# On Debian x86 and x64 it generates a TGZ that expands
 # in "/opt/gnuarmeclipse/qemu/version".
 #
-# GNU/Linux Prerequisites:
+# Prerequisites:
 #
-# sudo apt-get install git g++
-# sudo apt-get install texinfo texlive bison flex
-# sudo apt-get install libglib2.0-dev libpixman-1-dev
-# sudo apt-get install zlib1g-dev libtool
+# sudo apt-get install gcc g++ git make m4 python sed tar unzip
+# sudo apt-get libtool automake autoconf pkgconfig wget autotools-dev
+# sudo apt-get install texinfo texlive bison flex doxygen
+#
 
-# TODO: check if complete
+BEGIN_SEC=$(date +%s)
 
 DISTRO_NAME=""
 UNAME="$(uname)"
@@ -103,6 +117,13 @@ do
   then
     TARGET_GENERIC="win"
     TARGET_BITS="64"
+  elif [ "$1" == "--help" ]
+  then
+    echo "Build GNU ARM Eclipse QEMU distributions."
+    echo "Usage:"
+    echo "\tbash build-qemu.sh [-win32|-win64] [clean|pull|checkput-dev|checkout-stable]"
+    echo
+    exit 1
   else
     echo "Unknown action/option $1"
     exit 1
@@ -139,8 +160,6 @@ mkdir -p "${QEMU_WORK_FOLDER}"
 
 if [ "${TARGET_GENERIC}" == "osx" ]
 then
-  # The folder where QEMU will be installed.
-  INSTALL_FOLDER=${INSTALL_FOLDER:-"/Applications/GNU ARM Eclipse/QEMU"}
   DYLD_LIBRARY_PATH=${DYLD_LIBRARY_PATH:-""}
   MAKE_JOBS=${MAKE_JOBS:-"-j8"}
 
@@ -461,6 +480,7 @@ then
 
     # Configure cross
     # The bash is required to keep libtool happy, otherwise it crashes.
+    # "--enable-shared" is required by later builds when shared.
     cd "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}"
 
     CONFIG_SHELL="/bin/bash" \
@@ -472,7 +492,7 @@ then
       \
       --prefix=${QEMU_INSTALL_FOLDER} \
       --enable-static \
-      --enable-shared \
+      --disable-shared \
       --disable-nls \
 
 
@@ -489,7 +509,7 @@ then
     bash "./configure" \
       --prefix=${QEMU_INSTALL_FOLDER} \
       --enable-static \
-      --enable-shared \
+      --disable-shared \
       --disable-nls \
 
 
@@ -571,9 +591,8 @@ then
       --disable-csharp \
       --without-emacs \
       --enable-static \
-      --enable-shared \
+      --disable-shared \
       --disable-libtool-lock \
-
 
   else
 
@@ -593,7 +612,7 @@ then
       --disable-csharp \
       --without-emacs \
       --enable-static \
-      --enable-shared \
+      --disable-shared \
       --disable-libtool-lock \
 
   fi
@@ -660,6 +679,8 @@ then
       \
       --prefix="${QEMU_INSTALL_FOLDER}" \
       --enable-pax_emutramp \
+      --enable-static \
+      --disable-shared \
 
   else
 
@@ -676,6 +697,8 @@ then
     bash "./configure" \
       --prefix="${QEMU_INSTALL_FOLDER}" \
       --enable-pax_emutramp \
+      --enable-static \
+      --disable-shared \
 
   fi
 
@@ -802,6 +825,7 @@ then
     CFLAGS="-m${TARGET_BITS} -I${QEMU_INSTALL_FOLDER}/include" \
     LDFLAGS="-v -L${QEMU_INSTALL_FOLDER}/lib" \
     \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/pkg-config-dbg" \
     PKG_CONFIG_PATH=\
 "${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
 "${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
@@ -833,15 +857,14 @@ fi
 
 # Configure QEMU.
 
-if [ ! -f "${QEMU_BUILD_FOLDER}/qemu/config-host.h" ]
+if [ ! -f "${QEMU_BUILD_FOLDER}/qemu/config-host.mak" ]
 then
 
   echo
   echo "configure QEMU..."
 
-  # All variables below are passed on the command line before 'configure'.
+  # All variables are passed on the command line before 'configure'.
   # Be sure all these lines end in '\' to ensure lines are concatenated.
-
 
   if [ "${TARGET_GENERIC}" == "osx" ]
   then
@@ -850,6 +873,31 @@ then
     cd "${QEMU_BUILD_FOLDER}/qemu"
 
     LDFLAGS="-v" \
+    \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/pkg-config-dbg" \
+    PKG_CONFIG_PATH=\
+"${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
+"${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
+    \
+    bash "${QEMU_GIT_FOLDER}/configure" \
+      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
+      --extra-ldflags="-v -L${QEMU_INSTALL_FOLDER}/lib" \
+      --target-list="gnuarmeclipse-softmmu" \
+      --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
+      --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
+      --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
+      --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
+      --without-system-pixman \
+
+  elif [ "${TARGET_GENERIC}" == "linux" ]
+  then
+
+    # Linux target
+    cd "${QEMU_BUILD_FOLDER}/qemu"
+
+    LDFLAGS='-v -Wl,-rpath=\$$ORIGIN' \
+    \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/pkg-config-dbg" \
     PKG_CONFIG_PATH=\
 "${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
 "${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
@@ -862,41 +910,6 @@ then
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --disable-seccomp \
-      --disable-usb-redir \
-      --disable-libnfs \
-      --disable-libiscsi \
-      --disable-spice \
-      --disable-smartcard-nss \
-      --disable-archipelago \
-      --disable-quorum \
-      --disable-libusb \
-      --without-system-pixman \
-
-  elif [ "${TARGET_GENERIC}" == "linux" ]
-  then
-
-    # Linux target
-    cd "${QEMU_BUILD_FOLDER}/qemu"
-
-    LDFLAGS='-v -Wl,-rpath=\$$ORIGIN' \
-    bash "${QEMU_GIT_FOLDER}/configure" \
-      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
-      --extra-ldflags="-L${QEMU_INSTALL_FOLDER}/lib" \
-      --target-list="gnuarmeclipse-softmmu" \
-      --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
-      --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
-      --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
-      --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --disable-seccomp \
-      --disable-usb-redir \
-      --disable-libnfs \
-      --disable-libiscsi \
-      --disable-spice \
-      --disable-smartcard-nss \
-      --disable-archipelago \
-      --disable-quorum \
-      --disable-libusb \
       --without-system-pixman \
 
     # Note: a very important detail here is LDFLAGS='-Wl,-rpath=\$$ORIGIN which
@@ -910,6 +923,7 @@ then
 
     # Windows target, 32/64-bit
     cd "${QEMU_BUILD_FOLDER}/qemu"
+
     LDFLAGS="-v -L${QEMU_INSTALL_FOLDER}/lib" \
     \
     PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
@@ -927,15 +941,6 @@ then
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --disable-seccomp \
-      --disable-usb-redir \
-      --disable-libnfs \
-      --disable-libiscsi \
-      --disable-spice \
-      --disable-smartcard-nss \
-      --disable-archipelago \
-      --disable-quorum \
-      --disable-libusb \
       --without-system-pixman \
 
   fi
@@ -1236,7 +1241,7 @@ then
   ${CROSS_COMPILE_PREFIX}-strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse.exe"
 
   echo
-  echo "copy dynamic libs..."
+  echo "Copy dynamic libs..."
 
 
   function copy_gcc_dll {
@@ -1279,10 +1284,12 @@ then
   fi
 
   # Update list if new libs are added.
-  cp "${QEMU_INSTALL_FOLDER}/bin/libintl-8.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
-  cp "${QEMU_INSTALL_FOLDER}/bin/libiconv-2.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
 
-  # Actually not referred (probably the static version was used).
+  # Actually not referred (the static versions were used).
+  # cp "${QEMU_INSTALL_FOLDER}/bin/libintl-8.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
+  # cp "${QEMU_INSTALL_FOLDER}/bin/libiconv-2.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
+
+  # Actually not referred (the static versions were used).
   # cp "${QEMU_INSTALL_FOLDER}/bin/libffi-6.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
   # cp "${QEMU_INSTALL_FOLDER}/bin/libcharset-1.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
   # cp "${QEMU_INSTALL_FOLDER}/bin/libasprintf-0.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
@@ -1298,7 +1305,7 @@ fi
 # ----- Copy the license files -----
 
 echo
-echo "copy license files..."
+echo "Copy license files..."
 
 function copy_info {
 
@@ -1334,7 +1341,7 @@ fi
 # ----- Copy the GNU ARM Eclipse info files -----
 
 echo
-echo "copy info files..."
+echo "Copy info files..."
 
 /usr/bin/install -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/info/INFO-${TARGET_GENERIC}.txt" \
   "${QEMU_INSTALL_FOLDER}/qemu/INFO.txt"
@@ -1376,7 +1383,7 @@ fi
 
 
 echo
-echo "create the distribution package ${OUTFILE_VERSION}..."
+echo "Create the distribution package ${OUTFILE_VERSION}..."
 echo
 
 if [ "${TARGET_GENERIC}" == "osx" ]
@@ -1385,8 +1392,11 @@ then
   QEMU_DISTRIBUTION=${QEMU_OUTPUT}/gnuarmeclipse-qemu-\
 ${QEMU_TARGET_LONG}-${OUTFILE_VERSION}.pkg
 
+  INSTALL_FOLDER=${INSTALL_FOLDER:-"/Applications/GNU ARM Eclipse/QEMU"}
+
   # Create the installer package, with content from the
   # ${QEMU_INSTALL_FOLDER}/qemu folder.
+
   # The "${INSTALL_FOLDER:1}" is a substring that skips first char.
   cd "${QEMU_WORK_FOLDER}"
   pkgbuild --identifier ilg.gnuarmeclipse.qemu \
@@ -1468,4 +1478,14 @@ else
   echo "Buld failed."
 fi
 
-exit 0
+END_SEC=$(date +%s)
+DELTA_SEC=$((END_SEC-BEGIN_SEC))
+if [ ${DELTA_SEC} -lt 100 ]
+then
+  echo "Duration: ${DELTA_SEC} seconds."
+else
+  DELTA_MIN=$(((DELTA_SEC+30)/60))
+  echo "Duration: ${DELTA_MIN} minutes."
+fi
+
+exit ${RESULT}
