@@ -495,7 +495,6 @@ then
       --disable-shared \
       --disable-nls \
 
-
   else
 
     # See: https://aur.archlinux.org/packages/libiconv/
@@ -923,7 +922,7 @@ then
     cd "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}"
 
     # Configure native
-    CFLAGS="-m${TARGET_BITS} -pipe" \
+    CFLAGS="-v -m${TARGET_BITS} -pipe" \
     LDFLAGS="-v" \
     \
     PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/pkg-config-dbg" \
@@ -934,6 +933,7 @@ then
     bash "./configure" \
       --prefix="${QEMU_INSTALL_FOLDER}" \
       --disable-gtk \
+      --disable-libpng \
       --enable-static \
       --disable-shared \
 
@@ -942,9 +942,9 @@ then
   echo
   echo "make ${PIXMAN_FOLDER}..."
 
-  # Build. 'all' better be explicit.
-  make ${MAKE_JOBS} all
-  make install
+  # Build. Tests fail on OS X, so disable them.
+  make ${MAKE_JOBS} SUBDIRS=pixman
+  make install SUBDIRS=pixman
 
   # Please note that PIXMAN generates a lib/pkgconfig/pixman-1.pc file.
 fi
@@ -982,7 +982,8 @@ then
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --static \
+
+    # Configure fails for --static
 
   elif [ "${TARGET_GENERIC}" == "linux" ]
   then
@@ -998,6 +999,8 @@ then
 "${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
     \
     bash "${QEMU_GIT_FOLDER}/configure" \
+      --static \
+      \
       --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
       --extra-ldflags="-L${QEMU_INSTALL_FOLDER}/lib" \
       --target-list="gnuarmeclipse-softmmu" \
@@ -1005,7 +1008,6 @@ then
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --static \
 
     # Note: a very important detail here is LDFLAGS='-Wl,-rpath=\$$ORIGIN which
     # adds a special record to the ELF file asking the loader to search for the
@@ -1028,6 +1030,7 @@ then
     \
     bash "${QEMU_GIT_FOLDER}/configure" \
       --cross-prefix="${CROSS_COMPILE_PREFIX}-" \
+      --static \
       \
       --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
       --extra-ldflags="-v" \
@@ -1036,7 +1039,6 @@ then
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
-      --static \
 
   fi
 
@@ -1079,159 +1081,125 @@ function do_unix2dos {
 if [ "${TARGET_GENERIC}" == "osx" ]
 then
 
-#strip "${QEMU_INSTALL_FOLDER}/lib/"*.a
+  strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
 
-strip "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+  echo
+  echo "Copy dynamic libs..."
 
-# ----- Copy OS X dynamic libraries -----
+  # ----- Copy OS X dynamic libraries -----
 
-# Copy the dynamic libraries to the same folder where the application file is.
-# Post-process dynamic libraries paths to be relative to executable folder.
+  # Copy the dynamic libraries to the same folder where the application file is.
+  # Post-process dynamic libraries paths to be relative to executable folder.
 
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-install_name_tool -change "/opt/local/lib/libz.1.dylib" "@executable_path/libz.1.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-install_name_tool -change "/opt/local/lib/libgthread-2.0.0.dylib" "@executable_path/libgthread-2.0.0.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-install_name_tool -change "/opt/local/lib/libglib-2.0.0.dylib" "@executable_path/libglib-2.0.0.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-install_name_tool -change "/opt/local/lib/libintl.8.dylib" "@executable_path/libintl.8.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-install_name_tool -change "/opt/local/lib/libpixman-1.0.dylib" "@executable_path/libpixman-1.0.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-install_name_tool -change "/opt/local/lib/libgnutls.28.dylib" "@executable_path/libgnutls.28.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-install_name_tool -change "/opt/local/lib/libusb-1.0.0.dylib" "@executable_path/libusb-1.0.0.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+  echo
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+  install_name_tool -change "/opt/local/lib/libgnutls.28.dylib" "@executable_path/libgnutls.28.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+  install_name_tool -change "/opt/local/lib/libusb-1.0.0.dylib" "@executable_path/libusb-1.0.0.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/qemu-system-gnuarmeclipse"
 
-# Different input name
-ILIB=libz.1.dylib
-cp "/opt/local/lib/libz.1.2.8.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id ${ILIB} "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libgnutls.28.dylib
+  cp -v "/opt/local/lib/${ILIB}" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id libgnutls.28.dylib "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libz.1.dylib" "@executable_path/libz.1.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libiconv.2.dylib" "@executable_path/libiconv.2.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libp11-kit.0.dylib" "@executable_path/libp11-kit.0.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libtasn1.6.dylib" "@executable_path/libtasn1.6.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libnettle.4.dylib" "@executable_path/libnettle.4.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libhogweed.2.dylib" "@executable_path/libhogweed.2.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libgmp.10.dylib" "@executable_path/libgmp.10.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libintl.8.dylib" "@executable_path/libintl.8.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libgthread-2.0.0.dylib
-cp "/opt/local/lib/${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id ${ILIB} "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libglib-2.0.0.dylib" "@executable_path/libglib-2.0.0.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libiconv.2.dylib" "@executable_path/libiconv.2.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libintl.8.dylib" "@executable_path/libintl.8.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  # Different input name
+  ILIB=libz.1.dylib
+  cp -v "/opt/local/lib/libz.1.2.8.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id ${ILIB} "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libglib-2.0.0.dylib
-cp "/opt/local/lib/${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id ${ILIB} "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libiconv.2.dylib" "@executable_path/libiconv.2.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libintl.8.dylib" "@executable_path/libintl.8.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libiconv.2.dylib
+  cp -v "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libintl.8.dylib
-cp "/opt/local/lib/${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id ${ILIB} "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libiconv.2.dylib" "@executable_path/libiconv.2.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libp11-kit.0.dylib
+  cp -v "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libffi.6.dylib" "@executable_path/libffi.6.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libintl.8.dylib" "@executable_path/libintl.8.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libpixman-1.0.dylib
-cp "/opt/local/lib/${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id ${ILIB} "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libtasn1.6.dylib
+  cp -v "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libgnutls.28.dylib
-cp "/opt/local/lib/${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id libgnutls.28.dylib "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libz.1.dylib" "@executable_path/libz.1.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libiconv.2.dylib" "@executable_path/libiconv.2.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libp11-kit.0.dylib" "@executable_path/libp11-kit.0.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libtasn1.6.dylib" "@executable_path/libtasn1.6.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libnettle.4.dylib" "@executable_path/libnettle.4.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libhogweed.2.dylib" "@executable_path/libhogweed.2.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libgmp.10.dylib" "@executable_path/libgmp.10.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libintl.8.dylib" "@executable_path/libintl.8.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libnettle.4.dylib
+  cp -v "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libusb-1.0.0.dylib
-cp "/opt/local/lib/${ILIB}" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id libusb-1.0.0.dylib "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libhogweed.2.dylib
+  cp -v "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libnettle.4.dylib" "@executable_path/libnettle.4.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libgmp.10.dylib" "@executable_path/libgmp.10.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libiconv.2.dylib
-cp "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libgmp.10.dylib
+  cp -v "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libp11-kit.0.dylib
-cp "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libffi.6.dylib" "@executable_path/libffi.6.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libintl.8.dylib" "@executable_path/libintl.8.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libintl.8.dylib
+  cp -v "/opt/local/lib/${ILIB}" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id ${ILIB} "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -change "/opt/local/lib/libiconv.2.dylib" "@executable_path/libiconv.2.dylib" \
+    "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libtasn1.6.dylib
-cp "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  echo
+  ILIB=libffi.6.dylib
+  cp -v "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
 
-ILIB=libnettle.4.dylib
-cp "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-
-ILIB=libhogweed.2.dylib
-cp "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libnettle.4.dylib" "@executable_path/libnettle.4.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -change "/opt/local/lib/libgmp.10.dylib" "@executable_path/libgmp.10.dylib" \
-  "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-
-ILIB=libgmp.10.dylib
-cp "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-
-ILIB=libffi.6.dylib
-cp "/opt/local/lib/${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-# otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-install_name_tool -id "${ILIB}" "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
-otool -L "${QEMU_INSTALL_FOLDER}/qemu/bin/${ILIB}"
+  # Do not strip resulting dylib files!
 
 elif [ "${TARGET_GENERIC}" == "linux" ]
 then
@@ -1497,4 +1465,5 @@ else
   echo "Duration: ${DELTA_MIN} minutes."
 fi
 
+echo
 exit ${RESULT}
