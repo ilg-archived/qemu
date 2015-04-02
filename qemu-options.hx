@@ -3312,6 +3312,18 @@ semihosting SYS_GET_CMDLINE call, including the program name that will be
 passed as argv[0].
 (ARM, M68K, Xtensa only)
 ETEXI
+DEF("semihosting-cmdline", HAS_ARG, QEMU_OPTION_semihosting_cmdline,
+    "-semihosting-cmdline [string]   semihosting command line\n",
+QEMU_ARCH_ARM | QEMU_ARCH_M68K | QEMU_ARCH_XTENSA | QEMU_ARCH_LM32)
+STEXI
+@item -semihosting-cmdline [string]
+@findex -semihosting-cmdline
+The
+@code{cmdline} defines the entire command line passed to the application via the
+semihosting calls, including the program name that will be
+passed as argv[0].
+(ARM, M68K, Xtensa only)
+ETEXI
 DEF("old-param", 0, QEMU_OPTION_old_param,
     "-old-param      old param mode\n", QEMU_ARCH_ARM)
 STEXI

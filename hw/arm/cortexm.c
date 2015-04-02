@@ -38,7 +38,7 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
             printf("Image: '%s'.\n", kernel_filename);
         }
         
-        opts = qemu_opts_find(qemu_find_opts("semihosting-config"), NULL);
+        opts = qemu_opts_find(qemu_find_opts("semihosting-cmdline"), NULL);
         cmdline = qemu_opt_get(opts, "cmdline");
         
         if (cmdline == NULL) {

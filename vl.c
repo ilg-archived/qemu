@@ -498,6 +498,16 @@ static QemuOptsList qemu_semihosting_config_opts = {
     },
 };
 
+static QemuOptsList qemu_semihosting_cmdline_opts = {
+    .name = "semihosting-cmdline",
+    .implied_opt_name = "cmdline",
+    .merge_lists = true,
+    .head = QTAILQ_HEAD_INITIALIZER(qemu_semihosting_cmdline_opts.head),
+    .desc = {
+         { /* end of list */ }
+    },
+};
+
 /**
  * Get machine options
  *
@@ -2835,6 +2845,7 @@ int main(int argc, char **argv, char **envp)
     qemu_add_opts(&qemu_numa_opts);
     qemu_add_opts(&qemu_icount_opts);
     qemu_add_opts(&qemu_semihosting_config_opts);
+    qemu_add_opts(&qemu_semihosting_cmdline_opts);
 
     runstate_init();
 
@@ -3597,6 +3608,14 @@ int main(int argc, char **argv, char **envp)
                     fprintf(stderr, "Unsupported semihosting-config %s\n",
                             optarg);
                     exit(1);
+                }
+                break;
+            case QEMU_OPTION_semihosting_cmdline:
+                opts = qemu_opts_parse(qemu_find_opts("semihosting-cmdline"),
+                                           optarg, 0);
+                if (opts != NULL) {
+                    Error *local_err = NULL;
+                    qemu_opt_set(opts, "cmdline", optarg, &local_err);
                 }
                 break;
             case QEMU_OPTION_tdf:
