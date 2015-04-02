@@ -371,7 +371,7 @@ static void ppc_core99_init(MachineState *machine)
         /* 970 gets a U3 bus */
         pci_bus = pci_pmac_u3_init(pic, get_system_memory(), get_system_io());
         machine_arch = ARCH_MAC99_U3;
-        machine->usb |= defaults_enabled();
+        machine->usb |= defaults_enabled() && !machine->usb_disabled;
     } else {
         pci_bus = pci_pmac_init(pic, get_system_memory(), get_system_io());
         machine_arch = ARCH_MAC99;
@@ -460,7 +460,6 @@ static void ppc_core99_init(MachineState *machine)
 
     fw_cfg = fw_cfg_init_mem(CFG_ADDR, CFG_ADDR + 2);
     fw_cfg_add_i16(fw_cfg, FW_CFG_MAX_CPUS, (uint16_t)max_cpus);
-    fw_cfg_add_i32(fw_cfg, FW_CFG_ID, 1);
     fw_cfg_add_i64(fw_cfg, FW_CFG_RAM_SIZE, (uint64_t)ram_size);
     fw_cfg_add_i16(fw_cfg, FW_CFG_MACHINE_ID, machine_arch);
     fw_cfg_add_i32(fw_cfg, FW_CFG_KERNEL_ADDR, kernel_base);
