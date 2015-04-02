@@ -742,6 +742,10 @@ done
 case $target_list in
   gnuarmeclipse-softmmu)
     gnuarmeclipse="yes"
+    semihosting_native="yes"
+    verbose="yes"
+    branding_message="GNU ARM Eclipse"
+    # convenience defs
     debug_tcg="yes"
     debug="yes"
     strip_opt="no"
@@ -759,12 +763,8 @@ case $target_list in
     tpm="no"
     want_tools="no"
     guest_agent="no"
-    semihosting_native="yes"
-    verbose="yes"
-    branding_message="GNU ARM Eclipse"
-    if test "$mingw32" = "yes" ; then
-        prefix="C:/Program Files/GNU ARM Eclipse/QEMU"
-    fi
+    bzip2="no"
+    libusb="no"
     ;;
 esac
 # --- [GNU ARM Eclipse] ---
