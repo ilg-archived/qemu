@@ -18,6 +18,7 @@
  * <http://www.gnu.org/licenses/gpl-2.0.html>
  */
 
+#include "config-host.h"
 #include "cpu.h"
 #include "internals.h"
 #include "qemu-common.h"
@@ -271,11 +272,14 @@ static bool arm_v7m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
     return ret;
 }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 static bool arm_v6m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
 {
     /* TODO: check v6m differences. */
     return arm_v7m_cpu_exec_interrupt(cs, interrupt_request);
 }
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 #endif
 
 #ifndef CONFIG_USER_ONLY
@@ -759,19 +763,27 @@ static void arm11mpcore_initfn(Object *obj)
     cpu->reset_auxcr = 1;
 }
 
-/* armv6-m profiles */
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 
 static void arm_v6m_class_init(ObjectClass *oc, void *data)
 {
     CPUClass *cc = CPU_CLASS(oc);
-    
 #ifndef CONFIG_USER_ONLY
     cc->do_interrupt = arm_v6m_cpu_do_interrupt;
 #endif
-    
     cc->cpu_exec_interrupt = arm_v6m_cpu_exec_interrupt;
 }
 
+static void arm_v7m_class_init(ObjectClass *oc, void *data)
+{
+    CPUClass *cc = CPU_CLASS(oc);
+#ifndef CONFIG_USER_ONLY
+    cc->do_interrupt = arm_v7m_cpu_do_interrupt;
+#endif
+    cc->cpu_exec_interrupt = arm_v7m_cpu_exec_interrupt;
+}
+
+/* cortex-m profiles */
 static void cortex_m0_initfn(Object *obj)
 {
     ARMCPU *cpu = ARM_CPU(obj);
@@ -797,19 +809,6 @@ static void cortex_m1_initfn(Object *obj)
     /* TODO: check if V6 works with M */
     set_feature(&cpu->env, ARM_FEATURE_M);
     cpu->midr = 0x411CC210; /* M1, r1p0 */
-}
-
-/* armv7-m profiles */
-
-static void arm_v7m_class_init(ObjectClass *oc, void *data)
-{
-    CPUClass *cc = CPU_CLASS(oc);
-    
-#ifndef CONFIG_USER_ONLY
-    cc->do_interrupt = arm_v7m_cpu_do_interrupt;
-#endif
-    
-    cc->cpu_exec_interrupt = arm_v7m_cpu_exec_interrupt;
 }
 
 static void cortex_m3_initfn(Object *obj)
@@ -844,6 +843,28 @@ static void cortex_m7_initfn(Object *obj)
     cpu->midr = 0x410FC270; /* M7, r0p0, TODO: check, when manual available */
 }
 
+#else /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+
+static void cortex_m3_initfn(Object *obj)
+{
+    ARMCPU *cpu = ARM_CPU(obj);
+    set_feature(&cpu->env, ARM_FEATURE_V7);
+    set_feature(&cpu->env, ARM_FEATURE_M);
+    cpu->midr = 0x410fc231;
+}
+
+static void arm_v7m_class_init(ObjectClass *oc, void *data)
+{
+    CPUClass *cc = CPU_CLASS(oc);
+
+#ifndef CONFIG_USER_ONLY
+    cc->do_interrupt = arm_v7m_cpu_do_interrupt;
+#endif
+
+    cc->cpu_exec_interrupt = arm_v7m_cpu_exec_interrupt;
+}
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 static const ARMCPRegInfo cortexa8_cp_reginfo[] = {
     { .name = "L2LOCKDOWN", .cp = 15, .crn = 9, .crm = 0, .opc1 = 1, .opc2 = 0,
@@ -1235,6 +1256,7 @@ static const ARMCPUInfo arm_cpus[] = {
     { .name = "arm1176",     .initfn = arm1176_initfn },
     { .name = "arm11mpcore", .initfn = arm11mpcore_initfn },
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
     /* Cortex-M cores. Currently only M3 is tested and fully functional.  */
     { .name = "cortex-m0",   .initfn = cortex_m0_initfn,
                              .class_init = arm_v6m_class_init },
@@ -1248,7 +1270,11 @@ static const ARMCPUInfo arm_cpus[] = {
                              .class_init = arm_v7m_class_init },
     { .name = "cortex-m7",   .initfn = cortex_m7_initfn,
                              .class_init = arm_v7m_class_init },
-    
+#else /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+    { .name = "cortex-m3",   .initfn = cortex_m3_initfn,
+                             .class_init = arm_v7m_class_init },
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     { .name = "cortex-a8",   .initfn = cortex_a8_initfn },
     { .name = "cortex-a9",   .initfn = cortex_a9_initfn },
     { .name = "cortex-a15",  .initfn = cortex_a15_initfn },

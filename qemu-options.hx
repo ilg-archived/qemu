@@ -3299,18 +3299,14 @@ STEXI
 Enable semihosting mode (ARM, M68K, Xtensa only).
 ETEXI
 DEF("semihosting-config", HAS_ARG, QEMU_OPTION_semihosting_config,
-    "-semihosting-config [enable=on|off,]target=native|gdb|auto[,cmdline=string]   semihosting configuration\n",
+    "-semihosting-config [enable=on|off,]target=native|gdb|auto   semihosting configuration\n",
 QEMU_ARCH_ARM | QEMU_ARCH_M68K | QEMU_ARCH_XTENSA | QEMU_ARCH_LM32)
 STEXI
-@item -semihosting-config [enable=on|off,]target=native|gdb|auto[,cmdline=string]
+@item -semihosting-config [enable=on|off,]target=native|gdb|auto
 @findex -semihosting-config
 Enable semihosting and define where the semihosting calls will be addressed,
 to QEMU (@code{native}) or to GDB (@code{gdb}). The default is @code{auto}, which means
-@code{gdb} during debug sessions and @code{native} otherwise. The optional
-@code{cmdline} defines the entire command line passed to the application via the
-semihosting SYS_GET_CMDLINE call, including the program name that will be
-passed as argv[0].
-(ARM, M68K, Xtensa only)
+@code{gdb} during debug sessions and @code{native} otherwise (ARM, M68K, Xtensa only).
 ETEXI
 DEF("semihosting-cmdline", HAS_ARG, QEMU_OPTION_semihosting_cmdline,
     "-semihosting-cmdline [string]   semihosting command line\n",

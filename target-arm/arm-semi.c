@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "config-host.h"
 #include "cpu.h"
 #ifdef CONFIG_USER_ONLY
 #include "qemu.h"
@@ -35,8 +36,10 @@
 #include "qemu-common.h"
 #include "exec/gdbstub.h"
 #include "hw/arm/arm.h"
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qemu/option.h"
 #include "qemu/config-file.h"
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 #endif
 
 #define TARGET_SYS_OPEN        0x01
@@ -443,6 +446,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
 
             /* Compute the size of the output string.  */
 #if !defined(CONFIG_USER_ONLY)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
             QemuOpts *opts;
             const char *cmdline;
 
@@ -457,6 +461,12 @@ uint32_t do_arm_semihosting(CPUARMState *env)
                         + strlen(ts->boot_info->kernel_cmdline)
                         + 1; /* Terminating null byte.  */
             }
+#else /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+            output_size = strlen(ts->boot_info->kernel_filename)
+                        + 1  /* Separating space.  */
+                        + strlen(ts->boot_info->kernel_cmdline)
+                        + 1; /* Terminating null byte.  */
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 #else
             unsigned int i;
 
@@ -487,6 +497,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
 
             /* Copy the command-line arguments.  */
 #if !defined(CONFIG_USER_ONLY)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
             if (cmdline) {
                 pstrcpy(output_buffer, output_size, cmdline);
             } else {
@@ -496,6 +507,11 @@ uint32_t do_arm_semihosting(CPUARMState *env)
                 pstrcat(output_buffer, output_size,
                         ts->boot_info->kernel_cmdline);
             }
+#else /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+            pstrcpy(output_buffer, output_size, ts->boot_info->kernel_filename);
+            pstrcat(output_buffer, output_size, " ");
+            pstrcat(output_buffer, output_size, ts->boot_info->kernel_cmdline);
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 #else
             if (output_size == 1) {
                 /* Empty command-line.  */

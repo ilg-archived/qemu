@@ -2,6 +2,7 @@
 #define SYSEMU_H
 /* Misc. things related to the system emulator.  */
 
+#include "config-host.h"
 #include "qemu/typedefs.h"
 #include "qemu/option.h"
 #include "qemu/queue.h"
@@ -102,8 +103,9 @@ typedef enum DisplayType
 
 extern int autostart;
 
-// [ILG]
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 extern int with_gdb;
+#endif
 #if defined(CONFIG_VERBOSE)
 extern int verbosity_level;
 #endif

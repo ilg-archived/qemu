@@ -140,7 +140,9 @@ bool enable_mlock = false;
 int nb_nics;
 NICInfo nd_table[MAX_NICS];
 int autostart;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 int with_gdb;
+#endif
 #if defined(CONFIG_VERBOSE)
 int verbosity_level = 0;
 #endif
@@ -481,7 +483,6 @@ static QemuOptsList qemu_icount_opts = {
 static QemuOptsList qemu_semihosting_config_opts = {
     .name = "semihosting-config",
     .implied_opt_name = "enable",
-    .merge_lists = true,
     .head = QTAILQ_HEAD_INITIALIZER(qemu_semihosting_config_opts.head),
     .desc = {
         {
@@ -490,14 +491,12 @@ static QemuOptsList qemu_semihosting_config_opts = {
         }, {
             .name = "target",
             .type = QEMU_OPT_STRING,
-        }, {
-            .name = "cmdline",
-            .type = QEMU_OPT_STRING,
         },
         { /* end of list */ }
     },
 };
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 static QemuOptsList qemu_semihosting_cmdline_opts = {
     .name = "semihosting-cmdline",
     .implied_opt_name = "cmdline",
@@ -507,6 +506,7 @@ static QemuOptsList qemu_semihosting_cmdline_opts = {
          { /* end of list */ }
     },
 };
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /**
  * Get machine options
@@ -1822,11 +1822,30 @@ static void main_loop(void)
 
 static void version(void)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+#if INTPTR_MAX == INT32_MAX
+#define QEMU_WORDSIZE "32-bit "
+#elif INTPTR_MAX == INT64_MAX
+#define QEMU_WORDSIZE "64-bit "
+#else
+#define QEMU_WORDSIZE ""
+#endif
+
     printf(
 #if defined(CONFIG_BRANDING_MESSAGE)
            CONFIG_BRANDING_MESSAGE " "
 #endif
-           "QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION ", Copyright (c) 2003-2008 Fabrice Bellard\n");
+           QEMU_WORDSIZE
+           "QEMU emulator version "
+           QEMU_VERSION QEMU_PKGVERSION
+           "\nCopyright (c) 2003-2008 Fabrice Bellard\n");
+    
+#else /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+
+    printf("QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION ", Copyright (c) 2003-2008 Fabrice Bellard\n");
+    
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 }
 
 static void help(int exitcode)
@@ -1860,7 +1879,9 @@ typedef struct QEMUOption {
 
 static const QEMUOption qemu_options[] = {
     { "h", 0, QEMU_OPTION_h, QEMU_ARCH_ALL },
+#if defined(CONFIG_VERBOSE)
     { "verbose", 0, QEMU_OPTION_verbose, QEMU_ARCH_ALL },
+#endif
 #define QEMU_OPTIONS_GENERATE_OPTIONS
 #include "qemu-options-wrapper.h"
     { NULL },
@@ -2790,7 +2811,9 @@ int main(int argc, char **argv, char **envp)
     uint64_t ram_slots = 0;
     FILE *vmstate_dump_file = NULL;
     Error *main_loop_err = NULL;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
     with_gdb = false;
+#endif
 
     qemu_init_cpu_loop();
     qemu_mutex_lock_iothread();
@@ -2810,9 +2833,17 @@ int main(int argc, char **argv, char **envp)
 #if defined(CONFIG_BRANDING_MESSAGE)
                CONFIG_BRANDING_MESSAGE " "
 #endif
+#if INTPTR_MAX == INT32_MAX
+#define QEMU_WORDSIZE "32-bit "
+#elif INTPTR_MAX == INT64_MAX
+#define QEMU_WORDSIZE "64-bit "
+#else
+#define QEMU_WORDSIZE ""
+#endif
+               QEMU_WORDSIZE
                "QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
     }
-#endif
+#endif /* defined(CONFIG_VERBOSE) */
 
     g_mem_set_vtable(&mem_trace);
 
@@ -2845,7 +2876,9 @@ int main(int argc, char **argv, char **envp)
     qemu_add_opts(&qemu_numa_opts);
     qemu_add_opts(&qemu_icount_opts);
     qemu_add_opts(&qemu_semihosting_config_opts);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
     qemu_add_opts(&qemu_semihosting_cmdline_opts);
+#endif
 
     runstate_init();
 
@@ -3170,11 +3203,15 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_s:
                 add_device_config(DEV_GDB, "tcp::" DEFAULT_GDBSTUB_PORT);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
                 with_gdb = true;
+#endif
                 break;
             case QEMU_OPTION_gdb:
                 add_device_config(DEV_GDB, optarg);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
                 with_gdb = true;
+#endif
                 break;
             case QEMU_OPTION_L:
                 if (data_dir_idx < ARRAY_SIZE(data_dir)) {
@@ -3610,6 +3647,7 @@ int main(int argc, char **argv, char **envp)
                     exit(1);
                 }
                 break;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_semihosting_cmdline:
                 opts = qemu_opts_parse(qemu_find_opts("semihosting-cmdline"),
                                            optarg, 0);
@@ -3618,6 +3656,7 @@ int main(int argc, char **argv, char **envp)
                     qemu_opt_set(opts, "cmdline", optarg, &local_err);
                 }
                 break;
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
             case QEMU_OPTION_tdf:
                 fprintf(stderr, "Warning: user space PIT time drift fix "
                                 "is no longer supported.\n");
@@ -4397,8 +4436,12 @@ int main(int argc, char **argv, char **envp)
             error_free(local_err);
             exit(1);
         }
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
     } else if (autostart && kernel_filename) {
         /* If an image is defined and no -S is requested, start it. */
+#else
+    } else if (autostart) {
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
         vm_start();
     }
 

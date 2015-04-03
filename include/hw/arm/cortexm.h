@@ -44,7 +44,4 @@ qemu_irq *cortex_m3_core_init(cortex_m_core_info *cm_info, MachineState *machine
 qemu_irq *cortex_m4_core_init(cortex_m_core_info *cm_info, MachineState *machine);
 qemu_irq *cortex_m7_core_init(cortex_m_core_info *cm_info, MachineState *machine);
 
-qemu_irq *cortexm_armv7m_init(MemoryRegion *system_memory, int flash_size_kb,
-                              int sram_size_kb, MachineState *machine);
-
 #endif /* HW_ARM_CORTEXM_H */

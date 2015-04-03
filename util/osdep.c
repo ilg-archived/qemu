@@ -306,7 +306,7 @@ int qemu_accept(int s, struct sockaddr *addr, socklen_t *addrlen)
     if (ret >= 0) {
         qemu_set_cloexec(ret);
     }
-    
+
     return ret;
 }
 

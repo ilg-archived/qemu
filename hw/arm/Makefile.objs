@@ -12,6 +12,7 @@ obj-$(CONFIG_ALLWINNER_A10) += allwinner-a10.o cubieboard.o
 obj-$(CONFIG_STM32F205_SOC) += stm32f205_soc.o
 
 
+# [GNU ARM Eclipse]
 # Cortex-M files
 obj-y += cortexm.o
 obj-$(CONFIG_STM32) += stm32_mcus.o stm32_boards.o stm32_olimex_boards.o
@@ -21,3 +22,4 @@ obj-$(CONFIG_LPC) += lpc_mcus.o lpc_boards.o
 obj-$(CONFIG_TIVA) += tiva_mcus.o tiva_boards.o
 obj-$(CONFIG_XMC) += xmc_mcus.o xmc_boards.o
 obj-$(CONFIG_SAM) += sam_mcus.o sam_boards.o
+# [GNU ARM Eclipse]

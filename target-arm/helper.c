@@ -1,3 +1,4 @@
+#include "config-host.h"
 #include "cpu.h"
 #include "internals.h"
 #include "exec/gdbstub.h"
@@ -4356,11 +4357,13 @@ static void do_v7m_exception_exit(CPUARMState *env)
        pointer.  */
 }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 void arm_v6m_cpu_do_interrupt(CPUState *cs)
 {
     /* TODO: Rewrite for v6m */
     return arm_v7m_cpu_do_interrupt(cs);
 }
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 void arm_v7m_cpu_do_interrupt(CPUState *cs)
 {

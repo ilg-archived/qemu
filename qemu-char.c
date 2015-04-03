@@ -2983,7 +2983,11 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
 {
     CharDriverState *chr = opaque;
     TCPCharDriver *s = chr->opaque;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
     struct sockaddr_in6 saddr;
+#else
+    struct sockaddr_in saddr;
+#endif
 #ifndef _WIN32
     struct sockaddr_un uaddr;
 #endif
@@ -2991,7 +2995,9 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
     socklen_t len;
     int fd;
 
+#if defined(CONFIG_VERBOSE)
     char str[INET6_ADDRSTRLEN];
+#endif /* defined(CONFIG_VERBOSE) */
 
     for(;;) {
 #ifndef _WIN32
