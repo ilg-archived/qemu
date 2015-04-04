@@ -33,9 +33,9 @@ IFS=$'\n\t'
 #
 # Prerequisites:
 #
-# sudo apt-get install gcc g++ git make m4 python sed tar unzip
-# sudo apt-get libtool automake autoconf pkgconfig wget autotools-dev
-# sudo apt-get install texinfo texlive bison flex doxygen
+# sudo apt-get install gcc g++ git make m4 python sed tar unzip wget
+# sudo apt-get install libtool pkg-config automake autoconf autotools-dev
+# sudo apt-get install texinfo texlive bison flex doxygen gettext
 #
 
 BEGIN_SEC=$(date +%s)
