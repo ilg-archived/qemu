@@ -19,13 +19,14 @@ IFS=$'\n\t'
 #
 # Prerequisites:
 #
-# sudo apt-get install gcc g++ git make m4 python sed tar unzip wget
-# sudo apt-get install libtool pkg-config automake autoconf autotools-dev
-# sudo apt-get install texinfo texlive bison flex doxygen
-# sudo apt-get install nsis dos2unix
-#
-# MinGW-W64 prerequisites:
-# sudo apt-get install mingw-w64 mingw-w64-tools mingw-w64-i686-dev mingw-w64-x86-64-dev
+# apt-get update
+# apt-get -y upgrade
+# apt-get -y install gcc g++ git make m4 python sed tar unzip wget \
+# libtool pkg-config automake autoconf autotools-dev \
+# xz-utils gettext libglib2.0-dev \
+# texinfo texlive bison flex doxygen \
+# nsis dos2unix \
+# mingw-w64 mingw-w64-tools mingw-w64-i686-dev mingw-w64-x86-64-dev \
 #
 
 # On Debian x86 and x64 it generates a TGZ that expands
@@ -135,6 +136,9 @@ done
 
 # ----- Externally configurable variables -----
 
+# Required by Docker.
+USER=${USER:-""}
+
 # The folder where the entire build procedure will run.
 # If you prefer to build in a separate folder, define it before invoking
 # the script.
@@ -144,7 +148,7 @@ then
   if [ -d "/media/psf/Home/Work" ]
   then
     QEMU_WORK_FOLDER="/media/psf/Home/Work/qemu"
-  elif [ -d "/media/${USER}/Work" ]
+  elif [ \( -n "${USER}" \) -a \( -d "/media/${USER}/Work" \) ]
   then
     QEMU_WORK_FOLDER="/media/${USER}/Work/qemu"
   elif [ -d /media/Work ]
@@ -153,6 +157,9 @@ then
   else
     QEMU_WORK_FOLDER="${HOME}/Work/qemu"
   fi
+
+  echo
+  echo "Work folder ${QEMU_WORK_FOLDER}"
 fi
 
 # Create the work folder.
@@ -262,13 +269,6 @@ then
 
     rm -rf "${QEMU_BUILD_FOLDER}/openocd"
 
-    # Prepare autotools.
-    echo
-    echo "bootstrap..."
-
-    cd "${QEMU_GIT_FOLDER}"
-    ./bootstrap
-
     echo
     echo "Pull completed. Proceed with a regular build."
     exit 0
@@ -310,12 +310,6 @@ then
   git checkout gnuarmeclipse-dev
   git submodule update
 
-  # Prepare autotools.
-  cd "${QEMU_GIT_FOLDER}"
-  echo
-  echo "bootstrap..."
-
-  ./bootstrap
 fi
 
 # Get the current Git branch name, to know if we are building the stable or
