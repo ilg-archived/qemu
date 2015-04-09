@@ -765,6 +765,7 @@ case $target_list in
     guest_agent="no"
     bzip2="no"
     libusb="no"
+    # fdt="no" # it fails
     ;;
 esac
 # --- [GNU ARM Eclipse] ---

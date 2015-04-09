@@ -2,10 +2,10 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-# Script to build GNU ARM Eclipse QEMU.
+# Multi-platform script to build the GNU ARM Eclipse QEMU distribution packages.
 
 # On OS X it produces an install package that expands
-# in "/Applications/GNU ARM Eclipse/QEMU/version".
+# in "/Applications/GNU ARM Eclipse/QEMU/$version".
 #
 # OS X prerequisites:
 #
@@ -15,29 +15,55 @@ IFS=$'\n\t'
 # sudo port install texinfo texlive
 #
 
-# On Ubuntu it can cross build Windows 32/64-bit setups.
+# On Debian 8 (and Ubuntu 14) it cross builds Windows 32/64-bit setups
+# (-win32/-win64) that expand in
+# "C:/Program Files/GNU ARM Eclipse/QEMU/$version".
+#
+# Prerequisites:
+#
+# apt-get -y update
+# apt-get -y upgrade
+# apt-get -y install \
+# lsb-release \
+# gcc g++ git make m4 python sed tar unzip curl wget \
+# tar unzip bzip2 xz-utils \
+# libtool pkg-config automake autoconf autotools-dev \
+# gettext libglib2.0-dev \
+# texinfo texlive bison flex doxygen \
+# nsis dos2unix \
+# binutils-mingw-w64-i686 \
+# binutils-mingw-w64-x86-64 \
+# g++-mingw-w64 \
+# g++-mingw-w64-i686 \
+# g++-mingw-w64-x86-64 \
+# gcc-mingw-w64 \
+# gcc-mingw-w64-base \
+# gcc-mingw-w64-i686 \
+# gcc-mingw-w64-x86-64 \
+# gdb-mingw-w64 \
+# gdb-mingw-w64-target \
+# mingw-w64 \
+# mingw-w64-i686-dev \
+# mingw-w64-tools \
+# mingw-w64-x86-64-dev
+#
+
+# On Debian 7 x86 and x64 it generates a TGZ that expands
+# in "/opt/gnuarmeclipse/qemu/$version".
 #
 # Prerequisites:
 #
 # apt-get update
 # apt-get -y upgrade
 # apt-get -y install gcc g++ git make m4 python sed tar unzip wget \
+# tar unzip bzip2 xz-utils \
 # libtool pkg-config automake autoconf autotools-dev \
-# xz-utils gettext libglib2.0-dev \
+# gettext libglib2.0-dev \
 # texinfo texlive bison flex doxygen \
 # nsis dos2unix \
-# mingw-w64 mingw-w64-tools mingw-w64-i686-dev mingw-w64-x86-64-dev \
 #
-
-# On Debian x86 and x64 it generates a TGZ that expands
-# in "/opt/gnuarmeclipse/qemu/version".
-#
-# Prerequisites:
-#
-# sudo apt-get install gcc g++ git make m4 python sed tar unzip wget
-# sudo apt-get install libtool pkg-config automake autoconf autotools-dev
-# sudo apt-get install texinfo texlive bison flex doxygen gettext
-#
+# Note: Debian 7.8 fails to build the windows version because it lacks the
+# libwinpthread-1.dll. Debian 8.0 is fine.
 
 BEGIN_SEC=$(date +%s)
 
@@ -159,7 +185,7 @@ then
   fi
 
   echo
-  echo "Work folder ${QEMU_WORK_FOLDER}"
+  echo "Work folder \"${QEMU_WORK_FOLDER}\""
 fi
 
 # Create the work folder.
@@ -201,12 +227,36 @@ PKG_CONFIG_LIBDIR=${PKG_CONFIG_LIBDIR:-""}
 
 # ----- Local variables -----
 
-QEMU_GIT_FOLDER="${QEMU_WORK_FOLDER}/gnuarmeclipse-qemu.git"
+# When running on Docker, the host Work folder is used, if available.
+QEMU_HOST_WORK_FOLDER="${QEMU_WORK_FOLDER}/../../Host/Work/qemu"
+
+if [ -d "${QEMU_HOST_WORK_FOLDER}/gnuarmeclipse-qemu.git" ]
+then
+  QEMU_GIT_FOLDER="${QEMU_HOST_WORK_FOLDER}/gnuarmeclipse-qemu.git"
+  echo "Using host git \"${QEMU_GIT_FOLDER}\""
+else
+  QEMU_GIT_FOLDER="${QEMU_WORK_FOLDER}/gnuarmeclipse-qemu.git"
+fi
+
+if [ -d "${QEMU_HOST_WORK_FOLDER}/download" ]
+then
+  QEMU_DOWNLOAD_FOLDER="${QEMU_HOST_WORK_FOLDER}/download"
+  echo "Using host download \"${QEMU_DOWNLOAD_FOLDER}\""
+else
+  QEMU_DOWNLOAD_FOLDER="${QEMU_WORK_FOLDER}/download"
+fi
+
+if [ -d "${QEMU_HOST_WORK_FOLDER}" ]
+then
+  QEMU_OUTPUT="${QEMU_HOST_WORK_FOLDER}/output"
+  echo "Using host output \"${QEMU_OUTPUT}\""
+else
+  QEMU_OUTPUT="${QEMU_WORK_FOLDER}/output"
+fi
+
 QEMU_PATCHES_FOLDER="${QEMU_GIT_FOLDER}/gnuarmeclipse/patches"
-QEMU_DOWNLOAD_FOLDER="${QEMU_WORK_FOLDER}/download"
 QEMU_BUILD_FOLDER="${QEMU_WORK_FOLDER}/build/${QEMU_TARGET_LONG}"
 QEMU_INSTALL_FOLDER="${QEMU_WORK_FOLDER}/install/${QEMU_TARGET_LONG}"
-QEMU_OUTPUT="${QEMU_WORK_FOLDER}/output"
 
 WGET="wget"
 WGET_OUT="-O"
@@ -319,6 +369,9 @@ QEMU_GIT_HEAD=$(git symbolic-ref -q --short HEAD)
 
 # On first run, create the build folder.
 mkdir -p "${QEMU_BUILD_FOLDER}/qemu"
+
+if false
+then
 
 # ----- Build the Zlib library -----
 
@@ -793,7 +846,7 @@ then
     CFLAGS="-m${TARGET_BITS} -I${QEMU_INSTALL_FOLDER}/include" \
     LDFLAGS="-v -L${QEMU_INSTALL_FOLDER}/lib" \
     \
-    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/${CROSS_COMPILE_PREFIX}-pkg-config" \
     PKG_CONFIG_PATH=\
 "${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
 "${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
@@ -893,7 +946,7 @@ then
     CFLAGS="-m${TARGET_BITS} -pipe" \
     LDFLAGS="-v" \
     \
-    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/${CROSS_COMPILE_PREFIX}-pkg-config" \
     PKG_CONFIG_PATH=\
 "${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
 "${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
@@ -943,6 +996,7 @@ then
   # Please note that PIXMAN generates a lib/pkgconfig/pixman-1.pc file.
 fi
 
+fi
 
 # ----- Build QEMU -----
 
@@ -969,13 +1023,15 @@ then
 "${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
     \
     bash "${QEMU_GIT_FOLDER}/configure" \
-      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
+      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include -Wno-missing-format-attribute" \
       --extra-ldflags="-v -L${QEMU_INSTALL_FOLDER}/lib" \
       --target-list="gnuarmeclipse-softmmu" \
       --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
+      --enable-trace-backend=stderr \
+    | tee configure-output.txt
 
     # Configure fails for --static
 
@@ -995,13 +1051,15 @@ then
     bash "${QEMU_GIT_FOLDER}/configure" \
       --static \
       \
-      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
+      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include -Wno-missing-format-attribute" \
       --extra-ldflags="-L${QEMU_INSTALL_FOLDER}/lib" \
       --target-list="gnuarmeclipse-softmmu" \
       --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
+      --enable-trace-backend=stderr \
+    | tee configure-output.txt
 
     # Note: a very important detail here is LDFLAGS='-Wl,-rpath=\$$ORIGIN which
     # adds a special record to the ELF file asking the loader to search for the
@@ -1017,22 +1075,23 @@ then
 
     LDFLAGS="-L${QEMU_INSTALL_FOLDER}/lib" \
     \
-    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/cross-pkg-config" \
+    PKG_CONFIG="${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/${CROSS_COMPILE_PREFIX}-pkg-config" \
     PKG_CONFIG_PATH=\
 "${QEMU_INSTALL_FOLDER}/lib/pkgconfig":\
 "${QEMU_INSTALL_FOLDER}/lib64/pkgconfig" \
     \
     bash "${QEMU_GIT_FOLDER}/configure" \
       --cross-prefix="${CROSS_COMPILE_PREFIX}-" \
-      --static \
       \
-      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include" \
+      --extra-cflags="-pipe -I${QEMU_INSTALL_FOLDER}/include -Wno-missing-format-attribute -D_POSIX=1 -mthreads" \
       --extra-ldflags="-v" \
       --target-list="gnuarmeclipse-softmmu" \
       --prefix="${QEMU_INSTALL_FOLDER}/qemu" \
       --bindir="${QEMU_INSTALL_FOLDER}/qemu/bin" \
       --docdir="${QEMU_INSTALL_FOLDER}/qemu/doc" \
       --mandir="${QEMU_INSTALL_FOLDER}/qemu/man" \
+      --enable-trace-backend=stderr \
+      | tee configure-output.txt
 
   fi
 
@@ -1046,7 +1105,7 @@ echo "make QEMU..."
 # The bindir and pkgdatadir are required to configure bin and scripts folders
 # at the same level in the hierarchy.
 cd "${QEMU_BUILD_FOLDER}/qemu"
-make ${MAKE_JOBS} all pdf
+make ${MAKE_JOBS} all pdf | tee make-output.txt
 
 # Always clear the destination folder, to have a consistent package.
 rm -rf "${QEMU_INSTALL_FOLDER}/qemu"
@@ -1212,6 +1271,7 @@ then
 
   # Although the build is static, the mingw-w64 specific dlls need to be present.
 
+  SUBLOCATION="-win32"
   function copy_gcc_dll {
 
     # First try Ubuntu specific locations,
@@ -1225,6 +1285,10 @@ then
     then
       cp -v "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION_SHORT}/$1" \
         "${QEMU_INSTALL_FOLDER}/qemu/bin"
+    elif [ -f "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION_SHORT}${SUBLOCATION}/$1" ]
+    then
+      cp -v "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION_SHORT}${SUBLOCATION}/$1" \
+        "${QEMU_INSTALL_FOLDER}/qemu/bin"
     else
       echo "Searching /usr for $1..."
       SJLJ_PATH=$(find /usr \! -readable -prune -o -name $1 -print | grep ${CROSS_COMPILE_PREFIX})
@@ -1233,13 +1297,37 @@ then
 
   }
 
+  function copy_gcc_dlls {
+
+    if [ -d "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION}/" ]
+    then
+      cp -v "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION}/"*.dll \
+        "${QEMU_INSTALL_FOLDER}/qemu/bin"
+    elif [ -d "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION_SHORT}/" ]
+    then
+      cp -v "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION_SHORT}/"*.dll \
+        "${QEMU_INSTALL_FOLDER}/qemu/bin"
+    elif [ -d "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION_SHORT}${SUBLOCATION}/" ]
+    then
+      cp -v "/usr/lib/gcc/${CROSS_COMPILE_PREFIX}/${CROSS_GCC_VERSION_SHORT}${SUBLOCATION}/"*.dll \
+        "${QEMU_INSTALL_FOLDER}/qemu/bin"
+    else
+      echo "No DLLs"
+      exit 1
+    fi
+
+  }
+
   # Identify the current cross gcc version, to locate the specific dll folder.
   CROSS_GCC_VERSION=$(${CROSS_COMPILE_PREFIX}-gcc --version | grep 'gcc' | sed -e 's/.*\s\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\).*/\1.\2.\3/')
   CROSS_GCC_VERSION_SHORT=$(echo $CROSS_GCC_VERSION | sed -e 's/\([0-9]*\)[.]\([0-9]*\)[.]\([0-9]*\).*/\1.\2/')
 
-  copy_gcc_dll "libgcc_s_sjlj-1.dll"
-  copy_gcc_dll "libssp-0.dll"
-  copy_gcc_dll "libstdc++-6.dll"
+  echo "${CROSS_GCC_VERSION}" "${CROSS_GCC_VERSION_SHORT}"
+  # copy_gcc_dll "libgcc_s_sjlj-1.dll"
+  # copy_gcc_dll "libssp-0.dll"
+  # copy_gcc_dll "libstdc++-6.dll"
+
+  copy_gcc_dlls
 
   if [ -f "/usr/${CROSS_COMPILE_PREFIX}/lib/libwinpthread-1.dll" ]
   then
@@ -1259,6 +1347,20 @@ then
   # cp "${QEMU_INSTALL_FOLDER}/bin/libffi-6.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
   # cp "${QEMU_INSTALL_FOLDER}/bin/libcharset-1.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
   # cp "${QEMU_INSTALL_FOLDER}/bin/libasprintf-0.dll" "${QEMU_INSTALL_FOLDER}/qemu/bin"
+
+  if [ "${TARGET_BITS}" == "64" ]
+  then
+    # for f in libintl-8.dll libiconv-2.dll libffi-6.dll libcharset-1.dll libasprintf-0.dll
+    for f in libintl-8.dll libiconv-2.dll libglib-2.0-0.dll libpixman-1-0.dll zlib1.dll
+    do
+      cp -v "/usr/${CROSS_COMPILE_PREFIX}/bin/${f}" "${QEMU_INSTALL_FOLDER}/qemu/bin"
+    done
+  else
+    for f in libglib-2.0-0.dll zlib1.dll libgthread-2.0-0.dll intl.dll
+    do
+      cp -v "/usr/${CROSS_COMPILE_PREFIX}/bin/${f}" "${QEMU_INSTALL_FOLDER}/qemu/bin"
+    done
+  fi
 
   ${CROSS_COMPILE_PREFIX}-strip "${QEMU_INSTALL_FOLDER}/qemu/bin/"*.dll
 
@@ -1295,12 +1397,12 @@ function copy_info {
 
 copy_info "${QEMU_GIT_FOLDER}" "qemu-$(cat ${QEMU_GIT_FOLDER}/VERSION)"
 
-copy_info "${QEMU_BUILD_FOLDER}/${ZLIB_FOLDER}" "${ZLIB_FOLDER}"
-copy_info "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}" "${ICONV_FOLDER}"
-copy_info "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}" "${GETTEXT_FOLDER}"
-copy_info "${QEMU_BUILD_FOLDER}/${LIBFFI_FOLDER}" "${LIBFFI_FOLDER}"
-copy_info "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}" "${GLIB_FOLDER}"
-copy_info "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}" "${PIXMAN_FOLDER}"
+# copy_info "${QEMU_BUILD_FOLDER}/${ZLIB_FOLDER}" "${ZLIB_FOLDER}"
+# copy_info "${QEMU_BUILD_FOLDER}/${ICONV_FOLDER}" "${ICONV_FOLDER}"
+# copy_info "${QEMU_BUILD_FOLDER}/${GETTEXT_FOLDER}" "${GETTEXT_FOLDER}"
+# copy_info "${QEMU_BUILD_FOLDER}/${LIBFFI_FOLDER}" "${LIBFFI_FOLDER}"
+# copy_info "${QEMU_BUILD_FOLDER}/${GLIB_FOLDER}" "${GLIB_FOLDER}"
+# copy_info "${QEMU_BUILD_FOLDER}/${PIXMAN_FOLDER}" "${PIXMAN_FOLDER}"
 
 if [ "${TARGET_GENERIC}" == "win" ]
 then
@@ -1331,6 +1433,10 @@ do_unix2dos "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/CHANGES.txt"
 /usr/bin/install -v -c -m 644 "${QEMU_GIT_FOLDER}/gnuarmeclipse/scripts/build-qemu.sh" \
   "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/"
 do_unix2dos "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/build-qemu.sh"
+
+/usr/bin/install -v -c -m 644 "${QEMU_BUILD_FOLDER}/qemu/configure-output.txt" \
+  "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/"
+do_unix2dos "${QEMU_INSTALL_FOLDER}/qemu/gnuarmeclipse/configure-output.txt"
 
 # Remove useless files
 
