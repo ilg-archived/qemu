@@ -134,6 +134,11 @@ extern int graphic_rotate;
 extern int no_quit;
 extern int no_shutdown;
 extern int semihosting_enabled;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+extern int semihosting_argc;
+extern char **semihosting_argv;
+extern const char *semihosting_cmdline;
+#endif
 extern int old_param;
 extern int boot_menu;
 extern bool boot_strict;

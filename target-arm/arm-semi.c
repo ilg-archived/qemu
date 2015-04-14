@@ -39,6 +39,7 @@
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qemu/option.h"
 #include "qemu/config-file.h"
+#include "sysemu/sysemu.h"
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 #endif
 
@@ -452,14 +453,8 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             /* Compute the size of the output string.  */
 #if !defined(CONFIG_USER_ONLY)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-            QemuOpts *opts;
-            const char *cmdline;
-
-            opts = qemu_opts_find(qemu_find_opts("semihosting-cmdline"), NULL);
-            cmdline = qemu_opt_get(opts, "cmdline");
-
-            if (cmdline) {
-                output_size = strlen(cmdline) + 1;
+            if (semihosting_cmdline) {
+                output_size = strlen(semihosting_cmdline) + 1;
             } else {
                 output_size = strlen(ts->boot_info->kernel_filename)
                         + 1  /* Separating space.  */
@@ -503,8 +498,8 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             /* Copy the command-line arguments.  */
 #if !defined(CONFIG_USER_ONLY)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-            if (cmdline) {
-                pstrcpy(output_buffer, output_size, cmdline);
+            if (semihosting_cmdline) {
+                pstrcpy(output_buffer, output_size, semihosting_cmdline);
             } else {
                 pstrcpy(output_buffer, output_size,
                         ts->boot_info->kernel_filename);

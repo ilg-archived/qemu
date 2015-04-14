@@ -48,7 +48,6 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
     
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
-        QemuOpts *opts;
         const char *cmdline;
         const char *kernel_filename = machine->kernel_filename;
         const char *cpu_model = machine->cpu_model;
@@ -65,9 +64,7 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
             printf("Image: '%s'.\n", kernel_filename);
         }
         
-        opts = qemu_opts_find(qemu_find_opts("semihosting-cmdline"), NULL);
-        cmdline = qemu_opt_get(opts, "cmdline");
-        
+        cmdline =  semihosting_cmdline;
         if (cmdline == NULL) {
             cmdline = machine->kernel_cmdline;
         }

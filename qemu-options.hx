@@ -3308,16 +3308,17 @@ Enable semihosting and define where the semihosting calls will be addressed,
 to QEMU (@code{native}) or to GDB (@code{gdb}). The default is @code{auto}, which means
 @code{gdb} during debug sessions and @code{native} otherwise (ARM, M68K, Xtensa only).
 ETEXI
-DEF("semihosting-cmdline", HAS_ARG, QEMU_OPTION_semihosting_cmdline,
-    "-semihosting-cmdline [string]   semihosting command line\n",
+DEF("semihosting-cmdline", 0, QEMU_OPTION_semihosting_cmdline,
+    "-semihosting-cmdline   semihosting command line\n",
 QEMU_ARCH_ARM | QEMU_ARCH_M68K | QEMU_ARCH_XTENSA | QEMU_ARCH_LM32)
 STEXI
-@item -semihosting-cmdline [string]
+@item -semihosting-cmdline
 @findex -semihosting-cmdline
 The
 @code{cmdline} defines the entire command line passed to the application via the
 semihosting calls, including the program name that will be
-passed as argv[0].
+passed as argv[0]. Must be the last option, all following options
+are passed unchanged to the application.
 (ARM, M68K, Xtensa only)
 ETEXI
 DEF("old-param", 0, QEMU_OPTION_old_param,

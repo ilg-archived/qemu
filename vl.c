@@ -177,6 +177,11 @@ const char *watchdog;
 QEMUOptionRom option_rom[MAX_OPTION_ROMS];
 int nb_option_roms;
 int semihosting_enabled = 0;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+int semihosting_argc = 0;
+char **semihosting_argv = NULL;
+const char *semihosting_cmdline = NULL;
+#endif
 int old_param = 0;
 const char *qemu_name;
 int alt_grab = 0;
@@ -495,18 +500,6 @@ static QemuOptsList qemu_semihosting_config_opts = {
         { /* end of list */ }
     },
 };
-
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-static QemuOptsList qemu_semihosting_cmdline_opts = {
-    .name = "semihosting-cmdline",
-    .implied_opt_name = "cmdline",
-    .merge_lists = true,
-    .head = QTAILQ_HEAD_INITIALIZER(qemu_semihosting_cmdline_opts.head),
-    .desc = {
-         { /* end of list */ }
-    },
-};
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /**
  * Get machine options
@@ -2771,6 +2764,54 @@ static void set_memory_options(uint64_t *ram_slots, ram_addr_t *maxram_size)
     }
 }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+static const char *concatenate_semihosting_cmdline(int argc, char **argv)
+{
+    int total_size = 0;
+    int i;
+  
+    for (i = 0; i < argc; ++i) {
+        total_size += strlen(argv[i]);
+        total_size += 1; /* Add separator spaces */
+        if (rindex(argv[i], ' ') != NULL) {
+            total_size += 2; /* Provision for quotes */
+        }
+    }
+    
+    char *cmdline = malloc(total_size);
+    char *p = cmdline;
+    *p = '\0'; /* Prepare for empty command line */
+    for (i = 0; i < argc; ++i) {
+        if (i != 0) {
+            *p++ = ' ';
+        }
+        if (rindex(argv[i], ' ') == NULL) {
+            strcpy(p, argv[i]);
+            p += strlen(argv[i]);
+        } else {
+            /* If no quotes found, it is safe to use them for grouping */
+            if (rindex(argv[i], '"') == NULL) {
+                *p++ = '"';
+                strcpy(p, argv[i]);
+                p += strlen(argv[i]);
+                *p++ = '"';
+            } else {
+                /* Does not work if string has both quotes and apostrophs */
+                *p++ = '\'';
+                strcpy(p, argv[i]);
+                p += strlen(argv[i]);
+                *p++ = '\'';
+            }
+        }
+        *p = '\0';
+    }
+
+    return cmdline;
+}
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 int main(int argc, char **argv, char **envp)
 {
     int i;
@@ -2876,9 +2917,6 @@ int main(int argc, char **argv, char **envp)
     qemu_add_opts(&qemu_numa_opts);
     qemu_add_opts(&qemu_icount_opts);
     qemu_add_opts(&qemu_semihosting_config_opts);
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    qemu_add_opts(&qemu_semihosting_cmdline_opts);
-#endif
 
     runstate_init();
 
@@ -2917,6 +2955,17 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_nouserconfig:
                 userconfig = false;
                 break;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+            case QEMU_OPTION_semihosting_cmdline:
+                /* no HAS_ARGS, optind set to next option */
+                semihosting_argc = argc - optind;
+                semihosting_argv = &argv[optind];
+                /* Diminish count to hide semihosting command line */
+                argc = optind - 1; /* exclude current option */
+                
+                semihosting_cmdline = concatenate_semihosting_cmdline(semihosting_argc, semihosting_argv);
+                break;
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
             }
         }
     }
@@ -3647,16 +3696,6 @@ int main(int argc, char **argv, char **envp)
                     exit(1);
                 }
                 break;
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-            case QEMU_OPTION_semihosting_cmdline:
-                opts = qemu_opts_parse(qemu_find_opts("semihosting-cmdline"),
-                                           optarg, 0);
-                if (opts != NULL) {
-                    Error *local_err = NULL;
-                    qemu_opt_set(opts, "cmdline", optarg, &local_err);
-                }
-                break;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
             case QEMU_OPTION_tdf:
                 fprintf(stderr, "Warning: user space PIT time drift fix "
                                 "is no longer supported.\n");
