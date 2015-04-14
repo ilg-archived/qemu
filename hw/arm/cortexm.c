@@ -186,6 +186,12 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
     /* Assume 8000000 Hz */
     /* TODO: compute according to board clock & pll settings */
     system_clock_scale = 80;
+
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level > 0) {
+        printf("Core initialised.\n");
+    }
+#endif
     
     return pic;
 }

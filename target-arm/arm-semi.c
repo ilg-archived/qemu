@@ -594,6 +594,11 @@ uint32_t do_arm_semihosting(CPUARMState *env)
          * exit, everything else is considered an error */
         ret = (args == ADP_Stopped_ApplicationExit) ? 0 : 1;
         gdb_exit(env, ret);
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level > 0) {
+        printf("QEMU exit(%d)\n", ret);
+    }
+#endif
         exit(ret);
     default:
         fprintf(stderr, "qemu: Unsupported SemiHosting SWI 0x%02x\n", nr);

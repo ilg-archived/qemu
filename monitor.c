@@ -4130,7 +4130,7 @@ static void handle_user_command(Monitor *mon, const char *cmdline)
     } else {
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level > 0) {
-            printf("Execute 'mon %s'.\n", cmdline);
+            printf("Execute 'mon %s'.\n\n", cmdline);
         }
 #endif
         cmd->mhandler.cmd(mon, qdict);
