@@ -96,9 +96,11 @@ extern bool gdb_has_xml;
 extern const char *const xml_builtin[][2];
 
 /* Command line option defining whether semihosting should go via gdb or not */
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
 extern int semihosting_target;
 #define SEMIHOSTING_TARGET_AUTO     0
 #define SEMIHOSTING_TARGET_NATIVE   1
 #define SEMIHOSTING_TARGET_GDB      2
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #endif

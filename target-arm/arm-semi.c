@@ -453,8 +453,8 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             /* Compute the size of the output string.  */
 #if !defined(CONFIG_USER_ONLY)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-            if (semihosting_cmdline) {
-                output_size = strlen(semihosting_cmdline) + 1;
+            if (semihosting.cmdline) {
+                output_size = strlen(semihosting.cmdline) + 1;
             } else {
                 output_size = strlen(ts->boot_info->kernel_filename)
                         + 1  /* Separating space.  */
@@ -498,8 +498,8 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             /* Copy the command-line arguments.  */
 #if !defined(CONFIG_USER_ONLY)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-            if (semihosting_cmdline) {
-                pstrcpy(output_buffer, output_size, semihosting_cmdline);
+            if (semihosting.cmdline) {
+                pstrcpy(output_buffer, output_size, semihosting.cmdline);
             } else {
                 pstrcpy(output_buffer, output_size,
                         ts->boot_info->kernel_filename);

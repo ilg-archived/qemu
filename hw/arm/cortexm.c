@@ -64,7 +64,7 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
             printf("Image: '%s'.\n", kernel_filename);
         }
         
-        cmdline =  semihosting_cmdline;
+        cmdline =  semihosting.cmdline;
         if (cmdline == NULL) {
             cmdline = machine->kernel_cmdline;
         }

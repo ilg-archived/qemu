@@ -176,12 +176,11 @@ int graphic_rotate = 0;
 const char *watchdog;
 QEMUOptionRom option_rom[MAX_OPTION_ROMS];
 int nb_option_roms;
-int semihosting_enabled = 0;
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-int semihosting_argc = 0;
-char **semihosting_argv = NULL;
-const char *semihosting_cmdline = NULL;
-#endif
+Semihosting semihosting;
+#else
+int semihosting_enabled = 0;
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 int old_param = 0;
 const char *qemu_name;
 int alt_grab = 0;
@@ -2853,7 +2852,13 @@ int main(int argc, char **argv, char **envp)
     FILE *vmstate_dump_file = NULL;
     Error *main_loop_err = NULL;
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
+    int actual_argc = argc;
     with_gdb = false;
+    
+    semihosting.enabled = 0;
+    semihosting.argc = 0;
+    semihosting.argv = NULL;
+    semihosting.cmdline = NULL;
 #endif
 
     qemu_init_cpu_loop();
@@ -2958,12 +2963,12 @@ int main(int argc, char **argv, char **envp)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_semihosting_cmdline:
                 /* no HAS_ARGS, optind set to next option */
-                semihosting_argc = argc - optind;
-                semihosting_argv = &argv[optind];
+                semihosting.argc = argc - optind;
+                semihosting.argv = &argv[optind];
                 /* Diminish count to hide semihosting command line */
-                argc = optind - 1; /* exclude current option */
+                actual_argc = optind - 1; /* exclude current option */
                 
-                semihosting_cmdline = concatenate_semihosting_cmdline(semihosting_argc, semihosting_argv);
+                semihosting.cmdline = concatenate_semihosting_cmdline(semihosting.argc, semihosting.argv);
                 break;
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
             }
@@ -2981,14 +2986,23 @@ int main(int argc, char **argv, char **envp)
     /* second pass of option parsing */
     optind = 1;
     for(;;) {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        if (optind >= actual_argc)
+            break;
+#else
         if (optind >= argc)
             break;
+#endif
         if (argv[optind][0] != '-') {
             hda_opts = drive_add(IF_DEFAULT, 0, argv[optind++], HD_OPTS);
         } else {
             const QEMUOption *popt;
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+            popt = lookup_opt(actual_argc, argv, &optarg, &optind);
+#else
             popt = lookup_opt(argc, argv, &optarg, &optind);
+#endif
             if (!(popt->arch_mask & arch_type)) {
                 printf("Option %s not supported for this target\n", popt->name);
                 exit(1);
@@ -3663,10 +3677,45 @@ int main(int argc, char **argv, char **envp)
                 nb_option_roms++;
                 break;
             case QEMU_OPTION_semihosting:
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+                semihosting.enabled = 1;
+                semihosting.target = SEMIHOSTING_TARGET_AUTO;
+#else
                 semihosting_enabled = 1;
                 semihosting_target = SEMIHOSTING_TARGET_AUTO;
+#endif
                 break;
             case QEMU_OPTION_semihosting_config:
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+                semihosting.enabled = 1;
+                opts = qemu_opts_parse(qemu_find_opts("semihosting-config"),
+                                           optarg, 0);
+                if (opts != NULL) {
+                    semihosting.enabled = qemu_opt_get_bool(opts, "enable",
+                                                            true);
+                    const char *target = qemu_opt_get(opts, "target");
+                    if (target != NULL) {
+                        if (strcmp("native", target) == 0) {
+                            semihosting.target = SEMIHOSTING_TARGET_NATIVE;
+                        } else if (strcmp("gdb", target) == 0) {
+                            semihosting.target = SEMIHOSTING_TARGET_GDB;
+                        } else  if (strcmp("auto", target) == 0) {
+                            semihosting.target = SEMIHOSTING_TARGET_AUTO;
+                        } else {
+                            fprintf(stderr, "Unsupported semihosting-config"
+                                    " %s\n",
+                                optarg);
+                            exit(1);
+                        }
+                    } else {
+                        semihosting.target = SEMIHOSTING_TARGET_AUTO;
+                    }
+                } else {
+                    fprintf(stderr, "Unsupported semihosting-config %s\n",
+                            optarg);
+                    exit(1);
+                }
+#else
                 semihosting_enabled = 1;
                 opts = qemu_opts_parse(qemu_find_opts("semihosting-config"),
                                            optarg, 0);
@@ -3695,6 +3744,7 @@ int main(int argc, char **argv, char **envp)
                             optarg);
                     exit(1);
                 }
+#endif
                 break;
             case QEMU_OPTION_tdf:
                 fprintf(stderr, "Warning: user space PIT time drift fix "

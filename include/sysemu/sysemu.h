@@ -133,12 +133,32 @@ extern int cursor_hide;
 extern int graphic_rotate;
 extern int no_quit;
 extern int no_shutdown;
-extern int semihosting_enabled;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-extern int semihosting_argc;
-extern char **semihosting_argv;
-extern const char *semihosting_cmdline;
+
+/* Define where the semihosting calls are sent. */
+#define SEMIHOSTING_TARGET_AUTO     0
+#define SEMIHOSTING_TARGET_NATIVE   1
+#define SEMIHOSTING_TARGET_GDB      2
+
+/* Semihosting status */
+typedef struct {
+    int enabled; /* 1 if enabled */
+    int target; /* see above */
+    int argc;
+    char **argv;
+    const char *cmdline; /* concatenated argv */
+} Semihosting;
+
+extern Semihosting semihosting;
+
+/* Temporary definition, until all references are replaced. */
+#define semihosting_enabled semihosting.enabled
+
+#else
+extern int semihosting_enabled;
 #endif
+
 extern int old_param;
 extern int boot_menu;
 extern bool boot_strict;

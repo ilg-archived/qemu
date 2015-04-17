@@ -317,7 +317,9 @@ static GDBState *gdbserver_state;
 
 bool gdb_has_xml;
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
 int semihosting_target = SEMIHOSTING_TARGET_AUTO;
+#endif
 
 #ifdef CONFIG_USER_ONLY
 /* XXX: This is not thread safe.  Do we care?  */
@@ -356,6 +358,15 @@ static enum {
 /* Decide if either remote gdb syscalls or native file IO should be used. */
 int use_gdb_syscalls(void)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    if (semihosting.target == SEMIHOSTING_TARGET_NATIVE) {
+        /* -semihosting-config target=native */
+        return false;
+    } else if (semihosting.target == SEMIHOSTING_TARGET_GDB) {
+        /* -semihosting-config target=gdb */
+        return true;
+    }
+#else
     if (semihosting_target == SEMIHOSTING_TARGET_NATIVE) {
         /* -semihosting-config target=native */
         return false;
@@ -363,7 +374,7 @@ int use_gdb_syscalls(void)
         /* -semihosting-config target=gdb */
         return true;
     }
-
+#endif
     /* -semihosting-config target=auto */
     /* On the first call check if gdb is connected and remember. */
     if (gdb_syscall_mode == GDB_SYS_UNKNOWN) {
