@@ -327,7 +327,7 @@ seccomp=""
 glusterfs=""
 glusterfs_discard="no"
 glusterfs_zerofill="no"
-archipelago=""
+archipelago="no"
 gtk=""
 gtkabi=""
 vte=""
@@ -1895,19 +1895,14 @@ fi
 # libseccomp check
 
 if test "$seccomp" != "no" ; then
-    if $pkg_config --atleast-version=2.2.0 libseccomp ||
-        (test "$cpu" = "i386" || test "$cpu" = "x86_64" &&
-        $pkg_config --atleast-version=2.1.1 libseccomp); then
+    if test "$cpu" = "i386" || test "$cpu" = "x86_64" &&
+        $pkg_config --atleast-version=2.1.1 libseccomp; then
         libs_softmmu="$libs_softmmu `$pkg_config --libs libseccomp`"
         QEMU_CFLAGS="$QEMU_CFLAGS `$pkg_config --cflags libseccomp`"
 	seccomp="yes"
     else
 	if test "$seccomp" = "yes"; then
-        if test "$cpu" = "i386" || test "$cpu" = "x86_64"; then
             feature_not_found "libseccomp" "Install libseccomp devel >= 2.1.1"
-        else
-            feature_not_found "libseccomp" "Install libseccomp devel >= 2.2.0"
-        fi
 	fi
 	seccomp="no"
     fi
@@ -3220,6 +3215,12 @@ EOF
         archipelago="yes"
         libs_tools="$archipelago_libs $libs_tools"
         libs_softmmu="$archipelago_libs $libs_softmmu"
+
+	echo "WARNING: Please check the licenses of QEMU and libxseg carefully."
+	echo "GPLv3 versions of libxseg may not be compatible with QEMU's"
+	echo "license and therefore prevent redistribution."
+	echo
+	echo "To disable Archipelago, use --disable-archipelago"
     else
       if test "$archipelago" = "yes" ; then
         feature_not_found "Archipelago backend support" "Install libxseg devel"
