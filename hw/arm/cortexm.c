@@ -157,7 +157,7 @@ qemu_irq *cortex_m_core_init(cortex_m_core_info *cm_info, MachineState *machine)
     
     /* Fill-in a minimalistic boot info, required for semihosting.  */
     cortexm_binfo.kernel_cmdline = kernel_cmdline;
-    cortexm_binfo.kernel_filename = machine->kernel_cmdline;
+    cortexm_binfo.kernel_filename = machine->kernel_filename;
     
     env->boot_info = &cortexm_binfo;
     

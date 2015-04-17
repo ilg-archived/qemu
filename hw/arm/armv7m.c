@@ -179,6 +179,9 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
     int i;
     int big_endian;
     MemoryRegion *hack = g_new(MemoryRegion, 1);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    static struct arm_boot_info boot_info;
+#endif
 
     if (cpu_model == NULL) {
 	cpu_model = "cortex-m3";
@@ -212,6 +215,19 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
         fprintf(stderr, "Guest image must be specified (using -kernel)\n");
         exit(1);
     }
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    /*
+     * Fill-in a minimalistic boot info, required for semihosting.
+     * kernel_cmdline should be initialised with machine->kernel_cmdline,
+     * but we do not have machine here. Suggestion: change prototype
+     * and add "MachineState *machine".
+     */
+    boot_info.kernel_cmdline = "";
+    boot_info.kernel_filename = kernel_filename;
+
+    env->boot_info = &boot_info;
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     if (kernel_filename) {
         image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,

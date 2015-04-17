@@ -3317,8 +3317,8 @@ STEXI
 The
 @code{cmdline} defines the entire command line passed to the application via the
 semihosting calls, including the program name that will be
-passed as argv[0]. Must be the last option, all following options
-are passed unchanged to the application.
+passed as argv[0]. Must be the last option, all following arguments
+are passed to the application unchanged.
 (ARM, M68K, Xtensa only)
 ETEXI
 DEF("old-param", 0, QEMU_OPTION_old_param,
