@@ -120,6 +120,10 @@ int main(int argc, char **argv)
 #include "qom/object_interfaces.h"
 #include "qapi-event.h"
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include <strings.h>
+#endif
+
 #define DEFAULT_RAM_SIZE 128
 
 #define MAX_VIRTIO_CONSOLES 1
@@ -1812,18 +1816,21 @@ static void main_loop(void)
     } while (!main_loop_should_exit());
 }
 
-static void version(void)
-{
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_ARM_ECLIPSE) || defined(CONFIG_VERBOSE)
 
 #if INTPTR_MAX == INT32_MAX
-#define QEMU_WORDSIZE "32-bit "
+#define QEMU_WORDSIZE "32-bits "
 #elif INTPTR_MAX == INT64_MAX
-#define QEMU_WORDSIZE "64-bit "
+#define QEMU_WORDSIZE "64-bits "
 #else
 #define QEMU_WORDSIZE ""
 #endif
 
+#endif
+
+static void version(void)
+{
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
     printf(
 #if defined(CONFIG_BRANDING_MESSAGE)
            CONFIG_BRANDING_MESSAGE " "
@@ -2773,7 +2780,7 @@ static const char *concatenate_semihosting_cmdline(int argc, char **argv)
     for (i = 0; i < argc; ++i) {
         total_size += strlen(argv[i]);
         total_size += 1; /* Add separator spaces */
-        if (rindex(argv[i], ' ') != NULL) {
+        if (strrchr(argv[i], ' ') != NULL) {
             total_size += 2; /* Provision for quotes */
         }
     }
@@ -2785,12 +2792,12 @@ static const char *concatenate_semihosting_cmdline(int argc, char **argv)
         if (i != 0) {
             *p++ = ' ';
         }
-        if (rindex(argv[i], ' ') == NULL) {
+        if (strrchr(argv[i], ' ') == NULL) {
             strcpy(p, argv[i]);
             p += strlen(argv[i]);
         } else {
             /* If no quotes found, it is safe to use them for grouping */
-            if (rindex(argv[i], '"') == NULL) {
+            if (strrchr(argv[i], '"') == NULL) {
                 *p++ = '"';
                 strcpy(p, argv[i]);
                 p += strlen(argv[i]);
@@ -2878,13 +2885,6 @@ int main(int argc, char **argv, char **envp)
         printf( "\n"
 #if defined(CONFIG_BRANDING_MESSAGE)
                CONFIG_BRANDING_MESSAGE " "
-#endif
-#if INTPTR_MAX == INT32_MAX
-#define QEMU_WORDSIZE "32-bit "
-#elif INTPTR_MAX == INT64_MAX
-#define QEMU_WORDSIZE "64-bit "
-#else
-#define QEMU_WORDSIZE ""
 #endif
                QEMU_WORDSIZE
                "QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
