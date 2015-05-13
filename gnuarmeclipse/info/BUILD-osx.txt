@@ -1,27 +1,24 @@
 
 This package was build on an OS X machine, using the script provided in
-
-  gnuarmeclipse/scripts/build-qemu.sh
-
-To run it, first be sure the the packages required in the Prerequisites 
-section are installed, then copy the script and execute it with bash:
-
-  bash build-qemu.sh
-
-The output of the build script is a .pkg install in the ${QEMU_WORK}/output 
-folder.
+the GNU ARM Eclipse Second Edition git.
 
 To build the latest version of the package please use the script from:
 
-  wget https://sourceforge.net/p/gnuarmeclipse/qemu/ci/gnuarmeclipse/tree/gnuarmeclipse/scripts/build-qemu.sh?format=raw \
-  -O ~/Downloads/build-qemu.sh
+  curl -L https://sourceforge.net/p/gnuarmeclipse/se/ci/develop/tree/scripts/build-qemu.sh?format=raw \
+    -o ~/Downloads/build-qemu.sh
 
-  bash ~/Downloads/build-qemu.sh
+To run it, first be sure that the packages required in the Prerequisites 
+section are installed, then download the script and execute it with bash:
 
-The script was developed on OS X 10.9.5 with MacPorts 2.3.2. Running it on other 
+  bash ~/Downloads/build-qemu.sh --osx
+
+The output of the build script is a .pkg install in the ${WORK_FOLDER}/output 
+folder.
+
+The script was developed on OS X 10.10.3 with MacPorts 2.3.3. Running it on other 
 versions is possible, but might require some adjustments.
 
-Up-to-date build informations are available in the GNU ARM Eclipse project wiki:
+Up-to-date build information is available in the GNU ARM Eclipse project wiki:
 
   http://gnuarmeclipse.livius.net/wiki/
 

@@ -1,27 +1,25 @@
 
-This package was build on an Ubuntu machine, using the script provided in
-
-  gnuarmeclipse/scripts/build-qemu.sh
-
-To run it, first be sure the the packages required in the Prerequisites 
-section are installed, then copy the script and execute it with bash:
-
-  bash build-qemu.sh
-
-The output of the build script is a setup in the ${QEMU_WORK}/output 
-folder.
+This package was build with MinGW-w64 on a Debian 8 64-bits Docker container,  
+running on an OS X machine, using the script provided in the GNU ARM Eclipse 
+Second Edition git. 
 
 To build the latest version of the package please use the script from:
 
-  wget https://sourceforge.net/p/gnuarmeclipse/qemu/ci/gnuarmeclipse/tree/gnuarmeclipse/scripts/build-qemu.sh?format=raw \
-  -O ~/Downloads/build-qemu.sh
+  curl -L https://sourceforge.net/p/gnuarmeclipse/se/ci/develop/tree/scripts/build-qemu.sh?format=raw \
+    -o ~/Downloads/build-qemu.sh
 
-  bash ~/Downloads/build-qemu.sh
+To run it, first be sure that the packages required in the Prerequisites 
+section are installed, then download the script and execute it with bash:
 
-The script was developed on Ubuntu 14 LTS x64 with MinGW-w64. Running it on other 
-versions is possible, but might require some adjustments.
+  bash ~/Downloads/build-qemu.sh --win32 --win64
 
-Up-to-date build informations are available in the GNU ARM Eclipse project wiki:
+The output of the build script are two setup.exe files in the 
+${WORK_FOLDER}/output folder.
+
+The script was developed on OS X 10.10.3 with MacPorts 2.3.3, but also runs
+on most GNU/Linux distributions supporting Docker.
+
+Up-to-date build information is available in the GNU ARM Eclipse project wiki:
 
   http://gnuarmeclipse.livius.net/wiki/
 
@@ -30,4 +28,3 @@ to this project.
 
 
 Liviu Ionescu
-
