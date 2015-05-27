@@ -169,7 +169,7 @@ static cortex_m_core_info stm32f334r8_core_info = {
 qemu_irq *stm32f334r8_mcu_init(MachineState *machine)
 {
     get_system_memory_with_stm32_alias(&stm32f334r8_core_info);
-    return cortex_m3_core_init(&stm32f334r8_core_info, machine);
+    return cortex_m4_core_init(&stm32f334r8_core_info, machine);
 }
 
 /* ----- STM32F405RG ----- */
