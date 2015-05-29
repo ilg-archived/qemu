@@ -15,76 +15,76 @@
  */
 
 /* ----- Netduino 2 ----- */
-static void netduino2_board_init(MachineState *machine);
+static void
+netduino2_board_init(MachineState *machine);
 
-static QEMUMachine netduino2_machine = {
-    .name = "Netduino2",
-    .desc = "Netduino Development Board with STM32F2 (Experimental)",
-    .init = netduino2_board_init,
-};
+static QEMUMachine netduino2_machine =
+{ .name = "Netduino2", .desc =
+		"Netduino Development Board with STM32F2 (Experimental)", .init =
+		netduino2_board_init, };
 
 static void netduino2_board_init(MachineState *machine)
 {
-    stm32_board_init(machine, &netduino2_machine);
-    stm32f205rf_mcu_init(machine);
-    /* TODO: Add board inits */
+	stm32_board_init(machine, &netduino2_machine);
+	stm32f205rf_mcu_init(machine);
+	/* TODO: Add board inits */
 }
 
 /* ----- Netduino Plus 2 ----- */
-static void netduinoplus2_board_init(MachineState *machine);
+static void
+netduinoplus2_board_init(MachineState *machine);
 
-static QEMUMachine netduinoplus2_machine = {
-    .name = "NetduinoPlus2",
-    .desc = "Netduino Development Board with STM32F4 (Experimental)",
-    .init = netduinoplus2_board_init,
-};
+static QEMUMachine netduinoplus2_machine =
+{ .name = "NetduinoPlus2", .desc =
+		"Netduino Development Board with STM32F4 (Experimental)", .init =
+		netduinoplus2_board_init, };
 
 static void netduinoplus2_board_init(MachineState *machine)
 {
-    stm32_board_init(machine, &netduinoplus2_machine);
-    stm32f405rg_mcu_init(machine);
-    /* TODO: Add board inits */
+	stm32_board_init(machine, &netduinoplus2_machine);
+	stm32f405rg_mcu_init(machine);
+	/* TODO: Add board inits */
 }
 
 /* ----- Netduino Go ----- */
-static void netduinogo_board_init(MachineState *machine);
+static void
+netduinogo_board_init(MachineState *machine);
 
-static QEMUMachine netduinogo_machine = {
-    .name = "NetduinoGo",
-    .desc = "Netduino GoBus Development Board with STM32F4 (Experimental)",
-    .init = netduinogo_board_init,
-};
+static QEMUMachine netduinogo_machine =
+{ .name = "NetduinoGo", .desc =
+		"Netduino GoBus Development Board with STM32F4 (Experimental)", .init =
+		netduinogo_board_init, };
 
 static void netduinogo_board_init(MachineState *machine)
 {
-    stm32_board_init(machine, &netduinogo_machine);
-    stm32f405rg_mcu_init(machine);
-    /* TODO: Add board inits */
+	stm32_board_init(machine, &netduinogo_machine);
+	stm32f405rg_mcu_init(machine);
+	/* TODO: Add board inits */
 }
 
 /* ----- Mapple ----- */
-static void mapple_board_init(MachineState *machine);
+static void
+mapple_board_init(MachineState *machine);
 
-static QEMUMachine mapple_machine = {
-    .name = "Mapple",
-    .desc = "LeafLab Arduino-style STM32 microcontroller board (Experimental)",
-    .init = mapple_board_init,
-};
+static QEMUMachine mapple_machine =
+{ .name = "Mapple", .desc =
+		"LeafLab Arduino-style STM32 microcontroller board (Experimental)",
+		.init = mapple_board_init, };
 
 static void mapple_board_init(MachineState *machine)
 {
-    stm32_board_init(machine, &mapple_machine);
-    stm32f103rb_mcu_init(machine);
-    /* TODO: Add board inits */
+	stm32_board_init(machine, &mapple_machine);
+	stm32f103rb_mcu_init(machine);
+	/* TODO: Add board inits */
 }
 
 /* ----- Boards inits ----- */
-static void stm32_duino_machine_init(void)
+static void stm32_duino_machines_init(void)
 {
-    qemu_register_machine(&netduino2_machine);
-    qemu_register_machine(&netduinoplus2_machine);
-    qemu_register_machine(&netduinogo_machine);
-    qemu_register_machine(&mapple_machine);
+	qemu_register_machine(&netduino2_machine);
+	qemu_register_machine(&netduinoplus2_machine);
+	qemu_register_machine(&netduinogo_machine);
+	qemu_register_machine(&mapple_machine);
 }
 
-machine_init(stm32_duino_machine_init);
+machine_init(stm32_duino_machines_init);
