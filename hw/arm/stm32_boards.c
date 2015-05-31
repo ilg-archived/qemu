@@ -16,16 +16,6 @@
  * Where available, the board names follow the CMSIS Packs names.
  */
 
-/* Common inits for all STM32 boards */
-void stm32_board_init(MachineState *machine, QEMUMachine *qm)
-{
-#if defined(CONFIG_VERBOSE)
-	if (verbosity_level > 0) {
-		printf("Board: '%s' (%s).\n", qm->name, qm->desc);
-	}
-#endif
-}
-
 /* ----- ST STM32F4-Discovery ----- */
 static void
 stm32f4_discovery_board_init(MachineState *machine);
@@ -37,7 +27,7 @@ static QEMUMachine stm32f4_discovery_machine =
 
 static void stm32f4_discovery_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &stm32f4_discovery_machine);
+	cortexm_board_greeting(machine, &stm32f4_discovery_machine);
 	stm32f407vg_mcu_init(machine);
 	/* TODO: Add board inits */
 }
@@ -53,7 +43,7 @@ static QEMUMachine stm32f429i_discovery_machine =
 
 static void stm32f429i_discovery_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &stm32f429i_discovery_machine);
+	cortexm_board_greeting(machine, &stm32f429i_discovery_machine);
 	stm32f429zi_mcu_init(machine);
 	/* TODO: Add board inits */
 }
@@ -69,7 +59,7 @@ static QEMUMachine stm32f3_discovery_machine =
 
 static void stm32f3_discovery_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &stm32f3_discovery_machine);
+	cortexm_board_greeting(machine, &stm32f3_discovery_machine);
 	stm32f303vc_mcu_init(machine);
 	/* TODO: Add board inits */
 }
@@ -85,7 +75,7 @@ static QEMUMachine stm32f0_discovery_machine =
 
 static void stm32f0_discovery_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &stm32f0_discovery_machine);
+	cortexm_board_greeting(machine, &stm32f0_discovery_machine);
 	stm32f051r8_mcu_init(machine);
 	/* TODO: Add board inits */
 }
@@ -101,7 +91,7 @@ static QEMUMachine stm32vl_discovery_machine =
 
 static void stm32vl_discovery_init(MachineState *machine)
 {
-	stm32_board_init(machine, &stm32vl_discovery_machine);
+	cortexm_board_greeting(machine, &stm32vl_discovery_machine);
 	stm32f100rb_mcu_init(machine);
 	/* TODO: Add board inits */
 }

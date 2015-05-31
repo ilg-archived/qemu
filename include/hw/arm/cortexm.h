@@ -28,6 +28,8 @@ typedef struct CortexMState {
 	uint32_t ram_size_kb;
 	uint32_t flash_size_kb;
 
+	ARMCPU *cpu;
+
 	/* TODO: add specific structures */
 } CortexMState;
 
@@ -69,9 +71,14 @@ typedef struct cortex_m_core_info {
 	int nvic_bits; /* bits used for irqs in NVIC */
 } cortex_m_core_info;
 
+void
+cortexm_board_greeting(MachineState *machine, QEMUMachine *qm);
+
+DeviceState *
+cortexm_mcu_create(MachineState *machine, const char *mcu_type);
 
 qemu_irq *
-cortex_m_core_init(cortex_m_core_info *cm_info, CortexMState *dev_state);
+cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state);
 
 qemu_irq *
 cortex_m0_core_init(cortex_m_core_info *cm_info, MachineState *machine);

@@ -24,7 +24,7 @@ static QEMUMachine nucleo_f411re_machine =
 
 static void nucleo_f411re_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &nucleo_f411re_machine);
+	cortexm_board_greeting(machine, &nucleo_f411re_machine);
 	stm32f411re_mcu_init(machine);
 	/* TODO: Add board inits */
 }
@@ -39,7 +39,7 @@ static QEMUMachine nucleo_f334r8_machine =
 
 static void nucleo_f334r8_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &nucleo_f334r8_machine);
+	cortexm_board_greeting(machine, &nucleo_f334r8_machine);
 	stm32f334r8_mcu_init(machine);
 	/* TODO: Add board inits */
 }
@@ -54,7 +54,7 @@ static QEMUMachine nucleo_f103rb_machine =
 
 static void nucleo_f103rb_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &nucleo_f103rb_machine);
+	cortexm_board_greeting(machine, &nucleo_f103rb_machine);
 	stm32f103rb_mcu_init(machine);
 	/* TODO: Add board inits */
 }
@@ -69,7 +69,7 @@ static QEMUMachine nucleo_l152re_machine =
 
 static void nucleo_l152re_board_init(MachineState *machine)
 {
-	stm32_board_init(machine, &nucleo_l152re_machine);
+	cortexm_board_greeting(machine, &nucleo_l152re_machine);
 	stm32l152re_mcu_init(machine);
 	/* TODO: Add board inits */
 }

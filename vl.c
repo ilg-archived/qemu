@@ -148,7 +148,13 @@ int autostart;
 int with_gdb;
 #endif
 #if defined(CONFIG_VERBOSE)
-int verbosity_level = 0;
+/**
+ * Increased with each --verbose option.
+ * VERBOSITY_COMMON
+ * VERBOSITY_DETAILED (downloaded sections)
+ * VERBOSITY_DEBUG (object creation)
+ */
+verbosity_t verbosity_level = 0;
 #endif
 static int rtc_utc = 1;
 static int rtc_date_offset = -1; /* -1 means no change */

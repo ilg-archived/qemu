@@ -26,12 +26,10 @@ typedef struct stm32f1_state {
 } stm32f1_state;
 
 void
-stm32_board_init(MachineState *machine, QEMUMachine *qm);
-void
-stm32_mcu_init(MachineState *machine, const char *mcu_type);
+stm32_mcu_create(MachineState *machine, const char *mcu_type);
 
 void
-stm32_get_system_memory_with_alias(cortex_m_core_info *cm_info);
+stm32_memory_alias_realize(cortex_m_core_info *cm_info);
 
 /* TODO: remove them */
 qemu_irq *
