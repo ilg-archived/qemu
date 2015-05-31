@@ -19,12 +19,8 @@
 
 typedef struct stm32f1_state {
 	/*< private >*/
-	SysBusDevice parent_obj;
+	CortexMState parent_obj;
 	/*< public >*/
-
-	char *kernel_filename;
-	char *cpu_model;
-	uint32_t ram_size;
 
 	/* TODO: add specific structures */
 } stm32f1_state;

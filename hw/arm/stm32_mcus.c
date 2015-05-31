@@ -58,8 +58,6 @@ void stm32_mcu_init(MachineState *machine, const char *mcu_type)
 		qdev_prop_set_string(dev, "cpu-model", machine->cpu_model);
 	}
 
-	qdev_prop_set_uint32(dev, "ram_size", machine->ram_size);
-
 	Error *err = NULL;
 	object_property_set_bool(OBJECT(dev), true, "realized", &err);
 	if (err != NULL) {
@@ -131,15 +129,11 @@ static void stm32f103rb_mcu_realize(DeviceState *dev_state, Error **errp)
 	stm32f1_state *s = STM32F103RBC_STATE(dev_state);
 
 	stm32_get_system_memory_with_alias(&stm32f103rb_core_info);
-	cortex_m_core_init(&stm32f103rb_core_info, s->kernel_filename, s->cpu_model,
-			s->ram_size);
+	cortex_m_core_init(&stm32f103rb_core_info, CORTEXM_MCU_STATE(dev_state));
 }
 
 static Property stm32f1_mcu_properties[] =
 {
-DEFINE_PROP_STRING("kernel-filename", stm32f1_state, kernel_filename),
-DEFINE_PROP_STRING("cpu-model", stm32f1_state, cpu_model),
-DEFINE_PROP_UINT32("ram_size", stm32f1_state, ram_size, 0),
 DEFINE_PROP_END_OF_LIST(), //
 		};
 
@@ -154,7 +148,7 @@ static void stm32f103rb_mcu_class_init(ObjectClass *klass, void *data)
 static const TypeInfo stm32f103rb_mcu_type_init =
 { //
 		.name = TYPE_STM32F103RB, //
-				.parent = TYPE_SYS_BUS_DEVICE, //
+				.parent = TYPE_CORTEXM_MCU, //
 				.instance_size = sizeof(stm32f1_state), //
 				.instance_init = stm32f103rb_mcu_instance_init, //
 				.class_init = stm32f103rb_mcu_class_init, };

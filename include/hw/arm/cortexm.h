@@ -12,6 +12,24 @@
 #include "exec/memory.h"
 #include "hw/irq.h"
 #include "hw/boards.h"
+#include "hw/sysbus.h"
+
+#define TYPE_CORTEXM_MCU "cortexm-mcu"
+#define CORTEXM_MCU_STATE(obj) \
+    OBJECT_CHECK(CortexMState, (obj), TYPE_CORTEXM_MCU)
+
+typedef struct CortexMState {
+	/*< private >*/
+	SysBusDevice parent_obj;
+	/*< public >*/
+
+	char *kernel_filename;
+	char *cpu_model;
+	uint32_t ram_size_kb;
+	uint32_t flash_size_kb;
+
+	/* TODO: add specific structures */
+} CortexMState;
 
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
@@ -51,9 +69,9 @@ typedef struct cortex_m_core_info {
 	int nvic_bits; /* bits used for irqs in NVIC */
 } cortex_m_core_info;
 
+
 qemu_irq *
-cortex_m_core_init(cortex_m_core_info *cm_info, const char *kernel_filename,
-		const char *cpu_model_arg, uint32_t ram_size);
+cortex_m_core_init(cortex_m_core_info *cm_info, CortexMState *dev_state);
 
 qemu_irq *
 cortex_m0_core_init(cortex_m_core_info *cm_info, MachineState *machine);
@@ -65,5 +83,6 @@ qemu_irq *
 cortex_m4_core_init(cortex_m_core_info *cm_info, MachineState *machine);
 qemu_irq *
 cortex_m7_core_init(cortex_m_core_info *cm_info, MachineState *machine);
+
 
 #endif /* HW_ARM_CORTEXM_H */

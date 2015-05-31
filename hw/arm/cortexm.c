@@ -23,6 +23,53 @@
 /* Redefined from armv7m.c */
 #define TYPE_BITBAND "ARM,bitband-memory"
 
+static Property cortexm_mcu_properties[] =
+{
+DEFINE_PROP_STRING("kernel-filename", CortexMState, kernel_filename),
+DEFINE_PROP_STRING("cpu-model", CortexMState, cpu_model),
+DEFINE_PROP_UINT32("ram-sizeK", CortexMState, ram_size_kb, 0),
+DEFINE_PROP_UINT32("flash-sizeK", CortexMState, flash_size_kb, 0),
+DEFINE_PROP_END_OF_LIST(), //
+		};
+
+static void cortexm_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+	CortexMState *s = CORTEXM_MCU_STATE(dev_state);
+}
+
+static void cortexm_mcu_instance_init(Object *obj)
+{
+	CortexMState *s = CORTEXM_MCU_STATE(obj);
+	// object_initialize
+}
+
+static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = cortexm_mcu_realize;
+	dc->props = cortexm_mcu_properties;
+}
+
+static const TypeInfo cortexm_mcu_type_init =
+{ //
+		.name = TYPE_CORTEXM_MCU, //
+				.parent = TYPE_SYS_BUS_DEVICE, //
+				.instance_size = sizeof(CortexMState), //
+				.instance_init = cortexm_mcu_instance_init, //
+				.class_init = cortexm_mcu_class_init, };
+
+/* ----- Type inits. ----- */
+
+static void cortexm_types_init()
+{
+	type_register_static(&cortexm_mcu_type_init);
+}
+
+type_init(cortexm_types_init);
+
+/* ----- */
+
 static void
 cortexm_reset(void *opaque);
 
@@ -43,9 +90,19 @@ static void cortexm_bitband_init(void)
 
 /* Common Cortex-M core initialisation routine.  */
 qemu_irq *
-cortex_m_core_init(cortex_m_core_info *cm_info, const char *kernel_filename,
-		const char *cpu_model_arg, uint32_t ram_size_arg)
+cortex_m_core_init(cortex_m_core_info *cm_info, CortexMState *dev_state)
 {
+	const char *kernel_filename = NULL;
+	const char *cpu_model_arg = NULL;
+	int ram_size_arg_kb = 0;
+	int flash_size_arg_kb = 0;
+	if (dev_state) {
+		kernel_filename = dev_state->kernel_filename;
+		cpu_model_arg = dev_state->cpu_model;
+		ram_size_arg_kb = dev_state->ram_size_kb;
+		flash_size_arg_kb = dev_state->flash_size_kb;
+	}
+
 	if (cpu_model_arg) {
 		/* If explicitly given via the --cpu command line option,
 		 * overwrite the board MCU definition. */
@@ -76,16 +133,24 @@ cortex_m_core_init(cortex_m_core_info *cm_info, const char *kernel_filename,
 		}
 	}
 
-	int flash_size_kb = cm_info->flash_size_kb;
 	int sram_size_kb;
-	if (ram_size_arg != 0) {
+	if (ram_size_arg_kb != 0) {
 		/* If explicitly given via the -m command line option,
+		 * or by --global,
 		 * overwrite the board MCU definition. */
-		sram_size_kb = ram_size_arg / 1024;
+		sram_size_kb = ram_size_arg_kb;
 	} else {
 		sram_size_kb = cm_info->sram_size_kb;
 	}
 
+	int flash_size_kb;
+	if (flash_size_arg_kb) {
+		/* If explicitly given via the  --global command line option,
+		 * overwrite the board MCU definition. */
+		flash_size_kb = flash_size_arg_kb;
+	} else {
+		flash_size_kb = cm_info->flash_size_kb;
+	}
 	const char *cpu_model = "?";
 	const char *display_model = "?";
 
@@ -297,8 +362,7 @@ cortex_m0_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
 	machine->cpu_model = "cortex-m0";
 	cm_info->cortexm_model = CORTEX_M0;
-	return cortex_m_core_init(cm_info, machine->kernel_filename,
-			machine->cpu_model, machine->ram_size);
+	return cortex_m_core_init(cm_info, NULL);
 }
 
 /* Cortex-M0+ initialisation routine.  */
@@ -307,8 +371,7 @@ cortex_m0p_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
 	machine->cpu_model = "cortex-m0p";
 	cm_info->cortexm_model = CORTEX_M0PLUS;
-	return cortex_m_core_init(cm_info, machine->kernel_filename,
-			machine->cpu_model, machine->ram_size);
+	return cortex_m_core_init(cm_info, NULL);
 }
 
 /* Cortex-M3 initialisation routine.  */
@@ -317,8 +380,7 @@ cortex_m3_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
 	machine->cpu_model = "cortex-m3";
 	cm_info->cortexm_model = CORTEX_M3;
-	return cortex_m_core_init(cm_info, machine->kernel_filename,
-			machine->cpu_model, machine->ram_size);
+	return cortex_m_core_init(cm_info, NULL);
 }
 
 /* Cortex-M4 initialisation routine.  */
@@ -327,8 +389,7 @@ cortex_m4_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
 	machine->cpu_model = "cortex-m4";
 	cm_info->cortexm_model = CORTEX_M4;
-	return cortex_m_core_init(cm_info, machine->kernel_filename,
-			machine->cpu_model, machine->ram_size);
+	return cortex_m_core_init(cm_info, NULL);
 }
 
 /* Cortex-M7 initialisation routine.  */
@@ -337,8 +398,7 @@ cortex_m7_core_init(cortex_m_core_info *cm_info, MachineState *machine)
 {
 	machine->cpu_model = "cortex-m7";
 	cm_info->cortexm_model = CORTEX_M7;
-	return cortex_m_core_init(cm_info, machine->kernel_filename,
-			machine->cpu_model, machine->ram_size);
+	return cortex_m_core_init(cm_info, NULL);
 }
 
 static void cortexm_reset(void *opaque)
