@@ -107,7 +107,13 @@ extern int autostart;
 extern int with_gdb;
 #endif
 #if defined(CONFIG_VERBOSE)
-extern int verbosity_level;
+typedef enum {
+	VERBOSITY_NONE = 0,
+	VERBOSITY_COMMON,
+	VERBOSITY_DETAILED,
+	VERBOSITY_DEBUG
+} verbosity_t;
+extern verbosity_t verbosity_level;
 #endif
 
 typedef enum {
