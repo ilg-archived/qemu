@@ -23,6 +23,16 @@
 /* Redefined from armv7m.c */
 #define TYPE_BITBAND "ARM,bitband-memory"
 
+/*
+ * There are two kind of definitions in this file, cortexm_core_* for
+ * ARM Cortex-M core, and cortexm_mcu_*, as common code for vendor
+ * MCU implementations.
+ */
+
+/**
+ * Properties for the 'cortexm_mcu' object, used as parent for
+ * all vendor MCUs.
+ */
 static Property cortexm_mcu_properties[] =
 {
 DEFINE_PROP_STRING("kernel-filename", CortexMState, kernel_filename),
@@ -32,7 +42,14 @@ DEFINE_PROP_UINT32("flash-sizeK", CortexMState, flash_size_kb, 0),
 DEFINE_PROP_END_OF_LIST(), //
 		};
 
-
+/**
+ * Used during qdev_create() as parent before the call to
+ * to device_mcu_instance_init().
+ *
+ * Called in vendor_mcu_create(), which calls cortexm_mcu_create().
+ *
+ * It is a different step than *_realize().
+ */
 static void cortexm_mcu_instance_init(Object *obj)
 {
 	CortexMState *s = CORTEXM_MCU_STATE(obj);
@@ -81,6 +98,11 @@ type_init(cortexm_types_init);
 
 /* ----- */
 
+/**
+ * When verbose, display a line to identify the board (name, description).
+ *
+ * Does not really depend on Cortex-M, but I could not find a better place.
+ */
 void cortexm_board_greeting(MachineState *machine, QEMUMachine *qm)
 {
 #if defined(CONFIG_VERBOSE)
@@ -114,19 +136,18 @@ DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
 static void
 cortexm_core_reset(void *opaque);
 
-static void cortexm_bitband_init(void)
+#define BITBAND_OFFSET (0x02000000)
+
+static void cortexm_bitband_init(uint32_t address)
 {
 	DeviceState *dev;
 
+	/* Make address a multiple of 32MB */
+	address &= ~(BITBAND_OFFSET-1);
 	dev = qdev_create(NULL, TYPE_BITBAND);
-	qdev_prop_set_uint32(dev, "base", 0x20000000);
+	qdev_prop_set_uint32(dev, "base", address);
 	qdev_init_nofail(dev);
-	sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, 0x22000000);
-
-	dev = qdev_create(NULL, TYPE_BITBAND);
-	qdev_prop_set_uint32(dev, "base", 0x40000000);
-	qdev_init_nofail(dev);
-	sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, 0x42000000);
+	sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address+BITBAND_OFFSET);
 }
 
 /* Common Cortex-M core initialisation routine.  */
@@ -317,13 +338,13 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 			&error_abort);
 	vmstate_register_ram_global(flash_mem);
 	memory_region_set_readonly(flash_mem, true);
-	memory_region_add_subregion(system_memory, 0, flash_mem);
+	memory_region_add_subregion(system_memory, 0x00000000, flash_mem);
 
 	MemoryRegion *sram_mem = g_new(MemoryRegion, 1);
 	memory_region_init_ram(sram_mem, NULL, "cortexm.sram_mem", sram_size, &error_abort);
 	vmstate_register_ram_global(sram_mem);
 	memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
-	cortexm_bitband_init();
+	cortexm_bitband_init(0x20000000);
 
 	MemoryRegion *hack_mem = g_new(MemoryRegion, 1);
 	/* Hack to map an additional page of ram at the top of the address
