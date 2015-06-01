@@ -41,6 +41,10 @@
 #include "qemu/sockets.h"
 #include "sysemu/kvm.h"
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
 static inline int target_memory_rw_debug(CPUState *cpu, target_ulong addr,
                                          uint8_t *buf, int len, bool is_write)
 {
@@ -975,7 +979,7 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
         hextomem(mem_buf, p, len);
 
 #if defined(CONFIG_VERBOSE)
-        if (verbosity_level > 1) {
+        if (verbosity_level > VERBOSITY_DETAILED) {
             printf("Write %4d bytes at 0x%08X-0x%08X.\n", len, addr, addr+len-1);
         }
 #endif
@@ -1724,7 +1728,7 @@ int gdbserver_start(const char *device)
         return -1;
 
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > 0) {
+    if (verbosity_level > VERBOSITY_COMMON) {
         printf("GDB Server listening on: '%s'...\n", device);
     }
 #endif

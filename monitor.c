@@ -82,6 +82,10 @@
 #endif
 #include "hw/lm32/lm32_pic.h"
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
 //#define DEBUG
 //#define DEBUG_COMPLETION
 
@@ -4129,7 +4133,7 @@ static void handle_user_command(Monitor *mon, const char *cmdline)
         }
     } else {
 #if defined(CONFIG_VERBOSE)
-        if (verbosity_level > 0) {
+        if (verbosity_level > VERBOSITY_COMMON) {
             printf("Execute 'mon %s'.\n\n", cmdline);
         }
 #endif

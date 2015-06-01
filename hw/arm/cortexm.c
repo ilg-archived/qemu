@@ -20,6 +20,10 @@
 #include "elf.h"
 #include "cpu.h"
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
 /* Redefined from armv7m.c */
 #define TYPE_BITBAND "ARM,bitband-memory"
 
@@ -55,9 +59,7 @@ static void cortexm_mcu_instance_init(Object *obj)
 	CortexMState *s = CORTEXM_MCU_STATE(obj);
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level >= VERBOSITY_DEBUG) {
-		printf("cortexm_mcu_instance_init()\n");
-	}
+	verbosity_printFunctionName();
 #endif
 
 	// call object_initialize for internal objects
@@ -72,9 +74,7 @@ static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
 	DeviceClass *dc = DEVICE_CLASS(klass);
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level >= VERBOSITY_DEBUG) {
-		printf("cortexm_mcu_class_init()\n");
-	}
+	verbosity_printFunctionName();
 #endif
 	dc->props = cortexm_mcu_properties;
 }
@@ -106,7 +106,7 @@ type_init(cortexm_types_init);
 void cortexm_board_greeting(MachineState *machine, QEMUMachine *qm)
 {
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level > 0) {
+	if (verbosity_level > VERBOSITY_COMMON) {
 		printf("Board: '%s' (%s).\n", qm->name, qm->desc);
 	}
 #endif
@@ -290,7 +290,7 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	}
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level > 0) {
+	if (verbosity_level > VERBOSITY_COMMON) {
 		const char *cmdline;
 
 		printf("Device: '%s' (%s", cm_info->device_name, display_model);
@@ -412,7 +412,7 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	system_clock_scale = 80;
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level > 0) {
+	if (verbosity_level > VERBOSITY_COMMON) {
 		printf("Cortex-M core initialised.\n");
 	}
 #endif

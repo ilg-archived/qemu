@@ -106,15 +106,6 @@ extern int autostart;
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 extern int with_gdb;
 #endif
-#if defined(CONFIG_VERBOSE)
-typedef enum {
-	VERBOSITY_NONE = 0,
-	VERBOSITY_COMMON,
-	VERBOSITY_DETAILED,
-	VERBOSITY_DEBUG
-} verbosity_t;
-extern verbosity_t verbosity_level;
-#endif
 
 typedef enum {
     VGA_NONE, VGA_STD, VGA_CIRRUS, VGA_VMWARE, VGA_XENFB, VGA_QXL,

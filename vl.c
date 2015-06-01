@@ -124,6 +124,10 @@ int main(int argc, char **argv)
 #include <strings.h>
 #endif
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
 #define DEFAULT_RAM_SIZE 128
 
 #define MAX_VIRTIO_CONSOLES 1
@@ -2887,7 +2891,7 @@ int main(int argc, char **argv, char **envp)
             verbosity_level++;
         }
     }
-    if (verbosity_level > 0) {
+    if (verbosity_level > VERBOSITY_COMMON) {
         printf( "\n"
 #if defined(CONFIG_BRANDING_MESSAGE)
                CONFIG_BRANDING_MESSAGE " "

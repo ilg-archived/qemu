@@ -13,7 +13,12 @@
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
 
-/* The STM32 family stores its Flash memory at some base address in memory
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
+/**
+ * The STM32 family stores its Flash memory at some base address in memory
  * (0x08000000 for medium density devices), and then aliases it to the
  * boot memory space, which starts at 0x00000000 (the "System Memory" can also
  * be aliased to 0x00000000, but this is not implemented here). The processor
@@ -21,8 +26,8 @@
  * QEMU alias so that reads in the 0x08000000 area are passed through to the
  * 0x00000000 area. Note that this is the opposite of real hardware, where the
  * memory at 0x00000000 passes reads through the "real" flash memory at
- * 0x08000000, but it works the same either way. */
-
+ * 0x08000000, but it works the same either way.
+ */
 void stm32_memory_alias_realize(cortex_m_core_info *cm_info)
 {
 	assert(cm_info != NULL);
@@ -43,6 +48,14 @@ void stm32_memory_alias_realize(cortex_m_core_info *cm_info)
 	memory_region_add_subregion(system_memory, 0x08000000, flash_alias_mem);
 }
 
+/**
+ * Used during qdev_create() after the parent call to
+ * to cortexm_mcu_instance_init().
+ *
+ * Called in vendor_mcu_create(), which calls cortexm_mcu_create().
+ *
+ * It is a different step than *_realize().
+ */
 void stm32_mcu_create(MachineState *machine, const char *mcu_type)
 {
 	DeviceState *dev;
@@ -57,7 +70,7 @@ void stm32_mcu_create(MachineState *machine, const char *mcu_type)
 }
 
 /*
- Flash size:
+ STM32 Flash sizes encoding:
  8 = 64K
  B = 128K
  C = 256K
@@ -69,7 +82,7 @@ void stm32_mcu_create(MachineState *machine, const char *mcu_type)
 
 /* ----- STM32F051R8 ----- */
 static cortex_m_core_info stm32f051r8_core_info =
-{ .device_name = "STM32F051R8", .flash_size_kb = 64, .sram_size_kb = 8, };
+{ .device_name = "STM32F051R8", .flash_size_kb = 64, .sram_size_kb = 8, .cortexm_model = CORTEX_M0 };
 
 qemu_irq *
 stm32f051r8_mcu_init(MachineState *machine)
@@ -96,7 +109,7 @@ static cortex_m_core_info stm32f103rb_core_info =
 				.flash_size_kb = 128, //
 				.sram_size_kb = 20, //
 				.has_mpu = true, //
-				.cortexm_model = CORTEX_M3, //
+				.cortexm_model = CORTEX_M3 //
 		};
 
 qemu_irq *
@@ -113,9 +126,7 @@ static void stm32f103rb_mcu_instance_init(Object *obj)
 	// stm32f1_state *s = STM32F103RBC_STATE(obj);
 	// object_initialize
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level >= VERBOSITY_DEBUG) {
-		printf("stm32f103rb_mcu_instance_init()\n");
-	}
+	verbosity_printFunctionName();
 #endif
 }
 
@@ -124,9 +135,7 @@ static void stm32f103rb_mcu_realize(DeviceState *dev_state, Error **errp)
 	stm32f1_state *s = STM32F103RBC_STATE(dev_state);
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level >= VERBOSITY_DEBUG) {
-		printf("stm32f103rb_mcu_realize()\n");
-	}
+	verbosity_printFunctionName();
 #endif
 
 	cortexm_core_realize(&stm32f103rb_core_info, CORTEXM_MCU_STATE(dev_state));
@@ -143,9 +152,7 @@ static void stm32f103rb_mcu_class_init(ObjectClass *klass, void *data)
 	DeviceClass *dc = DEVICE_CLASS(klass);
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level >= VERBOSITY_DEBUG) {
-		printf("stm32f103rb_mcu_class_init()\n");
-	}
+	verbosity_printFunctionName();
 #endif
 	dc->realize = stm32f103rb_mcu_realize;
 	dc->props = stm32f1_mcu_properties;

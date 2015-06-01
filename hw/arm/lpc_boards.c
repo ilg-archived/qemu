@@ -8,7 +8,10 @@
 
 #include "hw/arm/lpc.h"
 #include "qemu/module.h"
-#include "sysemu/sysemu.h"
+
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
 
 /*
  * This file defines several LPC boards.
@@ -19,7 +22,7 @@
 void lpc_board_init(MachineState *machine, QEMUMachine *qm)
 {
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > 0) {
+    if (verbosity_level > VERBOSITY_COMMON) {
         printf("Board: '%s' (%s).\n", qm->name, qm->desc);
     }
 #endif

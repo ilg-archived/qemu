@@ -43,6 +43,10 @@
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 #endif
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
 #define TARGET_SYS_OPEN        0x01
 #define TARGET_SYS_CLOSE       0x02
 #define TARGET_SYS_WRITEC      0x03
@@ -605,7 +609,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
         ret = (args == ADP_Stopped_ApplicationExit) ? 0 : 1;
         gdb_exit(env, ret);
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > 0) {
+    if (verbosity_level > VERBOSITY_COMMON) {
         fsync(STDERR_FILENO);
         printf("QEMU exit(%d)\n", ret);
     }
