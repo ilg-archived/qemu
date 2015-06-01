@@ -16,101 +16,106 @@
 
 /* ----- Olimex STM32-H103 ----- */
 static void
-stm32_h103_board_init (MachineState *machine);
+stm32_h103_board_init(MachineState *machine);
 
 static QEMUMachine stm32_h103_machine =
-  { //
-    .name = "STM32-H103", //
-	.desc = "Olimex Header Board for STM32F103RBT6 (Experimental)", //
-	.init = stm32_h103_board_init, //
-    };
-
-static void
-stm32_h103_board_init (MachineState *machine)
 {
-  cortexm_board_greeting (machine, &stm32_h103_machine);
-  stm32_mcu_create (machine, TYPE_STM32F103RB);
+	.name = "STM32-H103",
+	.desc = "Olimex Header Board for STM32F103RBT6 (Experimental)",
+	.init = stm32_h103_board_init };
 
-  /* TODO: Add board inits */
+/**
+ * The first step to initialise the board.
+ * Called by 'machine_class->init(current_machine);' in main().
+ */
+static void stm32_h103_board_init(MachineState *machine)
+{
+	cortexm_board_greeting(machine, &stm32_h103_machine);
+	stm32_mcu_create(machine, TYPE_STM32F103RB);
+
+	/* TODO: Add board inits */
 }
 
 /* ----- Olimex STM32-P103 ----- */
 static void
-stm32_p103_board_init (MachineState *machine);
+stm32_p103_board_init(MachineState *machine);
 
 static QEMUMachine stm32_p103_machine =
-  { .name = "STM32-P103", .desc =
-      "Olimex Prototype Board for STM32F103RBT6 (Experimental)", .init =
-      stm32_p103_board_init, };
-
-static void
-stm32_p103_board_init (MachineState *machine)
 {
-  cortexm_board_greeting (machine, &stm32_p103_machine);
-  stm32f103rb_mcu_init (machine);
-  /* TODO: Add board inits */
+	.name = "STM32-P103",
+	.desc = "Olimex Prototype Board for STM32F103RBT6 (Experimental)",
+	.init = stm32_p103_board_init };
+
+static void stm32_p103_board_init(MachineState *machine)
+{
+	cortexm_board_greeting(machine, &stm32_p103_machine);
+	stm32_mcu_create(machine, TYPE_STM32F103RB);
+
+	/* TODO: Add board inits */
 }
 
 /* ----- Olimex OLIMEXINO-STM32 ----- */
 static void
-olimexino_stm32_board_init (MachineState *machine);
+olimexino_stm32_board_init(MachineState *machine);
 
 static QEMUMachine olimexino_stm32_machine =
-  { .name = "OLIMEXINO-STM32", .desc =
-      "Olimex Mapple (Arduino-like) Development Board (Experimental)", .init =
-      olimexino_stm32_board_init, };
-
-static void
-olimexino_stm32_board_init (MachineState *machine)
 {
-  cortexm_board_greeting (machine, &olimexino_stm32_machine);
-  stm32f103rb_mcu_init (machine);
-  /* TODO: Add board inits */
+	.name = "OLIMEXINO-STM32",
+	.desc = "Olimex Mapple (Arduino-like) Development Board (Experimental)",
+	.init = olimexino_stm32_board_init };
+
+static void olimexino_stm32_board_init(MachineState *machine)
+{
+	cortexm_board_greeting(machine, &olimexino_stm32_machine);
+	stm32_mcu_create(machine, TYPE_STM32F103RB);
+
+	/* TODO: Add board inits */
 }
 
 /* ----- Olimex STM32-P107 ----- */
 static void
-stm32_p107_board_init (MachineState *machine);
+stm32_p107_board_init(MachineState *machine);
 
 static QEMUMachine stm32_p107_machine =
-  { .name = "STM32-P107", .desc =
-      "Olimex Prototype Board for STM32F107VCT6 (Experimental)", .init =
-      stm32_p107_board_init, };
-
-static void
-stm32_p107_board_init (MachineState *machine)
 {
-  cortexm_board_greeting (machine, &stm32_p107_machine);
-  stm32f107vc_mcu_init (machine);
-  /* TODO: Add board inits */
+	.name = "STM32-P107",
+	.desc = "Olimex Prototype Board for STM32F107VCT6 (Experimental)",
+	.init = stm32_p107_board_init };
+
+static void stm32_p107_board_init(MachineState *machine)
+{
+	cortexm_board_greeting(machine, &stm32_p107_machine);
+	stm32_mcu_create(machine, TYPE_STM32F107VC);
+
+	/* TODO: Add board inits */
 }
 
 /* ----- Olimex STM32-P407 ----- */
 static void
-stm32_e407_board_init (MachineState *machine);
+stm32_e407_board_init(MachineState *machine);
 
 static QEMUMachine stm32_e407_machine =
-  { .name = "STM32-E407", .desc =
-      "Olimex Development Board for STM32F407ZGT6 (Experimental)", .init =
-      stm32_e407_board_init, };
-
-static void
-stm32_e407_board_init (MachineState *machine)
 {
-  cortexm_board_greeting (machine, &stm32_e407_machine);
-  stm32f407zg_mcu_init (machine);
-  /* TODO: Add board inits */
+	.name = "STM32-E407",
+	.desc = "Olimex Development Board for STM32F407ZGT6 (Experimental)",
+	.init = stm32_e407_board_init };
+
+static void stm32_e407_board_init(MachineState *machine)
+{
+	cortexm_board_greeting(machine, &stm32_e407_machine);
+	stm32_mcu_create(machine, TYPE_STM32F407ZG);
+
+	/* TODO: Add board inits */
 }
 
 /* ----- Boards inits ----- */
-static void
-stm32_olimex_machines_init (void)
+static void stm32_olimex_machines_init(void)
 {
-  qemu_register_machine (&stm32_e407_machine);
-  qemu_register_machine (&stm32_p107_machine);
-  qemu_register_machine (&stm32_p103_machine);
-  qemu_register_machine (&stm32_h103_machine);
-  qemu_register_machine (&olimexino_stm32_machine);
+	qemu_register_machine(&stm32_e407_machine);
+	qemu_register_machine(&stm32_p107_machine);
+	qemu_register_machine(&stm32_p103_machine);
+	qemu_register_machine(&stm32_h103_machine);
+	qemu_register_machine(&olimexino_stm32_machine);
 }
 
 machine_init(stm32_olimex_machines_init);

@@ -19,14 +19,16 @@ static void
 netduino2_board_init(MachineState *machine);
 
 static QEMUMachine netduino2_machine =
-{ .name = "Netduino2", .desc =
-		"Netduino Development Board with STM32F2 (Experimental)", .init =
-		netduino2_board_init, };
+{
+	.name = "Netduino2",
+	.desc = "Netduino Development Board with STM32F2 (Experimental)",
+	.init = netduino2_board_init };
 
 static void netduino2_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &netduino2_machine);
-	stm32f205rf_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F205RF);
+
 	/* TODO: Add board inits */
 }
 
@@ -35,14 +37,16 @@ static void
 netduinoplus2_board_init(MachineState *machine);
 
 static QEMUMachine netduinoplus2_machine =
-{ .name = "NetduinoPlus2", .desc =
-		"Netduino Development Board with STM32F4 (Experimental)", .init =
-		netduinoplus2_board_init, };
+{
+	.name = "NetduinoPlus2",
+	.desc = "Netduino Development Board with STM32F4 (Experimental)",
+	.init = netduinoplus2_board_init };
 
 static void netduinoplus2_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &netduinoplus2_machine);
-	stm32f405rg_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F405RG);
+
 	/* TODO: Add board inits */
 }
 
@@ -51,14 +55,16 @@ static void
 netduinogo_board_init(MachineState *machine);
 
 static QEMUMachine netduinogo_machine =
-{ .name = "NetduinoGo", .desc =
-		"Netduino GoBus Development Board with STM32F4 (Experimental)", .init =
-		netduinogo_board_init, };
+{
+	.name = "NetduinoGo",
+	.desc = "Netduino GoBus Development Board with STM32F4 (Experimental)",
+	.init = netduinogo_board_init };
 
 static void netduinogo_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &netduinogo_machine);
-	stm32f405rg_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F405RG);
+
 	/* TODO: Add board inits */
 }
 
@@ -67,14 +73,16 @@ static void
 mapple_board_init(MachineState *machine);
 
 static QEMUMachine mapple_machine =
-{ .name = "Mapple", .desc =
-		"LeafLab Arduino-style STM32 microcontroller board (Experimental)",
-		.init = mapple_board_init, };
+{
+	.name = "Mapple",
+	.desc = "LeafLab Arduino-style STM32 microcontroller board (Experimental)",
+	.init = mapple_board_init };
 
 static void mapple_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &mapple_machine);
-	stm32f103rb_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F103RB);
+
 	/* TODO: Add board inits */
 }
 

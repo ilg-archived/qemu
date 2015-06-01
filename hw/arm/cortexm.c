@@ -39,12 +39,9 @@
  */
 static Property cortexm_mcu_properties[] =
 {
-DEFINE_PROP_STRING("kernel-filename", CortexMState, kernel_filename),
-DEFINE_PROP_STRING("cpu-model", CortexMState, cpu_model),
-DEFINE_PROP_UINT32("ram-sizeK", CortexMState, ram_size_kb, 0),
-DEFINE_PROP_UINT32("flash-sizeK", CortexMState, flash_size_kb, 0),
-DEFINE_PROP_END_OF_LIST(), //
-		};
+		DEFINE_PROP_UINT32("ram-sizeK", CortexMState, ram_size_kb, 0),
+		DEFINE_PROP_UINT32("flash-sizeK", CortexMState, flash_size_kb, 0),
+	DEFINE_PROP_END_OF_LIST() };
 
 /**
  * Used during qdev_create() as parent before the call to
@@ -56,7 +53,7 @@ DEFINE_PROP_END_OF_LIST(), //
  */
 static void cortexm_mcu_instance_init(Object *obj)
 {
-	CortexMState *s = CORTEXM_MCU_STATE(obj);
+	// CortexMState *s = CORTEXM_MCU_STATE(obj);
 
 #if defined(CONFIG_VERBOSE)
 	verbosity_printFunctionName();
@@ -80,12 +77,12 @@ static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo cortexm_mcu_type_init =
-{ //
-		.name = TYPE_CORTEXM_MCU, //
-				.parent = TYPE_SYS_BUS_DEVICE, //
-				.instance_size = sizeof(CortexMState), //
-				.instance_init = cortexm_mcu_instance_init, //
-				.class_init = cortexm_mcu_class_init };
+{
+	.name = TYPE_CORTEXM_MCU,
+	.parent = TYPE_SYS_BUS_DEVICE,
+	.instance_size = sizeof(CortexMState),
+	.instance_init = cortexm_mcu_instance_init,
+	.class_init = cortexm_mcu_class_init };
 
 /* ----- Type inits. ----- */
 
@@ -119,13 +116,14 @@ DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
 {
 	DeviceState *dev;
 	dev = qdev_create(NULL, mcu_type);
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
 	if (machine->kernel_filename) {
-		qdev_prop_set_string(dev, "kernel-filename", machine->kernel_filename);
+		cm_state->kernel_filename = machine->kernel_filename;
 	}
 
 	if (machine->cpu_model) {
-		qdev_prop_set_string(dev, "cpu-model", machine->cpu_model);
+		cm_state->cpu_model = machine->cpu_model;
 	}
 
 	return dev;
@@ -134,7 +132,7 @@ DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
 /* ----- */
 
 static void
-cortexm_core_reset(void *opaque);
+cortexm_internal_reset(void *opaque);
 
 #define BITBAND_OFFSET (0x02000000)
 
@@ -143,59 +141,70 @@ static void cortexm_bitband_init(uint32_t address)
 	DeviceState *dev;
 
 	/* Make address a multiple of 32MB */
-	address &= ~(BITBAND_OFFSET-1);
+	address &= ~(BITBAND_OFFSET - 1);
 	dev = qdev_create(NULL, TYPE_BITBAND);
 	qdev_prop_set_uint32(dev, "base", address);
 	qdev_init_nofail(dev);
-	sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address+BITBAND_OFFSET);
+	sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address + BITBAND_OFFSET);
 }
 
-/* Common Cortex-M core initialisation routine.  */
+/**
+ * Cortex-M core initialisation routine.
+ * The capabilities were already copied into the state object by the
+ * *_instance_init() functions.
+ *
+ * MCU specific inits should be done after this function
+ * After them an explicit call to cortexm_core_reset() is required.
+ *
+ * Some MCU properties can be overwritten by command line options
+ * (core type, flash/ram sizes).
+ */
 qemu_irq *
-cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
+cortexm_core_realize(CortexMState *cm_state)
 {
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level >= VERBOSITY_DEBUG) {
-		printf("cortexm_core_realize()\n");
-	}
+	verbosity_printFunctionName();
 #endif
+
+	CortexMCapabilities *cm_capabilities = cm_state->cm_capabilities;
+	assert(cm_capabilities != NULL);
 
 	const char *kernel_filename = NULL;
 	const char *cpu_model_arg = NULL;
 	int ram_size_arg_kb = 0;
 	int flash_size_arg_kb = 0;
-	if (dev_state) {
-		kernel_filename = dev_state->kernel_filename;
-		cpu_model_arg = dev_state->cpu_model;
-		ram_size_arg_kb = dev_state->ram_size_kb;
-		flash_size_arg_kb = dev_state->flash_size_kb;
+	if (cm_state) {
+		kernel_filename = cm_state->kernel_filename;
+		cpu_model_arg = cm_state->cpu_model;
+		ram_size_arg_kb = cm_state->ram_size_kb;
+		flash_size_arg_kb = cm_state->flash_size_kb;
 	}
 
 	if (cpu_model_arg) {
 		/* If explicitly given via the --cpu command line option,
 		 * overwrite the board MCU definition. */
 		if (strcmp(cpu_model_arg, "cortex-m0") == 0) {
-			cm_info->cortexm_model = CORTEX_M0;
+			cm_capabilities->cortexm_model = CORTEX_M0;
 		} else if (strcmp(cpu_model_arg, "cortex-m0p") == 0) {
-			cm_info->cortexm_model = CORTEX_M0PLUS;
+			cm_capabilities->cortexm_model = CORTEX_M0PLUS;
 		} else if (strcmp(cpu_model_arg, "cortex-m1") == 0) {
-			cm_info->cortexm_model = CORTEX_M1;
+			cm_capabilities->cortexm_model = CORTEX_M1;
 		} else if (strcmp(cpu_model_arg, "cortex-m3") == 0) {
-			cm_info->cortexm_model = CORTEX_M3;
+			cm_capabilities->cortexm_model = CORTEX_M3;
 		} else if (strcmp(cpu_model_arg, "cortex-m4") == 0) {
-			cm_info->cortexm_model = CORTEX_M4;
-			cm_info->has_mpu = false;
+			cm_capabilities->cortexm_model = CORTEX_M4;
+			cm_capabilities->has_mpu = false;
 		} else if (strcmp(cpu_model_arg, "cortex-m4f") == 0) {
-			cm_info->cortexm_model = CORTEX_M4F;
-			cm_info->has_mpu = true;
+			cm_capabilities->cortexm_model = CORTEX_M4F;
+			cm_capabilities->has_mpu = true;
 		} else if (strcmp(cpu_model_arg, "cortex-m7") == 0) {
-			cm_info->cortexm_model = CORTEX_M7;
-			cm_info->has_mpu = false;
+			cm_capabilities->cortexm_model = CORTEX_M7;
+			cm_capabilities->has_mpu = false;
 		} else if (strcmp(cpu_model_arg, "cortex-m7f") == 0) {
-			cm_info->cortexm_model = CORTEX_M7F;
-			cm_info->has_mpu = true;
+			cm_capabilities->cortexm_model = CORTEX_M7F;
+			cm_capabilities->has_mpu = true;
 		} else {
-			fprintf(stderr, "Illegal --cpu %s, only cortex-m* supported.\n",
+			error_report("Illegal --cpu %s, only cortex-m* supported.",
 					cpu_model_arg);
 			exit(1);
 		}
@@ -204,16 +213,15 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	int sram_size_kb;
 	if (ram_size_arg_kb != 0) {
 		/* If explicitly given via the -m command line option,
-		 * or by --global,
-		 * overwrite the board MCU definition. */
+		 * or by --global, overwrite the board MCU definition. */
 		sram_size_kb = ram_size_arg_kb;
 	} else {
-		sram_size_kb = cm_info->sram_size_kb;
+		sram_size_kb = cm_capabilities->sram_size_kb;
 	}
 
 	/* Max 32 MB ram, to avoid overlapping with the bit-banding area */
-	if (sram_size_kb > 32*1024){
-		sram_size_kb = 32*1024;
+	if (sram_size_kb > 32 * 1024) {
+		sram_size_kb = 32 * 1024;
 	}
 
 	int flash_size_kb;
@@ -222,70 +230,76 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 		 * overwrite the board MCU definition. */
 		flash_size_kb = flash_size_arg_kb;
 	} else {
-		flash_size_kb = cm_info->flash_size_kb;
+		flash_size_kb = cm_capabilities->flash_size_kb;
 	}
 	const char *cpu_model = "?";
 	const char *display_model = "?";
 
-	switch (cm_info->cortexm_model) {
+	/* Some capabilities are hard-wired. */
+	switch (cm_capabilities->cortexm_model) {
 	case CORTEX_M0:
 		display_model = "Cortex-M0";
 		cpu_model = "cortex-m0";
-		cm_info->has_mpu = false;
-		cm_info->has_fpu = false;
-		cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+		cm_capabilities->has_mpu = false;
+		cm_capabilities->has_fpu = false;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
 		break;
 
 	case CORTEX_M0PLUS:
 		display_model = "Cortex-M0+";
 		cpu_model = "cortex-m0p";
-		cm_info->has_mpu = false;
-		cm_info->has_fpu = false;
-		cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+		cm_capabilities->has_mpu = false;
+		cm_capabilities->has_fpu = false;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
 		break;
 
 	case CORTEX_M1:
 		display_model = "Cortex-M1";
 		cpu_model = "cortex-m1";
+		/* TODO: Check if it has no MPU/FPU. */
+		cm_capabilities->has_mpu = false;
+		cm_capabilities->has_fpu = false;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
 		break;
 
 	case CORTEX_M3:
 		display_model = "Cortex-M3";
 		cpu_model = "cortex-m3";
-		cm_info->has_fpu = false;
-		cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+		cm_capabilities->has_fpu = false;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
 		break;
 
 	case CORTEX_M4:
 		display_model = "Cortex-M4";
 		cpu_model = "cortex-m4";
-		cm_info->has_fpu = false;
-		cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+		cm_capabilities->has_fpu = false;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
 		break;
 
 	case CORTEX_M4F:
 		display_model = "Cortex-M4F";
 		cpu_model = "cortex-mf4";
-		cm_info->has_fpu = true;
-		cm_info->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
+		cm_capabilities->has_fpu = true;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
 		break;
 
 	case CORTEX_M7:
 		display_model = "Cortex-M7";
 		cpu_model = "cortex-m7";
-		cm_info->has_fpu = false;
-		cm_info->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+		cm_capabilities->has_fpu = false;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
 		break;
 
 	case CORTEX_M7F:
 		display_model = "Cortex-M7F";
 		cpu_model = "cortex-m7f";
-		cm_info->has_fpu = true;
-		cm_info->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
+		cm_capabilities->has_fpu = true;
+		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
 		break;
 
 	default:
-		fprintf(stderr, "Illegal cortexm_model %d.\n", cm_info->cortexm_model);
+		error_report("Illegal cortexm_model %d.",
+				cm_capabilities->cortexm_model);
 		exit(1);
 	}
 
@@ -293,11 +307,11 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	if (verbosity_level > VERBOSITY_COMMON) {
 		const char *cmdline;
 
-		printf("Device: '%s' (%s", cm_info->device_name, display_model);
-		if (cm_info->has_mpu) {
+		printf("Device: '%s' (%s", cm_capabilities->device_name, display_model);
+		if (cm_capabilities->has_mpu) {
 			printf(", MPU");
 		}
-		if (cm_info->has_fpu) {
+		if (cm_capabilities->has_fpu) {
 			printf(", FPU");
 		}
 		printf("), Flash: %d KB, RAM: %d KB.\n", flash_size_kb, sram_size_kb);
@@ -317,10 +331,10 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	ARMCPU *cpu;
 	cpu = cpu_arm_init(cpu_model);
 	if (cpu == NULL) {
-		fprintf(stderr, "Unable to find CPU definition %s\n", cpu_model);
+		error_report("Unable to find CPU definition %s", cpu_model);
 		exit(1);
 	}
-	dev_state->cpu = cpu;
+	cm_state->cpu = cpu;
 
 	CPUARMState *env;
 	env = &cpu->env;
@@ -341,7 +355,8 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	memory_region_add_subregion(system_memory, 0x00000000, flash_mem);
 
 	MemoryRegion *sram_mem = g_new(MemoryRegion, 1);
-	memory_region_init_ram(sram_mem, NULL, "cortexm.sram_mem", sram_size, &error_abort);
+	memory_region_init_ram(sram_mem, NULL, "cortexm.sram_mem", sram_size,
+			&error_abort);
 	vmstate_register_ram_global(sram_mem);
 	memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
 	cortexm_bitband_init(0x20000000);
@@ -350,12 +365,13 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	/* Hack to map an additional page of ram at the top of the address
 	 * space.  This stops qemu complaining about executing code outside RAM
 	 * when returning from an exception.  */
-	memory_region_init_ram(hack_mem, NULL, "cortexm.hack_mem", 0x1000, &error_abort);
+	memory_region_init_ram(hack_mem, NULL, "cortexm.hack_mem", 0x1000,
+			&error_abort);
 	vmstate_register_ram_global(hack_mem);
 	memory_region_add_subregion(system_memory, 0xfffff000, hack_mem);
 
 	/* Pass back to the MCU inits, to add further regions, like flash alias */
-	cm_info->system_memory = system_memory;
+	cm_state->system_memory = system_memory;
 
 	/* ----- Create the NVIC device. ----- */
 	DeviceState *nvic;
@@ -372,7 +388,7 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 
 	/* ----- Load image. ----- */
 	if (!kernel_filename && !qtest_enabled() && !with_gdb) {
-		fprintf(stderr, "Guest image must be specified (using -kernel)\n");
+		error_report("Guest image must be specified (using -kernel)");
 		exit(1);
 	}
 
@@ -405,8 +421,6 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 		}
 	}
 
-	qemu_register_reset(cortexm_core_reset, cpu);
-
 	/* Assume 8000000 Hz */
 	/* TODO: compute according to board clock & pll settings */
 	system_clock_scale = 80;
@@ -420,54 +434,7 @@ cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state)
 	return pic;
 }
 
-/* TODO: remove all following functions */
-
-/* Cortex-M0 initialisation routine.  */
-qemu_irq *
-cortex_m0_core_init(cortex_m_core_info *cm_info, MachineState *machine)
-{
-	machine->cpu_model = "cortex-m0";
-	cm_info->cortexm_model = CORTEX_M0;
-	return cortexm_core_realize(cm_info, NULL);
-}
-
-/* Cortex-M0+ initialisation routine.  */
-qemu_irq *
-cortex_m0p_core_init(cortex_m_core_info *cm_info, MachineState *machine)
-{
-	machine->cpu_model = "cortex-m0p";
-	cm_info->cortexm_model = CORTEX_M0PLUS;
-	return cortexm_core_realize(cm_info, NULL);
-}
-
-/* Cortex-M3 initialisation routine.  */
-qemu_irq *
-cortex_m3_core_init(cortex_m_core_info *cm_info, MachineState *machine)
-{
-	machine->cpu_model = "cortex-m3";
-	cm_info->cortexm_model = CORTEX_M3;
-	return cortexm_core_realize(cm_info, NULL);
-}
-
-/* Cortex-M4 initialisation routine.  */
-qemu_irq *
-cortex_m4_core_init(cortex_m_core_info *cm_info, MachineState *machine)
-{
-	machine->cpu_model = "cortex-m4";
-	cm_info->cortexm_model = CORTEX_M4;
-	return cortexm_core_realize(cm_info, NULL);
-}
-
-/* Cortex-M7 initialisation routine.  */
-qemu_irq *
-cortex_m7_core_init(cortex_m_core_info *cm_info, MachineState *machine)
-{
-	machine->cpu_model = "cortex-m7";
-	cm_info->cortexm_model = CORTEX_M7;
-	return cortexm_core_realize(cm_info, NULL);
-}
-
-static void cortexm_core_reset(void *opaque)
+static void cortexm_internal_reset(void *opaque)
 {
 	ARMCPU *cpu = opaque;
 
@@ -477,6 +444,49 @@ static void cortexm_core_reset(void *opaque)
 	}
 #endif
 	cpu_reset(CPU(cpu));
+}
+
+void cortexm_core_reset(CortexMState *dev_state)
+{
+
+	qemu_register_reset(cortexm_internal_reset, dev_state->cpu);
+}
+
+/* TODO: remove all following functions */
+
+/* Cortex-M0 initialisation routine.  */
+qemu_irq *
+cortex_m0_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+{
+	return NULL;
+}
+
+/* Cortex-M0+ initialisation routine.  */
+qemu_irq *
+cortex_m0p_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+{
+	return NULL;
+}
+
+/* Cortex-M3 initialisation routine.  */
+qemu_irq *
+cortex_m3_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+{
+	return NULL;
+}
+
+/* Cortex-M4 initialisation routine.  */
+qemu_irq *
+cortex_m4_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+{
+	return NULL;
+}
+
+/* Cortex-M7 initialisation routine.  */
+qemu_irq *
+cortex_m7_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+{
+	return NULL;
 }
 
 /* -------------------------------------------------------------------------- */

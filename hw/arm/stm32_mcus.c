@@ -28,21 +28,21 @@
  * memory at 0x00000000 passes reads through the "real" flash memory at
  * 0x08000000, but it works the same either way.
  */
-void stm32_memory_alias_realize(cortex_m_core_info *cm_info)
+void stm32_memory_alias_realize(CortexMState *cm_state)
 {
-	assert(cm_info != NULL);
+	assert(cm_state != NULL);
 
-	int flash_size_kb = cm_info->flash_size_kb;
+	int flash_size_kb = cm_state->flash_size_kb;
 
 	/* Get system memory region, it must start at 0 */
-	MemoryRegion *system_memory = cm_info->system_memory;
+	MemoryRegion *system_memory = cm_state->system_memory;
 
-	/* Allocate a new region alias */
+	/* Allocate a new region for the alias */
 	MemoryRegion *flash_alias_mem = g_malloc(sizeof(MemoryRegion));
 
 	/* Initialise the new region */
-	memory_region_init_alias(flash_alias_mem,
-	NULL, "stm32.flash_mem_alias", system_memory, 0, flash_size_kb);
+	memory_region_init_alias(flash_alias_mem, NULL, "stm32.flash_mem_alias",
+			system_memory, 0, flash_size_kb);
 
 	/* Alias it as the STM specific 0x08000000 */
 	memory_region_add_subregion(system_memory, 0x08000000, flash_alias_mem);
@@ -69,6 +69,12 @@ void stm32_mcu_create(MachineState *machine, const char *mcu_type)
 	}
 }
 
+static Property stm32_mcu_properties[] =
+{
+	/* TODO: add STM32 specific properties */
+	DEFINE_PROP_END_OF_LIST(), //
+		};
+
 /*
  STM32 Flash sizes encoding:
  8 = 64K
@@ -80,217 +86,686 @@ void stm32_mcu_create(MachineState *machine, const char *mcu_type)
  I = 2048K
  */
 
+/* TODO: define the special CCM region for the models that include it. */
+
 /* ----- STM32F051R8 ----- */
-static cortex_m_core_info stm32f051r8_core_info =
-{ .device_name = "STM32F051R8", .flash_size_kb = 64, .sram_size_kb = 8, .cortexm_model = CORTEX_M0 };
-
-qemu_irq *
-stm32f051r8_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f051r8_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f051r8_core_info);
-	return cortex_m0_core_init(&stm32f051r8_core_info, machine);
-}
+	.device_name = TYPE_STM32F051R8,
+	.flash_size_kb = 64,
+	.sram_size_kb = 8,
+	.cortexm_model = CORTEX_M0 };
 
-/* ----- STM32F100RB ----- */
-static cortex_m_core_info stm32f100rb_core_info =
-{ .device_name = "STM32F100RB", .flash_size_kb = 128, .sram_size_kb = 8, };
-
-qemu_irq *
-stm32f100rb_mcu_init(MachineState *machine)
+static void stm32f051r8_mcu_instance_init(Object *obj)
 {
-	stm32_memory_alias_realize(&stm32f100rb_core_info);
-	return cortex_m3_core_init(&stm32f100rb_core_info, machine);
-}
-
-/* ----- STM32F103RB ----- */
-static cortex_m_core_info stm32f103rb_core_info =
-{ //
-		.device_name = TYPE_STM32F103RB, //
-				.flash_size_kb = 128, //
-				.sram_size_kb = 20, //
-				.has_mpu = true, //
-				.cortexm_model = CORTEX_M3 //
-		};
-
-qemu_irq *
-stm32f103rb_mcu_init(MachineState *machine)
-{
-	stm32_memory_alias_realize(&stm32f103rb_core_info);
-	return cortex_m3_core_init(&stm32f103rb_core_info, machine);
-}
-
-// ---
-
-static void stm32f103rb_mcu_instance_init(Object *obj)
-{
-	// stm32f1_state *s = STM32F103RBC_STATE(obj);
-	// object_initialize
 #if defined(CONFIG_VERBOSE)
 	verbosity_printFunctionName();
 #endif
+
+	stm32_state *state = STM32F051R8_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f051r8_capabilities;
+
+	// TODO: initialize inner objects
+}
+
+static void stm32f051r8_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *state = STM32F051R8_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f051r8_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f051r8_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f051r8_mcu_type_info =
+{
+	.name = TYPE_STM32F051R8,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f051r8_mcu_instance_init,
+	.class_init = stm32f051r8_mcu_class_init };
+
+/* ----- STM32F100RB ----- */
+static CortexMCapabilities stm32f100rb_capabilities =
+{
+	.device_name = TYPE_STM32F100RB,
+	.flash_size_kb = 128,
+	.sram_size_kb = 8,
+	.cortexm_model = CORTEX_M3 };
+
+static void stm32f100rb_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F100RB_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f100rb_capabilities;
+
+	// TODO: initialize inner objects
+}
+
+static void stm32f100rb_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *state = STM32F100RB_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f100rb_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f100rb_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f100rb_mcu_type_info =
+{
+	.name = TYPE_STM32F100RB,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f100rb_mcu_instance_init,
+	.class_init = stm32f100rb_mcu_class_init };
+
+/* ----- STM32F103RB ----- */
+static CortexMCapabilities stm32f103rb_capabilities =
+{
+	.device_name = TYPE_STM32F103RB,
+	.flash_size_kb = 128,
+	.sram_size_kb = 20,
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M3 };
+
+static void stm32f103rb_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F103RB_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f103rb_capabilities;
+
+	// TODO: initialize inner objects
 }
 
 static void stm32f103rb_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-	stm32f1_state *s = STM32F103RBC_STATE(dev_state);
-
 #if defined(CONFIG_VERBOSE)
 	verbosity_printFunctionName();
 #endif
 
-	cortexm_core_realize(&stm32f103rb_core_info, CORTEXM_MCU_STATE(dev_state));
-	stm32_memory_alias_realize(&stm32f103rb_core_info);
-}
+	// stm32_state *s = STM32F103RBC_STATE(dev_state);
 
-static Property stm32f1_mcu_properties[] =
-{
-DEFINE_PROP_END_OF_LIST(), //
-		};
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
 
 static void stm32f103rb_mcu_class_init(ObjectClass *klass, void *data)
 {
 	DeviceClass *dc = DEVICE_CLASS(klass);
 
+	dc->realize = stm32f103rb_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f103rb_mcu_type_info =
+{
+	.name = TYPE_STM32F103RB,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f103rb_mcu_instance_init,
+	.class_init = stm32f103rb_mcu_class_init };
+
+/* ----- STM32F107VC ----- */
+static CortexMCapabilities stm32f107vc_capabilities =
+{
+	.device_name = TYPE_STM32F107VC,
+	.flash_size_kb = 256,
+	.sram_size_kb = 64,
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M3 };
+
+static void stm32f107vc_mcu_instance_init(Object *obj)
+{
 #if defined(CONFIG_VERBOSE)
 	verbosity_printFunctionName();
 #endif
-	dc->realize = stm32f103rb_mcu_realize;
-	dc->props = stm32f1_mcu_properties;
+
+	stm32_state *state = STM32F107VC_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f107vc_capabilities;
+
+	// TODO: initialize inner objects
 }
 
-static const TypeInfo stm32f103rb_mcu_type_init =
-{ //
-		.name = TYPE_STM32F103RB, //
-				.parent = TYPE_CORTEXM_MCU, //
-				.instance_size = sizeof(stm32f1_state), //
-				.instance_init = stm32f103rb_mcu_instance_init, //
-				.class_init = stm32f103rb_mcu_class_init, };
-
-/* ----- STM32F107VC ----- */
-static cortex_m_core_info stm32f107vc_core_info =
-{ .device_name = "STM32F107VC", .flash_size_kb = 256, .sram_size_kb = 64,
-		.has_mpu = true, };
-
-qemu_irq *
-stm32f107vc_mcu_init(MachineState *machine)
+static void stm32f107vc_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-	stm32_memory_alias_realize(&stm32f107vc_core_info);
-	return cortex_m3_core_init(&stm32f107vc_core_info, machine);
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F107VC_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
 }
+
+static void stm32f107vc_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f107vc_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f107vc_mcu_type_info =
+{
+	.name = TYPE_STM32F107VC,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f107vc_mcu_instance_init,
+	.class_init = stm32f107vc_mcu_class_init };
 
 /* ----- STM32L152RE ----- */
-static cortex_m_core_info stm32l152re_core_info =
-{ .device_name = "STM32L152RE", .flash_size_kb = 512, .sram_size_kb = 80,
-		.has_mpu = true, };
-
-qemu_irq *
-stm32l152re_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32l152re_capabilities =
 {
-	stm32_memory_alias_realize(&stm32l152re_core_info);
-	return cortex_m3_core_init(&stm32l152re_core_info, machine);
+	.device_name = TYPE_STM32L152RE,
+	.flash_size_kb = 512,
+	.sram_size_kb = 80,
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M3 };
+
+static void stm32l152re_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32L152RE_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32l152re_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32l152re_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32L152RE_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32l152re_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32l152re_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32l152re_mcu_type_info =
+{
+	.name = TYPE_STM32L152RE,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32l152re_mcu_instance_init,
+	.class_init = stm32l152re_mcu_class_init };
 
 /* ----- STM32F205RF ----- */
-static cortex_m_core_info stm32f205rf_core_info =
-{ .device_name = "STM32F205RF", .flash_size_kb = 768, .sram_size_kb = 128, /* No CCM */
-.has_mpu = true, };
-
-qemu_irq *
-stm32f205rf_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f205rf_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f205rf_core_info);
-	return cortex_m3_core_init(&stm32f205rf_core_info, machine);
+	.device_name = TYPE_STM32F205RF,
+	.flash_size_kb = 768,
+	.sram_size_kb = 128, /* No CCM */
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M3 };
+
+static void stm32f205rf_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F205RF_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f205rf_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f205rf_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F205RF_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f205rf_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f205rf_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f205rf_mcu_type_info =
+{
+	.name = TYPE_STM32F205RF,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f205rf_mcu_instance_init,
+	.class_init = stm32f205rf_mcu_class_init };
 
 /* ----- STM32F303VC ----- */
-static cortex_m_core_info stm32f303vc_core_info =
-{ .device_name = "STM32F303VC", .flash_size_kb = 256, .sram_size_kb = 40,
-		.has_mpu = true, .has_fpu = true, };
-
-qemu_irq *
-stm32f303vc_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f303vc_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f303vc_core_info);
-	return cortex_m4_core_init(&stm32f303vc_core_info, machine);
+	.device_name = TYPE_STM32F303VC,
+	.flash_size_kb = 256,
+	.sram_size_kb = 40,
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M4F };
+
+static void stm32f303vc_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F303VC_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f303vc_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f303vc_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F303VC_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f303vc_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f303vc_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f303vc_mcu_type_info =
+{
+	.name = TYPE_STM32F303VC,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f303vc_mcu_instance_init,
+	.class_init = stm32f303vc_mcu_class_init };
 
 /* ----- STM32F334R8 ----- */
-static cortex_m_core_info stm32f334r8_core_info =
-{ .device_name = "STM32F334R8", .flash_size_kb = 64, .sram_size_kb = 12,
-		.has_mpu = true, .has_fpu = true, };
-
-qemu_irq *
-stm32f334r8_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f334r8_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f334r8_core_info);
-	return cortex_m4_core_init(&stm32f334r8_core_info, machine);
+	.device_name = TYPE_STM32F334R8,
+	.flash_size_kb = 64,
+	.sram_size_kb = 12,
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M4F };
+
+static void stm32f334r8_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F334R8_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f334r8_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f334r8_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F334R8_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f334r8_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f334r8_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f334r8_mcu_type_info =
+{
+	.name = TYPE_STM32F334R8,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f334r8_mcu_instance_init,
+	.class_init = stm32f334r8_mcu_class_init };
 
 /* ----- STM32F405RG ----- */
-static cortex_m_core_info stm32f405rg_core_info =
-{ .device_name = "STM32F405RG", .flash_size_kb = 1024, .sram_size_kb = 128, /* 64K CCM not counted */
-.has_mpu = true, .has_fpu = true, };
-
-qemu_irq *
-stm32f405rg_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f405rg_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f405rg_core_info);
-	return cortex_m4_core_init(&stm32f405rg_core_info, machine);
+	.device_name = TYPE_STM32F405RG,
+	.flash_size_kb = 1024,
+	.sram_size_kb = 128, /* 64K CCM not counted */
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M4F };
+
+static void stm32f405rg_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F103RB_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f405rg_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f405rg_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F103RBC_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f405rg_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f405rg_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f405rg_mcu_type_info =
+{
+	.name = TYPE_STM32F405RG,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f405rg_mcu_instance_init,
+	.class_init = stm32f405rg_mcu_class_init };
 
 /* ----- STM32F407VG ----- */
-static cortex_m_core_info stm32f407vg_core_info =
-{ .device_name = "STM32F407VG", .flash_size_kb = 1024, .sram_size_kb = 128, /* 64K CCM not counted */
-.has_mpu = true, .has_fpu = true, };
-
-qemu_irq *
-stm32f407vg_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f407vg_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f407vg_core_info);
-	return cortex_m4_core_init(&stm32f407vg_core_info, machine);
+	.device_name = TYPE_STM32F407VG,
+	.flash_size_kb = 1024,
+	.sram_size_kb = 128, /* 64K CCM not counted */
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M4F };
+
+static void stm32f407vg_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F407VG_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f407vg_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f407vg_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F407VG_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f407vg_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f407vg_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f407vg_mcu_type_info =
+{
+	.name = TYPE_STM32F407VG,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f407vg_mcu_instance_init,
+	.class_init = stm32f407vg_mcu_class_init };
 
 /* ----- STM32F407ZG ----- */
-static cortex_m_core_info stm32f407zg_core_info =
-{ .device_name = "STM32F407ZG", .flash_size_kb = 1024, .sram_size_kb = 128, /* 64K CCM not counted */
-.has_mpu = true, .has_fpu = true, };
-
-qemu_irq *
-stm32f407zg_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f407zg_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f407zg_core_info);
-	return cortex_m4_core_init(&stm32f407zg_core_info, machine);
+	.device_name = TYPE_STM32F407ZG,
+	.flash_size_kb = 1024,
+	.sram_size_kb = 128, /* 64K CCM not counted */
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M4F };
+
+static void stm32f407zg_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F407ZG_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f407zg_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f407zg_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F407ZG_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f407zg_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f407zg_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f407zg_mcu_type_info =
+{
+	.name = TYPE_STM32F407ZG,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f407zg_mcu_instance_init,
+	.class_init = stm32f407zg_mcu_class_init };
 
 /* ----- STM32F411RE ----- */
-static cortex_m_core_info stm32f411re_core_info =
-{ .device_name = "STM32F411RE", .flash_size_kb = 512, .sram_size_kb = 128, /* No CCM */
-.has_mpu = true, .has_fpu = true, };
-
-qemu_irq *
-stm32f411re_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f411re_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f411re_core_info);
-	return cortex_m4_core_init(&stm32f411re_core_info, machine);
+	.device_name = TYPE_STM32F411RE,
+	.flash_size_kb = 512,
+	.sram_size_kb = 128, /* No CCM */
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M4F };
+
+static void stm32f411re_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F411RE_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f411re_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f411re_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F411RE_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f411re_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f411re_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f411re_mcu_type_info =
+{
+	.name = TYPE_STM32F411RE,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f411re_mcu_instance_init,
+	.class_init = stm32f411re_mcu_class_init };
 
 /* ----- STM32F429ZI ----- */
-static cortex_m_core_info stm32f429zi_core_info =
-{ .device_name = "STM32F429ZI", .flash_size_kb = 2048, .sram_size_kb = 192, /* 64K CCM not counted */
-.has_mpu = true, .has_fpu = true, };
-
-qemu_irq *
-stm32f429zi_mcu_init(MachineState *machine)
+static CortexMCapabilities stm32f429zi_capabilities =
 {
-	stm32_memory_alias_realize(&stm32f429zi_core_info);
-	return cortex_m4_core_init(&stm32f429zi_core_info, machine);
+	.device_name = TYPE_STM32F429ZI,
+	.flash_size_kb = 2048,
+	.sram_size_kb = 192, /* 64K CCM not counted */
+	.has_mpu = true,
+	.cortexm_model = CORTEX_M4F };
+
+static void stm32f429zi_mcu_instance_init(Object *obj)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	stm32_state *state = STM32F429ZI_STATE(obj);
+	state->parent_obj.cm_capabilities = &stm32f429zi_capabilities;
+
+	// TODO: initialize inner objects
 }
+
+static void stm32f429zi_mcu_realize(DeviceState *dev_state, Error **errp)
+{
+#if defined(CONFIG_VERBOSE)
+	verbosity_printFunctionName();
+#endif
+
+	// stm32_state *s = STM32F429ZI_STATE(dev_state);
+
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev_state);
+	cortexm_core_realize(cm_state);
+	stm32_memory_alias_realize(cm_state);
+	cortexm_core_reset(cm_state);
+}
+
+static void stm32f429zi_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->realize = stm32f429zi_mcu_realize;
+	dc->props = stm32_mcu_properties;
+}
+
+static const TypeInfo stm32f429zi_mcu_type_info =
+{
+	.name = TYPE_STM32F429ZI,
+	.parent = TYPE_CORTEXM_MCU,
+	.instance_size = sizeof(stm32_state),
+	.instance_init = stm32f429zi_mcu_instance_init,
+	.class_init = stm32f429zi_mcu_class_init };
 
 /* ----- Type inits. ----- */
 
 static void stm32_types_init()
 {
-	type_register_static(&stm32f103rb_mcu_type_init);
+	type_register_static(&stm32f051r8_mcu_type_info);
+	type_register_static(&stm32f100rb_mcu_type_info);
+	type_register_static(&stm32f103rb_mcu_type_info);
+	type_register_static(&stm32f107vc_mcu_type_info);
+	type_register_static(&stm32l152re_mcu_type_info);
+	type_register_static(&stm32f205rf_mcu_type_info);
+	type_register_static(&stm32f303vc_mcu_type_info);
+	type_register_static(&stm32f334r8_mcu_type_info);
+	type_register_static(&stm32f405rg_mcu_type_info);
+	type_register_static(&stm32f407vg_mcu_type_info);
+	type_register_static(&stm32f407zg_mcu_type_info);
+	type_register_static(&stm32f411re_mcu_type_info);
+	type_register_static(&stm32f429zi_mcu_type_info);
 }
 
 type_init(stm32_types_init);

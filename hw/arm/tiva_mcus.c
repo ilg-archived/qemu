@@ -10,7 +10,7 @@
 #include "hw/arm/cortexm.h"
 
 /* ----- TM4C123GH6PM ----- */
-static cortex_m_core_info tm4c123gh6pm_core_info = {
+static CortexMCapabilities tm4c123gh6pm_core_info = {
     .device_name = "TM4C123GH6PM",
     .flash_size_kb = 256,
     .sram_size_kb = 32,

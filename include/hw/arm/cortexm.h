@@ -14,25 +14,6 @@
 #include "hw/boards.h"
 #include "hw/sysbus.h"
 
-#define TYPE_CORTEXM_MCU "cortexm-mcu"
-#define CORTEXM_MCU_STATE(obj) \
-    OBJECT_CHECK(CortexMState, (obj), TYPE_CORTEXM_MCU)
-
-typedef struct CortexMState {
-	/*< private >*/
-	SysBusDevice parent_obj;
-	/*< public >*/
-
-	char *kernel_filename;
-	char *cpu_model;
-	uint32_t ram_size_kb;
-	uint32_t flash_size_kb;
-
-	ARMCPU *cpu;
-
-	/* TODO: add specific structures */
-} CortexMState;
-
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
 #define CORTEX_M_FPU_TYPE_FPV5_SP_D16 (2)
@@ -46,20 +27,21 @@ typedef enum {
 	CORTEX_M4F,
 	CORTEX_M7,
 	CORTEX_M7F
-} cortex_m_models_t;
+} cortexm_models_t;
 
 /*
  * Used by vendor specific Cortex-M devices to pass the core
  * capabilities to the common Cortex-M initialisations. 
+ *
+ * It is copied into the CortexMState during *_instance_init() functions.
  */
-typedef struct cortex_m_core_info {
+typedef struct CortexMCapabilities {
 
 	const char *device_name; /* the CMSIS official device name */
 
-	// const char *kernel_filename;
-	cortex_m_models_t cortexm_model;
+	cortexm_models_t cortexm_model; /* binary id to identify the core */
 
-	MemoryRegion *system_memory; /* flash memory region, possibly with alias */
+	/* The vendor values. */
 	int flash_size_kb; /* size of main program area, in KB */
 	int sram_size_kb; /* size of main RAM area, in KB */
 	int sram_begin; /* begin address of main RAM area, if not 0x20000000 */
@@ -69,7 +51,40 @@ typedef struct cortex_m_core_info {
 	int has_fpu; /* true/false */
 	int fpu_type; /* CORTEX_M_FPU_TYPE_* */
 	int nvic_bits; /* bits used for irqs in NVIC */
-} cortex_m_core_info;
+} CortexMCapabilities;
+
+#define TYPE_CORTEXM_MCU "cortexm-mcu"
+#define CORTEXM_MCU_STATE(obj) \
+    OBJECT_CHECK(CortexMState, (obj), TYPE_CORTEXM_MCU)
+
+/**
+ * Structure used to store the Cortex-M state.
+ */
+typedef struct CortexMState {
+	/*< private >*/
+	SysBusDevice parent_obj;
+	/*< public >*/
+
+	/**
+	 * Core capabilities, set by *_instance_init().
+	 */
+	CortexMCapabilities *cm_capabilities;
+
+	const char *kernel_filename;
+
+	/*
+	 * The following are the actual values used to initialise the object.
+	 * May be different from capabilities, if explicitly overwriten.
+	 */
+	const char *cpu_model;
+	uint32_t ram_size_kb;
+	uint32_t flash_size_kb;
+
+	MemoryRegion *system_memory; /* flash memory region */
+	ARMCPU *cpu;
+
+	/* TODO: add specific structures */
+} CortexMState;
 
 void
 cortexm_board_greeting(MachineState *machine, QEMUMachine *qm);
@@ -78,18 +93,21 @@ DeviceState *
 cortexm_mcu_create(MachineState *machine, const char *mcu_type);
 
 qemu_irq *
-cortexm_core_realize(cortex_m_core_info *cm_info, CortexMState *dev_state);
+cortexm_core_realize(CortexMState *dev_state);
 
-qemu_irq *
-cortex_m0_core_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *
-cortex_m0p_core_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *
-cortex_m3_core_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *
-cortex_m4_core_init(cortex_m_core_info *cm_info, MachineState *machine);
-qemu_irq *
-cortex_m7_core_init(cortex_m_core_info *cm_info, MachineState *machine);
+void
+cortexm_core_reset(CortexMState *dev_state);
 
+// TODO: remove all when all old definitions are updated.
+qemu_irq *
+cortex_m0_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+qemu_irq *
+cortex_m0p_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+qemu_irq *
+cortex_m3_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+qemu_irq *
+cortex_m4_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+qemu_irq *
+cortex_m7_core_init(CortexMCapabilities *cm_info, MachineState *machine);
 
 #endif /* HW_ARM_CORTEXM_H */

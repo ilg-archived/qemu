@@ -27,7 +27,7 @@
  */
 
 /* ----- MK20DX128VLH5 ----- */
-static cortex_m_core_info mk20dx128vlh5_core_info = {
+static CortexMCapabilities mk20dx128vlh5_core_info = {
     .device_name = "MK20DX128VLH5",
     .flash_size_kb = 128, /* +32K FlexNVM at 0x10000000 */
     .sram_size_kb = 8, /* +8K SRAM_L */
@@ -41,7 +41,7 @@ qemu_irq *mk20dx128vlh5_mcu_init(MachineState *machine)
 }
 
 /* ----- MK22FN512VLH12 ----- */
-static cortex_m_core_info mk22fn512vlh12_core_info = {
+static CortexMCapabilities mk22fn512vlh12_core_info = {
     .device_name = "MK22FN512VLH12",
     .flash_size_kb = 512,
     .sram_size_kb = 64, /* +64K SRAM_L */
@@ -55,7 +55,7 @@ qemu_irq *mk22fn512vlh12_mcu_init(MachineState *machine)
 }
 
 /* ----- MK64FN1M0VLL12 ----- */
-static cortex_m_core_info mk64fn1m0vll12_core_info = {
+static CortexMCapabilities mk64fn1m0vll12_core_info = {
     .device_name = "MK64FN1M0VLL12",
     .flash_size_kb = 1024,
     .sram_size_kb = 192, /* +64K SRAM_L */
@@ -69,7 +69,7 @@ qemu_irq *mk64fn1m0vll12_mcu_init(MachineState *machine)
 }
 
 /* ----- MK60FN1M0VLQ12 ----- */
-static cortex_m_core_info mk60fn1m0vlq12_core_info = {
+static CortexMCapabilities mk60fn1m0vlq12_core_info = {
     .device_name = "MK60FN1M0VLQ12",
     .flash_size_kb = 1024,
     .sram_size_kb = 192, /* +64K SRAM_L */
@@ -83,7 +83,7 @@ qemu_irq *mk60fn1m0vlq12_mcu_init(MachineState *machine)
 }
 
 /* ----- MKL25Z128VLK4 ----- */
-static cortex_m_core_info mkl25z128vlk4_core_info = {
+static CortexMCapabilities mkl25z128vlk4_core_info = {
     .device_name = "MKL25Z128VLK4",
     .flash_size_kb = 128,
     .sram_size_kb = 12, /* +4K SRAM_L */
@@ -96,7 +96,7 @@ qemu_irq *mkl25z128vlk4_mcu_init(MachineState *machine)
 }
 
 /* ----- MKL26Z128VLH4 ----- */
-static cortex_m_core_info mkl26z128vlh4_core_info = {
+static CortexMCapabilities mkl26z128vlh4_core_info = {
     .device_name = "MKL26Z128VLH4",
     .flash_size_kb = 128,
     .sram_size_kb = 12, /* +4K SRAM_L */
@@ -109,7 +109,7 @@ qemu_irq *mkl26z128vlh4_mcu_init(MachineState *machine)
 }
 
 /* ----- MKL43Z256VLH4 ----- */
-static cortex_m_core_info mkl43z256vlh4_core_info = {
+static CortexMCapabilities mkl43z256vlh4_core_info = {
     .device_name = "MKL43Z256VLH4",
     .flash_size_kb = 256,
     .sram_size_kb = 24, /* +8K SRAM_L */
@@ -122,7 +122,7 @@ qemu_irq *mkl43z256vlh4_mcu_init(MachineState *machine)
 }
 
 /* ----- MKL46Z256VLL4 ----- */
-static cortex_m_core_info mkl46z256vll4_core_info = {
+static CortexMCapabilities mkl46z256vll4_core_info = {
     .device_name = "MKL46Z256VLL4",
     .flash_size_kb = 256,
     .sram_size_kb = 24, /* +8K SRAM_L */

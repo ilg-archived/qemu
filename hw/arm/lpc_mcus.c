@@ -10,7 +10,7 @@
 #include "hw/arm/cortexm.h"
 
 /* ----- LPC1769FBD100 ----- */
-static cortex_m_core_info lpc1769fbd100_core_info = {
+static CortexMCapabilities lpc1769fbd100_core_info = {
     .device_name = "LPC1769FBD100",
     .flash_size_kb = 512,
     .sram_size_kb = 32, /* +32K peripheral ram @0x2007C000 */

@@ -21,14 +21,16 @@ static void
 stm32f4_discovery_board_init(MachineState *machine);
 
 static QEMUMachine stm32f4_discovery_machine =
-{ .name = "STM32F4-Discovery", .desc =
-		"ST Discovery kit for STM32F407/417 lines (Experimental)", .init =
-		stm32f4_discovery_board_init, };
+{
+	.name = "STM32F4-Discovery",
+	.desc = "ST Discovery kit for STM32F407/417 lines (Experimental)",
+	.init = stm32f4_discovery_board_init };
 
 static void stm32f4_discovery_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &stm32f4_discovery_machine);
-	stm32f407vg_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F407VG);
+
 	/* TODO: Add board inits */
 }
 
@@ -37,14 +39,16 @@ static void
 stm32f429i_discovery_board_init(MachineState *machine);
 
 static QEMUMachine stm32f429i_discovery_machine =
-{ .name = "STM32F429I-Discovery", .desc =
-		"ST Discovery kit for STM32F429/439 lines (Experimental)", .init =
-		stm32f429i_discovery_board_init, };
+{
+	.name = "STM32F429I-Discovery",
+	.desc = "ST Discovery kit for STM32F429/439 lines (Experimental)",
+	.init = stm32f429i_discovery_board_init };
 
 static void stm32f429i_discovery_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &stm32f429i_discovery_machine);
-	stm32f429zi_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F429ZI);
+
 	/* TODO: Add board inits */
 }
 
@@ -53,14 +57,16 @@ static void
 stm32f3_discovery_board_init(MachineState *machine);
 
 static QEMUMachine stm32f3_discovery_machine =
-{ .name = "STM32F3-Discovery", .desc =
-		"ST Discovery kit for STM32F303 line (Experimental)", .init =
-		stm32f3_discovery_board_init, };
+{
+	.name = "STM32F3-Discovery",
+	.desc = "ST Discovery kit for STM32F303 line (Experimental)",
+	.init = stm32f3_discovery_board_init };
 
 static void stm32f3_discovery_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &stm32f3_discovery_machine);
-	stm32f303vc_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F303VC);
+
 	/* TODO: Add board inits */
 }
 
@@ -69,14 +75,16 @@ static void
 stm32f0_discovery_board_init(MachineState *machine);
 
 static QEMUMachine stm32f0_discovery_machine =
-{ .name = "STM32F0-Discovery", .desc =
-		"ST Discovery kit for STM32F051 line (Experimental)", .init =
-		stm32f0_discovery_board_init, };
+{
+	.name = "STM32F0-Discovery",
+	.desc = "ST Discovery kit for STM32F051 line (Experimental)",
+	.init = stm32f0_discovery_board_init };
 
 static void stm32f0_discovery_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &stm32f0_discovery_machine);
-	stm32f051r8_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F051R8);
+
 	/* TODO: Add board inits */
 }
 
@@ -85,14 +93,16 @@ static void
 stm32vl_discovery_init(MachineState *machine);
 
 static QEMUMachine stm32vl_discovery_machine =
-{ .name = "STM32VL-Discovery", .desc =
-		"ST Discovery kit for STM32F100 Value Line (Experimental)", .init =
-		stm32vl_discovery_init, };
+{
+	.name = "STM32VL-Discovery",
+	.desc = "ST Discovery kit for STM32F100 Value Line (Experimental)",
+	.init = stm32vl_discovery_init };
 
 static void stm32vl_discovery_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine, &stm32vl_discovery_machine);
-	stm32f100rb_mcu_init(machine);
+	stm32_mcu_create(machine, TYPE_STM32F100RB);
+
 	/* TODO: Add board inits */
 }
 
