@@ -261,7 +261,14 @@ uint32_t do_arm_semihosting(CPUARMState *env)
                 gdb_do_syscall(arm_semi_cb, "write,2,%x,1", args);
                 return env->regs[0];
           } else {
+                ret = write(STDERR_FILENO, &c, 1);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+                ret = write(STDERR_FILENO, &c, 1);
+                fsync(STDERR_FILENO);
+                return ret;
+#else
                 return write(STDERR_FILENO, &c, 1);
+#endif
           }
         }
     case TARGET_SYS_WRITE0:
@@ -274,7 +281,10 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             ret = env->regs[0];
         } else {
             ret = write(STDERR_FILENO, s, len);
-        }
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+            fsync(STDERR_FILENO);
+#endif
+            }
         unlock_user(s, args, 0);
         return ret;
     case TARGET_SYS_WRITE:
@@ -596,6 +606,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
         gdb_exit(env, ret);
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level > 0) {
+        fsync(STDERR_FILENO);
         printf("QEMU exit(%d)\n", ret);
     }
 #endif
