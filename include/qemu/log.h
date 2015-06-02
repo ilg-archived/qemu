@@ -41,6 +41,9 @@ static inline bool qemu_log_enabled(void)
 #define LOG_UNIMP          (1 << 10)
 #define LOG_GUEST_ERROR    (1 << 11)
 #define CPU_LOG_MMU        (1 << 12)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define LOG_TRACE          (1 << 13)
+#endif
 
 /* Returns true if a bit is set in the current loglevel mask
  */
@@ -181,5 +184,10 @@ int qemu_str_to_log_mask(const char *str);
  * to the specified FILE*.
  */
 void qemu_print_log_usage(FILE *f);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define qemu_log_function_name() \
+    qemu_log_mask(LOG_TRACE, "%s()\n", __FUNCTION__);
+#endif
 
 #endif

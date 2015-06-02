@@ -2891,7 +2891,7 @@ int main(int argc, char **argv, char **envp)
             verbosity_level++;
         }
     }
-    if (verbosity_level > VERBOSITY_COMMON) {
+    if (verbosity_level >= VERBOSITY_COMMON) {
         printf( "\n"
 #if defined(CONFIG_BRANDING_MESSAGE)
                CONFIG_BRANDING_MESSAGE " "
@@ -3982,6 +3982,31 @@ int main(int argc, char **argv, char **envp)
     }
 #endif
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    /* Moved before machine test to allow -d help */
+
+    /* Open the logfile at this point, if necessary. We can't open the logfile
+     * when encountering either of the logging options (-d or -D) because the
+     * other one may be encountered later on the command line, changing the
+     * location or level of logging.
+     */
+    if (log_mask) {
+        int mask;
+        if (log_file) {
+            qemu_set_log_filename(log_file);
+        }
+
+        mask = qemu_str_to_log_mask(log_mask);
+        if (!mask) {
+            qemu_print_log_usage(stdout);
+            exit(1);
+        }
+        qemu_set_log(mask);
+    }
+
+#endif
+
     if (machine_class == NULL) {
         fprintf(stderr, "No machine specified, and there is no default.\n"
                 "Use -machine help to list supported machines!\n");
@@ -4013,6 +4038,8 @@ int main(int argc, char **argv, char **envp)
         exit(0);
     }
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
     /* Open the logfile at this point, if necessary. We can't open the logfile
      * when encountering either of the logging options (-d or -D) because the
      * other one may be encountered later on the command line, changing the
@@ -4031,6 +4058,8 @@ int main(int argc, char **argv, char **envp)
         }
         qemu_set_log(mask);
     }
+
+#endif
 
     if (!is_daemonized()) {
         if (!trace_init_backends(trace_events, trace_file)) {

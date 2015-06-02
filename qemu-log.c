@@ -119,6 +119,10 @@ const QEMULogItem qemu_log_items[] = {
     { LOG_GUEST_ERROR, "guest_errors",
       "log when the guest OS does something invalid (eg accessing a\n"
       "non-existent register)" },
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+	{ LOG_TRACE, "trace",
+	  "log trace messages, when execution passed specific places" },
+#endif
     { 0, NULL, NULL },
 };
 
