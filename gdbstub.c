@@ -979,7 +979,7 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
         hextomem(mem_buf, p, len);
 
 #if defined(CONFIG_VERBOSE)
-        if (verbosity_level > VERBOSITY_DETAILED) {
+        if (verbosity_level >= VERBOSITY_DETAILED) {
             printf("Write %4d bytes at 0x%08X-0x%08X.\n", len, addr, addr+len-1);
         }
 #endif
@@ -1728,7 +1728,7 @@ int gdbserver_start(const char *device)
         return -1;
 
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > VERBOSITY_COMMON) {
+    if (verbosity_level >= VERBOSITY_COMMON) {
         printf("GDB Server listening on: '%s'...\n", device);
     }
 #endif

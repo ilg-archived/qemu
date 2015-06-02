@@ -20,11 +20,6 @@ typedef enum {
 
 extern verbosity_t verbosity_level;
 
-#define verbosity_printFunctionName() \
-	if (verbosity_level >= VERBOSITY_DEBUG) { \
-		printf("%s()\n", __FUNCTION__); \
-	} \
-
 #endif
 
 #endif /* VERBOSITY_H_ */

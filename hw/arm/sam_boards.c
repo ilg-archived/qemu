@@ -22,7 +22,7 @@
 void sam_board_init(MachineState *machine, QEMUMachine *qm)
 {
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > VERBOSITY_COMMON) {
+    if (verbosity_level >= VERBOSITY_COMMON) {
         printf("Board: '%s' (%s).\n", qm->name, qm->desc);
     }
 #endif

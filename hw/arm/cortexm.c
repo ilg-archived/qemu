@@ -55,9 +55,7 @@ static void cortexm_mcu_instance_init(Object *obj)
 {
 	// CortexMState *s = CORTEXM_MCU_STATE(obj);
 
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// call object_initialize for internal objects
 }
@@ -70,9 +68,6 @@ static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
 {
 	DeviceClass *dc = DEVICE_CLASS(klass);
 
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
 	dc->props = cortexm_mcu_properties;
 }
 
@@ -103,7 +98,7 @@ type_init(cortexm_types_init);
 void cortexm_board_greeting(MachineState *machine, QEMUMachine *qm)
 {
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level > VERBOSITY_COMMON) {
+	if (verbosity_level >= VERBOSITY_COMMON) {
 		printf("Board: '%s' (%s).\n", qm->name, qm->desc);
 	}
 #endif
@@ -162,9 +157,7 @@ static void cortexm_bitband_init(uint32_t address)
 qemu_irq *
 cortexm_core_realize(CortexMState *cm_state)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	CortexMCapabilities *cm_capabilities = cm_state->cm_capabilities;
 	assert(cm_capabilities != NULL);
@@ -304,7 +297,7 @@ cortexm_core_realize(CortexMState *cm_state)
 	}
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level > VERBOSITY_COMMON) {
+	if (verbosity_level >= VERBOSITY_COMMON) {
 		const char *cmdline;
 
 		printf("Device: '%s' (%s", cm_capabilities->device_name, display_model);
@@ -426,7 +419,7 @@ cortexm_core_realize(CortexMState *cm_state)
 	system_clock_scale = 80;
 
 #if defined(CONFIG_VERBOSE)
-	if (verbosity_level > VERBOSITY_COMMON) {
+	if (verbosity_level >= VERBOSITY_COMMON) {
 		printf("Cortex-M core initialised.\n");
 	}
 #endif

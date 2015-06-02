@@ -609,7 +609,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
         ret = (args == ADP_Stopped_ApplicationExit) ? 0 : 1;
         gdb_exit(env, ret);
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > VERBOSITY_COMMON) {
+    if (verbosity_level >= VERBOSITY_COMMON) {
         fsync(STDERR_FILENO);
         printf("QEMU exit(%d)\n", ret);
     }

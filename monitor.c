@@ -4133,7 +4133,7 @@ static void handle_user_command(Monitor *mon, const char *cmdline)
         }
     } else {
 #if defined(CONFIG_VERBOSE)
-        if (verbosity_level > VERBOSITY_COMMON) {
+        if (verbosity_level >= VERBOSITY_COMMON) {
             printf("Execute 'mon %s'.\n\n", cmdline);
         }
 #endif

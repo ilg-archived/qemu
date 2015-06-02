@@ -98,9 +98,7 @@ static CortexMCapabilities stm32f051r8_capabilities =
 
 static void stm32f051r8_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F051R8_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f051r8_capabilities;
@@ -110,9 +108,7 @@ static void stm32f051r8_mcu_instance_init(Object *obj)
 
 static void stm32f051r8_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *state = STM32F051R8_STATE(dev_state);
 
@@ -148,9 +144,7 @@ static CortexMCapabilities stm32f100rb_capabilities =
 
 static void stm32f100rb_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F100RB_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f100rb_capabilities;
@@ -160,9 +154,7 @@ static void stm32f100rb_mcu_instance_init(Object *obj)
 
 static void stm32f100rb_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *state = STM32F100RB_STATE(dev_state);
 
@@ -199,9 +191,7 @@ static CortexMCapabilities stm32f103rb_capabilities =
 
 static void stm32f103rb_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F103RB_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f103rb_capabilities;
@@ -211,9 +201,7 @@ static void stm32f103rb_mcu_instance_init(Object *obj)
 
 static void stm32f103rb_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F103RBC_STATE(dev_state);
 
@@ -250,9 +238,7 @@ static CortexMCapabilities stm32f107vc_capabilities =
 
 static void stm32f107vc_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F107VC_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f107vc_capabilities;
@@ -262,9 +248,7 @@ static void stm32f107vc_mcu_instance_init(Object *obj)
 
 static void stm32f107vc_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F107VC_STATE(dev_state);
 
@@ -301,9 +285,7 @@ static CortexMCapabilities stm32l152re_capabilities =
 
 static void stm32l152re_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32L152RE_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32l152re_capabilities;
@@ -313,9 +295,7 @@ static void stm32l152re_mcu_instance_init(Object *obj)
 
 static void stm32l152re_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32L152RE_STATE(dev_state);
 
@@ -352,9 +332,7 @@ static CortexMCapabilities stm32f205rf_capabilities =
 
 static void stm32f205rf_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F205RF_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f205rf_capabilities;
@@ -364,9 +342,7 @@ static void stm32f205rf_mcu_instance_init(Object *obj)
 
 static void stm32f205rf_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F205RF_STATE(dev_state);
 
@@ -403,9 +379,7 @@ static CortexMCapabilities stm32f303vc_capabilities =
 
 static void stm32f303vc_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F303VC_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f303vc_capabilities;
@@ -415,9 +389,7 @@ static void stm32f303vc_mcu_instance_init(Object *obj)
 
 static void stm32f303vc_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F303VC_STATE(dev_state);
 
@@ -454,9 +426,7 @@ static CortexMCapabilities stm32f334r8_capabilities =
 
 static void stm32f334r8_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F334R8_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f334r8_capabilities;
@@ -466,9 +436,7 @@ static void stm32f334r8_mcu_instance_init(Object *obj)
 
 static void stm32f334r8_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F334R8_STATE(dev_state);
 
@@ -505,9 +473,7 @@ static CortexMCapabilities stm32f405rg_capabilities =
 
 static void stm32f405rg_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F103RB_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f405rg_capabilities;
@@ -517,9 +483,7 @@ static void stm32f405rg_mcu_instance_init(Object *obj)
 
 static void stm32f405rg_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F103RBC_STATE(dev_state);
 
@@ -556,9 +520,7 @@ static CortexMCapabilities stm32f407vg_capabilities =
 
 static void stm32f407vg_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F407VG_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f407vg_capabilities;
@@ -568,9 +530,7 @@ static void stm32f407vg_mcu_instance_init(Object *obj)
 
 static void stm32f407vg_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F407VG_STATE(dev_state);
 
@@ -607,9 +567,7 @@ static CortexMCapabilities stm32f407zg_capabilities =
 
 static void stm32f407zg_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F407ZG_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f407zg_capabilities;
@@ -619,9 +577,7 @@ static void stm32f407zg_mcu_instance_init(Object *obj)
 
 static void stm32f407zg_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F407ZG_STATE(dev_state);
 
@@ -658,9 +614,7 @@ static CortexMCapabilities stm32f411re_capabilities =
 
 static void stm32f411re_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F411RE_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f411re_capabilities;
@@ -670,9 +624,7 @@ static void stm32f411re_mcu_instance_init(Object *obj)
 
 static void stm32f411re_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F411RE_STATE(dev_state);
 
@@ -709,9 +661,7 @@ static CortexMCapabilities stm32f429zi_capabilities =
 
 static void stm32f429zi_mcu_instance_init(Object *obj)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	stm32_state *state = STM32F429ZI_STATE(obj);
 	state->parent_obj.cm_capabilities = &stm32f429zi_capabilities;
@@ -721,9 +671,7 @@ static void stm32f429zi_mcu_instance_init(Object *obj)
 
 static void stm32f429zi_mcu_realize(DeviceState *dev_state, Error **errp)
 {
-#if defined(CONFIG_VERBOSE)
-	verbosity_printFunctionName();
-#endif
+	qemu_log_function_name();
 
 	// stm32_state *s = STM32F429ZI_STATE(dev_state);
 

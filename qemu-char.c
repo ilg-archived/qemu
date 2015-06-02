@@ -3026,7 +3026,7 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
     }
     
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > VERBOSITY_COMMON) {
+    if (verbosity_level >= VERBOSITY_COMMON) {
         str[0] = '\0';
         if (addr->sa_family == AF_INET) {
             strcpy(str, inet_ntoa(((struct sockaddr_in*)addr)->sin_addr));
