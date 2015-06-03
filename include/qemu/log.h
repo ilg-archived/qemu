@@ -187,7 +187,7 @@ void qemu_print_log_usage(FILE *f);
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #define qemu_log_function_name() \
-    qemu_log_mask(LOG_TRACE, "%s()\n", __FUNCTION__);
+    qemu_log_mask(LOG_TRACE, "%s()\n", __FUNCTION__)
 #endif
 
 #endif
