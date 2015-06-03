@@ -40,3 +40,8 @@ obj-$(CONFIG_STM32F2XX_SYSCFG) += stm32f2xx_syscfg.o
 
 obj-$(CONFIG_PVPANIC) += pvpanic.o
 obj-$(CONFIG_EDU) += edu.o
+
+# [GNU ARM Eclipse]
+# Cortex-M files
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += armv7m_itm.o
+# [GNU ARM Eclipse]
