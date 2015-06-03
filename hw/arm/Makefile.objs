@@ -14,7 +14,7 @@ obj-$(CONFIG_STM32F205_SOC) += stm32f205_soc.o
 
 # [GNU ARM Eclipse]
 # Cortex-M files
-obj-y += cortexm.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm.o
 obj-$(CONFIG_STM32) += stm32_mcus.o stm32_boards.o stm32_olimex_boards.o
 obj-$(CONFIG_STM32) += stm32_duino_boards.o stm32_nucleo_boards.o
 obj-$(CONFIG_KINETIS) += kinetis_mcus.o kinetis_boards.o

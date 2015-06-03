@@ -27,11 +27,30 @@
 /* Redefined from armv7m.c */
 #define TYPE_BITBAND "ARM,bitband-memory"
 
+#define DEFAULT_NUM_IRQ		256
+
+static void
+cortexm_internal_reset(void *opaque);
+
 /*
  * There are two kind of definitions in this file, cortexm_core_* for
  * ARM Cortex-M core, and cortexm_mcu_*, as common code for vendor
  * MCU implementations.
  */
+
+#define BITBAND_OFFSET (0x02000000)
+
+static void cortexm_bitband_init(uint32_t address)
+{
+	DeviceState *dev;
+
+	/* Make address a multiple of 32MB */
+	address &= ~(BITBAND_OFFSET - 1);
+	dev = qdev_create(NULL, TYPE_BITBAND);
+	qdev_prop_set_uint32(dev, "base", address);
+	qdev_init_nofail(dev);
+	sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address + BITBAND_OFFSET);
+}
 
 /**
  * Properties for the 'cortexm_mcu' object, used as parent for
@@ -53,94 +72,16 @@ static Property cortexm_mcu_properties[] =
  */
 static void cortexm_mcu_instance_init(Object *obj)
 {
-	// CortexMState *s = CORTEXM_MCU_STATE(obj);
-
 	qemu_log_function_name();
 
-	// call object_initialize for internal objects
-}
+	CortexMState *s = CORTEXM_MCU_STATE(obj);
 
-/**
- * Initialise the "cortexm-mcu" object. Currently there is no input data.
- * Called during module_call_init() in main().
- */
-static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
-{
-	DeviceClass *dc = DEVICE_CLASS(klass);
+	/* Construct the ITM object. */
+	object_initialize(&s->itm, sizeof(s->itm), TYPE_ITM);
 
-	dc->props = cortexm_mcu_properties;
-}
-
-static const TypeInfo cortexm_mcu_type_init =
-{
-	.name = TYPE_CORTEXM_MCU,
-	.parent = TYPE_SYS_BUS_DEVICE,
-	.instance_size = sizeof(CortexMState),
-	.instance_init = cortexm_mcu_instance_init,
-	.class_init = cortexm_mcu_class_init };
-
-/* ----- Type inits. ----- */
-
-static void cortexm_types_init()
-{
-	type_register_static(&cortexm_mcu_type_init);
-}
-
-type_init(cortexm_types_init);
-
-/* ----- */
-
-/**
- * When verbose, display a line to identify the board (name, description).
- *
- * Does not really depend on Cortex-M, but I could not find a better place.
- */
-void cortexm_board_greeting(MachineState *machine, QEMUMachine *qm)
-{
-#if defined(CONFIG_VERBOSE)
-	if (verbosity_level >= VERBOSITY_COMMON) {
-		printf("Board: '%s' (%s).\n", qm->name, qm->desc);
-	}
-#endif
-}
-
-/**
- * Create the device and set the common properties.
- */
-DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
-{
-	DeviceState *dev;
-	dev = qdev_create(NULL, mcu_type);
-	CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-
-	if (machine->kernel_filename) {
-		cm_state->kernel_filename = machine->kernel_filename;
-	}
-
-	if (machine->cpu_model) {
-		cm_state->cpu_model = machine->cpu_model;
-	}
-
-	return dev;
-}
-
-/* ----- */
-
-static void
-cortexm_internal_reset(void *opaque);
-
-#define BITBAND_OFFSET (0x02000000)
-
-static void cortexm_bitband_init(uint32_t address)
-{
-	DeviceState *dev;
-
-	/* Make address a multiple of 32MB */
-	address &= ~(BITBAND_OFFSET - 1);
-	dev = qdev_create(NULL, TYPE_BITBAND);
-	qdev_prop_set_uint32(dev, "base", address);
-	qdev_init_nofail(dev);
-	sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address + BITBAND_OFFSET);
+	DeviceState *itmdev;
+	itmdev = DEVICE(&s->itm);
+	qdev_set_parent_bus(itmdev, sysbus_get_default());
 }
 
 /**
@@ -148,17 +89,14 @@ static void cortexm_bitband_init(uint32_t address)
  * The capabilities were already copied into the state object by the
  * *_instance_init() functions.
  *
- * MCU specific inits should be done after this function
- * After them an explicit call to cortexm_core_reset() is required.
- *
  * Some MCU properties can be overwritten by command line options
  * (core type, flash/ram sizes).
  */
-qemu_irq *
-cortexm_core_realize(CortexMState *cm_state)
+static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
 {
 	qemu_log_function_name();
 
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 	CortexMCapabilities *cm_capabilities = cm_state->cm_capabilities;
 	assert(cm_capabilities != NULL);
 
@@ -228,6 +166,8 @@ cortexm_core_realize(CortexMState *cm_state)
 	const char *cpu_model = "?";
 	const char *display_model = "?";
 
+	int max_num_irq = 496;
+
 	/* Some capabilities are hard-wired. */
 	switch (cm_capabilities->cortexm_model) {
 	case CORTEX_M0:
@@ -258,6 +198,7 @@ cortexm_core_realize(CortexMState *cm_state)
 	case CORTEX_M3:
 		display_model = "Cortex-M3";
 		cpu_model = "cortex-m3";
+		max_num_irq = 240;
 		cm_capabilities->has_fpu = false;
 		cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
 		break;
@@ -363,20 +304,45 @@ cortexm_core_realize(CortexMState *cm_state)
 	vmstate_register_ram_global(hack_mem);
 	memory_region_add_subregion(system_memory, 0xfffff000, hack_mem);
 
-	/* Pass back to the MCU inits, to add further regions, like flash alias */
-	cm_state->system_memory = system_memory;
-
 	/* ----- Create the NVIC device. ----- */
+	int num_irq;
+	if (cm_capabilities->num_irq) {
+		num_irq = cm_capabilities->num_irq;
+	} else {
+		num_irq = DEFAULT_NUM_IRQ;
+	}
+
+	if (num_irq > max_num_irq) {
+		num_irq = max_num_irq;
+	}
+	/* Must be a multiple of 32 */
+	num_irq = (num_irq + 31) & (~31);
+
 	DeviceState *nvic;
-	/* FIXME: make this local state.  */
-	static qemu_irq pic[64];
 	nvic = qdev_create(NULL, "armv7m_nvic");
 	env->nvic = nvic;
+
+	qdev_prop_set_uint32(nvic, "num-irq", num_irq);
+
 	qdev_init_nofail(nvic);
 	sysbus_connect_irq(SYS_BUS_DEVICE(nvic), 0,
 			qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_IRQ));
-	for (int i = 0; i < 64; i++) {
+
+	qemu_irq *pic = g_new(qemu_irq, num_irq);
+	for (int i = 0; i < num_irq; i++) {
 		pic[i] = qdev_get_gpio_in(nvic, i);
+	}
+	cm_state->pic = pic;
+
+	/* ----- Create the ITM device. ----- */
+	Error *err = NULL;
+	if (cm_capabilities->has_itm) {
+		object_property_set_bool(OBJECT(&cm_state->itm), true, "realized",
+				&err);
+		if (err != NULL) {
+			error_propagate(errp, err);
+			return;
+		}
 	}
 
 	/* ----- Load image. ----- */
@@ -424,9 +390,82 @@ cortexm_core_realize(CortexMState *cm_state)
 	}
 #endif
 
-	return pic;
+	qemu_register_reset(cortexm_internal_reset, cm_state->cpu);
 }
 
+/**
+ * Initialise the "cortexm-mcu" object. Currently there is no input data.
+ * Called during module_call_init() in main().
+ */
+static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
+{
+	DeviceClass *dc = DEVICE_CLASS(klass);
+
+	dc->props = cortexm_mcu_properties;
+	dc->realize = cortexm_mcu_realize;
+}
+
+static const TypeInfo cortexm_mcu_type_init =
+{
+	.name = TYPE_CORTEXM_MCU,
+	.parent = TYPE_SYS_BUS_DEVICE,
+	.instance_size = sizeof(CortexMState),
+	.instance_init = cortexm_mcu_instance_init,
+	.class_init = cortexm_mcu_class_init,
+	.class_size = sizeof(CortexMClass) };
+
+/* ----- Type inits. ----- */
+
+static void cortexm_types_init()
+{
+	type_register_static(&cortexm_mcu_type_init);
+}
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+type_init(cortexm_types_init);
+#endif
+
+/* ----- */
+
+/**
+ * When verbose, display a line to identify the board (name, description).
+ *
+ * Does not really depend on Cortex-M, but I could not find a better place.
+ */
+void cortexm_board_greeting(MachineState *machine, QEMUMachine *qm)
+{
+#if defined(CONFIG_VERBOSE)
+	if (verbosity_level >= VERBOSITY_COMMON) {
+		printf("Board: '%s' (%s).\n", qm->name, qm->desc);
+	}
+#endif
+}
+
+/**
+ * Create the device and set the common properties.
+ */
+DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
+{
+	DeviceState *dev;
+	dev = qdev_create(NULL, mcu_type);
+	CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+
+	if (machine->kernel_filename) {
+		cm_state->kernel_filename = machine->kernel_filename;
+	}
+
+	if (machine->cpu_model) {
+		cm_state->cpu_model = machine->cpu_model;
+	}
+
+	return dev;
+}
+
+/* ----- */
+
+/**
+ * Used solely by cortexm_core_reset().
+ */
 static void cortexm_internal_reset(void *opaque)
 {
 	ARMCPU *cpu = opaque;

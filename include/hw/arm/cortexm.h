@@ -13,6 +13,7 @@
 #include "hw/irq.h"
 #include "hw/boards.h"
 #include "hw/sysbus.h"
+#include "hw/misc/armv7m_itm.h"
 
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
@@ -49,7 +50,9 @@ typedef struct CortexMCapabilities {
 	/* Not yet used */
 	int has_mpu; /* true/false */
 	int has_fpu; /* true/false */
+	int has_itm; /* true/false */
 	int fpu_type; /* CORTEX_M_FPU_TYPE_* */
+	int num_irq; /* number of interrupts (excluding first 15 core interrupts) */
 	int nvic_bits; /* bits used for irqs in NVIC */
 } CortexMCapabilities;
 
@@ -80,11 +83,27 @@ typedef struct CortexMState {
 	uint32_t ram_size_kb;
 	uint32_t flash_size_kb;
 
-	MemoryRegion *system_memory; /* flash memory region */
+	/**
+	 * CPU state, as returned by cpu_arm_init().
+	 */
 	ARMCPU *cpu;
 
-	/* TODO: add specific structures */
+	/**
+	 * Pointer to array of num-irq elements. Does not include system interrupts.
+	 */
+	qemu_irq *pic; /* pointer to array of num-irq elements */
+
+	ITMState itm;
+
 } CortexMState;
+
+typedef struct CortexMClass {
+	/*< private >*/
+	SysBusDeviceClass parent_class;
+	/*< public >*/
+	DeviceRealize parent_realize;
+	void (*parent_reset)(DeviceState *dev);
+} CortexMClass;
 
 void
 cortexm_board_greeting(MachineState *machine, QEMUMachine *qm);
@@ -92,8 +111,8 @@ cortexm_board_greeting(MachineState *machine, QEMUMachine *qm);
 DeviceState *
 cortexm_mcu_create(MachineState *machine, const char *mcu_type);
 
-qemu_irq *
-cortexm_core_realize(CortexMState *dev_state);
+void
+cortexm_core_Xrealize(CortexMState *dev_state);
 
 void
 cortexm_core_reset(CortexMState *dev_state);
