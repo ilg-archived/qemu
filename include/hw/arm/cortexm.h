@@ -31,14 +31,14 @@
 #define CORTEX_M_FPU_TYPE_FPV5_SP_D16 (2)
 
 typedef enum {
-	CORTEX_M0 = 1,
-	CORTEX_M0PLUS,
-	CORTEX_M1,
-	CORTEX_M3,
-	CORTEX_M4,
-	CORTEX_M4F,
-	CORTEX_M7,
-	CORTEX_M7F
+    CORTEX_M0 = 1,
+    CORTEX_M0PLUS,
+    CORTEX_M1,
+    CORTEX_M3,
+    CORTEX_M4,
+    CORTEX_M4F,
+    CORTEX_M7,
+    CORTEX_M7F
 } cortexm_models_t;
 
 /*
@@ -49,22 +49,22 @@ typedef enum {
  */
 typedef struct CortexMCapabilities {
 
-	const char *device_name; /* the CMSIS official device name */
+    const char *device_name; /* the CMSIS official device name */
 
-	cortexm_models_t cortexm_model; /* binary id to identify the core */
+    cortexm_models_t cortexm_model; /* binary id to identify the core */
 
-	/* The vendor values. */
-	int flash_size_kb; /* size of main program area, in KB */
-	int sram_size_kb; /* size of main RAM area, in KB */
-	int sram_begin; /* begin address of main RAM area, if not 0x20000000 */
+    /* The vendor values. */
+    int flash_size_kb; /* size of main program area, in KB */
+    int sram_size_kb; /* size of main RAM area, in KB */
+    int sram_begin; /* begin address of main RAM area, if not 0x20000000 */
 
-	/* Not yet used */
-	int has_mpu; /* true/false */
-	int has_fpu; /* true/false */
-	int has_itm; /* true/false */
-	int fpu_type; /* CORTEX_M_FPU_TYPE_* */
-	int num_irq; /* number of interrupts (excluding first 15 core interrupts) */
-	int nvic_bits; /* bits used for irqs in NVIC */
+    /* Not yet used */
+    int has_mpu; /* true/false */
+    int has_fpu; /* true/false */
+    int has_itm; /* true/false */
+    int fpu_type; /* CORTEX_M_FPU_TYPE_* */
+    int num_irq; /* number of interrupts (excluding first 15 core interrupts) */
+    int nvic_bits; /* bits used for irqs in NVIC */
 } CortexMCapabilities;
 
 #define TYPE_CORTEXM_MCU "cortexm-mcu"
@@ -75,45 +75,47 @@ typedef struct CortexMCapabilities {
  * Structure used to store the Cortex-M state.
  */
 typedef struct CortexMState {
-	/*< private >*/
-	SysBusDevice parent_obj;
-	/*< public >*/
+    /*< private >*/
+    SysBusDevice parent_obj;
+    /*< public >*/
 
-	/**
-	 * Core capabilities, set by *_instance_init().
-	 */
-	CortexMCapabilities *cm_capabilities;
+    /**
+     * Core capabilities, set by *_instance_init().
+     */
+    CortexMCapabilities *cm_capabilities;
 
-	const char *kernel_filename;
+    const char *kernel_filename;
 
-	/*
-	 * The following are the actual values used to initialise the object.
-	 * May be different from capabilities, if explicitly overwriten.
-	 */
-	const char *cpu_model;
-	uint32_t ram_size_kb;
-	uint32_t flash_size_kb;
+    /*
+     * The following are the actual values used to initialise the object.
+     * May be different from capabilities, if explicitly overwriten.
+     */
+    const char *cpu_model;
+    const char *display_model;
 
-	/**
-	 * CPU state, as returned by cpu_arm_init().
-	 */
-	ARMCPU *cpu;
+    uint32_t ram_size_kb;
+    uint32_t flash_size_kb;
 
-	/**
-	 * Pointer to array of num-irq elements. Does not include system interrupts.
-	 */
-	qemu_irq *pic; /* pointer to array of num-irq elements */
+    /**
+     * CPU state, as returned by cpu_arm_init().
+     */
+    ARMCPU *cpu;
 
-	ITMState itm;
+    /**
+     * Pointer to array of num-irq elements. Does not include system interrupts.
+     */
+    qemu_irq *pic; /* pointer to array of num-irq elements */
+
+    ITMState itm;
 
 } CortexMState;
 
 typedef struct CortexMClass {
-	/*< private >*/
-	SysBusDeviceClass parent_class;
-	/*< public >*/
-	DeviceRealize parent_realize;
-	void (*parent_reset)(DeviceState *dev);
+    /*< private >*/
+    SysBusDeviceClass parent_class;
+    /*< public >*/
+    DeviceRealize parent_realize;
+    void (*parent_reset)(DeviceState *dev);
 } CortexMClass;
 
 void
@@ -121,12 +123,6 @@ cortexm_board_greeting(MachineState *machine);
 
 DeviceState *
 cortexm_mcu_init(MachineState *machine, const char *mcu_type);
-
-void
-cortexm_core_Xrealize(CortexMState *dev_state);
-
-void
-cortexm_core_reset(CortexMState *dev_state);
 
 // TODO: remove all when all old definitions are updated.
 qemu_irq *

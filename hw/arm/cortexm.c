@@ -247,6 +247,8 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
         exit(1);
     }
 
+    cm_state->display_model = display_model;
+
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
         const char *cmdline;
@@ -396,7 +398,7 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
-        printf("Cortex-M core initialised.\n");
+        printf("%s core initialised.\n", display_model);
     }
 #endif
 
@@ -481,7 +483,7 @@ DeviceState *cortexm_mcu_init(MachineState *machine, const char *mcu_type)
 /* ----- */
 
 /**
- * Used solely by cortexm_core_reset().
+ * Used solely by cortexm_mcu_realize() above.
  */
 static void cortexm_internal_reset(void *opaque)
 {
@@ -493,12 +495,6 @@ static void cortexm_internal_reset(void *opaque)
     }
 #endif
     cpu_reset(CPU(cpu));
-}
-
-void cortexm_core_reset(CortexMState *dev_state)
-{
-
-    qemu_register_reset(cortexm_internal_reset, dev_state->cpu);
 }
 
 /* TODO: remove all following functions */
