@@ -120,7 +120,7 @@ void
 cortexm_board_greeting(MachineState *machine);
 
 DeviceState *
-cortexm_mcu_create(MachineState *machine, const char *mcu_type);
+cortexm_mcu_init(MachineState *machine, const char *mcu_type);
 
 void
 cortexm_core_Xrealize(CortexMState *dev_state);

@@ -42,7 +42,7 @@ static QEMUMachine stm32_h103_machine =
 static void stm32_h103_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F103RB);
+	cortexm_mcu_init(machine, TYPE_STM32F103RB);
 
 	/* TODO: Add board inits */
 }
@@ -60,7 +60,7 @@ static QEMUMachine stm32_p103_machine =
 static void stm32_p103_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F103RB);
+	cortexm_mcu_init(machine, TYPE_STM32F103RB);
 
 	/* TODO: Add board inits */
 }
@@ -78,7 +78,7 @@ static QEMUMachine olimexino_stm32_machine =
 static void olimexino_stm32_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F103RB);
+	cortexm_mcu_init(machine, TYPE_STM32F103RB);
 
 	/* TODO: Add board inits */
 }
@@ -96,7 +96,7 @@ static QEMUMachine stm32_p107_machine =
 static void stm32_p107_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F107VC);
+	cortexm_mcu_init(machine, TYPE_STM32F107VC);
 
 	/* TODO: Add board inits */
 }
@@ -114,7 +114,7 @@ static QEMUMachine stm32_e407_machine =
 static void stm32_e407_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F407ZG);
+	cortexm_mcu_init(machine, TYPE_STM32F407ZG);
 
 	/* TODO: Add board inits */
 }

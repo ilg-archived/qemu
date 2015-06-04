@@ -38,7 +38,7 @@ static QEMUMachine netduino2_machine =
 static void netduino2_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F205RF);
+	cortexm_mcu_init(machine, TYPE_STM32F205RF);
 
 	/* TODO: Add board inits */
 }
@@ -56,7 +56,7 @@ static QEMUMachine netduinoplus2_machine =
 static void netduinoplus2_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F405RG);
+	cortexm_mcu_init(machine, TYPE_STM32F405RG);
 
 	/* TODO: Add board inits */
 }
@@ -74,7 +74,7 @@ static QEMUMachine netduinogo_machine =
 static void netduinogo_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F405RG);
+	cortexm_mcu_init(machine, TYPE_STM32F405RG);
 
 	/* TODO: Add board inits */
 }
@@ -92,7 +92,7 @@ static QEMUMachine mapple_machine =
 static void mapple_board_init(MachineState *machine)
 {
 	cortexm_board_greeting(machine);
-	stm32_mcu_create(machine, TYPE_STM32F103RB);
+	cortexm_mcu_init(machine, TYPE_STM32F103RB);
 
 	/* TODO: Add board inits */
 }

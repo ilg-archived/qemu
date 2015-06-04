@@ -28,27 +28,6 @@
 #include "verbosity.h"
 #endif
 
-/**
- * Used during qdev_create() after the parent call
- * to cortexm_mcu_instance_init().
- *
- * Called in vendor_mcu_create(), which calls cortexm_mcu_create().
- *
- * It is a different step than *_realize().
- */
-void stm32_mcu_create(MachineState *machine, const char *mcu_type)
-{
-	DeviceState *dev;
-	dev = cortexm_mcu_create(machine, mcu_type);
-
-	Error *err = NULL;
-	object_property_set_bool(OBJECT(dev), true, "realized", &err);
-	if (err != NULL) {
-		error_report("%s", error_get_pretty(err));
-		exit(1);
-	}
-}
-
 /*
  * - Low-density devices are STM32F101xx, STM32F102xx and STM32F103xx
  * microcontrollers where the Flash memory density ranges between 16

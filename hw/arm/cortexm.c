@@ -454,9 +454,9 @@ void cortexm_board_greeting(MachineState *machine)
 }
 
 /**
- * Create the device and set the common properties.
+ * Create the device, initialise members and complete initialisations.
  */
-DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
+DeviceState *cortexm_mcu_init(MachineState *machine, const char *mcu_type)
 {
 	DeviceState *dev;
 	dev = qdev_create(NULL, mcu_type);
@@ -468,6 +468,13 @@ DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
 
 	if (machine->cpu_model) {
 		cm_state->cpu_model = machine->cpu_model;
+	}
+
+	Error *err = NULL;
+	object_property_set_bool(OBJECT(dev), true, "realized", &err);
+	if (err != NULL) {
+		error_report("%s", error_get_pretty(err));
+		exit(1);
 	}
 
 	return dev;
