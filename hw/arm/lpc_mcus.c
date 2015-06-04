@@ -26,8 +26,7 @@ static CortexMCapabilities lpc1769fbd100_core_info = {
     .flash_size_kb = 512,
     .sram_size_kb = 32, /* +32K peripheral ram @0x2007C000 */
     .sram_begin = 0x10000000,
-    .has_mpu = true,
-};
+    .has_mpu = true };
 
 qemu_irq *lpc1769fbd100_mcu_init(MachineState *machine)
 {

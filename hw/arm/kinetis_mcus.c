@@ -43,8 +43,7 @@ static CortexMCapabilities mk20dx128vlh5_core_info = {
     .flash_size_kb = 128, /* +32K FlexNVM at 0x10000000 */
     .sram_size_kb = 8, /* +8K SRAM_L */
     .has_mpu = false,
-    .has_fpu = false,
-};
+    .has_fpu = false };
 
 qemu_irq *mk20dx128vlh5_mcu_init(MachineState *machine)
 {
@@ -57,8 +56,7 @@ static CortexMCapabilities mk22fn512vlh12_core_info = {
     .flash_size_kb = 512,
     .sram_size_kb = 64, /* +64K SRAM_L */
     .has_mpu = false,
-    .has_fpu = false,
-};
+    .has_fpu = false };
 
 qemu_irq *mk22fn512vlh12_mcu_init(MachineState *machine)
 {
@@ -71,8 +69,7 @@ static CortexMCapabilities mk64fn1m0vll12_core_info = {
     .flash_size_kb = 1024,
     .sram_size_kb = 192, /* +64K SRAM_L */
     .has_mpu = true,
-    .has_fpu = true,
-};
+    .has_fpu = true };
 
 qemu_irq *mk64fn1m0vll12_mcu_init(MachineState *machine)
 {
@@ -85,8 +82,7 @@ static CortexMCapabilities mk60fn1m0vlq12_core_info = {
     .flash_size_kb = 1024,
     .sram_size_kb = 192, /* +64K SRAM_L */
     .has_mpu = true,
-    .has_fpu = true,
-};
+    .has_fpu = true };
 
 qemu_irq *mk60fn1m0vlq12_mcu_init(MachineState *machine)
 {
@@ -98,8 +94,7 @@ static CortexMCapabilities mkl25z128vlk4_core_info = {
     .device_name = "MKL25Z128VLK4",
     .flash_size_kb = 128,
     .sram_size_kb = 12, /* +4K SRAM_L */
-    .has_mpu = false,
-};
+    .has_mpu = false };
 
 qemu_irq *mkl25z128vlk4_mcu_init(MachineState *machine)
 {
@@ -111,8 +106,7 @@ static CortexMCapabilities mkl26z128vlh4_core_info = {
     .device_name = "MKL26Z128VLH4",
     .flash_size_kb = 128,
     .sram_size_kb = 12, /* +4K SRAM_L */
-    .has_mpu = false,
-};
+    .has_mpu = false, };
 
 qemu_irq *mkl26z128vlh4_mcu_init(MachineState *machine)
 {
@@ -124,8 +118,7 @@ static CortexMCapabilities mkl43z256vlh4_core_info = {
     .device_name = "MKL43Z256VLH4",
     .flash_size_kb = 256,
     .sram_size_kb = 24, /* +8K SRAM_L */
-    .has_mpu = false,
-};
+    .has_mpu = false };
 
 qemu_irq *mkl43z256vlh4_mcu_init(MachineState *machine)
 {
@@ -137,8 +130,7 @@ static CortexMCapabilities mkl46z256vll4_core_info = {
     .device_name = "MKL46Z256VLL4",
     .flash_size_kb = 256,
     .sram_size_kb = 24, /* +8K SRAM_L */
-    .has_mpu = false,
-};
+    .has_mpu = false };
 
 qemu_irq *mkl46z256vll4_mcu_init(MachineState *machine)
 {

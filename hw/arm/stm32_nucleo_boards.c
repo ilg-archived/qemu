@@ -28,78 +28,74 @@
 /* ----- ST NUCLEO-F411RE ----- */
 static void nucleo_f411re_board_init(MachineState *machine);
 
-static QEMUMachine nucleo_f411re_machine =
-{
-	.name = "NUCLEO-F411RE",
-	.desc = "ST Nucleo Development Board for STM32 F4 series (Experimental)",
-	.init = nucleo_f411re_board_init };
+static QEMUMachine nucleo_f411re_machine = {
+    .name = "NUCLEO-F411RE",
+    .desc = "ST Nucleo Development Board for STM32 F4 series (Experimental)",
+    .init = nucleo_f411re_board_init };
 
 static void nucleo_f411re_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
-	cortexm_mcu_init(machine, TYPE_STM32F411RE);
+    cortexm_board_greeting(machine);
+    cortexm_mcu_init(machine, TYPE_STM32F411RE);
 
-	/* TODO: Add board inits */
+    /* TODO: Add board inits */
 }
 
 /* ----- ST NUCLEO-F334R8 ----- */
 static void nucleo_f334r8_board_init(MachineState *machine);
 
-static QEMUMachine nucleo_f334r8_machine =
-{
-	.name = "NUCLEO-F334R8",
-	.desc = "ST Nucleo Development Board for STM32 F3 series (Experimental)",
-	.init = nucleo_f334r8_board_init };
+static QEMUMachine nucleo_f334r8_machine = {
+    .name = "NUCLEO-F334R8",
+    .desc = "ST Nucleo Development Board for STM32 F3 series (Experimental)",
+    .init = nucleo_f334r8_board_init };
 
 static void nucleo_f334r8_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
-	cortexm_mcu_init(machine, TYPE_STM32F334R8);
+    cortexm_board_greeting(machine);
+    cortexm_mcu_init(machine, TYPE_STM32F334R8);
 
-	/* TODO: Add board inits */
+    /* TODO: Add board inits */
 }
 
 /* ----- ST NUCLEO-F103RB ----- */
 static void nucleo_f103rb_board_init(MachineState *machine);
 
-static QEMUMachine nucleo_f103rb_machine =
-{
-	.name = "NUCLEO-F103RB",
-	.desc = "ST Nucleo Development Board for STM32 F1 series (Experimental)",
-	.init = nucleo_f103rb_board_init };
+static QEMUMachine nucleo_f103rb_machine = {
+    .name = "NUCLEO-F103RB",
+    .desc = "ST Nucleo Development Board for STM32 F1 series (Experimental)",
+    .init = nucleo_f103rb_board_init };
 
 static void nucleo_f103rb_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
-	cortexm_mcu_init(machine, TYPE_STM32F103RB);
+    cortexm_board_greeting(machine);
+    cortexm_mcu_init(machine, TYPE_STM32F103RB);
 
-	/* TODO: Add board inits */
+    /* TODO: Add board inits */
 }
 
 /* ----- ST NUCLEO-L152RE ----- */
 static void nucleo_l152re_board_init(MachineState *machine);
 
-static QEMUMachine nucleo_l152re_machine =
-{
-	.name = "NUCLEO-L152RE",
-	.desc = "ST Nucleo Development Board with STM32L152RET6 (Experimental)",
-	.init = nucleo_l152re_board_init };
+static QEMUMachine nucleo_l152re_machine = {
+    .name = "NUCLEO-L152RE",
+    .desc = "ST Nucleo Development Board with STM32L152RET6 (Experimental)",
+    .init = nucleo_l152re_board_init };
 
 static void nucleo_l152re_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
-	cortexm_mcu_init(machine, TYPE_STM32L152RE);
+    cortexm_board_greeting(machine);
+    cortexm_mcu_init(machine, TYPE_STM32L152RE);
 
-	/* TODO: Add board inits */
+    /* TODO: Add board inits */
 }
 
 /* ----- Boards inits ----- */
 static void stm32_machines_init(void)
 {
-	qemu_register_machine(&nucleo_f411re_machine);
-	qemu_register_machine(&nucleo_f334r8_machine);
-	qemu_register_machine(&nucleo_f103rb_machine);
-	qemu_register_machine(&nucleo_l152re_machine);
+    qemu_register_machine(&nucleo_f411re_machine);
+    qemu_register_machine(&nucleo_f334r8_machine);
+    qemu_register_machine(&nucleo_f103rb_machine);
+    qemu_register_machine(&nucleo_l152re_machine);
 }
 
 machine_init(stm32_machines_init);

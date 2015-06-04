@@ -36,12 +36,11 @@ static QEMUMachine lpcxpresso_lpc1769_machine = {
     .name = "LPCXpresso-LPC1769",
     .desc = "Embedded Artists LPCXpresso LPC1769 Development Board "
             "(Experimental)",
-    .init = lpcxpresso_lpc1769_board_init,
-};
+    .init = lpcxpresso_lpc1769_board_init };
 
 static void lpcxpresso_lpc1769_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     lpc1769fbd100_mcu_init(machine);
     /* TODO: Add board inits */
 }

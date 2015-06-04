@@ -36,12 +36,11 @@ static QEMUMachine frdm_k20d50m_machine = {
     .name = "FRDM-K20D50M",
     .desc = "Freescale Freedom Development Platform for "
             "Kinetis K20 USB MCUs (Experimental)",
-    .init = frdm_k20d50m_board_init,
-};
+    .init = frdm_k20d50m_board_init };
 
 static void frdm_k20d50m_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mk20dx128vlh5_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -52,13 +51,12 @@ static void frdm_k22f_board_init(MachineState *machine);
 static QEMUMachine frdm_k22f_machine = {
     .name = "FRDM-K22F",
     .desc = "Freescale Freedom Development Platform for "
-    "Kinetis K22 MCUs (Experimental)",
-    .init = frdm_k22f_board_init,
-};
+            "Kinetis K22 MCUs (Experimental)",
+    .init = frdm_k22f_board_init };
 
 static void frdm_k22f_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mk22fn512vlh12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -70,12 +68,11 @@ static QEMUMachine frdm_k64f_machine = {
     .name = "FRDM-K64F",
     .desc = "Freescale Freedom Development Platform for "
             "Kinetis K6[34] and K24 MCUs (Experimental)",
-    .init = frdm_k64f_board_init,
-};
+    .init = frdm_k64f_board_init };
 
 static void frdm_k64f_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mk64fn1m0vll12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -86,12 +83,11 @@ static void twr_k60f120m_board_init(MachineState *machine);
 static QEMUMachine twr_k60f120m_machine = {
     .name = "TWR-K60F120M",
     .desc = "Freescale Kinetis K60 120 MHz Tower System Module (Experimental)",
-    .init = twr_k60f120m_board_init,
-};
+    .init = twr_k60f120m_board_init };
 
 static void twr_k60f120m_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mk64fn1m0vll12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -103,12 +99,11 @@ static QEMUMachine frdm_kl25z_machine = {
     .name = "FRDM-KL25Z",
     .desc = "Freescale Freedom Development Platform for "
             "Kinetis KL[12][45] MCUs (Experimental)",
-    .init = frdm_kl25z_board_init,
-};
+    .init = frdm_kl25z_board_init };
 
 static void frdm_kl25z_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mkl25z128vlk4_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -120,13 +115,13 @@ static QEMUMachine frdm_kl26z_machine = {
     .name = "FRDM-KL26Z",
     .desc = "Freescale Freedom Development Platform for "
             "Kinetis KL[12]6 MCUs (Experimental)",
-    .init = frdm_kl26z_board_init,
-};
+    .init = frdm_kl26z_board_init };
 
 static void frdm_kl26z_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mkl26z128vlh4_mcu_init(machine);
+
     /* TODO: Add board inits */
 }
 
@@ -136,14 +131,14 @@ static void frdm_kl43z_board_init(MachineState *machine);
 static QEMUMachine frdm_kl43z_machine = {
     .name = "FRDM-KL43Z",
     .desc = "Freescale Freedom Development Platform for "
-    "Kinetis KL[34]3, KL[12]7 MCUs (Experimental)",
-    .init = frdm_kl43z_board_init,
-};
+            "Kinetis KL[34]3, KL[12]7 MCUs (Experimental)",
+    .init = frdm_kl43z_board_init };
 
 static void frdm_kl43z_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mkl43z256vlh4_mcu_init(machine);
+
     /* TODO: Add board inits */
 }
 
@@ -154,13 +149,13 @@ static QEMUMachine frdm_kl46z_machine = {
     .name = "FRDM-KL46Z",
     .desc = "Freescale Freedom Development Platform for "
             "Kinetis KL[34]x MCUs (Experimental)",
-    .init = frdm_kl46z_board_init,
-};
+    .init = frdm_kl46z_board_init };
 
 static void frdm_kl46z_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     mkl46z256vll4_mcu_init(machine);
+
     /* TODO: Add board inits */
 }
 

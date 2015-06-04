@@ -35,14 +35,14 @@ static void ek_tm4c123gxl_board_init(MachineState *machine);
 static QEMUMachine ek_tm4c123gxl_machine = {
     .name = "EK-TM4C123GXL",
     .desc = "TI Tiva C Series TM4C123GXL LaunchPad Evaluation Kit "
-    "(Experimental)",
-    .init = ek_tm4c123gxl_board_init,
-};
+            "(Experimental)",
+    .init = ek_tm4c123gxl_board_init };
 
 static void ek_tm4c123gxl_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     tm4c123gh6pm_mcu_init(machine);
+
     /* TODO: Add board inits */
 }
 

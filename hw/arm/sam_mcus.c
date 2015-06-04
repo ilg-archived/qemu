@@ -25,8 +25,7 @@ static CortexMCapabilities sam3s4b_core_info = {
     .device_name = "SAM3S4B",
     .flash_size_kb = 256,
     .sram_size_kb = 48,
-    .has_mpu = true,
-};
+    .has_mpu = true };
 
 qemu_irq *sam3s4b_mcu_init(MachineState *machine)
 {

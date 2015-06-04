@@ -140,29 +140,29 @@
     OBJECT_CHECK(STM32State, (obj), TYPE_STM32F429ZI)
 
 typedef struct STM32State {
-	/*< private >*/
-	CortexMState parent_obj;
-	/*< public >*/
+    /*< private >*/
+    CortexMState parent_obj;
+    /*< public >*/
 
-	/* TODO: add specific structures */
+    /* TODO: add specific structures */
 } STM32State;
 
 typedef struct STM32Class {
-	/*< private >*/
-	CortexMClass parent_class;
-	/*< public >*/
+    /*< private >*/
+    CortexMClass parent_class;
+    /*< public >*/
 
-	DeviceRealize parent_realize;
-	// void (*parent_reset)(DeviceState *dev);
+    DeviceRealize parent_realize;
+    // void (*parent_reset)(DeviceState *dev);
 } STM32Class;
 
 typedef struct STM32DeviceClass {
-	/*< private >*/
-	STM32Class parent_class;
-	/*< public >*/
+    /*< private >*/
+    STM32Class parent_class;
+    /*< public >*/
 
-	DeviceRealize parent_realize;
-	// void (*parent_reset)(DeviceState *dev);
+    DeviceRealize parent_realize;
+    // void (*parent_reset)(DeviceState *dev);
 } STM32DeviceClass;
 
 void

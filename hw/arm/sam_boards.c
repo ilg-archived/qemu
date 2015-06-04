@@ -35,14 +35,14 @@ static void sam3_h256_board_init(MachineState *machine);
 static QEMUMachine sam3_h256_machine = {
     .name = "SAM3-H256",
     .desc = "Olimex Header Board for ATSAM3S4BA "
-    "(Experimental)",
-    .init = sam3_h256_board_init,
-};
+            "(Experimental)",
+    .init = sam3_h256_board_init };
 
 static void sam3_h256_board_init(MachineState *machine)
 {
-	cortexm_board_greeting(machine);
+    cortexm_board_greeting(machine);
     sam3s4b_mcu_init(machine);
+
     /* TODO: Add board inits */
 }
 
