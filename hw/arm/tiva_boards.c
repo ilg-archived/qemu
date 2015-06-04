@@ -29,16 +29,6 @@
  * Where available, the board names follow the CMSIS Packs names.
  */
 
-/* Common inits for all LPC boards */
-void tiva_board_init(MachineState *machine, QEMUMachine *qm)
-{
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        printf("Board: '%s' (%s).\n", qm->name, qm->desc);
-    }
-#endif
-}
-
 /* ----- EK-TM4C123GXL ----- */
 static void ek_tm4c123gxl_board_init(MachineState *machine);
 
@@ -51,7 +41,7 @@ static QEMUMachine ek_tm4c123gxl_machine = {
 
 static void ek_tm4c123gxl_board_init(MachineState *machine)
 {
-    tiva_board_init(machine, &ek_tm4c123gxl_machine);
+	cortexm_board_greeting(machine);
     tm4c123gh6pm_mcu_init(machine);
     /* TODO: Add board inits */
 }

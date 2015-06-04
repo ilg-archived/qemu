@@ -29,16 +29,6 @@
  * Where available, the board names follow the CMSIS Packs names.
  */
 
-/* Common inits for all SAM boards */
-void sam_board_init(MachineState *machine, QEMUMachine *qm)
-{
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        printf("Board: '%s' (%s).\n", qm->name, qm->desc);
-    }
-#endif
-}
-
 /* ----- SAM3-H256 ----- */
 static void sam3_h256_board_init(MachineState *machine);
 
@@ -51,7 +41,7 @@ static QEMUMachine sam3_h256_machine = {
 
 static void sam3_h256_board_init(MachineState *machine)
 {
-    sam_board_init(machine, &sam3_h256_machine);
+	cortexm_board_greeting(machine);
     sam3s4b_mcu_init(machine);
     /* TODO: Add board inits */
 }

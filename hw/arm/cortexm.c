@@ -74,7 +74,7 @@ static Property cortexm_mcu_properties[] =
 	DEFINE_PROP_END_OF_LIST() };
 
 /**
- * Used during qdev_create() as parent before the call to
+ * Used during qdev_create() as parent before the call
  * to device_mcu_instance_init().
  *
  * Called in vendor_mcu_create(), which calls cortexm_mcu_create().
@@ -443,11 +443,12 @@ type_init(cortexm_types_init);
  *
  * Does not really depend on Cortex-M, but I could not find a better place.
  */
-void cortexm_board_greeting(MachineState *machine, QEMUMachine *qm)
+void cortexm_board_greeting(MachineState *machine)
 {
 #if defined(CONFIG_VERBOSE)
 	if (verbosity_level >= VERBOSITY_COMMON) {
-		printf("Board: '%s' (%s).\n", qm->name, qm->desc);
+		MachineClass *mc = MACHINE_GET_CLASS(machine);
+		printf("Board: '%s' (%s).\n", mc->name, mc->desc);
 	}
 #endif
 }

@@ -29,16 +29,6 @@
  * Where available, the board names follow the CMSIS Packs names.
  */
 
-/* Common inits for all Kinetis boards */
-void kinetis_board_init(MachineState *machine, QEMUMachine *qm)
-{
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        printf("Board: '%s' (%s).\n", qm->name, qm->desc);
-    }
-#endif
-}
-
 /* ----- FRDM-K20D50M ----- */
 static void frdm_k20d50m_board_init(MachineState *machine);
 
@@ -51,7 +41,7 @@ static QEMUMachine frdm_k20d50m_machine = {
 
 static void frdm_k20d50m_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &frdm_k20d50m_machine);
+	cortexm_board_greeting(machine);
     mk20dx128vlh5_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -68,7 +58,7 @@ static QEMUMachine frdm_k22f_machine = {
 
 static void frdm_k22f_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &frdm_k22f_machine);
+	cortexm_board_greeting(machine);
     mk22fn512vlh12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -85,7 +75,7 @@ static QEMUMachine frdm_k64f_machine = {
 
 static void frdm_k64f_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &frdm_k64f_machine);
+	cortexm_board_greeting(machine);
     mk64fn1m0vll12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -101,7 +91,7 @@ static QEMUMachine twr_k60f120m_machine = {
 
 static void twr_k60f120m_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &twr_k60f120m_machine);
+	cortexm_board_greeting(machine);
     mk64fn1m0vll12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -118,7 +108,7 @@ static QEMUMachine frdm_kl25z_machine = {
 
 static void frdm_kl25z_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &frdm_kl25z_machine);
+	cortexm_board_greeting(machine);
     mkl25z128vlk4_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -135,7 +125,7 @@ static QEMUMachine frdm_kl26z_machine = {
 
 static void frdm_kl26z_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &frdm_kl26z_machine);
+	cortexm_board_greeting(machine);
     mkl26z128vlh4_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -152,7 +142,7 @@ static QEMUMachine frdm_kl43z_machine = {
 
 static void frdm_kl43z_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &frdm_kl43z_machine);
+	cortexm_board_greeting(machine);
     mkl43z256vlh4_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -169,7 +159,7 @@ static QEMUMachine frdm_kl46z_machine = {
 
 static void frdm_kl46z_board_init(MachineState *machine)
 {
-    kinetis_board_init(machine, &frdm_kl46z_machine);
+	cortexm_board_greeting(machine);
     mkl46z256vll4_mcu_init(machine);
     /* TODO: Add board inits */
 }

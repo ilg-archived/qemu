@@ -29,7 +29,7 @@
 #endif
 
 /**
- * Used during qdev_create() after the parent call to
+ * Used during qdev_create() after the parent call
  * to cortexm_mcu_instance_init().
  *
  * Called in vendor_mcu_create(), which calls cortexm_mcu_create().

@@ -117,7 +117,7 @@ typedef struct CortexMClass {
 } CortexMClass;
 
 void
-cortexm_board_greeting(MachineState *machine, QEMUMachine *qm);
+cortexm_board_greeting(MachineState *machine);
 
 DeviceState *
 cortexm_mcu_create(MachineState *machine, const char *mcu_type);
