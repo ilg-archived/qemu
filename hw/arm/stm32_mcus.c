@@ -108,7 +108,7 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
 
     /* Initialise the new region */
     memory_region_init_alias(flash_alias_mem, NULL, "stm32-mem-flash-alias",
-            get_system_memory(), 0, flash_size_kb);
+            get_system_memory(), 0, flash_size_kb * 1024);
     memory_region_set_readonly(flash_alias_mem, true);
 
     /* Alias it as the STM specific 0x08000000 */
