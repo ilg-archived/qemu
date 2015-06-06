@@ -2813,7 +2813,7 @@ static const char *concatenate_semihosting_cmdline(int argc, char **argv)
                 p += strlen(argv[i]);
                 *p++ = '"';
             } else {
-                /* Does not work if string has both quotes and apostrophs */
+                /* Does not work if string has both quotes and apostrophes */
                 *p++ = '\'';
                 strcpy(p, argv[i]);
                 p += strlen(argv[i]);
