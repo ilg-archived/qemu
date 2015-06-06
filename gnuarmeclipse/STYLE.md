@@ -6,9 +6,9 @@
 - indents are four spaces
 - tabs are never used
 - lines are 80 characters
-- variables are **lower_case_with_underscores**
+- variables are **lower\_case\_with\_underscores**
 - structured type names are in **CamelCase**
-- sScalar type names are **lower_case_with_underscores_ending_with_a_t**
+- sScalar type names are **lower\_case\_with\_underscores\_ending\_with\_a\_t**
 - declarations should be at the beginning of blocks (?!)
 
 Block structure:
