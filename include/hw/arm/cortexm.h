@@ -58,11 +58,13 @@ typedef struct CortexMCapabilities {
     int sram_size_kb; /* size of main RAM area, in KB */
     int sram_begin; /* begin address of main RAM area, if not 0x20000000 */
 
-    /* Not yet used */
-    int has_mpu; /* true/false */
-    int has_fpu; /* true/false */
-    int has_itm; /* true/false */
-    int fpu_type; /* CORTEX_M_FPU_TYPE_* */
+    /* Capabilities bits; keep them compact. */
+    int has_mpu : 1; /* true/false */
+    int has_fpu : 1; /* true/false */
+    int has_itm : 1; /* true/false */
+
+    int fpu_type; /* CORTEX_M_FPU_TYPE_*; may be not needed */
+
     int num_irq; /* number of interrupts (excluding first 15 core interrupts) */
     int nvic_bits; /* bits used for irqs in NVIC */
 } CortexMCapabilities;
@@ -82,7 +84,7 @@ typedef struct CortexMState {
     /**
      * Core capabilities, set by *_instance_init().
      */
-    CortexMCapabilities *cm_capabilities;
+    CortexMCapabilities *capabilities;
 
     const char *kernel_filename;
 
@@ -93,8 +95,9 @@ typedef struct CortexMState {
     const char *cpu_model;
     const char *display_model;
 
-    uint32_t ram_size_kb;
+    uint32_t sram_size_kb;
     uint32_t flash_size_kb;
+    uint32_t num_irq;
 
     /**
      * CPU state, as returned by cpu_arm_init().

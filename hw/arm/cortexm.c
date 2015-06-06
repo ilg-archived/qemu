@@ -68,7 +68,7 @@ static void cortexm_bitband_init(uint32_t address)
  * all vendor MCUs.
  */
 static Property cortexm_mcu_properties[] = {
-        DEFINE_PROP_UINT32("ram-sizeK", CortexMState, ram_size_kb, 0),
+        DEFINE_PROP_UINT32("sram-sizeK", CortexMState, sram_size_kb, 0),
         DEFINE_PROP_UINT32("flash-sizeK", CortexMState, flash_size_kb, 0),
     DEFINE_PROP_END_OF_LIST() };
 
@@ -84,13 +84,13 @@ static void cortexm_mcu_instance_init(Object *obj)
 {
     qemu_log_function_name();
 
-    CortexMState *s = CORTEXM_MCU_STATE(obj);
+    CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
 
     /* Construct the ITM object. */
-    object_initialize(&s->itm, sizeof(s->itm), TYPE_ITM);
+    object_initialize(&cm_state->itm, sizeof(cm_state->itm), TYPE_ARMV7M_ITM);
 
     DeviceState *itmdev;
-    itmdev = DEVICE(&s->itm);
+    itmdev = DEVICE(&cm_state->itm);
     qdev_set_parent_bus(itmdev, sysbus_get_default());
 }
 
@@ -107,7 +107,13 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    CortexMCapabilities *cm_capabilities = cm_state->cm_capabilities;
+
+    /*
+     * Capabilities were set late, in an *_intance_init(), and were not
+     * available during our instance_init(), so the whole story happens
+     * in the realize() callback.
+     */
+    CortexMCapabilities *cm_capabilities = cm_state->capabilities;
     assert(cm_capabilities != NULL);
 
     const char *kernel_filename = NULL;
@@ -117,7 +123,7 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     if (cm_state) {
         kernel_filename = cm_state->kernel_filename;
         cpu_model_arg = cm_state->cpu_model;
-        ram_size_arg_kb = cm_state->ram_size_kb;
+        ram_size_arg_kb = cm_state->sram_size_kb;
         flash_size_arg_kb = cm_state->flash_size_kb;
     }
 
@@ -151,28 +157,6 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
         }
     }
 
-    int sram_size_kb;
-    if (ram_size_arg_kb != 0) {
-        /* If explicitly given via the -m command line option,
-         * or by --global, overwrite the board MCU definition. */
-        sram_size_kb = ram_size_arg_kb;
-    } else {
-        sram_size_kb = cm_capabilities->sram_size_kb;
-    }
-
-    /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
-    if (sram_size_kb > 32 * 1024) {
-        sram_size_kb = 32 * 1024;
-    }
-
-    int flash_size_kb;
-    if (flash_size_arg_kb) {
-        /* If explicitly given via the  --global command line option,
-         * overwrite the board MCU definition. */
-        flash_size_kb = flash_size_arg_kb;
-    } else {
-        flash_size_kb = cm_capabilities->flash_size_kb;
-    }
     const char *cpu_model = "?";
     const char *display_model = "?";
 
@@ -247,7 +231,33 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
         exit(1);
     }
 
+    cm_state->cpu_model = cpu_model;
     cm_state->display_model = display_model;
+
+    int sram_size_kb;
+    if (ram_size_arg_kb != 0) {
+        /* If explicitly given via the -m command line option,
+         * or by --global, overwrite the board MCU definition. */
+        sram_size_kb = ram_size_arg_kb;
+    } else {
+        sram_size_kb = cm_capabilities->sram_size_kb;
+    }
+
+    /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
+    if (sram_size_kb > 32 * 1024) {
+        sram_size_kb = 32 * 1024;
+    }
+    cm_state->sram_size_kb = sram_size_kb;
+
+    int flash_size_kb;
+    if (flash_size_arg_kb) {
+        /* If explicitly given via the  --global command line option,
+         * overwrite the board MCU definition. */
+        flash_size_kb = flash_size_arg_kb;
+    } else {
+        flash_size_kb = cm_capabilities->flash_size_kb;
+    }
+    cm_state->flash_size_kb = flash_size_kb;
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
@@ -275,9 +285,9 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
 
     /* ----- Create CPU based on model. ----- */
     ARMCPU *cpu;
-    cpu = cpu_arm_init(cpu_model);
+    cpu = cpu_arm_init(cm_state->cpu_model);
     if (cpu == NULL) {
-        error_report("Unable to find CPU definition %s", cpu_model);
+        error_report("Unable to find CPU definition %s", cm_state->cpu_model);
         exit(1);
     }
     cm_state->cpu = cpu;
@@ -289,19 +299,19 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     /* Get the system memory region, it must start at 0. */
     MemoryRegion *system_memory = get_system_memory();
 
-    int flash_size = flash_size_kb * 1024;
-    int sram_size = sram_size_kb * 1024;
+    int flash_size = cm_state->flash_size_kb * 1024;
+    int sram_size = cm_state->sram_size_kb * 1024;
 
     MemoryRegion *flash_mem = g_new(MemoryRegion, 1);
     /* Flash programming is done via the SCU, so pretend it is ROM.  */
-    memory_region_init_ram(flash_mem, NULL, "cortexm.flash_mem", flash_size,
+    memory_region_init_ram(flash_mem, NULL, "cortexm-mem-flash", flash_size,
             &error_abort);
     vmstate_register_ram_global(flash_mem);
     memory_region_set_readonly(flash_mem, true);
     memory_region_add_subregion(system_memory, 0x00000000, flash_mem);
 
     MemoryRegion *sram_mem = g_new(MemoryRegion, 1);
-    memory_region_init_ram(sram_mem, NULL, "cortexm.sram_mem", sram_size,
+    memory_region_init_ram(sram_mem, NULL, "cortexm-mem-sram", sram_size,
             &error_abort);
     vmstate_register_ram_global(sram_mem);
     memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
@@ -311,12 +321,17 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     /* Hack to map an additional page of ram at the top of the address
      * space.  This stops qemu complaining about executing code outside RAM
      * when returning from an exception.  */
-    memory_region_init_ram(hack_mem, NULL, "cortexm.hack_mem", 0x1000,
+    memory_region_init_ram(hack_mem, NULL, "cortexm-mem-hack", 0x1000,
             &error_abort);
     vmstate_register_ram_global(hack_mem);
-    memory_region_add_subregion(system_memory, 0xfffff000, hack_mem);
+    memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);
 
     /* ----- Create the NVIC device. ----- */
+
+    DeviceState *nvic;
+    nvic = qdev_create(NULL, "armv7m_nvic");
+    env->nvic = nvic;
+
     int num_irq;
     if (cm_capabilities->num_irq) {
         num_irq = cm_capabilities->num_irq;
@@ -329,10 +344,7 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     }
     /* Must be a multiple of 32 */
     num_irq = (num_irq + 31) & (~31);
-
-    DeviceState *nvic;
-    nvic = qdev_create(NULL, "armv7m_nvic");
-    env->nvic = nvic;
+    cm_state->num_irq = num_irq;
 
     qdev_prop_set_uint32(nvic, "num-irq", num_irq);
 
@@ -398,10 +410,11 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
-        printf("%s core initialised.\n", display_model);
+        printf("%s core initialised.\n", cm_state->display_model);
     }
 #endif
 
+    /* Schedule a CPU core reset. */
     qemu_register_reset(cortexm_internal_reset, cm_state->cpu);
 }
 
