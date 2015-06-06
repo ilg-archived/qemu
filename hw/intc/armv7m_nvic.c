@@ -15,6 +15,9 @@
 #include "hw/arm/arm.h"
 #include "exec/address-spaces.h"
 #include "gic_internal.h"
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "cpu.h"
+#endif
 
 typedef struct {
     GICState gic;
