@@ -17,21 +17,21 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "exec/address-spaces.h"
-
 #ifndef ARMV7M_ITM_H_
 #define ARMV7M_ITM_H_
+
+#include "hw/sysbus.h"
+#include "exec/address-spaces.h"
 
 #define DEFAULT_ITM_NUM_PORTS	32
 #define MAX_ITM_NUM_PORTS		256
 
-#define TYPE_ITM "armv7m_itm"
-#define ITM_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(ITMClass, (obj), TYPE_ITM)
-#define ITM_CLASS(klass) \
-    OBJECT_CLASS_CHECK(ITMClass, (klass), TYPE_ITM)
-#define ITM_STATE(obj) \
-    OBJECT_CHECK(ITMState, (obj), TYPE_ITM)
+#define TYPE_ARMV7M_ITM "armv7m-itm"
+
+#define ARMV7M_ITM_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(ITMClass, (obj), TYPE_ARMV7M_ITM)
+#define ARMV7M_ITM_CLASS(klass) \
+    OBJECT_CLASS_CHECK(ITMClass, (klass), TYPE_ARMV7M_ITM)
 
 typedef struct ITMClass {
     /*< private >*/
@@ -40,6 +40,9 @@ typedef struct ITMClass {
 
     /* No local virtual functions */
 } ITMClass;
+
+#define ARMV7M_ITM_STATE(obj) \
+    OBJECT_CHECK(ITMState, (obj), TYPE_ARMV7M_ITM)
 
 typedef struct ITMState {
     /*< private >*/
@@ -50,52 +53,54 @@ typedef struct ITMState {
     int num_ports;
 
     /**
-     * Stimulus Ports.	(UNKNOWN)
-     * [31:0] STIMULUS 	WO 	Data write
-     * [31:1] RESERVED 	RO
-     * [0] FIFOREADY 	RO	0: port FIFO full, or port disabled
-     * 					1: FIFO can accept at least one word
-     *
-     * Byte access [7:0]
-     * Halfword access [15:0]
-     * Word access [31:0]
-     */
-    uint32_t stim[MAX_ITM_NUM_PORTS];
-
-    /**
-     * Trace Enable.	(0x0)
-     * [31:0] STIMENA	RW	For bit STIMENA[n], in register TERx
-     * 						0 = Port (32x+n) disabled
-     * 						1 = Port (32x+n) enabled
-     */
-    uint32_t ter[MAX_ITM_NUM_PORTS / 32];
-
-    /**
-     * Trace Privilege.	(0x0)
-     * [31:0] PRIVMASK	RW	Bit [n] controls stimulus port 8n to 8n+7
-     * 						0 = Unprivileged access permitted
-     * 						1 = Privileged access only.
-     *
-     * 	Currently ignored, unprivileged access permitted.
-     */
-    uint32_t tpr;		// RW, 0
-
-    /**
-     * Trace Control.	RW 	(0x0) See C1.7.6
-     */
-    uint32_t tcr;
-
-    /**
-     * Lock Status.		RO	(0x0)
-     *
-     * Currently ignored.
-     */
-    uint32_t lsr;		// RO, 0
-
-    /**
      * The memory area 0xE0000000-0xE0000FFF.
      */
     MemoryRegion mmio;
+
+    struct {
+        /**
+         * Stimulus Ports.	(UNKNOWN)
+         * [31:0] STIMULUS 	WO 	Data write
+         * [31:1] RESERVED 	RO
+         * [0] FIFOREADY 	RO	0: port FIFO full, or port disabled
+         * 					1: FIFO can accept at least one word
+         *
+         * Byte access [7:0]
+         * Halfword access [15:0]
+         * Word access [31:0]
+         */
+        uint32_t stim[MAX_ITM_NUM_PORTS];
+
+        /**
+         * Trace Enable.	(0x0)
+         * [31:0] STIMENA	RW	For bit STIMENA[n], in register TERx
+         * 						0 = Port (32x+n) disabled
+         * 						1 = Port (32x+n) enabled
+         */
+        uint32_t ter[MAX_ITM_NUM_PORTS / 32];
+
+        /**
+         * Trace Privilege.	(0x0)
+         * [31:0] PRIVMASK	RW	Bit [n] controls stimulus port 8n to 8n+7
+         * 						0 = Unprivileged access permitted
+         * 						1 = Privileged access only.
+         *
+         * 	Currently ignored, unprivileged access permitted.
+         */
+        uint32_t tpr;		// RW, 0
+
+        /**
+         * Trace Control.	RW 	(0x0) See C1.7.6
+         */
+        uint32_t tcr;
+
+        /**
+         * Lock Status.		RO	(0x0)
+         *
+         * Currently ignored.
+         */
+        uint32_t lsr;		// RO, 0
+    } reg;
 
 } ITMState;
 
