@@ -26,6 +26,10 @@
 #include "exec/ram_addr.h"
 #include "sysemu/sysemu.h"
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "qemu/log.h"
+#endif
+
 //#define DEBUG_UNASSIGNED
 
 static unsigned memory_region_transaction_depth;
@@ -395,6 +399,24 @@ static void memory_region_read_accessor(MemoryRegion *mr,
         qemu_flush_coalesced_mmio_buffer();
     }
     tmp = mr->ops->read(mr->opaque, addr, size);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    hwaddr a = addr + mr->addr;
+    if (mr->container) {
+        a += mr->container->addr;
+    }{
+        if (size == 1) {
+            qemu_log_mask(LOG_TRACE_MR, "mr rd8(0x%08llX) 0x%02X)\n", a, (uint8_t)tmp);
+        } else if (size == 2){
+            qemu_log_mask(LOG_TRACE_MR, "mr rd16(0x%08llX) 0x%04X)\n", a, (uint16_t)tmp);
+        } else if (size == 4){
+            qemu_log_mask(LOG_TRACE_MR, "mr rd32(0x%08llX) 0x%08X)\n", a, (uint32_t)tmp);
+        } else {
+            qemu_log_mask(LOG_TRACE_MR, "mr rd(0x%08llX, %d) 0x%llX\n", a, size, tmp);
+        }
+    }
+#endif
+
     trace_memory_region_ops_read(mr, addr, tmp, size);
     *value |= (tmp & mask) << shift;
 }
@@ -427,6 +449,24 @@ static void memory_region_write_accessor(MemoryRegion *mr,
     }
     tmp = (*value >> shift) & mask;
     trace_memory_region_ops_write(mr, addr, tmp, size);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    hwaddr a = addr + mr->addr;
+    if (mr->container) {
+        a += mr->container->addr;
+
+        if (size == 1) {
+            qemu_log_mask(LOG_TRACE_MR, "mr wr8(0x%08llX, 0x%02X)\n", a, (uint8_t)tmp);
+        } else if (size == 2){
+            qemu_log_mask(LOG_TRACE_MR, "mr wr16(0x%08llX, 0x%04X)\n", a, (uint16_t)tmp);
+        } else if (size == 4){
+            qemu_log_mask(LOG_TRACE_MR, "mr wr32(0x%08llX, 0x%08X)\n", a, (uint32_t)tmp);
+        } else {
+            qemu_log_mask(LOG_TRACE_MR, "mr wr(0x%08llX, 0x%llX, %d)\n", a, tmp, size);
+        }
+    }
+#endif
+
     mr->ops->write(mr->opaque, addr, tmp, size);
 }
 
@@ -867,6 +907,11 @@ void memory_region_init(MemoryRegion *mr,
                         const char *name,
                         uint64_t size)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    if (name != NULL) {
+        qemu_log_mask(LOG_TRACE, "%s(\"%s\", %llu)\n", __FUNCTION__, name, size);
+    }
+#endif
     if (!owner) {
         owner = container_get(qdev_get_machine(), "/unattached");
     }
