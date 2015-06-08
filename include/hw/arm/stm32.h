@@ -20,11 +20,7 @@
 #ifndef HW_ARM_STM32_H
 #define HW_ARM_STM32_H 1
 
-#include "hw/boards.h"
-#include "hw/arm/cortexm.h"
-#include "hw/sysbus.h"
-#include "hw/misc/stm32-rcc.h"
-#include "hw/misc/stm32-flash.h"
+#include "hw/arm/stm32-mcu.h"
 
 /* ----- Devices ----- */
 
@@ -131,34 +127,6 @@
     OBJECT_CLASS_CHECK(STM32DeviceClass, (obj), TYPE_STM32F429ZI)
 #define STM32F429ZI_STATE(obj) \
     OBJECT_CHECK(STM32MCUState, (obj), TYPE_STM32F429ZI)
-
-/* ---- Common STM32 ----- */
-#define TYPE_STM32_MCU "stm32-mcu"
-#define STM32_MCU_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(STM32MCUClass, (obj), TYPE_STM32_MCU)
-#define STM32_MCU_CLASS(obj) \
-    OBJECT_CLASS_CHECK(STM32MCUClass, (obj), TYPE_STM32_MCU)
-#define STM32_MCU_STATE(obj) \
-    OBJECT_CHECK(STM32MCUState, (obj), TYPE_STM32_MCU)
-
-typedef struct STM32MCUState {
-    /*< private >*/
-    CortexMState parent_obj;
-    /*< public >*/
-
-    STM32RCCState rcc;
-    STM32FlashState flash;
-} STM32MCUState;
-
-typedef struct STM32MCUClass {
-    /*< private >*/
-    CortexMClass parent_class;
-    /*< public >*/
-
-    DeviceRealize parent_realize;
-    void (*parent_memory_regions_create)(DeviceState *dev);
-    // void (*parent_reset)(DeviceState *dev);
-} STM32MCUClass;
 
 typedef struct STM32DeviceClass {
     /*< private >*/

@@ -18,11 +18,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/stm32.h"
-#include "hw/arm/cortexm.h"
-#include "exec/address-spaces.h"
-#include "qemu/error-report.h"
-#include "sysemu/sysemu.h"
+#include "hw/arm/stm32-mcu.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
