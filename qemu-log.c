@@ -122,6 +122,8 @@ const QEMULogItem qemu_log_items[] = {
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 	{ LOG_TRACE, "trace",
 	  "log trace messages, when execution passed specific places" },
+	{ LOG_TRACE_MR, "trace_mr",
+	  "log trace messages for memory regions read/writes" },
 #endif
     { 0, NULL, NULL },
 };
