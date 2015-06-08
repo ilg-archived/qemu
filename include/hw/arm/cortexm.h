@@ -99,6 +99,10 @@ typedef struct CortexMState {
     uint32_t flash_size_kb;
     uint32_t num_irq;
 
+    MemoryRegion flash_mem;
+    MemoryRegion sram_mem;
+    MemoryRegion hack_mem;
+
     /**
      * CPU state, as returned by cpu_arm_init().
      */
@@ -113,12 +117,21 @@ typedef struct CortexMState {
 
 } CortexMState;
 
+
+#define CORTEXM_MCU_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(CortexMClass, (obj), TYPE_CORTEXM_MCU)
+#define CORTEXM_MCU_CLASS(obj) \
+    OBJECT_CLASS_CHECK(CortexMClass, (obj), TYPE_CORTEXM_MCU)
+
 typedef struct CortexMClass {
     /*< private >*/
     SysBusDeviceClass parent_class;
     /*< public >*/
     DeviceRealize parent_realize;
     void (*parent_reset)(DeviceState *dev);
+
+    void (*memory_regions_create)(DeviceState *dev);
+    void (*image_load)(DeviceState *dev);
 } CortexMClass;
 
 void

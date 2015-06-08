@@ -40,8 +40,9 @@
 
 #define DEFAULT_NUM_IRQ		256
 
-static void
-cortexm_internal_reset(void *opaque);
+static void cortexm_internal_reset(void *opaque);
+
+static void cortexm_mcu_image_load(DeviceState *dev);
 
 /*
  * There are two kind of definitions in this file, cortexm_core_* for
@@ -107,6 +108,7 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+    CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
 
     /*
      * Capabilities were set late, in an *_intance_init(), and were not
@@ -292,39 +294,10 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     }
     cm_state->cpu = cpu;
 
-    CPUARMState *env;
-    env = &cpu->env;
+    CPUARMState *env = &cpu->env;
 
     /* ----- Create memory regions. ----- */
-    /* Get the system memory region, it must start at 0. */
-    MemoryRegion *system_memory = get_system_memory();
-
-    int flash_size = cm_state->flash_size_kb * 1024;
-    int sram_size = cm_state->sram_size_kb * 1024;
-
-    MemoryRegion *flash_mem = g_new(MemoryRegion, 1);
-    /* Flash programming is done via the SCU, so pretend it is ROM.  */
-    memory_region_init_ram(flash_mem, NULL, "cortexm-mem-flash", flash_size,
-            &error_abort);
-    vmstate_register_ram_global(flash_mem);
-    memory_region_set_readonly(flash_mem, true);
-    memory_region_add_subregion(system_memory, 0x00000000, flash_mem);
-
-    MemoryRegion *sram_mem = g_new(MemoryRegion, 1);
-    memory_region_init_ram(sram_mem, NULL, "cortexm-mem-sram", sram_size,
-            &error_abort);
-    vmstate_register_ram_global(sram_mem);
-    memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
-    cortexm_bitband_init(0x20000000);
-
-    MemoryRegion *hack_mem = g_new(MemoryRegion, 1);
-    /* Hack to map an additional page of ram at the top of the address
-     * space.  This stops qemu complaining about executing code outside RAM
-     * when returning from an exception.  */
-    memory_region_init_ram(hack_mem, NULL, "cortexm-mem-hack", 0x1000,
-            &error_abort);
-    vmstate_register_ram_global(hack_mem);
-    memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);
+    (*cm_class->memory_regions_create)(dev);
 
     /* ----- Create the NVIC device. ----- */
 
@@ -375,6 +348,72 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
         exit(1);
     }
 
+    /* The image must be loaded later, after all memory regions are mapped */
+    cm_class->image_load(dev);
+
+    /* Assume 8000000 Hz */
+    /* TODO: compute according to board clock & pll settings */
+    system_clock_scale = 80;
+
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_COMMON) {
+        printf("%s core initialised.\n", cm_state->display_model);
+    }
+#endif
+
+    if (kernel_filename) {
+        /* Schedule a kernel load & CPU core reset. */
+        qemu_register_reset(cortexm_internal_reset, cm_state);
+    }
+}
+
+static void cortexm_mcu_memory_regions_create(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+
+    /* Get the system memory region, it must start at 0. */
+    MemoryRegion *system_memory = get_system_memory();
+
+    int flash_size = cm_state->flash_size_kb * 1024;
+    int sram_size = cm_state->sram_size_kb * 1024;
+
+    MemoryRegion *flash_mem = &cm_state->flash_mem;
+    /* Flash programming is done via the SCU, so pretend it is ROM.  */
+    memory_region_init_ram(flash_mem, NULL, "cortexm-mem-flash", flash_size,
+            &error_abort);
+    vmstate_register_ram_global(flash_mem);
+    memory_region_set_readonly(flash_mem, true);
+    memory_region_add_subregion(system_memory, 0x00000000, flash_mem);
+
+    MemoryRegion *sram_mem = &cm_state->sram_mem;
+    memory_region_init_ram(sram_mem, NULL, "cortexm-mem-sram", sram_size,
+            &error_abort);
+    vmstate_register_ram_global(sram_mem);
+    memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
+    cortexm_bitband_init(0x20000000);
+
+    MemoryRegion *hack_mem = &cm_state->hack_mem;
+    /* Hack to map an additional page of ram at the top of the address
+     * space.  This stops qemu complaining about executing code outside RAM
+     * when returning from an exception.  */
+    memory_region_init_ram(hack_mem, NULL, "cortexm-mem-hack", 0x1000,
+            &error_abort);
+    vmstate_register_ram_global(hack_mem);
+    memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);
+}
+
+static void cortexm_mcu_image_load(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+    ARMCPU *cpu = cm_state->cpu;
+    CPUARMState *env = &cpu->env;
+
+    const char *kernel_filename = cm_state->kernel_filename;
+
     /* Fill-in a minimal boot info, required for semihosting.  */
     static struct arm_boot_info cortexm_binfo;
     cortexm_binfo.kernel_cmdline = "";
@@ -395,7 +434,8 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
         image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,
         NULL, big_endian, ELF_MACHINE, 1);
         if (image_size < 0) {
-            image_size = load_image_targphys(kernel_filename, 0, flash_size);
+            image_size = load_image_targphys(kernel_filename, 0,
+                    cm_state->flash_size_kb * 1024);
             lowaddr = 0;
         }
         if (image_size < 0) {
@@ -403,19 +443,6 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
             exit(1);
         }
     }
-
-    /* Assume 8000000 Hz */
-    /* TODO: compute according to board clock & pll settings */
-    system_clock_scale = 80;
-
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        printf("%s core initialised.\n", cm_state->display_model);
-    }
-#endif
-
-    /* Schedule a CPU core reset. */
-    qemu_register_reset(cortexm_internal_reset, cm_state->cpu);
 }
 
 /**
@@ -428,6 +455,10 @@ static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
 
     dc->props = cortexm_mcu_properties;
     dc->realize = cortexm_mcu_realize;
+
+    CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
+    cm_class->memory_regions_create = cortexm_mcu_memory_regions_create;
+    cm_class->image_load = cortexm_mcu_image_load;
 }
 
 static const TypeInfo cortexm_mcu_type_init = {
@@ -500,7 +531,10 @@ DeviceState *cortexm_mcu_init(MachineState *machine, const char *mcu_type)
  */
 static void cortexm_internal_reset(void *opaque)
 {
-    ARMCPU *cpu = opaque;
+    qemu_log_function_name();
+
+    CortexMState *cm_state = opaque;
+    ARMCPU *cpu = cm_state->cpu;
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
