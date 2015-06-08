@@ -40,7 +40,7 @@
 
 #define DEFAULT_NUM_IRQ		256
 
-static void cortexm_internal_reset(void *opaque);
+static void cortexm_reset(void *opaque);
 
 static void cortexm_mcu_image_load(DeviceState *dev);
 
@@ -362,8 +362,8 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
 #endif
 
     if (kernel_filename) {
-        /* Schedule a kernel load & CPU core reset. */
-        qemu_register_reset(cortexm_internal_reset, cm_state);
+        /* Schedule a CPU core reset. */
+        qemu_register_reset(cortexm_reset, cm_state);
     }
 }
 
@@ -529,7 +529,7 @@ DeviceState *cortexm_mcu_init(MachineState *machine, const char *mcu_type)
 /**
  * Used solely by cortexm_mcu_realize() above.
  */
-static void cortexm_internal_reset(void *opaque)
+static void cortexm_reset(void *opaque)
 {
     qemu_log_function_name();
 
@@ -541,6 +541,10 @@ static void cortexm_internal_reset(void *opaque)
         printf("Cortex-M core reset.\n");
     }
 #endif
+
+    /* Ensure the image is copied into memory before reset fetches msp & pc */
+    rom_reset(NULL);
+
     cpu_reset(CPU(cpu));
 }
 
