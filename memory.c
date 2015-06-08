@@ -404,7 +404,7 @@ static void memory_region_read_accessor(MemoryRegion *mr,
     hwaddr a = addr + mr->addr;
     if (mr->container) {
         a += mr->container->addr;
-    }{
+//    }{
         if (size == 1) {
             qemu_log_mask(LOG_TRACE_MR, "mr rd8(0x%08llX) 0x%02X)\n", a, (uint8_t)tmp);
         } else if (size == 2){
