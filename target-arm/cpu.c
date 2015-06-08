@@ -173,6 +173,11 @@ static void arm_cpu_reset(CPUState *s)
         env->regs[13] = initial_msp & 0xFFFFFFFC;
         env->regs[15] = initial_pc & ~1;
         env->thumb = initial_pc & 1;
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        qemu_log_mask(LOG_TRACE, "MSP=0x%08X, PC=0x%08X\n", env->regs[13],
+                env->regs[15]);
+#endif
     }
 
     /* AArch32 has a hard highvec setting of 0xFFFF0000.  If we are currently
