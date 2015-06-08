@@ -909,7 +909,11 @@ int rom_add_option(const char *file, int32_t bootindex)
     return rom_add_file(file, "genroms", 0, bootindex, true);
 }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+void rom_reset(void *unused)
+#else
 static void rom_reset(void *unused)
+#endif
 {
     Rom *rom;
 
