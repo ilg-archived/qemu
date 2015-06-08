@@ -88,33 +88,7 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         return;
     }
 
-    /**
-     * The STM32 family stores its Flash memory at some base address in memory
-     * (0x08000000 for medium density devices), and then aliases it to the
-     * boot memory space, which starts at 0x00000000 (the "System Memory" can
-     * also be aliased to 0x00000000, but this is not implemented here).
-     * The processor executes the code in the aliased memory at 0x00000000.
-     * We need to make a QEMU alias so that reads in the 0x08000000 area
-     * are passed through to the 0x00000000 area. Note that this is the
-     * opposite of real hardware, where the memory at 0x00000000 passes
-     * reads through the "real" flash memory at 0x08000000, but it works
-     * the same either way.
-     */
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    int flash_size_kb = cm_state->flash_size_kb;
-
-    /* Allocate a new region for the alias */
-    MemoryRegion *flash_alias_mem = g_malloc(sizeof(MemoryRegion));
-
-    /* Initialise the new region */
-    memory_region_init_alias(flash_alias_mem, NULL, "stm32-mem-flash-alias",
-            get_system_memory(), 0, flash_size_kb * 1024);
-    memory_region_set_readonly(flash_alias_mem, true);
-
-    /* Alias it as the STM specific 0x08000000 */
-    memory_region_add_subregion(get_system_memory(), 0x08000000,
-            flash_alias_mem);
-
     STM32Capabilities *capabilities =
             (STM32Capabilities *) cm_state->capabilities;
     assert(capabilities != NULL);
@@ -153,6 +127,44 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
 
 }
 
+static void stm32_mcu_memory_regions_create(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    STM32MCUState *state = STM32_MCU_STATE(dev);
+    STM32MCUClass *nc = STM32_MCU_GET_CLASS(state);
+
+    /* Create the parent (Cortex-M) memory regions */
+    nc->parent_memory_regions_create(dev);
+
+    /**
+     * The STM32 family stores its Flash memory at some base address in memory
+     * (0x08000000 for medium density devices), and then aliases it to the
+     * boot memory space, which starts at 0x00000000 (the "System Memory" can
+     * also be aliased to 0x00000000, but this is not implemented here).
+     * The processor executes the code in the aliased memory at 0x00000000.
+     * We need to make a QEMU alias so that reads in the 0x08000000 area
+     * are passed through to the 0x00000000 area. Note that this is the
+     * opposite of real hardware, where the memory at 0x00000000 passes
+     * reads through the "real" flash memory at 0x08000000, but it works
+     * the same either way.
+     */
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+    int flash_size = cm_state->flash_size_kb * 1024;
+
+    /* Allocate a new region for the alias */
+    MemoryRegion *flash_alias_mem = g_malloc(sizeof(MemoryRegion));
+
+    /* Initialise the new region */
+    memory_region_init_alias(flash_alias_mem, NULL, "stm32-mem-flash-alias",
+            &cm_state->flash_mem, 0, flash_size);
+    memory_region_set_readonly(flash_alias_mem, true);
+
+    /* Alias it as the STM specific 0x08000000 */
+    memory_region_add_subregion(get_system_memory(), 0x08000000,
+            flash_alias_mem);
+}
+
 static Property stm32_mcu_properties[] = {
     /* TODO: add STM32 specific properties */
     DEFINE_PROP_END_OF_LIST(), //
@@ -161,10 +173,15 @@ static Property stm32_mcu_properties[] = {
 static void stm32_mcu_class_init(ObjectClass *klass, void *data)
 {
     STM32MCUClass *nc = STM32_MCU_CLASS(klass);
+    CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     nc->parent_realize = dc->realize;
     dc->realize = stm32_mcu_realize;
+
+    nc->parent_memory_regions_create = cm_class->memory_regions_create;
+    cm_class->memory_regions_create = stm32_mcu_memory_regions_create;
+
     dc->props = stm32_mcu_properties;
 }
 

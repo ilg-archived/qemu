@@ -156,6 +156,7 @@ typedef struct STM32MCUClass {
     /*< public >*/
 
     DeviceRealize parent_realize;
+    void (*parent_memory_regions_create)(DeviceState *dev);
     // void (*parent_reset)(DeviceState *dev);
 } STM32MCUClass;
 
