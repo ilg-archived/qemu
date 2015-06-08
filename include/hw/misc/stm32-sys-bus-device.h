@@ -21,7 +21,7 @@
 #define STM32_SYS_BUS_DEVICE_H_
 
 #include "hw/sysbus.h"
-#include "hw/arm/stm32_common.h"
+#include "hw/arm/stm32-common.h"
 
 /**
  *  Parent type for all STM32 peripherals.

@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/stm32_flash.h"
+#include "hw/misc/stm32-flash.h"
 
 /**
  * This file implements the STM32 flash control.

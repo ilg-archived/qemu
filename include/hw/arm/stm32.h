@@ -23,8 +23,8 @@
 #include "hw/boards.h"
 #include "hw/arm/cortexm.h"
 #include "hw/sysbus.h"
-#include "hw/misc/stm32_rcc.h"
-#include "hw/misc/stm32_flash.h"
+#include "hw/misc/stm32-rcc.h"
+#include "hw/misc/stm32-flash.h"
 
 /* ----- Devices ----- */
 

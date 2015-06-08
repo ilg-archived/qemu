@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/stm32_rcc.h"
+#include "hw/misc/stm32-rcc.h"
 
 /**
  * This file implements the STM32 RCC (Reset and Clock Control).

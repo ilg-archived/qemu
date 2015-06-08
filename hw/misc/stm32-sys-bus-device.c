@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/stm32_sys_bus_device.h"
+#include "hw/misc/stm32-sys-bus-device.h"
 
 static void stm32_sys_bus_device_instance_init(Object *obj)
 {
