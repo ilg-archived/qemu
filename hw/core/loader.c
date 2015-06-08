@@ -51,6 +51,9 @@
 #include "hw/nvram/fw_cfg.h"
 #include "exec/memory.h"
 #include "exec/address-spaces.h"
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
 
 #include <zlib.h>
 
@@ -879,6 +882,12 @@ int rom_add_elf_program(const char *name, void *data, size_t datasize,
                         size_t romsize, hwaddr addr)
 {
     Rom *rom;
+
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_DETAILED) {
+        printf("Load %6zu bytes at 0x%08llX-0x%08llX.\n", romsize, addr, addr+romsize-1);
+    }
+#endif
 
     rom           = g_malloc0(sizeof(*rom));
     rom->name     = g_strdup(name);
