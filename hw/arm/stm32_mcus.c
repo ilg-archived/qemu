@@ -44,157 +44,49 @@
 
 /*
  * Interrupts:
- * - Connectivity line - 68
- * - all other - 60
+ *
+ * - F1
+ *   - CL: 68
+ *   - [LMHX]D: 60
+ * - F4 TBD
  */
 
 /*
- STM32 Flash sizes encoding:
- 8 = 64K
- B = 128K
- C = 256K
- E = 512K
- F = 768K
- G = 1024K
- I = 2048K
+ * STM32 pin count and package encoding (first char after number):
+ *
+ * I = BGA/LQFP 176
+ * V = LQFP/UFBGA 100
+ * Z = LQFP/UFPGA/UFBGA 144, WLCSP 143
+ * B = LQFP 208
+ * R = LQFP 64
+ * N = TFBGA
+ * A = UFBGA 169, WLCSP 168
+ * C = UFQFPN 48, WLCSP 49
+ * M = WLCSP 81
+ * O = WLCSP 90
  */
 
 /*
- *  ----- STM32 -----
- * Common layer for all STM32 devices.
- * Alias the flash memory to 0x08000000.
+ * STM32 Flash sizes encoding (second char after number):
+ *
+ * 8 = 64K
+ * B = 128K
+ * C = 256K
+ * E = 512K
+ * F = 768K
+ * G = 1024K
+ * I = 2048K
  */
-static void stm32_mcu_instance_init(Object *obj)
-{
-    qemu_log_function_name();
 
-    STM32MCUState *state = STM32_MCU_STATE(obj);
-
-    object_initialize(&state->rcc, sizeof(state->rcc), TYPE_STM32_RCC);
-
-    object_initialize(&state->flash, sizeof(state->flash), TYPE_STM32_FLASH);
-}
-
-static void stm32_mcu_realize(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    STM32MCUState *state = STM32_MCU_STATE(dev);
-    STM32MCUClass *nc = STM32_MCU_GET_CLASS(state);
-    Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
-    if (local_err) {
-        error_propagate(errp, local_err);
-        return;
-    }
-
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    STM32Capabilities *capabilities =
-            (STM32Capabilities *) cm_state->capabilities;
-    assert(capabilities != NULL);
-
-    const char *family;
-    switch (capabilities->stm32.family) {
-    case STM32_FAMILY_F1:
-        family = "F1";
-        break;
-    case STM32_FAMILY_F4:
-        family = "F4";
-        break;
-    default:
-        family = "unknown";
-    }
-    qemu_log_mask(LOG_TRACE, "STM32 Family: %s\n", family);
-
-    STM32SysBusDevice *sbd;
-    /* Copy capabilities into internal objects. */
-    sbd = STM32_SYS_BUS_DEVICE_STATE(&state->rcc);
-    sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
-    object_property_set_bool(OBJECT(&state->rcc), true, "realized", &local_err);
-    if (local_err != NULL) {
-        error_propagate(errp, local_err);
-        return;
-    }
-
-    sbd = STM32_SYS_BUS_DEVICE_STATE(&state->flash);
-    sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
-    object_property_set_bool(OBJECT(&state->flash), true, "realized",
-            &local_err);
-    if (local_err != NULL) {
-        error_propagate(errp, local_err);
-        return;
-    }
-
-}
-
-static void stm32_mcu_memory_regions_create(DeviceState *dev)
-{
-    qemu_log_function_name();
-
-    STM32MCUState *state = STM32_MCU_STATE(dev);
-    STM32MCUClass *nc = STM32_MCU_GET_CLASS(state);
-
-    /* Create the parent (Cortex-M) memory regions */
-    nc->parent_memory_regions_create(dev);
-
-    /**
-     * The STM32 family stores its Flash memory at some base address in memory
-     * (0x08000000 for medium density devices), and then aliases it to the
-     * boot memory space, which starts at 0x00000000 (the "System Memory" can
-     * also be aliased to 0x00000000, but this is not implemented here).
-     * The processor executes the code in the aliased memory at 0x00000000.
-     * We need to make a QEMU alias so that reads in the 0x08000000 area
-     * are passed through to the 0x00000000 area. Note that this is the
-     * opposite of real hardware, where the memory at 0x00000000 passes
-     * reads through the "real" flash memory at 0x08000000, but it works
-     * the same either way.
-     */
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    int flash_size = cm_state->flash_size_kb * 1024;
-
-    /* Allocate a new region for the alias */
-    MemoryRegion *flash_alias_mem = g_malloc(sizeof(MemoryRegion));
-
-    /* Initialise the new region */
-    memory_region_init_alias(flash_alias_mem, NULL, "stm32-mem-flash-alias",
-            &cm_state->flash_mem, 0, flash_size);
-    memory_region_set_readonly(flash_alias_mem, true);
-
-    /* Alias it as the STM specific 0x08000000 */
-    memory_region_add_subregion(get_system_memory(), 0x08000000,
-            flash_alias_mem);
-}
+/*
+ * TODO: try to describe all processors via the capabilities bits, so that a
+ * separate object would not be necessary.
+ */
 
 static Property stm32_mcu_properties[] = {
     /* TODO: add STM32 specific properties */
     DEFINE_PROP_END_OF_LIST(), //
         };
-
-static void stm32_mcu_class_init(ObjectClass *klass, void *data)
-{
-    STM32MCUClass *nc = STM32_MCU_CLASS(klass);
-    CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
-    DeviceClass *dc = DEVICE_CLASS(klass);
-
-    nc->parent_realize = dc->realize;
-    dc->realize = stm32_mcu_realize;
-
-    nc->parent_memory_regions_create = cm_class->memory_regions_create;
-    cm_class->memory_regions_create = stm32_mcu_memory_regions_create;
-
-    dc->props = stm32_mcu_properties;
-}
-
-static const TypeInfo stm32_mcu_type_info = {
-    .abstract = true,
-    .name = TYPE_STM32_MCU,
-    .parent = TYPE_CORTEXM_MCU,
-    .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32_mcu_instance_init,
-    .class_init = stm32_mcu_class_init,
-    .class_size = sizeof(STM32MCUClass) };
-
-/* TODO: define the special CCM region for the models that include it. */
 
 /* ----- STM32F051R8 ----- */
 static CortexMCapabilities stm32f051r8_capabilities = {
@@ -858,8 +750,6 @@ static const TypeInfo stm32f429zi_mcu_type_info = {
 
 static void stm32_types_init()
 {
-    type_register_static(&stm32_mcu_type_info);
-
     type_register_static(&stm32f051r8_mcu_type_info);
     type_register_static(&stm32f100rb_mcu_type_info);
     type_register_static(&stm32f103rb_mcu_type_info);

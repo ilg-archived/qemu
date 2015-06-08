@@ -14,12 +14,12 @@ obj-$(CONFIG_STM32F205_SOC) += stm32f205_soc.o
 
 # [GNU ARM Eclipse]
 # Cortex-M files
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm.o
-obj-$(CONFIG_STM32) += stm32_mcus.o stm32_boards.o stm32_olimex_boards.o
-obj-$(CONFIG_STM32) += stm32_duino_boards.o stm32_nucleo_boards.o
-obj-$(CONFIG_KINETIS) += kinetis_mcus.o kinetis_boards.o
-obj-$(CONFIG_LPC) += lpc_mcus.o lpc_boards.o
-obj-$(CONFIG_TIVA) += tiva_mcus.o tiva_boards.o
-obj-$(CONFIG_XMC) += xmc_mcus.o xmc_boards.o
-obj-$(CONFIG_SAM) += sam_mcus.o sam_boards.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-mcu.o
+obj-$(CONFIG_STM32) += stm32-mcu.o stm32_mcus.o stm32-boards.o stm32-olimex-boards.o
+obj-$(CONFIG_STM32) += stm32-duino-boards.o stm32-nucleo-boards.o
+obj-$(CONFIG_KINETIS) += kinetis-mcus.o kinetis-boards.o
+obj-$(CONFIG_LPC) += lpc-mcus.o lpc-boards.o
+obj-$(CONFIG_TIVA) += tiva-mcus.o tiva-boards.o
+obj-$(CONFIG_XMC) += xmc-mcus.o xmc-boards.o
+obj-$(CONFIG_SAM) += sam-mcus.o sam-boards.o
 # [GNU ARM Eclipse]
