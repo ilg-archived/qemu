@@ -19,19 +19,11 @@
 
 #include "hw/misc/stm32-sys-bus-device.h"
 
-static void stm32_sys_bus_device_instance_init(Object *obj)
-{
-    qemu_log_function_name();
-
-//    STM32SysBusDevice *state = STM32_SYS_BUS_DEVICE_STATE(obj);
-}
-
 static const TypeInfo stm32_sys_bus_device_type_info = {
     .abstract = true,
     .name = TYPE_STM32_SYS_BUS_DEVICE,
     .parent = TYPE_SYS_BUS_DEVICE,
-    .instance_size = sizeof(STM32SysBusDevice),
-    .instance_init = stm32_sys_bus_device_instance_init };
+    .instance_size = sizeof(STM32SysBusDevice) };
 
 static void stm32_types_init()
 {
