@@ -29,6 +29,11 @@
 /* The low speed internal clock frequency. */
 #define LSI_FREQ_HZ (40000)
 
+/* No external oscillator */
+#define DEFAULT_HSE_FREQ_HZ (0)
+/* No RTC */
+#define DEFAULT_RTC_FREQ_HZ (0)
+
 #define TYPE_STM32_RCC "stm32-rcc"
 
 #define STM32_RCC_GET_CLASS(obj) \
@@ -53,10 +58,14 @@ typedef struct {
     /*< public >*/
 
     /* Properties */
-    uint32_t osc_freq;
-    uint32_t rtc_freq;
+    uint32_t cpu_freq_hz;
+    uint32_t hse_freq_hz;
+    uint32_t lse_freq_hz;
+    uint32_t hsi_freq_hz;
+    uint32_t lsi_freq_hz;
 
     MemoryRegion mmio;
+    // qemu_irq irq;
 
     union {
         struct {
