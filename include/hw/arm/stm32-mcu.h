@@ -58,4 +58,9 @@ typedef struct STM32MCUClass {
     // void (*parent_reset)(DeviceState *dev);
 } STM32MCUClass;
 
+
+G_INLINE_FUNC DeviceState *get_rcc_dev(DeviceState *dev) {
+    return DEVICE(&(STM32_MCU_STATE(dev)->rcc));
+}
+
 #endif /* STM32_MCU_H */
