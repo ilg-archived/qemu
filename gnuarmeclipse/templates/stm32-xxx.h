@@ -2,6 +2,7 @@
  * STM32 MCU - XXX.
  *
  * Copyright (c) 2015 Liviu Ionescu
+ * Copyright (c) 2010 Andre Beckus
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +24,9 @@
 
 #include "config.h"
 #include "hw/sysbus.h"
-#include "hw/misc/stm32_sys_bus_device.h"
+#include "hw/misc/stm32-sys-busdevice.h"
 
-//#include "exec/address-spaces.h"
+#include "exec/address-spaces.h"
 
 #define TYPE_STM32_XXX "stm32-xxx"
 
@@ -55,7 +56,7 @@ typedef struct {
         struct {
             /* F1 specific registers */
             struct {
-
+                uint32_t cr;
             } reg;
         } f1;
         struct {
