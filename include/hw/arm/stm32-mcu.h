@@ -25,6 +25,7 @@
 //#include "hw/sysbus.h"
 #include "hw/misc/stm32-rcc.h"
 #include "hw/misc/stm32-flash.h"
+#include "hw/gpio/stm32-gpio.h"
 
 /* ---- Common STM32 ----- */
 #define TYPE_STM32_MCU "stm32-mcu"
@@ -39,6 +40,7 @@ typedef struct STM32MCUState {
 
     STM32RCCState rcc;
     STM32FlashState flash;
+    STM32GPIOState gpio[STM32_MAX_GPIO];
 } STM32MCUState;
 
 #define STM32_MCU_GET_CLASS(obj) \

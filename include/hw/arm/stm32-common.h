@@ -28,6 +28,8 @@ typedef enum {
     STM32_FAMILY_F4
 } stm32_family_t;
 
+#define STM32_MAX_GPIO  (8)
+
 typedef struct {
     /* Parent, it must be the first one. */
     CortexMCapabilities cortexm;
@@ -38,12 +40,21 @@ typedef struct {
          * be packed in a union, but this makes writing the definitions
          * more complicated and was discarded.
          */
+        unsigned int has_gpioa :1;
+        unsigned int has_gpiob :1;
+        unsigned int has_gpioc :1;
+        unsigned int has_gpiod :1;
+        unsigned int has_gpioe :1;
+        unsigned int has_gpiof :1;
+        unsigned int has_gpiog :1;
+
         struct {
             unsigned int is_ld :1; /* is low density */
             unsigned int is_md :1; /* is medium density */
             unsigned int is_hd :1; /* is high density */
             unsigned int is_xd :1; /* is extra density */
             unsigned int is_cl :1; /* is Connectivity Line */
+
         } f1;
     } stm32;
 } STM32Capabilities;

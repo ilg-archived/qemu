@@ -39,6 +39,14 @@ static void stm32_mcu_instance_init(Object *obj)
     object_initialize(&state->rcc, sizeof(state->rcc), TYPE_STM32_RCC);
 
     object_initialize(&state->flash, sizeof(state->flash), TYPE_STM32_FLASH);
+
+    /* Cannot access capabilities here, since they are set later */
+
+    /* Initialise all GPIOs, but will be realized only existing ones */
+    for (int i = 0; i < STM32_MAX_GPIO; ++i) {
+        object_initialize(&state->gpio[i], sizeof(state->gpio[i]),
+        TYPE_STM32_GPIO);
+    }
 }
 
 static void stm32_mcu_realize(DeviceState *dev, Error **errp)
@@ -81,6 +89,7 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         error_propagate(errp, local_err);
         return;
     }
+    qdev_set_parent_bus(DEVICE(&state->rcc), sysbus_get_default());
 
     sbd = STM32_SYS_BUS_DEVICE_STATE(&state->flash);
     sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
@@ -90,6 +99,100 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         error_propagate(errp, local_err);
         return;
     }
+    qdev_set_parent_bus(DEVICE(&state->flash), sysbus_get_default());
+
+    if (capabilities->stm32.has_gpioa) {
+        sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_A]);
+        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        state->gpio[STM32_GPIO_PORT_A].port_index = STM32_GPIO_PORT_A;
+        object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_A]), true,
+                "realized", &local_err);
+        if (local_err != NULL) {
+            error_propagate(errp, local_err);
+            return;
+        }
+        qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_A]),
+                sysbus_get_default());
+    }
+    if (capabilities->stm32.has_gpiob) {
+        sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_B]);
+        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        state->gpio[STM32_GPIO_PORT_B].port_index = STM32_GPIO_PORT_B;
+        object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_B]), true,
+                "realized", &local_err);
+        if (local_err != NULL) {
+            error_propagate(errp, local_err);
+            return;
+        }
+        qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_B]),
+                sysbus_get_default());
+    }
+    if (capabilities->stm32.has_gpioc) {
+        sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_C]);
+        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        state->gpio[STM32_GPIO_PORT_C].port_index = STM32_GPIO_PORT_C;
+        object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_C]), true,
+                "realized", &local_err);
+        if (local_err != NULL) {
+            error_propagate(errp, local_err);
+            return;
+        }
+        qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_C]),
+                sysbus_get_default());
+    }
+    if (capabilities->stm32.has_gpiod) {
+        sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_D]);
+        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        state->gpio[STM32_GPIO_PORT_D].port_index = STM32_GPIO_PORT_D;
+        object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_D]), true,
+                "realized", &local_err);
+        if (local_err != NULL) {
+            error_propagate(errp, local_err);
+            return;
+        }
+        qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_D]),
+                sysbus_get_default());
+    }
+    if (capabilities->stm32.has_gpioe) {
+        sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_E]);
+        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        state->gpio[STM32_GPIO_PORT_E].port_index = STM32_GPIO_PORT_E;
+        object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_E]), true,
+                "realized", &local_err);
+        if (local_err != NULL) {
+            error_propagate(errp, local_err);
+            return;
+        }
+        qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_E]),
+                sysbus_get_default());
+    }
+    if (capabilities->stm32.has_gpiof) {
+        sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_F]);
+        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        state->gpio[STM32_GPIO_PORT_F].port_index = STM32_GPIO_PORT_F;
+        object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_F]), true,
+                "realized", &local_err);
+        if (local_err != NULL) {
+            error_propagate(errp, local_err);
+            return;
+        }
+        qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_F]),
+                sysbus_get_default());
+    }
+    if (capabilities->stm32.has_gpiog) {
+        sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_G]);
+        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        state->gpio[STM32_GPIO_PORT_G].port_index = STM32_GPIO_PORT_G;
+        object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_G]), true,
+                "realized", &local_err);
+        if (local_err != NULL) {
+            error_propagate(errp, local_err);
+            return;
+        }
+        qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_G]),
+                sysbus_get_default());
+    }
+
 }
 
 static void stm32_mcu_memory_regions_create(DeviceState *dev)

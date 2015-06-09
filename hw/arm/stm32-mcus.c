@@ -200,6 +200,11 @@ static STM32Capabilities stm32f103rb_capabilities = {
         .nvic_bits = 4 },
     .stm32 = {
         .family = STM32_FAMILY_F1,
+        .has_gpioa = true,
+        .has_gpiob = true,
+        .has_gpioc = true,
+        .has_gpiod = true,
+        .has_gpioe = true,
         .f1 = {
             .is_md = true } } };
 
