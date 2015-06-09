@@ -18,6 +18,7 @@
  */
 
 #include "hw/arm/stm32.h"
+#include "hw/arm/stm32-mcu.h"
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
 
@@ -41,9 +42,14 @@ static QEMUMachine stm32_h103_machine = {
 static void stm32_h103_board_init(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_init(machine, TYPE_STM32F103RB);
+    DeviceState *dev = cortexm_mcu_init(machine, TYPE_STM32F103RB);
 
-    /* TODO: Add board inits */
+    /* Set the oscillator frequencies. */
+    DeviceState *rcc = get_rcc_dev(dev);
+    qdev_prop_set_uint32(rcc, "hse-freq-hz", 8000000); /* 8.0 MHz */
+    qdev_prop_set_uint32(rcc, "lse-freq-hz", 32768); /* 32 KHz */
+
+    qdev_realize(dev);
 }
 
 /* ----- Olimex STM32-P103 ----- */
