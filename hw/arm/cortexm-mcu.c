@@ -351,9 +351,9 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     /* The image must be loaded later, after all memory regions are mapped */
     cm_class->image_load(dev);
 
-    /* Assume 8000000 Hz */
-    /* TODO: compute according to board clock & pll settings */
-    system_clock_scale = 80;
+    /* The default processor clock is 8000000 Hz. */
+    /* The scale will be recomputed in the clock peripherals. */
+    system_clock_scale = get_ticks_per_sec() / 8000000;
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
@@ -480,7 +480,7 @@ static void cortexm_types_init()
 type_init(cortexm_types_init);
 #endif
 
-/* ----- */
+/* ------------------------------------------------------------------------- */
 
 /**
  * When verbose, display a line to identify the board (name, description).
@@ -514,17 +514,10 @@ DeviceState *cortexm_mcu_init(MachineState *machine, const char *mcu_type)
         cm_state->cpu_model = machine->cpu_model;
     }
 
-    Error *err = NULL;
-    object_property_set_bool(OBJECT(dev), true, "realized", &err);
-    if (err != NULL) {
-        error_report("%s", error_get_pretty(err));
-        exit(1);
-    }
-
     return dev;
 }
 
-/* ----- */
+/* ------------------------------------------------------------------------- */
 
 /**
  * Used solely by cortexm_mcu_realize() above.
