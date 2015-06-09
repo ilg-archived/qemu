@@ -80,10 +80,20 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     qemu_log_mask(LOG_TRACE, "STM32 Family: %s\n", family);
 
+
     STM32SysBusDevice *sbd;
+    DeviceState *dev2 = DEVICE(&state->rcc);
+
     /* Copy capabilities into internal objects. */
     sbd = STM32_SYS_BUS_DEVICE_STATE(&state->rcc);
-    sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+    sbd->capabilities = capabilities;
+
+    /* Copy internal oscillator frequencies from capabilities. */
+    qdev_prop_set_uint32(dev2, "hsi-freq-hz",
+            sbd->capabilities->stm32.hsi_freq_hz);
+    qdev_prop_set_uint32(dev2, "lsi-freq-hz",
+            sbd->capabilities->stm32.lsi_freq_hz);
+
     object_property_set_bool(OBJECT(&state->rcc), true, "realized", &local_err);
     if (local_err != NULL) {
         error_propagate(errp, local_err);
@@ -92,7 +102,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     qdev_set_parent_bus(DEVICE(&state->rcc), sysbus_get_default());
 
     sbd = STM32_SYS_BUS_DEVICE_STATE(&state->flash);
-    sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+    sbd->capabilities = capabilities;
+
     object_property_set_bool(OBJECT(&state->flash), true, "realized",
             &local_err);
     if (local_err != NULL) {
@@ -103,7 +114,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
 
     if (capabilities->stm32.has_gpioa) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_A]);
-        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        sbd->capabilities = capabilities;
+
         state->gpio[STM32_GPIO_PORT_A].port_index = STM32_GPIO_PORT_A;
         object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_A]), true,
                 "realized", &local_err);
@@ -116,7 +128,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     if (capabilities->stm32.has_gpiob) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_B]);
-        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        sbd->capabilities = capabilities;
+
         state->gpio[STM32_GPIO_PORT_B].port_index = STM32_GPIO_PORT_B;
         object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_B]), true,
                 "realized", &local_err);
@@ -129,7 +142,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     if (capabilities->stm32.has_gpioc) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_C]);
-        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        sbd->capabilities = capabilities;
+
         state->gpio[STM32_GPIO_PORT_C].port_index = STM32_GPIO_PORT_C;
         object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_C]), true,
                 "realized", &local_err);
@@ -142,7 +156,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     if (capabilities->stm32.has_gpiod) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_D]);
-        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        sbd->capabilities = capabilities;
+
         state->gpio[STM32_GPIO_PORT_D].port_index = STM32_GPIO_PORT_D;
         object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_D]), true,
                 "realized", &local_err);
@@ -155,7 +170,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     if (capabilities->stm32.has_gpioe) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_E]);
-        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        sbd->capabilities = capabilities;
+
         state->gpio[STM32_GPIO_PORT_E].port_index = STM32_GPIO_PORT_E;
         object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_E]), true,
                 "realized", &local_err);
@@ -168,7 +184,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     if (capabilities->stm32.has_gpiof) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_F]);
-        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        sbd->capabilities = capabilities;
+
         state->gpio[STM32_GPIO_PORT_F].port_index = STM32_GPIO_PORT_F;
         object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_F]), true,
                 "realized", &local_err);
@@ -181,7 +198,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     if (capabilities->stm32.has_gpiog) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_G]);
-        sbd->capabilities = (STM32Capabilities *) cm_state->capabilities;
+        sbd->capabilities = capabilities;
+
         state->gpio[STM32_GPIO_PORT_G].port_index = STM32_GPIO_PORT_G;
         object_property_set_bool(OBJECT(&state->gpio[STM32_GPIO_PORT_G]), true,
                 "realized", &local_err);
