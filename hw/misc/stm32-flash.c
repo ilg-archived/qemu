@@ -182,23 +182,22 @@ static void stm32_flash_realize(DeviceState *dev, Error **errp)
     assert(capabilities != NULL);
 
     uint64_t size;
+    hwaddr addr;
     switch (capabilities->stm32.family) {
     case STM32_FAMILY_F1:
-        if (capabilities->stm32.f1.is_xd) {
-            size = 0x57;
-        } else {
-            size = 0x24;
-        }
+        size = 0x400;
+        addr = 0x40022000;
         break;
     default:
         size = 0; /* This will trigger an assertion to fail */
+        addr = 0;
     }
 
     memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_flash_ops, state,
             TYPE_STM32_FLASH, size);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, 0x40022000);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
 static void stm32_flash_instance_init(Object *obj)

@@ -428,23 +428,22 @@ static void stm32_rcc_realize(DeviceState *dev, Error **errp)
     assert(capabilities != NULL);
 
     uint64_t size;
+    hwaddr addr;
     switch (capabilities->stm32.family) {
     case STM32_FAMILY_F1:
-        if (capabilities->stm32.f1.is_cl) {
-            size = 0x30;
-        } else {
-            size = 0x28;
-        }
+        size = 0x400;
+        addr = 0x40021000;
         break;
     default:
         size = 0; /* This will trigger an assertion to fail */
+        addr = 0;
     }
 
     memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_rcc_ops, state,
             TYPE_STM32_RCC, size);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, 0x40021000);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
 static void stm32_rcc_instance_init(Object *obj)
