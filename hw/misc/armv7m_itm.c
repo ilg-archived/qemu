@@ -173,11 +173,14 @@ static void armv7m_itm_realize(DeviceState *dev, Error **errp)
 
     ITMState *state = ARMV7M_ITM_STATE(dev);
 
+    uint64_t size = 0x1000;
+    hwaddr addr = 0xE0000000;
+
     memory_region_init_io(&state->mmio, OBJECT(dev), &armv7m_itm_ops, state,
-            TYPE_ARMV7M_ITM, 0x1000);
+            TYPE_ARMV7M_ITM, size);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, 0xE0000000);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
 static void armv7m_itm_instance_init(Object *obj)
@@ -208,11 +211,11 @@ static const TypeInfo armv7m_itm_type_info = {
     .class_init = armv7m_itm_class_init,
     .class_size = sizeof(ITMClass) };
 
-static void armv7m_itm_register_types(void)
+static void armv7m_itm_register_type(void)
 {
     type_register_static(&armv7m_itm_type_info);
 }
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-type_init(armv7m_itm_register_types)
+type_init(armv7m_itm_register_type)
 #endif
