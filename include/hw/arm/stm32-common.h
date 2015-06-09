@@ -36,9 +36,15 @@ typedef struct {
 
     struct {
         stm32_family_t family;
-        /* Note: the family definitions are mutual exclusive, and could
-         * be packed in a union, but this makes writing the definitions
-         * more complicated and was discarded.
+
+        /*
+         * Properties common to all families
+         */
+        uint32_t hsi_freq_hz;
+        uint32_t lsi_freq_hz;
+
+        /*
+         * Peripherals common to all families.
          */
         unsigned int has_gpioa :1;
         unsigned int has_gpiob :1;
@@ -48,12 +54,20 @@ typedef struct {
         unsigned int has_gpiof :1;
         unsigned int has_gpiog :1;
 
-        struct {
+        /*
+         * Note: the family definitions are mutual exclusive, and could
+         * be packed in a union, but this makes writing the definitions
+         * more complicated and was discarded.
+         */
+       struct {
             unsigned int is_ld :1; /* is low density */
             unsigned int is_md :1; /* is medium density */
             unsigned int is_hd :1; /* is high density */
             unsigned int is_xd :1; /* is extra density */
             unsigned int is_cl :1; /* is Connectivity Line */
+            unsigned int is_ldvl :1; /* is low density */
+            unsigned int is_mdvl :1; /* is medium density */
+            unsigned int is_hdvl :1; /* is high density */
 
         } f1;
     } stm32;
