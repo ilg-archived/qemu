@@ -29,7 +29,7 @@
  *
  * Only word operations are currently supported.
  */
-static uint64_t armv7m_itm_read(void *opaque, hwaddr addr, unsigned size)
+static uint64_t armv7m_itm_read_callback(void *opaque, hwaddr addr, unsigned size)
 {
     ITMState *state = (ITMState *) opaque;
     uint32_t offset = addr;
@@ -72,7 +72,7 @@ static uint64_t armv7m_itm_read(void *opaque, hwaddr addr, unsigned size)
  *
  * Word writes to the other registers
  */
-static void armv7m_itm_write(void *opaque, hwaddr addr, uint64_t value,
+static void armv7m_itm_write_callback(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
     ITMState *state = (ITMState *) opaque;
@@ -139,11 +139,11 @@ static void armv7m_itm_write(void *opaque, hwaddr addr, uint64_t value,
 }
 
 static const MemoryRegionOps armv7m_itm_ops = {
-    .read = armv7m_itm_read,
-    .write = armv7m_itm_write,
+    .read = armv7m_itm_read_callback,
+    .write = armv7m_itm_write_callback,
     .endianness = DEVICE_NATIVE_ENDIAN, };
 
-static void armv7m_itm_reset(DeviceState *dev)
+static void armv7m_itm_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -167,7 +167,7 @@ static void armv7m_itm_reset(DeviceState *dev)
     state->reg.tcr = 0x00000001; /* ITMENA=1 */
 }
 
-static void armv7m_itm_realize(DeviceState *dev, Error **errp)
+static void armv7m_itm_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -183,7 +183,7 @@ static void armv7m_itm_realize(DeviceState *dev, Error **errp)
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
-static void armv7m_itm_instance_init(Object *obj)
+static void armv7m_itm_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -193,22 +193,22 @@ static void armv7m_itm_instance_init(Object *obj)
     state->num_ports = DEFAULT_ITM_NUM_PORTS;
 }
 
-static void armv7m_itm_class_init(ObjectClass *klass, void *data)
+static void armv7m_itm_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     // TODO: check if VMStateDescription is required
     // dc->vmsd = &vmstate_itm;
-    dc->reset = armv7m_itm_reset;
-    dc->realize = armv7m_itm_realize;
+    dc->reset = armv7m_itm_reset_callback;
+    dc->realize = armv7m_itm_realize_callback;
 }
 
 static const TypeInfo armv7m_itm_type_info = {
     .name = TYPE_ARMV7M_ITM,
     .parent = TYPE_SYS_BUS_DEVICE,
-    .instance_init = armv7m_itm_instance_init,
+    .instance_init = armv7m_itm_instance_init_callback,
     .instance_size = sizeof(ITMState),
-    .class_init = armv7m_itm_class_init,
+    .class_init = armv7m_itm_class_init_callback,
     .class_size = sizeof(ITMClass) };
 
 static void armv7m_itm_register_type(void)

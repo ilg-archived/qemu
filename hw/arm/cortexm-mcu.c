@@ -42,7 +42,7 @@
 
 static void cortexm_reset(void *opaque);
 
-static void cortexm_mcu_image_load(DeviceState *dev);
+static void cortexm_mcu_image_load_callback(DeviceState *dev);
 
 /*
  * There are two kind of definitions in this file, cortexm_core_* for
@@ -81,7 +81,7 @@ static Property cortexm_mcu_properties[] = {
  *
  * It is a different step than *_realize().
  */
-static void cortexm_mcu_instance_init(Object *obj)
+static void cortexm_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -93,6 +93,7 @@ static void cortexm_mcu_instance_init(Object *obj)
     DeviceState *itmdev;
     itmdev = DEVICE(&cm_state->itm);
     qdev_set_parent_bus(itmdev, sysbus_get_default());
+
 }
 
 /**
@@ -103,7 +104,7 @@ static void cortexm_mcu_instance_init(Object *obj)
  * Some MCU properties can be overwritten by command line options
  * (core type, flash/ram sizes).
  */
-static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
+static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -367,7 +368,7 @@ static void cortexm_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void cortexm_mcu_memory_regions_create(DeviceState *dev)
+static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -404,7 +405,7 @@ static void cortexm_mcu_memory_regions_create(DeviceState *dev)
     memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);
 }
 
-static void cortexm_mcu_image_load(DeviceState *dev)
+static void cortexm_mcu_image_load_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -449,24 +450,25 @@ static void cortexm_mcu_image_load(DeviceState *dev)
  * Initialise the "cortexm-mcu" object. Currently there is no input data.
  * Called during module_call_init() in main().
  */
-static void cortexm_mcu_class_init(ObjectClass *klass, void *data)
+static void cortexm_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     dc->props = cortexm_mcu_properties;
-    dc->realize = cortexm_mcu_realize;
+    dc->realize = cortexm_mcu_realize_callback;
 
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
-    cm_class->memory_regions_create = cortexm_mcu_memory_regions_create;
-    cm_class->image_load = cortexm_mcu_image_load;
+    cm_class->memory_regions_create =
+            cortexm_mcu_memory_regions_create_callback;
+    cm_class->image_load = cortexm_mcu_image_load_callback;
 }
 
 static const TypeInfo cortexm_mcu_type_init = {
     .name = TYPE_CORTEXM_MCU,
     .parent = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(CortexMState),
-    .instance_init = cortexm_mcu_instance_init,
-    .class_init = cortexm_mcu_class_init,
+    .instance_init = cortexm_mcu_instance_init_callback,
+    .class_init = cortexm_mcu_class_init_callback,
     .class_size = sizeof(CortexMClass) };
 
 /* ----- Type inits. ----- */

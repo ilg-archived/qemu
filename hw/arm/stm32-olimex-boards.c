@@ -28,18 +28,18 @@
 
 /* ----- Olimex STM32-H103 ----- */
 static void
-stm32_h103_board_init(MachineState *machine);
+stm32_h103_board_init_callback(MachineState *machine);
 
 static QEMUMachine stm32_h103_machine = {
     .name = "STM32-H103",
     .desc = "Olimex Header Board for STM32F103RBT6 (Experimental)",
-    .init = stm32_h103_board_init };
+    .init = stm32_h103_board_init_callback };
 
 /**
  * The first step to initialise the board.
  * Called by 'machine_class->init(current_machine);' in main().
  */
-static void stm32_h103_board_init(MachineState *machine)
+static void stm32_h103_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
     DeviceState *dev = cortexm_mcu_init(machine, TYPE_STM32F103RB);
@@ -54,14 +54,14 @@ static void stm32_h103_board_init(MachineState *machine)
 
 /* ----- Olimex STM32-P103 ----- */
 static void
-stm32_p103_board_init(MachineState *machine);
+stm32_p103_board_init_callback(MachineState *machine);
 
 static QEMUMachine stm32_p103_machine = {
     .name = "STM32-P103",
     .desc = "Olimex Prototype Board for STM32F103RBT6 (Experimental)",
-    .init = stm32_p103_board_init };
+    .init = stm32_p103_board_init_callback };
 
-static void stm32_p103_board_init(MachineState *machine)
+static void stm32_p103_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
     cortexm_mcu_init(machine, TYPE_STM32F103RB);
@@ -71,14 +71,14 @@ static void stm32_p103_board_init(MachineState *machine)
 
 /* ----- Olimex OLIMEXINO-STM32 ----- */
 static void
-olimexino_stm32_board_init(MachineState *machine);
+olimexino_stm32_board_init_callback(MachineState *machine);
 
 static QEMUMachine olimexino_stm32_machine = {
     .name = "OLIMEXINO-STM32",
     .desc = "Olimex Mapple (Arduino-like) Development Board (Experimental)",
-    .init = olimexino_stm32_board_init };
+    .init = olimexino_stm32_board_init_callback };
 
-static void olimexino_stm32_board_init(MachineState *machine)
+static void olimexino_stm32_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
     cortexm_mcu_init(machine, TYPE_STM32F103RB);
@@ -88,14 +88,14 @@ static void olimexino_stm32_board_init(MachineState *machine)
 
 /* ----- Olimex STM32-P107 ----- */
 static void
-stm32_p107_board_init(MachineState *machine);
+stm32_p107_board_init_callback(MachineState *machine);
 
 static QEMUMachine stm32_p107_machine = {
     .name = "STM32-P107",
     .desc = "Olimex Prototype Board for STM32F107VCT6 (Experimental)",
-    .init = stm32_p107_board_init };
+    .init = stm32_p107_board_init_callback };
 
-static void stm32_p107_board_init(MachineState *machine)
+static void stm32_p107_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
     cortexm_mcu_init(machine, TYPE_STM32F107VC);
@@ -105,14 +105,14 @@ static void stm32_p107_board_init(MachineState *machine)
 
 /* ----- Olimex STM32-P407 ----- */
 static void
-stm32_e407_board_init(MachineState *machine);
+stm32_e407_board_init_callback(MachineState *machine);
 
 static QEMUMachine stm32_e407_machine = {
     .name = "STM32-E407",
     .desc = "Olimex Development Board for STM32F407ZGT6 (Experimental)",
-    .init = stm32_e407_board_init };
+    .init = stm32_e407_board_init_callback };
 
-static void stm32_e407_board_init(MachineState *machine)
+static void stm32_e407_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
     cortexm_mcu_init(machine, TYPE_STM32F407ZG);

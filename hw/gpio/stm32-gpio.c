@@ -124,7 +124,8 @@ static void stm32f1_gpio_write32(STM32GPIOState *state, uint32_t offset,
 
 /* ------------------------------------------------------------------------- */
 
-static uint64_t stm32_gpio_read(void *opaque, hwaddr addr, unsigned size)
+static uint64_t stm32_gpio_read_callback(void *opaque, hwaddr addr,
+        unsigned size)
 {
     STM32GPIOState *state = (STM32GPIOState *) opaque;
     uint32_t offset = addr;
@@ -153,7 +154,7 @@ static uint64_t stm32_gpio_read(void *opaque, hwaddr addr, unsigned size)
     return 0;
 }
 
-static void stm32_gpio_write(void *opaque, hwaddr addr, uint64_t value,
+static void stm32_gpio_write_callback(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
     STM32GPIOState *state = (STM32GPIOState *) opaque;
@@ -182,11 +183,13 @@ static void stm32_gpio_write(void *opaque, hwaddr addr, uint64_t value,
 }
 
 static const MemoryRegionOps stm32_gpio_ops = {
-    .read = stm32_gpio_read,
-    .write = stm32_gpio_write,
+    .read = stm32_gpio_read_callback,
+    .write = stm32_gpio_write_callback,
+    .valid.min_access_size = 4,
+    .valid.max_access_size = 4,
     .endianness = DEVICE_NATIVE_ENDIAN, };
 
-static void stm32_gpio_reset(DeviceState *dev)
+static void stm32_gpio_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -208,7 +211,7 @@ static void stm32_gpio_reset(DeviceState *dev)
     }
 }
 
-static void stm32_gpio_realize(DeviceState *dev, Error **errp)
+static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -274,7 +277,7 @@ static void stm32_gpio_realize(DeviceState *dev, Error **errp)
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
-static void stm32_gpio_instance_init(Object *obj)
+static void stm32_gpio_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -287,12 +290,12 @@ static Property stm32_gpio_properties[] = {
                 port_index, STM32_GPIO_PORT_UNDEFINED),
     DEFINE_PROP_END_OF_LIST() };
 
-static void stm32_gpio_class_init(ObjectClass *klass, void *data)
+static void stm32_gpio_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->reset = stm32_gpio_reset;
-    dc->realize = stm32_gpio_realize;
+    dc->reset = stm32_gpio_reset_callback;
+    dc->realize = stm32_gpio_realize_callback;
 
     dc->props = stm32_gpio_properties;
 }
@@ -300,9 +303,9 @@ static void stm32_gpio_class_init(ObjectClass *klass, void *data)
 static const TypeInfo stm32_gpio_type_info = {
     .name = TYPE_STM32_GPIO,
     .parent = TYPE_STM32_SYS_BUS_DEVICE,
-    .instance_init = stm32_gpio_instance_init,
+    .instance_init = stm32_gpio_instance_init_callback,
     .instance_size = sizeof(STM32GPIOState),
-    .class_init = stm32_gpio_class_init,
+    .class_init = stm32_gpio_class_init_callback,
     .class_size = sizeof(STM32GPIOClass) };
 
 static void stm32_gpio_register_types(void)

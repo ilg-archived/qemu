@@ -23,6 +23,12 @@
  * This file implements the STM32 RCC (Reset and Clock Control).
  *
  * The initial implementation is intended only to pass CMSIS initialisations.
+ * This means all writes store the correct values and all reads return the
+ * written values.
+ * Status bits (like PLL ready) are set during the writes, so all application
+ * loops waiting for those events will complete immediately.
+ * Clock trees and the bits to enable peripheral clocks are not yet used by
+ * the peripherals.
  *
  * References:
  * - ST CD00171190.pdf, Doc ID 13902 Rev 15, "RM0008 Reference Manual,
@@ -314,7 +320,8 @@ static void stm32f1cl_rcc_write32(STM32RCCState *state, uint32_t offset,
 
 /* ------------------------------------------------------------------------- */
 
-static uint64_t stm32_rcc_read(void *opaque, hwaddr addr, unsigned size)
+static uint64_t stm32_rcc_read_callback(void *opaque, hwaddr addr,
+        unsigned size)
 {
     STM32RCCState *state = (STM32RCCState *) opaque;
     uint32_t offset = addr;
@@ -347,7 +354,7 @@ static uint64_t stm32_rcc_read(void *opaque, hwaddr addr, unsigned size)
     return 0;
 }
 
-static void stm32_rcc_write(void *opaque, hwaddr addr, uint64_t value,
+static void stm32_rcc_write_callback(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
     STM32RCCState *state = (STM32RCCState *) opaque;
@@ -380,8 +387,8 @@ static void stm32_rcc_write(void *opaque, hwaddr addr, uint64_t value,
 }
 
 static const MemoryRegionOps stm32_rcc_ops = {
-    .read = stm32_rcc_read,
-    .write = stm32_rcc_write,
+    .read = stm32_rcc_read_callback,
+    .write = stm32_rcc_write_callback,
     .endianness = DEVICE_NATIVE_ENDIAN, };
 
 /* ------------------------------------------------------------------------- */
@@ -501,10 +508,10 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
                 } else {
                     /* PREDIV1 selected as PLL clock entry */
                     /* Get PREDIV1 clock source and division factor */
-                    prediv1source =
-                            state->u.f1.reg.cfgr2 & STM32F1_RCC_CFGR2_PREDIV1SRC;
-                    prediv1factor = (state->u.f1.reg.cfgr2 & STM32F1_RCC_CFGR2_PREDIV1)
-                            + 1;
+                    prediv1source = state->u.f1.reg.cfgr2
+                            & STM32F1_RCC_CFGR2_PREDIV1SRC;
+                    prediv1factor = (state->u.f1.reg.cfgr2
+                            & STM32F1_RCC_CFGR2_PREDIV1) + 1;
 
                     if (prediv1source == 0) {
                         /* HSE oscillator clock selected as PREDIV1
@@ -517,8 +524,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
                          * multiplication factor */
                         prediv2factor = ((state->u.f1.reg.cfgr2
                                 & STM32F1_RCC_CFGR2_PREDIV2) >> 4) + 1;
-                        pll2mull = ((state->u.f1.reg.cfgr2 & STM32F1_RCC_CFGR2_PLL2MUL)
-                                >> 8) + 2;
+                        pll2mull = ((state->u.f1.reg.cfgr2
+                                & STM32F1_RCC_CFGR2_PLL2MUL) >> 8) + 2;
                         cpu_freq_hz = (((state->hse_freq_hz / prediv2factor)
                                 * pll2mull) / prediv1factor) * pllmull;
                     }
@@ -533,7 +540,9 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 
         /* Compute HCLK clock frequency */
         /* Get HCLK prescaler */
-        tmp = AHBPrescTable[((state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_HPRE) >> 4)];
+        tmp =
+                AHBPrescTable[((state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_HPRE)
+                        >> 4)];
         /* HCLK clock frequency */
         cpu_freq_hz >>= tmp;
 
@@ -558,7 +567,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 
 /* ------------------------------------------------------------------------- */
 
-static void stm32_rcc_reset(DeviceState *dev)
+static void stm32_rcc_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -593,7 +602,7 @@ static void stm32_rcc_reset(DeviceState *dev)
     stm32_rcc_update_clocks(state);
 }
 
-static void stm32_rcc_realize(DeviceState *dev, Error **errp)
+static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -636,7 +645,7 @@ static void stm32_rcc_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32_rcc_instance_init(Object *obj)
+static void stm32_rcc_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -655,24 +664,25 @@ static Property stm32_rcc_properties[] = {
                 LSI_FREQ_HZ),
     DEFINE_PROP_END_OF_LIST(), };
 
-static void stm32_rcc_class_init(ObjectClass *klass, void *data)
+static void stm32_rcc_class_init_callback(ObjectClass *klass, void *data)
 {
     STM32RCCClass *nc = STM32_RCC_CLASS(klass);
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     nc->parent_realize = dc->realize;
 
-    dc->reset = stm32_rcc_reset;
-    dc->realize = stm32_rcc_realize;
+    dc->reset = stm32_rcc_reset_callback;
+    dc->realize = stm32_rcc_realize_callback;
+
     dc->props = stm32_rcc_properties;
 }
 
 static const TypeInfo stm32_rcc_type_info = {
     .name = TYPE_STM32_RCC,
     .parent = TYPE_STM32_SYS_BUS_DEVICE,
-    .instance_init = stm32_rcc_instance_init,
+    .instance_init = stm32_rcc_instance_init_callback,
     .instance_size = sizeof(STM32RCCState),
-    .class_init = stm32_rcc_class_init };
+    .class_init = stm32_rcc_class_init_callback };
 
 static void stm32_rcc_register_types(void)
 {

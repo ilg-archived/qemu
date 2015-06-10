@@ -23,6 +23,7 @@
  * This file implements the STM32 flash control.
  *
  * The initial implementation is intended only to pass CMSIS initialisations.
+ * The written values can be read back, but no other actions are supported.
  *
  * References:
  * - ST CD00171190.pdf, Doc ID 13902 Rev 15, "RM0008 Reference Manual,
@@ -89,7 +90,8 @@ static void stm32f1_flash_write32(STM32FlashState *state, uint32_t offset,
 
 /* ------------------------------------------------------------------------- */
 
-static uint64_t stm32_flash_read(void *opaque, hwaddr addr, unsigned size)
+static uint64_t stm32_flash_read_callback(void *opaque, hwaddr addr,
+        unsigned size)
 {
     STM32FlashState *state = (STM32FlashState *) opaque;
     uint32_t offset = addr;
@@ -118,8 +120,8 @@ static uint64_t stm32_flash_read(void *opaque, hwaddr addr, unsigned size)
     return 0;
 }
 
-static void stm32_flash_write(void *opaque, hwaddr addr, uint64_t value,
-        unsigned size)
+static void stm32_flash_write_callback(void *opaque, hwaddr addr,
+        uint64_t value, unsigned size)
 {
     STM32FlashState *state = (STM32FlashState *) opaque;
     uint32_t offset = addr;
@@ -147,13 +149,13 @@ static void stm32_flash_write(void *opaque, hwaddr addr, uint64_t value,
 }
 
 static const MemoryRegionOps stm32_flash_ops = {
-    .read = stm32_flash_read,
-    .write = stm32_flash_write,
+    .read = stm32_flash_read_callback,
+    .write = stm32_flash_write_callback,
     .endianness = DEVICE_NATIVE_ENDIAN, };
 
 /* ------------------------------------------------------------------------- */
 
-static void stm32_flash_reset(DeviceState *dev)
+static void stm32_flash_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -171,7 +173,7 @@ static void stm32_flash_reset(DeviceState *dev)
     }
 }
 
-static void stm32_flash_realize(DeviceState *dev, Error **errp)
+static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -194,13 +196,13 @@ static void stm32_flash_realize(DeviceState *dev, Error **errp)
     }
 
     memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_flash_ops, state,
-            TYPE_STM32_FLASH, size);
+    TYPE_STM32_FLASH, size);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
-static void stm32_flash_instance_init(Object *obj)
+static void stm32_flash_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -208,23 +210,23 @@ static void stm32_flash_instance_init(Object *obj)
 
 }
 
-static void stm32_flash_class_init(ObjectClass *klass, void *data)
+static void stm32_flash_class_init_callback(ObjectClass *klass, void *data)
 {
     STM32FlashClass *nc = STM32_FLASH_CLASS(klass);
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     nc->parent_realize = dc->realize;
 
-    dc->reset = stm32_flash_reset;
-    dc->realize = stm32_flash_realize;
+    dc->reset = stm32_flash_reset_callback;
+    dc->realize = stm32_flash_realize_callback;
 }
 
 static const TypeInfo stm32_flash_type_info = {
     .name = TYPE_STM32_FLASH,
     .parent = TYPE_STM32_SYS_BUS_DEVICE,
-    .instance_init = stm32_flash_instance_init,
+    .instance_init = stm32_flash_instance_init_callback,
     .instance_size = sizeof(STM32FlashState),
-    .class_init = stm32_flash_class_init };
+    .class_init = stm32_flash_class_init_callback };
 
 static void stm32_flash_register_types(void)
 {

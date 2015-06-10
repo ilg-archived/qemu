@@ -95,7 +95,7 @@ static CortexMCapabilities stm32f051r8_capabilities = {
     .sram_size_kb = 8,
     .cortexm_model = CORTEX_M0 };
 
-static void stm32f051r8_mcu_instance_init(Object *obj)
+static void stm32f051r8_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -105,7 +105,7 @@ static void stm32f051r8_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f051r8_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f051r8_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -119,13 +119,13 @@ static void stm32f051r8_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f051r8_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f051r8_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F051R8_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f051r8_mcu_realize;
+    dc->realize = stm32f051r8_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -133,8 +133,8 @@ static const TypeInfo stm32f051r8_mcu_type_info = {
     .name = TYPE_STM32F051R8,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f051r8_mcu_instance_init,
-    .class_init = stm32f051r8_mcu_class_init,
+    .instance_init = stm32f051r8_mcu_instance_init_callback,
+    .class_init = stm32f051r8_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F100RB ----- */
@@ -145,7 +145,7 @@ static CortexMCapabilities stm32f100rb_capabilities = {
     .num_irq = 60,
     .cortexm_model = CORTEX_M3 };
 
-static void stm32f100rb_mcu_instance_init(Object *obj)
+static void stm32f100rb_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -155,7 +155,7 @@ static void stm32f100rb_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f100rb_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f100rb_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -169,13 +169,13 @@ static void stm32f100rb_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f100rb_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f100rb_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F100RB_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f100rb_mcu_realize;
+    dc->realize = stm32f100rb_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -183,8 +183,8 @@ static const TypeInfo stm32f100rb_mcu_type_info = {
     .name = TYPE_STM32F100RB,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f100rb_mcu_instance_init,
-    .class_init = stm32f100rb_mcu_class_init,
+    .instance_init = stm32f100rb_mcu_instance_init_callback,
+    .class_init = stm32f100rb_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F103RB ----- */
@@ -210,7 +210,7 @@ static STM32Capabilities stm32f103rb_capabilities = {
         .f1 = {
             .is_md = true } } };
 
-static void stm32f103rb_mcu_instance_init(Object *obj)
+static void stm32f103rb_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -220,7 +220,7 @@ static void stm32f103rb_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f103rb_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f103rb_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -234,13 +234,13 @@ static void stm32f103rb_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f103rb_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f103rb_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F103RB_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f103rb_mcu_realize;
+    dc->realize = stm32f103rb_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -248,8 +248,8 @@ static const TypeInfo stm32f103rb_mcu_type_info = {
     .name = TYPE_STM32F103RB,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f103rb_mcu_instance_init,
-    .class_init = stm32f103rb_mcu_class_init,
+    .instance_init = stm32f103rb_mcu_instance_init_callback,
+    .class_init = stm32f103rb_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F107VC ----- */
@@ -261,7 +261,7 @@ static CortexMCapabilities stm32f107vc_capabilities = {
     .num_irq = 68,
     .cortexm_model = CORTEX_M3 };
 
-static void stm32f107vc_mcu_instance_init(Object *obj)
+static void stm32f107vc_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -271,7 +271,7 @@ static void stm32f107vc_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f107vc_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f107vc_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -285,13 +285,13 @@ static void stm32f107vc_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f107vc_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f107vc_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F107VC_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f107vc_mcu_realize;
+    dc->realize = stm32f107vc_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -299,8 +299,8 @@ static const TypeInfo stm32f107vc_mcu_type_info = {
     .name = TYPE_STM32F107VC,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f107vc_mcu_instance_init,
-    .class_init = stm32f107vc_mcu_class_init,
+    .instance_init = stm32f107vc_mcu_instance_init_callback,
+    .class_init = stm32f107vc_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32L152RE ----- */
@@ -311,7 +311,7 @@ static CortexMCapabilities stm32l152re_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M3 };
 
-static void stm32l152re_mcu_instance_init(Object *obj)
+static void stm32l152re_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -321,7 +321,7 @@ static void stm32l152re_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32l152re_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32l152re_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -335,13 +335,13 @@ static void stm32l152re_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32l152re_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32l152re_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32L152RE_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32l152re_mcu_realize;
+    dc->realize = stm32l152re_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -349,8 +349,8 @@ static const TypeInfo stm32l152re_mcu_type_info = {
     .name = TYPE_STM32L152RE,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32l152re_mcu_instance_init,
-    .class_init = stm32l152re_mcu_class_init,
+    .instance_init = stm32l152re_mcu_instance_init_callback,
+    .class_init = stm32l152re_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F205RF ----- */
@@ -361,7 +361,7 @@ static CortexMCapabilities stm32f205rf_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M3 };
 
-static void stm32f205rf_mcu_instance_init(Object *obj)
+static void stm32f205rf_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -371,7 +371,7 @@ static void stm32f205rf_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f205rf_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f205rf_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -385,13 +385,13 @@ static void stm32f205rf_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f205rf_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f205rf_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F205RF_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f205rf_mcu_realize;
+    dc->realize = stm32f205rf_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -399,8 +399,8 @@ static const TypeInfo stm32f205rf_mcu_type_info = {
     .name = TYPE_STM32F205RF,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f205rf_mcu_instance_init,
-    .class_init = stm32f205rf_mcu_class_init,
+    .instance_init = stm32f205rf_mcu_instance_init_callback,
+    .class_init = stm32f205rf_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F303VC ----- */
@@ -411,7 +411,7 @@ static CortexMCapabilities stm32f303vc_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M4F };
 
-static void stm32f303vc_mcu_instance_init(Object *obj)
+static void stm32f303vc_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -421,7 +421,7 @@ static void stm32f303vc_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f303vc_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f303vc_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -435,13 +435,13 @@ static void stm32f303vc_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f303vc_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f303vc_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F303VC_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f303vc_mcu_realize;
+    dc->realize = stm32f303vc_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -449,8 +449,8 @@ static const TypeInfo stm32f303vc_mcu_type_info = {
     .name = TYPE_STM32F303VC,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f303vc_mcu_instance_init,
-    .class_init = stm32f303vc_mcu_class_init,
+    .instance_init = stm32f303vc_mcu_instance_init_callback,
+    .class_init = stm32f303vc_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F334R8 ----- */
@@ -461,7 +461,7 @@ static CortexMCapabilities stm32f334r8_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M4F };
 
-static void stm32f334r8_mcu_instance_init(Object *obj)
+static void stm32f334r8_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -471,7 +471,7 @@ static void stm32f334r8_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f334r8_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f334r8_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -485,13 +485,13 @@ static void stm32f334r8_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f334r8_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f334r8_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F334R8_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f334r8_mcu_realize;
+    dc->realize = stm32f334r8_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -499,8 +499,8 @@ static const TypeInfo stm32f334r8_mcu_type_info = {
     .name = TYPE_STM32F334R8,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f334r8_mcu_instance_init,
-    .class_init = stm32f334r8_mcu_class_init,
+    .instance_init = stm32f334r8_mcu_instance_init_callback,
+    .class_init = stm32f334r8_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F405RG ----- */
@@ -511,7 +511,7 @@ static CortexMCapabilities stm32f405rg_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M4F };
 
-static void stm32f405rg_mcu_instance_init(Object *obj)
+static void stm32f405rg_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -521,7 +521,7 @@ static void stm32f405rg_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f405rg_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f405rg_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -535,13 +535,13 @@ static void stm32f405rg_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f405rg_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f405rg_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F405RG_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f405rg_mcu_realize;
+    dc->realize = stm32f405rg_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -549,8 +549,8 @@ static const TypeInfo stm32f405rg_mcu_type_info = {
     .name = TYPE_STM32F405RG,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f405rg_mcu_instance_init,
-    .class_init = stm32f405rg_mcu_class_init,
+    .instance_init = stm32f405rg_mcu_instance_init_callback,
+    .class_init = stm32f405rg_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F407VG ----- */
@@ -561,7 +561,7 @@ static CortexMCapabilities stm32f407vg_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M4F };
 
-static void stm32f407vg_mcu_instance_init(Object *obj)
+static void stm32f407vg_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -571,7 +571,7 @@ static void stm32f407vg_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f407vg_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f407vg_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -585,13 +585,13 @@ static void stm32f407vg_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f407vg_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f407vg_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F407VG_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f407vg_mcu_realize;
+    dc->realize = stm32f407vg_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -599,8 +599,8 @@ static const TypeInfo stm32f407vg_mcu_type_info = {
     .name = TYPE_STM32F407VG,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f407vg_mcu_instance_init,
-    .class_init = stm32f407vg_mcu_class_init,
+    .instance_init = stm32f407vg_mcu_instance_init_callback,
+    .class_init = stm32f407vg_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F407ZG ----- */
@@ -611,7 +611,7 @@ static CortexMCapabilities stm32f407zg_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M4F };
 
-static void stm32f407zg_mcu_instance_init(Object *obj)
+static void stm32f407zg_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -621,7 +621,7 @@ static void stm32f407zg_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f407zg_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f407zg_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -635,13 +635,13 @@ static void stm32f407zg_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f407zg_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f407zg_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F407ZG_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f407zg_mcu_realize;
+    dc->realize = stm32f407zg_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -649,8 +649,8 @@ static const TypeInfo stm32f407zg_mcu_type_info = {
     .name = TYPE_STM32F407ZG,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f407zg_mcu_instance_init,
-    .class_init = stm32f407zg_mcu_class_init,
+    .instance_init = stm32f407zg_mcu_instance_init_callback,
+    .class_init = stm32f407zg_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F411RE ----- */
@@ -661,7 +661,7 @@ static CortexMCapabilities stm32f411re_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M4F };
 
-static void stm32f411re_mcu_instance_init(Object *obj)
+static void stm32f411re_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -671,7 +671,7 @@ static void stm32f411re_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f411re_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f411re_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -685,13 +685,13 @@ static void stm32f411re_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f411re_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f411re_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F411RE_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f411re_mcu_realize;
+    dc->realize = stm32f411re_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -699,8 +699,8 @@ static const TypeInfo stm32f411re_mcu_type_info = {
     .name = TYPE_STM32F411RE,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f411re_mcu_instance_init,
-    .class_init = stm32f411re_mcu_class_init,
+    .instance_init = stm32f411re_mcu_instance_init_callback,
+    .class_init = stm32f411re_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F429ZI ----- */
@@ -711,7 +711,7 @@ static CortexMCapabilities stm32f429zi_capabilities = {
     .has_mpu = true,
     .cortexm_model = CORTEX_M4F };
 
-static void stm32f429zi_mcu_instance_init(Object *obj)
+static void stm32f429zi_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -721,7 +721,7 @@ static void stm32f429zi_mcu_instance_init(Object *obj)
     // TODO: initialize inner objects
 }
 
-static void stm32f429zi_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32f429zi_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -735,13 +735,13 @@ static void stm32f429zi_mcu_realize(DeviceState *dev, Error **errp)
     }
 }
 
-static void stm32f429zi_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32f429zi_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *nc = STM32F429ZI_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32f429zi_mcu_realize;
+    dc->realize = stm32f429zi_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
 
@@ -749,8 +749,8 @@ static const TypeInfo stm32f429zi_mcu_type_info = {
     .name = TYPE_STM32F429ZI,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f429zi_mcu_instance_init,
-    .class_init = stm32f429zi_mcu_class_init,
+    .instance_init = stm32f429zi_mcu_instance_init_callback,
+    .class_init = stm32f429zi_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- Type inits. ----- */

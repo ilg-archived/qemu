@@ -30,7 +30,7 @@
  *
  * TODO: define the special CCM region for the models that include it.
  */
-static void stm32_mcu_instance_init(Object *obj)
+static void stm32_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -49,7 +49,7 @@ static void stm32_mcu_instance_init(Object *obj)
     }
 }
 
-static void stm32_mcu_realize(DeviceState *dev, Error **errp)
+static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -229,7 +229,7 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
 
 }
 
-static void stm32_mcu_memory_regions_create(DeviceState *dev)
+static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -272,17 +272,17 @@ static Property stm32_mcu_properties[] = {
     DEFINE_PROP_END_OF_LIST(), //
         };
 
-static void stm32_mcu_class_init(ObjectClass *klass, void *data)
+static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     STM32MCUClass *nc = STM32_MCU_CLASS(klass);
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     nc->parent_realize = dc->realize;
-    dc->realize = stm32_mcu_realize;
+    dc->realize = stm32_mcu_realize_callback;
 
     nc->parent_memory_regions_create = cm_class->memory_regions_create;
-    cm_class->memory_regions_create = stm32_mcu_memory_regions_create;
+    cm_class->memory_regions_create = stm32_mcu_memory_regions_create_callback;
 
     dc->props = stm32_mcu_properties;
 }
@@ -292,8 +292,8 @@ static const TypeInfo stm32_mcu_type_info = {
     .name = TYPE_STM32_MCU,
     .parent = TYPE_CORTEXM_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32_mcu_instance_init,
-    .class_init = stm32_mcu_class_init,
+    .instance_init = stm32_mcu_instance_init_callback,
+    .class_init = stm32_mcu_class_init_callback,
     .class_size = sizeof(STM32MCUClass) };
 
 /* ----- Type inits. ----- */
