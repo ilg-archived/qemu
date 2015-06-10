@@ -53,6 +53,8 @@ typedef enum {
     STM32_GPIO_PORT_UNDEFINED,
 } stm32_gpio_index_t;
 
+#define STM32_GPIO_PIN_COUNT    (16)
+
 typedef struct {
     /*< private >*/
     STM32SysBusDevice parent_obj;
@@ -62,6 +64,31 @@ typedef struct {
 
     stm32_gpio_index_t port_index;
 
+    /**
+     * IRQs used to communicate with the machine implementation.
+     * There is one IRQ for each pin.  Note that for pins configured
+     * as inputs, the output IRQ state has no meaning.  Perhaps
+     * the output should be updated to match the input in this case....
+     */
+    qemu_irq out_irq[STM32_GPIO_PIN_COUNT];
+
+    /**
+     * IRQs which relay input pin changes to other STM32 peripherals
+     * or to exception handlers.
+     */
+    qemu_irq in_irq[STM32_GPIO_PIN_COUNT];
+
+    /**
+     * Cached direction mask. 1 = output pin.
+     */
+    uint32_t dir_mask;
+
+    /**
+     * Mutually exclusive all families registers.
+     * Address them like status->u.f1.reg.crl.
+     * The 'reg' structure was used to mark explicitly that the member is
+     * a MCU processor and also in case other family variables are needed.
+     */
     union {
         struct {
             /* F1 specific registers */
