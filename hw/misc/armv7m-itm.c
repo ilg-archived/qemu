@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/armv7m_itm.h"
+#include "hw/misc/armv7m-itm.h"
 
 /**
  * This file implements a minimal ITM peripheral, intended to display

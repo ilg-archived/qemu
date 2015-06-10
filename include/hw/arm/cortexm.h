@@ -20,11 +20,11 @@
 #ifndef HW_ARM_CORTEXM_H
 #define HW_ARM_CORTEXM_H 1
 
+#include "hw/misc/armv7m-itm.h"
 #include "exec/memory.h"
 #include "hw/irq.h"
 #include "hw/boards.h"
 #include "hw/sysbus.h"
-#include "hw/misc/armv7m_itm.h"
 
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
