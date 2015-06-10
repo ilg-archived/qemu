@@ -82,6 +82,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
 
 
     STM32SysBusDevice *sbd;
+
+    /* RCC */
     DeviceState *dev2 = DEVICE(&state->rcc);
 
     /* Copy capabilities into internal objects. */
@@ -101,6 +103,7 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     qdev_set_parent_bus(DEVICE(&state->rcc), sysbus_get_default());
 
+    /* FLASH */
     sbd = STM32_SYS_BUS_DEVICE_STATE(&state->flash);
     sbd->capabilities = capabilities;
 
@@ -112,6 +115,7 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
     }
     qdev_set_parent_bus(DEVICE(&state->flash), sysbus_get_default());
 
+    /* GPIOA */
     if (capabilities->stm32.has_gpioa) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_A]);
         sbd->capabilities = capabilities;
@@ -126,6 +130,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_A]),
                 sysbus_get_default());
     }
+
+    /* GPIOB */
     if (capabilities->stm32.has_gpiob) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_B]);
         sbd->capabilities = capabilities;
@@ -140,6 +146,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_B]),
                 sysbus_get_default());
     }
+
+    /* GPIOC */
     if (capabilities->stm32.has_gpioc) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_C]);
         sbd->capabilities = capabilities;
@@ -154,6 +162,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_C]),
                 sysbus_get_default());
     }
+
+    /* GPIOD */
     if (capabilities->stm32.has_gpiod) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_D]);
         sbd->capabilities = capabilities;
@@ -168,6 +178,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_D]),
                 sysbus_get_default());
     }
+
+    /* GPIOE */
     if (capabilities->stm32.has_gpioe) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_E]);
         sbd->capabilities = capabilities;
@@ -182,6 +194,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_E]),
                 sysbus_get_default());
     }
+
+    /* GPIOF */
     if (capabilities->stm32.has_gpiof) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_F]);
         sbd->capabilities = capabilities;
@@ -196,6 +210,8 @@ static void stm32_mcu_realize(DeviceState *dev, Error **errp)
         qdev_set_parent_bus(DEVICE(&state->gpio[STM32_GPIO_PORT_F]),
                 sysbus_get_default());
     }
+
+    /* GPIOG */
     if (capabilities->stm32.has_gpiog) {
         sbd = STM32_SYS_BUS_DEVICE_STATE(&state->gpio[STM32_GPIO_PORT_G]);
         sbd->capabilities = capabilities;
