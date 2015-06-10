@@ -69,8 +69,8 @@ static void cortexm_bitband_init(uint32_t address)
  * all vendor MCUs.
  */
 static Property cortexm_mcu_properties[] = {
-        DEFINE_PROP_UINT32("sram-sizeK", CortexMState, sram_size_kb, 0),
-        DEFINE_PROP_UINT32("flash-sizeK", CortexMState, flash_size_kb, 0),
+        DEFINE_PROP_UINT32("sram-size-kb", CortexMState, sram_size_kb, 0),
+        DEFINE_PROP_UINT32("flash-size-kb", CortexMState, flash_size_kb, 0),
     DEFINE_PROP_END_OF_LIST() };
 
 /**
