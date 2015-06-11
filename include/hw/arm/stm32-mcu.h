@@ -59,8 +59,13 @@ typedef struct STM32MCUClass {
 } STM32MCUClass;
 
 
-G_INLINE_FUNC DeviceState *get_rcc_dev(DeviceState *dev) {
+G_INLINE_FUNC DeviceState *stm32_mcu_get_rcc_dev(DeviceState *dev) {
     return DEVICE((STM32_MCU_STATE(dev)->rcc));
+}
+
+G_INLINE_FUNC DeviceState *stm32_mcu_get_gpio_dev(DeviceState *dev, int port_index) {
+    assert(port_index < STM32_MAX_GPIO);
+    return DEVICE((STM32_MCU_STATE(dev)->gpio[port_index]));
 }
 
 #endif /* STM32_MCU_H */
