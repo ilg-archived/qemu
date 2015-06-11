@@ -26,7 +26,43 @@
  * This file defines several Olimex STM32 boards.
  */
 
+//static uint64_t get_time_stamp()
+//{
+//    struct timeval tv;
+//    gettimeofday(&tv, NULL);
+//    return (tv.tv_sec * (uint64_t) 1000000 + tv.tv_usec) / 1000;
+//}
 /* ----- Olimex STM32-H103 ----- */
+
+static void h103_green_led_active_low_irq_handler(void *opaque, int n,
+        int level)
+{
+    /* There should only be one IRQ for the LED */
+    assert(n == 0);
+
+//    static uint64_t prev_time;
+//    uint64_t crt_time = get_time_stamp();
+//    int delta_time = crt_time - prev_time;
+//    if (delta_time > 10000){
+//        delta_time = 0;
+//    }
+    /* Assume that the IRQ is only triggered if the LED has changed state.
+     * If this is not correct, we may get multiple LED Offs or Ons in a row.
+     */
+    switch (level) {
+    case 0:
+        // printf("%llu: Green LED On (+%d ms)\n", get_time_stamp(), delta_time);
+        fprintf(stderr, "Green LED On\n");
+        break;
+    case 1:
+        // printf("%llu: Green LED Off (+%d ms)\n", get_time_stamp(), delta_time);
+        fprintf(stderr, "Green LED Off\n");
+        break;
+    }
+
+    // prev_time = crt_time;
+}
+
 static void
 stm32_h103_board_init_callback(MachineState *machine);
 
@@ -45,11 +81,21 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     DeviceState *dev = cortexm_mcu_create(machine, TYPE_STM32F103RB);
 
     /* Set the oscillator frequencies. */
-    DeviceState *rcc = get_rcc_dev(dev);
+    DeviceState *rcc = stm32_mcu_get_rcc_dev(dev);
+    assert(rcc);
     qdev_prop_set_uint32(rcc, "hse-freq-hz", 8000000); /* 8.0 MHz */
     qdev_prop_set_uint32(rcc, "lse-freq-hz", 32768); /* 32 KHz */
 
     qdev_realize(dev);
+
+    DeviceState *gpio_c = stm32_mcu_get_gpio_dev(dev, STM32_GPIO_PORT_C);
+    assert(gpio_c);
+
+    /* Connect LED to GPIO C pin 12, active low */
+    qemu_irq *led_irq = qemu_allocate_irqs(
+            h103_green_led_active_low_irq_handler, NULL, 1);
+    qdev_connect_gpio_out(gpio_c, 12, led_irq[0]);
+
 }
 
 /* ----- Olimex STM32-P103 ----- */
