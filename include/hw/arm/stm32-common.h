@@ -20,7 +20,7 @@
 #ifndef STM32_COMMON_H_
 #define STM32_COMMON_H_
 
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 
 typedef enum {
     STM32_FAMILY_UNKNOWN,

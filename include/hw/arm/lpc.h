@@ -21,7 +21,7 @@
 #define HW_ARM_LPC_H 1
 
 #include "hw/boards.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 
 void lpc_board_init(MachineState *machine, QEMUMachine *qm);
 

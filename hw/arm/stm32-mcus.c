@@ -19,7 +19,7 @@
  */
 
 #include "hw/arm/stm32.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 #include "exec/address-spaces.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"

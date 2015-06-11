@@ -18,7 +18,7 @@
  */
 
 #include "hw/arm/tiva.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 
 /* ----- TM4C123GH6PM ----- */
 static CortexMCapabilities tm4c123gh6pm_core_info = {

@@ -21,7 +21,7 @@
 #define HW_ARM_SAM_H 1
 
 #include "hw/boards.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 
 void sam_board_init(MachineState *machine, QEMUMachine *qm);
 

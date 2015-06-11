@@ -21,7 +21,7 @@
 #define STM32_MCU_H
 
 #include "hw/boards.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 //#include "hw/sysbus.h"
 #include "hw/misc/stm32-rcc.h"
 #include "hw/misc/stm32-flash.h"

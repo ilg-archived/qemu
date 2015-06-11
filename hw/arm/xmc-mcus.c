@@ -18,7 +18,7 @@
  */
 
 #include "hw/arm/xmc.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 
 /* ----- XMC4500-F144K1024 ----- */
 static CortexMCapabilities xmc4500_f144k1024_core_info = {

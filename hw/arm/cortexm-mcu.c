@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "sysemu/sysemu.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "hw/arm/arm.h"

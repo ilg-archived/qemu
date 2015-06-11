@@ -20,7 +20,7 @@
 #include "qemu-common.h"
 #include "qom/cpu.h"
 #include "target-arm/cpu-qom.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 #include "qemu/error-report.h"
 
 /**

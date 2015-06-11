@@ -21,7 +21,7 @@
 #define HW_ARM_XMC_H 1
 
 #include "hw/boards.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 
 void xmc_board_init(MachineState *machine, QEMUMachine *qm);
 

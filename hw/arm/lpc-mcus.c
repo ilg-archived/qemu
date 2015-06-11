@@ -18,7 +18,7 @@
  */
 
 #include "hw/arm/lpc.h"
-#include "hw/arm/cortexm.h"
+#include "hw/arm/cortexm-mcu.h"
 
 /* ----- LPC1769FBD100 ----- */
 static CortexMCapabilities lpc1769fbd100_core_info = {
