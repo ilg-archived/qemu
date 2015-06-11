@@ -318,8 +318,6 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
     /* Construct the ITM object. */
     if (cm_capabilities->has_itm) {
         cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
-
-        qdev_set_parent_bus(DEVICE(cm_state->itm), sysbus_get_default());
     }
 
     /* ----- Load image. ----- */

@@ -459,7 +459,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
             break;
         case 0x08: /* PLL used as system clock */
 
-            /* Get PLL clock source and multiplication factor ----------------------*/
+            /* Get PLL clock source and multiplication factor ---------------*/
             pllmull = state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_PLLMULL;
             pllsource = state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_PLLSRC;
 
@@ -650,7 +650,6 @@ static void stm32_rcc_instance_init_callback(Object *obj)
     qemu_log_function_name();
 
     // STM32RCCState *state = STM32_RCC_STATE(obj);
-
 }
 
 static Property stm32_rcc_properties[] = {

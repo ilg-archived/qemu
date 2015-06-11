@@ -31,8 +31,6 @@
     OBJECT_GET_CLASS(STM32GPIOClass, (obj), TYPE_STM32_GPIO)
 #define STM32_GPIO_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32GPIOClass, (klass), TYPE_STM32_GPIO)
-#define STM32_GPIO_STATE(obj) \
-    OBJECT_CHECK(STM32GPIOState, (obj), TYPE_STM32_GPIO)
 
 typedef struct {
     /*< private >*/
@@ -54,6 +52,9 @@ typedef enum {
 } stm32_gpio_index_t;
 
 #define STM32_GPIO_PIN_COUNT    (16)
+
+#define STM32_GPIO_STATE(obj) \
+    OBJECT_CHECK(STM32GPIOState, (obj), TYPE_STM32_GPIO)
 
 typedef struct {
     /*< private >*/

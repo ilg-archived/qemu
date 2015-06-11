@@ -38,9 +38,9 @@ typedef struct STM32MCUState {
     CortexMState parent_obj;
     /*< public >*/
 
-    STM32RCCState rcc;
-    STM32FlashState flash;
-    STM32GPIOState gpio[STM32_MAX_GPIO];
+    DeviceState *rcc;
+    DeviceState *flash;
+    DeviceState *gpio[STM32_MAX_GPIO];
 } STM32MCUState;
 
 #define STM32_MCU_GET_CLASS(obj) \
@@ -60,7 +60,7 @@ typedef struct STM32MCUClass {
 
 
 G_INLINE_FUNC DeviceState *get_rcc_dev(DeviceState *dev) {
-    return DEVICE(&(STM32_MCU_STATE(dev)->rcc));
+    return DEVICE((STM32_MCU_STATE(dev)->rcc));
 }
 
 #endif /* STM32_MCU_H */
