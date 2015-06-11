@@ -35,9 +35,6 @@
 #include "verbosity.h"
 #endif
 
-/* Redefined from armv7m.c */
-#define TYPE_BITBAND "ARM,bitband-memory"
-
 #define DEFAULT_NUM_IRQ		256
 
 static void cortexm_reset(void *opaque);
@@ -45,12 +42,17 @@ static void cortexm_reset(void *opaque);
 static void cortexm_mcu_image_load_callback(DeviceState *dev);
 
 /*
- * There are two kind of definitions in this file, cortexm_core_* for
- * ARM Cortex-M core, and cortexm_mcu_*, as common code for vendor
+ * This is the "cortexm-mcu" object, to be used as parent for vendor
  * MCU implementations.
  */
 
+static MachineState *global_machine;
+
+/* ------------------------------------------------------------------------- */
+
 #define BITBAND_OFFSET (0x02000000)
+/* Redefined from armv7m.c */
+#define TYPE_BITBAND "ARM,bitband-memory"
 
 static void cortexm_bitband_init(uint32_t address)
 {
@@ -64,71 +66,53 @@ static void cortexm_bitband_init(uint32_t address)
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address + BITBAND_OFFSET);
 }
 
-/**
- * Properties for the 'cortexm_mcu' object, used as parent for
- * all vendor MCUs.
- */
-static Property cortexm_mcu_properties[] = {
-        DEFINE_PROP_UINT32("sram-size-kb", CortexMState, sram_size_kb, 0),
-        DEFINE_PROP_UINT32("flash-size-kb", CortexMState, flash_size_kb, 0),
-    DEFINE_PROP_END_OF_LIST() };
+/* ------------------------------------------------------------------------- */
 
 /**
- * Used during qdev_create() as parent before the call
- * to device_mcu_instance_init().
+ * QOM kind of constructor; parent _instance_init() is automatically
+ * called before. ("parent first")
  *
- * Called in vendor_mcu_create(), which calls cortexm_mcu_create().
- *
- * It is a different step than *_realize().
+ * When done it is followed by _instance_post_init() and much later by
+ * _realize().
  */
 static void cortexm_mcu_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
+    assert(global_machine != NULL);
 
-    /* Construct the ITM object. */
-    object_initialize(&cm_state->itm, sizeof(cm_state->itm), TYPE_ARMV7M_ITM);
+    if (global_machine->kernel_filename) {
+        cm_state->kernel_filename = global_machine->kernel_filename;
+    }
 
-    DeviceState *itmdev;
-    itmdev = DEVICE(&cm_state->itm);
-    qdev_set_parent_bus(itmdev, sysbus_get_default());
-
+    if (global_machine->cpu_model) {
+        cm_state->cpu_model = global_machine->cpu_model;
+    }
 }
 
 /**
- * Cortex-M core initialisation routine.
- * The capabilities were already copied into the state object by the
- * *_instance_init() functions.
- *
- * Some MCU properties can be overwritten by command line options
- * (core type, flash/ram sizes).
+ * Always called right after _instance_init(), which also means right
+ * after child post_init(). ("child first").
  */
-static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
+static void cortexm_mcu_instance_post_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
+    CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
 
     /*
      * Capabilities were set late, in an *_intance_init(), and were not
-     * available during our instance_init(), so the whole story happens
-     * in the realize() callback.
+     * available during our instance_init(), so we had to implement the
+     * *post_init() callback.
      */
     CortexMCapabilities *cm_capabilities = cm_state->capabilities;
     assert(cm_capabilities != NULL);
 
-    const char *kernel_filename = NULL;
-    const char *cpu_model_arg = NULL;
-    int ram_size_arg_kb = 0;
-    int flash_size_arg_kb = 0;
-    if (cm_state) {
-        kernel_filename = cm_state->kernel_filename;
-        cpu_model_arg = cm_state->cpu_model;
-        ram_size_arg_kb = cm_state->sram_size_kb;
-        flash_size_arg_kb = cm_state->flash_size_kb;
-    }
+    const char *kernel_filename = cm_state->kernel_filename;
+    const char *cpu_model_arg = cm_state->cpu_model;
+    int ram_size_arg_kb = cm_state->sram_size_kb;
+    int flash_size_arg_kb = cm_state->flash_size_kb;
 
     if (cpu_model_arg) {
         /* If explicitly given via the --cpu command line option,
@@ -154,7 +138,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
             cm_capabilities->cortexm_model = CORTEX_M7F;
             cm_capabilities->has_mpu = true;
         } else {
-            error_report("Illegal --cpu %s, only cortex-m* supported.",
+            error_report("Illegal '--cpu %s', only cortex-m* supported.",
                     cpu_model_arg);
             exit(1);
         }
@@ -286,74 +270,136 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 #endif
 
-    /* ----- Create CPU based on model. ----- */
-    ARMCPU *cpu;
-    cpu = cpu_arm_init(cm_state->cpu_model);
-    if (cpu == NULL) {
-        error_report("Unable to find CPU definition %s", cm_state->cpu_model);
-        exit(1);
-    }
-    cm_state->cpu = cpu;
-
-    CPUARMState *env = &cpu->env;
-
-    /* ----- Create memory regions. ----- */
-    (*cm_class->memory_regions_create)(dev);
-
-    /* ----- Create the NVIC device. ----- */
-
-    DeviceState *nvic;
-    nvic = qdev_create(NULL, "armv7m_nvic");
-    env->nvic = nvic;
-
-    int num_irq;
-    if (cm_capabilities->num_irq) {
-        num_irq = cm_capabilities->num_irq;
-    } else {
-        num_irq = DEFAULT_NUM_IRQ;
-    }
-
-    if (num_irq > max_num_irq) {
-        num_irq = max_num_irq;
-    }
-    /* Must be a multiple of 32 */
-    num_irq = (num_irq + 31) & (~31);
-    cm_state->num_irq = num_irq;
-
-    qdev_prop_set_uint32(nvic, "num-irq", num_irq);
-
-    qdev_init_nofail(nvic);
-    sysbus_connect_irq(SYS_BUS_DEVICE(nvic), 0,
-            qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_IRQ));
-
-    qemu_irq *pic = g_new(qemu_irq, num_irq);
-    for (int i = 0; i < num_irq; i++) {
-        pic[i] = qdev_get_gpio_in(nvic, i);
-    }
-    cm_state->pic = pic;
-
-    /* ----- Create the ITM device. ----- */
-    Error *err = NULL;
-    if (cm_capabilities->has_itm) {
-        object_property_set_bool(OBJECT(&cm_state->itm), true, "realized",
-                &err);
-        if (err != NULL) {
-            error_propagate(errp, err);
-            return;
+    CPUARMState *env;
+    {
+        /* ----- Create CPU based on model. ----- */
+        ARMCPU *cpu;
+        cpu = cpu_arm_create(cm_state->cpu_model);
+        if (cpu == NULL) {
+            error_report("Unable to find CPU definition %s",
+                    cm_state->cpu_model);
+            exit(1);
         }
+        cm_state->cpu = cpu;
+        env = &cpu->env;
+
+        /* Fill-in a minimal boot info, required for semihosting.  */
+        /* TODO: remove it when the new semihosting code is in */
+        static struct arm_boot_info cortexm_binfo;
+        cortexm_binfo.kernel_cmdline = "";
+        cortexm_binfo.kernel_filename = "";
+
+        env->boot_info = &cortexm_binfo;
+    }
+
+    {
+        DeviceState *nvic;
+        nvic = qdev_create(NULL, "armv7m_nvic");
+        cm_state->nvic = nvic;
+        env->nvic = nvic;
+
+        int num_irq;
+        if (cm_capabilities->num_irq) {
+            num_irq = cm_capabilities->num_irq;
+        } else {
+            num_irq = DEFAULT_NUM_IRQ;
+        }
+
+        if (num_irq > max_num_irq) {
+            num_irq = max_num_irq;
+        }
+        /* Must be a multiple of 32 */
+        num_irq = (num_irq + 31) & (~31);
+        cm_state->num_irq = num_irq;
+
+        qdev_prop_set_uint32(nvic, "num-irq", num_irq);
+    }
+
+    /* Construct the ITM object. */
+    if (cm_capabilities->has_itm) {
+        cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
+
+        qdev_set_parent_bus(DEVICE(cm_state->itm), sysbus_get_default());
     }
 
     /* ----- Load image. ----- */
-    if (!kernel_filename && !qtest_enabled() && !with_gdb) {
+    if (!cm_state->kernel_filename && !qtest_enabled() && !with_gdb) {
         error_report("Guest image must be specified (using -kernel)");
         exit(1);
     }
 
-    /* The image must be loaded later, after all memory regions are mapped */
-    cm_class->image_load(dev);
+    if (cm_state->kernel_filename) {
+        /*
+         * The image is loaded in two steps, first here
+         * in some local structures then in rom_reset(),
+         * after all memory regions are mapped.
+         */
+        CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
+        cm_class->image_load(DEVICE(cm_state));
+    }
+}
 
-    /* The default processor clock is 8000000 Hz. */
-    /* The scale will be recomputed in the clock peripherals. */
+/**
+ * Cortex-M core initialisation routine.
+ * The capabilities were already copied into the state object by the
+ * *_instance_init() functions.
+ *
+ * Some MCU properties can be overwritten by command line options
+ * (core type, flash/ram sizes).
+ */
+static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
+{
+    qemu_log_function_name();
+
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+    CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
+
+    CortexMCapabilities *cm_capabilities = cm_state->capabilities;
+    assert(cm_capabilities != NULL);
+
+    /* ----- Realize the CPU (derived from a device). ----- */
+    qdev_realize(DEVICE(cm_state->cpu));
+
+    /* ----- Create memory regions. ----- */
+    (*cm_class->memory_regions_create)(dev);
+
+    /* ----- Realize the NVIC device. ----- */
+    {
+        qdev_realize(cm_state->nvic);
+
+        /*
+         * Interrupts available only after realize(),
+         * do not move this to init().
+         */
+
+        sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
+                qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
+
+        int num_irq = cm_state->num_irq;
+
+        /*
+         * Create the CPU exception handler interrupts. Peripherals
+         * will connect to them and set interrupts to be delivered to
+         * the guest application.
+         */
+        qemu_irq *pic = g_new(qemu_irq, num_irq);
+        for (int i = 0; i < num_irq; i++) {
+            pic[i] = qdev_get_gpio_in(cm_state->nvic, i);
+        }
+        cm_state->pic = pic;
+    }
+
+    /* ----- Realize the ITM device, if it exists. ----- */
+    if (cm_state->itm) {
+        qdev_realize(DEVICE(cm_state->itm));
+    }
+
+    /*
+     * The default processor clock is 8000000 Hz.
+     *
+     * The scale should be recomputed later, in the vendor clock
+     * related peripherals.
+     */
     system_clock_scale = get_ticks_per_sec() / 8000000;
 
 #if defined(CONFIG_VERBOSE)
@@ -362,7 +408,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 #endif
 
-    if (kernel_filename) {
+    if (cm_state->kernel_filename) {
         /* Schedule a CPU core reset. */
         qemu_register_reset(cortexm_reset, cm_state);
     }
@@ -410,41 +456,42 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    ARMCPU *cpu = cm_state->cpu;
-    CPUARMState *env = &cpu->env;
 
     const char *kernel_filename = cm_state->kernel_filename;
+    assert(kernel_filename);
 
-    /* Fill-in a minimal boot info, required for semihosting.  */
-    static struct arm_boot_info cortexm_binfo;
-    cortexm_binfo.kernel_cmdline = "";
-    cortexm_binfo.kernel_filename = kernel_filename;
-
-    env->boot_info = &cortexm_binfo;
-
-    if (kernel_filename) {
-        int big_endian;
+    int big_endian;
 #ifdef TARGET_WORDS_BIGENDIAN
-        big_endian = 1;
+    big_endian = 1;
 #else
-        big_endian = 0;
+    big_endian = 0;
 #endif
-        int image_size;
-        uint64_t entry;
-        uint64_t lowaddr;
-        image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,
-        NULL, big_endian, ELF_MACHINE, 1);
-        if (image_size < 0) {
-            image_size = load_image_targphys(kernel_filename, 0,
-                    cm_state->flash_size_kb * 1024);
-            lowaddr = 0;
-        }
-        if (image_size < 0) {
-            error_report("Could not load image '%s'", kernel_filename);
-            exit(1);
-        }
+    int image_size;
+    uint64_t entry;
+    uint64_t lowaddr;
+    image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,
+    NULL, big_endian, ELF_MACHINE, 1);
+    if (image_size < 0) {
+        image_size = load_image_targphys(kernel_filename, 0,
+                cm_state->flash_size_kb * 1024);
+        lowaddr = 0;
+    }
+    if (image_size < 0) {
+        error_report("Could not load image '%s'", kernel_filename);
+        exit(1);
     }
 }
+
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Properties for the 'cortexm_mcu' object, used as parent for
+ * all vendor MCUs.
+ */
+static Property cortexm_mcu_properties[] = {
+        DEFINE_PROP_UINT32("sram-size-kb", CortexMState, sram_size_kb, 0),
+        DEFINE_PROP_UINT32("flash-size-kb", CortexMState, flash_size_kb, 0),
+    DEFINE_PROP_END_OF_LIST() };
 
 /**
  * Initialise the "cortexm-mcu" object. Currently there is no input data.
@@ -468,10 +515,9 @@ static const TypeInfo cortexm_mcu_type_init = {
     .parent = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(CortexMState),
     .instance_init = cortexm_mcu_instance_init_callback,
+    .instance_post_init = cortexm_mcu_instance_post_init_callback,
     .class_init = cortexm_mcu_class_init_callback,
     .class_size = sizeof(CortexMClass) };
-
-/* ----- Type inits. ----- */
 
 static void cortexm_types_init()
 {
@@ -500,21 +546,18 @@ void cortexm_board_greeting(MachineState *machine)
 }
 
 /**
- * Create the device, initialise members and complete initialisations.
+ * Create the CPU. This will automatically call _instance_init() and
+ * _instance_post_init() before setting the kernel_filename & cpu_model.
  */
-DeviceState *cortexm_mcu_init(MachineState *machine, const char *mcu_type)
+DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
 {
+    /*
+     * Kludge, since it is not possible to pass data to object creation,
+     * we use a static variable.
+     */
+    global_machine = machine;
     DeviceState *dev;
     dev = qdev_create(NULL, mcu_type);
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-
-    if (machine->kernel_filename) {
-        cm_state->kernel_filename = machine->kernel_filename;
-    }
-
-    if (machine->cpu_model) {
-        cm_state->cpu_model = machine->cpu_model;
-    }
 
     return dev;
 }

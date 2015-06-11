@@ -113,7 +113,10 @@ typedef struct CortexMState {
      */
     qemu_irq *pic; /* pointer to array of num-irq elements */
 
-    ITMState itm;
+    DeviceState *nvic;
+
+    /* Optional */
+    DeviceState *itm;
 
 } CortexMState;
 
@@ -138,7 +141,11 @@ void
 cortexm_board_greeting(MachineState *machine);
 
 DeviceState *
-cortexm_mcu_init(MachineState *machine, const char *mcu_type);
+cortexm_mcu_create(MachineState *machine, const char *mcu_type);
+
+/* Helper functions. */
+ARMCPU *cpu_arm_create(const char *cpu_model);
+void qdev_realize(DeviceState *dev);
 
 // TODO: remove all when all old definitions are updated.
 qemu_irq *

@@ -39,7 +39,7 @@ static QEMUMachine stm32f4_discovery_machine = {
 static void stm32f4_discovery_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_init(machine, TYPE_STM32F407VG);
+    cortexm_mcu_create(machine, TYPE_STM32F407VG);
 
     /* TODO: Add board inits */
 }
@@ -56,7 +56,7 @@ static QEMUMachine stm32f429i_discovery_machine = {
 static void stm32f429i_discovery_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_init(machine, TYPE_STM32F429ZI);
+    cortexm_mcu_create(machine, TYPE_STM32F429ZI);
 
     /* TODO: Add board inits */
 }
@@ -73,7 +73,7 @@ static QEMUMachine stm32f3_discovery_machine = {
 static void stm32f3_discovery_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_init(machine, TYPE_STM32F303VC);
+    cortexm_mcu_create(machine, TYPE_STM32F303VC);
 
     /* TODO: Add board inits */
 }
@@ -90,7 +90,7 @@ static QEMUMachine stm32f0_discovery_machine = {
 static void stm32f0_discovery_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_init(machine, TYPE_STM32F051R8);
+    cortexm_mcu_create(machine, TYPE_STM32F051R8);
 
     /* TODO: Add board inits */
 }
@@ -107,7 +107,7 @@ static QEMUMachine stm32vl_discovery_machine = {
 static void stm32vl_discovery_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_init(machine, TYPE_STM32F100RB);
+    cortexm_mcu_create(machine, TYPE_STM32F100RB);
 
     /* TODO: Add board inits */
 }
