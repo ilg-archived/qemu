@@ -29,7 +29,7 @@
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, GenericGPIOLEDInfo*)
 
 typedef struct {
-    const char *name;
+    const char *desc;
     int port_index;
     int port_bit; //
     bool active_low;
