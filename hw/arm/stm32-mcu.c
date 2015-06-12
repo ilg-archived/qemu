@@ -95,6 +95,7 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
 
         gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_A]);
         gdev->port_index = STM32_GPIO_PORT_A;
+        gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
 
     /* GPIOB */
@@ -105,6 +106,7 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
 
         gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_B]);
         gdev->port_index = STM32_GPIO_PORT_B;
+        gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
 
     /* GPIOC */
@@ -115,6 +117,7 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
 
         gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_C]);
         gdev->port_index = STM32_GPIO_PORT_C;
+        gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
 
     /* GPIOD */
@@ -125,6 +128,7 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
 
         gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_D]);
         gdev->port_index = STM32_GPIO_PORT_D;
+        gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
 
     /* GPIOE */
@@ -135,6 +139,7 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
 
         gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_E]);
         gdev->port_index = STM32_GPIO_PORT_E;
+        gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
 
     /* GPIOF */
@@ -145,6 +150,7 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
 
         gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_F]);
         gdev->port_index = STM32_GPIO_PORT_F;
+        gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
 
     /* GPIOG */
@@ -155,6 +161,7 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
 
         gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_G]);
         gdev->port_index = STM32_GPIO_PORT_G;
+        gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
 
 }

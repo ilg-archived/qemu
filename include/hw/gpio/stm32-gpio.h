@@ -24,6 +24,7 @@
 #include "config.h"
 #include "hw/misc/stm32-sys-bus-device.h"
 #include "exec/address-spaces.h"
+#include "hw/misc/stm32-rcc.h"
 
 #define TYPE_STM32_GPIO "stm32-gpio"
 
@@ -64,6 +65,8 @@ typedef struct {
     MemoryRegion mmio;
 
     stm32_gpio_index_t port_index;
+
+    STM32RCCState* rcc;
 
     /**
      * IRQs used to communicate with the machine implementation.

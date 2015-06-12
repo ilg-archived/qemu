@@ -49,12 +49,26 @@
 
 /* STM32F1[LMHX]D, STM32F1CL */
 
+static bool stm32f1_rcc_is_gpio_enabled(STM32RCCState *dev, int port_index)
+{
+    assert(dev);
+    /* GPIO clock enable bits are in apb2enr for families. */
+    if ((dev->u.f1.reg.apb2enr & (0x4 << port_index)) != 0) {
+        return true;
+    }
+    return false;
+}
+
 /**
  * STM32F1 read 32-bits.
  */
 static uint32_t stm32f1_gpio_read32(STM32GPIOState *state, uint32_t offset,
         unsigned size)
 {
+    if (!stm32f1_rcc_is_gpio_enabled(state->rcc, state->port_index)) {
+        return 0; /* Not enabled */
+    }
+
     uint32_t value;
 
     switch (offset) {
@@ -231,6 +245,11 @@ static void stm32_gpio_write_odr(STM32GPIOState *state, uint32_t *odr,
 static void stm32f1_gpio_write32(STM32GPIOState *state, uint32_t offset,
         uint32_t value, unsigned size)
 {
+
+    if (!stm32f1_rcc_is_gpio_enabled(state->rcc, state->port_index)) {
+        return; /* Not enabled */
+    }
+
     uint32_t tmp;
     uint32_t set_bits;
     uint32_t reset_bits;
@@ -379,10 +398,13 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
         break;
     }
 
+    // Disabled because it triggers false LED irgs at reset.
+#if 0
     /* Clear all outgoing interrupts. */
     for (int pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
         qemu_irq_lower(state->out_irq[pin]);
     }
+#endif
 
     // TODO: check if incoming interrupts need to be cleared too.
 }
