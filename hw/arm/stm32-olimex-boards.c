@@ -52,11 +52,11 @@ static void h103_green_led_active_low_irq_handler(void *opaque, int n,
     switch (level) {
     case 0:
         // printf("%llu: Green LED On (+%d ms)\n", get_time_stamp(), delta_time);
-        fprintf(stderr, "Green LED On\n");
+        fprintf(stderr, "[Green LED On]\n");
         break;
     case 1:
         // printf("%llu: Green LED Off (+%d ms)\n", get_time_stamp(), delta_time);
-        fprintf(stderr, "Green LED Off\n");
+        fprintf(stderr, "[Green LED Off]\n");
         break;
     }
 
