@@ -509,6 +509,7 @@ static void cortexm_mcu_class_init_callback(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo cortexm_mcu_type_init = {
+    .abstract = true,
     .name = TYPE_CORTEXM_MCU,
     .parent = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(CortexMState),
