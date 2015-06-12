@@ -398,7 +398,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
         break;
     }
 
-    // Disabled because it triggers false LED irgs at reset.
+    // Disabled because it triggers false LED irqs at reset.
 #if 0
     /* Clear all outgoing interrupts. */
     for (int pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
