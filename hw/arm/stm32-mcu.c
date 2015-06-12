@@ -244,17 +244,17 @@ static Property stm32_mcu_properties[] = {
 
 static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
-    STM32MCUClass *nc = STM32_MCU_CLASS(klass);
-    CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
+    STM32MCUClass *st_class = STM32_MCU_CLASS(klass);
+
     DeviceClass *dc = DEVICE_CLASS(klass);
-
-    nc->parent_realize = dc->realize;
+    st_class->parent_realize = dc->realize;
     dc->realize = stm32_mcu_realize_callback;
+    dc->props = stm32_mcu_properties;
 
-    nc->parent_memory_regions_create = cm_class->memory_regions_create;
+    CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
+    st_class->parent_memory_regions_create = cm_class->memory_regions_create;
     cm_class->memory_regions_create = stm32_mcu_memory_regions_create_callback;
 
-    dc->props = stm32_mcu_properties;
 }
 
 static const TypeInfo stm32_mcu_type_info = {
