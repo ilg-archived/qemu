@@ -26,6 +26,8 @@
 #include "hw/boards.h"
 #include "hw/sysbus.h"
 
+/* ------------------------------------------------------------------------- */
+
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
 #define CORTEX_M_FPU_TYPE_FPV5_SP_D16 (2)
@@ -59,15 +61,35 @@ typedef struct CortexMCapabilities {
     int sram_begin; /* begin address of main RAM area, if not 0x20000000 */
 
     /* Capabilities bits; keep them compact. */
-    int has_mpu : 1; /* true/false */
-    int has_fpu : 1; /* true/false */
-    int has_itm : 1; /* true/false */
+    int has_mpu :1; /* true/false */
+    int has_fpu :1; /* true/false */
+    int has_itm :1; /* true/false */
 
     int fpu_type; /* CORTEX_M_FPU_TYPE_*; may be not needed */
 
     int num_irq; /* number of interrupts (excluding first 15 core interrupts) */
     int nvic_bits; /* bits used for irqs in NVIC */
 } CortexMCapabilities;
+
+/* ------------------------------------------------------------------------- */
+
+#define CORTEXM_MCU_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(CortexMClass, (obj), TYPE_CORTEXM_MCU)
+#define CORTEXM_MCU_CLASS(obj) \
+    OBJECT_CLASS_CHECK(CortexMClass, (obj), TYPE_CORTEXM_MCU)
+
+typedef struct CortexMClass {
+    /*< private >*/
+    SysBusDeviceClass parent_class;
+    /*< public >*/
+    DeviceRealize parent_realize;
+    void (*parent_reset)(DeviceState *dev);
+
+    void (*memory_regions_create)(DeviceState *dev);
+    void (*image_load)(DeviceState *dev);
+} CortexMClass;
+
+/* ------------------------------------------------------------------------- */
 
 #define TYPE_CORTEXM_MCU "cortexm-mcu"
 #define CORTEXM_MCU_STATE(obj) \
@@ -120,22 +142,7 @@ typedef struct CortexMState {
 
 } CortexMState;
 
-
-#define CORTEXM_MCU_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(CortexMClass, (obj), TYPE_CORTEXM_MCU)
-#define CORTEXM_MCU_CLASS(obj) \
-    OBJECT_CLASS_CHECK(CortexMClass, (obj), TYPE_CORTEXM_MCU)
-
-typedef struct CortexMClass {
-    /*< private >*/
-    SysBusDeviceClass parent_class;
-    /*< public >*/
-    DeviceRealize parent_realize;
-    void (*parent_reset)(DeviceState *dev);
-
-    void (*memory_regions_create)(DeviceState *dev);
-    void (*image_load)(DeviceState *dev);
-} CortexMClass;
+/* ------------------------------------------------------------------------- */
 
 void
 cortexm_board_greeting(MachineState *machine);
@@ -146,6 +153,8 @@ cortexm_mcu_create(MachineState *machine, const char *mcu_type);
 /* Helper functions. */
 ARMCPU *cpu_arm_create(const char *cpu_model);
 void qdev_realize(DeviceState *dev);
+
+/* ------------------------------------------------------------------------- */
 
 // TODO: remove all when all old definitions are updated.
 qemu_irq *
@@ -158,5 +167,7 @@ qemu_irq *
 cortex_m4_core_init(CortexMCapabilities *cm_info, MachineState *machine);
 qemu_irq *
 cortex_m7_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* HW_ARM_CORTEXM_H */
