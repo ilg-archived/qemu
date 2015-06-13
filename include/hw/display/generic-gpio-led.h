@@ -44,13 +44,15 @@ typedef struct {
 
 #define GENERIC_GPIO_LED_GET_CLASS(obj) \
     OBJECT_GET_CLASS(GenericGPIOLEDClass, (obj), TYPE_GENERIC_GPIO_LED)
-#define GENERIC_GPIO_LED_CLASS(obj) \
-    OBJECT_CLASS_CHECK(GenericGPIOLEDClass, (obj), TYPE_GENERIC_GPIO_LED)
+#define GENERIC_GPIO_LED_CLASS(klass) \
+    OBJECT_CLASS_CHECK(GenericGPIOLEDClass, (klass), TYPE_GENERIC_GPIO_LED)
 
 typedef struct {
     /*< private >*/
     DeviceClass parent_class;
     /*< public >*/
+
+    void (*construct)(Object *obj, GenericGPIOLEDInfo* info, DeviceState *mcu);
 
     DeviceState *(*get_gpio_dev)(DeviceState *dev, int port_index);
 } GenericGPIOLEDClass;

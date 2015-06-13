@@ -28,11 +28,22 @@ static DeviceState *stm32_gpio_led_get_gpio_dev(DeviceState *dev,
     return stm32_mcu_get_gpio_dev(gl_state->mcu, port_index);
 }
 
+static void stm_gpio_led_construct_callback(Object *obj,
+        GenericGPIOLEDInfo* info, DeviceState *mcu)
+{
+    qemu_log_function_name();
+
+    GENERIC_GPIO_LED_GET_CLASS(obj)->construct(obj, info, mcu);
+}
+
 static void stm32_gpio_led_class_init_callback(ObjectClass *klass, void *data)
 {
-    GenericGPIOLEDClass *gl_klass = GENERIC_GPIO_LED_CLASS(klass);
+    STM32GPIOLEDClass *st_class = STM32_GPIO_LED_CLASS(klass);
+    st_class->construct = stm_gpio_led_construct_callback;
 
-    gl_klass->get_gpio_dev = stm32_gpio_led_get_gpio_dev;
+    /* Set virtual in parent class */
+    GenericGPIOLEDClass *gl_class = GENERIC_GPIO_LED_CLASS(klass);
+    gl_class->get_gpio_dev = stm32_gpio_led_get_gpio_dev;
 }
 
 static const TypeInfo stm32_gpio_led_type_info = {

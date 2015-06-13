@@ -28,13 +28,15 @@
 
 #define STM32_GPIO_LED_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32GPIOLEDClass, (obj), TYPE_STM32_GPIO_LED)
-#define STM32_GPIO_LED_CLASS(obj) \
-    OBJECT_CLASS_CHECK(STM32GPIOLEDClass, (obj), TYPE_STM32_GPIO_LED)
+#define STM32_GPIO_LED_CLASS(klass) \
+    OBJECT_CLASS_CHECK(STM32GPIOLEDClass, (klass), TYPE_STM32_GPIO_LED)
 
 typedef struct {
     /*< private >*/
     GenericGPIOLEDClass parent_class;
     /*< public >*/
+
+    void (*construct)(Object *obj, GenericGPIOLEDInfo* info, DeviceState *mcu);
 } STM32GPIOLEDClass;
 
 /* ------------------------------------------------------------------------- */

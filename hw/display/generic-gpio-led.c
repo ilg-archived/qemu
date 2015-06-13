@@ -51,6 +51,17 @@ static void generic_gpio_led_irq_handler(void *opaque, int n, int level)
     }
 }
 
+static void generic_gpio_led_construct_callback(Object *obj,
+        GenericGPIOLEDInfo* info, DeviceState *mcu)
+{
+    qemu_log_function_name();
+
+    GenericGPIOLEDState *state = GENERIC_GPIO_LED_STATE(obj);
+
+    state->info = info;
+    state->mcu = mcu;
+}
+
 static void generic_gpio_led_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
@@ -83,6 +94,9 @@ static void generic_gpio_led_class_init_callback(ObjectClass *klass, void *data)
 
     dc->props = generic_gpio_led_properties;
     dc->realize = generic_gpio_led_realize_callback;
+
+    GenericGPIOLEDClass *gl_class = GENERIC_GPIO_LED_CLASS(klass);
+    gl_class->construct = generic_gpio_led_construct_callback;
 }
 
 static const TypeInfo generic_gpio_led_type_info = {

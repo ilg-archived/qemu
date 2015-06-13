@@ -54,10 +54,10 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     qdev_realize(mcu);
 
     /* Board peripheral objects */
-    DeviceState *led = qdev_create(NULL, TYPE_STM32_GPIO_LED);
+    DeviceState *led = qdev_alloc(NULL, TYPE_STM32_GPIO_LED);
     {
-        qdev_prop_set_ptr(led, "info", &h103_machine_green_led);
-        qdev_prop_set_ptr(led, "mcu", mcu);
+        STM32_GPIO_LED_GET_CLASS(led)->construct(OBJECT(led),
+                &h103_machine_green_led, mcu);
     }
     qdev_realize(led);
 }
