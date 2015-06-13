@@ -41,8 +41,10 @@ GenericGPIOLEDInfo h103_machine_green_led = {
 static void stm32_h103_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    DeviceState *mcu = cortexm_mcu_create(machine, TYPE_STM32F103RB);
+    DeviceState *mcu = qdev_alloc(NULL, TYPE_STM32F103RB);
     {
+        STM32F103RB_GET_CLASS(mcu)->construct(OBJECT(mcu), machine);
+
         /* Set the board specific oscillator frequencies. */
         DeviceState *rcc = stm32_mcu_get_rcc_dev(mcu);
         assert(rcc);
@@ -53,9 +55,10 @@ static void stm32_h103_board_init_callback(MachineState *machine)
 
     /* Board peripheral objects */
     DeviceState *led = qdev_create(NULL, TYPE_STM32_GPIO_LED);
-    assert(led);
-    qdev_prop_set_ptr(led, "info", &h103_machine_green_led);
-    qdev_prop_set_ptr(led, "mcu", mcu);
+    {
+        qdev_prop_set_ptr(led, "info", &h103_machine_green_led);
+        qdev_prop_set_ptr(led, "mcu", mcu);
+    }
     qdev_realize(led);
 }
 
@@ -76,7 +79,7 @@ static QEMUMachine stm32_p103_machine = {
 static void stm32_p103_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_create(machine, TYPE_STM32F103RB);
+    //cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
 
     /* TODO: Add board inits */
 }
@@ -93,7 +96,7 @@ static QEMUMachine olimexino_stm32_machine = {
 static void olimexino_stm32_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_create(machine, TYPE_STM32F103RB);
+    //cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
 
     /* TODO: Add board inits */
 }
@@ -110,7 +113,7 @@ static QEMUMachine stm32_p107_machine = {
 static void stm32_p107_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_create(machine, TYPE_STM32F107VC);
+    //cortexm_mcu_alloc(machine, TYPE_STM32F107VC);
 
     /* TODO: Add board inits */
 }
@@ -127,7 +130,7 @@ static QEMUMachine stm32_e407_machine = {
 static void stm32_e407_board_init_callback(MachineState *machine)
 {
     cortexm_board_greeting(machine);
-    cortexm_mcu_create(machine, TYPE_STM32F407ZG);
+    //cortexm_mcu_alloc(machine, TYPE_STM32F407ZG);
 
     /* TODO: Add board inits */
 }

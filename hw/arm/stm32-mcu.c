@@ -30,20 +30,16 @@
  *
  * TODO: define the special CCM region for the models that include it.
  */
-static void stm32_mcu_instance_init_callback(Object *obj)
+
+static void stm32_mcu_construct_callback(Object *obj,
+        STM32Capabilities* capabilities, MachineState *machine)
 {
     qemu_log_function_name();
 
-}
+    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, &(capabilities->cortexm),
+            machine);
 
-static void stm32_mcu_instance_post_init_callback(Object *obj)
-{
-    qemu_log_function_name();
-
-    /* Capabilities were set during instance_init */
-    CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
-    STM32Capabilities *capabilities =
-            (STM32Capabilities *) cm_state->capabilities;
+    // CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
     assert(capabilities != NULL);
 
     const char *family;
@@ -163,7 +159,6 @@ static void stm32_mcu_instance_post_init_callback(Object *obj)
         gdev->port_index = STM32_GPIO_PORT_G;
         gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
-
 }
 
 static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -204,10 +199,10 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
     qemu_log_function_name();
 
     STM32MCUState *state = STM32_MCU_STATE(dev);
-    STM32MCUClass *nc = STM32_MCU_GET_CLASS(state);
+    STM32MCUClass *st_class = STM32_MCU_GET_CLASS(state);
 
     /* Create the parent (Cortex-M) memory regions */
-    nc->parent_memory_regions_create(dev);
+    st_class->parent_memory_regions_create(dev);
 
     /**
      * The STM32 family stores its Flash memory at some base address in memory
@@ -245,6 +240,7 @@ static Property stm32_mcu_properties[] = {
 static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     STM32MCUClass *st_class = STM32_MCU_CLASS(klass);
+    st_class->construct = stm32_mcu_construct_callback;
 
     DeviceClass *dc = DEVICE_CLASS(klass);
     st_class->parent_realize = dc->realize;
@@ -254,7 +250,6 @@ static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
     st_class->parent_memory_regions_create = cm_class->memory_regions_create;
     cm_class->memory_regions_create = stm32_mcu_memory_regions_create_callback;
-
 }
 
 static const TypeInfo stm32_mcu_type_info = {
@@ -262,8 +257,6 @@ static const TypeInfo stm32_mcu_type_info = {
     .name = TYPE_STM32_MCU,
     .parent = TYPE_CORTEXM_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32_mcu_instance_init_callback,
-    .instance_post_init = stm32_mcu_instance_post_init_callback,
     .class_init = stm32_mcu_class_init_callback,
     .class_size = sizeof(STM32MCUClass) };
 

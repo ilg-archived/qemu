@@ -83,8 +83,12 @@ void qdev_realize(DeviceState *dev)
     object_property_set_bool(OBJECT(dev), true, "realized", &err);
     if (err) {
         error_report("Initialization of device %s failed: %s",
-                     object_get_typename(OBJECT(dev)),
-                     error_get_pretty(err));
+                object_get_typename(OBJECT(dev)), error_get_pretty(err));
         exit(1);
     }
+}
+
+DeviceState *qdev_alloc(BusState *bus, const char *name)
+{
+    return qdev_create(bus, name);
 }

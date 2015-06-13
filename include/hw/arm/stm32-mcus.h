@@ -128,10 +128,12 @@
 #define STM32F429ZI_STATE(obj) \
     OBJECT_CHECK(STM32MCUState, (obj), TYPE_STM32F429ZI)
 
-typedef struct STM32DeviceClass {
+typedef struct {
     /*< private >*/
     STM32MCUClass parent_class;
     /*< public >*/
+
+    void (*construct)(Object *obj, MachineState *machine);
 
     DeviceRealize parent_realize;
     // void (*parent_reset)(DeviceState *dev);

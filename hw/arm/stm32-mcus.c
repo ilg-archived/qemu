@@ -210,14 +210,13 @@ static STM32Capabilities stm32f103rb_capabilities = {
         .f1 = {
             .is_md = true } } };
 
-static void stm32f103rb_mcu_instance_init_callback(Object *obj)
+static void stm32f103rb_mcu_construct_callback(Object *obj,
+        MachineState *machine)
 {
     qemu_log_function_name();
 
-    CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
-    cm_state->capabilities = (CortexMCapabilities *) &stm32f103rb_capabilities;
-
-    // TODO: initialize inner objects
+    STM32_MCU_GET_CLASS(obj)->construct(obj, &stm32f103rb_capabilities,
+            machine);
 }
 
 static void stm32f103rb_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -237,18 +236,19 @@ static void stm32f103rb_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f103rb_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F103RB_CLASS(klass);
+    STM32DeviceClass *st_class = STM32F103RB_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
+    st_class->parent_realize = dc->realize;
     dc->realize = stm32f103rb_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
+
+    st_class->construct = stm32f103rb_mcu_construct_callback;
 }
 
 static const TypeInfo stm32f103rb_mcu_type_info = {
     .name = TYPE_STM32F103RB,
     .parent = TYPE_STM32_MCU,
     .instance_size = sizeof(STM32MCUState),
-    .instance_init = stm32f103rb_mcu_instance_init_callback,
     .class_init = stm32f103rb_mcu_class_init_callback,
     .class_size = sizeof(STM32DeviceClass) };
 

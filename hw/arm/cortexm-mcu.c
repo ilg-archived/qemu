@@ -41,13 +41,6 @@ static void cortexm_reset(void *opaque);
 
 static void cortexm_mcu_image_load_callback(DeviceState *dev);
 
-/*
- * This is the "cortexm-mcu" object, to be used as parent for vendor
- * MCU implementations.
- */
-
-static MachineState *global_machine;
-
 /* ------------------------------------------------------------------------- */
 
 #define BITBAND_OFFSET (0x02000000)
@@ -68,46 +61,22 @@ static void cortexm_bitband_init(uint32_t address)
 
 /* ------------------------------------------------------------------------- */
 
-/**
- * QOM kind of constructor; parent _instance_init() is automatically
- * called before. ("parent first")
- *
- * When done it is followed by _instance_post_init() and much later by
- * _realize().
- */
-static void cortexm_mcu_instance_init_callback(Object *obj)
-{
-    qemu_log_function_name();
-
-    CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
-    assert(global_machine != NULL);
-
-    if (global_machine->kernel_filename) {
-        cm_state->kernel_filename = global_machine->kernel_filename;
-    }
-
-    if (global_machine->cpu_model) {
-        cm_state->cpu_model = global_machine->cpu_model;
-    }
-}
-
-/**
- * Always called right after _instance_init(), which also means right
- * after child post_init(). ("child first").
- */
-static void cortexm_mcu_instance_post_init_callback(Object *obj)
+static void cortexm_mcu_construct_callback(Object *obj,
+        CortexMCapabilities* capabilities, MachineState *machine)
 {
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
 
-    /*
-     * Capabilities were set late, in an *_intance_init(), and were not
-     * available during our instance_init(), so we had to implement the
-     * *post_init() callback.
-     */
-    CortexMCapabilities *cm_capabilities = cm_state->capabilities;
-    assert(cm_capabilities != NULL);
+    if (machine->kernel_filename) {
+        cm_state->kernel_filename = machine->kernel_filename;
+    }
+
+    if (machine->cpu_model) {
+        cm_state->cpu_model = machine->cpu_model;
+    }
+
+    cm_state->capabilities = capabilities;
 
     const char *kernel_filename = cm_state->kernel_filename;
     const char *cpu_model_arg = cm_state->cpu_model;
@@ -118,25 +87,25 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
         /* If explicitly given via the --cpu command line option,
          * overwrite the board MCU definition. */
         if (strcmp(cpu_model_arg, "cortex-m0") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M0;
+            capabilities->cortexm_model = CORTEX_M0;
         } else if (strcmp(cpu_model_arg, "cortex-m0p") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M0PLUS;
+            capabilities->cortexm_model = CORTEX_M0PLUS;
         } else if (strcmp(cpu_model_arg, "cortex-m1") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M1;
+            capabilities->cortexm_model = CORTEX_M1;
         } else if (strcmp(cpu_model_arg, "cortex-m3") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M3;
+            capabilities->cortexm_model = CORTEX_M3;
         } else if (strcmp(cpu_model_arg, "cortex-m4") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M4;
-            cm_capabilities->has_mpu = false;
+            capabilities->cortexm_model = CORTEX_M4;
+            capabilities->has_mpu = false;
         } else if (strcmp(cpu_model_arg, "cortex-m4f") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M4F;
-            cm_capabilities->has_mpu = true;
+            capabilities->cortexm_model = CORTEX_M4F;
+            capabilities->has_mpu = true;
         } else if (strcmp(cpu_model_arg, "cortex-m7") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M7;
-            cm_capabilities->has_mpu = false;
+            capabilities->cortexm_model = CORTEX_M7;
+            capabilities->has_mpu = false;
         } else if (strcmp(cpu_model_arg, "cortex-m7f") == 0) {
-            cm_capabilities->cortexm_model = CORTEX_M7F;
-            cm_capabilities->has_mpu = true;
+            capabilities->cortexm_model = CORTEX_M7F;
+            capabilities->has_mpu = true;
         } else {
             error_report("Illegal '--cpu %s', only cortex-m* supported.",
                     cpu_model_arg);
@@ -150,71 +119,70 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
     int max_num_irq = 496;
 
     /* Some capabilities are hard-wired. */
-    switch (cm_capabilities->cortexm_model) {
+    switch (capabilities->cortexm_model) {
     case CORTEX_M0:
         display_model = "Cortex-M0";
         cpu_model = "cortex-m0";
-        cm_capabilities->has_mpu = false;
-        cm_capabilities->has_fpu = false;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+        capabilities->has_mpu = false;
+        capabilities->has_fpu = false;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
         break;
 
     case CORTEX_M0PLUS:
         display_model = "Cortex-M0+";
         cpu_model = "cortex-m0p";
-        cm_capabilities->has_mpu = false;
-        cm_capabilities->has_fpu = false;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+        capabilities->has_mpu = false;
+        capabilities->has_fpu = false;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
         break;
 
     case CORTEX_M1:
         display_model = "Cortex-M1";
         cpu_model = "cortex-m1";
         /* TODO: Check if it has no MPU/FPU. */
-        cm_capabilities->has_mpu = false;
-        cm_capabilities->has_fpu = false;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+        capabilities->has_mpu = false;
+        capabilities->has_fpu = false;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
         break;
 
     case CORTEX_M3:
         display_model = "Cortex-M3";
         cpu_model = "cortex-m3";
         max_num_irq = 240;
-        cm_capabilities->has_fpu = false;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+        capabilities->has_fpu = false;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
         break;
 
     case CORTEX_M4:
         display_model = "Cortex-M4";
         cpu_model = "cortex-m4";
-        cm_capabilities->has_fpu = false;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+        capabilities->has_fpu = false;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
         break;
 
     case CORTEX_M4F:
         display_model = "Cortex-M4F";
         cpu_model = "cortex-mf4";
-        cm_capabilities->has_fpu = true;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
+        capabilities->has_fpu = true;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
         break;
 
     case CORTEX_M7:
         display_model = "Cortex-M7";
         cpu_model = "cortex-m7";
-        cm_capabilities->has_fpu = false;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+        capabilities->has_fpu = false;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
         break;
 
     case CORTEX_M7F:
         display_model = "Cortex-M7F";
         cpu_model = "cortex-m7f";
-        cm_capabilities->has_fpu = true;
-        cm_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
+        capabilities->has_fpu = true;
+        capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
         break;
 
     default:
-        error_report("Illegal cortexm_model %d.",
-                cm_capabilities->cortexm_model);
+        error_report("Illegal cortexm_model %d.", capabilities->cortexm_model);
         exit(1);
     }
 
@@ -227,7 +195,7 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
          * or by --global, overwrite the board MCU definition. */
         sram_size_kb = ram_size_arg_kb;
     } else {
-        sram_size_kb = cm_capabilities->sram_size_kb;
+        sram_size_kb = capabilities->sram_size_kb;
     }
 
     /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
@@ -242,7 +210,7 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
          * overwrite the board MCU definition. */
         flash_size_kb = flash_size_arg_kb;
     } else {
-        flash_size_kb = cm_capabilities->flash_size_kb;
+        flash_size_kb = capabilities->flash_size_kb;
     }
     cm_state->flash_size_kb = flash_size_kb;
 
@@ -250,11 +218,11 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
     if (verbosity_level >= VERBOSITY_COMMON) {
         const char *cmdline;
 
-        printf("Device: '%s' (%s", cm_capabilities->device_name, display_model);
-        if (cm_capabilities->has_mpu) {
+        printf("Device: '%s' (%s", capabilities->device_name, display_model);
+        if (capabilities->has_mpu) {
             printf(", MPU");
         }
-        if (cm_capabilities->has_fpu) {
+        if (capabilities->has_fpu) {
             printf(", FPU");
         }
         printf("), Flash: %d KB, RAM: %d KB.\n", flash_size_kb, sram_size_kb);
@@ -299,8 +267,8 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
         env->nvic = nvic;
 
         int num_irq;
-        if (cm_capabilities->num_irq) {
-            num_irq = cm_capabilities->num_irq;
+        if (capabilities->num_irq) {
+            num_irq = capabilities->num_irq;
         } else {
             num_irq = DEFAULT_NUM_IRQ;
         }
@@ -316,7 +284,7 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
     }
 
     /* Construct the ITM object. */
-    if (cm_capabilities->has_itm) {
+    if (capabilities->has_itm) {
         cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
     }
 
@@ -337,14 +305,6 @@ static void cortexm_mcu_instance_post_init_callback(Object *obj)
     }
 }
 
-/**
- * Cortex-M core initialisation routine.
- * The capabilities were already copied into the state object by the
- * *_instance_init() functions.
- *
- * Some MCU properties can be overwritten by command line options
- * (core type, flash/ram sizes).
- */
 static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
@@ -352,8 +312,8 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
     CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
 
-    CortexMCapabilities *cm_capabilities = cm_state->capabilities;
-    assert(cm_capabilities != NULL);
+    CortexMCapabilities *capabilities = cm_state->capabilities;
+    assert(capabilities != NULL);
 
     /* ----- Realize the CPU (derived from a device). ----- */
     qdev_realize(DEVICE(cm_state->cpu));
@@ -503,6 +463,8 @@ static void cortexm_mcu_class_init_callback(ObjectClass *klass, void *data)
     dc->realize = cortexm_mcu_realize_callback;
 
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
+    cm_class->construct = cortexm_mcu_construct_callback;
+
     cm_class->memory_regions_create =
             cortexm_mcu_memory_regions_create_callback;
     cm_class->image_load = cortexm_mcu_image_load_callback;
@@ -513,8 +475,6 @@ static const TypeInfo cortexm_mcu_type_init = {
     .name = TYPE_CORTEXM_MCU,
     .parent = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(CortexMState),
-    .instance_init = cortexm_mcu_instance_init_callback,
-    .instance_post_init = cortexm_mcu_instance_post_init_callback,
     .class_init = cortexm_mcu_class_init_callback,
     .class_size = sizeof(CortexMClass) };
 
@@ -542,23 +502,6 @@ void cortexm_board_greeting(MachineState *machine)
         printf("Board: '%s' (%s).\n", mc->name, mc->desc);
     }
 #endif
-}
-
-/**
- * Create the CPU. This will automatically call _instance_init() and
- * _instance_post_init() before setting the kernel_filename & cpu_model.
- */
-DeviceState *cortexm_mcu_create(MachineState *machine, const char *mcu_type)
-{
-    /*
-     * Kludge, since it is not possible to pass data to object creation,
-     * we use a static variable.
-     */
-    global_machine = machine;
-    DeviceState *dev;
-    dev = qdev_create(NULL, mcu_type);
-
-    return dev;
 }
 
 /* ------------------------------------------------------------------------- */

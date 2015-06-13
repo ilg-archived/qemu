@@ -49,7 +49,7 @@ typedef enum {
  *
  * It is copied into the CortexMState during *_instance_init() functions.
  */
-typedef struct CortexMCapabilities {
+typedef struct {
 
     const char *device_name; /* the CMSIS official device name */
 
@@ -78,13 +78,14 @@ typedef struct CortexMCapabilities {
 #define CORTEXM_MCU_CLASS(obj) \
     OBJECT_CLASS_CHECK(CortexMClass, (obj), TYPE_CORTEXM_MCU)
 
-typedef struct CortexMClass {
+typedef struct {
     /*< private >*/
     SysBusDeviceClass parent_class;
     /*< public >*/
     DeviceRealize parent_realize;
-    void (*parent_reset)(DeviceState *dev);
-
+    // void (*parent_reset)(DeviceState *dev);
+    void (*construct)(Object *obj, CortexMCapabilities* capabilities,
+            MachineState *machine);
     void (*memory_regions_create)(DeviceState *dev);
     void (*image_load)(DeviceState *dev);
 } CortexMClass;
@@ -98,7 +99,7 @@ typedef struct CortexMClass {
 /**
  * Structure used to store the Cortex-M state.
  */
-typedef struct CortexMState {
+typedef struct {
     /*< private >*/
     SysBusDevice parent_obj;
     /*< public >*/
@@ -147,12 +148,10 @@ typedef struct CortexMState {
 void
 cortexm_board_greeting(MachineState *machine);
 
-DeviceState *
-cortexm_mcu_create(MachineState *machine, const char *mcu_type);
-
 /* Helper functions. */
 ARMCPU *cpu_arm_create(const char *cpu_model);
 void qdev_realize(DeviceState *dev);
+DeviceState *qdev_alloc(BusState *bus, const char *name);
 
 /* ------------------------------------------------------------------------- */
 
