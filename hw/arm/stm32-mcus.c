@@ -18,7 +18,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/stm32.h"
+#include "hw/arm/stm32-mcus.h"
 #include "hw/arm/cortexm-mcu.h"
 #include "exec/address-spaces.h"
 #include "qemu/error-report.h"

@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/stm32.h"
+#include "hw/arm/stm32-mcus.h"
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
 
