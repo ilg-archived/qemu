@@ -218,7 +218,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     if (verbosity_level >= VERBOSITY_COMMON) {
         const char *cmdline;
 
-        printf("Device: '%s' (%s", capabilities->device_name, display_model);
+        printf("Device: '%s' (%s", object_get_typename(obj), display_model);
         if (capabilities->has_mpu) {
             printf(", MPU");
         }

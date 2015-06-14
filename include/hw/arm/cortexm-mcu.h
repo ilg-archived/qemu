@@ -51,8 +51,6 @@ typedef enum {
  */
 typedef struct {
 
-    const char *device_name; /* the CMSIS official device name */
-
     cortexm_models_t cortexm_model; /* binary id to identify the core */
 
     /* The vendor values. */

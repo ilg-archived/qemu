@@ -90,7 +90,6 @@ static Property stm32_mcu_properties[] = {
 
 /* ----- STM32F051R8 ----- */
 static CortexMCapabilities stm32f051r8_capabilities = {
-    .device_name = TYPE_STM32F051R8,
     .flash_size_kb = 64,
     .sram_size_kb = 8,
     .cortexm_model = CORTEX_M0 };
@@ -139,7 +138,6 @@ static const TypeInfo stm32f051r8_mcu_type_info = {
 
 /* ----- STM32F100RB ----- */
 static CortexMCapabilities stm32f100rb_capabilities = {
-    .device_name = TYPE_STM32F100RB,
     .flash_size_kb = 128,
     .sram_size_kb = 8,
     .num_irq = 60,
@@ -190,7 +188,6 @@ static const TypeInfo stm32f100rb_mcu_type_info = {
 /* ----- STM32F103RB ----- */
 static STM32Capabilities stm32f103rb_capabilities = {
     .cortexm = {
-        .device_name = TYPE_STM32F103RB,
         .cortexm_model = CORTEX_M3,
         .flash_size_kb = 128,
         .sram_size_kb = 20,
@@ -254,7 +251,6 @@ static const TypeInfo stm32f103rb_mcu_type_info = {
 
 /* ----- STM32F107VC ----- */
 static CortexMCapabilities stm32f107vc_capabilities = {
-    .device_name = TYPE_STM32F107VC,
     .flash_size_kb = 256,
     .sram_size_kb = 64,
     .has_mpu = true,
@@ -305,7 +301,6 @@ static const TypeInfo stm32f107vc_mcu_type_info = {
 
 /* ----- STM32L152RE ----- */
 static CortexMCapabilities stm32l152re_capabilities = {
-    .device_name = TYPE_STM32L152RE,
     .flash_size_kb = 512,
     .sram_size_kb = 80,
     .has_mpu = true,
@@ -355,7 +350,6 @@ static const TypeInfo stm32l152re_mcu_type_info = {
 
 /* ----- STM32F205RF ----- */
 static CortexMCapabilities stm32f205rf_capabilities = {
-    .device_name = TYPE_STM32F205RF,
     .flash_size_kb = 768,
     .sram_size_kb = 128, /* No CCM */
     .has_mpu = true,
@@ -405,7 +399,6 @@ static const TypeInfo stm32f205rf_mcu_type_info = {
 
 /* ----- STM32F303VC ----- */
 static CortexMCapabilities stm32f303vc_capabilities = {
-    .device_name = TYPE_STM32F303VC,
     .flash_size_kb = 256,
     .sram_size_kb = 40,
     .has_mpu = true,
@@ -455,7 +448,6 @@ static const TypeInfo stm32f303vc_mcu_type_info = {
 
 /* ----- STM32F334R8 ----- */
 static CortexMCapabilities stm32f334r8_capabilities = {
-    .device_name = TYPE_STM32F334R8,
     .flash_size_kb = 64,
     .sram_size_kb = 12,
     .has_mpu = true,
@@ -505,7 +497,6 @@ static const TypeInfo stm32f334r8_mcu_type_info = {
 
 /* ----- STM32F405RG ----- */
 static CortexMCapabilities stm32f405rg_capabilities = {
-    .device_name = TYPE_STM32F405RG,
     .flash_size_kb = 1024,
     .sram_size_kb = 128, /* 64K CCM not counted */
     .has_mpu = true,
@@ -555,7 +546,6 @@ static const TypeInfo stm32f405rg_mcu_type_info = {
 
 /* ----- STM32F407VG ----- */
 static CortexMCapabilities stm32f407vg_capabilities = {
-    .device_name = TYPE_STM32F407VG,
     .flash_size_kb = 1024,
     .sram_size_kb = 128, /* 64K CCM not counted */
     .has_mpu = true,
@@ -605,7 +595,6 @@ static const TypeInfo stm32f407vg_mcu_type_info = {
 
 /* ----- STM32F407ZG ----- */
 static CortexMCapabilities stm32f407zg_capabilities = {
-    .device_name = TYPE_STM32F407ZG,
     .flash_size_kb = 1024,
     .sram_size_kb = 128, /* 64K CCM not counted */
     .has_mpu = true,
@@ -655,7 +644,6 @@ static const TypeInfo stm32f407zg_mcu_type_info = {
 
 /* ----- STM32F411RE ----- */
 static CortexMCapabilities stm32f411re_capabilities = {
-    .device_name = TYPE_STM32F411RE,
     .flash_size_kb = 512,
     .sram_size_kb = 128, /* No CCM */
     .has_mpu = true,
@@ -705,7 +693,6 @@ static const TypeInfo stm32f411re_mcu_type_info = {
 
 /* ----- STM32F429ZI ----- */
 static CortexMCapabilities stm32f429zi_capabilities = {
-    .device_name = TYPE_STM32F429ZI,
     .flash_size_kb = 2048,
     .sram_size_kb = 192, /* 64K CCM not counted */
     .has_mpu = true,
