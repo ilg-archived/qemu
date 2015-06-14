@@ -38,6 +38,9 @@ typedef struct STM32MCUState {
     CortexMState parent_obj;
     /*< public >*/
 
+    /* Specific STM32 capabilities; Cortex-M capabilities are separate. */
+    STM32Capabilities *capabilities;
+
     DeviceState *rcc;
     DeviceState *flash;
     DeviceState *gpio[STM32_MAX_GPIO];
@@ -55,7 +58,7 @@ typedef struct STM32MCUClass {
 
     DeviceRealize parent_realize;
     void (*construct)(Object *obj, STM32Capabilities* capabilities,
-            MachineState *machine);
+            CortexMCapabilities* core_capabilities, MachineState *machine);
 
     void (*parent_memory_regions_create)(DeviceState *dev);
     // void (*parent_reset)(DeviceState *dev);

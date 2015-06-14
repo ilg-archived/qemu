@@ -336,9 +336,9 @@ static uint64_t stm32_rcc_read_callback(void *opaque, hwaddr addr,
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
-        if (capabilities->stm32.f1.is_cl) {
+        if (capabilities->f1.is_cl) {
             return stm32f1cl_rcc_read32(state, offset, size);
         } else {
             return stm32f1_rcc_read32(state, offset, size);
@@ -348,7 +348,7 @@ static uint64_t stm32_rcc_read_callback(void *opaque, hwaddr addr,
     default:
         qemu_log_mask(LOG_GUEST_ERROR,
                 "RCC: Read of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->stm32.family);
+                size, offset, capabilities->family);
     }
 
     return 0;
@@ -370,9 +370,9 @@ static void stm32_rcc_write_callback(void *opaque, hwaddr addr, uint64_t value,
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
-        if (capabilities->stm32.f1.is_cl) {
+        if (capabilities->f1.is_cl) {
             stm32f1cl_rcc_write32(state, offset, value, size);
         } else {
             stm32f1_rcc_write32(state, offset, value, size);
@@ -382,7 +382,7 @@ static void stm32_rcc_write_callback(void *opaque, hwaddr addr, uint64_t value,
     default:
         qemu_log_mask(LOG_GUEST_ERROR,
                 "RCC: Write of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->stm32.family);
+                size, offset, capabilities->family);
     }
 }
 
@@ -443,7 +443,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
     uint32_t prediv2factor = 0;
     uint32_t pll2mull = 0;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
         /* The following code was copied from the CMSIS system_stm32f10x.c  */
@@ -463,7 +463,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
             pllmull = state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_PLLMULL;
             pllsource = state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_PLLSRC;
 
-            if (!capabilities->stm32.f1.is_cl) {
+            if (!capabilities->f1.is_cl) {
                 pllmull = (pllmull >> 18) + 2;
 
                 if (pllsource == 0x00) {
@@ -471,9 +471,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
                      * clock entry */
                     cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmull;
                 } else {
-                    if (capabilities->stm32.f1.is_ldvl
-                            || capabilities->stm32.f1.is_mdvl
-                            || capabilities->stm32.f1.is_hdvl) {
+                    if (capabilities->f1.is_ldvl || capabilities->f1.is_mdvl
+                            || capabilities->f1.is_hdvl) {
                         prediv1factor = (state->u.f1.reg.cfgr2
                                 & STM32F1_RCC_CFGR2_PREDIV1) + 1;
                         /* HSE oscillator clock selected as PREDIV1
@@ -576,7 +575,7 @@ static void stm32_rcc_reset_callback(DeviceState *dev)
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
         state->u.f1.reg.cr = 0x00000083;
@@ -589,7 +588,7 @@ static void stm32_rcc_reset_callback(DeviceState *dev)
         state->u.f1.reg.apb1enr = 0x00000000;
         state->u.f1.reg.bdcr = 0x00000000;
         state->u.f1.reg.csr = 0x0C000000;
-        if (capabilities->stm32.f1.is_cl) {
+        if (capabilities->f1.is_cl) {
             state->u.f1.reg.ahbrstr = 0x00000000;
             state->u.f1.reg.cfgr2 = 0x00000000;
         }
@@ -614,7 +613,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
     uint64_t size;
     hwaddr addr;
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         size = 0x400;
         addr = 0x40021000;
@@ -689,7 +688,7 @@ static void stm32_rcc_register_types(void)
 }
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-type_init(stm32_rcc_register_types)
+type_init(stm32_rcc_register_types);
 #endif
 
 /* ------------------------------------------------------------------------- */

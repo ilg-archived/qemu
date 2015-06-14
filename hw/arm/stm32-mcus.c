@@ -186,26 +186,26 @@ static const TypeInfo stm32f100rb_mcu_type_info = {
     .class_size = sizeof(STM32DeviceClass) };
 
 /* ----- STM32F103RB ----- */
+static CortexMCapabilities stm32f103rb_core_capabilities = {
+    .cortexm_model = CORTEX_M3,
+    .flash_size_kb = 128,
+    .sram_size_kb = 20,
+    .has_mpu = true,
+    .has_itm = true,
+    .num_irq = 60,
+    .nvic_bits = 4 };
+
 static STM32Capabilities stm32f103rb_capabilities = {
-    .cortexm = {
-        .cortexm_model = CORTEX_M3,
-        .flash_size_kb = 128,
-        .sram_size_kb = 20,
-        .has_mpu = true,
-        .has_itm = true,
-        .num_irq = 60,
-        .nvic_bits = 4 },
-    .stm32 = {
-        .family = STM32_FAMILY_F1,
-        .hsi_freq_hz = 8000000,
-        .lsi_freq_hz = 40000,
-        .has_gpioa = true,
-        .has_gpiob = true,
-        .has_gpioc = true,
-        .has_gpiod = true,
-        .has_gpioe = true,
-        .f1 = {
-            .is_md = true } } };
+    .family = STM32_FAMILY_F1,
+    .hsi_freq_hz = 8000000,
+    .lsi_freq_hz = 40000,
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpioe = true,
+    .f1 = {
+        .is_md = true } };
 
 static void stm32f103rb_mcu_construct_callback(Object *obj,
         MachineState *machine)
@@ -213,7 +213,7 @@ static void stm32f103rb_mcu_construct_callback(Object *obj,
     qemu_log_function_name();
 
     STM32_MCU_GET_CLASS(obj)->construct(obj, &stm32f103rb_capabilities,
-            machine);
+            &stm32f103rb_core_capabilities, machine);
 }
 
 static void stm32f103rb_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -264,7 +264,7 @@ static void stm32f107vc_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F107VC_STATE(obj);
     state->parent_obj.capabilities = &stm32f107vc_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f107vc_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -313,7 +313,7 @@ static void stm32l152re_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32L152RE_STATE(obj);
     state->parent_obj.capabilities = &stm32l152re_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32l152re_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -362,7 +362,7 @@ static void stm32f205rf_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F205RF_STATE(obj);
     state->parent_obj.capabilities = &stm32f205rf_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f205rf_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -411,7 +411,7 @@ static void stm32f303vc_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F303VC_STATE(obj);
     state->parent_obj.capabilities = &stm32f303vc_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f303vc_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -460,7 +460,7 @@ static void stm32f334r8_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F334R8_STATE(obj);
     state->parent_obj.capabilities = &stm32f334r8_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f334r8_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -509,7 +509,7 @@ static void stm32f405rg_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F405RG_STATE(obj);
     state->parent_obj.capabilities = &stm32f405rg_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f405rg_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -558,7 +558,7 @@ static void stm32f407vg_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F407VG_STATE(obj);
     state->parent_obj.capabilities = &stm32f407vg_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f407vg_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -607,7 +607,7 @@ static void stm32f407zg_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F407ZG_STATE(obj);
     state->parent_obj.capabilities = &stm32f407zg_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f407zg_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -656,7 +656,7 @@ static void stm32f411re_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F411RE_STATE(obj);
     state->parent_obj.capabilities = &stm32f411re_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f411re_mcu_realize_callback(DeviceState *dev, Error **errp)
@@ -705,7 +705,7 @@ static void stm32f429zi_mcu_instance_init_callback(Object *obj)
     STM32MCUState *state = STM32F429ZI_STATE(obj);
     state->parent_obj.capabilities = &stm32f429zi_capabilities;
 
-    // TODO: initialize inner objects
+// TODO: initialize inner objects
 }
 
 static void stm32f429zi_mcu_realize_callback(DeviceState *dev, Error **errp)

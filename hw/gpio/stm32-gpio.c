@@ -319,7 +319,7 @@ static uint64_t stm32_gpio_read_callback(void *opaque, hwaddr addr,
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         return stm32f1_gpio_read32(state, offset, size);
         break;
@@ -327,7 +327,7 @@ static uint64_t stm32_gpio_read_callback(void *opaque, hwaddr addr,
     default:
         qemu_log_mask(LOG_GUEST_ERROR,
                 "GPIO: Read of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->stm32.family);
+                size, offset, capabilities->family);
     }
 
     return 0;
@@ -349,7 +349,7 @@ static void stm32_gpio_write_callback(void *opaque, hwaddr addr, uint64_t value,
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
         // TODO: check in RCC if GPIO is enabled.
@@ -360,7 +360,7 @@ static void stm32_gpio_write_callback(void *opaque, hwaddr addr, uint64_t value,
     default:
         qemu_log_mask(LOG_GUEST_ERROR,
                 "GPIO: Write of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->stm32.family);
+                size, offset, capabilities->family);
     }
 }
 
@@ -382,7 +382,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
 
     state->dir_mask = 0;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         state->u.f1.reg.crl = 0x44444444;
         state->u.f1.reg.crh = 0x44444444;
@@ -422,7 +422,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     uint64_t size;
     hwaddr addr;
     const char *port_name;
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         size = 0x400;
 
@@ -493,7 +493,7 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
     assert(capabilities != NULL);
 
     /* Update internal pin state. */
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         if (level == 0) {
             state->u.f1.reg.idr &= ~(1 << pin); /* Clear IDR bit. */
@@ -565,5 +565,5 @@ static void stm32_gpio_register_types(void)
 }
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-type_init(stm32_gpio_register_types)
+type_init(stm32_gpio_register_types);
 #endif

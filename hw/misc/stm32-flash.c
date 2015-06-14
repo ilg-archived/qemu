@@ -106,7 +106,7 @@ static uint64_t stm32_flash_read_callback(void *opaque, hwaddr addr,
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         return stm32f1_flash_read32(state, offset, size);
         break;
@@ -114,7 +114,7 @@ static uint64_t stm32_flash_read_callback(void *opaque, hwaddr addr,
     default:
         qemu_log_mask(LOG_GUEST_ERROR,
                 "FLASH: Read of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->stm32.family);
+                size, offset, capabilities->family);
     }
 
     return 0;
@@ -136,7 +136,7 @@ static void stm32_flash_write_callback(void *opaque, hwaddr addr,
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         stm32f1_flash_write32(state, offset, value, size);
         break;
@@ -144,7 +144,7 @@ static void stm32_flash_write_callback(void *opaque, hwaddr addr,
     default:
         qemu_log_mask(LOG_GUEST_ERROR,
                 "FLASH: Write of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->stm32.family);
+                size, offset, capabilities->family);
     }
 }
 
@@ -164,7 +164,7 @@ static void stm32_flash_reset_callback(DeviceState *dev)
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
         break;
@@ -185,7 +185,7 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
     uint64_t size;
     hwaddr addr;
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         size = 0x400;
         addr = 0x40022000;
@@ -234,7 +234,7 @@ static void stm32_flash_register_types(void)
 }
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-type_init(stm32_flash_register_types)
+type_init(stm32_flash_register_types);
 #endif
 
 /* ------------------------------------------------------------------------- */

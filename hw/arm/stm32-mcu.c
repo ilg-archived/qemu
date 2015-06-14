@@ -32,18 +32,19 @@
  */
 
 static void stm32_mcu_construct_callback(Object *obj,
-        STM32Capabilities* capabilities, MachineState *machine)
+        STM32Capabilities* capabilities, CortexMCapabilities* core_capabilities,
+        MachineState *machine)
 {
     qemu_log_function_name();
 
-    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, &(capabilities->cortexm),
-            machine);
+    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, core_capabilities, machine);
 
-    // CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
+    STM32MCUState *state = STM32_MCU_STATE(obj);
     assert(capabilities != NULL);
+    state->capabilities = capabilities;
 
     const char *family;
-    switch (capabilities->stm32.family) {
+    switch (capabilities->family) {
     case STM32_FAMILY_F1:
         family = "F1";
         break;
@@ -55,7 +56,6 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
     qemu_log_mask(LOG_TRACE, "STM32 Family: %s\n", family);
 
-    STM32MCUState *state = STM32_MCU_STATE(obj);
     DeviceState *dev2;
     STM32SysBusDevice *sbd;
 
@@ -70,9 +70,9 @@ static void stm32_mcu_construct_callback(Object *obj,
 
         /* Copy internal oscillator frequencies from capabilities. */
         qdev_prop_set_uint32(dev2, "hsi-freq-hz",
-                sbd->capabilities->stm32.hsi_freq_hz);
+                sbd->capabilities->hsi_freq_hz);
         qdev_prop_set_uint32(dev2, "lsi-freq-hz",
-                sbd->capabilities->stm32.lsi_freq_hz);
+                sbd->capabilities->lsi_freq_hz);
     }
 
     /* FLASH */
@@ -84,7 +84,7 @@ static void stm32_mcu_construct_callback(Object *obj,
 
     STM32GPIOState *gdev;
     /* GPIOA */
-    if (capabilities->stm32.has_gpioa) {
+    if (capabilities->has_gpioa) {
         state->gpio[STM32_GPIO_PORT_A] = qdev_create(NULL, TYPE_STM32_GPIO);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_A]);
         sbd->capabilities = capabilities;
@@ -95,7 +95,7 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
 
     /* GPIOB */
-    if (capabilities->stm32.has_gpiob) {
+    if (capabilities->has_gpiob) {
         state->gpio[STM32_GPIO_PORT_B] = qdev_create(NULL, TYPE_STM32_GPIO);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_B]);
         sbd->capabilities = capabilities;
@@ -106,7 +106,7 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
 
     /* GPIOC */
-    if (capabilities->stm32.has_gpioc) {
+    if (capabilities->has_gpioc) {
         state->gpio[STM32_GPIO_PORT_C] = qdev_create(NULL, TYPE_STM32_GPIO);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_C]);
         sbd->capabilities = capabilities;
@@ -117,7 +117,7 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
 
     /* GPIOD */
-    if (capabilities->stm32.has_gpiod) {
+    if (capabilities->has_gpiod) {
         state->gpio[STM32_GPIO_PORT_D] = qdev_create(NULL, TYPE_STM32_GPIO);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_D]);
         sbd->capabilities = capabilities;
@@ -128,7 +128,7 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
 
     /* GPIOE */
-    if (capabilities->stm32.has_gpioe) {
+    if (capabilities->has_gpioe) {
         state->gpio[STM32_GPIO_PORT_E] = qdev_create(NULL, TYPE_STM32_GPIO);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_E]);
         sbd->capabilities = capabilities;
@@ -139,7 +139,7 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
 
     /* GPIOF */
-    if (capabilities->stm32.has_gpiof) {
+    if (capabilities->has_gpiof) {
         state->gpio[STM32_GPIO_PORT_F] = qdev_create(NULL, TYPE_STM32_GPIO);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_F]);
         sbd->capabilities = capabilities;
@@ -150,7 +150,7 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
 
     /* GPIOG */
-    if (capabilities->stm32.has_gpiog) {
+    if (capabilities->has_gpiog) {
         state->gpio[STM32_GPIO_PORT_G] = qdev_create(NULL, TYPE_STM32_GPIO);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_G]);
         sbd->capabilities = capabilities;
