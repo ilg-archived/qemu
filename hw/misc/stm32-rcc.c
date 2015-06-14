@@ -605,6 +605,15 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_get_parent(object_class_by_name(TYPE_STM32_RCC)));
+    Error *local_err = NULL;
+    parent_class->realize(dev, &local_err);
+    if (local_err) {
+        error_propagate(errp, local_err);
+        return;
+    }
+
     STM32RCCState *state = STM32_RCC_STATE(dev);
 
     STM32Capabilities *capabilities =

@@ -108,10 +108,10 @@ static void stm32f051r8_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F051R8_STATE(dev);
-    STM32DeviceClass *nc = STM32F051R8_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -121,9 +121,7 @@ static void stm32f051r8_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f051r8_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F051R8_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f051r8_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -157,10 +155,10 @@ static void stm32f100rb_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F100RB_STATE(dev);
-    STM32DeviceClass *nc = STM32F100RB_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -170,9 +168,7 @@ static void stm32f100rb_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f100rb_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F100RB_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f100rb_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -220,10 +216,10 @@ static void stm32f103rb_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F103RB_STATE(dev);
-    STM32DeviceClass *nc = STM32F103RB_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -235,7 +231,6 @@ static void stm32f103rb_mcu_class_init_callback(ObjectClass *klass, void *data)
     DeviceClass *dc = DEVICE_CLASS(klass);
     STM32DeviceClass *st_class = STM32F103RB_CLASS(klass);
 
-    st_class->parent_realize = dc->realize;
     dc->realize = stm32f103rb_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 
@@ -271,10 +266,10 @@ static void stm32f107vc_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F107VC_STATE(dev);
-    STM32DeviceClass *nc = STM32F107VC_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -284,9 +279,7 @@ static void stm32f107vc_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f107vc_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F107VC_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f107vc_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -320,10 +313,10 @@ static void stm32l152re_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32L152RE_STATE(dev);
-    STM32DeviceClass *nc = STM32L152RE_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -333,9 +326,7 @@ static void stm32l152re_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32l152re_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32L152RE_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32l152re_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -369,10 +360,10 @@ static void stm32f205rf_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F205RF_STATE(dev);
-    STM32DeviceClass *nc = STM32F205RF_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -382,9 +373,7 @@ static void stm32f205rf_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f205rf_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F205RF_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f205rf_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -418,10 +407,10 @@ static void stm32f303vc_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F303VC_STATE(dev);
-    STM32DeviceClass *nc = STM32F303VC_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -431,9 +420,7 @@ static void stm32f303vc_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f303vc_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F303VC_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f303vc_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -467,10 +454,10 @@ static void stm32f334r8_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F334R8_STATE(dev);
-    STM32DeviceClass *nc = STM32F334R8_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -480,9 +467,7 @@ static void stm32f334r8_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f334r8_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F334R8_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f334r8_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -516,10 +501,10 @@ static void stm32f405rg_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F405RG_STATE(dev);
-    STM32DeviceClass *nc = STM32F405RG_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -529,9 +514,7 @@ static void stm32f405rg_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f405rg_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F405RG_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f405rg_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -565,10 +548,10 @@ static void stm32f407vg_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F407VG_STATE(dev);
-    STM32DeviceClass *nc = STM32F407VG_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -578,9 +561,7 @@ static void stm32f407vg_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f407vg_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F407VG_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f407vg_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -614,10 +595,10 @@ static void stm32f407zg_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F407ZG_STATE(dev);
-    STM32DeviceClass *nc = STM32F407ZG_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -627,9 +608,7 @@ static void stm32f407zg_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f407zg_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F407ZG_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f407zg_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -663,10 +642,10 @@ static void stm32f411re_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F411RE_STATE(dev);
-    STM32DeviceClass *nc = STM32F411RE_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -676,9 +655,7 @@ static void stm32f411re_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f411re_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F411RE_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f411re_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }
@@ -712,10 +689,10 @@ static void stm32f429zi_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32F429ZI_STATE(dev);
-    STM32DeviceClass *nc = STM32F429ZI_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_by_name(TYPE_STM32_MCU));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -725,9 +702,7 @@ static void stm32f429zi_mcu_realize_callback(DeviceState *dev, Error **errp)
 static void stm32f429zi_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *nc = STM32F429ZI_CLASS(klass);
 
-    nc->parent_realize = dc->realize;
     dc->realize = stm32f429zi_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
 }

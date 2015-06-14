@@ -56,12 +56,9 @@ typedef struct STM32MCUClass {
     CortexMClass parent_class;
     /*< public >*/
 
-    DeviceRealize parent_realize;
     void (*construct)(Object *obj, STM32Capabilities* capabilities,
             CortexMCapabilities* core_capabilities, MachineState *machine);
 
-    void (*parent_memory_regions_create)(DeviceState *dev);
-    // void (*parent_reset)(DeviceState *dev);
 } STM32MCUClass;
 
 G_INLINE_FUNC DeviceState *stm32_mcu_get_rcc_dev(DeviceState *dev)

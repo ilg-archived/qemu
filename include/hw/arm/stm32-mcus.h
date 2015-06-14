@@ -135,8 +135,6 @@ typedef struct {
 
     void (*construct)(Object *obj, MachineState *machine);
 
-    DeviceRealize parent_realize;
-    // void (*parent_reset)(DeviceState *dev);
 } STM32DeviceClass;
 
 #endif /* HW_ARM_STM32_H */

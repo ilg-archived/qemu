@@ -165,10 +165,10 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32_MCU_STATE(dev);
-    STM32MCUClass *nc = STM32_MCU_GET_CLASS(state);
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_get_parent(object_class_by_name(TYPE_STM32_MCU)));
     Error *local_err = NULL;
-    nc->parent_realize(dev, &local_err);
+    parent_class->realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -179,6 +179,7 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
             (STM32Capabilities *) cm_state->capabilities;
     assert(capabilities != NULL);
 
+    STM32MCUState *state = STM32_MCU_STATE(dev);
     /* RCC */
     qdev_realize(DEVICE(state->rcc));
 
@@ -198,11 +199,10 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    STM32MCUState *state = STM32_MCU_STATE(dev);
-    STM32MCUClass *st_class = STM32_MCU_GET_CLASS(state);
-
     /* Create the parent (Cortex-M) memory regions */
-    st_class->parent_memory_regions_create(dev);
+    CortexMClass *parent_class = CORTEXM_MCU_CLASS(
+            object_class_by_name(TYPE_CORTEXM_MCU));
+    parent_class->memory_regions_create(dev);
 
     /**
      * The STM32 family stores its Flash memory at some base address in memory
@@ -242,14 +242,12 @@ static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
     STM32MCUClass *st_class = STM32_MCU_CLASS(klass);
     st_class->construct = stm32_mcu_construct_callback;
 
+    CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
+    cm_class->memory_regions_create = stm32_mcu_memory_regions_create_callback;
+
     DeviceClass *dc = DEVICE_CLASS(klass);
-    st_class->parent_realize = dc->realize;
     dc->realize = stm32_mcu_realize_callback;
     dc->props = stm32_mcu_properties;
-
-    CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
-    st_class->parent_memory_regions_create = cm_class->memory_regions_create;
-    cm_class->memory_regions_create = stm32_mcu_memory_regions_create_callback;
 }
 
 static const TypeInfo stm32_mcu_type_info = {

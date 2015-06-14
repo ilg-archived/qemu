@@ -309,6 +309,15 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_get_parent(object_class_by_name(TYPE_CORTEXM_MCU)));
+    Error *local_err = NULL;
+    parent_class->realize(dev, &local_err);
+    if (local_err) {
+        error_propagate(errp, local_err);
+        return;
+    }
+
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
     CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
 

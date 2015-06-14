@@ -80,8 +80,7 @@ typedef struct {
     /*< private >*/
     SysBusDeviceClass parent_class;
     /*< public >*/
-    DeviceRealize parent_realize;
-    // void (*parent_reset)(DeviceState *dev);
+
     void (*construct)(Object *obj, CortexMCapabilities* capabilities,
             MachineState *machine);
     void (*memory_regions_create)(DeviceState *dev);
