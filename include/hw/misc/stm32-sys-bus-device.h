@@ -20,8 +20,8 @@
 #ifndef STM32_SYS_BUS_DEVICE_H_
 #define STM32_SYS_BUS_DEVICE_H_
 
+#include "hw/arm/stm32-capabilities.h"
 #include "hw/sysbus.h"
-#include "hw/arm/stm32-common.h"
 
 /**
  *  Parent type for all STM32 peripherals.
