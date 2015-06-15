@@ -1,5 +1,5 @@
 /*
- * STM32 common definitions.
+ * STM32 capabilities definitions.
  *
  * Copyright (c) 2015 Liviu Ionescu
  *
@@ -17,8 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STM32_COMMON_H_
-#define STM32_COMMON_H_
+#ifndef STM32_CAPABILITIES_H_
+#define STM32_CAPABILITIES_H_
+
+#include <stdint.h>
 
 typedef enum {
     STM32_FAMILY_UNKNOWN,
@@ -67,4 +69,4 @@ typedef struct {
     } f1;
 } STM32Capabilities;
 
-#endif /* STM32_COMMON_H_ */
+#endif /* STM32_CAPABILITIES_H_ */
