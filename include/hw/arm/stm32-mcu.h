@@ -30,6 +30,21 @@
 /* ---- Common STM32 ----- */
 #define TYPE_STM32_MCU "stm32-mcu"
 
+#define STM32_MCU_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(STM32MCUClass, (obj), TYPE_STM32_MCU)
+#define STM32_MCU_CLASS(klass) \
+    OBJECT_CLASS_CHECK(STM32MCUClass, (klass), TYPE_STM32_MCU)
+
+typedef struct STM32MCUClass {
+    /*< private >*/
+    CortexMClass parent_class;
+    /*< public >*/
+
+    void (*construct)(Object *obj, STM32Capabilities* capabilities,
+            CortexMCapabilities* core_capabilities, MachineState *machine);
+
+} STM32MCUClass;
+
 #define STM32_MCU_STATE(obj) \
     OBJECT_CHECK(STM32MCUState, (obj), TYPE_STM32_MCU)
 
@@ -45,21 +60,6 @@ typedef struct STM32MCUState {
     DeviceState *flash;
     DeviceState *gpio[STM32_MAX_GPIO];
 } STM32MCUState;
-
-#define STM32_MCU_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(STM32MCUClass, (obj), TYPE_STM32_MCU)
-#define STM32_MCU_CLASS(obj) \
-    OBJECT_CLASS_CHECK(STM32MCUClass, (obj), TYPE_STM32_MCU)
-
-typedef struct STM32MCUClass {
-    /*< private >*/
-    CortexMClass parent_class;
-    /*< public >*/
-
-    void (*construct)(Object *obj, STM32Capabilities* capabilities,
-            CortexMCapabilities* core_capabilities, MachineState *machine);
-
-} STM32MCUClass;
 
 G_INLINE_FUNC DeviceState *stm32_mcu_get_rcc_dev(DeviceState *dev)
 {
