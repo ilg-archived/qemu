@@ -73,6 +73,12 @@ static void stm32_mcu_construct_callback(Object *obj,
                 sbd->capabilities->hsi_freq_hz);
         qdev_prop_set_uint32(dev2, "lsi-freq-hz",
                 sbd->capabilities->lsi_freq_hz);
+
+        /* Alias RCC properties to MCU */
+        object_property_add_alias(obj, "hse-freq-hz", OBJECT(dev2),
+                "hse-freq-hz", NULL);
+        object_property_add_alias(obj, "lse-freq-hz", OBJECT(dev2),
+                "lse-freq-hz", NULL);
     }
 
     /* FLASH */
@@ -159,6 +165,7 @@ static void stm32_mcu_construct_callback(Object *obj,
         gdev->port_index = STM32_GPIO_PORT_G;
         gdev->rcc = STM32_RCC_STATE(state->rcc);
     }
+
 }
 
 static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)

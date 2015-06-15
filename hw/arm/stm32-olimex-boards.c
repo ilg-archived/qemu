@@ -46,10 +46,8 @@ static void stm32_h103_board_init_callback(MachineState *machine)
         STM32F103RB_GET_CLASS(mcu)->construct(OBJECT(mcu), machine);
 
         /* Set the board specific oscillator frequencies. */
-        DeviceState *rcc = stm32_mcu_get_rcc_dev(mcu);
-        assert(rcc);
-        qdev_prop_set_uint32(rcc, "hse-freq-hz", 8000000); /* 8.0 MHz */
-        qdev_prop_set_uint32(rcc, "lse-freq-hz", 32768); /* 32 KHz */
+        qdev_prop_set_uint32(mcu, "hse-freq-hz", 8000000); /* 8.0 MHz */
+        qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 KHz */
     }
     qdev_realize(mcu);
 
