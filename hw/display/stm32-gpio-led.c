@@ -20,11 +20,22 @@
 #include "hw/display/stm32-gpio-led.h"
 #include "hw/arm/stm32-mcu.h"
 
+/**
+ * Implementation of the "generic-gpio-led" base class for the STM32 family.
+ */
+
+/**
+ * Implementation of the parent class virtual function.
+ * It mainly returns a pointer to the device GPIO[i].
+ */
 static DeviceState *stm32_gpio_led_get_gpio_dev(DeviceState *dev,
         int port_index)
 {
     GenericGPIOLEDState *gl_state = GENERIC_GPIO_LED_STATE(dev);
 
+    /**
+     * Ask the MCU for the i-th (port_index) GPIO device.
+     */
     return stm32_mcu_get_gpio_dev(gl_state->mcu, port_index);
 }
 
@@ -33,6 +44,7 @@ static void stm_gpio_led_construct_callback(Object *obj,
 {
     qemu_log_function_name();
 
+    /* Explicitly call the parent constructor. */
     GENERIC_GPIO_LED_GET_CLASS(obj)->construct(obj, info, mcu);
 }
 
@@ -46,6 +58,9 @@ static void stm32_gpio_led_class_init_callback(ObjectClass *klass, void *data)
     gl_class->get_gpio_dev = stm32_gpio_led_get_gpio_dev;
 }
 
+/*
+ * The realize() would be empty here, and its pointer is not initialised.
+ */
 static const TypeInfo stm32_gpio_led_type_info = {
     .name = TYPE_STM32_GPIO_LED,
     .parent = TYPE_GENERIC_GPIO_LED,

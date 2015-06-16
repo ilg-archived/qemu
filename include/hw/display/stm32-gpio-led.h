@@ -36,6 +36,10 @@ typedef struct {
     GenericGPIOLEDClass parent_class;
     /*< public >*/
 
+    /**
+     * Constructor; does not much, just passes the Info structure
+     * and a pointer to the MCU to the base class.
+     */
     void (*construct)(Object *obj, GenericGPIOLEDInfo* info, DeviceState *mcu);
 } STM32GPIOLEDClass;
 
@@ -48,6 +52,8 @@ typedef struct {
     /*< private >*/
     GenericGPIOLEDState parent_obj;
     /*< public >*/
+
+    /* Currently there is nothing new here. */
 } STM32GPIOLEDState;
 
 /* ------------------------------------------------------------------------- */
