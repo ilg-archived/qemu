@@ -22,11 +22,12 @@
 
 #include "hw/qdev.h"
 #include "qemu/typedefs.h"
+#include "hw/sysbus.h"
 
 /* ------------------------------------------------------------------------- */
 
-#define DEFINE_PROP_GENERIC_GPIO_LED_PTR(_n, _s, _f) \
-    DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, GenericGPIOLEDInfo*)
+#define DEFINE_PROP_GPIO_LED_PTR(_n, _s, _f) \
+    DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, GPIOLEDInfo*)
 
 /**
  * This structure must be passed via the constructor, to configure the
@@ -39,49 +40,46 @@ typedef struct {
     bool active_low;
     const char *on_message;
     const char *off_message; //
-    bool use_stderr;
-} GenericGPIOLEDInfo;
+} GPIOLEDInfo;
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_GENERIC_GPIO_LED "generic-gpio-led"
+#define TYPE_GPIO_LED "gpio-led"
 
-#define GENERIC_GPIO_LED_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(GenericGPIOLEDClass, (obj), TYPE_GENERIC_GPIO_LED)
-#define GENERIC_GPIO_LED_CLASS(klass) \
-    OBJECT_CLASS_CHECK(GenericGPIOLEDClass, (klass), TYPE_GENERIC_GPIO_LED)
+#define GPIO_LED_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(GPIOLEDClass, (obj), TYPE_GPIO_LED)
+#define GPIO_LED_CLASS(klass) \
+    OBJECT_CLASS_CHECK(GPIOLEDClass, (klass), TYPE_GPIO_LED)
+
+// TODO: Change this to TYPE_DEVICE
+#define TYPE_GPIO_LED_PARENT TYPE_SYS_BUS_DEVICE
+typedef SysBusDeviceClass GPIOLEDParentClass;
+typedef SysBusDevice GPIOLEDParentState;
 
 typedef struct {
     /*< private >*/
-    DeviceClass parent_class;
+    GPIOLEDParentClass parent_class;
     /*< public >*/
 
     /**
      * Constructor; it uses the Info structure and a pointer to the MCU
      * to get the GPIO(n) port and to connect to the pin.
      */
-    void (*construct)(Object *obj, GenericGPIOLEDInfo* info, DeviceState *mcu);
+    void (*construct)(Object *obj, GPIOLEDInfo* info);
 
-    /**
-     * Abstract function, to be implemented by all derived classes.
-     */
-    DeviceState *(*get_gpio_dev)(DeviceState *dev, int port_index);
-} GenericGPIOLEDClass;
+} GPIOLEDClass;
 
 /* ------------------------------------------------------------------------- */
 
-#define GENERIC_GPIO_LED_STATE(obj) \
-    OBJECT_CHECK(GenericGPIOLEDState, (obj), TYPE_GENERIC_GPIO_LED)
+#define GPIO_LED_STATE(obj) \
+    OBJECT_CHECK(GPIOLEDState, (obj), TYPE_GPIO_LED)
 
 typedef struct {
     /*< private >*/
-    DeviceState parent_obj;
+    GPIOLEDParentState parent_obj;
     /*< public >*/
 
-    GenericGPIOLEDInfo *info;
-
-    DeviceState *mcu;
-    DeviceState *gpio;
+    GPIOLEDInfo *info;
 
     /**
      * The actual irq used to blink the LED. It works connected to
@@ -89,7 +87,7 @@ typedef struct {
      */
     qemu_irq irq;
 
-} GenericGPIOLEDState;
+} GPIOLEDState;
 
 /* ------------------------------------------------------------------------- */
 

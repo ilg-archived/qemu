@@ -31,21 +31,21 @@
 static DeviceState *stm32_gpio_led_get_gpio_dev(DeviceState *dev,
         int port_index)
 {
-    GenericGPIOLEDState *gl_state = GENERIC_GPIO_LED_STATE(dev);
+    GPIOLEDState *gl_state = GPIO_LED_STATE(dev);
 
     /**
      * Ask the MCU for the i-th (port_index) GPIO device.
      */
-    return stm32_mcu_get_gpio_dev(gl_state->mcu, port_index);
+    return NULL; //stm32_mcu_get_gpio_dev(gl_state->mcu, port_index);
 }
 
 static void stm_gpio_led_construct_callback(Object *obj,
-        GenericGPIOLEDInfo* info, DeviceState *mcu)
+        GPIOLEDInfo* info, DeviceState *mcu)
 {
     qemu_log_function_name();
 
     /* Explicitly call the parent constructor. */
-    GENERIC_GPIO_LED_GET_CLASS(obj)->construct(obj, info, mcu);
+    GPIO_LED_GET_CLASS(obj)->construct(obj, info /*, mcu */);
 }
 
 static void stm32_gpio_led_class_init_callback(ObjectClass *klass, void *data)
@@ -54,8 +54,8 @@ static void stm32_gpio_led_class_init_callback(ObjectClass *klass, void *data)
     st_class->construct = stm_gpio_led_construct_callback;
 
     /* Set virtual in parent class */
-    GenericGPIOLEDClass *gl_class = GENERIC_GPIO_LED_CLASS(klass);
-    gl_class->get_gpio_dev = stm32_gpio_led_get_gpio_dev;
+    GPIOLEDClass *gl_class = GPIO_LED_CLASS(klass);
+    //gl_class->get_gpio_dev = stm32_gpio_led_get_gpio_dev;
 }
 
 /*
@@ -63,7 +63,7 @@ static void stm32_gpio_led_class_init_callback(ObjectClass *klass, void *data)
  */
 static const TypeInfo stm32_gpio_led_type_info = {
     .name = TYPE_STM32_GPIO_LED,
-    .parent = TYPE_GENERIC_GPIO_LED,
+    .parent = TYPE_GPIO_LED,
     .instance_size = sizeof(STM32GPIOLEDState),
     .class_init = stm32_gpio_led_class_init_callback,
     .class_size = sizeof(STM32GPIOLEDClass) };

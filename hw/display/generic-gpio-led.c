@@ -1,5 +1,5 @@
 /*
- * Generic GPIO connected LED device emulation.
+ * GPIO connected LED device emulation.
  *
  * Copyright (c) 2015 Liviu Ionescu
  *
@@ -20,24 +20,17 @@
 #include "hw/display/generic-gpio-led.h"
 
 /**
- * This is an abstract class that implements a generic LED connected to
- * a GPIO device. It requires a derived class to implement the get_gpio_dev()
- * virtual call, to access the actual GPIO device specific to a family.
+ * This class implements a LED connected to a GPIO device.
  */
 
-static void generic_gpio_led_irq_handler(void *opaque, int n, int level)
+static void gpio_led_irq_handler(void *opaque, int n, int level)
 {
-    GenericGPIOLEDInfo *info = GENERIC_GPIO_LED_STATE(opaque)->info;
+    GPIOLEDInfo *info = GPIO_LED_STATE(opaque)->info;
 
     /* There should be only one IRQ for the LED */
     assert(n == 0);
 
-    FILE *file;
-    if (info->use_stderr) {
-        file = stderr;
-    } else {
-        file = stdout;
-    }
+    FILE *file = stderr;
     /*
      * Assume that the IRQ is only triggered if the LED has changed state.
      * If this is not correct, we may get multiple LED Offs or Ons in a row.
@@ -55,68 +48,52 @@ static void generic_gpio_led_irq_handler(void *opaque, int n, int level)
     }
 }
 
-static void generic_gpio_led_construct_callback(Object *obj,
-        GenericGPIOLEDInfo* info, DeviceState *mcu)
+static void gpio_led_construct_callback(Object *obj,
+        GPIOLEDInfo* info /*, DeviceState *mcu */)
 {
     qemu_log_function_name();
 
-    GenericGPIOLEDState *state = GENERIC_GPIO_LED_STATE(obj);
-    GenericGPIOLEDClass *klass = GENERIC_GPIO_LED_GET_CLASS(state);
+    GPIOLEDState *state = GPIO_LED_STATE(obj);
 
     state->info = info;
-    state->mcu = mcu;
-
-    DeviceState *gpio_dev = klass->get_gpio_dev(DEVICE(obj), info->port_index);
-    assert(gpio_dev);
 
     /*
      * Allocate 1 single incoming irq, and attach handler, this device
      * and n=0. (n==0 is checked in the handler by an assert)
      */
-    state->irq = qemu_allocate_irq(generic_gpio_led_irq_handler, obj, 0);
+    state->irq = qemu_allocate_irq(gpio_led_irq_handler, obj, 0);
+    // qdev_init_gpio_in(DEVICE(obj), gpio_led_irq_handler, 1);
 
-    /*
-     * Connect the LED interrupt to the originating GPIO pin.
-     * This will finally create a link inside the STM32 GPIO device.
-     */
-    qdev_connect_gpio_out(gpio_dev, info->port_bit, state->irq);
-}
-
-static void generic_gpio_led_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
+    /* The connection will be done by the machine */
 }
 
 #define DEFINE_PROP_DEVICE_STATE_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, DeviceState*)
 
-static Property generic_gpio_led_properties[] = {
-        DEFINE_PROP_GENERIC_GPIO_LED_PTR("info", GenericGPIOLEDState, info),
-        DEFINE_PROP_DEVICE_STATE_PTR("mcu", GenericGPIOLEDState, mcu),
+static Property gpio_led_properties[] = {
+        DEFINE_PROP_GPIO_LED_PTR("info", GPIOLEDState, info),
     DEFINE_PROP_END_OF_LIST() };
 
-static void generic_gpio_led_class_init_callback(ObjectClass *klass, void *data)
+static void gpio_led_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->props = generic_gpio_led_properties;
-    dc->realize = generic_gpio_led_realize_callback;
+    dc->props = gpio_led_properties;
 
-    GenericGPIOLEDClass *gl_class = GENERIC_GPIO_LED_CLASS(klass);
-    gl_class->construct = generic_gpio_led_construct_callback;
+    GPIOLEDClass *gl_class = GPIO_LED_CLASS(klass);
+    gl_class->construct = gpio_led_construct_callback;
 }
 
-static const TypeInfo generic_gpio_led_type_info = {
-    .abstract = true,
-    .name = TYPE_GENERIC_GPIO_LED,
-    .parent = TYPE_DEVICE,
-    .instance_size = sizeof(GenericGPIOLEDState),
-    .class_init = generic_gpio_led_class_init_callback,
-    .class_size = sizeof(GenericGPIOLEDClass) };
+static const TypeInfo gpio_led_type_info = {
+    .name = TYPE_GPIO_LED,
+    .parent = TYPE_GPIO_LED_PARENT,
+    .instance_size = sizeof(GPIOLEDState),
+    .class_init = gpio_led_class_init_callback,
+    .class_size = sizeof(GPIOLEDClass) };
 
-static void generic_gpio_led_type_init()
+static void gpio_led_type_init()
 {
-    type_register_static(&generic_gpio_led_type_info);
+    type_register_static(&gpio_led_type_info);
 }
 
-type_init(generic_gpio_led_type_init);
+type_init(gpio_led_type_init);
