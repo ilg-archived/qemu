@@ -24,6 +24,30 @@
 #include "verbosity.h"
 #endif
 
+void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
+        STM32Capabilities* capabilities)
+{
+
+    DeviceState *dev;
+    STM32SysBusDevice *sbd;
+    STM32GPIOState *gdev;
+
+    dev = qdev_create(NULL, TYPE_STM32_GPIO);
+    sbd = STM32_SYS_BUS_DEVICE_STATE(dev);
+    sbd->capabilities = capabilities;
+
+    gdev = STM32_GPIO_STATE(dev);
+    gdev->port_index = index;
+    gdev->rcc = STM32_RCC_STATE(state->rcc);
+
+    state->gpio[index] = dev;
+
+    char child_name[10];
+    snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
+
+    object_property_add_child(state->container, child_name, OBJECT(dev), NULL);
+}
+
 /*
  * Common layer for all STM32 devices.
  * Alias the flash memory to 0x08000000.
@@ -56,29 +80,34 @@ static void stm32_mcu_construct_callback(Object *obj,
     }
     qemu_log_mask(LOG_TRACE, "STM32 Family: %s\n", family);
 
-    DeviceState *dev2;
+    state->container = container_get(qdev_get_machine(), "/stm32");
+
+    DeviceState *dev;
     STM32SysBusDevice *sbd;
 
     /* RCC */
     {
         state->rcc = qdev_create(NULL, TYPE_STM32_RCC);
-        dev2 = DEVICE(state->rcc);
+        dev = DEVICE(state->rcc);
 
         /* Copy capabilities into internal objects. */
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->rcc);
         sbd->capabilities = capabilities;
 
         /* Copy internal oscillator frequencies from capabilities. */
-        qdev_prop_set_uint32(dev2, "hsi-freq-hz",
+        qdev_prop_set_uint32(dev, "hsi-freq-hz",
                 sbd->capabilities->hsi_freq_hz);
-        qdev_prop_set_uint32(dev2, "lsi-freq-hz",
+        qdev_prop_set_uint32(dev, "lsi-freq-hz",
                 sbd->capabilities->lsi_freq_hz);
 
         /* Alias RCC properties to MCU */
-        object_property_add_alias(obj, "hse-freq-hz", OBJECT(dev2),
+        object_property_add_alias(obj, "hse-freq-hz", OBJECT(dev),
                 "hse-freq-hz", NULL);
-        object_property_add_alias(obj, "lse-freq-hz", OBJECT(dev2),
+        object_property_add_alias(obj, "lse-freq-hz", OBJECT(dev),
                 "lse-freq-hz", NULL);
+
+        object_property_add_child(state->container, "rcc", OBJECT(state->rcc),
+        NULL);
     }
 
     /* FLASH */
@@ -86,86 +115,47 @@ static void stm32_mcu_construct_callback(Object *obj,
         state->flash = qdev_create(NULL, TYPE_STM32_FLASH);
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->flash);
         sbd->capabilities = capabilities;
+
+        object_property_add_child(state->container, "flash",
+                OBJECT(state->flash), NULL);
     }
 
     STM32GPIOState *gdev;
+    stm32_gpio_index_t index;
     /* GPIOA */
     if (capabilities->has_gpioa) {
-        state->gpio[STM32_GPIO_PORT_A] = qdev_create(NULL, TYPE_STM32_GPIO);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_A]);
-        sbd->capabilities = capabilities;
-
-        gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_A]);
-        gdev->port_index = STM32_GPIO_PORT_A;
-        gdev->rcc = STM32_RCC_STATE(state->rcc);
+        create_gpio(state, STM32_GPIO_PORT_A, capabilities);
     }
 
     /* GPIOB */
     if (capabilities->has_gpiob) {
-        state->gpio[STM32_GPIO_PORT_B] = qdev_create(NULL, TYPE_STM32_GPIO);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_B]);
-        sbd->capabilities = capabilities;
-
-        gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_B]);
-        gdev->port_index = STM32_GPIO_PORT_B;
-        gdev->rcc = STM32_RCC_STATE(state->rcc);
+        create_gpio(state, STM32_GPIO_PORT_B, capabilities);
     }
 
     /* GPIOC */
     if (capabilities->has_gpioc) {
-        state->gpio[STM32_GPIO_PORT_C] = qdev_create(NULL, TYPE_STM32_GPIO);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_C]);
-        sbd->capabilities = capabilities;
-
-        gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_C]);
-        gdev->port_index = STM32_GPIO_PORT_C;
-        gdev->rcc = STM32_RCC_STATE(state->rcc);
+        create_gpio(state, STM32_GPIO_PORT_C, capabilities);
     }
 
     /* GPIOD */
     if (capabilities->has_gpiod) {
-        state->gpio[STM32_GPIO_PORT_D] = qdev_create(NULL, TYPE_STM32_GPIO);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_D]);
-        sbd->capabilities = capabilities;
-
-        gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_D]);
-        gdev->port_index = STM32_GPIO_PORT_D;
-        gdev->rcc = STM32_RCC_STATE(state->rcc);
+        create_gpio(state, STM32_GPIO_PORT_D, capabilities);
     }
 
     /* GPIOE */
     if (capabilities->has_gpioe) {
-        state->gpio[STM32_GPIO_PORT_E] = qdev_create(NULL, TYPE_STM32_GPIO);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_E]);
-        sbd->capabilities = capabilities;
-
-        gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_E]);
-        gdev->port_index = STM32_GPIO_PORT_E;
-        gdev->rcc = STM32_RCC_STATE(state->rcc);
+        create_gpio(state, STM32_GPIO_PORT_E, capabilities);
     }
 
     /* GPIOF */
     if (capabilities->has_gpiof) {
-        state->gpio[STM32_GPIO_PORT_F] = qdev_create(NULL, TYPE_STM32_GPIO);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_F]);
-        sbd->capabilities = capabilities;
-
-        gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_F]);
-        gdev->port_index = STM32_GPIO_PORT_F;
-        gdev->rcc = STM32_RCC_STATE(state->rcc);
+        create_gpio(state, STM32_GPIO_PORT_F, capabilities);
     }
 
     /* GPIOG */
     if (capabilities->has_gpiog) {
-        state->gpio[STM32_GPIO_PORT_G] = qdev_create(NULL, TYPE_STM32_GPIO);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->gpio[STM32_GPIO_PORT_G]);
-        sbd->capabilities = capabilities;
-
-        gdev = STM32_GPIO_STATE(state->gpio[STM32_GPIO_PORT_G]);
-        gdev->port_index = STM32_GPIO_PORT_G;
-        gdev->rcc = STM32_RCC_STATE(state->rcc);
+        create_gpio(state, STM32_GPIO_PORT_G, capabilities);
     }
-
 }
 
 static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)

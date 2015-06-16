@@ -56,6 +56,8 @@ typedef struct STM32MCUState {
     /* Specific STM32 capabilities; Cortex-M capabilities are separate. */
     STM32Capabilities *capabilities;
 
+    Object *container;
+
     DeviceState *rcc;
     DeviceState *flash;
     DeviceState *gpio[STM32_MAX_GPIO];
