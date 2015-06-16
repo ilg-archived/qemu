@@ -119,6 +119,8 @@ typedef struct {
     uint32_t flash_size_kb;
     uint32_t num_irq;
 
+    Object *container;
+
     MemoryRegion flash_mem;
     MemoryRegion sram_mem;
     MemoryRegion hack_mem;

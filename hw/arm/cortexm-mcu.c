@@ -238,6 +238,8 @@ static void cortexm_mcu_construct_callback(Object *obj,
     }
 #endif
 
+    cm_state->container = container_get(qdev_get_machine(), "/cortexm");
+
     CPUARMState *env;
     {
         /* ----- Create CPU based on model. ----- */
@@ -281,11 +283,17 @@ static void cortexm_mcu_construct_callback(Object *obj,
         cm_state->num_irq = num_irq;
 
         qdev_prop_set_uint32(nvic, "num-irq", num_irq);
+
+        object_property_add_child(cm_state->container, "nvic",
+                OBJECT(cm_state->nvic), NULL);
     }
 
     /* Construct the ITM object. */
     if (capabilities->has_itm) {
         cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
+
+        object_property_add_child(cm_state->container, "itm",
+                OBJECT(cm_state->itm), NULL);
     }
 
     /* ----- Load image. ----- */
