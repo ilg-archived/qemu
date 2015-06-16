@@ -1,5 +1,5 @@
 /*
- * Generic LED device emulation.
+ * Generic GPIO connected LED device emulation.
  *
  * Copyright (c) 2015 Liviu Ionescu
  *
@@ -17,9 +17,13 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-//#include "qom/object.h"
 #include "hw/display/generic-gpio-led.h"
-//#include "hw/qdev.h"
+
+/**
+ * This is an abstract class that implements a generic LED connected to
+ * a GPIO device. It requires a derived class to implement the get_gpio_dev()
+ * virtual call, to access the actual GPIO device specific to a family.
+ */
 
 static void generic_gpio_led_irq_handler(void *opaque, int n, int level)
 {
@@ -57,27 +61,30 @@ static void generic_gpio_led_construct_callback(Object *obj,
     qemu_log_function_name();
 
     GenericGPIOLEDState *state = GENERIC_GPIO_LED_STATE(obj);
+    GenericGPIOLEDClass *klass = GENERIC_GPIO_LED_GET_CLASS(state);
 
     state->info = info;
     state->mcu = mcu;
+
+    DeviceState *gpio_dev = klass->get_gpio_dev(DEVICE(obj), info->port_index);
+    assert(gpio_dev);
+
+    /*
+     * Allocate 1 single incoming irq, and attach handler, this device
+     * and n=0. (n==0 is checked in the handler by an assert)
+     */
+    state->irq = qemu_allocate_irq(generic_gpio_led_irq_handler, obj, 0);
+
+    /*
+     * Connect the LED interrupt to the originating GPIO pin.
+     * This will finally create a link inside the STM32 GPIO device.
+     */
+    qdev_connect_gpio_out(gpio_dev, info->port_bit, state->irq);
 }
 
 static void generic_gpio_led_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
-
-    GenericGPIOLEDState *state = GENERIC_GPIO_LED_STATE(dev);
-    GenericGPIOLEDClass *klass = GENERIC_GPIO_LED_GET_CLASS(state);
-
-    GenericGPIOLEDInfo *info = state->info;
-
-    DeviceState *gpio = klass->get_gpio_dev(dev, info->port_index);
-    assert(gpio);
-
-    /* Connect LED interrupt to GPIO pin  */
-    qemu_irq *led_irq = qemu_allocate_irqs(generic_gpio_led_irq_handler, dev,
-            1);
-    qdev_connect_gpio_out(gpio, info->port_bit, led_irq[0]);
 }
 
 #define DEFINE_PROP_DEVICE_STATE_PTR(_n, _s, _f) \

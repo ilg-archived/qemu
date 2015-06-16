@@ -28,6 +28,10 @@
 #define DEFINE_PROP_GENERIC_GPIO_LED_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, GenericGPIOLEDInfo*)
 
+/**
+ * This structure must be passed via the constructor, to configure the
+ * LED connectivity, logic and message.
+ */
 typedef struct {
     const char *desc;
     int port_index;
@@ -52,8 +56,15 @@ typedef struct {
     DeviceClass parent_class;
     /*< public >*/
 
+    /**
+     * Constructor; it uses the Info structure and a pointer to the MCU
+     * to get the GPIO(n) port and to connect to the pin.
+     */
     void (*construct)(Object *obj, GenericGPIOLEDInfo* info, DeviceState *mcu);
 
+    /**
+     * Abstract function, to be implemented by all derived classes.
+     */
     DeviceState *(*get_gpio_dev)(DeviceState *dev, int port_index);
 } GenericGPIOLEDClass;
 
@@ -71,7 +82,12 @@ typedef struct {
 
     DeviceState *mcu;
     DeviceState *gpio;
-    qemu_irq *irq;
+
+    /**
+     * The actual irq used to blink the LED. It works connected to
+     * a GPIO device outgoing irq.
+     */
+    qemu_irq irq;
 
 } GenericGPIOLEDState;
 
