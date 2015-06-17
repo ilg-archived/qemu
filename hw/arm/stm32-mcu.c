@@ -25,7 +25,7 @@
 #endif
 
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
-        STM32Capabilities* capabilities)
+        const STM32Capabilities* capabilities)
 {
 
     DeviceState *dev;
@@ -56,12 +56,14 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
  */
 
 static void stm32_mcu_construct_callback(Object *obj,
-        STM32Capabilities* capabilities, CortexMCapabilities* core_capabilities,
-        MachineState *machine)
+        const STM32Capabilities* capabilities,
+        const CortexMCapabilities* core_capabilities, const int flash_size_kb,
+        const int sram_size_kb, MachineState *machine)
 {
     qemu_log_function_name();
 
-    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, core_capabilities, machine);
+    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, core_capabilities, flash_size_kb,
+            sram_size_kb, machine);
 
     STM32MCUState *state = STM32_MCU_STATE(obj);
     assert(capabilities != NULL);

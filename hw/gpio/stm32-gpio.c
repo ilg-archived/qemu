@@ -316,7 +316,7 @@ static uint64_t stm32_gpio_read_callback(void *opaque, hwaddr addr,
         return 0;
     }
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -346,7 +346,7 @@ static void stm32_gpio_write_callback(void *opaque, hwaddr addr, uint64_t value,
         return;
     }
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -377,7 +377,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     state->dir_mask = 0;
@@ -415,7 +415,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
     assert(capabilities != NULL);
 
@@ -488,7 +488,7 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
 
     assert(pin < STM32_GPIO_PIN_COUNT);
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
     assert(capabilities != NULL);
 

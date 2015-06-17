@@ -22,8 +22,8 @@
 
 /* ----- SAM3S4B ----- */
 static CortexMCapabilities sam3s4b_core_info = {
-    .flash_size_kb = 256,
-    .sram_size_kb = 48,
+    //.flash_size_kb = 256,
+    //.sram_size_kb = 48,
     .has_mpu = true };
 
 qemu_irq *sam3s4b_mcu_init(MachineState *machine)

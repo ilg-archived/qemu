@@ -62,11 +62,20 @@ static void cortexm_bitband_init(uint32_t address)
 /* ------------------------------------------------------------------------- */
 
 static void cortexm_mcu_construct_callback(Object *obj,
-        CortexMCapabilities* capabilities, MachineState *machine)
+        const CortexMCapabilities *param_capabilities,
+        const int param_flash_size_kb, const int param_sram_size_kb,
+        MachineState *machine)
 {
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
+
+    /* Copy R/O structure to a local R/W copy, to update it */
+    CortexMCapabilities* capabilities = g_new(CortexMCapabilities, 1);
+    memcpy(capabilities, param_capabilities, sizeof(CortexMCapabilities));
+
+    /* Remember the R/O pointer for future use. */
+    cm_state->capabilities = (const CortexMCapabilities*) capabilities;
 
     if (machine->kernel_filename) {
         cm_state->kernel_filename = machine->kernel_filename;
@@ -75,8 +84,6 @@ static void cortexm_mcu_construct_callback(Object *obj,
     if (machine->cpu_model) {
         cm_state->cpu_model = machine->cpu_model;
     }
-
-    cm_state->capabilities = capabilities;
 
     const char *kernel_filename = cm_state->kernel_filename;
     const char *cpu_model_arg = cm_state->cpu_model;
@@ -195,7 +202,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
          * or by --global, overwrite the board MCU definition. */
         sram_size_kb = ram_size_arg_kb;
     } else {
-        sram_size_kb = capabilities->sram_size_kb;
+        sram_size_kb = param_sram_size_kb;
     }
 
     /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
@@ -210,7 +217,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
          * overwrite the board MCU definition. */
         flash_size_kb = flash_size_arg_kb;
     } else {
-        flash_size_kb = capabilities->flash_size_kb;
+        flash_size_kb = param_flash_size_kb;
     }
     cm_state->flash_size_kb = flash_size_kb;
 
@@ -329,7 +336,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
     CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
 
-    CortexMCapabilities *capabilities = cm_state->capabilities;
+    const CortexMCapabilities *capabilities = cm_state->capabilities;
     assert(capabilities != NULL);
 
     /* ----- Realize the CPU (derived from a device). ----- */

@@ -17,13 +17,17 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HW_ARM_STM32_H
-#define HW_ARM_STM32_H 1
+#ifndef STM32_MCUS_H
+#define STM32_MCUS_H
 
 #include "hw/arm/stm32-mcu.h"
 
 /* ----- Devices ----- */
 
+/*
+ * For compatibility with some development tools, it is
+ * strongly recommended to use the CMSIS names.
+ */
 #define TYPE_STM32F051R8 "STM32F051R8"
 #define TYPE_STM32F100RB "STM32F100RB"
 #define TYPE_STM32F103RB "STM32F103RB"
@@ -38,13 +42,27 @@
 #define TYPE_STM32F411RE "STM32F411RE"
 #define TYPE_STM32F429ZI "STM32F429ZI"
 
+/*
+ * Warning, this cast does not check the type!
+ */
 #define STM32_DEVICE_GET_CLASS(obj) \
     ((STM32DeviceClass*)object_get_class(OBJECT(obj)))
 
+/**
+ * Structure to define the specifics of each MCU. Capabilities are
+ * split between core & stm32; they care processed by parent class
+ * constructors.
+ */
 typedef struct {
-    const char *name;
-    CortexMCapabilities core;
-    STM32Capabilities stm32;
+
+    const char *name; /* CMSIS device name */
+
+    const unsigned int flash_size_kb; /* size of main program area, in KB */
+    const unsigned int sram_size_kb; /* size of main RAM area, in KB */
+
+    const CortexMCapabilities *core;
+    const STM32Capabilities *stm32;
+
 } STM32PartInfo;
 
 typedef struct {
@@ -52,6 +70,9 @@ typedef struct {
     STM32MCUClass parent_class;
     /*< public >*/
 
+    /**
+     * Constructor. Must be called manually after allocation.
+     */
     void (*construct)(Object *obj, MachineState *machine);
     STM32PartInfo *part_info;
 } STM32DeviceClass;
@@ -63,4 +84,4 @@ typedef struct {
 
 } STM32DeviceState;
 
-#endif /* HW_ARM_STM32_H */
+#endif /* STM32_MCUS_H */

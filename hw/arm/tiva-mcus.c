@@ -22,8 +22,8 @@
 
 /* ----- TM4C123GH6PM ----- */
 static CortexMCapabilities tm4c123gh6pm_core_info = {
-    .flash_size_kb = 256,
-    .sram_size_kb = 32,
+    //.flash_size_kb = 256,
+    //.sram_size_kb = 32,
     .has_mpu = true,
     .has_fpu = true };
 

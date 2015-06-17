@@ -39,7 +39,8 @@
  * where the Flash memory density ranges between 256 and 512 Kbytes.
  * - XL-density devices are STM32F101xx and STM32F103xx microcontrollers
  * where the Flash memory density ranges between 768 Kbytes and 1 Mbyte.
- * - Connectivity line devices are STM32F105xx and STM32F107xx microcontrollers.
+ * - Connectivity line devices are STM32F105xx and STM32F107xx
+ * microcontrollers.
  */
 
 /*
@@ -48,7 +49,8 @@
  * - F1
  *   - CL: 68
  *   - [LMHX]D: 60
- * - F4 TBD
+ * - F4
+ *   - TBD
  */
 
 /*
@@ -85,114 +87,314 @@ static Property stm32_mcus_properties[] = {
     DEFINE_PROP_END_OF_LIST(), //
         };
 
+static const STM32Capabilities stm32f103x8b = {
+
+    .family = STM32_FAMILY_F1,
+    .f1 = {
+        .is_md = true },
+
+    .hsi_freq_hz = 8000000,
+    .lsi_freq_hz = 40000,
+    .has_rcc = true,
+    .has_pwr = true,
+    .has_rtc = true,
+    .num_bkp = 20,
+
+    .has_crc = true,
+    .has_exti = true,
+    .has_dma1 = true,
+    .num_dma1 = 7,
+    .has_ac_tim1 = true,
+    .has_gp1_tim2 = true,
+    .has_gp1_tim3 = true,
+    .has_gp1_tim4 = true,
+    .has_iwdg = true,
+    .has_wwdg = true,
+    .has_i2c1 = true,
+    .has_i2c2 = true,
+    .has_usart1 = true, // 4.5Mb/s
+    .has_usart2 = true, // 2.25 Mb/s
+    .has_usart3 = true, // 2.25 Mb/s
+    .has_spi1 = true,
+    .has_spi2 = true,
+    .has_bx_can1 = true,
+    .has_usb_fs = true,
+
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpioe = true,
+
+    .has_adc1 = true, /* 12-bits, 16-ch */
+    .has_adc2 = true, /* 12-bits, 16-ch */
+
+    .has_ts = 1, /* ADC12_IN16 */
+};
+
+static const STM32Capabilities stm32f10_57_xx = {
+
+    .family = STM32_FAMILY_F1,
+    .f1 = {
+        .is_cl = true },
+
+    .hsi_freq_hz = 8000000,
+    .lsi_freq_hz = 40000,
+    .has_rcc = true,
+    .has_pwr = true,
+    .has_rtc = true,
+
+    .has_crc = true,
+    .has_exti = true,
+    .num_exti = 20,
+    .has_dma1 = true,
+    .num_dma1 = 7,
+    .has_dma2 = true,
+    .num_dma2 = 5,
+    .has_ac_tim1 = true,
+    .has_gp1_tim2 = true,
+    .has_gp1_tim3 = true,
+    .has_gp1_tim4 = true,
+    .has_gp1_tim5 = true,
+    .has_bc_tim6 = true,
+    .has_bc_tim7 = true,
+    .has_iwdg = true,
+    .has_wwdg = true,
+    .has_i2c1 = true,
+    .has_i2c2 = true,
+    .has_usart1 = true,
+    .has_usart2 = true,
+    .has_usart3 = true,
+    .has_uart4 = true,
+    .has_uart5 = true,
+    .has_spi1 = true,
+    .has_spi2 = true,
+    .has_spi3 = true,
+    .has_i2s1 = true,
+    .has_i2s2 = true,
+    .has_eth = true, // 107 only
+    .has_can1 = true,
+    .has_can2 = true,
+    .has_usb_otg_fs = true,
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpioe = true,
+    .has_adc1 = true,
+    .has_adc2 = true,
+    .has_dac1 = true,
+    .has_dac2 = true,
+    .has_ts = true, /* ADC1_IN16 */
+};
+
+static const STM32Capabilities stm32l15_12_xd = {
+
+    .family = STM32_FAMILY_L1,
+
+    .hsi_freq_hz = 16000000,
+    .lsi_freq_hz = 37000,
+    .has_rcc = true,
+    .has_rtc = true,
+    .eeprom_size_kb = 12,
+    .num_bkp = 128,
+
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpioe = true,
+    .has_gpiof = true,
+    .has_gpiog = true,
+    .has_gpioh = true,
+    .has_exti = true,
+    .num_exti = 24,
+    .has_fsmc = true,
+    .has_dma = true,
+    .num_dma = 12,
+    .has_adc = true, /* 12-bits, 40-ch */
+    .has_ts = true, /* ADC_IN16 */
+    .has_dac1 = true,
+    .has_dac2 = true,
+    .has_gp1_tim2 = true,
+    .has_gp1_tim3 = true,
+    .has_gp1_tim4 = true,
+    .has_gp1_tim5 = true,
+    .has_bc_tim6 = true,
+    .has_bc_tim7 = true,
+    .has_gp2_tim9 = true,
+    .has_gp3_tim10 = true,
+    .has_gp3_tim11 = true,
+    .has_iwdg = true,
+    .has_wwdg = true,
+    .has_i2c1 = true,
+    .has_i2c2 = true,
+    .has_usart1 = true,
+    .has_usart2 = true,
+    .has_usart3 = true,
+    .has_uart4 = true,
+    .has_uart5 = true,
+    .has_spi1 = true,
+    .has_spi2 = true,
+    .has_spi3 = true,
+    .has_i2s1 = true,
+    .has_i2s2 = true,
+    .has_sdio = true,
+    .has_usb_fs = true,
+    .has_crc = true,
+
+/*
+ * +LCD
+ * + comparators
+ * + touch sensing
+ */
+};
+
+static const CortexMCapabilities stm32f0xx_core = {
+    .cortexm_model = CORTEX_M0,
+    .has_mpu = false, // itm? irqs?
+    .nvic_bits = 4, /**/
+};
+
+static const CortexMCapabilities stm32f100_core = {
+    .cortexm_model = CORTEX_M3,
+    .has_mpu = true,
+    .has_itm = true,
+    .num_irq = 60,
+    .nvic_bits = 4, /**/
+};
+
+static const CortexMCapabilities stm32f1xx_core = {
+    .cortexm_model = CORTEX_M3,
+    .has_mpu = true,
+    .has_itm = true, /* no ETM? */
+    .num_irq = 44,
+    .nvic_bits = 4 /**/
+};
+
+static const CortexMCapabilities stm32f1cl_core = {
+    .cortexm_model = CORTEX_M3,
+    .has_mpu = true,
+    .has_etm = true,
+    .has_itm = true,
+    .num_irq = 68,
+    .nvic_bits = 4, /**/
+};
+
+static const CortexMCapabilities stm32f152_core = {
+    .cortexm_model = CORTEX_M3,
+    .has_mpu = true,
+    .has_itm = true, /* TODO: check */
+    .has_etm = true,
+    .num_irq = 57, /* TODO: check */
+    .nvic_bits = 4, };
+
+static const CortexMCapabilities stm32f2xx_core = {
+    .cortexm_model = CORTEX_M3,
+    .has_mpu = true,
+    .has_itm = true,
+    .nvic_bits = 4, /**/
+};
+
+static const CortexMCapabilities stm32f3xx_core = {
+    .cortexm_model = CORTEX_M4F,
+    .has_mpu = true,
+    .has_itm = true,
+    .nvic_bits = 4, /**/
+};
+
+static const CortexMCapabilities stm32f4xx_core = {
+    .cortexm_model = CORTEX_M4F,
+    .has_mpu = true,
+    .has_itm = true,
+    .nvic_bits = 4, /**/
+};
+
 static const STM32PartInfo stm32_mcus[] = {
     {
         .name = TYPE_STM32F051R8,
-        .core = {
-            .cortexm_model = CORTEX_M0,
-            .flash_size_kb = 64,
-            .sram_size_kb = 8, } },
+        .flash_size_kb = 64,
+        .sram_size_kb = 8,
+        .core = &stm32f0xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F100RB,
-        .core = {
-            .cortexm_model = CORTEX_M3,
-            .flash_size_kb = 128,
-            .sram_size_kb = 8,
-            .num_irq = 60, } },
+        .flash_size_kb = 128,
+        .sram_size_kb = 8,
+        .core = &stm32f100_core, /* TODO: Add .stm32 */
+    },
     {
-        .name = TYPE_STM32F103RB,
-        .core = {
-            .cortexm_model = CORTEX_M3,
-            .flash_size_kb = 128,
-            .sram_size_kb = 20,
-            .has_mpu = true,
-            .has_itm = true,
-            .num_irq = 60,
-            .nvic_bits = 4 },
-        .stm32 = {
-            .family = STM32_FAMILY_F1,
-            .hsi_freq_hz = 8000000,
-            .lsi_freq_hz = 40000,
-            .has_gpioa = true,
-            .has_gpiob = true,
-            .has_gpioc = true,
-            .has_gpiod = true,
-            .has_gpioe = true,
-            .f1 = {
-                .is_md = true } } },
+        .name = TYPE_STM32F103RB, // STM32F103x[8B]
+        .flash_size_kb = 128,
+        .sram_size_kb = 20,
+        .core = &stm32f1xx_core,
+        .stm32 = &stm32f103x8b, /**/
+    },
     {
         .name = TYPE_STM32F107VC,
-        .core = {
-            .cortexm_model = CORTEX_M3,
-            .flash_size_kb = 256,
-            .sram_size_kb = 64,
-            .has_mpu = true,
-            .num_irq = 68, } },
+        .flash_size_kb = 256,
+        .sram_size_kb = 64,
+        .core = &stm32f1cl_core,
+        .stm32 = &stm32f10_57_xx, /**/
+    },
     {
         .name = TYPE_STM32L152RE,
-        .core = {
-            .cortexm_model = CORTEX_M3,
-            .flash_size_kb = 512,
-            .sram_size_kb = 80,
-            .has_mpu = true, } },
+        .flash_size_kb = 384, /* 384+12 EEPROM */
+        .sram_size_kb = 48,
+        .core = &stm32f152_core,
+        .stm32 = &stm32l15_12_xd, /**/
+    },
     {
         .name = TYPE_STM32F205RF,
-        .core = {
-            .cortexm_model = CORTEX_M3,
-            .flash_size_kb = 768,
-            .sram_size_kb = 128, /* No CCM */
-            .has_mpu = true, } },
+        .flash_size_kb = 768,
+        .sram_size_kb = 128, /* No CCM */
+        .core = &stm32f2xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F303VC,
-        .core = {
-            .cortexm_model = CORTEX_M4F,
-            .flash_size_kb = 256,
-            .sram_size_kb = 40,
-            .has_mpu = true, } },
+        .flash_size_kb = 256,
+        .sram_size_kb = 40,
+        .core = &stm32f3xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F334R8,
-        .core = {
-            .cortexm_model = CORTEX_M4F,
-            .flash_size_kb = 64,
-            .sram_size_kb = 12,
-            .has_mpu = true, } },
+        .flash_size_kb = 64,
+        .sram_size_kb = 12,
+        .core = &stm32f3xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F405RG,
-        .core = {
-            .cortexm_model = CORTEX_M4F,
-            .flash_size_kb = 1024,
-            .sram_size_kb = 128, /* 64K CCM not counted */
-            .has_mpu = true, } },
+        .flash_size_kb = 1024,
+        .sram_size_kb = 128, /* 64K CCM not counted */
+        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F407VG,
-        .core = {
-            .cortexm_model = CORTEX_M4F,
-            .flash_size_kb = 1024,
-            .sram_size_kb = 128, /* 64K CCM not counted */
-            .has_mpu = true, } },
+        .flash_size_kb = 1024,
+        .sram_size_kb = 128, /* 64K CCM not counted */
+        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F407ZG,
-        .core = {
-            .cortexm_model = CORTEX_M4F,
-            .flash_size_kb = 1024,
-            .sram_size_kb = 128, /* 64K CCM not counted */
-            .has_mpu = true, } },
+        .flash_size_kb = 1024,
+        .sram_size_kb = 128, /* 64K CCM not counted */
+        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F411RE,
-        .core = {
-            .cortexm_model = CORTEX_M4F,
-            .flash_size_kb = 512,
-            .sram_size_kb = 128, /* No CCM */
-            .has_mpu = true, } },
+        .flash_size_kb = 512,
+        .sram_size_kb = 128, /* No CCM */
+        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+    },
     {
         .name = TYPE_STM32F429ZI,
-        .core = {
-            .cortexm_model = CORTEX_M4F,
-            .flash_size_kb = 2048,
-            .sram_size_kb = 192, /* 64K CCM not counted */
-            .has_mpu = true, } },
+        .flash_size_kb = 2048,
+        .sram_size_kb = 192, /* 64K CCM not counted */
+        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+    },
     {
-        .name = 0 }
+        .name = 0 /* End of array. */
+    } /**/
 };
 
 /* ------------------------------------------------------------------------- */
@@ -203,8 +405,9 @@ static void stm32_mcus_construct_callback(Object *obj, MachineState *machine)
 
     STM32DeviceClass *st_class = STM32_DEVICE_GET_CLASS(obj);
 
-    STM32_MCU_GET_CLASS(obj)->construct(obj, &st_class->part_info->stm32,
-            &st_class->part_info->core, machine);
+    STM32PartInfo *part_info = st_class->part_info;
+    STM32_MCU_GET_CLASS(obj)->construct(obj, part_info->stm32, part_info->core,
+            part_info->flash_size_kb, part_info->sram_size_kb, machine);
 }
 
 static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
@@ -225,7 +428,7 @@ static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
 static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *st_class = (STM32DeviceClass*)(klass);
+    STM32DeviceClass *st_class = (STM32DeviceClass*) (klass);
 
     dc->realize = stm32_mcus_realize_callback;
     dc->props = stm32_mcus_properties;

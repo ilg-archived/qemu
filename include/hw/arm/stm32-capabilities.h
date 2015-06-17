@@ -22,10 +22,21 @@
 
 #include <stdint.h>
 
+/**
+ * This file defines the members used in the structure used to describe
+ * the capabilities of the STM32 MCUs.
+ *
+ * STM32 MCUs are grouped by families and sub-families.
+ */
+
+/**
+ * The family is the main differentiator for STM32 MCUs.
+ */
 typedef enum {
     STM32_FAMILY_UNKNOWN,
     STM32_FAMILY_F1,
-    STM32_FAMILY_F4
+    STM32_FAMILY_F4,
+    STM32_FAMILY_L1,
 } stm32_family_t;
 
 #define STM32_MAX_GPIO  (8)
@@ -40,9 +51,15 @@ typedef struct {
     uint32_t hsi_freq_hz;
     uint32_t lsi_freq_hz;
 
+    unsigned int eeprom_size_kb;
+
     /*
      * Peripherals common to all families.
      */
+    unsigned int has_rcc :1;
+    unsigned int has_pwr :1;
+
+    /* GPIOs */
     unsigned int has_gpioa :1;
     unsigned int has_gpiob :1;
     unsigned int has_gpioc :1;
@@ -50,6 +67,101 @@ typedef struct {
     unsigned int has_gpioe :1;
     unsigned int has_gpiof :1;
     unsigned int has_gpiog :1;
+    unsigned int has_gpioh :1;
+    /* EXTI */
+    unsigned int has_exti :1;
+    /* DMA */
+    unsigned int has_dma :1;
+    unsigned int has_dma1 :1;
+    unsigned int has_dma2 :1;
+
+    /* Advanced control timers */
+    unsigned int has_ac_tim1 :1;
+    unsigned int has_ac_tim8 :1;
+    /* General-purpose timers */
+    unsigned int has_gp1_tim2 :1;
+    unsigned int has_gp1_tim3 :1;
+    unsigned int has_gp1_tim4 :1;
+    unsigned int has_gp1_tim5 :1;
+    /* General-purpose timers */
+    unsigned int has_gp2_tim9 :1;
+    unsigned int has_gp2_tim12 :1;
+    /* General-purpose timers */
+    unsigned int has_gp3_tim10 :1;
+    unsigned int has_gp3_tim11 :1;
+    unsigned int has_gp3_tim13 :1;
+    unsigned int has_gp3_tim14 :1;
+    /* Basic timers */
+    unsigned int has_bc_tim6 :1;
+    unsigned int has_bc_tim7 :1;
+    /* Watchdogs */
+    unsigned int has_iwdg :1;
+    unsigned int has_wwdg :1;
+
+    /* I2C */
+    unsigned int has_i2c :1;
+    unsigned int has_i2c1 :1;
+    unsigned int has_i2c2 :1;
+
+    /* Universal synchronous/asynchronous */
+    unsigned int has_usart1 :1;
+    unsigned int has_usart2 :1;
+    unsigned int has_usart3 :1;
+    /* Universal asynchronous */
+    unsigned int has_uart4 :1;
+    unsigned int has_uart5 :1;
+
+    /* SPI */
+    unsigned int has_spi1 :1;
+    unsigned int has_spi2 :1;
+    unsigned int has_spi3 :1;
+
+    /* I2S */
+    unsigned int has_i2s1 :1;
+    unsigned int has_i2s2 :1;
+
+    /* Memory */
+    unsigned int has_fsmc :1;
+
+    /* SDIO */
+    unsigned int has_sdio :1;
+
+    /* Ethernet */
+    unsigned int has_eth :1;
+    /* CAN */
+    unsigned int has_bx_can1 :1;
+    unsigned int has_bx_can2 :1;
+    unsigned int has_can1 :1;
+    unsigned int has_can2 :1;
+    /* ADC */
+    unsigned int has_adc :1;
+    unsigned int has_adc1 :1;
+    unsigned int has_adc2 :1;
+    /* DAC */
+    unsigned int has_dac :1;
+    unsigned int has_dac1 :1;
+    unsigned int has_dac2 :1;
+    /* USB */
+    unsigned int has_usb_fs :1;
+    unsigned int has_usb_otg_fs :1;
+
+    /* RTC */
+    unsigned int has_rtc :1;
+
+    /* CRC */
+    unsigned int has_crc :1;
+
+    /* Temperature sensor */
+    unsigned int has_ts :1;
+
+    /* Keep them together */
+    unsigned char num_exti;
+    unsigned char num_dma1;
+    unsigned char num_dma2;
+    unsigned char num_dma;
+
+    /* Backup bytes */
+    unsigned int num_bkp;
 
     /*
      * Note: the family definitions are mutual exclusive, and could
@@ -67,6 +179,12 @@ typedef struct {
         unsigned int is_hdvl :1; /* is high density */
 
     } f1;
+
+    struct {
+    } l1;
+
+    // TODO: add F4 and other families
+
 } STM32Capabilities;
 
 #endif /* STM32_CAPABILITIES_H_ */

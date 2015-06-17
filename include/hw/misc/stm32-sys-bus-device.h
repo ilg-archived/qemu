@@ -50,8 +50,7 @@ typedef struct {
     SysBusDevice parent_obj;
     /*< public >*/
 
-    STM32Capabilities *capabilities;
+    const STM32Capabilities *capabilities;
 } STM32SysBusDevice;
-
 
 #endif /* STM32_SYS_BUS_DEVICE_H_ */

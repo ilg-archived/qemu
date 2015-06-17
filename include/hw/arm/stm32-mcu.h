@@ -40,8 +40,10 @@ typedef struct STM32MCUClass {
     CortexMClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, STM32Capabilities* capabilities,
-            CortexMCapabilities* core_capabilities, MachineState *machine);
+    void (*construct)(Object *obj, const STM32Capabilities* capabilities,
+            const CortexMCapabilities* core_capabilities,
+            const int param_flash_size_kb, const int param_sram_size_kb,
+            MachineState *machine);
 
 } STM32MCUClass;
 
@@ -54,7 +56,7 @@ typedef struct STM32MCUState {
     /*< public >*/
 
     /* Specific STM32 capabilities; Cortex-M capabilities are separate. */
-    STM32Capabilities *capabilities;
+    const STM32Capabilities *capabilities;
 
     Object *container;
 

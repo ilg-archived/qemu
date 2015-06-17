@@ -53,15 +53,11 @@ typedef struct {
 
     cortexm_models_t cortexm_model; /* binary id to identify the core */
 
-    /* The vendor values. */
-    int flash_size_kb; /* size of main program area, in KB */
-    int sram_size_kb; /* size of main RAM area, in KB */
-    int sram_begin; /* begin address of main RAM area, if not 0x20000000 */
-
     /* Capabilities bits; keep them compact. */
-    int has_mpu :1; /* true/false */
-    int has_fpu :1; /* true/false */
-    int has_itm :1; /* true/false */
+    unsigned int has_mpu :1; /* true/false */
+    unsigned int has_fpu :1; /* true/false */
+    unsigned int has_etm :1; /* true/false */
+    unsigned int has_itm :1; /* true/false */
 
     int fpu_type; /* CORTEX_M_FPU_TYPE_*; may be not needed */
 
@@ -81,7 +77,8 @@ typedef struct {
     SysBusDeviceClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, CortexMCapabilities* capabilities,
+    void (*construct)(Object *obj, const CortexMCapabilities* capabilities,
+            const int flash_size_kb, const int sram_size_kb,
             MachineState *machine);
     void (*memory_regions_create)(DeviceState *dev);
     void (*image_load)(DeviceState *dev);
@@ -102,9 +99,9 @@ typedef struct {
     /*< public >*/
 
     /**
-     * Core capabilities, set by *_instance_init().
+     * R/W copy of core capabilities, set by *_instance_init().
      */
-    CortexMCapabilities *capabilities;
+    const CortexMCapabilities *capabilities;
 
     const char *kernel_filename;
 

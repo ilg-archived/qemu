@@ -103,7 +103,7 @@ static uint64_t stm32_flash_read_callback(void *opaque, hwaddr addr,
         return 0;
     }
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -133,7 +133,7 @@ static void stm32_flash_write_callback(void *opaque, hwaddr addr,
         return;
     }
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -161,7 +161,7 @@ static void stm32_flash_reset_callback(DeviceState *dev)
 
     STM32FlashState *state = STM32_FLASH_STATE(dev);
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -188,7 +188,7 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
     STM32FlashState *state = STM32_FLASH_STATE(dev);
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
     assert(capabilities != NULL);
 

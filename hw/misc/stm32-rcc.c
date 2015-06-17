@@ -333,7 +333,7 @@ static uint64_t stm32_rcc_read_callback(void *opaque, hwaddr addr,
         return 0;
     }
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -367,7 +367,7 @@ static void stm32_rcc_write_callback(void *opaque, hwaddr addr, uint64_t value,
         return;
     }
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -430,7 +430,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 {
     // qemu_log_function_name();
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     uint32_t prediv1factor = 0;
@@ -572,7 +572,7 @@ static void stm32_rcc_reset_callback(DeviceState *dev)
 
     STM32RCCState *state = STM32_RCC_STATE(dev);
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
 
     switch (capabilities->family) {
@@ -616,7 +616,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
     STM32RCCState *state = STM32_RCC_STATE(dev);
 
-    STM32Capabilities *capabilities =
+    const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
     assert(capabilities != NULL);
 
