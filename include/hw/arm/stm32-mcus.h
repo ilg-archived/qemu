@@ -22,7 +22,7 @@
 
 #include "hw/arm/stm32-mcu.h"
 
-/* ----- Devices ----- */
+/* ------------------------------------------------------------------------- */
 
 /*
  * For compatibility with some development tools, it is
@@ -83,5 +83,7 @@ typedef struct {
     /*< public >*/
 
 } STM32DeviceState;
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* STM32_MCUS_H */

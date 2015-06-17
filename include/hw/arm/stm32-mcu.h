@@ -27,7 +27,8 @@
 #include "hw/misc/stm32-flash.h"
 #include "hw/gpio/stm32-gpio.h"
 
-/* ---- Common STM32 ----- */
+/* ------------------------------------------------------------------------- */
+
 #define TYPE_STM32_MCU "stm32-mcu"
 
 #define STM32_MCU_GET_CLASS(obj) \
@@ -65,6 +66,13 @@ typedef struct STM32MCUState {
     DeviceState *gpio[STM32_MAX_GPIO];
 } STM32MCUState;
 
+/* ------ Public ----------------------------------------------------------- */
+
+/*
+ * Might be deprecated in the future; peripherals are named and can be
+ * obtained by name.
+ */
+
 G_INLINE_FUNC DeviceState *stm32_mcu_get_rcc_dev(DeviceState *dev)
 {
     return DEVICE((STM32_MCU_STATE(dev)->rcc));
@@ -76,5 +84,7 @@ G_INLINE_FUNC DeviceState *stm32_mcu_get_gpio_dev(DeviceState *dev,
     assert(port_index < STM32_MAX_GPIO);
     return DEVICE((STM32_MCU_STATE(dev)->gpio[port_index]));
 }
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* STM32_MCU_H */

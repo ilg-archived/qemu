@@ -28,6 +28,16 @@
 #include "verbosity.h"
 #endif
 
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Define all STM32 MCUs, based on table capabilities.
+ *
+ * To easily reuse the definitions, each line includes a pointer
+ * to the core capabilities and a pointer to the stm32 capabilities.
+ * This greatly simplify adding definition that differ only in memory size.
+ */
+
 /*
  * - Low-density devices are STM32F101xx, STM32F102xx and STM32F103xx
  * microcontrollers where the Flash memory density ranges between 16
@@ -79,13 +89,6 @@
  * G = 1024K
  * I = 2048K
  */
-
-/* ------------------------------------------------------------------------- */
-
-static Property stm32_mcus_properties[] = {
-    /* TODO: add STM32 specific properties */
-    DEFINE_PROP_END_OF_LIST(), //
-        };
 
 static const STM32Capabilities stm32f103x8b = {
 
@@ -287,7 +290,8 @@ static const CortexMCapabilities stm32f152_core = {
     .has_itm = true, /* TODO: check */
     .has_etm = true,
     .num_irq = 57, /* TODO: check */
-    .nvic_bits = 4, };
+    .nvic_bits = 4, /**/
+};
 
 static const CortexMCapabilities stm32f2xx_core = {
     .cortexm_model = CORTEX_M3,
@@ -425,6 +429,11 @@ static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
     }
 }
 
+static Property stm32_mcus_properties[] = {
+    /* TODO: add STM32 specific properties */
+    DEFINE_PROP_END_OF_LIST(), /**/
+};
+
 static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
@@ -442,6 +451,11 @@ static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
     st_class->part_info = data;
 }
 
+/**
+ * Register all devices described in the table.
+ * Pass the pointer to the table element as .class_data
+ * to the .class_init.
+ */
 static void stm32_mcus_types_init()
 {
 
@@ -461,3 +475,5 @@ static void stm32_mcus_types_init()
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 type_init(stm32_mcus_types_init);
 #endif
+
+/* ------------------------------------------------------------------------- */
