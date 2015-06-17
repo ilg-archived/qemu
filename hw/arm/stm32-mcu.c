@@ -24,7 +24,7 @@
 #include "verbosity.h"
 #endif
 
-void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
+static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
         STM32Capabilities* capabilities)
 {
 
@@ -120,8 +120,6 @@ static void stm32_mcu_construct_callback(Object *obj,
                 OBJECT(state->flash), NULL);
     }
 
-    STM32GPIOState *gdev;
-    stm32_gpio_index_t index;
     /* GPIOA */
     if (capabilities->has_gpioa) {
         create_gpio(state, STM32_GPIO_PORT_A, capabilities);
