@@ -21,23 +21,13 @@
 #include "hw/arm/stm32-mcu.h"
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
-#include "hw/display/stm32-gpio-led.h"
+#include "hw/display/gpio-led.h"
 
 /*
  * This file defines several Olimex STM32 boards.
  */
 
 /* ----- Olimex STM32-H103 ----- */
-
-GPIOLEDInfo h103_machine_green_led = {
-    .desc = "STM32-H103 Green LED, GPIOC[12], active low",
-    .port_index = STM32_GPIO_PORT_C,
-    .port_bit = 12,
-    .active_low = true,
-    .on_message = "[Green LED On]\n",
-    .off_message = "[Green LED Off]\n",
-//.use_stderr = true
-        };
 
 static void stm32_h103_board_init_callback(MachineState *machine)
 {
@@ -53,16 +43,14 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     qdev_realize(mcu);
 
     /* Board peripheral objects */
-    DeviceState *led = qdev_alloc(NULL, TYPE_GPIO_LED);
+    DeviceState *led = qdev_create(NULL, TYPE_GPIO_LED);
     {
-        GPIO_LED_GET_CLASS(led)->construct(OBJECT(led),
-                &h103_machine_green_led);
+        /* STM32-H103 Green LED, GPIOC[12], active low */
+        qdev_prop_set_bool(led, "active-low", true);
+        qdev_prop_set_string(led, "on-message", "[Green LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Green LED Off]\n");
 
-        qemu_irq irq = GPIO_LED_STATE(led)->irq;
-        // qemu_irq irq = qdev_get_gpio_in(led, 0);
-        qdev_connect_gpio_out(
-                DEVICE(object_resolve_path("/machine/stm32/gpio[c]", NULL)), 12,
-                irq);
+        gpio_led_connect(led, "/machine/stm32/gpio[c]", 12);
     }
     qdev_realize(led);
 }
