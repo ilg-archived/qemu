@@ -92,3 +92,8 @@ DeviceState *qdev_alloc(BusState *bus, const char *name)
 {
     return qdev_create(bus, name);
 }
+
+void qdev_prop_set_bool(DeviceState *dev, const char *name, bool value)
+{
+    object_property_set_bool(OBJECT(dev), value, name, &error_abort);
+}
