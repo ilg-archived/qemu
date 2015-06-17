@@ -29,19 +29,6 @@
 #define DEFINE_PROP_GPIO_LED_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, GPIOLEDInfo*)
 
-/**
- * This structure must be passed via the constructor, to configure the
- * LED connectivity, logic and message.
- */
-typedef struct {
-    const char *desc;
-    int port_index;
-    int port_bit; //
-    bool active_low;
-    const char *on_message;
-    const char *off_message; //
-} GPIOLEDInfo;
-
 /* ------------------------------------------------------------------------- */
 
 #define TYPE_GPIO_LED "gpio-led"
