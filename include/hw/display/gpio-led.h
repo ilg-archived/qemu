@@ -61,12 +61,6 @@ typedef struct {
     GPIOLEDParentClass parent_class;
     /*< public >*/
 
-    /**
-     * Constructor; it uses the Info structure and a pointer to the MCU
-     * to get the GPIO(n) port and to connect to the pin.
-     */
-    void (*construct)(Object *obj, GPIOLEDInfo* info);
-
 } GPIOLEDClass;
 
 /* ------------------------------------------------------------------------- */
@@ -79,7 +73,9 @@ typedef struct {
     GPIOLEDParentState parent_obj;
     /*< public >*/
 
-    GPIOLEDInfo *info;
+    bool active_low;
+    const char *on_message;
+    const char *off_message;
 
     /**
      * The actual irq used to blink the LED. It works connected to
@@ -88,6 +84,8 @@ typedef struct {
     qemu_irq irq;
 
 } GPIOLEDState;
+
+void gpio_led_connect(DeviceState *dev, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */
 
