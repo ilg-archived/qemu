@@ -34,7 +34,10 @@
  */
 typedef enum {
     STM32_FAMILY_UNKNOWN,
+    STM32_FAMILY_F0,
     STM32_FAMILY_F1,
+    STM32_FAMILY_F2,
+    STM32_FAMILY_F3,
     STM32_FAMILY_F4,
     STM32_FAMILY_L1,
 } stm32_family_t;
@@ -160,13 +163,14 @@ typedef struct {
     unsigned char num_dma2;
     unsigned char num_dma;
 
-    /* Backup bytes */
+    /* Number of backup bytes */
     unsigned int num_bkp;
 
     /*
      * Note: the family definitions are mutual exclusive, and could
      * be packed in a union, but this makes writing the definitions
      * more complicated and was discarded.
+     * The memory penalty is not significant.
      */
     struct {
         unsigned int is_ld :1; /* is low density */
@@ -180,10 +184,7 @@ typedef struct {
 
     } f1;
 
-    struct {
-    } l1;
-
-    // TODO: add F4 and other families
+    // TODO: add other families that have sub-families.
 
 } STM32Capabilities;
 

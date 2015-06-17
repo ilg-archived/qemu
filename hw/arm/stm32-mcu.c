@@ -24,10 +24,14 @@
 #include "verbosity.h"
 #endif
 
+/* ----- Private ----------------------------------------------------------- */
+
+/**
+ * Create children GPIO nodes. Public names are "/machine/stm32/gpio[%c]".
+ */
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
         const STM32Capabilities* capabilities)
 {
-
     DeviceState *dev;
     STM32SysBusDevice *sbd;
     STM32GPIOState *gdev;
@@ -48,13 +52,13 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
     object_property_add_child(state->container, child_name, OBJECT(dev), NULL);
 }
 
-/*
- * Common layer for all STM32 devices.
+/**
+ * Constructor for all STM32 devices, based on capabilities.
+ *
  * Alias the flash memory to 0x08000000.
  *
  * TODO: define the special CCM region for the models that include it.
  */
-
 static void stm32_mcu_construct_callback(Object *obj,
         const STM32Capabilities* capabilities,
         const CortexMCapabilities* core_capabilities, const int flash_size_kb,
@@ -62,6 +66,7 @@ static void stm32_mcu_construct_callback(Object *obj,
 {
     qemu_log_function_name();
 
+    /* Call parent constructor */
     CORTEXM_MCU_GET_CLASS(obj)->construct(obj, core_capabilities, flash_size_kb,
             sram_size_kb, machine);
 
@@ -74,14 +79,24 @@ static void stm32_mcu_construct_callback(Object *obj,
     case STM32_FAMILY_F1:
         family = "F1";
         break;
+    case STM32_FAMILY_F2:
+        family = "F2";
+        break;
+    case STM32_FAMILY_F3:
+        family = "F3";
+        break;
     case STM32_FAMILY_F4:
         family = "F4";
+        break;
+    case STM32_FAMILY_L1:
+        family = "L1";
         break;
     default:
         family = "unknown";
     }
     qemu_log_mask(LOG_TRACE, "STM32 Family: %s\n", family);
 
+    /* Devices will be addressed below "/machine/stm32". */
     state->container = container_get(qdev_get_machine(), "/stm32");
 
     DeviceState *dev;
@@ -102,12 +117,13 @@ static void stm32_mcu_construct_callback(Object *obj,
         qdev_prop_set_uint32(dev, "lsi-freq-hz",
                 sbd->capabilities->lsi_freq_hz);
 
-        /* Alias RCC properties to MCU */
+        /* Alias RCC properties to MCU, to hide internal details. */
         object_property_add_alias(obj, "hse-freq-hz", OBJECT(dev),
                 "hse-freq-hz", NULL);
         object_property_add_alias(obj, "lse-freq-hz", OBJECT(dev),
                 "lse-freq-hz", NULL);
 
+        /* RCC will be named "/machine/stm32/rcc" */
         object_property_add_child(state->container, "rcc", OBJECT(state->rcc),
         NULL);
     }
@@ -118,6 +134,7 @@ static void stm32_mcu_construct_callback(Object *obj,
         sbd = STM32_SYS_BUS_DEVICE_STATE(state->flash);
         sbd->capabilities = capabilities;
 
+        /* FLASH will be named "/machine/stm32/flash" */
         object_property_add_child(state->container, "flash",
                 OBJECT(state->flash), NULL);
     }
@@ -156,12 +173,15 @@ static void stm32_mcu_construct_callback(Object *obj,
     if (capabilities->has_gpiog) {
         create_gpio(state, STM32_GPIO_PORT_G, capabilities);
     }
+
+    // TODO: add more devices.
 }
 
 static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
+    /* Call the parent realize(). */
     DeviceClass *parent_class = DEVICE_CLASS(
             object_class_get_parent(object_class_by_name(TYPE_STM32_MCU)));
     Error *local_err = NULL;
@@ -171,12 +191,10 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         return;
     }
 
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    STM32Capabilities *capabilities =
-            (STM32Capabilities *) cm_state->capabilities;
-    assert(capabilities != NULL);
-
     STM32MCUState *state = STM32_MCU_STATE(dev);
+
+    /* Propagate realize() to children. */
+
     /* RCC */
     qdev_realize(DEVICE(state->rcc));
 
@@ -192,6 +210,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 }
 
+/**
+ * Virtual function, overriding (in fact extending) the Cortex-M code.
+ */
 static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
 {
     qemu_log_function_name();
@@ -231,8 +252,8 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
 
 static Property stm32_mcu_properties[] = {
     /* TODO: add STM32 specific properties */
-    DEFINE_PROP_END_OF_LIST(), //
-        };
+    DEFINE_PROP_END_OF_LIST(), /**/
+};
 
 static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
@@ -253,16 +274,19 @@ static const TypeInfo stm32_mcu_type_info = {
     .parent = TYPE_CORTEXM_MCU,
     .instance_size = sizeof(STM32MCUState),
     .class_init = stm32_mcu_class_init_callback,
-    .class_size = sizeof(STM32MCUClass) };
+    .class_size = sizeof(STM32MCUClass) /**/
+};
 
 /* ----- Type inits. ----- */
 
 static void stm32_type_init()
 {
     type_register_static(&stm32_mcu_type_info);
-
 }
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 type_init(stm32_type_init);
 #endif
+
+/* ------------------------------------------------------------------------- */
+
