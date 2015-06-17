@@ -37,5 +37,4 @@ common-obj-$(CONFIG_QXL) += qxl.o qxl-logger.o qxl-render.o
 
 # [GNU ARM Eclipse]
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += gpio-led.o
-obj-$(CONFIG_STM32) += stm32-gpio-led.o
 # [GNU ARM Eclipse]
