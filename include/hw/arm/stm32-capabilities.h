@@ -184,7 +184,7 @@ typedef struct {
 
     } f1;
 
-    // TODO: add other families that have sub-families.
+    /* TODO: add other families that have sub-families. */
 
 } STM32Capabilities;
 

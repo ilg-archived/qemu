@@ -115,9 +115,9 @@ static const STM32Capabilities stm32f103x8b = {
     .has_wwdg = true,
     .has_i2c1 = true,
     .has_i2c2 = true,
-    .has_usart1 = true, // 4.5Mb/s
-    .has_usart2 = true, // 2.25 Mb/s
-    .has_usart3 = true, // 2.25 Mb/s
+    .has_usart1 = true, /* 4.5Mb/s */
+    .has_usart2 = true, /* 2.25 Mb/s */
+    .has_usart3 = true, /* 2.25 Mb/s */
     .has_spi1 = true,
     .has_spi2 = true,
     .has_bx_can1 = true,
@@ -175,7 +175,7 @@ static const STM32Capabilities stm32f10_57_xx = {
     .has_spi3 = true,
     .has_i2s1 = true,
     .has_i2s2 = true,
-    .has_eth = true, // 107 only
+    .has_eth = true, /* 107 only */
     .has_can1 = true,
     .has_can2 = true,
     .has_usb_otg_fs = true,
@@ -255,7 +255,7 @@ static const STM32Capabilities stm32l15_12_xd = {
 
 static const CortexMCapabilities stm32f0xx_core = {
     .cortexm_model = CORTEX_M0,
-    .has_mpu = false, // itm? irqs?
+    .has_mpu = false, /* itm? irqs? */
     .nvic_bits = 4, /**/
 };
 
@@ -328,7 +328,7 @@ static const STM32PartInfo stm32_mcus[] = {
         .core = &stm32f100_core, /* TODO: Add .stm32 */
     },
     {
-        .name = TYPE_STM32F103RB, // STM32F103x[8B]
+        .name = TYPE_STM32F103RB, /* STM32F103x[8B] */
         .flash_size_kb = 128,
         .sram_size_kb = 20,
         .core = &stm32f1xx_core,
@@ -437,7 +437,7 @@ static Property stm32_mcus_properties[] = {
 static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *st_class = (STM32DeviceClass*) (klass);
+    STM32DeviceClass *st_class = (STM32DeviceClass *) (klass);
 
     dc->realize = stm32_mcus_realize_callback;
     dc->props = stm32_mcus_properties;

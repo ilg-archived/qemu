@@ -46,7 +46,7 @@
  * Warning, this cast does not check the type!
  */
 #define STM32_DEVICE_GET_CLASS(obj) \
-    ((STM32DeviceClass*)object_get_class(OBJECT(obj)))
+    ((STM32DeviceClass *)object_get_class(OBJECT(obj)))
 
 /**
  * Structure to define the specifics of each MCU. Capabilities are

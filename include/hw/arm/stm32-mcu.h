@@ -22,7 +22,6 @@
 
 #include "hw/boards.h"
 #include "hw/arm/cortexm-mcu.h"
-//#include "hw/sysbus.h"
 #include "hw/misc/stm32-rcc.h"
 #include "hw/misc/stm32-flash.h"
 #include "hw/gpio/stm32-gpio.h"
@@ -42,7 +41,7 @@ typedef struct STM32MCUClass {
     /*< public >*/
 
     void (*construct)(Object *obj, const STM32Capabilities* capabilities,
-            const CortexMCapabilities* core_capabilities,
+            const CortexMCapabilities *core_capabilities,
             const int param_flash_size_kb, const int param_sram_size_kb,
             MachineState *machine);
 

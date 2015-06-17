@@ -30,7 +30,7 @@
  * Create children GPIO nodes. Public names are "/machine/stm32/gpio[%c]".
  */
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
-        const STM32Capabilities* capabilities)
+        const STM32Capabilities *capabilities)
 {
     DeviceState *dev;
     STM32SysBusDevice *sbd;
@@ -60,8 +60,8 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
  * TODO: define the special CCM region for the models that include it.
  */
 static void stm32_mcu_construct_callback(Object *obj,
-        const STM32Capabilities* capabilities,
-        const CortexMCapabilities* core_capabilities, const int flash_size_kb,
+        const STM32Capabilities *capabilities,
+        const CortexMCapabilities *core_capabilities, const int flash_size_kb,
         const int sram_size_kb, MachineState *machine)
 {
     qemu_log_function_name();
@@ -174,7 +174,7 @@ static void stm32_mcu_construct_callback(Object *obj,
         create_gpio(state, STM32_GPIO_PORT_G, capabilities);
     }
 
-    // TODO: add more devices.
+    /* TODO: add more devices. */
 }
 
 static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
