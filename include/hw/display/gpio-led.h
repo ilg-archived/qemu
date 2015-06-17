@@ -1,5 +1,5 @@
 /*
- * Generic GPIO connected LED device emulation.
+ * GPIO connected LED device emulation.
  *
  * Copyright (c) 2015 Liviu Ionescu
  *
@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GENERIC_GPIO_LED_H_
-#define GENERIC_GPIO_LED_H_
+#ifndef GPIO_LED_H_
+#define GPIO_LED_H_
 
 #include "hw/qdev.h"
 #include "qemu/typedefs.h"
@@ -91,4 +91,4 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* GENERIC_GPIO_LED_H_ */
+#endif /* GPIO_LED_H_ */

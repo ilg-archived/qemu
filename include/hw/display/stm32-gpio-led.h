@@ -20,7 +20,7 @@
 #ifndef STM32_GPIO_LED_H_
 #define STM32_GPIO_LED_H_
 
-#include "hw/display/generic-gpio-led.h"
+#include "hw/display/gpio-led.h"
 
 /* ------------------------------------------------------------------------- */
 

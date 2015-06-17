@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/display/generic-gpio-led.h"
+#include "hw/display/gpio-led.h"
 
 /**
  * This class implements a LED connected to a GPIO device.
