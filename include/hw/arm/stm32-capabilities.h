@@ -70,7 +70,7 @@ typedef struct {
     unsigned int has_gpioe :1;
     unsigned int has_gpiof :1;
     unsigned int has_gpiog :1;
-    unsigned int has_gpioh :1;
+    unsigned int has_gpioh :1; /* Used by L1 */
     /* EXTI */
     unsigned int has_exti :1;
     /* DMA */
