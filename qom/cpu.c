@@ -224,6 +224,10 @@ void cpu_dump_statistics(CPUState *cpu, FILE *f, fprintf_function cpu_fprintf,
 
 void cpu_reset(CPUState *cpu)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    qemu_log_function_name();
+#endif
+
     CPUClass *klass = CPU_GET_CLASS(cpu);
 
     if (klass->reset != NULL) {

@@ -915,6 +915,10 @@ void rom_reset(void *unused)
 static void rom_reset(void *unused)
 #endif
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    qemu_log_function_name();
+#endif
+
     Rom *rom;
 
     QTAILQ_FOREACH(rom, &roms, next) {
