@@ -74,7 +74,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     CortexMCapabilities* capabilities = g_new(CortexMCapabilities, 1);
     memcpy(capabilities, param_capabilities, sizeof(CortexMCapabilities));
 
-    /* Remember the R/O pointer for future use. */
+    /* Remember the local copy for future use. */
     cm_state->capabilities = (const CortexMCapabilities*) capabilities;
 
     if (machine->kernel_filename) {
@@ -245,6 +245,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     }
 #endif
 
+    /* The /cortexm container will hold all ARM internal peripherals. */
     cm_state->container = container_get(qdev_get_machine(), "/cortexm");
 
     CPUARMState *env;
@@ -291,6 +292,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
 
         qdev_prop_set_uint32(nvic, "num-irq", num_irq);
 
+        /* The NVIC will be available via "/machine/cortexm/nvic" */
         object_property_add_child(cm_state->container, "nvic",
                 OBJECT(cm_state->nvic), NULL);
     }
@@ -299,6 +301,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     if (capabilities->has_itm) {
         cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
 
+        /* The ITM will be available via "/machine/cortexm/nvic" */
         object_property_add_child(cm_state->container, "itm",
                 OBJECT(cm_state->itm), NULL);
     }
@@ -324,6 +327,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
+    /* Call parent realize(). */
     DeviceClass *parent_class = DEVICE_CLASS(
             object_class_get_parent(object_class_by_name(TYPE_CORTEXM_MCU)));
     Error *local_err = NULL;
