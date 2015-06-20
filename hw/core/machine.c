@@ -81,6 +81,25 @@ static void machine_set_kernel(Object *obj, const char *value, Error **errp)
     ms->kernel_filename = g_strdup(value);
 }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+static char *machine_get_image(Object *obj, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    return g_strdup(ms->image_filename);
+}
+
+static void machine_set_image(Object *obj, const char *value, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    g_free(ms->image_filename);
+    ms->image_filename = g_strdup(value);
+}
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 static char *machine_get_initrd(Object *obj, Error **errp)
 {
     MachineState *ms = MACHINE(obj);
@@ -345,6 +364,13 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "append",
                                     "Linux kernel command line",
                                     NULL);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    object_property_add_str(obj, "image",
+                            machine_get_image, machine_set_image, NULL);
+    object_property_set_description(obj, "image",
+                                    "Bare-bone image file",
+                                    NULL);
+#endif
     object_property_add_str(obj, "dtb",
                             machine_get_dtb, machine_set_dtb, NULL);
     object_property_set_description(obj, "dtb",
@@ -420,6 +446,9 @@ static void machine_finalize(Object *obj)
     g_free(ms->kernel_filename);
     g_free(ms->initrd_filename);
     g_free(ms->kernel_cmdline);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    g_free(ms->image_filename);
+#endif
     g_free(ms->dtb);
     g_free(ms->dumpdtb);
     g_free(ms->dt_compatible);

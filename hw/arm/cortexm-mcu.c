@@ -78,15 +78,17 @@ static void cortexm_mcu_construct_callback(Object *obj,
     /* Remember the local copy for future use. */
     cm_state->capabilities = (const CortexMCapabilities*) capabilities;
 
-    if (machine->kernel_filename) {
-        cm_state->kernel_filename = machine->kernel_filename;
+    if (machine->image_filename) {
+        cm_state->image_filename = machine->image_filename;
+    } else if (machine->kernel_filename) {
+        cm_state->image_filename = machine->kernel_filename;
     }
 
     if (machine->cpu_model) {
         cm_state->cpu_model = machine->cpu_model;
     }
 
-    const char *kernel_filename = cm_state->kernel_filename;
+    const char *image_filename = cm_state->image_filename;
     const char *cpu_model_arg = cm_state->cpu_model;
     int ram_size_arg_kb = cm_state->sram_size_kb;
     int flash_size_arg_kb = cm_state->flash_size_kb;
@@ -234,14 +236,16 @@ static void cortexm_mcu_construct_callback(Object *obj,
             printf(", FPU");
         }
         printf("), Flash: %d KB, RAM: %d KB.\n", flash_size_kb, sram_size_kb);
-        if (kernel_filename) {
-            printf("Image: '%s'.\n", kernel_filename);
+        if (image_filename) {
+            printf("Image: '%s'.\n", image_filename);
         }
 
         cmdline = semihosting_get_cmdline();
         if (cmdline != NULL) {
             printf("Command line: '%s' (%d bytes).\n", cmdline,
                     (int) strlen(cmdline));
+        } else {
+            printf("Command line: (none).\n");
         }
     }
 #endif
@@ -308,12 +312,12 @@ static void cortexm_mcu_construct_callback(Object *obj,
     }
 
     /* ----- Load image. ----- */
-    if (!cm_state->kernel_filename && !qtest_enabled() && !with_gdb) {
+    if (!cm_state->image_filename && !qtest_enabled() && !with_gdb) {
         error_report("Guest image must be specified (using -kernel)");
         exit(1);
     }
 
-    if (cm_state->kernel_filename) {
+    if (cm_state->image_filename) {
         /*
          * The image is loaded in two steps, first here
          * in some local structures then in rom_reset(),
@@ -395,7 +399,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 #endif
 
-    if (cm_state->kernel_filename) {
+    if (cm_state->image_filename) {
         /* Schedule a CPU core reset. */
         qemu_register_reset(cortexm_reset, cm_state);
     }
@@ -444,7 +448,7 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
-    const char *kernel_filename = cm_state->kernel_filename;
+    const char *kernel_filename = cm_state->image_filename;
     assert(kernel_filename);
 
     int big_endian;

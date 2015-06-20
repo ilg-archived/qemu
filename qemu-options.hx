@@ -2687,6 +2687,33 @@ STEXI
 ETEXI
 DEFHEADING()
 
+DEFHEADING(Microcontroller/Cortex-M specific:)
+STEXI
+
+Unlike Linux machines, microcontrollers like Cortex-M MCUs, 
+do not boot from a device; they have the application code
+written into flash and at reset they directly start executing it. 
+Therefore there is no need to specify -kernel/-initrd, and a 
+simpler solution is available to define the image file that
+QEMU will use as flash content to execute.
+
+@table @option
+ETEXI
+
+DEF("image", HAS_ARG, QEMU_OPTION_image, \
+    "-image elf use 'elf' as image to emulate\n", QEMU_ARCH_ALL)
+STEXI
+@item -image @var{elf-file}
+@findex -image
+Use @var{elf-file} sections as image of the application to emulate. It is 
+the same file used to program the flash via a JTAG/SWD programmer.
+ETEXI
+
+STEXI
+@end table
+ETEXI
+DEFHEADING()
+
 DEFHEADING(Debug/Expert options:)
 STEXI
 @table @option

@@ -103,7 +103,7 @@ typedef struct {
      */
     const CortexMCapabilities *capabilities;
 
-    const char *kernel_filename;
+    const char *image_filename;
 
     /*
      * The following are the actual values used to initialise the object.

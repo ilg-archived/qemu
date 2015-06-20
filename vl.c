@@ -3027,6 +3027,7 @@ int main(int argc, char **argv, char **envp)
     Error *main_loop_err = NULL;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
+    const char *image_filename = NULL;
     int actual_argc = argc;
     with_gdb = false;   
 #endif
@@ -3322,6 +3323,12 @@ int main(int argc, char **argv, char **envp)
                     exit(1);
                 }
                 break;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+            case QEMU_OPTION_image:
+                qemu_opts_set(qemu_find_opts("machine"), 0, "image", optarg,
+                              &error_abort);
+                break;
+#endif
             case QEMU_OPTION_kernel:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "kernel", optarg,
                               &error_abort);
@@ -4427,6 +4434,9 @@ int main(int argc, char **argv, char **envp)
     initrd_filename = qemu_opt_get(machine_opts, "initrd");
     kernel_cmdline = qemu_opt_get(machine_opts, "append");
     bios_name = qemu_opt_get(machine_opts, "firmware");
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    image_filename = qemu_opt_get(machine_opts, "image");
+#endif
 
     opts = qemu_opts_find(qemu_find_opts("boot-opts"), NULL);
     if (opts) {
@@ -4737,7 +4747,7 @@ int main(int argc, char **argv, char **envp)
             exit(1);
         }
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    } else if (autostart && kernel_filename) {
+    } else if (autostart && (kernel_filename || image_filename)) {
         /* If an image is defined and no -S is requested, start it. */
 #else
     } else if (autostart) {
