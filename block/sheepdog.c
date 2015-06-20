@@ -1716,7 +1716,7 @@ static int parse_block_size_shift(BDRVSheepdogState *s, QemuOpts *opt)
         if ((object_size - 1) & object_size) {    /* not a power of 2? */
             return -EINVAL;
         }
-        obj_order = ffs(object_size) - 1;
+        obj_order = ctz32(object_size);
         if (obj_order < 20 || obj_order > 31) {
             return -EINVAL;
         }
@@ -2341,6 +2341,7 @@ static int sd_snapshot_create(BlockDriverState *bs, QEMUSnapshotInfo *sn_info)
     if (ret < 0) {
         error_report("failed to create inode for snapshot: %s",
                      error_get_pretty(local_err));
+        error_free(local_err);
         goto cleanup;
     }
 

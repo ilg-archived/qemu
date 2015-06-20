@@ -78,6 +78,23 @@ def create_image(name, size):
         i = i + 512
     file.close()
 
+# Test if 'match' is a recursive subset of 'event'
+def event_match(event, match=None):
+    if match is None:
+        return True
+
+    for key in match:
+        if key in event:
+            if isinstance(event[key], dict):
+                if not event_match(event[key], match[key]):
+                    return False
+            elif event[key] != match[key]:
+                return False
+        else:
+            return False
+
+    return True
+
 class VM(object):
     '''A QEMU VM'''
 
@@ -92,6 +109,7 @@ class VM(object):
                      '-machine', 'accel=qtest',
                      '-display', 'none', '-vga', 'none']
         self._num_drives = 0
+        self._events = []
 
     # This can be used to add an unused monitor instance.
     def add_monitor_telnet(self, ip, port):
@@ -202,13 +220,33 @@ class VM(object):
 
     def get_qmp_event(self, wait=False):
         '''Poll for one queued QMP events and return it'''
+        if len(self._events) > 0:
+            return self._events.pop(0)
         return self._qmp.pull_event(wait=wait)
 
     def get_qmp_events(self, wait=False):
         '''Poll for queued QMP events and return a list of dicts'''
         events = self._qmp.get_events(wait=wait)
+        events.extend(self._events)
+        del self._events[:]
         self._qmp.clear_events()
         return events
+
+    def event_wait(self, name='BLOCK_JOB_COMPLETED', timeout=60.0, match=None):
+        # Search cached events
+        for event in self._events:
+            if (event['event'] == name) and event_match(event, match):
+                self._events.remove(event)
+                return event
+
+        # Poll for new events
+        while True:
+            event = self._qmp.pull_event(wait=timeout)
+            if (event['event'] == name) and event_match(event, match):
+                return event
+            self._events.append(event)
+
+        return None
 
 index_re = re.compile(r'([^\[]+)\[([^\]]+)\]')
 
@@ -300,6 +338,8 @@ def notrun(reason):
 def main(supported_fmts=[], supported_oses=['linux']):
     '''Run tests'''
 
+    debug = '-d' in sys.argv
+    verbosity = 1
     if supported_fmts and (imgfmt not in supported_fmts):
         notrun('not suitable for this image format: %s' % imgfmt)
 
@@ -309,14 +349,20 @@ def main(supported_fmts=[], supported_oses=['linux']):
     # We need to filter out the time taken from the output so that qemu-iotest
     # can reliably diff the results against master output.
     import StringIO
-    output = StringIO.StringIO()
+    if debug:
+        output = sys.stdout
+        verbosity = 2
+        sys.argv.remove('-d')
+    else:
+        output = StringIO.StringIO()
 
     class MyTestRunner(unittest.TextTestRunner):
-        def __init__(self, stream=output, descriptions=True, verbosity=1):
+        def __init__(self, stream=output, descriptions=True, verbosity=verbosity):
             unittest.TextTestRunner.__init__(self, stream, descriptions, verbosity)
 
     # unittest.main() will use sys.exit() so expect a SystemExit exception
     try:
         unittest.main(testRunner=MyTestRunner)
     finally:
-        sys.stderr.write(re.sub(r'Ran (\d+) tests? in [\d.]+s', r'Ran \1 tests', output.getvalue()))
+        if not debug:
+            sys.stderr.write(re.sub(r'Ran (\d+) tests? in [\d.]+s', r'Ran \1 tests', output.getvalue()))

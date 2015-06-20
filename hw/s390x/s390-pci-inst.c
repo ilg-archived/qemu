@@ -155,7 +155,7 @@ int clp_service_call(S390CPU *cpu, uint8_t r2)
         return 0;
     }
 
-    if (s390_cpu_virt_mem_read(cpu, env->regs[r2], buffer, sizeof(*reqh))) {
+    if (s390_cpu_virt_mem_read(cpu, env->regs[r2], r2, buffer, sizeof(*reqh))) {
         return 0;
     }
     reqh = (ClpReqHdr *)buffer;
@@ -165,7 +165,7 @@ int clp_service_call(S390CPU *cpu, uint8_t r2)
         return 0;
     }
 
-    if (s390_cpu_virt_mem_read(cpu, env->regs[r2], buffer,
+    if (s390_cpu_virt_mem_read(cpu, env->regs[r2], r2, buffer,
                                req_len + sizeof(*resh))) {
         return 0;
     }
@@ -180,7 +180,7 @@ int clp_service_call(S390CPU *cpu, uint8_t r2)
         return 0;
     }
 
-    if (s390_cpu_virt_mem_read(cpu, env->regs[r2], buffer,
+    if (s390_cpu_virt_mem_read(cpu, env->regs[r2], r2, buffer,
                                req_len + res_len)) {
         return 0;
     }
@@ -277,7 +277,7 @@ int clp_service_call(S390CPU *cpu, uint8_t r2)
     }
 
 out:
-    if (s390_cpu_virt_mem_write(cpu, env->regs[r2], buffer,
+    if (s390_cpu_virt_mem_write(cpu, env->regs[r2], r2, buffer,
                                 req_len + res_len)) {
         return 0;
     }
@@ -331,7 +331,8 @@ int pcilg_service_call(S390CPU *cpu, uint8_t r1, uint8_t r2)
             return 0;
         }
         MemoryRegion *mr = pbdev->pdev->io_regions[pcias].memory;
-        io_mem_read(mr, offset, &data, len);
+        memory_region_dispatch_read(mr, offset, &data, len,
+                                    MEMTXATTRS_UNSPECIFIED);
     } else if (pcias == 15) {
         if ((4 - (offset & 0x3)) < len) {
             program_interrupt(env, PGM_OPERAND, 4);
@@ -456,7 +457,8 @@ int pcistg_service_call(S390CPU *cpu, uint8_t r1, uint8_t r2)
             mr = pbdev->pdev->io_regions[pcias].memory;
         }
 
-        io_mem_write(mr, offset, data, len);
+        memory_region_dispatch_write(mr, offset, data, len,
+                                     MEMTXATTRS_UNSPECIFIED);
     } else if (pcias == 15) {
         if ((4 - (offset & 0x3)) < len) {
             program_interrupt(env, PGM_OPERAND, 4);
@@ -544,7 +546,8 @@ out:
     return 0;
 }
 
-int pcistb_service_call(S390CPU *cpu, uint8_t r1, uint8_t r3, uint64_t gaddr)
+int pcistb_service_call(S390CPU *cpu, uint8_t r1, uint8_t r3, uint64_t gaddr,
+                        uint8_t ar)
 {
     CPUS390XState *env = &cpu->env;
     S390PCIBusDevice *pbdev;
@@ -601,12 +604,14 @@ int pcistb_service_call(S390CPU *cpu, uint8_t r1, uint8_t r3, uint64_t gaddr)
         return 0;
     }
 
-    if (s390_cpu_virt_mem_read(cpu, gaddr, buffer, len)) {
+    if (s390_cpu_virt_mem_read(cpu, gaddr, ar, buffer, len)) {
         return 0;
     }
 
     for (i = 0; i < len / 8; i++) {
-        io_mem_write(mr, env->regs[r3] + i * 8, ldq_p(buffer + i * 8), 8);
+        memory_region_dispatch_write(mr, env->regs[r3] + i * 8,
+                                     ldq_p(buffer + i * 8), 8,
+                                     MEMTXATTRS_UNSPECIFIED);
     }
 
     setcc(cpu, ZPCI_PCI_LS_OK);
@@ -694,7 +699,7 @@ static void dereg_ioat(S390PCIBusDevice *pbdev)
     pbdev->g_iota = 0;
 }
 
-int mpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba)
+int mpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba, uint8_t ar)
 {
     CPUS390XState *env = &cpu->env;
     uint8_t oc;
@@ -723,7 +728,7 @@ int mpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba)
         return 0;
     }
 
-    if (s390_cpu_virt_mem_read(cpu, fiba, (uint8_t *)&fib, sizeof(fib))) {
+    if (s390_cpu_virt_mem_read(cpu, fiba, ar, (uint8_t *)&fib, sizeof(fib))) {
         return 0;
     }
 
@@ -769,7 +774,7 @@ int mpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba)
     return 0;
 }
 
-int stpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba)
+int stpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba, uint8_t ar)
 {
     CPUS390XState *env = &cpu->env;
     uint32_t fh;
@@ -825,7 +830,7 @@ int stpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba)
         fib.fc |= 0x10;
     }
 
-    if (s390_cpu_virt_mem_write(cpu, fiba, (uint8_t *)&fib, sizeof(fib))) {
+    if (s390_cpu_virt_mem_write(cpu, fiba, ar, (uint8_t *)&fib, sizeof(fib))) {
         return 0;
     }
 

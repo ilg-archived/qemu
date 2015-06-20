@@ -364,7 +364,7 @@ void ahci_port_clear(AHCIQState *ahci, uint8_t port)
     ahci_px_wreg(ahci, port, AHCI_PX_IS, reg);
     g_assert_cmphex(ahci_px_rreg(ahci, port, AHCI_PX_IS), ==, 0);
 
-    /* Wipe the FIS-Recieve Buffer */
+    /* Wipe the FIS-Receive Buffer */
     qmemset(ahci->port[port].fb, 0x00, 0x100);
 }
 
@@ -442,7 +442,7 @@ void ahci_port_check_pio_sanity(AHCIQState *ahci, uint8_t port,
 {
     PIOSetupFIS *pio = g_malloc0(0x20);
 
-    /* We cannot check the Status or E_Status registers, becuase
+    /* We cannot check the Status or E_Status registers, because
      * the status may have again changed between the PIO Setup FIS
      * and the conclusion of the command with the D2H Register FIS. */
     memread(ahci->port[port].fb + 0x20, pio, 0x20);
@@ -566,15 +566,44 @@ inline unsigned size_to_prdtl(unsigned bytes, unsigned bytes_per_prd)
     return (bytes + bytes_per_prd - 1) / bytes_per_prd;
 }
 
-/* Given a guest buffer address, perform an IO operation */
-void ahci_guest_io(AHCIQState *ahci, uint8_t port, uint8_t ide_cmd,
-                   uint64_t buffer, size_t bufsize)
+/* Issue a command, expecting it to fail and STOP the VM */
+AHCICommand *ahci_guest_io_halt(AHCIQState *ahci, uint8_t port,
+                                uint8_t ide_cmd, uint64_t buffer,
+                                size_t bufsize, uint64_t sector)
 {
     AHCICommand *cmd;
 
     cmd = ahci_command_create(ide_cmd);
+    ahci_command_adjust(cmd, sector, buffer, bufsize, 0);
+    ahci_command_commit(ahci, cmd, port);
+    ahci_command_issue_async(ahci, cmd);
+    qmp_eventwait("STOP");
+
+    return cmd;
+}
+
+/* Resume a previously failed command and verify/finalize */
+void ahci_guest_io_resume(AHCIQState *ahci, AHCICommand *cmd)
+{
+    /* Complete the command */
+    qmp_async("{'execute':'cont' }");
+    qmp_eventwait("RESUME");
+    ahci_command_wait(ahci, cmd);
+    ahci_command_verify(ahci, cmd);
+    ahci_command_free(cmd);
+}
+
+/* Given a guest buffer address, perform an IO operation */
+void ahci_guest_io(AHCIQState *ahci, uint8_t port, uint8_t ide_cmd,
+                   uint64_t buffer, size_t bufsize, uint64_t sector)
+{
+    AHCICommand *cmd;
+    cmd = ahci_command_create(ide_cmd);
     ahci_command_set_buffer(cmd, buffer);
     ahci_command_set_size(cmd, bufsize);
+    if (sector) {
+        ahci_command_set_offset(cmd, sector);
+    }
     ahci_command_commit(ahci, cmd, port);
     ahci_command_issue(ahci, cmd);
     ahci_command_verify(ahci, cmd);
@@ -612,7 +641,7 @@ static AHCICommandProp *ahci_command_find(uint8_t command_name)
 
 /* Given a HOST buffer, create a buffer address and perform an IO operation. */
 void ahci_io(AHCIQState *ahci, uint8_t port, uint8_t ide_cmd,
-             void *buffer, size_t bufsize)
+             void *buffer, size_t bufsize, uint64_t sector)
 {
     uint64_t ptr;
     AHCICommandProp *props;
@@ -621,15 +650,16 @@ void ahci_io(AHCIQState *ahci, uint8_t port, uint8_t ide_cmd,
     g_assert(props);
     ptr = ahci_alloc(ahci, bufsize);
     g_assert(ptr);
+    qmemset(ptr, 0x00, bufsize);
 
     if (props->write) {
-        memwrite(ptr, buffer, bufsize);
+        bufwrite(ptr, buffer, bufsize);
     }
 
-    ahci_guest_io(ahci, port, ide_cmd, ptr, bufsize);
+    ahci_guest_io(ahci, port, ide_cmd, ptr, bufsize, sector);
 
     if (props->read) {
-        memread(ptr, buffer, bufsize);
+        bufread(ptr, buffer, bufsize);
     }
 
     ahci_free(ahci, ptr);
@@ -740,7 +770,7 @@ void ahci_command_set_offset(AHCICommand *cmd, uint64_t lba_sect)
     fis->lba_lo[1] = (lba_sect >> 8) & 0xFF;
     fis->lba_lo[2] = (lba_sect >> 16) & 0xFF;
     if (cmd->props->lba28) {
-        fis->device = (fis->device & 0xF0) || (lba_sect >> 24) & 0x0F;
+        fis->device = (fis->device & 0xF0) | ((lba_sect >> 24) & 0x0F);
     }
     fis->lba_hi[0] = (lba_sect >> 24) & 0xFF;
     fis->lba_hi[1] = (lba_sect >> 32) & 0xFF;
@@ -758,7 +788,9 @@ void ahci_command_set_sizes(AHCICommand *cmd, uint64_t xbytes,
     /* Each PRD can describe up to 4MiB, and must not be odd. */
     g_assert_cmphex(prd_size, <=, 4096 * 1024);
     g_assert_cmphex(prd_size & 0x01, ==, 0x00);
-    cmd->prd_size = prd_size;
+    if (prd_size) {
+        cmd->prd_size = prd_size;
+    }
     cmd->xbytes = xbytes;
     cmd->fis.count = (cmd->xbytes / AHCI_SECTOR_SIZE);
     cmd->header.prdtl = size_to_prdtl(cmd->xbytes, cmd->prd_size);

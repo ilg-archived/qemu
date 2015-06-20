@@ -88,8 +88,10 @@
 #define PCI_DEVICE_ID_REDHAT_SERIAL2     0x0003
 #define PCI_DEVICE_ID_REDHAT_SERIAL4     0x0004
 #define PCI_DEVICE_ID_REDHAT_TEST        0x0005
+#define PCI_DEVICE_ID_REDHAT_ROCKER      0x0006
 #define PCI_DEVICE_ID_REDHAT_SDHCI       0x0007
 #define PCI_DEVICE_ID_REDHAT_PCIE_HOST   0x0008
+#define PCI_DEVICE_ID_REDHAT_PXB         0x0009
 #define PCI_DEVICE_ID_REDHAT_QXL         0x0100
 
 #define FMT_PCIBUS                      PRIx64
@@ -333,12 +335,20 @@ int pci_device_load(PCIDevice *s, QEMUFile *f);
 MemoryRegion *pci_address_space(PCIDevice *dev);
 MemoryRegion *pci_address_space_io(PCIDevice *dev);
 
+/*
+ * Should not normally be used by devices. For use by sPAPR target
+ * where QEMU emulates firmware.
+ */
+int pci_bar(PCIDevice *d, int reg);
+
 typedef void (*pci_set_irq_fn)(void *opaque, int irq_num, int level);
 typedef int (*pci_map_irq_fn)(PCIDevice *pci_dev, int irq_num);
 typedef PCIINTxRoute (*pci_route_irq_fn)(void *opaque, int pin);
 
 #define TYPE_PCI_BUS "PCI"
 #define PCI_BUS(obj) OBJECT_CHECK(PCIBus, (obj), TYPE_PCI_BUS)
+#define PCI_BUS_CLASS(klass) OBJECT_CLASS_CHECK(PCIBusClass, (klass), TYPE_PCI_BUS)
+#define PCI_BUS_GET_CLASS(obj) OBJECT_GET_CLASS(PCIBusClass, (obj), TYPE_PCI_BUS)
 #define TYPE_PCIE_BUS "PCIE"
 
 bool pci_bus_is_express(PCIBus *bus);
@@ -378,6 +388,7 @@ PCIDevice *pci_nic_init_nofail(NICInfo *nd, PCIBus *rootbus,
 PCIDevice *pci_vga_init(PCIBus *bus);
 
 int pci_bus_num(PCIBus *s);
+int pci_bus_numa_node(PCIBus *bus);
 void pci_for_each_device(PCIBus *bus, int bus_num,
                          void (*fn)(PCIBus *bus, PCIDevice *d, void *opaque),
                          void *opaque);
@@ -568,7 +579,7 @@ static inline void
 pci_set_byte_by_mask(uint8_t *config, uint8_t mask, uint8_t reg)
 {
     uint8_t val = pci_get_byte(config);
-    uint8_t rval = reg << (ffs(mask) - 1);
+    uint8_t rval = reg << ctz32(mask);
     pci_set_byte(config, (~mask & val) | (mask & rval));
 }
 
@@ -576,14 +587,14 @@ static inline uint8_t
 pci_get_byte_by_mask(uint8_t *config, uint8_t mask)
 {
     uint8_t val = pci_get_byte(config);
-    return (val & mask) >> (ffs(mask) - 1);
+    return (val & mask) >> ctz32(mask);
 }
 
 static inline void
 pci_set_word_by_mask(uint8_t *config, uint16_t mask, uint16_t reg)
 {
     uint16_t val = pci_get_word(config);
-    uint16_t rval = reg << (ffs(mask) - 1);
+    uint16_t rval = reg << ctz32(mask);
     pci_set_word(config, (~mask & val) | (mask & rval));
 }
 
@@ -591,14 +602,14 @@ static inline uint16_t
 pci_get_word_by_mask(uint8_t *config, uint16_t mask)
 {
     uint16_t val = pci_get_word(config);
-    return (val & mask) >> (ffs(mask) - 1);
+    return (val & mask) >> ctz32(mask);
 }
 
 static inline void
 pci_set_long_by_mask(uint8_t *config, uint32_t mask, uint32_t reg)
 {
     uint32_t val = pci_get_long(config);
-    uint32_t rval = reg << (ffs(mask) - 1);
+    uint32_t rval = reg << ctz32(mask);
     pci_set_long(config, (~mask & val) | (mask & rval));
 }
 
@@ -606,14 +617,14 @@ static inline uint32_t
 pci_get_long_by_mask(uint8_t *config, uint32_t mask)
 {
     uint32_t val = pci_get_long(config);
-    return (val & mask) >> (ffs(mask) - 1);
+    return (val & mask) >> ctz32(mask);
 }
 
 static inline void
 pci_set_quad_by_mask(uint8_t *config, uint64_t mask, uint64_t reg)
 {
     uint64_t val = pci_get_quad(config);
-    uint64_t rval = reg << (ffs(mask) - 1);
+    uint64_t rval = reg << ctz32(mask);
     pci_set_quad(config, (~mask & val) | (mask & rval));
 }
 
@@ -621,7 +632,7 @@ static inline uint64_t
 pci_get_quad_by_mask(uint8_t *config, uint64_t mask)
 {
     uint64_t val = pci_get_quad(config);
-    return (val & mask) >> (ffs(mask) - 1);
+    return (val & mask) >> ctz32(mask);
 }
 
 PCIDevice *pci_create_multifunction(PCIBus *bus, int devfn, bool multifunction,

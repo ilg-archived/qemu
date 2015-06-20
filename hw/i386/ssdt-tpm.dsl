@@ -25,19 +25,5 @@ DefinitionBlock (
     0x1                 // OEM Revision
     )
 {
-    Scope(\_SB) {
-        /* TPM with emulated TPM TIS interface */
-        Device (TPM) {
-            Name (_HID, EisaID ("PNP0C31"))
-            Name (_CRS, ResourceTemplate ()
-            {
-                Memory32Fixed (ReadWrite, TPM_TIS_ADDR_BASE, TPM_TIS_ADDR_SIZE)
-                // older Linux tpm_tis drivers do not work with IRQ
-                //IRQNoFlags () {TPM_TIS_IRQ}
-            })
-            Method (_STA, 0, NotSerialized) {
-                Return (0x0F)
-            }
-        }
-    }
+#include "ssdt-tpm-common.dsl"
 }

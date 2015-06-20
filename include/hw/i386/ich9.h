@@ -2,7 +2,6 @@
 #define HW_ICH9_H
 
 #include "hw/hw.h"
-#include "qemu/range.h"
 #include "hw/isa/isa.h"
 #include "hw/sysbus.h"
 #include "hw/i386/pc.h"
@@ -19,7 +18,6 @@ void ich9_lpc_set_irq(void *opaque, int irq_num, int level);
 int ich9_lpc_map_irq(PCIDevice *pci_dev, int intx);
 PCIINTxRoute ich9_route_intx_pin_to_irq(void *opaque, int pirq_pin);
 void ich9_lpc_pm_init(PCIDevice *pci_lpc);
-PCIBus *ich9_d2pbr_init(PCIBus *bus, int devfn, int sec_bus);
 I2CBus *ich9_smb_init(PCIBus *bus, int devfn, uint32_t smb_io_base);
 
 #define ICH9_CC_SIZE                            (16 * 1024)     /* 16KB */
@@ -153,6 +151,12 @@ Object *ich9_lpc_find(void);
 #define ICH9_LPC_PIRQ_ROUT_IRQEN                0x80
 #define ICH9_LPC_PIRQ_ROUT_MASK                 Q35_MASK(8, 3, 0)
 #define ICH9_LPC_PIRQ_ROUT_DEFAULT              0x80
+
+#define ICH9_LPC_GEN_PMCON_1                    0xa0
+#define ICH9_LPC_GEN_PMCON_1_SMI_LOCK           (1 << 4)
+#define ICH9_LPC_GEN_PMCON_2                    0xa2
+#define ICH9_LPC_GEN_PMCON_3                    0xa4
+#define ICH9_LPC_GEN_PMCON_LOCK                 0xa6
 
 #define ICH9_LPC_RCBA                           0xf0
 #define ICH9_LPC_RCBA_BA_MASK                   Q35_MASK(32, 31, 14)

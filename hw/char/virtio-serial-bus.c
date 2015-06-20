@@ -498,7 +498,7 @@ static void handle_input(VirtIODevice *vdev, VirtQueue *vq)
     }
 }
 
-static uint32_t get_features(VirtIODevice *vdev, uint32_t features)
+static uint64_t get_features(VirtIODevice *vdev, uint64_t features)
 {
     VirtIOSerial *vser;
 
@@ -814,12 +814,12 @@ static uint32_t find_free_port_id(VirtIOSerial *vser)
 
     max_nr_ports = vser->serial.max_virtserial_ports;
     for (i = 0; i < (max_nr_ports + 31) / 32; i++) {
-        uint32_t map, bit;
+        uint32_t map, zeroes;
 
         map = vser->ports_map[i];
-        bit = ffs(~map);
-        if (bit) {
-            return (bit - 1) + i * 32;
+        zeroes = ctz32(~map);
+        if (zeroes != 32) {
+            return zeroes + i * 32;
         }
     }
     return VIRTIO_CONSOLE_BAD_ID;
@@ -973,7 +973,7 @@ static void virtio_serial_device_realize(DeviceState *dev, Error **errp)
     }
 
     /* Each port takes 2 queues, and one pair is for the control queue */
-    max_supported_ports = VIRTIO_PCI_QUEUE_MAX / 2 - 1;
+    max_supported_ports = VIRTIO_QUEUE_MAX / 2 - 1;
 
     if (vser->serial.max_virtserial_ports > max_supported_ports) {
         error_setg(errp, "maximum ports supported: %u", max_supported_ports);
@@ -1083,7 +1083,8 @@ static void virtio_serial_device_unrealize(DeviceState *dev, Error **errp)
 }
 
 static Property virtio_serial_properties[] = {
-    DEFINE_VIRTIO_SERIAL_PROPERTIES(VirtIOSerial, serial),
+    DEFINE_PROP_UINT32("max_ports", VirtIOSerial, serial.max_virtserial_ports,
+                                                  31),
     DEFINE_PROP_END_OF_LIST(),
 };
 

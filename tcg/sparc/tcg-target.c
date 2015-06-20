@@ -915,7 +915,7 @@ static void build_trampolines(TCGContext *s)
             } else {
                 ra += 1;
             }
-            /* Skip the mem_index argument.  */
+            /* Skip the oi argument.  */
             ra += 1;
         }
                 
@@ -1070,15 +1070,16 @@ static const int qemu_st_opc[16] = {
 };
 
 static void tcg_out_qemu_ld(TCGContext *s, TCGReg data, TCGReg addr,
-                            TCGMemOp memop, int memi, bool is_64)
+                            TCGMemOpIdx oi, bool is_64)
 {
+    TCGMemOp memop = get_memop(oi);
 #ifdef CONFIG_SOFTMMU
-    TCGMemOp s_bits = memop & MO_SIZE;
+    unsigned memi = get_mmuidx(oi);
     TCGReg addrz, param;
     tcg_insn_unit *func;
     tcg_insn_unit *label_ptr;
 
-    addrz = tcg_out_tlb_load(s, addr, memi, s_bits,
+    addrz = tcg_out_tlb_load(s, addr, memi, memop & MO_SIZE,
                              offsetof(CPUTLBEntry, addr_read));
 
     /* The fast path is exactly one insn.  Thus we can perform the
@@ -1090,7 +1091,8 @@ static void tcg_out_qemu_ld(TCGContext *s, TCGReg data, TCGReg addr,
     tcg_out_bpcc0(s, COND_E, BPCC_A | BPCC_PT
                   | (TARGET_LONG_BITS == 64 ? BPCC_XCC : BPCC_ICC), 0);
     /* delay slot */
-    tcg_out_ldst_rr(s, data, addrz, TCG_REG_O1, qemu_ld_opc[memop]);
+    tcg_out_ldst_rr(s, data, addrz, TCG_REG_O1,
+                    qemu_ld_opc[memop & (MO_BSWAP | MO_SSIZE)]);
 
     /* TLB Miss.  */
 
@@ -1103,27 +1105,27 @@ static void tcg_out_qemu_ld(TCGContext *s, TCGReg data, TCGReg addr,
 
     /* We use the helpers to extend SB and SW data, leaving the case
        of SL needing explicit extending below.  */
-    if ((memop & ~MO_BSWAP) == MO_SL) {
-        func = qemu_ld_trampoline[memop & ~MO_SIGN];
+    if ((memop & MO_SSIZE) == MO_SL) {
+        func = qemu_ld_trampoline[memop & (MO_BSWAP | MO_SIZE)];
     } else {
-        func = qemu_ld_trampoline[memop];
+        func = qemu_ld_trampoline[memop & (MO_BSWAP | MO_SSIZE)];
     }
     assert(func != NULL);
     tcg_out_call_nodelay(s, func);
     /* delay slot */
-    tcg_out_movi(s, TCG_TYPE_I32, param, memi);
+    tcg_out_movi(s, TCG_TYPE_I32, param, oi);
 
     /* Recall that all of the helpers return 64-bit results.
        Which complicates things for sparcv8plus.  */
     if (SPARC64) {
         /* We let the helper sign-extend SB and SW, but leave SL for here.  */
-        if (is_64 && (memop & ~MO_BSWAP) == MO_SL) {
+        if (is_64 && (memop & MO_SSIZE) == MO_SL) {
             tcg_out_arithi(s, data, TCG_REG_O0, 0, SHIFT_SRA);
         } else {
             tcg_out_mov(s, TCG_TYPE_REG, data, TCG_REG_O0);
         }
     } else {
-        if (s_bits == MO_64) {
+        if ((memop & MO_SIZE) == MO_64) {
             tcg_out_arithi(s, TCG_REG_O0, TCG_REG_O0, 32, SHIFT_SLLX);
             tcg_out_arithi(s, TCG_REG_O1, TCG_REG_O1, 0, SHIFT_SRL);
             tcg_out_arith(s, data, TCG_REG_O0, TCG_REG_O1, ARITH_OR);
@@ -1145,20 +1147,21 @@ static void tcg_out_qemu_ld(TCGContext *s, TCGReg data, TCGReg addr,
     }
     tcg_out_ldst_rr(s, data, addr,
                     (GUEST_BASE ? TCG_GUEST_BASE_REG : TCG_REG_G0),
-                    qemu_ld_opc[memop]);
+                    qemu_ld_opc[memop & (MO_BSWAP | MO_SSIZE)]);
 #endif /* CONFIG_SOFTMMU */
 }
 
 static void tcg_out_qemu_st(TCGContext *s, TCGReg data, TCGReg addr,
-                            TCGMemOp memop, int memi)
+                            TCGMemOpIdx oi)
 {
+    TCGMemOp memop = get_memop(oi);
 #ifdef CONFIG_SOFTMMU
-    TCGMemOp s_bits = memop & MO_SIZE;
+    unsigned memi = get_mmuidx(oi);
     TCGReg addrz, param;
     tcg_insn_unit *func;
     tcg_insn_unit *label_ptr;
 
-    addrz = tcg_out_tlb_load(s, addr, memi, s_bits,
+    addrz = tcg_out_tlb_load(s, addr, memi, memop & MO_SIZE,
                              offsetof(CPUTLBEntry, addr_write));
 
     /* The fast path is exactly one insn.  Thus we can perform the entire
@@ -1168,7 +1171,8 @@ static void tcg_out_qemu_st(TCGContext *s, TCGReg data, TCGReg addr,
     tcg_out_bpcc0(s, COND_E, BPCC_A | BPCC_PT
                   | (TARGET_LONG_BITS == 64 ? BPCC_XCC : BPCC_ICC), 0);
     /* delay slot */
-    tcg_out_ldst_rr(s, data, addrz, TCG_REG_O1, qemu_st_opc[memop]);
+    tcg_out_ldst_rr(s, data, addrz, TCG_REG_O1,
+                    qemu_st_opc[memop & (MO_BSWAP | MO_SIZE)]);
 
     /* TLB Miss.  */
 
@@ -1178,17 +1182,17 @@ static void tcg_out_qemu_st(TCGContext *s, TCGReg data, TCGReg addr,
         param++;
     }
     tcg_out_mov(s, TCG_TYPE_REG, param++, addr);
-    if (!SPARC64 && s_bits == MO_64) {
+    if (!SPARC64 && (memop & MO_SIZE) == MO_64) {
         /* Skip the high-part; we'll perform the extract in the trampoline.  */
         param++;
     }
     tcg_out_mov(s, TCG_TYPE_REG, param++, data);
 
-    func = qemu_st_trampoline[memop];
+    func = qemu_st_trampoline[memop & (MO_BSWAP | MO_SIZE)];
     assert(func != NULL);
     tcg_out_call_nodelay(s, func);
     /* delay slot */
-    tcg_out_movi(s, TCG_TYPE_REG, param, memi);
+    tcg_out_movi(s, TCG_TYPE_I32, param, oi);
 
     *label_ptr |= INSN_OFF19(tcg_ptr_byte_diff(s->code_ptr, label_ptr));
 #else
@@ -1198,7 +1202,7 @@ static void tcg_out_qemu_st(TCGContext *s, TCGReg data, TCGReg addr,
     }
     tcg_out_ldst_rr(s, data, addr,
                     (GUEST_BASE ? TCG_GUEST_BASE_REG : TCG_REG_G0),
-                    qemu_st_opc[memop]);
+                    qemu_st_opc[memop & (MO_BSWAP | MO_SIZE)]);
 #endif /* CONFIG_SOFTMMU */
 }
 
@@ -1363,14 +1367,14 @@ static void tcg_out_op(TCGContext *s, TCGOpcode opc,
         break;
 
     case INDEX_op_qemu_ld_i32:
-        tcg_out_qemu_ld(s, a0, a1, a2, args[3], false);
+        tcg_out_qemu_ld(s, a0, a1, a2, false);
         break;
     case INDEX_op_qemu_ld_i64:
-        tcg_out_qemu_ld(s, a0, a1, a2, args[3], true);
+        tcg_out_qemu_ld(s, a0, a1, a2, true);
         break;
     case INDEX_op_qemu_st_i32:
     case INDEX_op_qemu_st_i64:
-        tcg_out_qemu_st(s, a0, a1, a2, args[3]);
+        tcg_out_qemu_st(s, a0, a1, a2);
         break;
 
     case INDEX_op_ld32s_i64:

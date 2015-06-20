@@ -103,7 +103,8 @@ update_cxxflags() {
 }
 
 compile_object() {
-  do_cc $QEMU_CFLAGS -c -o $TMPO $TMPC
+  local_cflags="$1"
+  do_cc $QEMU_CFLAGS $local_cflags -c -o $TMPO $TMPC
 }
 
 compile_prog() {
@@ -284,8 +285,6 @@ sysconfdir="\${prefix}/etc"
 local_statedir="\${prefix}/var"
 confsuffix="/qemu"
 slirp="yes"
-fmod_lib=""
-fmod_inc=""
 oss_lib=""
 bsd="no"
 linux="no"
@@ -336,6 +335,7 @@ libssh2=""
 vhdx=""
 quorum=""
 numa=""
+tcmalloc="no"
 
 # --- [GNU ARM Eclipse] ---
 gnuarmeclipse="no"
@@ -358,7 +358,7 @@ for opt do
   ;;
   --cpu=*) cpu="$optarg"
   ;;
-  --extra-cflags=*) QEMU_CFLAGS="$optarg $QEMU_CFLAGS"
+  --extra-cflags=*) QEMU_CFLAGS="$QEMU_CFLAGS $optarg"
                     EXTRA_CFLAGS="$optarg"
   ;;
   --extra-ldflags=*) LDFLAGS="$optarg $LDFLAGS"
@@ -440,6 +440,20 @@ cat > $TMPC <<EOF
 int main(void) { return 0; }
 EOF
   compile_object
+}
+
+check_include() {
+cat > $TMPC <<EOF
+#include <$1>
+int main(void) { return 0; }
+EOF
+  compile_object
+}
+
+write_c_skeleton() {
+    cat > $TMPC <<EOF
+int main(void) { return 0; }
+EOF
 }
 
 if check_define __linux__ ; then
@@ -563,24 +577,28 @@ case $targetos in
 CYGWIN*)
   mingw32="yes"
   QEMU_CFLAGS="-mno-cygwin $QEMU_CFLAGS"
-  audio_possible_drivers="winwave sdl"
-  audio_drv_list="winwave"
+  audio_possible_drivers="sdl"
+  audio_drv_list="sdl"
 ;;
 MINGW32*)
   mingw32="yes"
-  audio_possible_drivers="winwave dsound sdl fmod"
-  audio_drv_list="winwave"
+  audio_possible_drivers="dsound sdl"
+  if check_include dsound.h; then
+    audio_drv_list="dsound"
+  else
+    audio_drv_list=""
+  fi
 ;;
 GNU/kFreeBSD)
   bsd="yes"
   audio_drv_list="oss"
-  audio_possible_drivers="oss sdl esd pa"
+  audio_possible_drivers="oss sdl pa"
 ;;
 FreeBSD)
   bsd="yes"
   make="${MAKE-gmake}"
   audio_drv_list="oss"
-  audio_possible_drivers="oss sdl esd pa"
+  audio_possible_drivers="oss sdl pa"
   # needed for kinfo_getvmmap(3) in libutil.h
   LIBS="-lutil $LIBS"
   netmap=""  # enable netmap autodetect
@@ -590,14 +608,14 @@ DragonFly)
   bsd="yes"
   make="${MAKE-gmake}"
   audio_drv_list="oss"
-  audio_possible_drivers="oss sdl esd pa"
+  audio_possible_drivers="oss sdl pa"
   HOST_VARIANT_DIR="dragonfly"
 ;;
 NetBSD)
   bsd="yes"
   make="${MAKE-gmake}"
   audio_drv_list="oss"
-  audio_possible_drivers="oss sdl esd"
+  audio_possible_drivers="oss sdl"
   oss_lib="-lossaudio"
   HOST_VARIANT_DIR="netbsd"
 ;;
@@ -605,7 +623,7 @@ OpenBSD)
   bsd="yes"
   make="${MAKE-gmake}"
   audio_drv_list="sdl"
-  audio_possible_drivers="sdl esd"
+  audio_possible_drivers="sdl"
   HOST_VARIANT_DIR="openbsd"
 ;;
 Darwin)
@@ -618,7 +636,7 @@ Darwin)
   fi
   cocoa="yes"
   audio_drv_list="coreaudio"
-  audio_possible_drivers="coreaudio sdl fmod"
+  audio_possible_drivers="coreaudio sdl"
   LDFLAGS="-framework CoreFoundation -framework IOKit $LDFLAGS"
   libs_softmmu="-F/System/Library/Frameworks -framework Cocoa -framework IOKit $libs_softmmu"
   # Disable attempts to use ObjectiveC features in os/object.h since they
@@ -673,15 +691,12 @@ Haiku)
 ;;
 *)
   audio_drv_list="oss"
-  audio_possible_drivers="oss alsa sdl esd pa"
+  audio_possible_drivers="oss alsa sdl pa"
   linux="yes"
   linux_user="yes"
   kvm="yes"
   vhost_net="yes"
   vhost_scsi="yes"
-  if [ "$cpu" = "i386" -o "$cpu" = "x86_64" -o "$cpu" = "x32" ] ; then
-    audio_possible_drivers="$audio_possible_drivers fmod"
-  fi
   QEMU_INCLUDES="-I\$(SRC_PATH)/linux-headers -I$(pwd)/linux-headers $QEMU_INCLUDES"
 ;;
 esac
@@ -711,9 +726,7 @@ if test "$mingw32" = "yes" ; then
   # enable C99/POSIX format strings (needs mingw32-runtime 3.15 or later)
   QEMU_CFLAGS="-D__USE_MINGW_ANSI_STDIO=1 $QEMU_CFLAGS"
   LIBS="-lwinmm -lws2_32 -liphlpapi $LIBS"
-cat > $TMPC << EOF
-int main(void) { return 0; }
-EOF
+  write_c_skeleton;
   if compile_prog "" "-liberty" ; then
     LIBS="-liberty $LIBS"
   fi
@@ -887,10 +900,6 @@ for opt do
   --disable-vnc) vnc="no"
   ;;
   --enable-vnc) vnc="yes"
-  ;;
-  --fmod-lib=*) fmod_lib="$optarg"
-  ;;
-  --fmod-inc=*) fmod_inc="$optarg"
   ;;
   --oss-lib=*) oss_lib="$optarg"
   ;;
@@ -1181,6 +1190,10 @@ for opt do
   ;;
   --enable-numa) numa="yes"
   ;;
+  --disable-tcmalloc) tcmalloc="no"
+  ;;
+  --enable-tcmalloc) tcmalloc="yes"
+  ;;
   *)
       echo "ERROR: unknown option $opt"
       echo "Try '$0 --help' for more information"
@@ -1386,8 +1399,6 @@ Advanced options (experts only):
   --disable-guest-base     disable GUEST_BASE support
   --enable-pie             build Position Independent Executables
   --disable-pie            do not build Position Independent Executables
-  --fmod-lib               path to FMOD library
-  --fmod-inc               path to FMOD includes
   --oss-lib                path to OSS library
   --cpu=CPU                Build for host CPU [$cpu]
   --disable-uuid           disable uuid support
@@ -1454,6 +1465,8 @@ Advanced options (experts only):
   --enable-quorum          enable quorum block filter support
   --disable-numa           disable libnuma support
   --enable-numa            enable libnuma support
+  --disable-tcmalloc       disable tcmalloc support
+  --enable-tcmalloc        enable tcmalloc support
 
 NOTE: The object files are built at the place where configure is launched
 EOF
@@ -1485,10 +1498,7 @@ if test -z "$werror" ; then
 fi
 
 # check that the C compiler works.
-cat > $TMPC <<EOF
-int main(void) { return 0; }
-EOF
-
+write_c_skeleton;
 if compile_object ; then
   : C compiler works ok
 else
@@ -1536,16 +1546,20 @@ gcc_flags="-Wno-string-plus-int $gcc_flags"
 # enable it for all configure tests. If a configure test failed due
 # to -Werror this would just silently disable some features,
 # so it's too error prone.
-cat > $TMPC << EOF
-int main(void) { return 0; }
-EOF
-for flag in $gcc_flags; do
+
+cc_has_warning_flag() {
+    write_c_skeleton;
+
     # Use the positive sense of the flag when testing for -Wno-wombat
     # support (gcc will happily accept the -Wno- form of unknown
     # warning options).
-    optflag="$(echo $flag | sed -e 's/^-Wno-/-W/')"
-    if compile_prog "-Werror $optflag" "" ; then
-	QEMU_CFLAGS="$QEMU_CFLAGS $flag"
+    optflag="$(echo $1 | sed -e 's/^-Wno-/-W/')"
+    compile_prog "-Werror $optflag" ""
+}
+
+for flag in $gcc_flags; do
+    if cc_has_warning_flag $flag ; then
+        QEMU_CFLAGS="$QEMU_CFLAGS $flag"
     fi
 done
 
@@ -1596,6 +1610,17 @@ if test "$static" = "yes" ; then
   fi
 fi
 
+# Unconditional check for compiler __thread support
+  cat > $TMPC << EOF
+static __thread int tls_var;
+int main(void) { return tls_var; }
+EOF
+
+if ! compile_prog "-Werror" "" ; then
+    error_exit "Your compiler does not support the __thread specifier for " \
+	"Thread-Local Storage (TLS). Please upgrade to a version that does."
+fi
+
 if test "$pie" = ""; then
   case "$cpu-$targetos" in
     i386-Linux|x86_64-Linux|x32-Linux|i386-OpenBSD|x86_64-OpenBSD)
@@ -1636,7 +1661,7 @@ EOF
     fi
   fi
 
-  if compile_prog "-fno-pie" "-nopie"; then
+  if compile_prog "-Werror -fno-pie" "-nopie"; then
     CFLAGS_NOPIE="-fno-pie"
     LDFLAGS_NOPIE="-nopie"
   fi
@@ -2644,21 +2669,6 @@ for drv in $audio_drv_list; do
     libs_softmmu="-lasound $libs_softmmu"
     ;;
 
-    fmod)
-    if test -z $fmod_lib || test -z $fmod_inc; then
-        error_exit "You must specify path to FMOD library and headers" \
-            "Example: --fmod-inc=/path/include/fmod --fmod-lib=/path/lib/libfmod-3.74.so"
-    fi
-    audio_drv_probe $drv fmod.h $fmod_lib "return FSOUND_GetVersion();" "-I $fmod_inc"
-    libs_softmmu="$fmod_lib $libs_softmmu"
-    ;;
-
-    esd)
-    audio_drv_probe $drv esd.h -lesd 'return esd_play_stream(0, 0, "", 0);'
-    libs_softmmu="-lesd $libs_softmmu"
-    audio_pt_int="yes"
-    ;;
-
     pa)
     audio_drv_probe $drv pulse/mainloop.h "-lpulse" \
         "pa_mainloop *m = 0; pa_mainloop_free (m); return 0;"
@@ -2681,11 +2691,6 @@ for drv in $audio_drv_list; do
 
     sdl|wav)
     # XXX: Probes for CoreAudio, DirectSound, SDL(?)
-    ;;
-
-    winwave)
-      libs_softmmu="-lwinmm $libs_softmmu"
-      audio_win_int="yes"
     ;;
 
     *)
@@ -2802,12 +2807,7 @@ fi
 ##########################################
 # glib support probe
 
-if test "$mingw32" = yes; then
-    # g_poll is required in order to integrate with the glib main loop.
-    glib_req_ver=2.20
-else
-    glib_req_ver=2.12
-fi
+glib_req_ver=2.22
 glib_modules=gthread-2.0
 if test "$modules" = yes; then
     glib_modules="$glib_modules gmodule-2.0"
@@ -2829,6 +2829,18 @@ done
 glib_subprocess=yes
 if ! $pkg_config --atleast-version=2.38 glib-2.0; then
     glib_subprocess=no
+fi
+
+# Silence clang 3.5.0 warnings about glib attribute __alloc_size__ usage
+cat > $TMPC << EOF
+#include <glib.h>
+int main(void) { return 0; }
+EOF
+if ! compile_prog "$glib_cflags -Werror" "$glib_libs" ; then
+    if cc_has_warning_flag "-Wno-unknown-attributes"; then
+        glib_cflags="-Wno-unknown-attributes $glib_cflags"
+        CFLAGS="-Wno-unknown-attributes $CFLAGS"
+    fi
 fi
 
 ##########################################
@@ -3131,9 +3143,11 @@ fi
 if test "$fdt" != "no" ; then
   fdt_libs="-lfdt"
   # explicitly check for libfdt_env.h as it is missing in some stable installs
+  # and test for required functions to make sure we are on a version >= 1.4.0
   cat > $TMPC << EOF
+#include <libfdt.h>
 #include <libfdt_env.h>
-int main(void) { return 0; }
+int main(void) { fdt_get_property_by_offset(0, 0, 0); return 0; }
 EOF
   if compile_prog "" "$fdt_libs" ; then
     # system DTC is good - use it
@@ -3151,7 +3165,7 @@ EOF
     fdt_libs="-L\$(BUILD_DIR)/dtc/libfdt $fdt_libs"
   elif test "$fdt" = "yes" ; then
     # have neither and want - prompt for system/submodule install
-    error_exit "DTC (libfdt) not present. Your options:" \
+    error_exit "DTC (libfdt) version >= 1.4.0 not present. Your options:" \
         "  (1) Preferred: Install the DTC (libfdt) devel package" \
         "  (2) Fetch the DTC submodule, using:" \
         "      git submodule update --init dtc"
@@ -3182,14 +3196,14 @@ else
 fi
 
 if test "$opengl" != "no" ; then
-  opengl_pkgs="gl"
+  opengl_pkgs="gl glesv2 epoxy egl"
   if $pkg_config $opengl_pkgs x11 && test "$have_glx" = "yes"; then
     opengl_cflags="$($pkg_config --cflags $opengl_pkgs) $x11_cflags"
     opengl_libs="$($pkg_config --libs $opengl_pkgs) $x11_libs"
     opengl=yes
   else
     if test "$opengl" = "yes" ; then
-      feature_not_found "opengl" "Install GL devel (e.g. MESA)"
+      feature_not_found "opengl" "Please install opengl (mesa) devel pkgs: $opengl_pkgs"
     fi
     opengl_cflags=""
     opengl_libs=""
@@ -3374,6 +3388,22 @@ EOF
       feature_not_found "numa" "install numactl devel"
     fi
     numa=no
+  fi
+fi
+
+##########################################
+# tcmalloc probe
+
+if test "$tcmalloc" = "yes" ; then
+  cat > $TMPC << EOF
+#include <stdlib.h>
+int main(void) { malloc(1); return 0; }
+EOF
+
+  if compile_prog "" "-ltcmalloc" ; then
+    LIBS="-ltcmalloc $LIBS"
+  else
+    feature_not_found "tcmalloc" "install gperftools devel"
   fi
 fi
 
@@ -4205,6 +4235,33 @@ if compile_prog "" "" ; then
     getauxval=yes
 fi
 
+########################################
+# check if ccache is interfering with
+# semantic analysis of macros
+
+ccache_cpp2=no
+cat > $TMPC << EOF
+static const int Z = 1;
+#define fn() ({ Z; })
+#define TAUT(X) ((X) == Z)
+#define PAREN(X, Y) (X == Y)
+#define ID(X) (X)
+int main(int argc, char *argv[])
+{
+    int x = 0, y = 0;
+    x = ID(x);
+    x = fn();
+    fn();
+    if (PAREN(x, y)) return 0;
+    if (TAUT(Z)) return 0;
+    return 0;
+}
+EOF
+
+if ! compile_object "-Werror"; then
+    ccache_cpp2=yes
+fi
+
 ##########################################
 # End of CC checks
 # After here, no more $cc or $ld runs
@@ -4488,6 +4545,7 @@ echo "lzo support       $lzo"
 echo "snappy support    $snappy"
 echo "bzip2 support     $bzip2"
 echo "NUMA host support $numa"
+echo "tcmalloc support  $tcmalloc"
 
 if test "$sdl_too_old" = "yes"; then
 echo "-> Your SDL version is too old - please upgrade to have SDL support"
@@ -4599,9 +4657,6 @@ echo "CONFIG_AUDIO_DRIVERS=$audio_drv_list" >> $config_host_mak
 for drv in $audio_drv_list; do
     def=CONFIG_`echo $drv | LC_ALL=C tr '[a-z]' '[A-Z]'`
     echo "$def=y" >> $config_host_mak
-    if test "$drv" = "fmod"; then
-        echo "FMOD_CFLAGS=-I$fmod_inc" >> $config_host_mak
-    fi
 done
 if test "$audio_pt_int" = "yes" ; then
   echo "CONFIG_AUDIO_PT_INT=y" >> $config_host_mak
@@ -5221,8 +5276,6 @@ case "$target_name" in
     TARGET_BASE_ARCH=mips
     echo "TARGET_ABI_MIPSN64=y" >> $config_target_mak
   ;;
-  tricore)
-  ;;
   moxie)
   ;;
   or32)
@@ -5271,7 +5324,9 @@ case "$target_name" in
     echo "TARGET_ABI32=y" >> $config_target_mak
   ;;
   s390x)
-    gdb_xml_files="s390x-core64.xml s390-acr.xml s390-fpr.xml"
+    gdb_xml_files="s390x-core64.xml s390-acr.xml s390-fpr.xml s390-vx.xml"
+  ;;
+  tricore)
   ;;
   unicore32)
   ;;
@@ -5500,6 +5555,10 @@ fi
 
 if test "$numa" = "yes"; then
   echo "CONFIG_NUMA=y" >> $config_host_mak
+fi
+
+if test "$ccache_cpp2" = "yes"; then
+  echo "export CCACHE_CPP2=y" >> $config_host_mak
 fi
 
 # --- [GNU ARM Eclipse] ---

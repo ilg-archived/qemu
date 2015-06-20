@@ -126,6 +126,7 @@ struct QemuConsole {
     Object *device;
     uint32_t head;
     QemuUIInfo ui_info;
+    QEMUTimer *ui_timer;
     const GraphicHwOps *hw_ops;
     void *hw;
 
@@ -269,7 +270,7 @@ void graphic_hw_invalidate(QemuConsole *con)
     }
 }
 
-static void ppm_save(const char *filename, struct DisplaySurface *ds,
+static void ppm_save(const char *filename, DisplaySurface *ds,
                      Error **errp)
 {
     int width = pixman_image_get_width(ds->image);
@@ -1383,14 +1384,33 @@ void unregister_displaychangelistener(DisplayChangeListener *dcl)
     gui_setup_refresh(ds);
 }
 
+static void dpy_set_ui_info_timer(void *opaque)
+{
+    QemuConsole *con = opaque;
+
+    con->hw_ops->ui_info(con->hw, con->head, &con->ui_info);
+}
+
+bool dpy_ui_info_supported(QemuConsole *con)
+{
+    return con->hw_ops->ui_info != NULL;
+}
+
 int dpy_set_ui_info(QemuConsole *con, QemuUIInfo *info)
 {
     assert(con != NULL);
     con->ui_info = *info;
-    if (con->hw_ops->ui_info) {
-        return con->hw_ops->ui_info(con->hw, con->head, info);
+    if (!dpy_ui_info_supported(con)) {
+        return -1;
     }
-    return -1;
+
+    /*
+     * Typically we get a flood of these as the user resizes the window.
+     * Wait until the dust has settled (one second without updates), then
+     * go notify the guest.
+     */
+    timer_mod(con->ui_timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME) + 1000);
+    return 0;
 }
 
 void dpy_gfx_update(QemuConsole *con, int x, int y, int w, int h)
@@ -1535,7 +1555,7 @@ void dpy_text_update(QemuConsole *con, int x, int y, int w, int h)
 void dpy_text_resize(QemuConsole *con, int w, int h)
 {
     DisplayState *s = con->ds;
-    struct DisplayChangeListener *dcl;
+    DisplayChangeListener *dcl;
 
     if (!qemu_console_is_visible(con)) {
         return;
@@ -1597,67 +1617,6 @@ bool dpy_cursor_define_supported(QemuConsole *con)
         }
     }
     return false;
-}
-
-/*
- * Call dpy_gfx_update for all dirity scanlines.  Works for
- * DisplaySurfaces backed by guest memory (i.e. the ones created
- * using qemu_create_displaysurface_guestmem).
- */
-void dpy_gfx_update_dirty(QemuConsole *con,
-                          MemoryRegion *address_space,
-                          hwaddr base,
-                          bool invalidate)
-{
-    DisplaySurface *ds = qemu_console_surface(con);
-    int width = surface_stride(ds);
-    int height = surface_height(ds);
-    hwaddr size = width * height;
-    MemoryRegionSection mem_section;
-    MemoryRegion *mem;
-    ram_addr_t addr;
-    int first, last, i;
-    bool dirty;
-
-    mem_section = memory_region_find(address_space, base, size);
-    mem = mem_section.mr;
-    if (int128_get64(mem_section.size) != size ||
-        !memory_region_is_ram(mem_section.mr)) {
-        goto out;
-    }
-    assert(mem);
-
-    memory_region_sync_dirty_bitmap(mem);
-    addr = mem_section.offset_within_region;
-
-    first = -1;
-    last = -1;
-    for (i = 0; i < height; i++, addr += width) {
-        dirty = invalidate ||
-            memory_region_get_dirty(mem, addr, width, DIRTY_MEMORY_VGA);
-        if (dirty) {
-            if (first == -1) {
-                first = i;
-            }
-            last = i;
-        }
-        if (first != -1 && !dirty) {
-            assert(last != -1 && last >= first);
-            dpy_gfx_update(con, 0, first, surface_width(ds),
-                           last - first + 1);
-            first = -1;
-        }
-    }
-    if (first != -1) {
-        assert(last != -1 && last >= first);
-        dpy_gfx_update(con, 0, first, surface_width(ds),
-                       last - first + 1);
-    }
-
-    memory_region_reset_dirty(mem, mem_section.offset_within_region, size,
-                              DIRTY_MEMORY_VGA);
-out:
-    memory_region_unref(mem);
 }
 
 /***********************************************************/
@@ -1724,6 +1683,7 @@ QemuConsole *graphic_console_init(DeviceState *dev, uint32_t head,
     ds = get_alloc_displaystate();
     trace_console_gfx_new();
     s = new_console(ds, GRAPHIC_CONSOLE, head);
+    s->ui_timer = timer_new_ms(QEMU_CLOCK_REALTIME, dpy_set_ui_info_timer, s);
     graphic_console_set_hwops(s, hw_ops, opaque);
     if (dev) {
         object_property_set_link(OBJECT(s), OBJECT(dev), "device",
@@ -1786,6 +1746,21 @@ bool qemu_console_is_fixedsize(QemuConsole *con)
         con = active_console;
     }
     return con && (con->console_type != TEXT_CONSOLE);
+}
+
+char *qemu_console_get_label(QemuConsole *con)
+{
+    if (con->console_type == GRAPHIC_CONSOLE) {
+        if (con->device) {
+            return g_strdup(object_get_typename(con->device));
+        }
+        return g_strdup("VGA");
+    } else {
+        if (con->chr && con->chr->label) {
+            return g_strdup(con->chr->label);
+        }
+        return g_strdup_printf("vc%d", con->index);
+    }
 }
 
 int qemu_console_get_index(QemuConsole *con)

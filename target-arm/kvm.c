@@ -23,6 +23,7 @@
 #include "cpu.h"
 #include "internals.h"
 #include "hw/arm/arm.h"
+#include "exec/memattrs.h"
 
 const KVMCapabilityInfo kvm_arch_required_capabilities[] = {
     KVM_CAP_LAST_INFO
@@ -506,8 +507,9 @@ void kvm_arch_pre_run(CPUState *cs, struct kvm_run *run)
 {
 }
 
-void kvm_arch_post_run(CPUState *cs, struct kvm_run *run)
+MemTxAttrs kvm_arch_post_run(CPUState *cs, struct kvm_run *run)
 {
+    return MEMTXATTRS_UNSPECIFIED;
 }
 
 int kvm_arch_handle_exit(CPUState *cs, struct kvm_run *run)
@@ -597,4 +599,9 @@ int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
                              uint64_t address, uint32_t data)
 {
     return 0;
+}
+
+int kvm_arch_msi_data_to_gsi(uint32_t data)
+{
+    return (data - 32) & 0xffff;
 }

@@ -127,7 +127,7 @@ static void r2d_fpga_irq_set(void *opaque, int n, int level)
     update_irl(fpga);
 }
 
-static uint32_t r2d_fpga_read(void *opaque, hwaddr addr)
+static uint64_t r2d_fpga_read(void *opaque, hwaddr addr, unsigned int size)
 {
     r2d_fpga_t *s = opaque;
 
@@ -146,7 +146,7 @@ static uint32_t r2d_fpga_read(void *opaque, hwaddr addr)
 }
 
 static void
-r2d_fpga_write(void *opaque, hwaddr addr, uint32_t value)
+r2d_fpga_write(void *opaque, hwaddr addr, uint64_t value, unsigned int size)
 {
     r2d_fpga_t *s = opaque;
 
@@ -170,10 +170,10 @@ r2d_fpga_write(void *opaque, hwaddr addr, uint32_t value)
 }
 
 static const MemoryRegionOps r2d_fpga_ops = {
-    .old_mmio = {
-        .read = { r2d_fpga_read, r2d_fpga_read, NULL, },
-        .write = { r2d_fpga_write, r2d_fpga_write, NULL, },
-    },
+    .read = r2d_fpga_read,
+    .write = r2d_fpga_write,
+    .impl.min_access_size = 2,
+    .impl.max_access_size = 2,
     .endianness = DEVICE_NATIVE_ENDIAN,
 };
 
@@ -318,8 +318,10 @@ static void r2d_init(MachineState *machine)
         }
 
         /* initialization which should be done by firmware */
-        stl_phys(&address_space_memory, SH7750_BCR1, 1<<3); /* cs3 SDRAM */
-        stw_phys(&address_space_memory, SH7750_BCR2, 3<<(3*2)); /* cs3 32bit */
+        address_space_stl(&address_space_memory, SH7750_BCR1, 1 << 3,
+                          MEMTXATTRS_UNSPECIFIED, NULL); /* cs3 SDRAM */
+        address_space_stw(&address_space_memory, SH7750_BCR2, 3 << (3 * 2),
+                          MEMTXATTRS_UNSPECIFIED, NULL); /* cs3 32bit */
         reset_info->vector = (SDRAM_BASE + LINUX_LOAD_OFFSET) | 0xa0000000; /* Start from P2 area */
     }
 

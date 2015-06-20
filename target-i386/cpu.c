@@ -44,6 +44,7 @@
 #include "hw/qdev-properties.h"
 #include "hw/cpu/icc_bus.h"
 #ifndef CONFIG_USER_ONLY
+#include "exec/address-spaces.h"
 #include "hw/xen/xen.h"
 #include "hw/i386/apic_internal.h"
 #endif
@@ -688,7 +689,6 @@ static X86CPUDefinition builtin_x86_defs[] = {
         .features[FEAT_1_ECX] =
             CPUID_EXT_SSE3 | CPUID_EXT_CX16 | CPUID_EXT_POPCNT,
         .features[FEAT_8000_0001_EDX] =
-            (PPRO_FEATURES & CPUID_EXT2_AMD_ALIASES) |
             CPUID_EXT2_LM | CPUID_EXT2_SYSCALL | CPUID_EXT2_NX,
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM | CPUID_EXT3_SVM |
@@ -711,7 +711,6 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT_SSE3 | CPUID_EXT_MONITOR | CPUID_EXT_CX16 |
             CPUID_EXT_POPCNT,
         .features[FEAT_8000_0001_EDX] =
-            (PPRO_FEATURES & CPUID_EXT2_AMD_ALIASES) |
             CPUID_EXT2_LM | CPUID_EXT2_SYSCALL | CPUID_EXT2_NX |
             CPUID_EXT2_3DNOW | CPUID_EXT2_3DNOWEXT | CPUID_EXT2_MMXEXT |
             CPUID_EXT2_FFXSR | CPUID_EXT2_PDPE1GB | CPUID_EXT2_RDTSCP,
@@ -769,7 +768,6 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT_SSE3 | CPUID_EXT_CX16,
         /* Missing: CPUID_EXT2_PDPE1GB, CPUID_EXT2_RDTSCP */
         .features[FEAT_8000_0001_EDX] =
-            (PPRO_FEATURES & CPUID_EXT2_AMD_ALIASES) |
             CPUID_EXT2_LM | CPUID_EXT2_SYSCALL | CPUID_EXT2_NX,
         /* Missing: CPUID_EXT3_LAHF_LM, CPUID_EXT3_CMP_LEG, CPUID_EXT3_EXTAPIC,
                     CPUID_EXT3_CR8LEG, CPUID_EXT3_ABM, CPUID_EXT3_SSE4A,
@@ -805,8 +803,6 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_MTRR | CPUID_CLFLUSH | CPUID_MCA | CPUID_PSE36,
         .features[FEAT_1_ECX] =
             CPUID_EXT_SSE3,
-        .features[FEAT_8000_0001_EDX] =
-            PPRO_FEATURES & CPUID_EXT2_AMD_ALIASES,
         .features[FEAT_8000_0001_ECX] =
             0,
         .xlevel = 0x80000008,
@@ -888,7 +884,6 @@ static X86CPUDefinition builtin_x86_defs[] = {
             PPRO_FEATURES | CPUID_PSE36 | CPUID_VME | CPUID_MTRR |
             CPUID_MCA,
         .features[FEAT_8000_0001_EDX] =
-            (PPRO_FEATURES & CPUID_EXT2_AMD_ALIASES) |
             CPUID_EXT2_MMXEXT | CPUID_EXT2_3DNOW | CPUID_EXT2_3DNOWEXT,
         .xlevel = 0x80000008,
     },
@@ -912,7 +907,6 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT_SSE3 | CPUID_EXT_MONITOR | CPUID_EXT_SSSE3 |
             CPUID_EXT_MOVBE,
         .features[FEAT_8000_0001_EDX] =
-            (PPRO_FEATURES & CPUID_EXT2_AMD_ALIASES) |
             CPUID_EXT2_NX,
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM,
@@ -1618,38 +1612,6 @@ static void x86_cpuid_version_set_stepping(Object *obj, Visitor *v,
     env->cpuid_version |= value & 0xf;
 }
 
-static void x86_cpuid_get_level(Object *obj, Visitor *v, void *opaque,
-                                const char *name, Error **errp)
-{
-    X86CPU *cpu = X86_CPU(obj);
-
-    visit_type_uint32(v, &cpu->env.cpuid_level, name, errp);
-}
-
-static void x86_cpuid_set_level(Object *obj, Visitor *v, void *opaque,
-                                const char *name, Error **errp)
-{
-    X86CPU *cpu = X86_CPU(obj);
-
-    visit_type_uint32(v, &cpu->env.cpuid_level, name, errp);
-}
-
-static void x86_cpuid_get_xlevel(Object *obj, Visitor *v, void *opaque,
-                                 const char *name, Error **errp)
-{
-    X86CPU *cpu = X86_CPU(obj);
-
-    visit_type_uint32(v, &cpu->env.cpuid_xlevel, name, errp);
-}
-
-static void x86_cpuid_set_xlevel(Object *obj, Visitor *v, void *opaque,
-                                 const char *name, Error **errp)
-{
-    X86CPU *cpu = X86_CPU(obj);
-
-    visit_type_uint32(v, &cpu->env.cpuid_xlevel, name, errp);
-}
-
 static char *x86_cpuid_get_vendor(Object *obj, Error **errp)
 {
     X86CPU *cpu = X86_CPU(obj);
@@ -2109,7 +2071,7 @@ static void x86_cpu_load_def(X86CPU *cpu, X86CPUDefinition *def, Error **errp)
     object_property_set_int(OBJECT(cpu), def->model, "model", errp);
     object_property_set_int(OBJECT(cpu), def->stepping, "stepping", errp);
     object_property_set_int(OBJECT(cpu), def->xlevel, "xlevel", errp);
-    env->cpuid_xlevel2 = def->xlevel2;
+    object_property_set_int(OBJECT(cpu), def->xlevel2, "xlevel2", errp);
     cpu->cache_info_passthrough = def->cache_info_passthrough;
     object_property_set_str(OBJECT(cpu), def->model_id, "model-id", errp);
     for (w = 0; w < FEATURE_WORDS; w++) {
@@ -2789,6 +2751,21 @@ static void x86_cpu_apic_realize(X86CPU *cpu, Error **errp)
     object_property_set_bool(OBJECT(cpu->apic_state), true, "realized",
                              errp);
 }
+
+static void x86_cpu_machine_done(Notifier *n, void *unused)
+{
+    X86CPU *cpu = container_of(n, X86CPU, machine_done);
+    MemoryRegion *smram =
+        (MemoryRegion *) object_resolve_path("/machine/smram", NULL);
+
+    if (smram) {
+        cpu->smram = g_new(MemoryRegion, 1);
+        memory_region_init_alias(cpu->smram, OBJECT(cpu), "smram",
+                                 smram, 0, 1ull << 32);
+        memory_region_set_enabled(cpu->smram, false);
+        memory_region_add_subregion_overlap(cpu->cpu_as_root, 0, cpu->smram, 1);
+    }
+}
 #else
 static void x86_cpu_apic_realize(X86CPU *cpu, Error **errp)
 {
@@ -2850,6 +2827,32 @@ static void x86_cpu_realizefn(DeviceState *dev, Error **errp)
 #endif
 
     mce_init(cpu);
+
+#ifndef CONFIG_USER_ONLY
+    if (tcg_enabled()) {
+        cpu->cpu_as_mem = g_new(MemoryRegion, 1);
+        cpu->cpu_as_root = g_new(MemoryRegion, 1);
+        cs->as = g_new(AddressSpace, 1);
+
+        /* Outer container... */
+        memory_region_init(cpu->cpu_as_root, OBJECT(cpu), "memory", ~0ull);
+        memory_region_set_enabled(cpu->cpu_as_root, true);
+
+        /* ... with two regions inside: normal system memory with low
+         * priority, and...
+         */
+        memory_region_init_alias(cpu->cpu_as_mem, OBJECT(cpu), "memory",
+                                 get_system_memory(), 0, ~0ull);
+        memory_region_add_subregion_overlap(cpu->cpu_as_root, 0, cpu->cpu_as_mem, 0);
+        memory_region_set_enabled(cpu->cpu_as_mem, true);
+        address_space_init(cs->as, cpu->cpu_as_root, "CPU");
+
+        /* ... SMRAM with higher priority, linked from /machine/smram.  */
+        cpu->machine_done.notify = x86_cpu_machine_done;
+        qemu_add_machine_init_done_notifier(&cpu->machine_done);
+    }
+#endif
+
     qemu_init_vcpu(cs);
 
     /* Only Intel CPUs support hyperthreading. Even though QEMU fixes this
@@ -2873,11 +2876,125 @@ static void x86_cpu_realizefn(DeviceState *dev, Error **errp)
     cpu_reset(cs);
 
     xcc->parent_realize(dev, &local_err);
+
 out:
     if (local_err != NULL) {
         error_propagate(errp, local_err);
         return;
     }
+}
+
+typedef struct BitProperty {
+    uint32_t *ptr;
+    uint32_t mask;
+} BitProperty;
+
+static void x86_cpu_get_bit_prop(Object *obj,
+                                 struct Visitor *v,
+                                 void *opaque,
+                                 const char *name,
+                                 Error **errp)
+{
+    BitProperty *fp = opaque;
+    bool value = (*fp->ptr & fp->mask) == fp->mask;
+    visit_type_bool(v, &value, name, errp);
+}
+
+static void x86_cpu_set_bit_prop(Object *obj,
+                                 struct Visitor *v,
+                                 void *opaque,
+                                 const char *name,
+                                 Error **errp)
+{
+    DeviceState *dev = DEVICE(obj);
+    BitProperty *fp = opaque;
+    Error *local_err = NULL;
+    bool value;
+
+    if (dev->realized) {
+        qdev_prop_set_after_realize(dev, name, errp);
+        return;
+    }
+
+    visit_type_bool(v, &value, name, &local_err);
+    if (local_err) {
+        error_propagate(errp, local_err);
+        return;
+    }
+
+    if (value) {
+        *fp->ptr |= fp->mask;
+    } else {
+        *fp->ptr &= ~fp->mask;
+    }
+}
+
+static void x86_cpu_release_bit_prop(Object *obj, const char *name,
+                                     void *opaque)
+{
+    BitProperty *prop = opaque;
+    g_free(prop);
+}
+
+/* Register a boolean property to get/set a single bit in a uint32_t field.
+ *
+ * The same property name can be registered multiple times to make it affect
+ * multiple bits in the same FeatureWord. In that case, the getter will return
+ * true only if all bits are set.
+ */
+static void x86_cpu_register_bit_prop(X86CPU *cpu,
+                                      const char *prop_name,
+                                      uint32_t *field,
+                                      int bitnr)
+{
+    BitProperty *fp;
+    ObjectProperty *op;
+    uint32_t mask = (1UL << bitnr);
+
+    op = object_property_find(OBJECT(cpu), prop_name, NULL);
+    if (op) {
+        fp = op->opaque;
+        assert(fp->ptr == field);
+        fp->mask |= mask;
+    } else {
+        fp = g_new0(BitProperty, 1);
+        fp->ptr = field;
+        fp->mask = mask;
+        object_property_add(OBJECT(cpu), prop_name, "bool",
+                            x86_cpu_get_bit_prop,
+                            x86_cpu_set_bit_prop,
+                            x86_cpu_release_bit_prop, fp, &error_abort);
+    }
+}
+
+static void x86_cpu_register_feature_bit_props(X86CPU *cpu,
+                                               FeatureWord w,
+                                               int bitnr)
+{
+    Object *obj = OBJECT(cpu);
+    int i;
+    char **names;
+    FeatureWordInfo *fi = &feature_word_info[w];
+
+    if (!fi->feat_names) {
+        return;
+    }
+    if (!fi->feat_names[bitnr]) {
+        return;
+    }
+
+    names = g_strsplit(fi->feat_names[bitnr], "|", 0);
+
+    feat2prop(names[0]);
+    x86_cpu_register_bit_prop(cpu, names[0], &cpu->env.features[w], bitnr);
+
+    for (i = 1; names[i]; i++) {
+        feat2prop(names[i]);
+        object_property_add_alias(obj, names[i], obj, g_strdup(names[0]),
+                                  &error_abort);
+    }
+
+    g_strfreev(names);
 }
 
 static void x86_cpu_initfn(Object *obj)
@@ -2886,6 +3003,7 @@ static void x86_cpu_initfn(Object *obj)
     X86CPU *cpu = X86_CPU(obj);
     X86CPUClass *xcc = X86_CPU_GET_CLASS(obj);
     CPUX86State *env = &cpu->env;
+    FeatureWord w;
     static int inited;
 
     cs->env_ptr = env;
@@ -2900,12 +3018,6 @@ static void x86_cpu_initfn(Object *obj)
     object_property_add(obj, "stepping", "int",
                         x86_cpuid_version_get_stepping,
                         x86_cpuid_version_set_stepping, NULL, NULL, NULL);
-    object_property_add(obj, "level", "int",
-                        x86_cpuid_get_level,
-                        x86_cpuid_set_level, NULL, NULL, NULL);
-    object_property_add(obj, "xlevel", "int",
-                        x86_cpuid_get_xlevel,
-                        x86_cpuid_set_xlevel, NULL, NULL, NULL);
     object_property_add_str(obj, "vendor",
                             x86_cpuid_get_vendor,
                             x86_cpuid_set_vendor, NULL);
@@ -2931,6 +3043,14 @@ static void x86_cpu_initfn(Object *obj)
     /* Any code creating new X86CPU objects have to set apic-id explicitly */
     cpu->apic_id = -1;
 #endif
+
+    for (w = 0; w < FEATURE_WORDS; w++) {
+        int bitnr;
+
+        for (bitnr = 0; bitnr < 32; bitnr++) {
+            x86_cpu_register_feature_bit_props(cpu, w, bitnr);
+        }
+    }
 
     x86_cpu_load_def(cpu, xcc->cpu_def, &error_abort);
 
@@ -2986,7 +3106,9 @@ static bool x86_cpu_has_work(CPUState *cs)
            (cs->interrupt_request & (CPU_INTERRUPT_NMI |
                                      CPU_INTERRUPT_INIT |
                                      CPU_INTERRUPT_SIPI |
-                                     CPU_INTERRUPT_MCE));
+                                     CPU_INTERRUPT_MCE)) ||
+           ((cs->interrupt_request & CPU_INTERRUPT_SMI) &&
+            !(env->hflags & HF_SMM_MASK));
 }
 
 static Property x86_cpu_properties[] = {
@@ -2998,6 +3120,9 @@ static Property x86_cpu_properties[] = {
     DEFINE_PROP_BOOL("check", X86CPU, check_cpuid, false),
     DEFINE_PROP_BOOL("enforce", X86CPU, enforce_cpuid, false),
     DEFINE_PROP_BOOL("kvm", X86CPU, expose_kvm, true),
+    DEFINE_PROP_UINT32("level", X86CPU, env.cpuid_level, 0),
+    DEFINE_PROP_UINT32("xlevel", X86CPU, env.cpuid_xlevel, 0),
+    DEFINE_PROP_UINT32("xlevel2", X86CPU, env.cpuid_xlevel2, 0),
     DEFINE_PROP_END_OF_LIST()
 };
 

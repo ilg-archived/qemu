@@ -113,12 +113,18 @@ void s390_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,
     }
 
     for (i = 0; i < 16; i++) {
-        cpu_fprintf(f, "F%02d=%016" PRIx64, i, env->fregs[i].ll);
+        cpu_fprintf(f, "F%02d=%016" PRIx64, i, get_freg(env, i)->ll);
         if ((i % 4) == 3) {
             cpu_fprintf(f, "\n");
         } else {
             cpu_fprintf(f, " ");
         }
+    }
+
+    for (i = 0; i < 32; i++) {
+        cpu_fprintf(f, "V%02d=%016" PRIx64 "%016" PRIx64, i,
+                    env->vregs[i][0].ll, env->vregs[i][1].ll);
+        cpu_fprintf(f, (i % 2) ? " " : "\n");
     }
 
 #ifndef CONFIG_USER_ONLY
@@ -187,7 +193,7 @@ void s390x_translate_init(void)
     for (i = 0; i < 16; i++) {
         snprintf(cpu_reg_names[i + 16], sizeof(cpu_reg_names[0]), "f%d", i);
         fregs[i] = tcg_global_mem_new(TCG_AREG0,
-                                      offsetof(CPUS390XState, fregs[i].d),
+                                      offsetof(CPUS390XState, vregs[i][0].d),
                                       cpu_reg_names[i + 16]);
     }
 }
@@ -314,7 +320,21 @@ static void gen_program_exception(DisasContext *s, int code)
 
 static inline void gen_illegal_opcode(DisasContext *s)
 {
-    gen_program_exception(s, PGM_SPECIFICATION);
+    gen_program_exception(s, PGM_OPERATION);
+}
+
+static inline void gen_trap(DisasContext *s)
+{
+    TCGv_i32 t;
+
+    /* Set DXC to 0xff.  */
+    t = tcg_temp_new_i32();
+    tcg_gen_ld_i32(t, cpu_env, offsetof(CPUS390XState, fpc));
+    tcg_gen_ori_i32(t, t, 0xff00);
+    tcg_gen_st_i32(t, cpu_env, offsetof(CPUS390XState, fpc));
+    tcg_temp_free_i32(t);
+
+    gen_program_exception(s, PGM_DATA);
 }
 
 #ifndef CONFIG_USER_ONLY
@@ -1113,11 +1133,14 @@ typedef enum DisasFacility {
     FAC_HFP_MA,             /* HFP multiply-and-add/subtract */
     FAC_HW,                 /* high-word */
     FAC_IEEEE_SIM,          /* IEEE exception sumilation */
+    FAC_MIE,                /* miscellaneous-instruction-extensions */
+    FAC_LAT,                /* load-and-trap */
     FAC_LOC,                /* load/store on condition */
     FAC_LD,                 /* long displacement */
     FAC_PC,                 /* population count */
     FAC_SCF,                /* store clock fast */
     FAC_SFLE,               /* store facility list extended */
+    FAC_ILA,                /* interlocked access facility 1 */
 } DisasFacility;
 
 struct DisasInsn {
@@ -1303,7 +1326,13 @@ static ExitStatus help_branch(DisasContext *s, DisasCompare *c,
 
 static ExitStatus op_abs(DisasContext *s, DisasOps *o)
 {
-    gen_helper_abs_i64(o->out, o->in2);
+    TCGv_i64 z, n;
+    z = tcg_const_i64(0);
+    n = tcg_temp_new_i64();
+    tcg_gen_neg_i64(n, o->in2);
+    tcg_gen_movcond_i64(TCG_COND_LT, o->out, o->in2, z, n, o->in2);
+    tcg_temp_free_i64(n);
+    tcg_temp_free_i64(z);
     return NO_EXIT;
 }
 
@@ -1451,6 +1480,30 @@ static ExitStatus op_bct32(DisasContext *s, DisasOps *o)
     tcg_temp_free_i64(t);
 
     return help_branch(s, &c, is_imm, imm, o->in2);
+}
+
+static ExitStatus op_bcth(DisasContext *s, DisasOps *o)
+{
+    int r1 = get_field(s->fields, r1);
+    int imm = get_field(s->fields, i2);
+    DisasCompare c;
+    TCGv_i64 t;
+
+    c.cond = TCG_COND_NE;
+    c.is_64 = false;
+    c.g1 = false;
+    c.g2 = false;
+
+    t = tcg_temp_new_i64();
+    tcg_gen_shri_i64(t, regs[r1], 32);
+    tcg_gen_subi_i64(t, t, 1);
+    store_reg32h_i64(r1, t);
+    c.u.s32.a = tcg_temp_new_i32();
+    c.u.s32.b = tcg_const_i32(0);
+    tcg_gen_trunc_i64_i32(c.u.s32.a, t);
+    tcg_temp_free_i64(t);
+
+    return help_branch(s, &c, 1, imm, o->in2);
 }
 
 static ExitStatus op_bct64(DisasContext *s, DisasOps *o)
@@ -1954,7 +2007,6 @@ static ExitStatus op_ct(DisasContext *s, DisasOps *o)
 {
     int m3 = get_field(s->fields, m3);
     TCGLabel *lab = gen_new_label();
-    TCGv_i32 t;
     TCGCond c;
 
     c = tcg_invert_cond(ltgt_cond[m3]);
@@ -1963,15 +2015,8 @@ static ExitStatus op_ct(DisasContext *s, DisasOps *o)
     }
     tcg_gen_brcond_i64(c, o->in1, o->in2, lab);
 
-    /* Set DXC to 0xff.  */
-    t = tcg_temp_new_i32();
-    tcg_gen_ld_i32(t, cpu_env, offsetof(CPUS390XState, fpc));
-    tcg_gen_ori_i32(t, t, 0xff00);
-    tcg_gen_st_i32(t, cpu_env, offsetof(CPUS390XState, fpc));
-    tcg_temp_free_i32(t);
-
     /* Trap.  */
-    gen_program_exception(s, PGM_DATA);
+    gen_trap(s);
 
     gen_set_label(lab);
     return NO_EXIT;
@@ -2094,13 +2139,37 @@ static ExitStatus op_ex(DisasContext *s, DisasOps *o)
     TCGv_i64 tmp;
 
     update_psw_addr(s);
-    update_cc_op(s);
+    gen_op_calc_cc(s);
 
     tmp = tcg_const_i64(s->next_pc);
     gen_helper_ex(cc_op, cpu_env, cc_op, o->in1, o->in2, tmp);
     tcg_temp_free_i64(tmp);
 
-    set_cc_static(s);
+    return NO_EXIT;
+}
+
+static ExitStatus op_fieb(DisasContext *s, DisasOps *o)
+{
+    TCGv_i32 m3 = tcg_const_i32(get_field(s->fields, m3));
+    gen_helper_fieb(o->out, cpu_env, o->in2, m3);
+    tcg_temp_free_i32(m3);
+    return NO_EXIT;
+}
+
+static ExitStatus op_fidb(DisasContext *s, DisasOps *o)
+{
+    TCGv_i32 m3 = tcg_const_i32(get_field(s->fields, m3));
+    gen_helper_fidb(o->out, cpu_env, o->in2, m3);
+    tcg_temp_free_i32(m3);
+    return NO_EXIT;
+}
+
+static ExitStatus op_fixb(DisasContext *s, DisasOps *o)
+{
+    TCGv_i32 m3 = tcg_const_i32(get_field(s->fields, m3));
+    gen_helper_fixb(o->out, cpu_env, o->in1, o->in2, m3);
+    return_low128(o->out2);
+    tcg_temp_free_i32(m3);
     return NO_EXIT;
 }
 
@@ -2313,6 +2382,61 @@ static ExitStatus op_ld64(DisasContext *s, DisasOps *o)
     return NO_EXIT;
 }
 
+static ExitStatus op_lat(DisasContext *s, DisasOps *o)
+{
+    TCGLabel *lab = gen_new_label();
+    store_reg32_i64(get_field(s->fields, r1), o->in2);
+    /* The value is stored even in case of trap. */
+    tcg_gen_brcondi_i64(TCG_COND_NE, o->in2, 0, lab);
+    gen_trap(s);
+    gen_set_label(lab);
+    return NO_EXIT;
+}
+
+static ExitStatus op_lgat(DisasContext *s, DisasOps *o)
+{
+    TCGLabel *lab = gen_new_label();
+    tcg_gen_qemu_ld64(o->out, o->in2, get_mem_index(s));
+    /* The value is stored even in case of trap. */
+    tcg_gen_brcondi_i64(TCG_COND_NE, o->out, 0, lab);
+    gen_trap(s);
+    gen_set_label(lab);
+    return NO_EXIT;
+}
+
+static ExitStatus op_lfhat(DisasContext *s, DisasOps *o)
+{
+    TCGLabel *lab = gen_new_label();
+    store_reg32h_i64(get_field(s->fields, r1), o->in2);
+    /* The value is stored even in case of trap. */
+    tcg_gen_brcondi_i64(TCG_COND_NE, o->in2, 0, lab);
+    gen_trap(s);
+    gen_set_label(lab);
+    return NO_EXIT;
+}
+
+static ExitStatus op_llgfat(DisasContext *s, DisasOps *o)
+{
+    TCGLabel *lab = gen_new_label();
+    tcg_gen_qemu_ld32u(o->out, o->in2, get_mem_index(s));
+    /* The value is stored even in case of trap. */
+    tcg_gen_brcondi_i64(TCG_COND_NE, o->out, 0, lab);
+    gen_trap(s);
+    gen_set_label(lab);
+    return NO_EXIT;
+}
+
+static ExitStatus op_llgtat(DisasContext *s, DisasOps *o)
+{
+    TCGLabel *lab = gen_new_label();
+    tcg_gen_andi_i64(o->out, o->in2, 0x7fffffff);
+    /* The value is stored even in case of trap. */
+    tcg_gen_brcondi_i64(TCG_COND_NE, o->out, 0, lab);
+    gen_trap(s);
+    gen_set_label(lab);
+    return NO_EXIT;
+}
+
 static ExitStatus op_loc(DisasContext *s, DisasOps *o)
 {
     DisasCompare c;
@@ -2428,21 +2552,45 @@ static ExitStatus op_lm32(DisasContext *s, DisasOps *o)
 {
     int r1 = get_field(s->fields, r1);
     int r3 = get_field(s->fields, r3);
-    TCGv_i64 t = tcg_temp_new_i64();
-    TCGv_i64 t4 = tcg_const_i64(4);
+    TCGv_i64 t1, t2;
 
-    while (1) {
-        tcg_gen_qemu_ld32u(t, o->in2, get_mem_index(s));
-        store_reg32_i64(r1, t);
-        if (r1 == r3) {
-            break;
-        }
-        tcg_gen_add_i64(o->in2, o->in2, t4);
-        r1 = (r1 + 1) & 15;
+    /* Only one register to read. */
+    t1 = tcg_temp_new_i64();
+    if (unlikely(r1 == r3)) {
+        tcg_gen_qemu_ld32u(t1, o->in2, get_mem_index(s));
+        store_reg32_i64(r1, t1);
+        tcg_temp_free(t1);
+        return NO_EXIT;
     }
 
-    tcg_temp_free_i64(t);
-    tcg_temp_free_i64(t4);
+    /* First load the values of the first and last registers to trigger
+       possible page faults. */
+    t2 = tcg_temp_new_i64();
+    tcg_gen_qemu_ld32u(t1, o->in2, get_mem_index(s));
+    tcg_gen_addi_i64(t2, o->in2, 4 * ((r3 - r1) & 15));
+    tcg_gen_qemu_ld32u(t2, t2, get_mem_index(s));
+    store_reg32_i64(r1, t1);
+    store_reg32_i64(r3, t2);
+
+    /* Only two registers to read. */
+    if (((r1 + 1) & 15) == r3) {
+        tcg_temp_free(t2);
+        tcg_temp_free(t1);
+        return NO_EXIT;
+    }
+
+    /* Then load the remaining registers. Page fault can't occur. */
+    r3 = (r3 - 1) & 15;
+    tcg_gen_movi_i64(t2, 4);
+    while (r1 != r3) {
+        r1 = (r1 + 1) & 15;
+        tcg_gen_add_i64(o->in2, o->in2, t2);
+        tcg_gen_qemu_ld32u(t1, o->in2, get_mem_index(s));
+        store_reg32_i64(r1, t1);
+    }
+    tcg_temp_free(t2);
+    tcg_temp_free(t1);
+
     return NO_EXIT;
 }
 
@@ -2450,21 +2598,45 @@ static ExitStatus op_lmh(DisasContext *s, DisasOps *o)
 {
     int r1 = get_field(s->fields, r1);
     int r3 = get_field(s->fields, r3);
-    TCGv_i64 t = tcg_temp_new_i64();
-    TCGv_i64 t4 = tcg_const_i64(4);
+    TCGv_i64 t1, t2;
 
-    while (1) {
-        tcg_gen_qemu_ld32u(t, o->in2, get_mem_index(s));
-        store_reg32h_i64(r1, t);
-        if (r1 == r3) {
-            break;
-        }
-        tcg_gen_add_i64(o->in2, o->in2, t4);
-        r1 = (r1 + 1) & 15;
+    /* Only one register to read. */
+    t1 = tcg_temp_new_i64();
+    if (unlikely(r1 == r3)) {
+        tcg_gen_qemu_ld32u(t1, o->in2, get_mem_index(s));
+        store_reg32h_i64(r1, t1);
+        tcg_temp_free(t1);
+        return NO_EXIT;
     }
 
-    tcg_temp_free_i64(t);
-    tcg_temp_free_i64(t4);
+    /* First load the values of the first and last registers to trigger
+       possible page faults. */
+    t2 = tcg_temp_new_i64();
+    tcg_gen_qemu_ld32u(t1, o->in2, get_mem_index(s));
+    tcg_gen_addi_i64(t2, o->in2, 4 * ((r3 - r1) & 15));
+    tcg_gen_qemu_ld32u(t2, t2, get_mem_index(s));
+    store_reg32h_i64(r1, t1);
+    store_reg32h_i64(r3, t2);
+
+    /* Only two registers to read. */
+    if (((r1 + 1) & 15) == r3) {
+        tcg_temp_free(t2);
+        tcg_temp_free(t1);
+        return NO_EXIT;
+    }
+
+    /* Then load the remaining registers. Page fault can't occur. */
+    r3 = (r3 - 1) & 15;
+    tcg_gen_movi_i64(t2, 4);
+    while (r1 != r3) {
+        r1 = (r1 + 1) & 15;
+        tcg_gen_add_i64(o->in2, o->in2, t2);
+        tcg_gen_qemu_ld32u(t1, o->in2, get_mem_index(s));
+        store_reg32h_i64(r1, t1);
+    }
+    tcg_temp_free(t2);
+    tcg_temp_free(t1);
+
     return NO_EXIT;
 }
 
@@ -2472,18 +2644,40 @@ static ExitStatus op_lm64(DisasContext *s, DisasOps *o)
 {
     int r1 = get_field(s->fields, r1);
     int r3 = get_field(s->fields, r3);
-    TCGv_i64 t8 = tcg_const_i64(8);
+    TCGv_i64 t1, t2;
 
-    while (1) {
+    /* Only one register to read. */
+    if (unlikely(r1 == r3)) {
         tcg_gen_qemu_ld64(regs[r1], o->in2, get_mem_index(s));
-        if (r1 == r3) {
-            break;
-        }
-        tcg_gen_add_i64(o->in2, o->in2, t8);
-        r1 = (r1 + 1) & 15;
+        return NO_EXIT;
     }
 
-    tcg_temp_free_i64(t8);
+    /* First load the values of the first and last registers to trigger
+       possible page faults. */
+    t1 = tcg_temp_new_i64();
+    t2 = tcg_temp_new_i64();
+    tcg_gen_qemu_ld64(t1, o->in2, get_mem_index(s));
+    tcg_gen_addi_i64(t2, o->in2, 8 * ((r3 - r1) & 15));
+    tcg_gen_qemu_ld64(regs[r3], t2, get_mem_index(s));
+    tcg_gen_mov_i64(regs[r1], t1);
+    tcg_temp_free(t2);
+
+    /* Only two registers to read. */
+    if (((r1 + 1) & 15) == r3) {
+        tcg_temp_free(t1);
+        return NO_EXIT;
+    }
+
+    /* Then load the remaining registers. Page fault can't occur. */
+    r3 = (r3 - 1) & 15;
+    tcg_gen_movi_i64(t1, 8);
+    while (r1 != r3) {
+        r1 = (r1 + 1) & 15;
+        tcg_gen_add_i64(o->in2, o->in2, t1);
+        tcg_gen_qemu_ld64(regs[r1], o->in2, get_mem_index(s));
+    }
+    tcg_temp_free(t1);
+
     return NO_EXIT;
 }
 
@@ -2511,6 +2705,41 @@ static ExitStatus op_mov2(DisasContext *s, DisasOps *o)
     o->g_out = o->g_in2;
     TCGV_UNUSED_I64(o->in2);
     o->g_in2 = false;
+    return NO_EXIT;
+}
+
+static ExitStatus op_mov2e(DisasContext *s, DisasOps *o)
+{
+    int b2 = get_field(s->fields, b2);
+    TCGv ar1 = tcg_temp_new_i64();
+
+    o->out = o->in2;
+    o->g_out = o->g_in2;
+    TCGV_UNUSED_I64(o->in2);
+    o->g_in2 = false;
+
+    switch (s->tb->flags & FLAG_MASK_ASC) {
+    case PSW_ASC_PRIMARY >> 32:
+        tcg_gen_movi_i64(ar1, 0);
+        break;
+    case PSW_ASC_ACCREG >> 32:
+        tcg_gen_movi_i64(ar1, 1);
+        break;
+    case PSW_ASC_SECONDARY >> 32:
+        if (b2) {
+            tcg_gen_ld32u_i64(ar1, cpu_env, offsetof(CPUS390XState, aregs[b2]));
+        } else {
+            tcg_gen_movi_i64(ar1, 0);
+        }
+        break;
+    case PSW_ASC_HOME >> 32:
+        tcg_gen_movi_i64(ar1, 2);
+        break;
+    }
+
+    tcg_gen_st32_i64(ar1, cpu_env, offsetof(CPUS390XState, aregs[1]));
+    tcg_temp_free_i64(ar1);
+
     return NO_EXIT;
 }
 
@@ -2674,7 +2903,13 @@ static ExitStatus op_msdb(DisasContext *s, DisasOps *o)
 
 static ExitStatus op_nabs(DisasContext *s, DisasOps *o)
 {
-    gen_helper_nabs_i64(o->out, o->in2);
+    TCGv_i64 z, n;
+    z = tcg_const_i64(0);
+    n = tcg_temp_new_i64();
+    tcg_gen_neg_i64(n, o->in2);
+    tcg_gen_movcond_i64(TCG_COND_GE, o->out, o->in2, z, n, o->in2);
+    tcg_temp_free_i64(n);
+    tcg_temp_free_i64(z);
     return NO_EXIT;
 }
 
@@ -2990,7 +3225,7 @@ static ExitStatus op_sam(DisasContext *s, DisasOps *o)
         break;
     }
 
-    /* Bizzare but true, we check the address of the current insn for the
+    /* Bizarre but true, we check the address of the current insn for the
        specification exception, not the next to be executed.  Thus the PoO
        documents that Bad Things Happen two bytes before the end.  */
     if (s->pc & ~mask) {
@@ -3081,6 +3316,10 @@ static ExitStatus op_soc(DisasContext *s, DisasOps *o)
     int r1;
 
     disas_jcc(s, &c, get_field(s->fields, m3));
+
+    /* We want to store when the condition is fulfilled, so branch
+       out when it's not */
+    c.cond = tcg_invert_cond(c.cond);
 
     lab = gen_new_label();
     if (c.is_64) {
@@ -3635,6 +3874,25 @@ static ExitStatus op_tr(DisasContext *s, DisasOps *o)
     return NO_EXIT;
 }
 
+static ExitStatus op_tre(DisasContext *s, DisasOps *o)
+{
+    potential_page_fault(s);
+    gen_helper_tre(o->out, cpu_env, o->out, o->out2, o->in2);
+    return_low128(o->out2);
+    set_cc_static(s);
+    return NO_EXIT;
+}
+
+static ExitStatus op_trt(DisasContext *s, DisasOps *o)
+{
+    TCGv_i32 l = tcg_const_i32(get_field(s->fields, l1));
+    potential_page_fault(s);
+    gen_helper_trt(cc_op, cpu_env, l, o->addr1, o->in2);
+    tcg_temp_free_i32(l);
+    set_cc_static(s);
+    return NO_EXIT;
+}
+
 static ExitStatus op_unpk(DisasContext *s, DisasOps *o)
 {
     TCGv_i32 l = tcg_const_i32(get_field(s->fields, l1));
@@ -3978,6 +4236,12 @@ static void wout_r1_32(DisasContext *s, DisasFields *f, DisasOps *o)
 }
 #define SPEC_wout_r1_32 0
 
+static void wout_r1_32h(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    store_reg32h_i64(get_field(f, r1), o->out);
+}
+#define SPEC_wout_r1_32h 0
+
 static void wout_r1_P32(DisasContext *s, DisasFields *f, DisasOps *o)
 {
     int r1 = get_field(f, r1);
@@ -4061,6 +4325,22 @@ static void wout_m2_32(DisasContext *s, DisasFields *f, DisasOps *o)
 }
 #define SPEC_wout_m2_32 0
 
+static void wout_m2_32_r1_atomic(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    /* XXX release reservation */
+    tcg_gen_qemu_st32(o->out, o->addr1, get_mem_index(s));
+    store_reg32_i64(get_field(f, r1), o->in2);
+}
+#define SPEC_wout_m2_32_r1_atomic 0
+
+static void wout_m2_64_r1_atomic(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    /* XXX release reservation */
+    tcg_gen_qemu_st64(o->out, o->addr1, get_mem_index(s));
+    store_reg(get_field(f, r1), o->in2);
+}
+#define SPEC_wout_m2_64_r1_atomic 0
+
 /* ====================================================================== */
 /* The "INput 1" generators.  These load the first operand to an insn.  */
 
@@ -4131,6 +4411,13 @@ static void in1_r2(DisasContext *s, DisasFields *f, DisasOps *o)
     o->in1 = load_reg(get_field(f, r2));
 }
 #define SPEC_in1_r2 0
+
+static void in1_r2_sr32(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    o->in1 = tcg_temp_new_i64();
+    tcg_gen_shri_i64(o->in1, regs[get_field(f, r2)], 32);
+}
+#define SPEC_in1_r2_sr32 0
 
 static void in1_r3(DisasContext *s, DisasFields *f, DisasOps *o)
 {
@@ -4345,6 +4632,13 @@ static void in2_r3(DisasContext *s, DisasFields *f, DisasOps *o)
 }
 #define SPEC_in2_r3 0
 
+static void in2_r3_sr32(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    o->in2 = tcg_temp_new_i64();
+    tcg_gen_shri_i64(o->in2, regs[get_field(f, r3)], 32);
+}
+#define SPEC_in2_r3_sr32 0
+
 static void in2_r2_32s(DisasContext *s, DisasFields *f, DisasOps *o)
 {
     o->in2 = tcg_temp_new_i64();
@@ -4358,6 +4652,13 @@ static void in2_r2_32u(DisasContext *s, DisasFields *f, DisasOps *o)
     tcg_gen_ext32u_i64(o->in2, regs[get_field(f, r2)]);
 }
 #define SPEC_in2_r2_32u 0
+
+static void in2_r2_sr32(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    o->in2 = tcg_temp_new_i64();
+    tcg_gen_shri_i64(o->in2, regs[get_field(f, r2)], 32);
+}
+#define SPEC_in2_r2_sr32 0
 
 static void in2_e2(DisasContext *s, DisasFields *f, DisasOps *o)
 {
@@ -4481,6 +4782,24 @@ static void in2_mri2_64(DisasContext *s, DisasFields *f, DisasOps *o)
     tcg_gen_qemu_ld64(o->in2, o->in2, get_mem_index(s));
 }
 #define SPEC_in2_mri2_64 0
+
+static void in2_m2_32s_atomic(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    /* XXX should reserve the address */
+    in1_la2(s, f, o);
+    o->in2 = tcg_temp_new_i64();
+    tcg_gen_qemu_ld32s(o->in2, o->addr1, get_mem_index(s));
+}
+#define SPEC_in2_m2_32s_atomic 0
+
+static void in2_m2_64_atomic(DisasContext *s, DisasFields *f, DisasOps *o)
+{
+    /* XXX should reserve the address */
+    in1_la2(s, f, o);
+    o->in2 = tcg_temp_new_i64();
+    tcg_gen_qemu_ld64(o->in2, o->addr1, get_mem_index(s));
+}
+#define SPEC_in2_m2_64_atomic 0
 
 static void in2_i2(DisasContext *s, DisasFields *f, DisasOps *o)
 {

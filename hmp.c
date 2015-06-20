@@ -15,6 +15,7 @@
 
 #include "hmp.h"
 #include "net/net.h"
+#include "net/eth.h"
 #include "sysemu/char.h"
 #include "sysemu/block-backend.h"
 #include "qemu/option.h"
@@ -22,6 +23,7 @@
 #include "qmp-commands.h"
 #include "qemu/sockets.h"
 #include "monitor/monitor.h"
+#include "monitor/qdev.h"
 #include "qapi/opts-visitor.h"
 #include "qapi/string-output-visitor.h"
 #include "qapi-visit.h"
@@ -60,7 +62,7 @@ void hmp_info_version(Monitor *mon, const QDict *qdict)
     info = qmp_query_version(NULL);
 
     monitor_printf(mon, "%" PRId64 ".%" PRId64 ".%" PRId64 "%s\n",
-                   info->qemu.major, info->qemu.minor, info->qemu.micro,
+                   info->qemu->major, info->qemu->minor, info->qemu->micro,
                    info->package);
 
     qapi_free_VersionInfo(info);
@@ -252,6 +254,29 @@ void hmp_info_migrate_capabilities(Monitor *mon, const QDict *qdict)
     qapi_free_MigrationCapabilityStatusList(caps);
 }
 
+void hmp_info_migrate_parameters(Monitor *mon, const QDict *qdict)
+{
+    MigrationParameters *params;
+
+    params = qmp_query_migrate_parameters(NULL);
+
+    if (params) {
+        monitor_printf(mon, "parameters:");
+        monitor_printf(mon, " %s: %" PRId64,
+            MigrationParameter_lookup[MIGRATION_PARAMETER_COMPRESS_LEVEL],
+            params->compress_level);
+        monitor_printf(mon, " %s: %" PRId64,
+            MigrationParameter_lookup[MIGRATION_PARAMETER_COMPRESS_THREADS],
+            params->compress_threads);
+        monitor_printf(mon, " %s: %" PRId64,
+            MigrationParameter_lookup[MIGRATION_PARAMETER_DECOMPRESS_THREADS],
+            params->decompress_threads);
+        monitor_printf(mon, "\n");
+    }
+
+    qapi_free_MigrationParameters(params);
+}
+
 void hmp_info_migrate_cache_size(Monitor *mon, const QDict *qdict)
 {
     monitor_printf(mon, "xbzrel cache size: %" PRId64 " kbytes\n",
@@ -375,7 +400,8 @@ static void print_block_info(Monitor *mon, BlockInfo *info,
                         " iops_max=%" PRId64
                         " iops_rd_max=%" PRId64
                         " iops_wr_max=%" PRId64
-                        " iops_size=%" PRId64 "\n",
+                        " iops_size=%" PRId64
+                        " group=%s\n",
                         inserted->bps,
                         inserted->bps_rd,
                         inserted->bps_wr,
@@ -388,11 +414,11 @@ static void print_block_info(Monitor *mon, BlockInfo *info,
                         inserted->iops_max,
                         inserted->iops_rd_max,
                         inserted->iops_wr_max,
-                        inserted->iops_size);
+                        inserted->iops_size,
+                        inserted->group);
     }
 
-    /* TODO: inserted->image should never be null */
-    if (verbose && inserted->image) {
+    if (verbose) {
         monitor_printf(mon, "\nImages:\n");
         image_info = inserted->image;
         while (1) {
@@ -649,14 +675,14 @@ static void hmp_info_pci_device(Monitor *mon, const PciDeviceInfo *dev)
                    dev->slot, dev->function);
     monitor_printf(mon, "    ");
 
-    if (dev->class_info.has_desc) {
-        monitor_printf(mon, "%s", dev->class_info.desc);
+    if (dev->class_info->has_desc) {
+        monitor_printf(mon, "%s", dev->class_info->desc);
     } else {
-        monitor_printf(mon, "Class %04" PRId64, dev->class_info.q_class);
+        monitor_printf(mon, "Class %04" PRId64, dev->class_info->q_class);
     }
 
     monitor_printf(mon, ": PCI device %04" PRIx64 ":%04" PRIx64 "\n",
-                   dev->id.vendor, dev->id.device);
+                   dev->id->vendor, dev->id->device);
 
     if (dev->has_irq) {
         monitor_printf(mon, "      IRQ %" PRId64 ".\n", dev->irq);
@@ -664,25 +690,25 @@ static void hmp_info_pci_device(Monitor *mon, const PciDeviceInfo *dev)
 
     if (dev->has_pci_bridge) {
         monitor_printf(mon, "      BUS %" PRId64 ".\n",
-                       dev->pci_bridge->bus.number);
+                       dev->pci_bridge->bus->number);
         monitor_printf(mon, "      secondary bus %" PRId64 ".\n",
-                       dev->pci_bridge->bus.secondary);
+                       dev->pci_bridge->bus->secondary);
         monitor_printf(mon, "      subordinate bus %" PRId64 ".\n",
-                       dev->pci_bridge->bus.subordinate);
+                       dev->pci_bridge->bus->subordinate);
 
         monitor_printf(mon, "      IO range [0x%04"PRIx64", 0x%04"PRIx64"]\n",
-                       dev->pci_bridge->bus.io_range->base,
-                       dev->pci_bridge->bus.io_range->limit);
+                       dev->pci_bridge->bus->io_range->base,
+                       dev->pci_bridge->bus->io_range->limit);
 
         monitor_printf(mon,
                        "      memory range [0x%08"PRIx64", 0x%08"PRIx64"]\n",
-                       dev->pci_bridge->bus.memory_range->base,
-                       dev->pci_bridge->bus.memory_range->limit);
+                       dev->pci_bridge->bus->memory_range->base,
+                       dev->pci_bridge->bus->memory_range->limit);
 
         monitor_printf(mon, "      prefetchable memory range "
                        "[0x%08"PRIx64", 0x%08"PRIx64"]\n",
-                       dev->pci_bridge->bus.prefetchable_range->base,
-                       dev->pci_bridge->bus.prefetchable_range->limit);
+                       dev->pci_bridge->bus->prefetchable_range->base,
+                       dev->pci_bridge->bus->prefetchable_range->limit);
     }
 
     for (region = dev->regions; region; region = region->next) {
@@ -1062,7 +1088,8 @@ void hmp_drive_backup(Monitor *mon, const QDict *qdict)
 
     qmp_drive_backup(device, filename, !!format, format,
                      full ? MIRROR_SYNC_MODE_FULL : MIRROR_SYNC_MODE_TOP,
-                     true, mode, false, 0, false, 0, false, 0, &err);
+                     true, mode, false, 0, false, NULL,
+                     false, 0, false, 0, &err);
     hmp_handle_error(mon, &err);
 }
 
@@ -1185,6 +1212,65 @@ void hmp_migrate_set_capability(Monitor *mon, const QDict *qdict)
     }
 }
 
+void hmp_migrate_set_parameter(Monitor *mon, const QDict *qdict)
+{
+    const char *param = qdict_get_str(qdict, "parameter");
+    int value = qdict_get_int(qdict, "value");
+    Error *err = NULL;
+    bool has_compress_level = false;
+    bool has_compress_threads = false;
+    bool has_decompress_threads = false;
+    int i;
+
+    for (i = 0; i < MIGRATION_PARAMETER_MAX; i++) {
+        if (strcmp(param, MigrationParameter_lookup[i]) == 0) {
+            switch (i) {
+            case MIGRATION_PARAMETER_COMPRESS_LEVEL:
+                has_compress_level = true;
+                break;
+            case MIGRATION_PARAMETER_COMPRESS_THREADS:
+                has_compress_threads = true;
+                break;
+            case MIGRATION_PARAMETER_DECOMPRESS_THREADS:
+                has_decompress_threads = true;
+                break;
+            }
+            qmp_migrate_set_parameters(has_compress_level, value,
+                                       has_compress_threads, value,
+                                       has_decompress_threads, value,
+                                       &err);
+            break;
+        }
+    }
+
+    if (i == MIGRATION_PARAMETER_MAX) {
+        error_set(&err, QERR_INVALID_PARAMETER, param);
+    }
+
+    if (err) {
+        monitor_printf(mon, "migrate_set_parameter: %s\n",
+                       error_get_pretty(err));
+        error_free(err);
+    }
+}
+
+void hmp_client_migrate_info(Monitor *mon, const QDict *qdict)
+{
+    Error *err = NULL;
+    const char *protocol = qdict_get_str(qdict, "protocol");
+    const char *hostname = qdict_get_str(qdict, "hostname");
+    bool has_port        = qdict_haskey(qdict, "port");
+    int port             = qdict_get_try_int(qdict, "port", -1);
+    bool has_tls_port    = qdict_haskey(qdict, "tls-port");
+    int tls_port         = qdict_get_try_int(qdict, "tls-port", -1);
+    const char *cert_subject = qdict_get_try_str(qdict, "cert-subject");
+
+    qmp_client_migrate_info(protocol, hostname,
+                            has_port, port, has_tls_port, tls_port,
+                            !!cert_subject, cert_subject, &err);
+    hmp_handle_error(mon, &err);
+}
+
 void hmp_set_password(Monitor *mon, const QDict *qdict)
 {
     const char *protocol  = qdict_get_str(qdict, "protocol");
@@ -1273,7 +1359,9 @@ void hmp_block_set_io_throttle(Monitor *mon, const QDict *qdict)
                               false,
                               0,
                               false, /* No default I/O size */
-                              0, &err);
+                              0,
+                              false,
+                              NULL, &err);
     hmp_handle_error(mon, &err);
 }
 
@@ -1415,6 +1503,11 @@ void hmp_migrate(Monitor *mon, const QDict *qdict)
                                           status);
         timer_mod(status->timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME));
     }
+}
+
+void hmp_device_add(Monitor *mon, const QDict *qdict)
+{
+    do_device_add(mon, qdict, NULL);
 }
 
 void hmp_device_del(Monitor *mon, const QDict *qdict)
@@ -1910,4 +2003,306 @@ void hmp_qom_set(Monitor *mon, const QDict *qdict)
         object_property_parse(obj, value, property, &err);
     }
     hmp_handle_error(mon, &err);
+}
+
+void hmp_rocker(Monitor *mon, const QDict *qdict)
+{
+    const char *name = qdict_get_str(qdict, "name");
+    RockerSwitch *rocker;
+    Error *errp = NULL;
+
+    rocker = qmp_query_rocker(name, &errp);
+    if (errp != NULL) {
+        hmp_handle_error(mon, &errp);
+        return;
+    }
+
+    monitor_printf(mon, "name: %s\n", rocker->name);
+    monitor_printf(mon, "id: 0x%" PRIx64 "\n", rocker->id);
+    monitor_printf(mon, "ports: %d\n", rocker->ports);
+
+    qapi_free_RockerSwitch(rocker);
+}
+
+void hmp_rocker_ports(Monitor *mon, const QDict *qdict)
+{
+    RockerPortList *list, *port;
+    const char *name = qdict_get_str(qdict, "name");
+    Error *errp = NULL;
+
+    list = qmp_query_rocker_ports(name, &errp);
+    if (errp != NULL) {
+        hmp_handle_error(mon, &errp);
+        return;
+    }
+
+    monitor_printf(mon, "            ena/    speed/ auto\n");
+    monitor_printf(mon, "      port  link    duplex neg?\n");
+
+    for (port = list; port; port = port->next) {
+        monitor_printf(mon, "%10s  %-4s   %-3s  %2s  %-3s\n",
+                       port->value->name,
+                       port->value->enabled ? port->value->link_up ?
+                       "up" : "down" : "!ena",
+                       port->value->speed == 10000 ? "10G" : "??",
+                       port->value->duplex ? "FD" : "HD",
+                       port->value->autoneg ? "Yes" : "No");
+    }
+
+    qapi_free_RockerPortList(list);
+}
+
+void hmp_rocker_of_dpa_flows(Monitor *mon, const QDict *qdict)
+{
+    RockerOfDpaFlowList *list, *info;
+    const char *name = qdict_get_str(qdict, "name");
+    uint32_t tbl_id = qdict_get_try_int(qdict, "tbl_id", -1);
+    Error *errp = NULL;
+
+    list = qmp_query_rocker_of_dpa_flows(name, tbl_id != -1, tbl_id, &errp);
+    if (errp != NULL) {
+        hmp_handle_error(mon, &errp);
+        return;
+    }
+
+    monitor_printf(mon, "prio tbl hits key(mask) --> actions\n");
+
+    for (info = list; info; info = info->next) {
+        RockerOfDpaFlow *flow = info->value;
+        RockerOfDpaFlowKey *key = flow->key;
+        RockerOfDpaFlowMask *mask = flow->mask;
+        RockerOfDpaFlowAction *action = flow->action;
+
+        if (flow->hits) {
+            monitor_printf(mon, "%-4d %-3d %-4" PRIu64,
+                           key->priority, key->tbl_id, flow->hits);
+        } else {
+            monitor_printf(mon, "%-4d %-3d     ",
+                           key->priority, key->tbl_id);
+        }
+
+        if (key->has_in_pport) {
+            monitor_printf(mon, " pport %d", key->in_pport);
+            if (mask->has_in_pport) {
+                monitor_printf(mon, "(0x%x)", mask->in_pport);
+            }
+        }
+
+        if (key->has_vlan_id) {
+            monitor_printf(mon, " vlan %d",
+                           key->vlan_id & VLAN_VID_MASK);
+            if (mask->has_vlan_id) {
+                monitor_printf(mon, "(0x%x)", mask->vlan_id);
+            }
+        }
+
+        if (key->has_tunnel_id) {
+            monitor_printf(mon, " tunnel %d", key->tunnel_id);
+            if (mask->has_tunnel_id) {
+                monitor_printf(mon, "(0x%x)", mask->tunnel_id);
+            }
+        }
+
+        if (key->has_eth_type) {
+            switch (key->eth_type) {
+            case 0x0806:
+                monitor_printf(mon, " ARP");
+                break;
+            case 0x0800:
+                monitor_printf(mon, " IP");
+                break;
+            case 0x86dd:
+                monitor_printf(mon, " IPv6");
+                break;
+            case 0x8809:
+                monitor_printf(mon, " LACP");
+                break;
+            case 0x88cc:
+                monitor_printf(mon, " LLDP");
+                break;
+            default:
+                monitor_printf(mon, " eth type 0x%04x", key->eth_type);
+                break;
+            }
+        }
+
+        if (key->has_eth_src) {
+            if ((strcmp(key->eth_src, "01:00:00:00:00:00") == 0) &&
+                (mask->has_eth_src) &&
+                (strcmp(mask->eth_src, "01:00:00:00:00:00") == 0)) {
+                monitor_printf(mon, " src <any mcast/bcast>");
+            } else if ((strcmp(key->eth_src, "00:00:00:00:00:00") == 0) &&
+                (mask->has_eth_src) &&
+                (strcmp(mask->eth_src, "01:00:00:00:00:00") == 0)) {
+                monitor_printf(mon, " src <any ucast>");
+            } else {
+                monitor_printf(mon, " src %s", key->eth_src);
+                if (mask->has_eth_src) {
+                    monitor_printf(mon, "(%s)", mask->eth_src);
+                }
+            }
+        }
+
+        if (key->has_eth_dst) {
+            if ((strcmp(key->eth_dst, "01:00:00:00:00:00") == 0) &&
+                (mask->has_eth_dst) &&
+                (strcmp(mask->eth_dst, "01:00:00:00:00:00") == 0)) {
+                monitor_printf(mon, " dst <any mcast/bcast>");
+            } else if ((strcmp(key->eth_dst, "00:00:00:00:00:00") == 0) &&
+                (mask->has_eth_dst) &&
+                (strcmp(mask->eth_dst, "01:00:00:00:00:00") == 0)) {
+                monitor_printf(mon, " dst <any ucast>");
+            } else {
+                monitor_printf(mon, " dst %s", key->eth_dst);
+                if (mask->has_eth_dst) {
+                    monitor_printf(mon, "(%s)", mask->eth_dst);
+                }
+            }
+        }
+
+        if (key->has_ip_proto) {
+            monitor_printf(mon, " proto %d", key->ip_proto);
+            if (mask->has_ip_proto) {
+                monitor_printf(mon, "(0x%x)", mask->ip_proto);
+            }
+        }
+
+        if (key->has_ip_tos) {
+            monitor_printf(mon, " TOS %d", key->ip_tos);
+            if (mask->has_ip_tos) {
+                monitor_printf(mon, "(0x%x)", mask->ip_tos);
+            }
+        }
+
+        if (key->has_ip_dst) {
+            monitor_printf(mon, " dst %s", key->ip_dst);
+        }
+
+        if (action->has_goto_tbl || action->has_group_id ||
+            action->has_new_vlan_id) {
+            monitor_printf(mon, " -->");
+        }
+
+        if (action->has_new_vlan_id) {
+            monitor_printf(mon, " apply new vlan %d",
+                           ntohs(action->new_vlan_id));
+        }
+
+        if (action->has_group_id) {
+            monitor_printf(mon, " write group 0x%08x", action->group_id);
+        }
+
+        if (action->has_goto_tbl) {
+            monitor_printf(mon, " goto tbl %d", action->goto_tbl);
+        }
+
+        monitor_printf(mon, "\n");
+    }
+
+    qapi_free_RockerOfDpaFlowList(list);
+}
+
+void hmp_rocker_of_dpa_groups(Monitor *mon, const QDict *qdict)
+{
+    RockerOfDpaGroupList *list, *g;
+    const char *name = qdict_get_str(qdict, "name");
+    uint8_t type = qdict_get_try_int(qdict, "type", 9);
+    Error *errp = NULL;
+    bool set = false;
+
+    list = qmp_query_rocker_of_dpa_groups(name, type != 9, type, &errp);
+    if (errp != NULL) {
+        hmp_handle_error(mon, &errp);
+        return;
+    }
+
+    monitor_printf(mon, "id (decode) --> buckets\n");
+
+    for (g = list; g; g = g->next) {
+        RockerOfDpaGroup *group = g->value;
+
+        monitor_printf(mon, "0x%08x", group->id);
+
+        monitor_printf(mon, " (type %s", group->type == 0 ? "L2 interface" :
+                                         group->type == 1 ? "L2 rewrite" :
+                                         group->type == 2 ? "L3 unicast" :
+                                         group->type == 3 ? "L2 multicast" :
+                                         group->type == 4 ? "L2 flood" :
+                                         group->type == 5 ? "L3 interface" :
+                                         group->type == 6 ? "L3 multicast" :
+                                         group->type == 7 ? "L3 ECMP" :
+                                         group->type == 8 ? "L2 overlay" :
+                                         "unknown");
+
+        if (group->has_vlan_id) {
+            monitor_printf(mon, " vlan %d", group->vlan_id);
+        }
+
+        if (group->has_pport) {
+            monitor_printf(mon, " pport %d", group->pport);
+        }
+
+        if (group->has_index) {
+            monitor_printf(mon, " index %d", group->index);
+        }
+
+        monitor_printf(mon, ") -->");
+
+        if (group->has_set_vlan_id && group->set_vlan_id) {
+            set = true;
+            monitor_printf(mon, " set vlan %d",
+                           group->set_vlan_id & VLAN_VID_MASK);
+        }
+
+        if (group->has_set_eth_src) {
+            if (!set) {
+                set = true;
+                monitor_printf(mon, " set");
+            }
+            monitor_printf(mon, " src %s", group->set_eth_src);
+        }
+
+        if (group->has_set_eth_dst) {
+            if (!set) {
+                set = true;
+                monitor_printf(mon, " set");
+            }
+            monitor_printf(mon, " dst %s", group->set_eth_dst);
+        }
+
+        set = false;
+
+        if (group->has_ttl_check && group->ttl_check) {
+            monitor_printf(mon, " check TTL");
+        }
+
+        if (group->has_group_id && group->group_id) {
+            monitor_printf(mon, " group id 0x%08x", group->group_id);
+        }
+
+        if (group->has_pop_vlan && group->pop_vlan) {
+            monitor_printf(mon, " pop vlan");
+        }
+
+        if (group->has_out_pport) {
+            monitor_printf(mon, " out pport %d", group->out_pport);
+        }
+
+        if (group->has_group_ids) {
+            struct uint32List *id;
+
+            monitor_printf(mon, " groups [");
+            for (id = group->group_ids; id; id = id->next) {
+                monitor_printf(mon, "0x%08x", id->value);
+                if (id->next) {
+                    monitor_printf(mon, ",");
+                }
+            }
+            monitor_printf(mon, "]");
+        }
+
+        monitor_printf(mon, "\n");
+    }
+
+    qapi_free_RockerOfDpaGroupList(list);
 }

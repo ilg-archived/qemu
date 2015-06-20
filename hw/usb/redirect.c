@@ -130,6 +130,9 @@ struct USBRedirDevice {
     int compatible_speedmask;
 };
 
+#define TYPE_USB_REDIR "usb-redir"
+#define USB_REDIRECT(obj) OBJECT_CHECK(USBRedirDevice, (obj), TYPE_USB_REDIR)
+
 static void usbredir_hello(void *priv, struct usb_redir_hello_header *h);
 static void usbredir_device_connect(void *priv,
     struct usb_redir_device_connect_header *device_connect);
@@ -360,7 +363,7 @@ static void packet_id_queue_empty(struct PacketIdQueue *q)
 
 static void usbredir_cancel_packet(USBDevice *udev, USBPacket *p)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
     int i = USBEP2I(p->ep);
 
     if (p->combined) {
@@ -500,7 +503,7 @@ static void usbredir_free_bufpq(USBRedirDevice *dev, uint8_t ep)
 
 static void usbredir_handle_reset(USBDevice *udev)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
 
     DPRINTF("reset device\n");
     usbredirparser_send_reset(dev->parser);
@@ -907,7 +910,7 @@ static void usbredir_stop_interrupt_receiving(USBRedirDevice *dev,
 
 static void usbredir_handle_data(USBDevice *udev, USBPacket *p)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
     uint8_t ep;
 
     ep = p->ep->nr;
@@ -976,7 +979,7 @@ static void usbredir_stop_ep(USBRedirDevice *dev, int i)
 
 static void usbredir_ep_stopped(USBDevice *udev, USBEndpoint *uep)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
 
     usbredir_stop_ep(dev, USBEP2I(uep));
     usbredirparser_do_write(dev->parser);
@@ -1046,7 +1049,7 @@ static void usbredir_get_interface(USBRedirDevice *dev, USBPacket *p,
 static void usbredir_handle_control(USBDevice *udev, USBPacket *p,
         int request, int value, int index, int length, uint8_t *data)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
     struct usb_redir_control_packet_header control_packet;
 
     if (usbredir_already_in_flight(dev, p->id)) {
@@ -1101,7 +1104,7 @@ static void usbredir_handle_control(USBDevice *udev, USBPacket *p,
 static int usbredir_alloc_streams(USBDevice *udev, USBEndpoint **eps,
                                   int nr_eps, int streams)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
 #if USBREDIR_VERSION >= 0x000700
     struct usb_redir_alloc_bulk_streams_header alloc_streams;
     int i;
@@ -1140,7 +1143,7 @@ static void usbredir_free_streams(USBDevice *udev, USBEndpoint **eps,
                                   int nr_eps)
 {
 #if USBREDIR_VERSION >= 0x000700
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
     struct usb_redir_free_bulk_streams_header free_streams;
     int i;
 
@@ -1362,7 +1365,7 @@ static void usbredir_init_endpoints(USBRedirDevice *dev)
 
 static void usbredir_realize(USBDevice *udev, Error **errp)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
     int i;
 
     if (dev->cs == NULL) {
@@ -1415,7 +1418,7 @@ static void usbredir_cleanup_device_queues(USBRedirDevice *dev)
 
 static void usbredir_handle_destroy(USBDevice *udev)
 {
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
 
     qemu_chr_delete(dev->cs);
     dev->cs = NULL;
@@ -2254,16 +2257,6 @@ static const VMStateInfo usbredir_ep_bufpq_vmstate_info = {
 
 
 /* For endp_data migration */
-static const VMStateDescription usbredir_bulk_receiving_vmstate = {
-    .name = "usb-redir-ep/bulk-receiving",
-    .version_id = 1,
-    .minimum_version_id = 1,
-    .fields = (VMStateField[]) {
-        VMSTATE_UINT8(bulk_receiving_started, struct endp_data),
-        VMSTATE_END_OF_LIST()
-    }
-};
-
 static bool usbredir_bulk_receiving_needed(void *priv)
 {
     struct endp_data *endp = priv;
@@ -2271,12 +2264,13 @@ static bool usbredir_bulk_receiving_needed(void *priv)
     return endp->bulk_receiving_started;
 }
 
-static const VMStateDescription usbredir_stream_vmstate = {
-    .name = "usb-redir-ep/stream-state",
+static const VMStateDescription usbredir_bulk_receiving_vmstate = {
+    .name = "usb-redir-ep/bulk-receiving",
     .version_id = 1,
     .minimum_version_id = 1,
+    .needed = usbredir_bulk_receiving_needed,
     .fields = (VMStateField[]) {
-        VMSTATE_UINT32(max_streams, struct endp_data),
+        VMSTATE_UINT8(bulk_receiving_started, struct endp_data),
         VMSTATE_END_OF_LIST()
     }
 };
@@ -2287,6 +2281,17 @@ static bool usbredir_stream_needed(void *priv)
 
     return endp->max_streams;
 }
+
+static const VMStateDescription usbredir_stream_vmstate = {
+    .name = "usb-redir-ep/stream-state",
+    .version_id = 1,
+    .minimum_version_id = 1,
+    .needed = usbredir_stream_needed,
+    .fields = (VMStateField[]) {
+        VMSTATE_UINT32(max_streams, struct endp_data),
+        VMSTATE_END_OF_LIST()
+    }
+};
 
 static const VMStateDescription usbredir_ep_vmstate = {
     .name = "usb-redir-ep",
@@ -2315,16 +2320,10 @@ static const VMStateDescription usbredir_ep_vmstate = {
         VMSTATE_INT32(bufpq_target_size, struct endp_data),
         VMSTATE_END_OF_LIST()
     },
-    .subsections = (VMStateSubsection[]) {
-        {
-            .vmsd = &usbredir_bulk_receiving_vmstate,
-            .needed = usbredir_bulk_receiving_needed,
-        }, {
-            .vmsd = &usbredir_stream_vmstate,
-            .needed = usbredir_stream_needed,
-        }, {
-            /* empty */
-        }
+    .subsections = (const VMStateDescription*[]) {
+        &usbredir_bulk_receiving_vmstate,
+        &usbredir_stream_vmstate,
+        NULL
     }
 };
 
@@ -2496,7 +2495,7 @@ static void usbredir_class_initfn(ObjectClass *klass, void *data)
 static void usbredir_instance_init(Object *obj)
 {
     USBDevice *udev = USB_DEVICE(obj);
-    USBRedirDevice *dev = DO_UPCAST(USBRedirDevice, dev, udev);
+    USBRedirDevice *dev = USB_REDIRECT(udev);
 
     device_add_bootindex_property(obj, &dev->bootindex,
                                   "bootindex", NULL,
@@ -2504,7 +2503,7 @@ static void usbredir_instance_init(Object *obj)
 }
 
 static const TypeInfo usbredir_dev_info = {
-    .name          = "usb-redir",
+    .name          = TYPE_USB_REDIR,
     .parent        = TYPE_USB_DEVICE,
     .instance_size = sizeof(USBRedirDevice),
     .class_init    = usbredir_class_initfn,

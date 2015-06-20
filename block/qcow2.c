@@ -208,7 +208,7 @@ static void GCC_FMT_ATTR(3, 4) report_unsupported(BlockDriverState *bs,
     va_end(ap);
 
     error_set(errp, QERR_UNKNOWN_BLOCK_FORMAT_FEATURE,
-              bdrv_get_device_name(bs), "qcow2", msg);
+              bdrv_get_device_or_node_name(bs), "qcow2", msg);
 }
 
 static void report_unsupported_feature(BlockDriverState *bs,
@@ -483,9 +483,11 @@ static const char *overlap_bool_option_names[QCOW2_OL_MAX_BITNR] = {
     [QCOW2_OL_INACTIVE_L2_BITNR]    = QCOW2_OPT_OVERLAP_INACTIVE_L2,
 };
 
-static void read_cache_sizes(QemuOpts *opts, uint64_t *l2_cache_size,
+static void read_cache_sizes(BlockDriverState *bs, QemuOpts *opts,
+                             uint64_t *l2_cache_size,
                              uint64_t *refcount_cache_size, Error **errp)
 {
+    BDRVQcowState *s = bs->opaque;
     uint64_t combined_cache_size;
     bool l2_cache_size_set, refcount_cache_size_set, combined_cache_size_set;
 
@@ -525,7 +527,9 @@ static void read_cache_sizes(QemuOpts *opts, uint64_t *l2_cache_size,
         }
     } else {
         if (!l2_cache_size_set && !refcount_cache_size_set) {
-            *l2_cache_size = DEFAULT_L2_CACHE_BYTE_SIZE;
+            *l2_cache_size = MAX(DEFAULT_L2_CACHE_BYTE_SIZE,
+                                 (uint64_t)DEFAULT_L2_CACHE_CLUSTERS
+                                 * s->cluster_size);
             *refcount_cache_size = *l2_cache_size
                                  / DEFAULT_L2_REFCOUNT_SIZE_RATIO;
         } else if (!l2_cache_size_set) {
@@ -803,7 +807,8 @@ static int qcow2_open(BlockDriverState *bs, QDict *options, int flags,
         goto fail;
     }
 
-    read_cache_sizes(opts, &l2_cache_size, &refcount_cache_size, &local_err);
+    read_cache_sizes(bs, opts, &l2_cache_size, &refcount_cache_size,
+                     &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         ret = -EINVAL;
@@ -1037,6 +1042,7 @@ static int qcow2_set_key(BlockDriverState *bs, const char *key)
     for(i = 0;i < len;i++) {
         keybuf[i] = key[i];
     }
+    assert(bs->encrypted);
     s->crypt_method = s->crypt_method_header;
 
     if (AES_set_encrypt_key(keybuf, 128, &s->aes_encrypt_key) != 0)
@@ -1224,7 +1230,9 @@ static coroutine_fn int qcow2_co_readv(BlockDriverState *bs, int64_t sector_num,
                 goto fail;
             }
 
-            if (s->crypt_method) {
+            if (bs->encrypted) {
+                assert(s->crypt_method);
+
                 /*
                  * For encrypted images, read everything into a temporary
                  * contiguous buffer on which the AES functions can work.
@@ -1255,7 +1263,8 @@ static coroutine_fn int qcow2_co_readv(BlockDriverState *bs, int64_t sector_num,
             if (ret < 0) {
                 goto fail;
             }
-            if (s->crypt_method) {
+            if (bs->encrypted) {
+                assert(s->crypt_method);
                 qcow2_encrypt_sectors(s, sector_num,  cluster_data,
                     cluster_data, cur_nr_sectors, 0, &s->aes_decrypt_key);
                 qemu_iovec_from_buf(qiov, bytes_done,
@@ -1315,7 +1324,7 @@ static coroutine_fn int qcow2_co_writev(BlockDriverState *bs,
         trace_qcow2_writev_start_part(qemu_coroutine_self());
         index_in_cluster = sector_num & (s->cluster_sectors - 1);
         cur_nr_sectors = remaining_sectors;
-        if (s->crypt_method &&
+        if (bs->encrypted &&
             cur_nr_sectors >
             QCOW_MAX_CRYPT_CLUSTERS * s->cluster_sectors - index_in_cluster) {
             cur_nr_sectors =
@@ -1334,7 +1343,8 @@ static coroutine_fn int qcow2_co_writev(BlockDriverState *bs,
         qemu_iovec_concat(&hd_qiov, qiov, bytes_done,
             cur_nr_sectors * 512);
 
-        if (s->crypt_method) {
+        if (bs->encrypted) {
+            assert(s->crypt_method);
             if (!cluster_data) {
                 cluster_data = qemu_try_blockalign(bs->file,
                                                    QCOW_MAX_CRYPT_CLUSTERS
@@ -1484,7 +1494,8 @@ static void qcow2_invalidate_cache(BlockDriverState *bs, Error **errp)
      * that means we don't have to worry about reopening them here.
      */
 
-    if (s->crypt_method) {
+    if (bs->encrypted) {
+        assert(s->crypt_method);
         crypt_method = s->crypt_method;
         memcpy(&aes_encrypt_key, &s->aes_encrypt_key, sizeof(aes_encrypt_key));
         memcpy(&aes_decrypt_key, &s->aes_decrypt_key, sizeof(aes_decrypt_key));
@@ -1513,7 +1524,7 @@ static void qcow2_invalidate_cache(BlockDriverState *bs, Error **errp)
         return;
     }
 
-    if (crypt_method) {
+    if (bs->encrypted) {
         s->crypt_method = crypt_method;
         memcpy(&s->aes_encrypt_key, &aes_encrypt_key, sizeof(aes_encrypt_key));
         memcpy(&s->aes_decrypt_key, &aes_decrypt_key, sizeof(aes_decrypt_key));
@@ -1802,7 +1813,7 @@ static int qcow2_create2(const char *filename, int64_t total_size,
 {
     /* Calculate cluster_bits */
     int cluster_bits;
-    cluster_bits = ffs(cluster_size) - 1;
+    cluster_bits = ctz32(cluster_size);
     if (cluster_bits < MIN_CLUSTER_BITS || cluster_bits > MAX_CLUSTER_BITS ||
         (1 << cluster_bits) != cluster_size)
     {
@@ -2110,7 +2121,7 @@ static int qcow2_create(const char *filename, QemuOpts *opts, Error **errp)
         goto finish;
     }
 
-    refcount_order = ffs(refcount_bits) - 1;
+    refcount_order = ctz32(refcount_bits);
 
     ret = qcow2_create2(filename, size, backing_file, backing_fmt, flags,
                         cluster_size, prealloc, opts, version, refcount_order,
@@ -2824,6 +2835,7 @@ void qcow2_signal_corruption(BlockDriverState *bs, bool fatal, int64_t offset,
                              int64_t size, const char *message_format, ...)
 {
     BDRVQcowState *s = bs->opaque;
+    const char *node_name;
     char *message;
     va_list ap;
 
@@ -2847,8 +2859,11 @@ void qcow2_signal_corruption(BlockDriverState *bs, bool fatal, int64_t offset,
                 "corruption events will be suppressed\n", message);
     }
 
-    qapi_event_send_block_image_corrupted(bdrv_get_device_name(bs), message,
-                                          offset >= 0, offset, size >= 0, size,
+    node_name = bdrv_get_node_name(bs);
+    qapi_event_send_block_image_corrupted(bdrv_get_device_name(bs),
+                                          *node_name != '\0', node_name,
+                                          message, offset >= 0, offset,
+                                          size >= 0, size,
                                           fatal, &error_abort);
     g_free(message);
 

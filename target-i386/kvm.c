@@ -37,6 +37,7 @@
 #include "hw/pci/pci.h"
 #include "migration/migration.h"
 #include "qapi/qmp/qerror.h"
+#include "exec/memattrs.h"
 
 //#define DEBUG_KVM
 
@@ -2246,7 +2247,7 @@ void kvm_arch_pre_run(CPUState *cpu, struct kvm_run *run)
     }
 }
 
-void kvm_arch_post_run(CPUState *cpu, struct kvm_run *run)
+MemTxAttrs kvm_arch_post_run(CPUState *cpu, struct kvm_run *run)
 {
     X86CPU *x86_cpu = X86_CPU(cpu);
     CPUX86State *env = &x86_cpu->env;
@@ -2258,6 +2259,7 @@ void kvm_arch_post_run(CPUState *cpu, struct kvm_run *run)
     }
     cpu_set_apic_tpr(x86_cpu->apic_state, run->cr8);
     cpu_set_apic_base(x86_cpu->apic_state, run->apic_base);
+    return cpu_get_mem_attrs(env);
 }
 
 int kvm_arch_process_async_events(CPUState *cs)
@@ -2763,4 +2765,9 @@ int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
                              uint64_t address, uint32_t data)
 {
     return 0;
+}
+
+int kvm_arch_msi_data_to_gsi(uint32_t data)
+{
+    abort();
 }

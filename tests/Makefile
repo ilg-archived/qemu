@@ -174,6 +174,8 @@ gcov-files-i386-y += hw/usb/dev-storage.c
 check-qtest-i386-y += tests/usb-hcd-xhci-test$(EXESUF)
 gcov-files-i386-y += hw/usb/hcd-xhci.c
 check-qtest-i386-y += tests/pc-cpu-test$(EXESUF)
+check-qtest-i386-y += tests/q35-test$(EXESUF)
+gcov-files-i386-y += hw/pci-host/q35.c
 check-qtest-i386-$(CONFIG_LINUX) += tests/vhost-user-test$(EXESUF)
 check-qtest-x86_64-y = $(check-qtest-i386-y)
 gcov-files-i386-y += i386-softmmu/hw/timer/mc146818rtc.c
@@ -207,20 +209,44 @@ $(foreach target,$(SYSEMU_TARGET_LIST), \
 		$(eval check-qtest-$(target)-y += tests/qom-test$(EXESUF))))
 
 check-qapi-schema-y := $(addprefix tests/qapi-schema/, \
-	comments.json empty.json funny-char.json indented-expr.json \
-	missing-colon.json missing-comma-list.json \
-	missing-comma-object.json non-objects.json \
+	comments.json empty.json enum-empty.json enum-missing-data.json \
+	enum-wrong-data.json enum-int-member.json enum-dict-member.json \
+	enum-clash-member.json enum-max-member.json enum-union-clash.json \
+	enum-bad-name.json funny-char.json indented-expr.json \
+	missing-type.json bad-ident.json ident-with-escape.json \
+	escape-outside-string.json unknown-escape.json \
+	escape-too-short.json escape-too-big.json unicode-str.json \
+	double-type.json bad-base.json bad-type-bool.json bad-type-int.json \
+	bad-type-dict.json double-data.json unknown-expr-key.json \
+	redefined-type.json redefined-command.json redefined-builtin.json \
+	redefined-event.json command-int.json bad-data.json event-max.json \
+	type-bypass.json type-bypass-no-gen.json type-bypass-bad-gen.json \
+	data-array-empty.json data-array-unknown.json data-int.json \
+	data-unknown.json data-member-unknown.json data-member-array.json \
+	data-member-array-bad.json returns-array-bad.json returns-int.json \
+	returns-unknown.json returns-alternate.json returns-whitelist.json \
+	missing-colon.json missing-comma-list.json missing-comma-object.json \
+	nested-struct-data.json nested-struct-returns.json non-objects.json \
 	qapi-schema-test.json quoted-structural-chars.json \
 	trailing-comma-list.json trailing-comma-object.json \
 	unclosed-list.json unclosed-object.json unclosed-string.json \
-	duplicate-key.json union-invalid-base.json flat-union-no-base.json \
-	flat-union-invalid-discriminator.json \
+	duplicate-key.json union-invalid-base.json union-bad-branch.json \
+	union-optional-branch.json union-unknown.json union-max.json \
+	flat-union-optional-discriminator.json flat-union-no-base.json \
+	flat-union-invalid-discriminator.json flat-union-inline.json \
 	flat-union-invalid-branch-key.json flat-union-reverse-define.json \
-	flat-union-string-discriminator.json \
+	flat-union-string-discriminator.json union-base-no-discriminator.json \
+	flat-union-bad-discriminator.json flat-union-bad-base.json \
+	flat-union-base-star.json flat-union-int-branch.json \
+	flat-union-base-union.json flat-union-branch-clash.json \
+	alternate-nested.json alternate-unknown.json alternate-clash.json \
+	alternate-good.json alternate-base.json alternate-array.json \
+	alternate-conflict-string.json alternate-conflict-dict.json \
 	include-simple.json include-relpath.json include-format-err.json \
 	include-non-file.json include-no-file.json include-before-err.json \
 	include-nested-err.json include-self-cycle.json include-cycle.json \
-	include-repetition.json event-nest-struct.json)
+	include-repetition.json event-nest-struct.json event-case.json \
+	struct-base-clash.json struct-base-clash-deep.json )
 
 GENERATED_HEADERS += tests/test-qapi-types.h tests/test-qapi-visit.h \
 		     tests/test-qmp-commands.h tests/test-qapi-event.h
@@ -277,24 +303,24 @@ tests/test-vmstate$(EXESUF): tests/test-vmstate.o \
 	libqemuutil.a libqemustub.a
 
 tests/test-qapi-types.c tests/test-qapi-types.h :\
-$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-types.py
+$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-types.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-types.py \
-		$(gen-out-type) -o tests -p "test-" -i $<, \
+		$(gen-out-type) -o tests -p "test-" $<, \
 		"  GEN   $@")
 tests/test-qapi-visit.c tests/test-qapi-visit.h :\
-$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-visit.py
+$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-visit.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-visit.py \
-		$(gen-out-type) -o tests -p "test-" -i $<, \
+		$(gen-out-type) -o tests -p "test-" $<, \
 		"  GEN   $@")
 tests/test-qmp-commands.h tests/test-qmp-marshal.c :\
-$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-commands.py
+$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-commands.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-commands.py \
-		$(gen-out-type) -o tests -p "test-" -i $<, \
+		$(gen-out-type) -o tests -p "test-" $<, \
 		"  GEN   $@")
 tests/test-qapi-event.c tests/test-qapi-event.h :\
-$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-event.py
+$(SRC_PATH)/tests/qapi-schema/qapi-schema-test.json $(SRC_PATH)/scripts/qapi-event.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-event.py \
-		$(gen-out-type) -o tests -p "test-" -i $<, \
+		$(gen-out-type) -o tests -p "test-" $<, \
 		"  GEN   $@")
 
 tests/test-string-output-visitor$(EXESUF): tests/test-string-output-visitor.o $(test-qapi-obj-y) libqemuutil.a libqemustub.a
@@ -331,6 +357,7 @@ tests/boot-order-test$(EXESUF): tests/boot-order-test.o $(libqos-obj-y)
 tests/bios-tables-test$(EXESUF): tests/bios-tables-test.o $(libqos-obj-y)
 tests/tmp105-test$(EXESUF): tests/tmp105-test.o $(libqos-omap-obj-y)
 tests/i440fx-test$(EXESUF): tests/i440fx-test.o $(libqos-pc-obj-y)
+tests/q35-test$(EXESUF): tests/q35-test.o $(libqos-pc-obj-y)
 tests/fw_cfg-test$(EXESUF): tests/fw_cfg-test.o $(libqos-pc-obj-y)
 tests/e1000-test$(EXESUF): tests/e1000-test.o
 tests/rtl8139-test$(EXESUF): tests/rtl8139-test.o $(libqos-pc-obj-y)
@@ -415,6 +442,7 @@ GCOV_OPTIONS = -n $(if $(V),-f,)
 $(patsubst %, check-qtest-%, $(QTEST_TARGETS)): check-qtest-%: $(check-qtest-y)
 	$(if $(CONFIG_GCOV),@rm -f *.gcda */*.gcda */*/*.gcda */*/*/*.gcda,)
 	$(call quiet-command,QTEST_QEMU_BINARY=$*-softmmu/qemu-system-$* \
+		QTEST_QEMU_IMG=qemu-img$(EXESUF) \
 		MALLOC_PERTURB_=$${MALLOC_PERTURB_:-$$((RANDOM % 255 + 1))} \
 		gtester $(GTESTER_OPTIONS) -m=$(SPEED) $(check-qtest-$*-y),"GTESTER $@")
 	$(if $(CONFIG_GCOV),@for f in $(gcov-files-$*-y); do \

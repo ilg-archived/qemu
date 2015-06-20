@@ -46,6 +46,12 @@ QemuOptsList socket_optslist = {
             .name = "port",
             .type = QEMU_OPT_STRING,
         },{
+            .name = "localaddr",
+            .type = QEMU_OPT_STRING,
+        },{
+            .name = "localport",
+            .type = QEMU_OPT_STRING,
+        },{
             .name = "to",
             .type = QEMU_OPT_NUMBER,
         },{
@@ -239,7 +245,7 @@ static void wait_for_connect(void *opaque)
     bool in_progress;
     Error *err = NULL;
 
-    qemu_set_fd_handler2(s->fd, NULL, NULL, NULL, NULL);
+    qemu_set_fd_handler(s->fd, NULL, NULL, NULL);
 
     do {
         rc = qemu_getsockopt(s->fd, SOL_SOCKET, SO_ERROR, &val, &valsize);
@@ -311,8 +317,7 @@ static int inet_connect_addr(struct addrinfo *addr, bool *in_progress,
 
     if (connect_state != NULL && QEMU_SOCKET_RC_INPROGRESS(rc)) {
         connect_state->fd = sock;
-        qemu_set_fd_handler2(sock, NULL, NULL, wait_for_connect,
-                             connect_state);
+        qemu_set_fd_handler(sock, NULL, wait_for_connect, connect_state);
         *in_progress = true;
     } else if (rc < 0) {
         error_setg_errno(errp, errno, "Failed to connect socket");
@@ -758,7 +763,12 @@ int unix_listen_opts(QemuOpts *opts, Error **errp)
         qemu_opt_set(opts, "path", un.sun_path, &error_abort);
     }
 
-    unlink(un.sun_path);
+    if ((access(un.sun_path, F_OK) == 0) &&
+        unlink(un.sun_path) < 0) {
+        error_setg_errno(errp, errno,
+                         "Failed to unlink socket %s", un.sun_path);
+        goto err;
+    }
     if (bind(sock, (struct sockaddr*) &un, sizeof(un)) < 0) {
         error_setg_errno(errp, errno, "Failed to bind socket to %s", un.sun_path);
         goto err;
@@ -814,8 +824,7 @@ int unix_connect_opts(QemuOpts *opts, Error **errp,
 
     if (connect_state != NULL && QEMU_SOCKET_RC_INPROGRESS(rc)) {
         connect_state->fd = sock;
-        qemu_set_fd_handler2(sock, NULL, NULL, wait_for_connect,
-                             connect_state);
+        qemu_set_fd_handler(sock, NULL, wait_for_connect, connect_state);
         return sock;
     } else if (rc >= 0) {
         /* non blocking socket immediate success, call callback */

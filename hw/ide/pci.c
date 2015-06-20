@@ -350,6 +350,7 @@ static const VMStateDescription vmstate_bmdma_current = {
     .name = "ide bmdma_current",
     .version_id = 1,
     .minimum_version_id = 1,
+    .needed = ide_bmdma_current_needed,
     .fields = (VMStateField[]) {
         VMSTATE_UINT32(cur_addr, BMDMAState),
         VMSTATE_UINT32(cur_prd_last, BMDMAState),
@@ -363,6 +364,7 @@ static const VMStateDescription vmstate_bmdma_status = {
     .name ="ide bmdma/status",
     .version_id = 1,
     .minimum_version_id = 1,
+    .needed = ide_bmdma_status_needed,
     .fields = (VMStateField[]) {
         VMSTATE_UINT8(status, BMDMAState),
         VMSTATE_END_OF_LIST()
@@ -383,16 +385,10 @@ static const VMStateDescription vmstate_bmdma = {
         VMSTATE_UINT8(migration_retry_unit, BMDMAState),
         VMSTATE_END_OF_LIST()
     },
-    .subsections = (VMStateSubsection []) {
-        {
-            .vmsd = &vmstate_bmdma_current,
-            .needed = ide_bmdma_current_needed,
-        }, {
-            .vmsd = &vmstate_bmdma_status,
-            .needed = ide_bmdma_status_needed,
-        }, {
-            /* empty */
-        }
+    .subsections = (const VMStateDescription*[]) {
+        &vmstate_bmdma_current,
+        &vmstate_bmdma_status,
+        NULL
     }
 };
 
@@ -452,8 +448,6 @@ static const struct IDEDMAOps bmdma_ops = {
 
 void bmdma_init(IDEBus *bus, BMDMAState *bm, PCIIDEState *d)
 {
-    qemu_irq *irq;
-
     if (bus->dma == &bm->dma) {
         return;
     }
@@ -461,8 +455,7 @@ void bmdma_init(IDEBus *bus, BMDMAState *bm, PCIIDEState *d)
     bm->dma.ops = &bmdma_ops;
     bus->dma = &bm->dma;
     bm->irq = bus->irq;
-    irq = qemu_allocate_irqs(bmdma_irq, bm, 1);
-    bus->irq = *irq;
+    bus->irq = qemu_allocate_irq(bmdma_irq, bm, 0);
     bm->pci_dev = d;
 }
 

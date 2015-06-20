@@ -16,14 +16,15 @@
 #include <assert.h>
 
 #include "host-utils.h"
+#include "atomic.h"
 
 #define BITS_PER_BYTE           CHAR_BIT
 #define BITS_PER_LONG           (sizeof (unsigned long) * BITS_PER_BYTE)
 
-#define BIT(nr)			(1UL << (nr))
-#define BIT_MASK(nr)		(1UL << ((nr) % BITS_PER_LONG))
-#define BIT_WORD(nr)		((nr) / BITS_PER_LONG)
-#define BITS_TO_LONGS(nr)	DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
+#define BIT(nr)                 (1UL << (nr))
+#define BIT_MASK(nr)            (1UL << ((nr) % BITS_PER_LONG))
+#define BIT_WORD(nr)            ((nr) / BITS_PER_LONG)
+#define BITS_TO_LONGS(nr)       DIV_ROUND_UP(nr, BITS_PER_BYTE * sizeof(long))
 
 /**
  * set_bit - Set a bit in memory
@@ -32,10 +33,23 @@
  */
 static inline void set_bit(long nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-        unsigned long *p = addr + BIT_WORD(nr);
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = addr + BIT_WORD(nr);
 
-	*p  |= mask;
+    *p  |= mask;
+}
+
+/**
+ * set_bit_atomic - Set a bit in memory atomically
+ * @nr: the bit to set
+ * @addr: the address to start counting from
+ */
+static inline void set_bit_atomic(long nr, unsigned long *addr)
+{
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = addr + BIT_WORD(nr);
+
+    atomic_or(p, mask);
 }
 
 /**
@@ -45,10 +59,10 @@ static inline void set_bit(long nr, unsigned long *addr)
  */
 static inline void clear_bit(long nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-        unsigned long *p = addr + BIT_WORD(nr);
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = addr + BIT_WORD(nr);
 
-	*p &= ~mask;
+    *p &= ~mask;
 }
 
 /**
@@ -58,10 +72,10 @@ static inline void clear_bit(long nr, unsigned long *addr)
  */
 static inline void change_bit(long nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-        unsigned long *p = addr + BIT_WORD(nr);
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = addr + BIT_WORD(nr);
 
-	*p ^= mask;
+    *p ^= mask;
 }
 
 /**
@@ -71,12 +85,12 @@ static inline void change_bit(long nr, unsigned long *addr)
  */
 static inline int test_and_set_bit(long nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-        unsigned long *p = addr + BIT_WORD(nr);
-	unsigned long old = *p;
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = addr + BIT_WORD(nr);
+    unsigned long old = *p;
 
-	*p = old | mask;
-	return (old & mask) != 0;
+    *p = old | mask;
+    return (old & mask) != 0;
 }
 
 /**
@@ -86,12 +100,12 @@ static inline int test_and_set_bit(long nr, unsigned long *addr)
  */
 static inline int test_and_clear_bit(long nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-        unsigned long *p = addr + BIT_WORD(nr);
-	unsigned long old = *p;
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = addr + BIT_WORD(nr);
+    unsigned long old = *p;
 
-	*p = old & ~mask;
-	return (old & mask) != 0;
+    *p = old & ~mask;
+    return (old & mask) != 0;
 }
 
 /**
@@ -101,12 +115,12 @@ static inline int test_and_clear_bit(long nr, unsigned long *addr)
  */
 static inline int test_and_change_bit(long nr, unsigned long *addr)
 {
-	unsigned long mask = BIT_MASK(nr);
-        unsigned long *p = addr + BIT_WORD(nr);
-	unsigned long old = *p;
+    unsigned long mask = BIT_MASK(nr);
+    unsigned long *p = addr + BIT_WORD(nr);
+    unsigned long old = *p;
 
-	*p = old ^ mask;
-	return (old & mask) != 0;
+    *p = old ^ mask;
+    return (old & mask) != 0;
 }
 
 /**
@@ -116,7 +130,7 @@ static inline int test_and_change_bit(long nr, unsigned long *addr)
  */
 static inline int test_bit(long nr, const unsigned long *addr)
 {
-	return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
+    return 1UL & (addr[BIT_WORD(nr)] >> (nr & (BITS_PER_LONG-1)));
 }
 
 /**
@@ -136,7 +150,8 @@ unsigned long find_last_bit(const unsigned long *addr,
  * @size: The bitmap size in bits
  */
 unsigned long find_next_bit(const unsigned long *addr,
-				   unsigned long size, unsigned long offset);
+                            unsigned long size,
+                            unsigned long offset);
 
 /**
  * find_next_zero_bit - find the next cleared bit in a memory region

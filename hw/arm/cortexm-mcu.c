@@ -30,6 +30,7 @@
 #include "hw/loader.h"
 #include "elf.h"
 #include "cpu.h"
+#include "exec/semihost.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -237,7 +238,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
             printf("Image: '%s'.\n", kernel_filename);
         }
 
-        cmdline = semihosting.cmdline;
+        cmdline = semihosting_get_cmdline();
         if (cmdline != NULL) {
             printf("Command line: '%s' (%d bytes).\n", cmdline,
                     (int) strlen(cmdline));

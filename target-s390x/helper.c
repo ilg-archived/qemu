@@ -112,7 +112,7 @@ int s390_cpu_handle_mmu_fault(CPUState *cs, vaddr orig_vaddr,
 {
     S390CPU *cpu = S390_CPU(cs);
     CPUS390XState *env = &cpu->env;
-    uint64_t asc = env->psw.mask & PSW_MASK_ASC;
+    uint64_t asc = cpu_mmu_idx_to_asc(mmu_idx);
     target_ulong vaddr, raddr;
     int prot;
 
@@ -162,7 +162,7 @@ hwaddr s390_cpu_get_phys_page_debug(CPUState *cs, vaddr vaddr)
         vaddr &= 0x7fffffff;
     }
 
-    mmu_translate(env, vaddr, 2, asc, &raddr, &prot, false);
+    mmu_translate(env, vaddr, MMU_INST_FETCH, asc, &raddr, &prot, false);
 
     return raddr;
 }
@@ -445,7 +445,7 @@ static void do_mchk_interrupt(CPUS390XState *env)
     lowcore = cpu_map_lowcore(env);
 
     for (i = 0; i < 16; i++) {
-        lowcore->floating_pt_save_area[i] = cpu_to_be64(env->fregs[i].ll);
+        lowcore->floating_pt_save_area[i] = cpu_to_be64(get_freg(env, i)->ll);
         lowcore->gpregs_save_area[i] = cpu_to_be64(env->regs[i]);
         lowcore->access_regs_save_area[i] = cpu_to_be32(env->aregs[i]);
         lowcore->cregs_save_area[i] = cpu_to_be64(env->cregs[i]);

@@ -133,9 +133,8 @@ static void n800_mmc_cs_cb(void *opaque, int line, int level)
 
 static void n8x0_gpio_setup(struct n800_s *s)
 {
-    qemu_irq *mmc_cs = qemu_allocate_irqs(n800_mmc_cs_cb, s->mpu->mmc, 1);
-    qdev_connect_gpio_out(s->mpu->gpio, N8X0_MMC_CS_GPIO, mmc_cs[0]);
-
+    qdev_connect_gpio_out(s->mpu->gpio, N8X0_MMC_CS_GPIO,
+                          qemu_allocate_irq(n800_mmc_cs_cb, s->mpu->mmc, 0));
     qemu_irq_lower(qdev_get_gpio_in(s->mpu->gpio, N800_BAT_COVER_GPIO));
 }
 
@@ -579,7 +578,10 @@ static uint32_t mipid_txrx(void *opaque, uint32_t cmd, int len)
 
     case 0x26:	/* GAMSET */
         if (!s->pm) {
-            s->gamma = ffs(s->param[0] & 0xf) - 1;
+            s->gamma = ctz32(s->param[0] & 0xf);
+            if (s->gamma == 32) {
+                s->gamma = -1; /* XXX: should this be 0? */
+            }
         } else if (s->pm < 0) {
             s->pm = 1;
         }

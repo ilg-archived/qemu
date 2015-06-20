@@ -69,11 +69,17 @@ static void hb_reset_secondary(ARMCPU *cpu, const struct arm_boot_info *info)
 
     switch (info->nb_cpus) {
     case 4:
-        stl_phys_notdirty(&address_space_memory, SMP_BOOT_REG + 0x30, 0);
+        address_space_stl_notdirty(&address_space_memory,
+                                   SMP_BOOT_REG + 0x30, 0,
+                                   MEMTXATTRS_UNSPECIFIED, NULL);
     case 3:
-        stl_phys_notdirty(&address_space_memory, SMP_BOOT_REG + 0x20, 0);
+        address_space_stl_notdirty(&address_space_memory,
+                                   SMP_BOOT_REG + 0x20, 0,
+                                   MEMTXATTRS_UNSPECIFIED, NULL);
     case 2:
-        stl_phys_notdirty(&address_space_memory, SMP_BOOT_REG + 0x10, 0);
+        address_space_stl_notdirty(&address_space_memory,
+                                   SMP_BOOT_REG + 0x10, 0,
+                                   MEMTXATTRS_UNSPECIFIED, NULL);
         env->regs[15] = SMP_BOOT_ADDR;
         break;
     default:
@@ -211,6 +217,7 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
     qemu_irq pic[128];
     int n;
     qemu_irq cpu_irq[4];
+    qemu_irq cpu_fiq[4];
     MemoryRegion *sysram;
     MemoryRegion *dram;
     MemoryRegion *sysmem;
@@ -263,6 +270,7 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
             exit(1);
         }
         cpu_irq[n] = qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_IRQ);
+        cpu_fiq[n] = qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_FIQ);
     }
 
     sysmem = get_system_memory();
@@ -307,6 +315,7 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
     sysbus_mmio_map(busdev, 0, MPCORE_PERIPHBASE);
     for (n = 0; n < smp_cpus; n++) {
         sysbus_connect_irq(busdev, n, cpu_irq[n]);
+        sysbus_connect_irq(busdev, n + smp_cpus, cpu_fiq[n]);
     }
 
     for (n = 0; n < 128; n++) {

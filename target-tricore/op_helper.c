@@ -19,6 +19,7 @@
 #include "qemu/host-utils.h"
 #include "exec/helper-proto.h"
 #include "exec/cpu_ldst.h"
+#include <zlib.h> /* for crc32 */
 
 /* Addressing mode helper */
 
@@ -2093,6 +2094,55 @@ uint64_t helper_dvstep_u(uint64_t r1, uint32_t r2)
     return ((uint64_t)remainder << 32) | (uint32_t)dividend_quotient;
 }
 
+uint64_t helper_divide(CPUTriCoreState *env, uint32_t r1, uint32_t r2)
+{
+    int32_t quotient, remainder;
+    int32_t dividend = (int32_t)r1;
+    int32_t divisor = (int32_t)r2;
+
+    if (divisor == 0) {
+        if (dividend >= 0) {
+            quotient = 0x7fffffff;
+            remainder = 0;
+        } else {
+            quotient = 0x80000000;
+            remainder = 0;
+        }
+        env->PSW_USB_V = (1 << 31);
+    } else if ((divisor == 0xffffffff) && (dividend == 0x80000000)) {
+        quotient = 0x7fffffff;
+        remainder = 0;
+        env->PSW_USB_V = (1 << 31);
+    } else {
+        remainder = dividend % divisor;
+        quotient = (dividend - remainder)/divisor;
+        env->PSW_USB_V = 0;
+    }
+    env->PSW_USB_SV |= env->PSW_USB_V;
+    env->PSW_USB_AV = 0;
+    return ((uint64_t)remainder << 32) | (uint32_t)quotient;
+}
+
+uint64_t helper_divide_u(CPUTriCoreState *env, uint32_t r1, uint32_t r2)
+{
+    uint32_t quotient, remainder;
+    uint32_t dividend = r1;
+    uint32_t divisor = r2;
+
+    if (divisor == 0) {
+        quotient = 0xffffffff;
+        remainder = 0;
+        env->PSW_USB_V = (1 << 31);
+    } else {
+        remainder = dividend % divisor;
+        quotient = (dividend - remainder)/divisor;
+        env->PSW_USB_V = 0;
+    }
+    env->PSW_USB_SV |= env->PSW_USB_V;
+    env->PSW_USB_AV = 0;
+    return ((uint64_t)remainder << 32) | quotient;
+}
+
 uint64_t helper_mul_h(uint32_t arg00, uint32_t arg01,
                       uint32_t arg10, uint32_t arg11, uint32_t n)
 {
@@ -2163,6 +2213,16 @@ uint32_t helper_mulr_h(uint32_t arg00, uint32_t arg01,
         result0 = ((arg01 * arg11) << n) + 0x8000;
     }
     return (result1 & 0xffff0000) | (result0 >> 16);
+}
+
+uint32_t helper_crc32(uint32_t arg0, uint32_t arg1)
+{
+    uint8_t buf[4];
+    uint32_t ret;
+    stl_be_p(buf, arg0);
+
+    ret = crc32(arg1, buf, 4);
+    return ret;
 }
 
 /* context save area (CSA) related helpers */
@@ -2458,6 +2518,7 @@ void helper_rfe(CPUTriCoreState *env)
     if (!cdc_zero(&(env->PSW)) && (env->PSW & MASK_PSW_CDE)) {
         /* raise MNG trap */
     }
+    env->PC = env->gpr_a[11] & ~0x1;
     /* ICR.IE = PCXI.PIE; */
     env->ICR = (env->ICR & ~MASK_ICR_IE) + ((env->PCXI & MASK_PCXI_PIE) >> 15);
     /* ICR.CCPN = PCXI.PCPN; */
@@ -2581,7 +2642,7 @@ void helper_rslcx(CPUTriCoreState *env)
          ((env->PCXI & MASK_PCXI_PCXO) << 6);
     /* {new_PCXI, A[11], A[10], A[11], D[8], D[9], D[10], D[11], A[12],
         A[13], A[14], A[15], D[12], D[13], D[14], D[15]} = M(EA, 16 * word); */
-    restore_context_upper(env, ea, &new_PCXI, &env->gpr_a[11]);
+    restore_context_lower(env, ea, &env->gpr_a[11], &new_PCXI);
     /* M(EA, word) = FCX; */
     cpu_stl_data(env, ea, env->FCX);
     /* M(EA, word) = FCX; */

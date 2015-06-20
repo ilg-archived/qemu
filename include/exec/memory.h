@@ -28,6 +28,7 @@
 #ifndef CONFIG_USER_ONLY
 #include "exec/hwaddr.h"
 #endif
+#include "exec/memattrs.h"
 #include "qemu/queue.h"
 #include "qemu/int128.h"
 #include "qemu/notify.h"
@@ -68,6 +69,16 @@ struct IOMMUTLBEntry {
     IOMMUAccessFlags perm;
 };
 
+/* New-style MMIO accessors can indicate that the transaction failed.
+ * A zero (MEMTX_OK) response means success; anything else is a failure
+ * of some kind. The memory subsystem will bitwise-OR together results
+ * if it is synthesizing an operation from multiple smaller accesses.
+ */
+#define MEMTX_OK 0
+#define MEMTX_ERROR             (1U << 0) /* device returned an error */
+#define MEMTX_DECODE_ERROR      (1U << 1) /* nothing at that address */
+typedef uint32_t MemTxResult;
+
 /*
  * Memory region callbacks
  */
@@ -83,6 +94,17 @@ struct MemoryRegionOps {
                   hwaddr addr,
                   uint64_t data,
                   unsigned size);
+
+    MemTxResult (*read_with_attrs)(void *opaque,
+                                   hwaddr addr,
+                                   uint64_t *data,
+                                   unsigned size,
+                                   MemTxAttrs attrs);
+    MemTxResult (*write_with_attrs)(void *opaque,
+                                    hwaddr addr,
+                                    uint64_t data,
+                                    unsigned size,
+                                    MemTxAttrs attrs);
 
     enum device_endian endianness;
     /* Guest-visible constraints: */
@@ -184,8 +206,10 @@ struct MemoryListener {
     void (*region_add)(MemoryListener *listener, MemoryRegionSection *section);
     void (*region_del)(MemoryListener *listener, MemoryRegionSection *section);
     void (*region_nop)(MemoryListener *listener, MemoryRegionSection *section);
-    void (*log_start)(MemoryListener *listener, MemoryRegionSection *section);
-    void (*log_stop)(MemoryListener *listener, MemoryRegionSection *section);
+    void (*log_start)(MemoryListener *listener, MemoryRegionSection *section,
+                      int old, int new);
+    void (*log_stop)(MemoryListener *listener, MemoryRegionSection *section,
+                     int old, int new);
     void (*log_sync)(MemoryListener *listener, MemoryRegionSection *section);
     void (*log_global_start)(MemoryListener *listener);
     void (*log_global_stop)(MemoryListener *listener);
@@ -569,11 +593,23 @@ const char *memory_region_name(const MemoryRegion *mr);
 /**
  * memory_region_is_logging: return whether a memory region is logging writes
  *
- * Returns %true if the memory region is logging writes
+ * Returns %true if the memory region is logging writes for the given client
+ *
+ * @mr: the memory region being queried
+ * @client: the client being queried
+ */
+bool memory_region_is_logging(MemoryRegion *mr, uint8_t client);
+
+/**
+ * memory_region_get_dirty_log_mask: return the clients for which a
+ * memory region is logging writes.
+ *
+ * Returns a bitmap of clients, in which the DIRTY_MEMORY_* constants
+ * are the bit indices.
  *
  * @mr: the memory region being queried
  */
-bool memory_region_is_logging(MemoryRegion *mr);
+uint8_t memory_region_get_dirty_log_mask(MemoryRegion *mr);
 
 /**
  * memory_region_is_rom: check whether a memory region is ROM
@@ -605,6 +641,18 @@ int memory_region_get_fd(MemoryRegion *mr);
  */
 void *memory_region_get_ram_ptr(MemoryRegion *mr);
 
+/* memory_region_ram_resize: Resize a RAM region.
+ *
+ * Only legal before guest might have detected the memory size: e.g. on
+ * incoming migration, or right after reset.
+ *
+ * @mr: a memory region created with @memory_region_init_resizeable_ram.
+ * @newsize: the new size the region
+ * @errp: pointer to Error*, to store an error if it happens.
+ */
+void memory_region_ram_resize(MemoryRegion *mr, ram_addr_t newsize,
+                              Error **errp);
+
 /**
  * memory_region_set_log: Turn dirty logging on or off for a region.
  *
@@ -613,8 +661,7 @@ void *memory_region_get_ram_ptr(MemoryRegion *mr);
  *
  * @mr: the memory region being updated.
  * @log: whether dirty logging is to be enabled or disabled.
- * @client: the user of the logging information; %DIRTY_MEMORY_MIGRATION or
- *          %DIRTY_MEMORY_VGA.
+ * @client: the user of the logging information; %DIRTY_MEMORY_VGA only.
  */
 void memory_region_set_log(MemoryRegion *mr, bool log, unsigned client);
 
@@ -1031,6 +1078,37 @@ void memory_global_dirty_log_stop(void);
 void mtree_info(fprintf_function mon_printf, void *f);
 
 /**
+ * memory_region_dispatch_read: perform a read directly to the specified
+ * MemoryRegion.
+ *
+ * @mr: #MemoryRegion to access
+ * @addr: address within that region
+ * @pval: pointer to uint64_t which the data is written to
+ * @size: size of the access in bytes
+ * @attrs: memory transaction attributes to use for the access
+ */
+MemTxResult memory_region_dispatch_read(MemoryRegion *mr,
+                                        hwaddr addr,
+                                        uint64_t *pval,
+                                        unsigned size,
+                                        MemTxAttrs attrs);
+/**
+ * memory_region_dispatch_write: perform a write directly to the specified
+ * MemoryRegion.
+ *
+ * @mr: #MemoryRegion to access
+ * @addr: address within that region
+ * @data: data to write
+ * @size: size of the access in bytes
+ * @attrs: memory transaction attributes to use for the access
+ */
+MemTxResult memory_region_dispatch_write(MemoryRegion *mr,
+                                         hwaddr addr,
+                                         uint64_t data,
+                                         unsigned size,
+                                         MemTxAttrs attrs);
+
+/**
  * address_space_init: initializes an address space
  *
  * @as: an uninitialized #AddressSpace
@@ -1055,44 +1133,122 @@ void address_space_destroy(AddressSpace *as);
 /**
  * address_space_rw: read from or write to an address space.
  *
- * Return true if the operation hit any unassigned memory or encountered an
- * IOMMU fault.
+ * Return a MemTxResult indicating whether the operation succeeded
+ * or failed (eg unassigned memory, device rejected the transaction,
+ * IOMMU fault).
  *
  * @as: #AddressSpace to be accessed
  * @addr: address within that address space
+ * @attrs: memory transaction attributes
  * @buf: buffer with the data transferred
  * @is_write: indicates the transfer direction
  */
-bool address_space_rw(AddressSpace *as, hwaddr addr, uint8_t *buf,
-                      int len, bool is_write);
+MemTxResult address_space_rw(AddressSpace *as, hwaddr addr,
+                             MemTxAttrs attrs, uint8_t *buf,
+                             int len, bool is_write);
 
 /**
  * address_space_write: write to address space.
  *
- * Return true if the operation hit any unassigned memory or encountered an
- * IOMMU fault.
+ * Return a MemTxResult indicating whether the operation succeeded
+ * or failed (eg unassigned memory, device rejected the transaction,
+ * IOMMU fault).
  *
  * @as: #AddressSpace to be accessed
  * @addr: address within that address space
+ * @attrs: memory transaction attributes
  * @buf: buffer with the data transferred
  */
-bool address_space_write(AddressSpace *as, hwaddr addr,
-                         const uint8_t *buf, int len);
+MemTxResult address_space_write(AddressSpace *as, hwaddr addr,
+                                MemTxAttrs attrs,
+                                const uint8_t *buf, int len);
 
 /**
  * address_space_read: read from an address space.
  *
- * Return true if the operation hit any unassigned memory or encountered an
- * IOMMU fault.
+ * Return a MemTxResult indicating whether the operation succeeded
+ * or failed (eg unassigned memory, device rejected the transaction,
+ * IOMMU fault).
  *
  * @as: #AddressSpace to be accessed
  * @addr: address within that address space
+ * @attrs: memory transaction attributes
  * @buf: buffer with the data transferred
  */
-bool address_space_read(AddressSpace *as, hwaddr addr, uint8_t *buf, int len);
+MemTxResult address_space_read(AddressSpace *as, hwaddr addr, MemTxAttrs attrs,
+                               uint8_t *buf, int len);
+
+/**
+ * address_space_ld*: load from an address space
+ * address_space_st*: store to an address space
+ *
+ * These functions perform a load or store of the byte, word,
+ * longword or quad to the specified address within the AddressSpace.
+ * The _le suffixed functions treat the data as little endian;
+ * _be indicates big endian; no suffix indicates "same endianness
+ * as guest CPU".
+ *
+ * The "guest CPU endianness" accessors are deprecated for use outside
+ * target-* code; devices should be CPU-agnostic and use either the LE
+ * or the BE accessors.
+ *
+ * @as #AddressSpace to be accessed
+ * @addr: address within that address space
+ * @val: data value, for stores
+ * @attrs: memory transaction attributes
+ * @result: location to write the success/failure of the transaction;
+ *   if NULL, this information is discarded
+ */
+uint32_t address_space_ldub(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint32_t address_space_lduw_le(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint32_t address_space_lduw_be(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint32_t address_space_ldl_le(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint32_t address_space_ldl_be(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint64_t address_space_ldq_le(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint64_t address_space_ldq_be(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stb(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stw_le(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stw_be(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stl_le(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stl_be(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stq_le(AddressSpace *as, hwaddr addr, uint64_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stq_be(AddressSpace *as, hwaddr addr, uint64_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+
+#ifdef NEED_CPU_H
+uint32_t address_space_lduw(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint32_t address_space_ldl(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+uint64_t address_space_ldq(AddressSpace *as, hwaddr addr,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stl_notdirty(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stw(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stl(AddressSpace *as, hwaddr addr, uint32_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+void address_space_stq(AddressSpace *as, hwaddr addr, uint64_t val,
+                            MemTxAttrs attrs, MemTxResult *result);
+#endif
 
 /* address_space_translate: translate an address range into an address space
- * into a MemoryRegion and an address range into that section
+ * into a MemoryRegion and an address range into that section.  Should be
+ * called from an RCU critical section, to avoid that the last reference
+ * to the returned region disappears after address_space_translate returns.
  *
  * @as: #AddressSpace to be accessed
  * @addr: address within that address space

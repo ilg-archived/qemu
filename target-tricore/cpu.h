@@ -254,6 +254,7 @@ enum tricore_features {
     TRICORE_FEATURE_13,
     TRICORE_FEATURE_131,
     TRICORE_FEATURE_16,
+    TRICORE_FEATURE_161,
 };
 
 static inline int tricore_feature(CPUTriCoreState *env, int feature)
@@ -394,10 +395,5 @@ int cpu_tricore_handle_mmu_fault(CPUState *cpu, target_ulong address,
 #define cpu_handle_mmu_fault cpu_tricore_handle_mmu_fault
 
 #include "exec/exec-all.h"
-
-static inline void cpu_pc_from_tb(CPUTriCoreState *env, TranslationBlock *tb)
-{
-    env->PC = tb->pc;
-}
 
 #endif /*__TRICORE_CPU_H__ */

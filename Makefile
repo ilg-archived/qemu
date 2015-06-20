@@ -243,17 +243,17 @@ qapi-py = $(SRC_PATH)/scripts/qapi.py $(SRC_PATH)/scripts/ordereddict.py
 qga/qapi-generated/qga-qapi-types.c qga/qapi-generated/qga-qapi-types.h :\
 $(SRC_PATH)/qga/qapi-schema.json $(SRC_PATH)/scripts/qapi-types.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-types.py \
-		$(gen-out-type) -o qga/qapi-generated -p "qga-" -i $<, \
+		$(gen-out-type) -o qga/qapi-generated -p "qga-" $<, \
 		"  GEN   $@")
 qga/qapi-generated/qga-qapi-visit.c qga/qapi-generated/qga-qapi-visit.h :\
 $(SRC_PATH)/qga/qapi-schema.json $(SRC_PATH)/scripts/qapi-visit.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-visit.py \
-		$(gen-out-type) -o qga/qapi-generated -p "qga-" -i $<, \
+		$(gen-out-type) -o qga/qapi-generated -p "qga-" $<, \
 		"  GEN   $@")
 qga/qapi-generated/qga-qmp-commands.h qga/qapi-generated/qga-qmp-marshal.c :\
 $(SRC_PATH)/qga/qapi-schema.json $(SRC_PATH)/scripts/qapi-commands.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-commands.py \
-		$(gen-out-type) -o qga/qapi-generated -p "qga-" -i $<, \
+		$(gen-out-type) -o qga/qapi-generated -p "qga-" $<, \
 		"  GEN   $@")
 
 qapi-modules = $(SRC_PATH)/qapi-schema.json $(SRC_PATH)/qapi/common.json \
@@ -263,22 +263,22 @@ qapi-modules = $(SRC_PATH)/qapi-schema.json $(SRC_PATH)/qapi/common.json \
 qapi-types.c qapi-types.h :\
 $(qapi-modules) $(SRC_PATH)/scripts/qapi-types.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-types.py \
-		$(gen-out-type) -o "." -b -i $<, \
+		$(gen-out-type) -o "." -b $<, \
 		"  GEN   $@")
 qapi-visit.c qapi-visit.h :\
 $(qapi-modules) $(SRC_PATH)/scripts/qapi-visit.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-visit.py \
-		$(gen-out-type) -o "." -b -i $<, \
+		$(gen-out-type) -o "." -b $<, \
 		"  GEN   $@")
 qapi-event.c qapi-event.h :\
 $(qapi-modules) $(SRC_PATH)/scripts/qapi-event.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-event.py \
-		$(gen-out-type) -o "." -b -i $<, \
+		$(gen-out-type) -o "." $<, \
 		"  GEN   $@")
 qmp-commands.h qmp-marshal.c :\
 $(qapi-modules) $(SRC_PATH)/scripts/qapi-commands.py $(qapi-py)
 	$(call quiet-command,$(PYTHON) $(SRC_PATH)/scripts/qapi-commands.py \
-		$(gen-out-type) -o "." -m -i $<, \
+		$(gen-out-type) -o "." -m $<, \
 		"  GEN   $@")
 
 QGALIB_GEN=$(addprefix qga/qapi-generated/, qga-qapi-types.h qga-qapi-visit.h qga-qmp-commands.h)
@@ -296,6 +296,7 @@ clean:
 	rm -f fsdev/*.pod
 	rm -rf .libs */.libs
 	rm -f qemu-img-cmds.h
+	rm -f ui/shader/*-vert.h ui/shader/*-frag.h
 	@# May not be present in GENERATED_HEADERS
 	rm -f trace/generated-tracers-dtrace.dtrace*
 	rm -f trace/generated-tracers-dtrace.h*
@@ -341,7 +342,7 @@ bepo    cz
 
 ifdef INSTALL_BLOBS
 BLOBS=bios.bin bios-256k.bin sgabios.bin vgabios.bin vgabios-cirrus.bin \
-vgabios-stdvga.bin vgabios-vmware.bin vgabios-qxl.bin \
+vgabios-stdvga.bin vgabios-vmware.bin vgabios-qxl.bin vgabios-virtio.bin \
 acpi-dsdt.aml q35-acpi-dsdt.aml \
 ppc_rom.bin openbios-sparc32 openbios-sparc64 openbios-ppc QEMU,tcx.bin QEMU,cgthree.bin \
 pxe-e1000.rom pxe-eepro100.rom pxe-ne2k_pci.rom \
@@ -392,13 +393,8 @@ ifneq (,$(findstring qemu-ga,$(TOOLS)))
 endif
 endif
 
-install-confdir:
-	$(INSTALL_DIR) "$(DESTDIR)$(qemu_confdir)"
 
-install-sysconfig: install-datadir install-confdir
-	$(INSTALL_DATA) $(SRC_PATH)/sysconfigs/target/target-x86_64.conf "$(DESTDIR)$(qemu_confdir)"
-
-install: all $(if $(BUILD_DOCS),install-doc) install-sysconfig \
+install: all $(if $(BUILD_DOCS),install-doc) \
 install-datadir install-localstatedir
 ifneq ($(TOOLS),)
 	$(call install-prog,$(TOOLS),$(DESTDIR)$(bindir))
@@ -444,6 +440,22 @@ cscope:
 	rm -f ./cscope.*
 	find "$(SRC_PATH)" -name "*.[chsS]" -print | sed 's,^\./,,' > ./cscope.files
 	cscope -b
+
+# opengl shader programs
+ui/shader/%-vert.h: $(SRC_PATH)/ui/shader/%.vert $(SRC_PATH)/scripts/shaderinclude.pl
+	@mkdir -p $(dir $@)
+	$(call quiet-command,\
+		perl $(SRC_PATH)/scripts/shaderinclude.pl $< > $@,\
+		"  VERT  $@")
+
+ui/shader/%-frag.h: $(SRC_PATH)/ui/shader/%.frag $(SRC_PATH)/scripts/shaderinclude.pl
+	@mkdir -p $(dir $@)
+	$(call quiet-command,\
+		perl $(SRC_PATH)/scripts/shaderinclude.pl $< > $@,\
+		"  FRAG  $@")
+
+ui/console-gl.o: $(SRC_PATH)/ui/console-gl.c \
+	ui/shader/texture-blit-vert.h ui/shader/texture-blit-frag.h
 
 # documentation
 MAKEINFO=makeinfo

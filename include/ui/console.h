@@ -9,6 +9,10 @@
 #include "qapi-types.h"
 #include "qapi/error.h"
 
+#ifdef CONFIG_OPENGL
+# include <epoxy/gl.h>
+#endif
+
 /* keyboard/mouse support */
 
 #define MOUSE_EVENT_LBUTTON 0x01
@@ -117,6 +121,11 @@ struct DisplaySurface {
     pixman_format_code_t format;
     pixman_image_t *image;
     uint8_t flags;
+#ifdef CONFIG_OPENGL
+    GLenum glformat;
+    GLenum gltype;
+    GLuint texture;
+#endif
 };
 
 typedef struct QemuUIInfo {
@@ -218,6 +227,7 @@ void update_displaychangelistener(DisplayChangeListener *dcl,
                                   uint64_t interval);
 void unregister_displaychangelistener(DisplayChangeListener *dcl);
 
+bool dpy_ui_info_supported(QemuConsole *con);
 int dpy_set_ui_info(QemuConsole *con, QemuUIInfo *info);
 
 void dpy_gfx_update(QemuConsole *con, int x, int y, int w, int h);
@@ -231,10 +241,6 @@ void dpy_text_resize(QemuConsole *con, int w, int h);
 void dpy_mouse_set(QemuConsole *con, int x, int y, int on);
 void dpy_cursor_define(QemuConsole *con, QEMUCursor *cursor);
 bool dpy_cursor_define_supported(QemuConsole *con);
-void dpy_gfx_update_dirty(QemuConsole *con,
-                          MemoryRegion *address_space,
-                          uint64_t base,
-                          bool invalidate);
 bool dpy_gfx_check_format(QemuConsole *con,
                           pixman_format_code_t format);
 
@@ -268,6 +274,11 @@ static inline int surface_bytes_per_pixel(DisplaySurface *s)
 {
     int bits = PIXMAN_FORMAT_BPP(s->format);
     return (bits + 7) / 8;
+}
+
+static inline pixman_format_code_t surface_format(DisplaySurface *s)
+{
+    return s->format;
 }
 
 #ifdef CONFIG_CURSES
@@ -307,6 +318,7 @@ QemuConsole *qemu_console_lookup_by_device(DeviceState *dev, uint32_t head);
 bool qemu_console_is_visible(QemuConsole *con);
 bool qemu_console_is_graphic(QemuConsole *con);
 bool qemu_console_is_fixedsize(QemuConsole *con);
+char *qemu_console_get_label(QemuConsole *con);
 int qemu_console_get_index(QemuConsole *con);
 uint32_t qemu_console_get_head(QemuConsole *con);
 QemuUIInfo *qemu_console_get_ui_info(QemuConsole *con);
@@ -321,7 +333,29 @@ void qemu_console_copy(QemuConsole *con, int src_x, int src_y,
                        int dst_x, int dst_y, int w, int h);
 DisplaySurface *qemu_console_surface(QemuConsole *con);
 
+/* console-gl.c */
+typedef struct ConsoleGLState ConsoleGLState;
+#ifdef CONFIG_OPENGL
+ConsoleGLState *console_gl_init_context(void);
+void console_gl_fini_context(ConsoleGLState *gls);
+bool console_gl_check_format(DisplayChangeListener *dcl,
+                             pixman_format_code_t format);
+void surface_gl_create_texture(ConsoleGLState *gls,
+                               DisplaySurface *surface);
+void surface_gl_update_texture(ConsoleGLState *gls,
+                               DisplaySurface *surface,
+                               int x, int y, int w, int h);
+void surface_gl_render_texture(ConsoleGLState *gls,
+                               DisplaySurface *surface);
+void surface_gl_destroy_texture(ConsoleGLState *gls,
+                               DisplaySurface *surface);
+void surface_gl_setup_viewport(ConsoleGLState *gls,
+                               DisplaySurface *surface,
+                               int ww, int wh);
+#endif
+
 /* sdl.c */
+void sdl_display_early_init(int opengl);
 void sdl_display_init(DisplayState *ds, int full_screen, int no_frame);
 
 /* cocoa.m */
@@ -336,7 +370,7 @@ char *vnc_display_local_addr(const char *id);
 int vnc_display_password(const char *id, const char *password);
 int vnc_display_pw_expire(const char *id, time_t expires);
 QemuOpts *vnc_parse_func(const char *str);
-int vnc_init_func(QemuOpts *opts, void *opaque);
+int vnc_init_func(void *opaque, QemuOpts *opts, Error **errp);
 #else
 static inline int vnc_display_password(const char *id, const char *password)
 {
@@ -355,7 +389,7 @@ void curses_display_init(DisplayState *ds, int full_screen);
 int index_from_key(const char *key);
 
 /* gtk.c */
-void early_gtk_display_init(void);
+void early_gtk_display_init(int opengl);
 void gtk_display_init(DisplayState *ds, bool full_screen, bool grab_on_hover);
 
 #endif

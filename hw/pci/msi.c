@@ -21,10 +21,6 @@
 #include "hw/pci/msi.h"
 #include "qemu/range.h"
 
-/* Eventually those constants should go to Linux pci_regs.h */
-#define PCI_MSI_PENDING_32      0x10
-#define PCI_MSI_PENDING_64      0x14
-
 /* PCI_MSI_ADDRESS_LO */
 #define PCI_MSI_ADDRESS_LO_MASK         (~0x3)
 
@@ -72,7 +68,7 @@ static inline uint8_t msi_cap_sizeof(uint16_t flags)
 static inline unsigned int msi_nr_vectors(uint16_t flags)
 {
     return 1U <<
-        ((flags & PCI_MSI_FLAGS_QSIZE) >> (ffs(PCI_MSI_FLAGS_QSIZE) - 1));
+        ((flags & PCI_MSI_FLAGS_QSIZE) >> ctz32(PCI_MSI_FLAGS_QSIZE));
 }
 
 static inline uint8_t msi_flags_off(const PCIDevice* dev)
@@ -175,9 +171,9 @@ int msi_init(struct PCIDevice *dev, uint8_t offset,
     assert(nr_vectors > 0);
     assert(nr_vectors <= PCI_MSI_VECTORS_MAX);
     /* the nr of MSI vectors is up to 32 */
-    vectors_order = ffs(nr_vectors) - 1;
+    vectors_order = ctz32(nr_vectors);
 
-    flags = vectors_order << (ffs(PCI_MSI_FLAGS_QMASK) - 1);
+    flags = vectors_order << ctz32(PCI_MSI_FLAGS_QMASK);
     if (msi64bit) {
         flags |= PCI_MSI_FLAGS_64BIT;
     }
@@ -291,7 +287,16 @@ void msi_notify(PCIDevice *dev, unsigned int vector)
                    "notify vector 0x%x"
                    " address: 0x%"PRIx64" data: 0x%"PRIx32"\n",
                    vector, msg.address, msg.data);
-    stl_le_phys(&dev->bus_master_as, msg.address, msg.data);
+    msi_send_message(dev, msg);
+}
+
+void msi_send_message(PCIDevice *dev, MSIMessage msg)
+{
+    MemTxAttrs attrs = {};
+
+    attrs.stream_id = (pci_bus_num(dev->bus) << 8) | dev->devfn;
+    address_space_stl_le(&dev->bus_master_as, msg.address, msg.data,
+                         attrs, NULL);
 }
 
 /* Normally called by pci_default_write_config(). */
@@ -354,12 +359,12 @@ void msi_write_config(PCIDevice *dev, uint32_t addr, uint32_t val, int len)
      * just don't crash the host
      */
     log_num_vecs =
-        (flags & PCI_MSI_FLAGS_QSIZE) >> (ffs(PCI_MSI_FLAGS_QSIZE) - 1);
+        (flags & PCI_MSI_FLAGS_QSIZE) >> ctz32(PCI_MSI_FLAGS_QSIZE);
     log_max_vecs =
-        (flags & PCI_MSI_FLAGS_QMASK) >> (ffs(PCI_MSI_FLAGS_QMASK) - 1);
+        (flags & PCI_MSI_FLAGS_QMASK) >> ctz32(PCI_MSI_FLAGS_QMASK);
     if (log_num_vecs > log_max_vecs) {
         flags &= ~PCI_MSI_FLAGS_QSIZE;
-        flags |= log_max_vecs << (ffs(PCI_MSI_FLAGS_QSIZE) - 1);
+        flags |= log_max_vecs << ctz32(PCI_MSI_FLAGS_QSIZE);
         pci_set_word(dev->config + msi_flags_off(dev), flags);
     }
 

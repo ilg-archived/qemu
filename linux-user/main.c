@@ -215,10 +215,6 @@ void cpu_list_unlock(void)
 /***********************************************************/
 /* CPUX86 core interface */
 
-void cpu_smm_update(CPUX86State *env)
-{
-}
-
 uint64_t cpu_get_tsc(CPUX86State *env)
 {
     return cpu_get_real_ticks();
@@ -3463,8 +3459,8 @@ CPUArchState *cpu_copy(CPUArchState *env)
     /* Clone all break/watchpoints.
        Note: Once we support ptrace with hw-debug register access, make sure
        BP_CPU break/watchpoints are handled correctly on clone. */
-    QTAILQ_INIT(&cpu->breakpoints);
-    QTAILQ_INIT(&cpu->watchpoints);
+    QTAILQ_INIT(&new_cpu->breakpoints);
+    QTAILQ_INIT(&new_cpu->watchpoints);
     QTAILQ_FOREACH(bp, &cpu->breakpoints, entry) {
         cpu_breakpoint_insert(new_cpu, bp->pc, bp->flags, NULL);
     }
@@ -3929,12 +3925,13 @@ int main(int argc, char **argv, char **envp)
 # else
         cpu_model = "750";
 # endif
+#elif defined TARGET_SH4
+        cpu_model = TYPE_SH7785_CPU;
 #else
         cpu_model = "any";
 #endif
     }
     tcg_exec_init(0);
-    cpu_exec_init_all();
     /* NOTE: we need to init the CPU at this stage to get
        qemu_host_page_size */
     cpu = cpu_init(cpu_model);

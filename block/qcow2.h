@@ -62,11 +62,14 @@
 #define MIN_CLUSTER_BITS 9
 #define MAX_CLUSTER_BITS 21
 
-#define MIN_L2_CACHE_SIZE 1 /* cluster */
+/* Must be at least 2 to cover COW */
+#define MIN_L2_CACHE_SIZE 2 /* clusters */
 
 /* Must be at least 4 to cover all cases of refcount table growth */
 #define MIN_REFCOUNT_CACHE_SIZE 4 /* clusters */
 
+/* Whichever is more */
+#define DEFAULT_L2_CACHE_CLUSTERS 8 /* clusters */
 #define DEFAULT_L2_CACHE_BYTE_SIZE 1048576 /* bytes */
 
 /* The refblock cache needs only a fourth of the L2 cache size to cover as many
@@ -574,7 +577,8 @@ int qcow2_read_snapshots(BlockDriverState *bs);
 Qcow2Cache *qcow2_cache_create(BlockDriverState *bs, int num_tables);
 int qcow2_cache_destroy(BlockDriverState* bs, Qcow2Cache *c);
 
-void qcow2_cache_entry_mark_dirty(Qcow2Cache *c, void *table);
+void qcow2_cache_entry_mark_dirty(BlockDriverState *bs, Qcow2Cache *c,
+     void *table);
 int qcow2_cache_flush(BlockDriverState *bs, Qcow2Cache *c);
 int qcow2_cache_set_dependency(BlockDriverState *bs, Qcow2Cache *c,
     Qcow2Cache *dependency);
@@ -586,6 +590,6 @@ int qcow2_cache_get(BlockDriverState *bs, Qcow2Cache *c, uint64_t offset,
     void **table);
 int qcow2_cache_get_empty(BlockDriverState *bs, Qcow2Cache *c, uint64_t offset,
     void **table);
-int qcow2_cache_put(BlockDriverState *bs, Qcow2Cache *c, void **table);
+void qcow2_cache_put(BlockDriverState *bs, Qcow2Cache *c, void **table);
 
 #endif

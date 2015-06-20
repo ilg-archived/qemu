@@ -533,6 +533,8 @@ static void *spapr_create_fdt_skel(hwaddr initrd_base,
         refpoints, sizeof(refpoints))));
 
     _FDT((fdt_property_cell(fdt, "rtas-error-log-max", RTAS_ERROR_LOG_MAX)));
+    _FDT((fdt_property_cell(fdt, "rtas-event-scan-rate",
+                            RTAS_EVENT_SCAN_RATE)));
 
     /*
      * According to PAPR, rtas ibm,os-term does not guarantee a return
@@ -794,8 +796,8 @@ static void spapr_finalize_fdt(sPAPREnvironment *spapr,
     _FDT((fdt_pack(fdt)));
 
     if (fdt_totalsize(fdt) > FDT_MAX_SIZE) {
-        hw_error("FDT too big ! 0x%x bytes (max is 0x%x)\n",
-                 fdt_totalsize(fdt), FDT_MAX_SIZE);
+        error_report("FDT too big ! 0x%x bytes (max is 0x%x)",
+                     fdt_totalsize(fdt), FDT_MAX_SIZE);
         exit(1);
     }
 
@@ -899,7 +901,7 @@ static int spapr_check_htab_fd(sPAPREnvironment *spapr)
         spapr->htab_fd = kvmppc_get_htab_fd(false);
         if (spapr->htab_fd < 0) {
             error_report("Unable to open fd for reading hash table from KVM: "
-                    "%s", strerror(errno));
+                         "%s", strerror(errno));
             rc = -1;
         }
         spapr->htab_fd_stale = false;
@@ -1029,7 +1031,7 @@ static int spapr_post_load(void *opaque, int version_id)
     sPAPREnvironment *spapr = (sPAPREnvironment *)opaque;
     int err = 0;
 
-    /* In earlier versions, there was no seperate qdev for the PAPR
+    /* In earlier versions, there was no separate qdev for the PAPR
      * RTC, so the RTC offset was stored directly in sPAPREnvironment.
      * So when migrating from those versions, poke the incoming offset
      * value into the RTC device */
@@ -1419,7 +1421,7 @@ static void ppc_spapr_init(MachineState *machine)
     rma_alloc_size = kvmppc_alloc_rma(&rma);
 
     if (rma_alloc_size == -1) {
-        hw_error("qemu: Unable to create RMA\n");
+        error_report("Unable to create RMA");
         exit(1);
     }
 
@@ -1504,6 +1506,11 @@ static void ppc_spapr_init(MachineState *machine)
         qemu_register_reset(spapr_cpu_reset, cpu);
     }
 
+    if (kvm_enabled()) {
+        /* Enable H_LOGICAL_CI_* so SLOF can talk to in-kernel devices */
+        kvmppc_enable_logical_ci_hcalls();
+    }
+
     /* allocate RAM */
     spapr->ram_limit = ram_size;
     memory_region_allocate_system_memory(ram, NULL, "ppc_spapr.ram",
@@ -1520,18 +1527,18 @@ static void ppc_spapr_init(MachineState *machine)
 
     filename = qemu_find_file(QEMU_FILE_TYPE_BIOS, "spapr-rtas.bin");
     if (!filename) {
-        hw_error("Could not find LPAR rtas '%s'\n", "spapr-rtas.bin");
+        error_report("Could not find LPAR rtas '%s'", "spapr-rtas.bin");
         exit(1);
     }
     spapr->rtas_size = get_image_size(filename);
     spapr->rtas_blob = g_malloc(spapr->rtas_size);
     if (load_image_size(filename, spapr->rtas_blob, spapr->rtas_size) < 0) {
-        hw_error("qemu: could not load LPAR rtas '%s'\n", filename);
+        error_report("Could not load LPAR rtas '%s'", filename);
         exit(1);
     }
     if (spapr->rtas_size > RTAS_MAX_SIZE) {
-        hw_error("RTAS too big ! 0x%zx bytes (max is 0x%x)\n",
-                 (size_t)spapr->rtas_size, RTAS_MAX_SIZE);
+        error_report("RTAS too big ! 0x%zx bytes (max is 0x%x)",
+                     (size_t)spapr->rtas_size, RTAS_MAX_SIZE);
         exit(1);
     }
     g_free(filename);
@@ -1641,12 +1648,12 @@ static void ppc_spapr_init(MachineState *machine)
     }
     filename = qemu_find_file(QEMU_FILE_TYPE_BIOS, bios_name);
     if (!filename) {
-        hw_error("Could not find LPAR rtas '%s'\n", bios_name);
+        error_report("Could not find LPAR firmware '%s'", bios_name);
         exit(1);
     }
     fw_size = load_image_targphys(filename, 0, FW_MAX_SIZE);
-    if (fw_size < 0) {
-        hw_error("qemu: could not load LPAR rtas '%s'\n", filename);
+    if (fw_size <= 0) {
+        error_report("Could not load LPAR firmware '%s'", filename);
         exit(1);
     }
     g_free(filename);
@@ -1660,8 +1667,13 @@ static void ppc_spapr_init(MachineState *machine)
     /* Prepare the device tree */
     spapr->fdt_skel = spapr_create_fdt_skel(initrd_base, initrd_size,
                                             kernel_size, kernel_le,
-                                            kernel_cmdline, spapr->epow_irq);
+                                            kernel_cmdline,
+                                            spapr->check_exception_irq);
     assert(spapr->fdt_skel != NULL);
+
+    /* used by RTAS */
+    QTAILQ_INIT(&spapr->ccs_list);
+    qemu_register_reset(spapr_ccs_reset_hook, spapr);
 
     qemu_register_boot_set(spapr_boot_set, spapr);
 }
@@ -1794,6 +1806,7 @@ static void spapr_machine_class_init(ObjectClass *oc, void *data)
     mc->max_cpus = MAX_CPUS;
     mc->no_parallel = 1;
     mc->default_boot_order = "";
+    mc->default_ram_size = 512 * M_BYTE;
     mc->kvm_type = spapr_kvm_type;
     mc->has_dynamic_sysbus = true;
 
@@ -1815,22 +1828,64 @@ static const TypeInfo spapr_machine_info = {
     },
 };
 
+#define SPAPR_COMPAT_2_3 \
+        HW_COMPAT_2_3 \
+        {\
+            .driver   = "spapr-pci-host-bridge",\
+            .property = "dynamic-reconfiguration",\
+            .value    = "off",\
+        },
+
 #define SPAPR_COMPAT_2_2 \
+        SPAPR_COMPAT_2_3 \
+        HW_COMPAT_2_2 \
         {\
             .driver   = TYPE_SPAPR_PCI_HOST_BRIDGE,\
             .property = "mem_win_size",\
             .value    = "0x20000000",\
-        }
+        },
 
 #define SPAPR_COMPAT_2_1 \
-        SPAPR_COMPAT_2_2
+        SPAPR_COMPAT_2_2 \
+        HW_COMPAT_2_1
+
+static void spapr_compat_2_3(Object *obj)
+{
+}
+
+static void spapr_compat_2_2(Object *obj)
+{
+    spapr_compat_2_3(obj);
+}
+
+static void spapr_compat_2_1(Object *obj)
+{
+    spapr_compat_2_2(obj);
+}
+
+static void spapr_machine_2_3_instance_init(Object *obj)
+{
+    spapr_compat_2_3(obj);
+    spapr_machine_initfn(obj);
+}
+
+static void spapr_machine_2_2_instance_init(Object *obj)
+{
+    spapr_compat_2_2(obj);
+    spapr_machine_initfn(obj);
+}
+
+static void spapr_machine_2_1_instance_init(Object *obj)
+{
+    spapr_compat_2_1(obj);
+    spapr_machine_initfn(obj);
+}
 
 static void spapr_machine_2_1_class_init(ObjectClass *oc, void *data)
 {
     MachineClass *mc = MACHINE_CLASS(oc);
     static GlobalProperty compat_props[] = {
-        HW_COMPAT_2_1,
-        SPAPR_COMPAT_2_1,
+        SPAPR_COMPAT_2_1
         { /* end of list */ }
     };
 
@@ -1843,12 +1898,13 @@ static const TypeInfo spapr_machine_2_1_info = {
     .name          = TYPE_SPAPR_MACHINE "2.1",
     .parent        = TYPE_SPAPR_MACHINE,
     .class_init    = spapr_machine_2_1_class_init,
+    .instance_init = spapr_machine_2_1_instance_init,
 };
 
 static void spapr_machine_2_2_class_init(ObjectClass *oc, void *data)
 {
     static GlobalProperty compat_props[] = {
-        SPAPR_COMPAT_2_2,
+        SPAPR_COMPAT_2_2
         { /* end of list */ }
     };
     MachineClass *mc = MACHINE_CLASS(oc);
@@ -1862,22 +1918,43 @@ static const TypeInfo spapr_machine_2_2_info = {
     .name          = TYPE_SPAPR_MACHINE "2.2",
     .parent        = TYPE_SPAPR_MACHINE,
     .class_init    = spapr_machine_2_2_class_init,
+    .instance_init = spapr_machine_2_2_instance_init,
 };
 
 static void spapr_machine_2_3_class_init(ObjectClass *oc, void *data)
 {
+    static GlobalProperty compat_props[] = {
+        SPAPR_COMPAT_2_3
+        { /* end of list */ }
+    };
     MachineClass *mc = MACHINE_CLASS(oc);
 
     mc->name = "pseries-2.3";
     mc->desc = "pSeries Logical Partition (PAPR compliant) v2.3";
-    mc->alias = "pseries";
-    mc->is_default = 1;
+    mc->compat_props = compat_props;
 }
 
 static const TypeInfo spapr_machine_2_3_info = {
     .name          = TYPE_SPAPR_MACHINE "2.3",
     .parent        = TYPE_SPAPR_MACHINE,
     .class_init    = spapr_machine_2_3_class_init,
+    .instance_init = spapr_machine_2_3_instance_init,
+};
+
+static void spapr_machine_2_4_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->name = "pseries-2.4";
+    mc->desc = "pSeries Logical Partition (PAPR compliant) v2.4";
+    mc->alias = "pseries";
+    mc->is_default = 1;
+}
+
+static const TypeInfo spapr_machine_2_4_info = {
+    .name          = TYPE_SPAPR_MACHINE "2.4",
+    .parent        = TYPE_SPAPR_MACHINE,
+    .class_init    = spapr_machine_2_4_class_init,
 };
 
 static void spapr_machine_register_types(void)
@@ -1886,6 +1963,7 @@ static void spapr_machine_register_types(void)
     type_register_static(&spapr_machine_2_1_info);
     type_register_static(&spapr_machine_2_2_info);
     type_register_static(&spapr_machine_2_3_info);
+    type_register_static(&spapr_machine_2_4_info);
 }
 
 type_init(spapr_machine_register_types)

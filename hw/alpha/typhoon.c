@@ -613,7 +613,8 @@ static bool make_iommu_tlbe(hwaddr taddr, hwaddr mask, IOMMUTLBEntry *ret)
    translation, given the address of the PTE.  */
 static bool pte_translate(hwaddr pte_addr, IOMMUTLBEntry *ret)
 {
-    uint64_t pte = ldq_phys(&address_space_memory, pte_addr);
+    uint64_t pte = address_space_ldq(&address_space_memory, pte_addr,
+                                     MEMTXATTRS_UNSPECIFIED, NULL);
 
     /* Check valid bit.  */
     if ((pte & 1) == 0) {
@@ -840,7 +841,7 @@ PCIBus *typhoon_init(ram_addr_t ram_size, ISABus **isa_bus,
         }
     }
 
-    *p_rtc_irq = *qemu_allocate_irqs(typhoon_set_timer_irq, s, 1);
+    *p_rtc_irq = qemu_allocate_irq(typhoon_set_timer_irq, s, 0);
 
     /* Main memory region, 0x00.0000.0000.  Real hardware supports 32GB,
        but the address space hole reserved at this point is 8TB.  */
@@ -917,11 +918,11 @@ PCIBus *typhoon_init(ram_addr_t ram_size, ISABus **isa_bus,
     /* Init the ISA bus.  */
     /* ??? Technically there should be a cy82c693ub pci-isa bridge.  */
     {
-        qemu_irq isa_pci_irq, *isa_irqs;
+        qemu_irq *isa_irqs;
 
         *isa_bus = isa_bus_new(NULL, get_system_memory(), &s->pchip.reg_io);
-        isa_pci_irq = *qemu_allocate_irqs(typhoon_set_isa_irq, s, 1);
-        isa_irqs = i8259_init(*isa_bus, isa_pci_irq);
+        isa_irqs = i8259_init(*isa_bus,
+                              qemu_allocate_irq(typhoon_set_isa_irq, s, 0));
         isa_bus_irqs(*isa_bus, isa_irqs);
     }
 

@@ -347,6 +347,12 @@ static inline uint32_t syn_breakpoint(int same_el)
         | ARM_EL_IL | 0x22;
 }
 
+static inline uint32_t syn_wfx(int cv, int cond, int ti)
+{
+    return (EC_WFX_TRAP << ARM_EL_EC_SHIFT) |
+           (cv << 24) | (cond << 20) | ti;
+}
+
 /* Update a QEMU watchpoint based on the information the guest has set in the
  * DBGWCR<n>_EL1 and DBGWVR<n>_EL1 registers.
  */
@@ -380,5 +386,9 @@ bool arm_is_psci_call(ARMCPU *cpu, int excp_type);
 /* Actually handle a PSCI call */
 void arm_handle_psci_call(ARMCPU *cpu);
 #endif
+
+/* Do a page table walk and add page to TLB if possible */
+bool arm_tlb_fill(CPUState *cpu, vaddr address, int rw, int mmu_idx,
+                  uint32_t *fsr);
 
 #endif

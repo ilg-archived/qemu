@@ -32,6 +32,8 @@
 
 //#define DEBUG_UNASSIGNED
 
+#define RAM_ADDR_INVALID (~(ram_addr_t)0)
+
 static unsigned memory_region_transaction_depth;
 static bool memory_region_update_pending;
 static bool ioeventfd_update_pending;
@@ -156,7 +158,7 @@ static bool memory_listener_match(MemoryListener *listener,
     } while (0)
 
 /* No need to ref/unref .mr, the FlatRange keeps it alive.  */
-#define MEMORY_LISTENER_UPDATE_REGION(fr, as, dir, callback)            \
+#define MEMORY_LISTENER_UPDATE_REGION(fr, as, dir, callback, _args...)  \
     MEMORY_LISTENER_CALL(callback, dir, (&(MemoryRegionSection) {       \
         .mr = (fr)->mr,                                                 \
         .address_space = (as),                                          \
@@ -164,7 +166,7 @@ static bool memory_listener_match(MemoryListener *listener,
         .size = (fr)->addr.size,                                        \
         .offset_within_address_space = int128_get64((fr)->addr.start),  \
         .readonly = (fr)->readonly,                                     \
-              }))
+              }), ##_args)
 
 struct CoalescedMemoryRange {
     AddrRange addr;
@@ -372,26 +374,29 @@ static void adjust_endianness(MemoryRegion *mr, uint64_t *data, unsigned size)
     }
 }
 
-static void memory_region_oldmmio_read_accessor(MemoryRegion *mr,
-                                                hwaddr addr,
-                                                uint64_t *value,
-                                                unsigned size,
-                                                unsigned shift,
-                                                uint64_t mask)
+static MemTxResult memory_region_oldmmio_read_accessor(MemoryRegion *mr,
+                                                       hwaddr addr,
+                                                       uint64_t *value,
+                                                       unsigned size,
+                                                       unsigned shift,
+                                                       uint64_t mask,
+                                                       MemTxAttrs attrs)
 {
     uint64_t tmp;
 
     tmp = mr->ops->old_mmio.read[ctz32(size)](mr->opaque, addr);
     trace_memory_region_ops_read(mr, addr, tmp, size);
     *value |= (tmp & mask) << shift;
+    return MEMTX_OK;
 }
 
-static void memory_region_read_accessor(MemoryRegion *mr,
-                                        hwaddr addr,
-                                        uint64_t *value,
-                                        unsigned size,
-                                        unsigned shift,
-                                        uint64_t mask)
+static MemTxResult  memory_region_read_accessor(MemoryRegion *mr,
+                                                hwaddr addr,
+                                                uint64_t *value,
+                                                unsigned size,
+                                                unsigned shift,
+                                                uint64_t mask,
+                                                MemTxAttrs attrs)
 {
     uint64_t tmp;
 
@@ -399,6 +404,26 @@ static void memory_region_read_accessor(MemoryRegion *mr,
         qemu_flush_coalesced_mmio_buffer();
     }
     tmp = mr->ops->read(mr->opaque, addr, size);
+    trace_memory_region_ops_read(mr, addr, tmp, size);
+    *value |= (tmp & mask) << shift;
+    return MEMTX_OK;
+}
+
+static MemTxResult memory_region_read_with_attrs_accessor(MemoryRegion *mr,
+                                                          hwaddr addr,
+                                                          uint64_t *value,
+                                                          unsigned size,
+                                                          unsigned shift,
+                                                          uint64_t mask,
+                                                          MemTxAttrs attrs)
+{
+    uint64_t tmp = 0;
+    MemTxResult r;
+
+    if (mr->flush_coalesced_mmio) {
+        qemu_flush_coalesced_mmio_buffer();
+    }
+    r = mr->ops->read_with_attrs(mr->opaque, addr, &tmp, size, attrs);
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     hwaddr a = addr + mr->addr;
@@ -426,28 +451,32 @@ static void memory_region_read_accessor(MemoryRegion *mr,
 
     trace_memory_region_ops_read(mr, addr, tmp, size);
     *value |= (tmp & mask) << shift;
+    return r;
 }
 
-static void memory_region_oldmmio_write_accessor(MemoryRegion *mr,
-                                                 hwaddr addr,
-                                                 uint64_t *value,
-                                                 unsigned size,
-                                                 unsigned shift,
-                                                 uint64_t mask)
+static MemTxResult memory_region_oldmmio_write_accessor(MemoryRegion *mr,
+                                                        hwaddr addr,
+                                                        uint64_t *value,
+                                                        unsigned size,
+                                                        unsigned shift,
+                                                        uint64_t mask,
+                                                        MemTxAttrs attrs)
 {
     uint64_t tmp;
 
     tmp = (*value >> shift) & mask;
     trace_memory_region_ops_write(mr, addr, tmp, size);
     mr->ops->old_mmio.write[ctz32(size)](mr->opaque, addr, tmp);
+    return MEMTX_OK;
 }
 
-static void memory_region_write_accessor(MemoryRegion *mr,
-                                         hwaddr addr,
-                                         uint64_t *value,
-                                         unsigned size,
-                                         unsigned shift,
-                                         uint64_t mask)
+static MemTxResult memory_region_write_accessor(MemoryRegion *mr,
+                                                hwaddr addr,
+                                                uint64_t *value,
+                                                unsigned size,
+                                                unsigned shift,
+                                                uint64_t mask,
+                                                MemTxAttrs attrs)
 {
     uint64_t tmp;
 
@@ -483,24 +512,46 @@ static void memory_region_write_accessor(MemoryRegion *mr,
 #endif
 
     mr->ops->write(mr->opaque, addr, tmp, size);
+    return MEMTX_OK;
 }
 
-static void access_with_adjusted_size(hwaddr addr,
+static MemTxResult memory_region_write_with_attrs_accessor(MemoryRegion *mr,
+                                                           hwaddr addr,
+                                                           uint64_t *value,
+                                                           unsigned size,
+                                                           unsigned shift,
+                                                           uint64_t mask,
+                                                           MemTxAttrs attrs)
+{
+    uint64_t tmp;
+
+    if (mr->flush_coalesced_mmio) {
+        qemu_flush_coalesced_mmio_buffer();
+    }
+    tmp = (*value >> shift) & mask;
+    trace_memory_region_ops_write(mr, addr, tmp, size);
+    return mr->ops->write_with_attrs(mr->opaque, addr, tmp, size, attrs);
+}
+
+static MemTxResult access_with_adjusted_size(hwaddr addr,
                                       uint64_t *value,
                                       unsigned size,
                                       unsigned access_size_min,
                                       unsigned access_size_max,
-                                      void (*access)(MemoryRegion *mr,
-                                                     hwaddr addr,
-                                                     uint64_t *value,
-                                                     unsigned size,
-                                                     unsigned shift,
-                                                     uint64_t mask),
-                                      MemoryRegion *mr)
+                                      MemTxResult (*access)(MemoryRegion *mr,
+                                                            hwaddr addr,
+                                                            uint64_t *value,
+                                                            unsigned size,
+                                                            unsigned shift,
+                                                            uint64_t mask,
+                                                            MemTxAttrs attrs),
+                                      MemoryRegion *mr,
+                                      MemTxAttrs attrs)
 {
     uint64_t access_mask;
     unsigned access_size;
     unsigned i;
+    MemTxResult r = MEMTX_OK;
 
     if (!access_size_min) {
         access_size_min = 1;
@@ -514,14 +565,16 @@ static void access_with_adjusted_size(hwaddr addr,
     access_mask = -1ULL >> (64 - access_size * 8);
     if (memory_region_big_endian(mr)) {
         for (i = 0; i < size; i += access_size) {
-            access(mr, addr + i, value, access_size,
-                   (size - access_size - i) * 8, access_mask);
+            r |= access(mr, addr + i, value, access_size,
+                        (size - access_size - i) * 8, access_mask, attrs);
         }
     } else {
         for (i = 0; i < size; i += access_size) {
-            access(mr, addr + i, value, access_size, i * 8, access_mask);
+            r |= access(mr, addr + i, value, access_size, i * 8,
+                        access_mask, attrs);
         }
     }
+    return r;
 }
 
 static AddressSpace *memory_region_to_address_space(MemoryRegion *mr)
@@ -592,7 +645,7 @@ static void render_memory_region(FlatView *view,
     remain = clip.size;
 
     fr.mr = mr;
-    fr.dirty_log_mask = mr->dirty_log_mask;
+    fr.dirty_log_mask = memory_region_get_dirty_log_mask(mr);
     fr.romd_mode = mr->romd_mode;
     fr.readonly = readonly;
 
@@ -778,10 +831,15 @@ static void address_space_update_topology_pass(AddressSpace *as,
 
             if (adding) {
                 MEMORY_LISTENER_UPDATE_REGION(frnew, as, Forward, region_nop);
-                if (frold->dirty_log_mask && !frnew->dirty_log_mask) {
-                    MEMORY_LISTENER_UPDATE_REGION(frnew, as, Reverse, log_stop);
-                } else if (frnew->dirty_log_mask && !frold->dirty_log_mask) {
-                    MEMORY_LISTENER_UPDATE_REGION(frnew, as, Forward, log_start);
+                if (frnew->dirty_log_mask & ~frold->dirty_log_mask) {
+                    MEMORY_LISTENER_UPDATE_REGION(frnew, as, Forward, log_start,
+                                                  frold->dirty_log_mask,
+                                                  frnew->dirty_log_mask);
+                }
+                if (frold->dirty_log_mask & ~frnew->dirty_log_mask) {
+                    MEMORY_LISTENER_UPDATE_REGION(frnew, as, Reverse, log_stop,
+                                                  frold->dirty_log_mask,
+                                                  frnew->dirty_log_mask);
                 }
             }
 
@@ -1011,6 +1069,7 @@ static void memory_region_initfn(Object *obj)
     ObjectProperty *op;
 
     mr->ops = &unassigned_mem_ops;
+    mr->ram_addr = RAM_ADDR_INVALID;
     mr->enabled = true;
     mr->romd_mode = true;
     mr->destructor = memory_region_destructor_none;
@@ -1113,62 +1172,82 @@ bool memory_region_access_valid(MemoryRegion *mr,
     return true;
 }
 
-static uint64_t memory_region_dispatch_read1(MemoryRegion *mr,
-                                             hwaddr addr,
-                                             unsigned size)
+static MemTxResult memory_region_dispatch_read1(MemoryRegion *mr,
+                                                hwaddr addr,
+                                                uint64_t *pval,
+                                                unsigned size,
+                                                MemTxAttrs attrs)
 {
-    uint64_t data = 0;
+    *pval = 0;
 
     if (mr->ops->read) {
-        access_with_adjusted_size(addr, &data, size,
-                                  mr->ops->impl.min_access_size,
-                                  mr->ops->impl.max_access_size,
-                                  memory_region_read_accessor, mr);
+        return access_with_adjusted_size(addr, pval, size,
+                                         mr->ops->impl.min_access_size,
+                                         mr->ops->impl.max_access_size,
+                                         memory_region_read_accessor,
+                                         mr, attrs);
+    } else if (mr->ops->read_with_attrs) {
+        return access_with_adjusted_size(addr, pval, size,
+                                         mr->ops->impl.min_access_size,
+                                         mr->ops->impl.max_access_size,
+                                         memory_region_read_with_attrs_accessor,
+                                         mr, attrs);
     } else {
-        access_with_adjusted_size(addr, &data, size, 1, 4,
-                                  memory_region_oldmmio_read_accessor, mr);
+        return access_with_adjusted_size(addr, pval, size, 1, 4,
+                                         memory_region_oldmmio_read_accessor,
+                                         mr, attrs);
     }
-
-    return data;
 }
 
-static bool memory_region_dispatch_read(MemoryRegion *mr,
+MemTxResult memory_region_dispatch_read(MemoryRegion *mr,
                                         hwaddr addr,
                                         uint64_t *pval,
-                                        unsigned size)
+                                        unsigned size,
+                                        MemTxAttrs attrs)
 {
+    MemTxResult r;
+
     if (!memory_region_access_valid(mr, addr, size, false)) {
         *pval = unassigned_mem_read(mr, addr, size);
-        return true;
+        return MEMTX_DECODE_ERROR;
     }
 
-    *pval = memory_region_dispatch_read1(mr, addr, size);
+    r = memory_region_dispatch_read1(mr, addr, pval, size, attrs);
     adjust_endianness(mr, pval, size);
-    return false;
+    return r;
 }
 
-static bool memory_region_dispatch_write(MemoryRegion *mr,
+MemTxResult memory_region_dispatch_write(MemoryRegion *mr,
                                          hwaddr addr,
                                          uint64_t data,
-                                         unsigned size)
+                                         unsigned size,
+                                         MemTxAttrs attrs)
 {
     if (!memory_region_access_valid(mr, addr, size, true)) {
         unassigned_mem_write(mr, addr, data, size);
-        return true;
+        return MEMTX_DECODE_ERROR;
     }
 
     adjust_endianness(mr, &data, size);
 
     if (mr->ops->write) {
-        access_with_adjusted_size(addr, &data, size,
-                                  mr->ops->impl.min_access_size,
-                                  mr->ops->impl.max_access_size,
-                                  memory_region_write_accessor, mr);
+        return access_with_adjusted_size(addr, &data, size,
+                                         mr->ops->impl.min_access_size,
+                                         mr->ops->impl.max_access_size,
+                                         memory_region_write_accessor, mr,
+                                         attrs);
+    } else if (mr->ops->write_with_attrs) {
+        return
+            access_with_adjusted_size(addr, &data, size,
+                                      mr->ops->impl.min_access_size,
+                                      mr->ops->impl.max_access_size,
+                                      memory_region_write_with_attrs_accessor,
+                                      mr, attrs);
     } else {
-        access_with_adjusted_size(addr, &data, size, 1, 4,
-                                  memory_region_oldmmio_write_accessor, mr);
+        return access_with_adjusted_size(addr, &data, size, 1, 4,
+                                         memory_region_oldmmio_write_accessor,
+                                         mr, attrs);
     }
-    return false;
 }
 
 void memory_region_init_io(MemoryRegion *mr,
@@ -1182,7 +1261,6 @@ void memory_region_init_io(MemoryRegion *mr,
     mr->ops = ops;
     mr->opaque = opaque;
     mr->terminates = true;
-    mr->ram_addr = ~(ram_addr_t)0;
 }
 
 void memory_region_init_ram(MemoryRegion *mr,
@@ -1196,6 +1274,7 @@ void memory_region_init_ram(MemoryRegion *mr,
     mr->terminates = true;
     mr->destructor = memory_region_destructor_ram;
     mr->ram_addr = qemu_ram_alloc(size, mr, errp);
+    mr->dirty_log_mask = tcg_enabled() ? (1 << DIRTY_MEMORY_CODE) : 0;
 }
 
 void memory_region_init_resizeable_ram(MemoryRegion *mr,
@@ -1213,6 +1292,7 @@ void memory_region_init_resizeable_ram(MemoryRegion *mr,
     mr->terminates = true;
     mr->destructor = memory_region_destructor_ram;
     mr->ram_addr = qemu_ram_alloc_resizeable(size, max_size, resized, mr, errp);
+    mr->dirty_log_mask = tcg_enabled() ? (1 << DIRTY_MEMORY_CODE) : 0;
 }
 
 #ifdef __linux__
@@ -1229,6 +1309,7 @@ void memory_region_init_ram_from_file(MemoryRegion *mr,
     mr->terminates = true;
     mr->destructor = memory_region_destructor_ram;
     mr->ram_addr = qemu_ram_alloc_from_file(size, mr, share, path, errp);
+    mr->dirty_log_mask = tcg_enabled() ? (1 << DIRTY_MEMORY_CODE) : 0;
 }
 #endif
 
@@ -1242,6 +1323,7 @@ void memory_region_init_ram_ptr(MemoryRegion *mr,
     mr->ram = true;
     mr->terminates = true;
     mr->destructor = memory_region_destructor_ram_from_ptr;
+    mr->dirty_log_mask = tcg_enabled() ? (1 << DIRTY_MEMORY_CODE) : 0;
 
     /* qemu_ram_alloc_from_ptr cannot fail with ptr != NULL.  */
     assert(ptr != NULL);
@@ -1378,9 +1460,18 @@ bool memory_region_is_skip_dump(MemoryRegion *mr)
     return mr->skip_dump;
 }
 
-bool memory_region_is_logging(MemoryRegion *mr)
+uint8_t memory_region_get_dirty_log_mask(MemoryRegion *mr)
 {
-    return mr->dirty_log_mask;
+    uint8_t mask = mr->dirty_log_mask;
+    if (global_dirty_log) {
+        mask |= (1 << DIRTY_MEMORY_MIGRATION);
+    }
+    return mask;
+}
+
+bool memory_region_is_logging(MemoryRegion *mr, uint8_t client)
+{
+    return memory_region_get_dirty_log_mask(mr) & (1 << client);
 }
 
 bool memory_region_is_rom(MemoryRegion *mr)
@@ -1414,6 +1505,7 @@ void memory_region_set_log(MemoryRegion *mr, bool log, unsigned client)
 {
     uint8_t mask = 1 << client;
 
+    assert(client == DIRTY_MEMORY_VGA);
     memory_region_transaction_begin();
     mr->dirty_log_mask = (mr->dirty_log_mask & ~mask) | (log * mask);
     memory_region_update_pending |= mr->enabled;
@@ -1423,27 +1515,24 @@ void memory_region_set_log(MemoryRegion *mr, bool log, unsigned client)
 bool memory_region_get_dirty(MemoryRegion *mr, hwaddr addr,
                              hwaddr size, unsigned client)
 {
-    assert(mr->terminates);
+    assert(mr->ram_addr != RAM_ADDR_INVALID);
     return cpu_physical_memory_get_dirty(mr->ram_addr + addr, size, client);
 }
 
 void memory_region_set_dirty(MemoryRegion *mr, hwaddr addr,
                              hwaddr size)
 {
-    assert(mr->terminates);
-    cpu_physical_memory_set_dirty_range(mr->ram_addr + addr, size);
+    assert(mr->ram_addr != RAM_ADDR_INVALID);
+    cpu_physical_memory_set_dirty_range(mr->ram_addr + addr, size,
+                                        memory_region_get_dirty_log_mask(mr));
 }
 
 bool memory_region_test_and_clear_dirty(MemoryRegion *mr, hwaddr addr,
                                         hwaddr size, unsigned client)
 {
-    bool ret;
-    assert(mr->terminates);
-    ret = cpu_physical_memory_get_dirty(mr->ram_addr + addr, size, client);
-    if (ret) {
-        cpu_physical_memory_reset_dirty(mr->ram_addr + addr, size, client);
-    }
-    return ret;
+    assert(mr->ram_addr != RAM_ADDR_INVALID);
+    return cpu_physical_memory_test_and_clear_dirty(mr->ram_addr + addr,
+                                                    size, client);
 }
 
 
@@ -1486,8 +1575,9 @@ void memory_region_rom_device_set_romd(MemoryRegion *mr, bool romd_mode)
 void memory_region_reset_dirty(MemoryRegion *mr, hwaddr addr,
                                hwaddr size, unsigned client)
 {
-    assert(mr->terminates);
-    cpu_physical_memory_reset_dirty(mr->ram_addr + addr, size, client);
+    assert(mr->ram_addr != RAM_ADDR_INVALID);
+    cpu_physical_memory_test_and_clear_dirty(mr->ram_addr + addr, size,
+                                             client);
 }
 
 int memory_region_get_fd(MemoryRegion *mr)
@@ -1496,7 +1586,7 @@ int memory_region_get_fd(MemoryRegion *mr)
         return memory_region_get_fd(mr->alias);
     }
 
-    assert(mr->terminates);
+    assert(mr->ram_addr != RAM_ADDR_INVALID);
 
     return qemu_get_ram_fd(mr->ram_addr & TARGET_PAGE_MASK);
 }
@@ -1507,9 +1597,16 @@ void *memory_region_get_ram_ptr(MemoryRegion *mr)
         return memory_region_get_ram_ptr(mr->alias) + mr->alias_offset;
     }
 
-    assert(mr->terminates);
+    assert(mr->ram_addr != RAM_ADDR_INVALID);
 
     return qemu_get_ram_ptr(mr->ram_addr & TARGET_PAGE_MASK);
+}
+
+void memory_region_ram_resize(MemoryRegion *mr, ram_addr_t newsize, Error **errp)
+{
+    assert(mr->ram_addr != RAM_ADDR_INVALID);
+
+    qemu_ram_resize(mr->ram_addr, newsize, errp);
 }
 
 static void memory_region_update_coalesced_range_as(MemoryRegion *mr, AddressSpace *as)
@@ -1929,12 +2026,24 @@ void address_space_sync_dirty_bitmap(AddressSpace *as)
 void memory_global_dirty_log_start(void)
 {
     global_dirty_log = true;
+
     MEMORY_LISTENER_CALL_GLOBAL(log_global_start, Forward);
+
+    /* Refresh DIRTY_LOG_MIGRATION bit.  */
+    memory_region_transaction_begin();
+    memory_region_update_pending = true;
+    memory_region_transaction_commit();
 }
 
 void memory_global_dirty_log_stop(void)
 {
     global_dirty_log = false;
+
+    /* Refresh DIRTY_LOG_MIGRATION bit.  */
+    memory_region_transaction_begin();
+    memory_region_update_pending = true;
+    memory_region_transaction_commit();
+
     MEMORY_LISTENER_CALL_GLOBAL(log_global_stop, Reverse);
 }
 
@@ -2052,17 +2161,6 @@ void address_space_destroy(AddressSpace *as)
     call_rcu(as, do_address_space_destroy, rcu);
 }
 
-bool io_mem_read(MemoryRegion *mr, hwaddr addr, uint64_t *pval, unsigned size)
-{
-    return memory_region_dispatch_read(mr, addr, pval, size);
-}
-
-bool io_mem_write(MemoryRegion *mr, hwaddr addr,
-                  uint64_t val, unsigned size)
-{
-    return memory_region_dispatch_write(mr, addr, val, size);
-}
-
 typedef struct MemoryRegionList MemoryRegionList;
 
 struct MemoryRegionList {
@@ -2082,7 +2180,7 @@ static void mtree_print_mr(fprintf_function mon_printf, void *f,
     const MemoryRegion *submr;
     unsigned int i;
 
-    if (!mr || !mr->enabled) {
+    if (!mr) {
         return;
     }
 
@@ -2108,7 +2206,7 @@ static void mtree_print_mr(fprintf_function mon_printf, void *f,
         }
         mon_printf(f, TARGET_FMT_plx "-" TARGET_FMT_plx
                    " (prio %d, %c%c): alias %s @%s " TARGET_FMT_plx
-                   "-" TARGET_FMT_plx "\n",
+                   "-" TARGET_FMT_plx "%s\n",
                    base + mr->addr,
                    base + mr->addr
                    + (int128_nz(mr->size) ?
@@ -2124,10 +2222,11 @@ static void mtree_print_mr(fprintf_function mon_printf, void *f,
                    mr->alias_offset
                    + (int128_nz(mr->size) ?
                       (hwaddr)int128_get64(int128_sub(mr->size,
-                                                      int128_one())) : 0));
+                                                      int128_one())) : 0),
+                   mr->enabled ? "" : " [disabled]");
     } else {
         mon_printf(f,
-                   TARGET_FMT_plx "-" TARGET_FMT_plx " (prio %d, %c%c): %s\n",
+                   TARGET_FMT_plx "-" TARGET_FMT_plx " (prio %d, %c%c): %s%s\n",
                    base + mr->addr,
                    base + mr->addr
                    + (int128_nz(mr->size) ?
@@ -2137,7 +2236,8 @@ static void mtree_print_mr(fprintf_function mon_printf, void *f,
                    mr->romd_mode ? 'R' : '-',
                    !mr->readonly && !(mr->rom_device && mr->romd_mode) ? 'W'
                                                                        : '-',
-                   memory_region_name(mr));
+                   memory_region_name(mr),
+                   mr->enabled ? "" : " [disabled]");
     }
 
     QTAILQ_INIT(&submr_print_queue);
@@ -2178,15 +2278,16 @@ void mtree_info(fprintf_function mon_printf, void *f)
     QTAILQ_INIT(&ml_head);
 
     QTAILQ_FOREACH(as, &address_spaces, address_spaces_link) {
-        mon_printf(f, "%s\n", as->name);
-        mtree_print_mr(mon_printf, f, as->root, 0, 0, &ml_head);
+        mon_printf(f, "address-space: %s\n", as->name);
+        mtree_print_mr(mon_printf, f, as->root, 1, 0, &ml_head);
+        mon_printf(f, "\n");
     }
 
-    mon_printf(f, "aliases\n");
     /* print aliased regions */
     QTAILQ_FOREACH(ml, &ml_head, queue) {
-        mon_printf(f, "%s\n", memory_region_name(ml->mr));
-        mtree_print_mr(mon_printf, f, ml->mr, 0, 0, &ml_head);
+        mon_printf(f, "memory-region: %s\n", memory_region_name(ml->mr));
+        mtree_print_mr(mon_printf, f, ml->mr, 1, 0, &ml_head);
+        mon_printf(f, "\n");
     }
 
     QTAILQ_FOREACH_SAFE(ml, &ml_head, queue, ml2) {

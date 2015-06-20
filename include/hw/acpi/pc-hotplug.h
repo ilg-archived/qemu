@@ -16,7 +16,6 @@
  * ONLY DEFINEs are permited in this file since it's shared
  * between C and ASL code.
  */
-#define ACPI_CPU_HOTPLUG_STATUS 4
 
 /* Limit for CPU arch IDs for CPU hotplug. All hotpluggable CPUs should
  * have CPUClass.get_arch_id() < ACPI_CPU_HOTPLUG_ID_LIMIT.
@@ -43,6 +42,8 @@
 #define MEMORY_SLOT_PROXIMITY        MPX
 #define MEMORY_SLOT_ENABLED          MES
 #define MEMORY_SLOT_INSERT_EVENT     MINS
+#define MEMORY_SLOT_REMOVE_EVENT     MRMV
+#define MEMORY_SLOT_EJECT            MEJ
 #define MEMORY_SLOT_SLECTOR          MSEL
 #define MEMORY_SLOT_OST_EVENT        MOEV
 #define MEMORY_SLOT_OST_STATUS       MOSC
@@ -51,6 +52,7 @@
 #define MEMORY_SLOT_CRS_METHOD       MCRS
 #define MEMORY_SLOT_OST_METHOD       MOST
 #define MEMORY_SLOT_PROXIMITY_METHOD MPXM
+#define MEMORY_SLOT_EJECT_METHOD     MEJ0
 #define MEMORY_SLOT_NOTIFY_METHOD    MTFY
 #define MEMORY_SLOT_SCAN_METHOD      MSCN
 
