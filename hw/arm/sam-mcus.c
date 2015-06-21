@@ -21,7 +21,7 @@
 #include "hw/arm/cortexm-mcu.h"
 
 /* ----- SAM3S4B ----- */
-static CortexMCapabilities sam3s4b_core_info = {
+static CortexMCoreCapabilities sam3s4b_core_info = {
     //.flash_size_kb = 256,
     //.sram_size_kb = 48,
     .has_mpu = true };

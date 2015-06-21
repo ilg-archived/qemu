@@ -21,7 +21,7 @@
 #include "hw/arm/cortexm-mcu.h"
 
 /* ----- LPC1769FBD100 ----- */
-static CortexMCapabilities lpc1769fbd100_core_info = {
+static CortexMCoreCapabilities lpc1769fbd100_core_info = {
     //.flash_size_kb = 512,
     //.sram_size_kb = 32, /* +32K peripheral ram @0x2007C000 */
     //.sram_begin = 0x10000000,

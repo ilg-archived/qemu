@@ -33,7 +33,8 @@
 #define CORTEX_M_FPU_TYPE_FPV5_SP_D16 (2)
 
 typedef enum {
-    CORTEX_M0 = 1,
+    CORTEX_UNDEFINED = 0,
+    CORTEX_M0,
     CORTEX_M0PLUS,
     CORTEX_M1,
     CORTEX_M3,
@@ -43,15 +44,15 @@ typedef enum {
     CORTEX_M7F
 } cortexm_models_t;
 
-/*
- * Used by vendor specific Cortex-M devices to pass the core
- * capabilities to the common Cortex-M initialisations. 
- *
- * It is copied into the CortexMState during *_instance_init() functions.
- */
 typedef struct {
 
-    cortexm_models_t cortexm_model; /* binary id to identify the core */
+    /* The cpu_model naming convention is "cortex-m3-r1p2". */
+    const char *cpu_model;
+
+    /* Values computed from cpu_model */
+    cortexm_models_t model; /* binary value to easily identify the core */
+    uint8_t major; /* rN, 4 bits */
+    uint8_t minor; /* pN, 4 bits */
 
     /* Capabilities bits; keep them compact. */
     unsigned int has_mpu :1; /* true/false */
@@ -59,10 +60,27 @@ typedef struct {
     unsigned int has_etm :1; /* true/false */
     unsigned int has_itm :1; /* true/false */
 
-    int fpu_type; /* CORTEX_M_FPU_TYPE_*; may be not needed */
+    unsigned int fpu_type; /* CORTEX_M_FPU_TYPE_*; may be not needed */
 
-    int num_irq; /* number of interrupts (excluding first 15 core interrupts) */
-    int nvic_bits; /* bits used for irqs in NVIC */
+    unsigned int num_irq; /* number of interrupts (excluding first
+     * 15 core interrupts). */
+
+    unsigned int nvic_bits; /* bits used for irqs in NVIC. */
+} CortexMCoreCapabilities;
+
+/*
+ * Used by vendor specific Cortex-M devices to pass the core
+ * capabilities to the common Cortex-M initialisations.
+ *
+ * It is copied into the CortexMState during *_instance_init() functions.
+ */
+typedef struct {
+
+    const unsigned int flash_size_kb; /* size of main program area, in KB */
+    const unsigned int sram_size_kb; /* size of main RAM area, in KB */
+
+    const CortexMCoreCapabilities *core;
+
 } CortexMCapabilities;
 
 /* ------------------------------------------------------------------------- */
@@ -78,7 +96,6 @@ typedef struct {
     /*< public >*/
 
     void (*construct)(Object *obj, const CortexMCapabilities* capabilities,
-            const int flash_size_kb, const int sram_size_kb,
             MachineState *machine);
     void (*memory_regions_create)(DeviceState *dev);
     void (*image_load)(DeviceState *dev);
@@ -153,15 +170,15 @@ DeviceState *qdev_alloc(BusState *bus, const char *name);
 
 // TODO: remove all when all old definitions are updated.
 qemu_irq *
-cortex_m0_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+cortex_m0_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine);
 qemu_irq *
-cortex_m0p_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+cortex_m0p_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine);
 qemu_irq *
-cortex_m3_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+cortex_m3_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine);
 qemu_irq *
-cortex_m4_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+cortex_m4_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine);
 qemu_irq *
-cortex_m7_core_init(CortexMCapabilities *cm_info, MachineState *machine);
+cortex_m7_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine);
 
 /* ------------------------------------------------------------------------- */
 

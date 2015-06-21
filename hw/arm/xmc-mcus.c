@@ -21,7 +21,7 @@
 #include "hw/arm/cortexm-mcu.h"
 
 /* ----- XMC4500-F144K1024 ----- */
-static CortexMCapabilities xmc4500_f144k1024_core_info = {
+static CortexMCoreCapabilities xmc4500_f144k1024_core_info = {
     //.flash_size_kb = 1024,
     //.sram_size_kb = 64, /* +64K @1000 0000, +32K @3000 0000 */
     .has_mpu = true,
@@ -33,7 +33,7 @@ qemu_irq *xmc4500_f144k1024_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC4500-F100K1024 ----- */
-static CortexMCapabilities xmc4500_f100k1024_core_info = {
+static CortexMCoreCapabilities xmc4500_f100k1024_core_info = {
     //.flash_size_kb = 1024,
     //.sram_size_kb = 64, /* +64K @1000 0000, +32K @3000 0000 */
     .has_mpu = true,
@@ -45,7 +45,7 @@ qemu_irq *xmc4500_f100k1024_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC4500-F100F1024 ----- */
-static CortexMCapabilities xmc4500_f100f1024_core_info = {
+static CortexMCoreCapabilities xmc4500_f100f1024_core_info = {
     //.flash_size_kb = 1024,
     //.sram_size_kb = 64, /* +64K @1000 0000, +32K @3000 0000 */
     .has_mpu = true,
@@ -57,7 +57,7 @@ qemu_irq *xmc4500_f100f1024_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC4400-F100K512 ----- */
-static CortexMCapabilities xmc4400_f100k512_core_info = {
+static CortexMCoreCapabilities xmc4400_f100k512_core_info = {
     //.flash_size_kb = 512,
     //.sram_size_kb = 32, /* +16K @1FFFC000, +32K @20008000 */
     .has_mpu = true,
@@ -69,7 +69,7 @@ qemu_irq *xmc4400_f100k512_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC4200-Q48K256 ----- */
-static CortexMCapabilities xmc4200_q48k256_core_info = {
+static CortexMCoreCapabilities xmc4200_q48k256_core_info = {
     //.flash_size_kb = 256,
     //.sram_size_kb = 24, /* +16K @1FFFC000 */
     .has_mpu = true,
@@ -81,10 +81,10 @@ qemu_irq *xmc4200_q48k256_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC1302-T038X200 ----- */
-static CortexMCapabilities xmc1302_t038x200_core_info = {
-    //.flash_size_kb = 200,
-    //.sram_size_kb = 16
-    };
+static CortexMCoreCapabilities xmc1302_t038x200_core_info = {
+//.flash_size_kb = 200,
+//.sram_size_kb = 16
+        };
 
 qemu_irq *xmc1302_t038x200_mcu_init(MachineState *machine)
 {
@@ -92,10 +92,10 @@ qemu_irq *xmc1302_t038x200_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC1201-T038X200 ----- */
-static CortexMCapabilities xmc1201_t038x200_core_info = {
-    //.flash_size_kb = 200,
-    //.sram_size_kb = 16
-    };
+static CortexMCoreCapabilities xmc1201_t038x200_core_info = {
+//.flash_size_kb = 200,
+//.sram_size_kb = 16
+        };
 
 qemu_irq *xmc1201_t038x200_mcu_init(MachineState *machine)
 {
@@ -103,10 +103,10 @@ qemu_irq *xmc1201_t038x200_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC1100-T038X200 ----- */
-static CortexMCapabilities xmc1100_t038x064_core_info = {
-    //.flash_size_kb = 64,
-    //.sram_size_kb = 16
-    };
+static CortexMCoreCapabilities xmc1100_t038x064_core_info = {
+//.flash_size_kb = 64,
+//.sram_size_kb = 16
+        };
 
 qemu_irq *xmc1100_t038x064_mcu_init(MachineState *machine)
 {
@@ -114,10 +114,10 @@ qemu_irq *xmc1100_t038x064_mcu_init(MachineState *machine)
 }
 
 /* ----- XMC1100-Q024F0064 ----- */
-static CortexMCapabilities xmc1100_q024f0064_core_info = {
-    //.flash_size_kb = 64,
-    //.sram_size_kb = 16
-    };
+static CortexMCoreCapabilities xmc1100_q024f0064_core_info = {
+//.flash_size_kb = 64,
+//.sram_size_kb = 16
+        };
 
 qemu_irq *xmc1100_q024f0064_mcu_init(MachineState *machine)
 {

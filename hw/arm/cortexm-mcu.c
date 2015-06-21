@@ -63,192 +63,43 @@ static void cortexm_bitband_init(uint32_t address)
 /* ------------------------------------------------------------------------- */
 
 static void cortexm_mcu_construct_callback(Object *obj,
-        const CortexMCapabilities *param_capabilities,
-        const int param_flash_size_kb, const int param_sram_size_kb,
-        MachineState *machine)
+        const CortexMCapabilities *param_capabilities, MachineState *machine)
 {
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
 
-    /* Copy R/O structure to a local R/W copy, to update it */
+    /* Copy R/O structure to a local R/W copy, to update it. */
     CortexMCapabilities* capabilities = g_new(CortexMCapabilities, 1);
     memcpy(capabilities, param_capabilities, sizeof(CortexMCapabilities));
+
+    CortexMCoreCapabilities* core_capabilities = g_new(CortexMCoreCapabilities,
+            1);
+    memcpy(core_capabilities, param_capabilities->core,
+            sizeof(CortexMCoreCapabilities));
+    capabilities->core = core_capabilities;
 
     /* Remember the local copy for future use. */
     cm_state->capabilities = (const CortexMCapabilities*) capabilities;
 
+    const char *image_filename = NULL;
+    /* Use either the --image or the --kernel */
     if (machine->image_filename) {
-        cm_state->image_filename = machine->image_filename;
+        image_filename = machine->image_filename;
     } else if (machine->kernel_filename) {
-        cm_state->image_filename = machine->kernel_filename;
+        image_filename = machine->kernel_filename;
     }
 
-    if (machine->cpu_model) {
-        cm_state->cpu_model = machine->cpu_model;
-    }
-
-    const char *image_filename = cm_state->image_filename;
-    const char *cpu_model_arg = cm_state->cpu_model;
-    int ram_size_arg_kb = cm_state->sram_size_kb;
-    int flash_size_arg_kb = cm_state->flash_size_kb;
-
-    if (cpu_model_arg) {
-        /* If explicitly given via the --cpu command line option,
-         * overwrite the board MCU definition. */
-        if (strcmp(cpu_model_arg, "cortex-m0") == 0) {
-            capabilities->cortexm_model = CORTEX_M0;
-        } else if (strcmp(cpu_model_arg, "cortex-m0p") == 0) {
-            capabilities->cortexm_model = CORTEX_M0PLUS;
-        } else if (strcmp(cpu_model_arg, "cortex-m1") == 0) {
-            capabilities->cortexm_model = CORTEX_M1;
-        } else if (strcmp(cpu_model_arg, "cortex-m3") == 0) {
-            capabilities->cortexm_model = CORTEX_M3;
-        } else if (strcmp(cpu_model_arg, "cortex-m4") == 0) {
-            capabilities->cortexm_model = CORTEX_M4;
-            capabilities->has_mpu = false;
-        } else if (strcmp(cpu_model_arg, "cortex-m4f") == 0) {
-            capabilities->cortexm_model = CORTEX_M4F;
-            capabilities->has_mpu = true;
-        } else if (strcmp(cpu_model_arg, "cortex-m7") == 0) {
-            capabilities->cortexm_model = CORTEX_M7;
-            capabilities->has_mpu = false;
-        } else if (strcmp(cpu_model_arg, "cortex-m7f") == 0) {
-            capabilities->cortexm_model = CORTEX_M7F;
-            capabilities->has_mpu = true;
-        } else {
-            error_report("Illegal '--cpu %s', only cortex-m* supported.",
-                    cpu_model_arg);
-            exit(1);
-        }
-    }
+    cm_state->image_filename = image_filename;
 
     const char *cpu_model = "?";
-    const char *display_model = "?";
-
-    int max_num_irq = 496;
-
-    /* Some capabilities are hard-wired. */
-    switch (capabilities->cortexm_model) {
-    case CORTEX_M0:
-        display_model = "Cortex-M0";
-        cpu_model = "cortex-m0";
-        capabilities->has_mpu = false;
-        capabilities->has_fpu = false;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-        break;
-
-    case CORTEX_M0PLUS:
-        display_model = "Cortex-M0+";
-        cpu_model = "cortex-m0p";
-        capabilities->has_mpu = false;
-        capabilities->has_fpu = false;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-        break;
-
-    case CORTEX_M1:
-        display_model = "Cortex-M1";
-        cpu_model = "cortex-m1";
-        /* TODO: Check if it has no MPU/FPU. */
-        capabilities->has_mpu = false;
-        capabilities->has_fpu = false;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-        break;
-
-    case CORTEX_M3:
-        display_model = "Cortex-M3";
-        cpu_model = "cortex-m3";
-        max_num_irq = 240;
-        capabilities->has_fpu = false;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-        break;
-
-    case CORTEX_M4:
-        display_model = "Cortex-M4";
-        cpu_model = "cortex-m4";
-        capabilities->has_fpu = false;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-        break;
-
-    case CORTEX_M4F:
-        display_model = "Cortex-M4F";
-        cpu_model = "cortex-mf4";
-        capabilities->has_fpu = true;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
-        break;
-
-    case CORTEX_M7:
-        display_model = "Cortex-M7";
-        cpu_model = "cortex-m7";
-        capabilities->has_fpu = false;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
-        break;
-
-    case CORTEX_M7F:
-        display_model = "Cortex-M7F";
-        cpu_model = "cortex-m7f";
-        capabilities->has_fpu = true;
-        capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
-        break;
-
-    default:
-        error_report("Illegal cortexm_model %d.", capabilities->cortexm_model);
-        exit(1);
+    if (machine->cpu_model) {
+        cpu_model = machine->cpu_model;
+    } else if (core_capabilities->cpu_model) {
+        cpu_model = core_capabilities->cpu_model;
     }
 
     cm_state->cpu_model = cpu_model;
-    cm_state->display_model = display_model;
-
-    int sram_size_kb;
-    if (ram_size_arg_kb != 0) {
-        /* If explicitly given via the -m command line option,
-         * or by --global, overwrite the board MCU definition. */
-        sram_size_kb = ram_size_arg_kb;
-    } else {
-        sram_size_kb = param_sram_size_kb;
-    }
-
-    /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
-    if (sram_size_kb > 32 * 1024) {
-        sram_size_kb = 32 * 1024;
-    }
-    cm_state->sram_size_kb = sram_size_kb;
-
-    int flash_size_kb;
-    if (flash_size_arg_kb) {
-        /* If explicitly given via the  --global command line option,
-         * overwrite the board MCU definition. */
-        flash_size_kb = flash_size_arg_kb;
-    } else {
-        flash_size_kb = param_flash_size_kb;
-    }
-    cm_state->flash_size_kb = flash_size_kb;
-
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        const char *cmdline;
-
-        printf("Device: '%s' (%s", object_get_typename(obj), display_model);
-        if (capabilities->has_mpu) {
-            printf(", MPU");
-        }
-        if (capabilities->has_fpu) {
-            printf(", FPU");
-        }
-        printf("), Flash: %d KB, RAM: %d KB.\n", flash_size_kb, sram_size_kb);
-        if (image_filename) {
-            printf("Image: '%s'.\n", image_filename);
-        }
-
-        cmdline = semihosting_get_cmdline();
-        if (cmdline != NULL) {
-            printf("Command line: '%s' (%d bytes).\n", cmdline,
-                    (int) strlen(cmdline));
-        } else {
-            printf("Command line: (none).\n");
-        }
-    }
-#endif
 
     /* The /cortexm container will hold all ARM internal peripherals. */
     cm_state->container = container_get(qdev_get_machine(), "/cortexm");
@@ -275,6 +126,122 @@ static void cortexm_mcu_construct_callback(Object *obj,
         env->boot_info = &cortexm_binfo;
     }
 
+    /* There may be 3 substrings, like "cortex-m3-r2p1" */
+    char **substr = g_strsplit(cpu_model, "-", 3);
+
+    const char *display_model = "?";
+
+    int max_num_irq = 496;
+
+    /* Some capabilities are hard-wired. */
+    char *sub_model = substr[1];
+    if (strcmp(sub_model, "m0") == 0) {
+        display_model = "Cortex-M0";
+        core_capabilities->model = CORTEX_M0;
+        core_capabilities->has_mpu = false;
+        core_capabilities->has_fpu = false;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+    } else if (strcmp(sub_model, "m0p") == 0) {
+        display_model = "Cortex-M0+";
+        core_capabilities->model = CORTEX_M0PLUS;
+        core_capabilities->has_mpu = false;
+        core_capabilities->has_fpu = false;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+    } else if (strcmp(sub_model, "m1") == 0) {
+        display_model = "Cortex-M1";
+        core_capabilities->model = CORTEX_M1;
+        /* TODO: Check if it has no MPU/FPU. */
+        core_capabilities->has_mpu = false;
+        core_capabilities->has_fpu = false;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+    } else if (strcmp(sub_model, "m3") == 0) {
+        display_model = "Cortex-M3";
+        core_capabilities->model = CORTEX_M3;
+        max_num_irq = 240;
+        core_capabilities->has_fpu = false;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+    } else if (strcmp(sub_model, "m4") == 0) {
+        display_model = "Cortex-M4";
+        core_capabilities->model = CORTEX_M4;
+        core_capabilities->has_fpu = false;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+    } else if (strcmp(sub_model, "m4f") == 0) {
+        display_model = "Cortex-M4F";
+        core_capabilities->model = CORTEX_M4F;
+        core_capabilities->has_fpu = true;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
+    } else if (strcmp(sub_model, "m7") == 0) {
+        display_model = "Cortex-M7";
+        core_capabilities->model = CORTEX_M7;
+        core_capabilities->has_fpu = false;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+    } else if (strcmp(sub_model, "m7f") == 0) {
+        display_model = "Cortex-M7F";
+        core_capabilities->model = CORTEX_M7F;
+        core_capabilities->has_fpu = true;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
+    } else {
+        error_report("Illegal '--cpu %s', only "
+                "cortex-m0,m0p,m1,m3,m4,m4f,m7,m7f supported.", cpu_model);
+        exit(1);
+    }
+
+    unsigned int major = (cm_state->cpu->midr >> 20) & 0xF;
+    unsigned int minor = cm_state->cpu->midr & 0xF;
+
+    char *display_model_rp = malloc(strlen(display_model) + 10);
+    sprintf(display_model_rp, "%s R%dP%d", display_model, major, minor);
+
+    cm_state->display_model = display_model_rp;
+
+    /* The cm_state value might have been set by --global */
+    int sram_size_kb = cm_state->sram_size_kb;
+    if (sram_size_kb == 0) {
+        /* Otherwise use the MCU value */
+        sram_size_kb = param_capabilities->sram_size_kb;
+    }
+
+    /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
+    if (sram_size_kb > 32 * 1024) {
+        sram_size_kb = 32 * 1024;
+    }
+    cm_state->sram_size_kb = sram_size_kb;
+
+    /* The cm_state value might have been set by --global */
+    int flash_size_kb = cm_state->flash_size_kb;
+    if (flash_size_kb == 0) {
+        /* Otherwise use the MCU value */
+        flash_size_kb = param_capabilities->flash_size_kb;
+    }
+    cm_state->flash_size_kb = flash_size_kb;
+
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_COMMON) {
+        const char *cmdline;
+
+        printf("Device: '%s' (%s", object_get_typename(obj),
+                cm_state->display_model);
+        if (capabilities->core->has_mpu) {
+            printf(", MPU");
+        }
+        if (capabilities->core->has_fpu) {
+            printf(", FPU");
+        }
+        printf("), Flash: %d KB, RAM: %d KB.\n", flash_size_kb, sram_size_kb);
+        if (image_filename) {
+            printf("Image: '%s'.\n", image_filename);
+        }
+
+        cmdline = semihosting_get_cmdline();
+        if (cmdline != NULL) {
+            printf("Command line: '%s' (%d bytes).\n", cmdline,
+                    (int) strlen(cmdline));
+        } else {
+            printf("Command line: (none).\n");
+        }
+    }
+#endif
+
     {
         DeviceState *nvic;
         nvic = qdev_create(NULL, "armv7m_nvic");
@@ -282,8 +249,8 @@ static void cortexm_mcu_construct_callback(Object *obj,
         env->nvic = nvic;
 
         int num_irq;
-        if (capabilities->num_irq) {
-            num_irq = capabilities->num_irq;
+        if (capabilities->core->num_irq) {
+            num_irq = capabilities->core->num_irq;
         } else {
             num_irq = DEFAULT_NUM_IRQ;
         }
@@ -303,7 +270,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     }
 
     /* Construct the ITM object. */
-    if (capabilities->has_itm) {
+    if (capabilities->core->has_itm) {
         cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
 
         /* The ITM will be available via "/machine/cortexm/nvic" */
@@ -565,35 +532,35 @@ static void cortexm_reset(void *opaque)
 
 /* Cortex-M0 initialisation routine.  */
 qemu_irq *
-cortex_m0_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+cortex_m0_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
 /* Cortex-M0+ initialisation routine.  */
 qemu_irq *
-cortex_m0p_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+cortex_m0p_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
 /* Cortex-M3 initialisation routine.  */
 qemu_irq *
-cortex_m3_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+cortex_m3_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
 /* Cortex-M4 initialisation routine.  */
 qemu_irq *
-cortex_m4_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+cortex_m4_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
 /* Cortex-M7 initialisation routine.  */
 qemu_irq *
-cortex_m7_core_init(CortexMCapabilities *cm_info, MachineState *machine)
+cortex_m7_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }

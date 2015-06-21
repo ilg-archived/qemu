@@ -57,10 +57,7 @@ typedef struct {
 
     const char *name; /* CMSIS device name */
 
-    const unsigned int flash_size_kb; /* size of main program area, in KB */
-    const unsigned int sram_size_kb; /* size of main RAM area, in KB */
-
-    const CortexMCapabilities *core;
+    const CortexMCapabilities cortexm;
     const STM32Capabilities *stm32;
 
 } STM32PartInfo;

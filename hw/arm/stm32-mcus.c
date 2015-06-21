@@ -253,30 +253,32 @@ static const STM32Capabilities stm32l15_12_xd = {
  */
 };
 
-static const CortexMCapabilities stm32f0xx_core = {
-    .cortexm_model = CORTEX_M0,
+/* ------------------------------------------------------------------------- */
+
+static const CortexMCoreCapabilities stm32f0xx_core = {
+    .cpu_model = "cortex-m0",
     .has_mpu = false, /* itm? irqs? */
     .nvic_bits = 4, /**/
 };
 
-static const CortexMCapabilities stm32f100_core = {
-    .cortexm_model = CORTEX_M3,
+static const CortexMCoreCapabilities stm32f100_core = {
+    .cpu_model = "cortex-m3",
     .has_mpu = true,
     .has_itm = true,
     .num_irq = 60,
     .nvic_bits = 4, /**/
 };
 
-static const CortexMCapabilities stm32f1xx_core = {
-    .cortexm_model = CORTEX_M3,
+static const CortexMCoreCapabilities stm32f1xx_core = {
+    .cpu_model = "cortex-m3",
     .has_mpu = true,
     .has_itm = true, /* no ETM? */
     .num_irq = 44,
     .nvic_bits = 4 /**/
 };
 
-static const CortexMCapabilities stm32f1cl_core = {
-    .cortexm_model = CORTEX_M3,
+static const CortexMCoreCapabilities stm32f1cl_core = {
+    .cpu_model = "cortex-m3",
     .has_mpu = true,
     .has_etm = true,
     .has_itm = true,
@@ -284,8 +286,8 @@ static const CortexMCapabilities stm32f1cl_core = {
     .nvic_bits = 4, /**/
 };
 
-static const CortexMCapabilities stm32f152_core = {
-    .cortexm_model = CORTEX_M3,
+static const CortexMCoreCapabilities stm32f152_core = {
+    .cpu_model = "cortex-m3",
     .has_mpu = true,
     .has_itm = true, /* TODO: check */
     .has_etm = true,
@@ -293,108 +295,136 @@ static const CortexMCapabilities stm32f152_core = {
     .nvic_bits = 4, /**/
 };
 
-static const CortexMCapabilities stm32f2xx_core = {
-    .cortexm_model = CORTEX_M3,
+static const CortexMCoreCapabilities stm32f2xx_core = {
+    .cpu_model = "cortex-m3",
     .has_mpu = true,
     .has_itm = true,
     .nvic_bits = 4, /**/
 };
 
-static const CortexMCapabilities stm32f3xx_core = {
-    .cortexm_model = CORTEX_M4F,
+static const CortexMCoreCapabilities stm32f3xx_core = {
+    .cpu_model = "cortex-m4f",
     .has_mpu = true,
     .has_itm = true,
     .nvic_bits = 4, /**/
 };
 
-static const CortexMCapabilities stm32f4xx_core = {
-    .cortexm_model = CORTEX_M4F,
+static const CortexMCoreCapabilities stm32f4xx_core = {
+    .cpu_model = "cortex-m4f",
     .has_mpu = true,
     .has_itm = true,
     .nvic_bits = 4, /**/
 };
+
+/* ------------------------------------------------------------------------- */
 
 static const STM32PartInfo stm32_mcus[] = {
     {
         .name = TYPE_STM32F051R8,
-        .flash_size_kb = 64,
-        .sram_size_kb = 8,
-        .core = &stm32f0xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 64,
+            .sram_size_kb = 8,
+            .core = &stm32f0xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F100RB,
-        .flash_size_kb = 128,
-        .sram_size_kb = 8,
-        .core = &stm32f100_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 128,
+            .sram_size_kb = 8,
+            .core = &stm32f100_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F103RB, /* STM32F103x[8B] */
-        .flash_size_kb = 128,
-        .sram_size_kb = 20,
-        .core = &stm32f1xx_core,
+        .cortexm = {
+            .flash_size_kb = 128,
+            .sram_size_kb = 20,
+            .core = &stm32f1xx_core, /**/
+        },
         .stm32 = &stm32f103x8b, /**/
     },
     {
         .name = TYPE_STM32F107VC,
-        .flash_size_kb = 256,
-        .sram_size_kb = 64,
-        .core = &stm32f1cl_core,
+        .cortexm = {
+            .flash_size_kb = 256,
+            .sram_size_kb = 64,
+            .core = &stm32f1cl_core, /**/
+        },
         .stm32 = &stm32f10_57_xx, /**/
     },
     {
         .name = TYPE_STM32L152RE,
-        .flash_size_kb = 384, /* 384+12 EEPROM */
-        .sram_size_kb = 48,
-        .core = &stm32f152_core,
+        .cortexm = {
+            .flash_size_kb = 384, /* 384+12 EEPROM */
+            .sram_size_kb = 48,
+            .core = &stm32f152_core, /**/
+        },
         .stm32 = &stm32l15_12_xd, /**/
     },
     {
         .name = TYPE_STM32F205RF,
-        .flash_size_kb = 768,
-        .sram_size_kb = 128, /* No CCM */
-        .core = &stm32f2xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 768,
+            .sram_size_kb = 128, /* No CCM */
+            .core = &stm32f2xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F303VC,
-        .flash_size_kb = 256,
-        .sram_size_kb = 40,
-        .core = &stm32f3xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 256,
+            .sram_size_kb = 40,
+            .core = &stm32f3xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F334R8,
-        .flash_size_kb = 64,
-        .sram_size_kb = 12,
-        .core = &stm32f3xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 64,
+            .sram_size_kb = 12,
+            .core = &stm32f3xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F405RG,
-        .flash_size_kb = 1024,
-        .sram_size_kb = 128, /* 64K CCM not counted */
-        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 1024,
+            .sram_size_kb = 128, /* 64K CCM not counted */
+            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F407VG,
-        .flash_size_kb = 1024,
-        .sram_size_kb = 128, /* 64K CCM not counted */
-        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 1024,
+            .sram_size_kb = 128, /* 64K CCM not counted */
+            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F407ZG,
-        .flash_size_kb = 1024,
-        .sram_size_kb = 128, /* 64K CCM not counted */
-        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 1024,
+            .sram_size_kb = 128, /* 64K CCM not counted */
+            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F411RE,
-        .flash_size_kb = 512,
-        .sram_size_kb = 128, /* No CCM */
-        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 512,
+            .sram_size_kb = 128, /* No CCM */
+            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = TYPE_STM32F429ZI,
-        .flash_size_kb = 2048,
-        .sram_size_kb = 192, /* 64K CCM not counted */
-        .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        .cortexm = {
+            .flash_size_kb = 2048,
+            .sram_size_kb = 192, /* 64K CCM not counted */
+            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+        }, /**/
     },
     {
         .name = 0 /* End of array. */
@@ -410,8 +440,8 @@ static void stm32_mcus_construct_callback(Object *obj, MachineState *machine)
     STM32DeviceClass *st_class = STM32_DEVICE_GET_CLASS(obj);
 
     STM32PartInfo *part_info = st_class->part_info;
-    STM32_MCU_GET_CLASS(obj)->construct(obj, part_info->stm32, part_info->core,
-            part_info->flash_size_kb, part_info->sram_size_kb, machine);
+    STM32_MCU_GET_CLASS(obj)->construct(obj, part_info->stm32,
+            &part_info->cortexm, machine);
 }
 
 static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)

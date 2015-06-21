@@ -41,8 +41,7 @@ typedef struct STM32MCUClass {
     /*< public >*/
 
     void (*construct)(Object *obj, const STM32Capabilities* capabilities,
-            const CortexMCapabilities *core_capabilities,
-            const int param_flash_size_kb, const int param_sram_size_kb,
+            const CortexMCapabilities *cortexm_capabilities,
             MachineState *machine);
 
 } STM32MCUClass;
