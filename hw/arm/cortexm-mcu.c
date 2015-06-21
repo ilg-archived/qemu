@@ -1,7 +1,7 @@
 /*
- * Cortex-M System emulation.
+ * Cortex-M MCU emulation.
  *
- * Copyright (c) 2014 Liviu Ionescu
+ * Copyright (c) 2014 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,14 +31,14 @@
 #include "elf.h"
 #include "cpu.h"
 #include "exec/semihost.h"
+#include "hw/intc/cortexm-nvic.h"
+#include "hw/arm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
 #endif
 
 #define DEFAULT_NUM_IRQ		256
-
-static void cortexm_reset(void *opaque);
 
 /* TODO: check if this really needs to be a callback. */
 static void cortexm_mcu_image_load_callback(DeviceState *dev);
@@ -118,16 +118,6 @@ static void cortexm_mcu_construct_callback(Object *obj,
         }
         cm_state->cpu = cpu;
         env = &cpu->env;
-
-#if 0
-        /* Fill-in a minimal boot info, required for semihosting.  */
-        /* TODO: remove it when the new semihosting code is in */
-        static struct arm_boot_info cortexm_binfo;
-        cortexm_binfo.kernel_cmdline = "";
-        cortexm_binfo.kernel_filename = "";
-
-        env->boot_info = &cortexm_binfo;
-#endif
     }
 
     /* There may be 3 substrings, like "cortex-m3-r2p1" */
@@ -185,8 +175,8 @@ static void cortexm_mcu_construct_callback(Object *obj,
         core_capabilities->has_fpu = true;
         core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
     } else {
-        error_report("Illegal '--cpu %s', only "
-                "cortex-m0,m0p,m1,m3,m4,m4f,m7,m7f supported.", cpu_model);
+        error_report("Unsupported '--cpu %s' "
+                "(cortex-m0,m0p,m1,m3,m4,m4f,m7,m7f only).", cpu_model);
         exit(1);
     }
 
@@ -246,9 +236,16 @@ static void cortexm_mcu_construct_callback(Object *obj,
     }
 #endif
 
+    /* ----- Realize the CPU (derived from a device). ----- */
+    {
+        /* It is done here and not in realize(), because NVIC depends on it. */
+        qdev_realize(DEVICE(cm_state->cpu));
+    }
+
+    /* ----- Construct the NVIC object. ----- */
     {
         DeviceState *nvic;
-        nvic = qdev_create(NULL, "armv7m_nvic");
+        nvic = qdev_create(NULL, TYPE_CORTEXM_NVIC);
         cm_state->nvic = nvic;
         env->nvic = nvic;
 
@@ -271,73 +268,11 @@ static void cortexm_mcu_construct_callback(Object *obj,
         /* The NVIC will be available via "/machine/cortexm/nvic" */
         object_property_add_child(cm_state->container, "nvic",
                 OBJECT(cm_state->nvic), NULL);
-    }
 
-    /* Construct the ITM object. */
-    if (capabilities->core->has_itm) {
-        cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
-
-        /* The ITM will be available via "/machine/cortexm/nvic" */
-        object_property_add_child(cm_state->container, "itm",
-                OBJECT(cm_state->itm), NULL);
-    }
-
-    /* ----- Load image. ----- */
-    if (!cm_state->image_filename && !qtest_enabled() && !with_gdb) {
-        error_report("Guest image must be specified (using -kernel)");
-        exit(1);
-    }
-
-    if (cm_state->image_filename) {
-        /*
-         * The image is loaded in two steps, first here
-         * in some local structures then in rom_reset(),
-         * after all memory regions are mapped.
-         */
-        CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
-        cm_class->image_load(DEVICE(cm_state));
-    }
-}
-
-static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* Call parent realize(). */
-    DeviceClass *parent_class = DEVICE_CLASS(
-            object_class_get_parent(object_class_by_name(TYPE_CORTEXM_MCU)));
-    Error *local_err = NULL;
-    parent_class->realize(dev, &local_err);
-    if (local_err) {
-        error_propagate(errp, local_err);
-        return;
-    }
-
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
-
-    const CortexMCapabilities *capabilities = cm_state->capabilities;
-    assert(capabilities != NULL);
-
-    /* ----- Realize the CPU (derived from a device). ----- */
-    qdev_realize(DEVICE(cm_state->cpu));
-
-    /* ----- Create memory regions. ----- */
-    (*cm_class->memory_regions_create)(dev);
-
-    /* ----- Realize the NVIC device. ----- */
-    {
-        qdev_realize(cm_state->nvic);
-
-        /*
-         * Interrupts available only after realize(),
-         * do not move this to init().
-         */
+        CORTEXM_NVIC_GET_CLASS(nvic)->construct(nvic, NULL);
 
         sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
                 qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
-
-        int num_irq = cm_state->num_irq;
 
         /*
          * Create the CPU exception handler interrupts. Peripherals
@@ -351,9 +286,35 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         cm_state->pic = pic;
     }
 
-    /* ----- Realize the ITM device, if it exists. ----- */
-    if (cm_state->itm) {
-        qdev_realize(DEVICE(cm_state->itm));
+    /* ----- Construct the ITM object. ----- */
+    if (capabilities->core->has_itm) {
+        cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
+
+        /* The ITM will be available via "/machine/cortexm/nvic" */
+        object_property_add_child(cm_state->container, "itm",
+                OBJECT(cm_state->itm), NULL);
+    }
+
+    /* ----- Create memory regions. ----- */
+    {
+        CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(obj);
+        (*cm_class->memory_regions_create)(DEVICE(obj));
+    }
+
+    /* ----- Load image. ----- */
+    if (!cm_state->image_filename && !qtest_enabled() && !with_gdb) {
+        error_report("Guest image must be specified (using --image)");
+        exit(1);
+    }
+
+    if (cm_state->image_filename) {
+        /*
+         * The image is loaded in two steps, first here
+         * in some local structures then in rom_reset(),
+         * after all memory regions are mapped.
+         */
+        CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
+        cm_class->image_load(DEVICE(cm_state));
     }
 
     /*
@@ -363,17 +324,60 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
      * related peripherals.
      */
     system_clock_scale = get_ticks_per_sec() / 8000000;
+}
+
+static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
+{
+    qemu_log_function_name();
+
+    /* Call parent realize(). */
+    if (!qdev_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
+        return;
+    }
+
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+
+    /* The CPU was realized in the constructor, it was needed there. */
+
+    /* ----- Realize the NVIC device. ----- */
+    {
+        qdev_realize(cm_state->nvic);
+    }
+
+    /* ----- Realize the ITM device, if it exists. ----- */
+    if (cm_state->itm) {
+        qdev_realize(DEVICE(cm_state->itm));
+    }
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
         printf("%s core initialised.\n", cm_state->display_model);
     }
 #endif
+}
 
-    if (cm_state->image_filename) {
-        /* Schedule a CPU core reset. */
-        qemu_register_reset(cortexm_reset, cm_state);
+static void cortexm_mcu_reset_callback(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    /* Call parent reset(). */
+    qdev_parent_reset(dev, TYPE_CORTEXM_MCU);
+
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_COMMON) {
+        printf("%s core reset.\n", cm_state->display_model);
     }
+#endif
+
+    /* Ensure the image is copied into memory before reset
+     * fetches MSP & PC */
+    rom_reset(NULL);
+
+    /* With the new image available, MSP & PC are correct
+     * and execution will start. */
+    cpu_reset(CPU(cm_state->cpu));
 }
 
 static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
@@ -419,8 +423,8 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
-    const char *kernel_filename = cm_state->image_filename;
-    assert(kernel_filename);
+    const char *image_filename = cm_state->image_filename;
+    assert(image_filename);
 
     int big_endian;
 #ifdef TARGET_WORDS_BIGENDIAN
@@ -431,15 +435,15 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
     int image_size;
     uint64_t entry;
     uint64_t lowaddr;
-    image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,
+    image_size = load_elf(image_filename, NULL, NULL, &entry, &lowaddr,
     NULL, big_endian, ELF_MACHINE, 1);
     if (image_size < 0) {
-        image_size = load_image_targphys(kernel_filename, 0,
+        image_size = load_image_targphys(image_filename, 0,
                 cm_state->flash_size_kb * 1024);
         lowaddr = 0;
     }
     if (image_size < 0) {
-        error_report("Could not load image '%s'", kernel_filename);
+        error_report("Could not load image '%s'", image_filename);
         exit(1);
     }
 }
@@ -465,6 +469,7 @@ static void cortexm_mcu_class_init_callback(ObjectClass *klass, void *data)
 
     dc->props = cortexm_mcu_properties;
     dc->realize = cortexm_mcu_realize_callback;
+    dc->reset = cortexm_mcu_reset_callback;
 
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
     cm_class->construct = cortexm_mcu_construct_callback;
@@ -509,28 +514,6 @@ void cortexm_board_greeting(MachineState *machine)
 }
 
 /* ------------------------------------------------------------------------- */
-
-/**
- * Used solely by cortexm_mcu_realize() above.
- */
-static void cortexm_reset(void *opaque)
-{
-    qemu_log_function_name();
-
-    CortexMState *cm_state = opaque;
-    ARMCPU *cpu = cm_state->cpu;
-
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        printf("Cortex-M core reset.\n");
-    }
-#endif
-
-    /* Ensure the image is copied into memory before reset fetches msp & pc */
-    rom_reset(NULL);
-
-    cpu_reset(CPU(cpu));
-}
 
 /* TODO: remove all following functions */
 

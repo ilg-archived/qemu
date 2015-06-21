@@ -1,7 +1,7 @@
 /*
- * Cortex-M System emulation.
+ * Cortex-M MCU emulation.
  * 
- * Copyright (c) 2014 Liviu Ionescu
+ * Copyright (c) 2014 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HW_ARM_CORTEXM_H
-#define HW_ARM_CORTEXM_H 1
+#ifndef CORTEXM_MCU_H_
+#define CORTEXM_MCU_H_
 
 #include "hw/misc/armv7m-itm.h"
 #include "exec/memory.h"
@@ -85,10 +85,12 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
+#define TYPE_CORTEXM_MCU "cortexm-mcu"
+
 #define CORTEXM_MCU_GET_CLASS(obj) \
     OBJECT_GET_CLASS(CortexMClass, (obj), TYPE_CORTEXM_MCU)
-#define CORTEXM_MCU_CLASS(obj) \
-    OBJECT_CLASS_CHECK(CortexMClass, (obj), TYPE_CORTEXM_MCU)
+#define CORTEXM_MCU_CLASS(klass) \
+    OBJECT_CLASS_CHECK(CortexMClass, (klass), TYPE_CORTEXM_MCU)
 
 typedef struct {
     /*< private >*/
@@ -103,7 +105,6 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_CORTEXM_MCU "cortexm-mcu"
 #define CORTEXM_MCU_STATE(obj) \
     OBJECT_CHECK(CortexMState, (obj), TYPE_CORTEXM_MCU)
 
@@ -182,4 +183,4 @@ cortex_m7_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine);
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* HW_ARM_CORTEXM_H */
+#endif /* CORTEXM_MCU_H_ */
