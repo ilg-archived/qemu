@@ -19,6 +19,7 @@
  */
 
 #include "hw/arm/stm32-mcu.h"
+#include "hw/arm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -179,13 +180,8 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call the parent realize(). */
-    DeviceClass *parent_class = DEVICE_CLASS(
-            object_class_get_parent(object_class_by_name(TYPE_STM32_MCU)));
-    Error *local_err = NULL;
-    parent_class->realize(dev, &local_err);
-    if (local_err) {
-        error_propagate(errp, local_err);
+    /* Call parent realize(). */
+    if (!qdev_parent_realize(dev, errp, TYPE_STM32_MCU)) {
         return;
     }
 
@@ -206,6 +202,14 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
             qdev_realize(DEVICE(state->gpio[i]));
         }
     }
+}
+
+static void stm32_mcu_reset_callback(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    /* Call parent reset(). */
+     qdev_parent_reset(dev, TYPE_STM32_MCU);
 }
 
 /**
@@ -255,15 +259,16 @@ static Property stm32_mcu_properties[] = {
 
 static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
-    STM32MCUClass *st_class = STM32_MCU_CLASS(klass);
-    st_class->construct = stm32_mcu_construct_callback;
+    DeviceClass *dc = DEVICE_CLASS(klass);
+    dc->realize = stm32_mcu_realize_callback;
+    dc->props = stm32_mcu_properties;
+    dc->reset = stm32_mcu_reset_callback;
 
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
     cm_class->memory_regions_create = stm32_mcu_memory_regions_create_callback;
 
-    DeviceClass *dc = DEVICE_CLASS(klass);
-    dc->realize = stm32_mcu_realize_callback;
-    dc->props = stm32_mcu_properties;
+    STM32MCUClass *st_class = STM32_MCU_CLASS(klass);
+    st_class->construct = stm32_mcu_construct_callback;
 }
 
 static const TypeInfo stm32_mcu_type_info = {

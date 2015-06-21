@@ -23,6 +23,7 @@
 #include "exec/address-spaces.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
+#include "hw/arm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -448,15 +449,18 @@ static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call the parent realize(). */
-    DeviceClass *parent_class = DEVICE_CLASS(
-            object_class_by_name(TYPE_STM32_MCU));
-    Error *local_err = NULL;
-    parent_class->realize(dev, &local_err);
-    if (local_err) {
-        error_propagate(errp, local_err);
+    /* Call parent realize(). */
+    if (!qdev_parent_realize(dev, errp, TYPE_STM32_MCU)) {
         return;
     }
+}
+
+static void stm32_mcus_reset_callback(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    /* Call parent reset(). */
+    qdev_parent_reset(dev, TYPE_STM32_MCU);
 }
 
 static Property stm32_mcus_properties[] = {
@@ -467,11 +471,11 @@ static Property stm32_mcus_properties[] = {
 static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    STM32DeviceClass *st_class = (STM32DeviceClass *) (klass);
-
     dc->realize = stm32_mcus_realize_callback;
+    dc->reset = stm32_mcus_reset_callback;
     dc->props = stm32_mcus_properties;
 
+    STM32DeviceClass *st_class = (STM32DeviceClass *) (klass);
     st_class->construct = stm32_mcus_construct_callback;
 
     /*
