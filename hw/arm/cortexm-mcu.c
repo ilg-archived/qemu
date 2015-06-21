@@ -40,10 +40,12 @@
 
 static void cortexm_reset(void *opaque);
 
+/* TODO: check if this really needs to be a callback. */
 static void cortexm_mcu_image_load_callback(DeviceState *dev);
 
 /* ------------------------------------------------------------------------- */
 
+/* TODO: define a separate bitband object. */
 #define BITBAND_OFFSET (0x02000000)
 /* Redefined from armv7m.c */
 #define TYPE_BITBAND "ARM,bitband-memory"
@@ -117,6 +119,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
         cm_state->cpu = cpu;
         env = &cpu->env;
 
+#if 0
         /* Fill-in a minimal boot info, required for semihosting.  */
         /* TODO: remove it when the new semihosting code is in */
         static struct arm_boot_info cortexm_binfo;
@@ -124,6 +127,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
         cortexm_binfo.kernel_filename = "";
 
         env->boot_info = &cortexm_binfo;
+#endif
     }
 
     /* There may be 3 substrings, like "cortex-m3-r2p1" */
@@ -190,7 +194,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     unsigned int minor = cm_state->cpu->midr & 0xF;
 
     char *display_model_rp = malloc(strlen(display_model) + 10);
-    sprintf(display_model_rp, "%s R%dP%d", display_model, major, minor);
+    sprintf(display_model_rp, "%s r%dp%d", display_model, major, minor);
 
     cm_state->display_model = display_model_rp;
 
