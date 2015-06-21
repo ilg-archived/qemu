@@ -33,15 +33,17 @@
 
 #define TYPE_GPIO_LED "gpio-led"
 
+// TODO: Change this to TYPE_DEVICE
+#define TYPE_GPIO_LED_PARENT TYPE_SYS_BUS_DEVICE
+typedef SysBusDeviceClass GPIOLEDParentClass;
+typedef SysBusDevice GPIOLEDParentState;
+
 #define GPIO_LED_GET_CLASS(obj) \
     OBJECT_GET_CLASS(GPIOLEDClass, (obj), TYPE_GPIO_LED)
 #define GPIO_LED_CLASS(klass) \
     OBJECT_CLASS_CHECK(GPIOLEDClass, (klass), TYPE_GPIO_LED)
 
-// TODO: Change this to TYPE_DEVICE
-#define TYPE_GPIO_LED_PARENT TYPE_SYS_BUS_DEVICE
-typedef SysBusDeviceClass GPIOLEDParentClass;
-typedef SysBusDevice GPIOLEDParentState;
+/* ------------------------------------------------------------------------- */
 
 typedef struct {
     /*< private >*/
