@@ -17,6 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "hw/arm/cortexm-helper.h"
+
 #include "qemu-common.h"
 #include "qom/cpu.h"
 #include "target-arm/cpu-qom.h"
@@ -96,4 +98,38 @@ DeviceState *qdev_alloc(BusState *bus, const char *name)
 void qdev_prop_set_bool(DeviceState *dev, const char *name, bool value)
 {
     object_property_set_bool(OBJECT(dev), value, name, &error_abort);
+}
+
+/**
+ *  Call the parent realize() of a given type.
+ */
+bool qdev_parent_realize(DeviceState *dev, Error **errp, const char *typename)
+{
+    /* Identify parent class. */
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_get_parent(object_class_by_name(typename)));
+
+    if (parent_class->realize) {
+        Error *local_err = NULL;
+        parent_class->realize(dev, &local_err);
+        if (local_err) {
+            error_propagate(errp, local_err);
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Call the parent reset() of a given type.
+ */
+void qdev_parent_reset(DeviceState *dev, const char *typename)
+{
+    /* Identify parent class. */
+    DeviceClass *parent_class = DEVICE_CLASS(
+            object_class_get_parent(object_class_by_name(typename)));
+
+    if (parent_class->reset) {
+        parent_class->reset(dev);
+    }
 }
