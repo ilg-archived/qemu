@@ -57,7 +57,7 @@ static void stm32_h103_board_init_callback(MachineState *machine)
 
 static QEMUMachine stm32_h103_machine = {
     .name = "STM32-H103",
-    .desc = "Olimex Header Board for STM32F103RBT6 (Experimental)",
+    .desc = "Olimex Header Board for STM32F103RBT6",
     .init = stm32_h103_board_init_callback };
 
 /* ----- Olimex STM32-P103 ----- */
