@@ -34,16 +34,12 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
         const STM32Capabilities *capabilities)
 {
     DeviceState *dev;
-    STM32SysBusDevice *sbd;
-    STM32GPIOState *gdev;
 
-    dev = qdev_create(NULL, TYPE_STM32_GPIO);
-    sbd = STM32_SYS_BUS_DEVICE_STATE(dev);
-    sbd->capabilities = capabilities;
-
-    gdev = STM32_GPIO_STATE(dev);
-    gdev->port_index = index;
-    gdev->rcc = STM32_RCC_STATE(state->rcc);
+    dev = qdev_alloc(NULL, TYPE_STM32_GPIO);
+    qdev_prop_set_ptr(dev, "capabilities", (void *) capabilities);
+    qdev_prop_set_int32(dev, "port-index", index);
+    qdev_prop_set_ptr(dev, "rcc", state->rcc);
+    STM32_GPIO_GET_CLASS(dev)->construct(OBJECT(dev), NULL);
 
     state->gpio[index] = dev;
 
@@ -98,22 +94,17 @@ static void stm32_mcu_construct_callback(Object *obj, void *data)
     state->container = container_get(qdev_get_machine(), "/stm32");
 
     DeviceState *dev;
-    STM32SysBusDevice *sbd;
 
     /* RCC */
     {
-        state->rcc = qdev_create(NULL, TYPE_STM32_RCC);
-        dev = DEVICE(state->rcc);
+        dev = qdev_alloc(NULL, TYPE_STM32_RCC);
 
         /* Copy capabilities into internal objects. */
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->rcc);
-        sbd->capabilities = capabilities;
+        qdev_prop_set_ptr(dev, "capabilities", (void *) capabilities);
 
         /* Copy internal oscillator frequencies from capabilities. */
-        qdev_prop_set_uint32(dev, "hsi-freq-hz",
-                sbd->capabilities->hsi_freq_hz);
-        qdev_prop_set_uint32(dev, "lsi-freq-hz",
-                sbd->capabilities->lsi_freq_hz);
+        qdev_prop_set_uint32(dev, "hsi-freq-hz", capabilities->hsi_freq_hz);
+        qdev_prop_set_uint32(dev, "lsi-freq-hz", capabilities->lsi_freq_hz);
 
         /* Alias RCC properties to MCU, to hide internal details. */
         object_property_add_alias(obj, "hse-freq-hz", OBJECT(dev),
@@ -121,20 +112,23 @@ static void stm32_mcu_construct_callback(Object *obj, void *data)
         object_property_add_alias(obj, "lse-freq-hz", OBJECT(dev),
                 "lse-freq-hz", NULL);
 
+        STM32_RCC_GET_CLASS(dev)->construct(OBJECT(dev), NULL);
+
         /* RCC will be named "/machine/stm32/rcc" */
-        object_property_add_child(state->container, "rcc", OBJECT(state->rcc),
-        NULL);
+        object_property_add_child(state->container, "rcc", OBJECT(dev), NULL);
+
+        state->rcc = dev;
     }
 
     /* FLASH */
     {
-        state->flash = qdev_create(NULL, TYPE_STM32_FLASH);
-        sbd = STM32_SYS_BUS_DEVICE_STATE(state->flash);
-        sbd->capabilities = capabilities;
+        dev = qdev_create(NULL, TYPE_STM32_FLASH);
+        qdev_prop_set_ptr(dev, "capabilities", (void *) capabilities);
 
         /* FLASH will be named "/machine/stm32/flash" */
-        object_property_add_child(state->container, "flash",
-                OBJECT(state->flash), NULL);
+        object_property_add_child(state->container, "flash", OBJECT(dev), NULL);
+
+        state->flash = dev;
     }
 
     /* GPIOA */

@@ -24,6 +24,8 @@
 #include "hw/sysbus.h"
 #include "hw/misc/stm32-sys-bus-device.h"
 
+/* ------------------------------------------------------------------------- */
+
 /* The high speed internal clock frequency. */
 #define HSI_FREQ_HZ (8000000)
 /* The low speed internal clock frequency. */
@@ -34,8 +36,20 @@
 /* No RTC */
 #define DEFAULT_RTC_FREQ_HZ (0)
 
+/* ------------------------------------------------------------------------- */
+
 #define TYPE_STM32_RCC "stm32-rcc"
 
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
+#define TYPE_STM32_RCC_PARENT TYPE_STM32_SYS_BUS_DEVICE
+typedef STM32SysBusDeviceClass STM32RCCParentClass;
+typedef STM32SysBusDeviceState STM32RCCParentState;
+
+/* ------------------------------------------------------------------------- */
+
+/* Class definitions. */
 #define STM32_RCC_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32RCCClass, (obj), TYPE_STM32_RCC)
 #define STM32_RCC_CLASS(klass) \
@@ -43,18 +57,21 @@
 
 typedef struct {
     /*< private >*/
-    STM32SysBusDeviceClass parent_class;
+    STM32RCCParentClass parent_class;
     /*< public >*/
 
-    DeviceRealize parent_realize;
+    void (*construct)(Object *obj, void *data);
 } STM32RCCClass;
 
+/* ------------------------------------------------------------------------- */
+
+/* Instance definitions. */
 #define STM32_RCC_STATE(obj) \
     OBJECT_CHECK(STM32RCCState, (obj), TYPE_STM32_RCC)
 
 typedef struct {
     /*< private >*/
-    STM32SysBusDeviceState parent_obj;
+    STM32RCCParentState parent_obj;
     /*< public >*/
 
     /* Properties */
@@ -97,5 +114,7 @@ typedef struct {
         } f4;
     } u;
 } STM32RCCState;
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* STM32_RCC_H_ */
