@@ -1,8 +1,8 @@
 /*
- * STM32 MCU - XXX.
+ * STM32 MCU - XXX emulation.
  *
- * Copyright (c) 2015 Liviu Ionescu
- * Copyright (c) 2010 Andre Beckus
+ * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2010 Andre Beckus.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@
  */
 
 
-/* ------------------------------------------------------------------------- */
+/* ----- Private ----------------------------------------------------------- */
+
 
 /* STM32F1[LMHX]D, STM32F1CL */
 
@@ -149,18 +150,23 @@ static const MemoryRegionOps stm32_xxx_ops = {
 
 /* ------------------------------------------------------------------------- */
 
-static void stm32_xxx_reset(DeviceState *dev)
+
+static void stm32_xxx_instance_init(Object *obj)
 {
     qemu_log_function_name();
 
-    STM32XxxState *state = STM32_XXX_STATE(dev);
+    STM32XxxState *state = STM32_XXX_STATE(obj);
+
+    /* ... */
 }
 
-static void stm32_xxx_realize(DeviceState *dev, Error **errp)
+static void stm32_xxx_construct_callback(Object *obj, void *data)
 {
     qemu_log_function_name();
 
-    STM32XxxState *state = STM32_XXX_STATE(dev);
+    /* No need to call parent constructor. */
+
+    STM32XxxState *state = STM32_XXX_STATE(obj);
 
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
@@ -177,19 +183,35 @@ static void stm32_xxx_realize(DeviceState *dev, Error **errp)
         size = 0; /* This will trigger an assertion to fail */
     }
 
-    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_gpio_ops, state, TYPE_STM32_XXX,
+    memory_region_init_io(&state->mmio, obj, &stm32_gpio_ops, state, TYPE_STM32_XXX,
             size);
 
-    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
+    sysbus_init_mmio(SYS_BUS_DEVICE(obj), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, addr);
 }
 
-static void stm32_xxx_instance_init(Object *obj)
+static void stm32_xxx_realize(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32XxxState *state = STM32_XXX_STATE(obj);
+    /* Call parent realize(). */
+    if (!qdev_parent_realize(dev, errp, TYPE_STM32_XXX)) {
+        return;
+    }
 
+    STM32XxxState *state = STM32_XXX_STATE(dev);
+    /* ... */
+}
+
+static void stm32_xxx_reset(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    /* Call parent reset(). */
+    qdev_parent_reset(dev, TYPE_STM32_XXX);
+  
+    STM32XxxState *state = STM32_XXX_STATE(dev);
+    /* ... */
 }
 
 static void stm32_xxx_class_init(ObjectClass *klass, void *data)
@@ -198,6 +220,9 @@ static void stm32_xxx_class_init(ObjectClass *klass, void *data)
 
     dc->reset = stm32_xxx_reset;
     dc->realize = stm32_xxx_realize;
+  
+    STM32XxxClass *st_class = STM32_XXX_CLASS(klass);
+    st_class->construct = stm32_xxx_construct_callback;
 }
 
 static const TypeInfo stm32_xxx_type_info = {

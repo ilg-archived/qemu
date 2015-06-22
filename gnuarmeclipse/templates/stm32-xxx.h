@@ -1,8 +1,8 @@
 /*
- * STM32 MCU - XXX.
+ * STM32 MCU - XXX emulation.
  *
- * Copyright (c) 2015 Liviu Ionescu
- * Copyright (c) 2010 Andre Beckus
+ * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2010 Andre Beckus.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,26 +28,40 @@
 
 #include "exec/address-spaces.h"
 
+/* ------------------------------------------------------------------------- */
+
 #define TYPE_STM32_XXX "stm32-xxx"
+
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
+#define TYPE_STM32_XXX_PARENT TYPE_SYS_BUS_DEVICE
+typedef STM32SysBusDeviceClass STM32XxxParentClass;
+typedef STM32SysBusDeviceState STM32XxxParentState;
+
+/* ------------------------------------------------------------------------- */
 
 #define STM32_XXX_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32XxxClass, (obj), TYPE_STM32_XXX)
 #define STM32_XXX_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32XxxClass, (klass), TYPE_STM32_XXX)
+
+typedef struct {
+    /*< private >*/
+    STM32XxxParentClass parent_class;
+    /*< public >*/
+
+    void (*construct)(Object *obj, void *data);
+} STM32XxxClass;
+
+/* ------------------------------------------------------------------------- */
+
 #define STM32_XXX_STATE(obj) \
     OBJECT_CHECK(STM32XxxState, (obj), TYPE_STM32_XXX)
 
 typedef struct {
     /*< private >*/
-    SysBusDeviceClass parent_class;
-    /*< public >*/
-
-    /* No local virtual functions */
-} STM32XxxClass;
-
-typedef struct {
-    /*< private >*/
-    STM32SysBusDevice parent_obj;
+    STM32XxxParentState parent_obj;
     /*< public >*/
 
     MemoryRegion mmio;
@@ -67,5 +81,7 @@ typedef struct {
         } f4;
     } u;
 } STM32XxxState;
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* STM32_XXX_H_ */
