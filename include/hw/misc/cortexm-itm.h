@@ -1,7 +1,7 @@
 /*
- * ARM Instrumentation Trace Macrocell.
+ * Cortex-M Instrumentation Trace Macrocell emulation.
  *
- * Copyright (c) 2015 Liviu Ionescu
+ * Copyright (c) 2015 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,36 +17,53 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ARMV7M_ITM_H_
-#define ARMV7M_ITM_H_
+#ifndef CORTEXM_ITM_H_
+#define CORTEXM_ITM_H_
 
 #include "hw/sysbus.h"
 #include "exec/address-spaces.h"
 
-#define DEFAULT_ITM_NUM_PORTS	32
-#define MAX_ITM_NUM_PORTS		256
+/* ------------------------------------------------------------------------- */
 
-#define TYPE_ARMV7M_ITM "armv7m-itm"
+#define CORTEXM_ITM_DEFAULT_NUM_PORTS	32
+#define CORTEXM_ITM_MAX_NUM_PORTS		256
 
-#define ARMV7M_ITM_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(ITMClass, (obj), TYPE_ARMV7M_ITM)
-#define ARMV7M_ITM_CLASS(klass) \
-    OBJECT_CLASS_CHECK(ITMClass, (klass), TYPE_ARMV7M_ITM)
+/* ------------------------------------------------------------------------- */
 
-typedef struct ITMClass {
+#define TYPE_CORTEXM_ITM "cortexm-itm"
+
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
+#define TYPE_CORTEXM_ITM_PARENT TYPE_SYS_BUS_DEVICE
+typedef SysBusDeviceClass CortexMITMParentClass;
+typedef SysBusDevice CortexMITMParentState;
+
+/* ------------------------------------------------------------------------- */
+
+/* Class definitions. */
+#define CORTEXM_ITM_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(CortexMITMClass, (obj), TYPE_CORTEXM_ITM)
+#define CORTEXM_ITM_CLASS(klass) \
+    OBJECT_CLASS_CHECK(CortexMITMClass, (klass), TYPE_CORTEXM_ITM)
+
+typedef struct {
     /*< private >*/
-    SysBusDeviceClass parent_class;
+    CortexMITMParentClass parent_class;
     /*< public >*/
 
-    /* No local virtual functions */
-} ITMClass;
+    void (*construct)(Object *obj, void *data);
+} CortexMITMClass;
 
-#define ARMV7M_ITM_STATE(obj) \
-    OBJECT_CHECK(ITMState, (obj), TYPE_ARMV7M_ITM)
+/* ------------------------------------------------------------------------- */
 
-typedef struct ITMState {
+/* Instance definitions. */
+#define CORTEXM_ITM_STATE(obj) \
+    OBJECT_CHECK(CortexMITMState, (obj), TYPE_CORTEXM_ITM)
+
+typedef struct {
     /*< private >*/
-    SysBusDevice parent_obj;
+    CortexMITMParentState parent_obj;
     /*< public >*/
 
     /* Must be a multiple of 8 */
@@ -69,7 +86,7 @@ typedef struct ITMState {
          * Halfword access [15:0]
          * Word access [31:0]
          */
-        uint32_t stim[MAX_ITM_NUM_PORTS];
+        uint32_t stim[CORTEXM_ITM_MAX_NUM_PORTS];
 
         /**
          * Trace Enable.	(0x0)
@@ -77,7 +94,7 @@ typedef struct ITMState {
          * 						0 = Port (32x+n) disabled
          * 						1 = Port (32x+n) enabled
          */
-        uint32_t ter[MAX_ITM_NUM_PORTS / 32];
+        uint32_t ter[CORTEXM_ITM_MAX_NUM_PORTS / 32];
 
         /**
          * Trace Privilege.	(0x0)
@@ -102,6 +119,8 @@ typedef struct ITMState {
         uint32_t lsr;		// RO, 0
     } reg;
 
-} ITMState;
+} CortexMITMState;
 
-#endif /* ARMV7M_ITM_H_ */
+/* ------------------------------------------------------------------------- */
+
+#endif /* CORTEXM_ITM_H_ */

@@ -289,11 +289,15 @@ static void cortexm_mcu_construct_callback(Object *obj, void *data)
 
     /* ----- Construct the ITM object. ----- */
     if (capabilities->core->has_itm) {
-        cm_state->itm = qdev_create(NULL, TYPE_ARMV7M_ITM);
+        DeviceState *itm;
+        itm = qdev_alloc(NULL, TYPE_CORTEXM_ITM);
+        CORTEXM_ITM_GET_CLASS(itm)->construct(OBJECT(itm), NULL);
 
         /* The ITM will be available via "/machine/cortexm/nvic" */
-        object_property_add_child(cm_state->container, "itm",
-                OBJECT(cm_state->itm), NULL);
+        object_property_add_child(cm_state->container, "itm", OBJECT(itm),
+                NULL);
+
+        cm_state->itm = itm;
     }
 
     /* ----- Create memory regions. ----- */

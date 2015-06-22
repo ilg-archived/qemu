@@ -1,7 +1,7 @@
 /*
- * ARM Instrumentation Trace Macrocell.
+ * ARM Instrumentation Trace Macrocell emulation.
  *
- * Copyright (c) 2015 Liviu Ionescu
+ * Copyright (c) 2015 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,21 +17,24 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/armv7m-itm.h"
+#include "hw/misc/cortexm-itm.h"
 
 /**
  * This file implements a minimal ITM peripheral, intended to display
  * the trace messages sent via byte writes to stimulus port 0.
  */
 
+/* ------------------------------------------------------------------------- */
+
 /**
  * Read from ITM registers.
  *
  * Only word operations are currently supported.
  */
-static uint64_t armv7m_itm_read_callback(void *opaque, hwaddr addr, unsigned size)
+static uint64_t cortexm_itm_read_callback(void *opaque, hwaddr addr,
+        unsigned size)
 {
-    ITMState *state = (ITMState *) opaque;
+    CortexMITMState *state = (CortexMITMState *) opaque;
     uint32_t offset = addr;
 
     if (offset < 0x400) {
@@ -72,10 +75,10 @@ static uint64_t armv7m_itm_read_callback(void *opaque, hwaddr addr, unsigned siz
  *
  * Word writes to the other registers
  */
-static void armv7m_itm_write_callback(void *opaque, hwaddr addr, uint64_t value,
-        unsigned size)
+static void cortexm_itm_write_callback(void *opaque, hwaddr addr,
+        uint64_t value, unsigned size)
 {
-    ITMState *state = (ITMState *) opaque;
+    CortexMITMState *state = (CortexMITMState *) opaque;
     uint32_t offset = addr;
 
     if (offset < 0x400) {
@@ -139,15 +142,50 @@ static void armv7m_itm_write_callback(void *opaque, hwaddr addr, uint64_t value,
 }
 
 static const MemoryRegionOps armv7m_itm_ops = {
-    .read = armv7m_itm_read_callback,
-    .write = armv7m_itm_write_callback,
+    .read = cortexm_itm_read_callback,
+    .write = cortexm_itm_write_callback,
     .endianness = DEVICE_NATIVE_ENDIAN, };
 
-static void armv7m_itm_reset_callback(DeviceState *dev)
+/* ------------------------------------------------------------------------- */
+
+static void cortexm_itm_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
-    ITMState *state = ARMV7M_ITM_STATE(dev);
+    CortexMITMState *state = CORTEXM_ITM_STATE(obj);
+
+    /* TODO: make it configurable */
+    state->num_ports = CORTEXM_ITM_DEFAULT_NUM_PORTS;
+}
+
+static void cortexm_itm_construct_callback(Object *obj, void *data)
+{
+    qemu_log_function_name();
+
+    CortexMITMState *state = CORTEXM_ITM_STATE(obj);
+
+    uint64_t size = 0x1000;
+    hwaddr addr = 0xE0000000;
+
+    memory_region_init_io(&state->mmio, OBJECT(obj), &armv7m_itm_ops, state,
+    TYPE_CORTEXM_ITM, size);
+
+    sysbus_init_mmio(SYS_BUS_DEVICE(obj), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, addr);
+}
+
+static void cortexm_itm_realize_callback(DeviceState *dev, Error **errp)
+{
+    qemu_log_function_name();
+
+    /* The parent does not need realize(). */
+}
+
+static void cortexm_itm_reset_callback(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    CortexMITMState *state = CORTEXM_ITM_STATE(dev);
 
     for (int i = 0; i < state->num_ports; ++i) {
         state->reg.stim[i] = 0x00000000;
@@ -167,55 +205,30 @@ static void armv7m_itm_reset_callback(DeviceState *dev)
     state->reg.tcr = 0x00000001; /* ITMENA=1 */
 }
 
-static void armv7m_itm_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    ITMState *state = ARMV7M_ITM_STATE(dev);
-
-    uint64_t size = 0x1000;
-    hwaddr addr = 0xE0000000;
-
-    memory_region_init_io(&state->mmio, OBJECT(dev), &armv7m_itm_ops, state,
-            TYPE_ARMV7M_ITM, size);
-
-    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
-}
-
-static void armv7m_itm_instance_init_callback(Object *obj)
-{
-    qemu_log_function_name();
-
-    ITMState *state = ARMV7M_ITM_STATE(obj);
-
-    /* TODO: make it configurable */
-    state->num_ports = DEFAULT_ITM_NUM_PORTS;
-}
-
-static void armv7m_itm_class_init_callback(ObjectClass *klass, void *data)
+static void cortexm_itm_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    // TODO: check if VMStateDescription is required
-    // dc->vmsd = &vmstate_itm;
-    dc->reset = armv7m_itm_reset_callback;
-    dc->realize = armv7m_itm_realize_callback;
+    dc->reset = cortexm_itm_reset_callback;
+    dc->realize = cortexm_itm_realize_callback;
+
+    CortexMITMClass *it_class = CORTEXM_ITM_CLASS(klass);
+    it_class->construct = cortexm_itm_construct_callback;
 }
 
-static const TypeInfo armv7m_itm_type_info = {
-    .name = TYPE_ARMV7M_ITM,
-    .parent = TYPE_SYS_BUS_DEVICE,
-    .instance_init = armv7m_itm_instance_init_callback,
-    .instance_size = sizeof(ITMState),
-    .class_init = armv7m_itm_class_init_callback,
-    .class_size = sizeof(ITMClass) };
+static const TypeInfo cortexm_itm_type_info = {
+    .name = TYPE_CORTEXM_ITM,
+    .parent = TYPE_CORTEXM_ITM_PARENT,
+    .instance_init = cortexm_itm_instance_init_callback,
+    .instance_size = sizeof(CortexMITMState),
+    .class_init = cortexm_itm_class_init_callback,
+    .class_size = sizeof(CortexMITMClass) };
 
-static void armv7m_itm_register_type(void)
+static void cortexm_itm_register_type(void)
 {
-    type_register_static(&armv7m_itm_type_info);
+    type_register_static(&cortexm_itm_type_info);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-type_init(armv7m_itm_register_type)
-#endif
+type_init(cortexm_itm_register_type);
+
+/* ------------------------------------------------------------------------- */

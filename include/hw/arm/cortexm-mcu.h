@@ -1,7 +1,7 @@
 /*
  * Cortex-M MCU emulation.
  * 
- * Copyright (c) 2014 Liviu Ionescu.
+ * Copyright (c) 2015 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #ifndef CORTEXM_MCU_H_
 #define CORTEXM_MCU_H_
 
-#include "hw/misc/armv7m-itm.h"
+#include "hw/misc/cortexm-itm.h"
 #include "exec/memory.h"
 #include "hw/irq.h"
 #include "hw/boards.h"
@@ -93,6 +93,8 @@ typedef struct {
 #define TYPE_CORTEXM_MCU_PARENT TYPE_SYS_BUS_DEVICE
 typedef SysBusDeviceClass CortexMParentClass;
 typedef SysBusDevice CortexMParentState;
+
+/* ------------------------------------------------------------------------- */
 
 /* Class definitions. */
 #define CORTEXM_MCU_GET_CLASS(obj) \
