@@ -22,6 +22,10 @@
 
 #include "qemu-common.h"
 
+#define DEFINE_PROP_CONST_STRING(_n, _s, _f)             \
+    DEFINE_PROP(_n, _s, _f, qdev_prop_string, const char*)
+
+
 bool qdev_parent_realize(DeviceState *dev, Error **errp, const char *typename);
 bool qdev_class_realize(DeviceState *dev, Error **errp, const char *typename);
 void qdev_parent_reset(DeviceState *dev, const char *typename);
