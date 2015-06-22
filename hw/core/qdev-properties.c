@@ -993,6 +993,11 @@ void qdev_prop_set_ptr(DeviceState *dev, const char *name, void *value)
     Property *prop;
     void **ptr;
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        qemu_log_mask(LOG_TRACE, "%s('%s', '%s')\n", __FUNCTION__,
+                object_get_typename(OBJECT(dev)), name);
+#endif
+
     prop = qdev_prop_find(dev, name);
     assert(prop && prop->info == &qdev_prop_ptr);
     ptr = qdev_get_prop_ptr(dev, prop);
