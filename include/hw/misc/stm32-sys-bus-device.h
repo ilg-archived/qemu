@@ -1,7 +1,7 @@
 /*
  * STM32 - Common code for all sys bus devices.
  *
- * Copyright (c) 2015 Liviu Ionescu
+ * Copyright (c) 2015 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,17 @@
  * Define a field to differentiate between different STM32 families.
  */
 
+/* ------------------------------------------------------------------------- */
+
 #define TYPE_STM32_SYS_BUS_DEVICE "stm32-sys-bus-device"
+
+/* ------------------------------------------------------------------------- */
+
+#define TYPE_STM32_SYS_BUS_DEVICE_PARENT TYPE_SYS_BUS_DEVICE
+typedef SysBusDeviceClass STM32SysBusDeviceParentClass;
+typedef SysBusDevice STM32SysBusDeviceParentState;
+
+/* ------------------------------------------------------------------------- */
 
 #define STM32_SYS_BUS_DEVICE_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32SysBusDeviceClass, (obj), TYPE_STM32_SYS_BUS_DEVICE)
@@ -38,19 +48,23 @@
 
 typedef struct {
     /*< private >*/
-    SysBusDeviceClass parent_class;
+    STM32SysBusDeviceParentClass parent_class;
     /*< public >*/
 } STM32SysBusDeviceClass;
 
+/* ------------------------------------------------------------------------- */
+
 #define STM32_SYS_BUS_DEVICE_STATE(obj) \
-    OBJECT_CHECK(STM32SysBusDevice, (obj), TYPE_STM32_SYS_BUS_DEVICE)
+    OBJECT_CHECK(STM32SysBusDeviceState, (obj), TYPE_STM32_SYS_BUS_DEVICE)
 
 typedef struct {
     /*< private >*/
-    SysBusDevice parent_obj;
+    STM32SysBusDeviceParentState parent_obj;
     /*< public >*/
 
     const STM32Capabilities *capabilities;
-} STM32SysBusDevice;
+} STM32SysBusDeviceState;
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* STM32_SYS_BUS_DEVICE_H_ */

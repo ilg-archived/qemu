@@ -44,7 +44,7 @@ typedef struct {
 
 typedef struct {
     /*< private >*/
-    STM32SysBusDevice parent_obj;
+    STM32SysBusDeviceState parent_obj;
     /*< public >*/
 
     MemoryRegion mmio;
