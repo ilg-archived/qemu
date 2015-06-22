@@ -1,8 +1,8 @@
 /*
- * STM32 MCU - GPIO.
+ * STM32 MCU - GPIO emulation.
  *
- * Copyright (c) 2015 Liviu Ionescu
- * Copyright (c) 2010 Andre Beckus
+ * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2010 Andre Beckus.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,17 @@
 #include "exec/address-spaces.h"
 #include "hw/misc/stm32-rcc.h"
 
+/* ------------------------------------------------------------------------- */
+
 #define TYPE_STM32_GPIO "stm32-gpio"
+
+/* ------------------------------------------------------------------------- */
+
+#define TYPE_STM32_GPIO_PARENT TYPE_STM32_SYS_BUS_DEVICE
+typedef SysBusDeviceClass STM32GPIOParentClass;
+typedef STM32SysBusDeviceState STM32GPIOParentState;
+
+/* ------------------------------------------------------------------------- */
 
 #define STM32_GPIO_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32GPIOClass, (obj), TYPE_STM32_GPIO)
@@ -35,11 +45,13 @@
 
 typedef struct {
     /*< private >*/
-    SysBusDeviceClass parent_class;
+    STM32GPIOParentClass parent_class;
     /*< public >*/
 
-    /* No local virtual functions */
+    void (*construct)(Object *obj, void *data);
 } STM32GPIOClass;
+
+/* ------------------------------------------------------------------------- */
 
 typedef enum {
     STM32_GPIO_PORT_A = 0,
@@ -59,14 +71,14 @@ typedef enum {
 
 typedef struct {
     /*< private >*/
-    STM32SysBusDevice parent_obj;
+    STM32GPIOParentState parent_obj;
     /*< public >*/
 
     MemoryRegion mmio;
 
     stm32_gpio_index_t port_index;
 
-    STM32RCCState* rcc;
+    STM32RCCState *rcc;
 
     /**
      * IRQs used to communicate with the machine implementation.
@@ -113,7 +125,6 @@ typedef struct {
     } u;
 } STM32GPIOState;
 
-#define DEFINE_PROP_STM32_GPIO_PORT_INDEX(_n, _s, _f, _d) \
-    DEFINE_PROP_DEFAULT(_n, _s, _f, _d, qdev_prop_int32, stm32_gpio_index_t)
+/* ------------------------------------------------------------------------- */
 
 #endif /* STM32_GPIO_H_ */

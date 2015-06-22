@@ -1,8 +1,8 @@
 /*
- * STM32 MCU - GPIO.
+ * STM32 MCU - GPIO emulation.
  *
- * Copyright (c) 2015 Liviu Ionescu
- * Copyright (c) 2010 Andre Beckus
+ * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2010 Andre Beckus.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 #include "hw/gpio/stm32-gpio.h"
 #include "qemu/bitops.h"
+#include "hw/arm/cortexm-helper.h"
 
 /**
  * This file implements the STM32 GPIO device.
@@ -435,11 +436,13 @@ static void stm32_gpio_instance_init_callback(Object *obj)
     qdev_init_gpio_out(DEVICE(obj), state->out_irq, STM32_GPIO_PIN_COUNT);
 }
 
-static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
+static void stm32_gpio_construct_callback(Object *obj, void *data)
 {
     qemu_log_function_name();
 
-    STM32GPIOState *state = STM32_GPIO_STATE(dev);
+    /* No need to call parent constructor. */
+
+    STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
     const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
@@ -455,31 +458,31 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         switch (state->port_index) {
         case STM32_GPIO_PORT_A:
             addr = 0x40010800;
-            port_name = TYPE_STM32_GPIO "a";
+            port_name = TYPE_STM32_GPIO "[a]";
             break;
         case STM32_GPIO_PORT_B:
             addr = 0x40010C00;
-            port_name = TYPE_STM32_GPIO "b";
+            port_name = TYPE_STM32_GPIO "[b]";
             break;
         case STM32_GPIO_PORT_C:
             addr = 0x40011000;
-            port_name = TYPE_STM32_GPIO "c";
+            port_name = TYPE_STM32_GPIO "[c]";
             break;
         case STM32_GPIO_PORT_D:
             addr = 0x40011400;
-            port_name = TYPE_STM32_GPIO "d";
+            port_name = TYPE_STM32_GPIO "[d]";
             break;
         case STM32_GPIO_PORT_E:
             addr = 0x40011800;
-            port_name = TYPE_STM32_GPIO "e";
+            port_name = TYPE_STM32_GPIO "[e]";
             break;
         case STM32_GPIO_PORT_F:
             addr = 0x40011C00;
-            port_name = TYPE_STM32_GPIO "f";
+            port_name = TYPE_STM32_GPIO "[f]";
             break;
         case STM32_GPIO_PORT_G:
             addr = 0x40012000;
-            port_name = TYPE_STM32_GPIO "g";
+            port_name = TYPE_STM32_GPIO "[g]";
             break;
         default:
             qemu_log_mask(LOG_GUEST_ERROR, "GPIO: Illegal GPIO port %d\n",
@@ -495,15 +498,24 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
-    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_gpio_ops, state,
-            port_name, size);
-    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
+    memory_region_init_io(&state->mmio, obj, &stm32_gpio_ops, state, port_name,
+            size);
+    sysbus_init_mmio(SYS_BUS_DEVICE(obj), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, addr);
+}
+
+static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
+{
+    qemu_log_function_name();
+
+    /* No need to call parent realize(). */
 }
 
 static void stm32_gpio_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
+
+    /* No need to call parent reset(). */
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
 
@@ -532,8 +544,9 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
 }
 
 static Property stm32_gpio_properties[] = {
-        DEFINE_PROP_STM32_GPIO_PORT_INDEX("port-index", STM32GPIOState,
-                port_index, STM32_GPIO_PORT_UNDEFINED),
+        DEFINE_PROP_INT32_TYPE("port-index", STM32GPIOState, port_index,
+                STM32_GPIO_PORT_UNDEFINED, stm32_gpio_index_t),
+        DEFINE_PROP_NON_VOID_PTR("rcc", STM32GPIOState, rcc, STM32RCCState *),
     DEFINE_PROP_END_OF_LIST() };
 
 static void stm32_gpio_class_init_callback(ObjectClass *klass, void *data)
@@ -544,11 +557,14 @@ static void stm32_gpio_class_init_callback(ObjectClass *klass, void *data)
     dc->realize = stm32_gpio_realize_callback;
 
     dc->props = stm32_gpio_properties;
+
+    STM32GPIOClass *gp_class = STM32_GPIO_CLASS(klass);
+    gp_class->construct = stm32_gpio_construct_callback;
 }
 
 static const TypeInfo stm32_gpio_type_info = {
     .name = TYPE_STM32_GPIO,
-    .parent = TYPE_STM32_SYS_BUS_DEVICE,
+    .parent = TYPE_STM32_GPIO_PARENT,
     .instance_init = stm32_gpio_instance_init_callback,
     .instance_size = sizeof(STM32GPIOState),
     .class_init = stm32_gpio_class_init_callback,
