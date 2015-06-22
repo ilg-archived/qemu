@@ -28,6 +28,11 @@
 
 /* ------------------------------------------------------------------------- */
 
+void
+cortexm_board_greeting(MachineState *machine);
+
+/* ------------------------------------------------------------------------- */
+
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
 #define CORTEX_M_FPU_TYPE_FPV5_SP_D16 (2)
@@ -171,15 +176,6 @@ typedef struct {
 
 } CortexMState;
 
-/* ------------------------------------------------------------------------- */
-
-void
-cortexm_board_greeting(MachineState *machine);
-
-/* Helper functions. */
-ARMCPU *cpu_arm_create(const char *cpu_model);
-void qdev_realize(DeviceState *dev);
-DeviceState *qdev_alloc(BusState *bus, const char *name);
 
 /* ------------------------------------------------------------------------- */
 

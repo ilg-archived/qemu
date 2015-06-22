@@ -25,6 +25,10 @@
 #define DEFINE_PROP_CONST_STRING(_n, _s, _f)             \
     DEFINE_PROP(_n, _s, _f, qdev_prop_string, const char*)
 
+ARMCPU *cpu_arm_create(const char *cpu_model);
+
+void qdev_realize(DeviceState *dev);
+DeviceState *qdev_alloc(BusState *bus, const char *name);
 
 bool qdev_parent_realize(DeviceState *dev, Error **errp, const char *typename);
 bool qdev_class_realize(DeviceState *dev, Error **errp, const char *typename);

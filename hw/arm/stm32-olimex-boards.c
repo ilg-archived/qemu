@@ -22,6 +22,7 @@
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
 #include "hw/display/gpio-led.h"
+#include "hw/arm/cortexm-helper.h"
 
 /*
  * This file defines several Olimex STM32 boards.
