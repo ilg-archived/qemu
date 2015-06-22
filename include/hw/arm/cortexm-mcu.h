@@ -87,6 +87,14 @@ typedef struct {
 
 #define TYPE_CORTEXM_MCU "cortexm-mcu"
 
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
+#define TYPE_CORTEXM_MCU_PARENT TYPE_SYS_BUS_DEVICE
+typedef SysBusDeviceClass CortexMParentClass;
+typedef SysBusDevice CortexMParentState;
+
+/* Class definitions. */
 #define CORTEXM_MCU_GET_CLASS(obj) \
     OBJECT_GET_CLASS(CortexMClass, (obj), TYPE_CORTEXM_MCU)
 #define CORTEXM_MCU_CLASS(klass) \
@@ -94,7 +102,7 @@ typedef struct {
 
 typedef struct {
     /*< private >*/
-    SysBusDeviceClass parent_class;
+    CortexMParentClass parent_class;
     /*< public >*/
 
     void (*construct)(Object *obj, const CortexMCapabilities* capabilities,
@@ -105,6 +113,7 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
+/* Instance definitions. */
 #define CORTEXM_MCU_STATE(obj) \
     OBJECT_CHECK(CortexMState, (obj), TYPE_CORTEXM_MCU)
 
