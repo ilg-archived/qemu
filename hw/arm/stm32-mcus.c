@@ -434,15 +434,25 @@ static const STM32PartInfo stm32_mcus[] = {
 
 /* ------------------------------------------------------------------------- */
 
-static void stm32_mcus_construct_callback(Object *obj, MachineState *machine)
+static void stm32_mcus_construct_callback(Object *obj, void *data)
 {
     qemu_log_function_name();
 
     STM32DeviceClass *st_class = STM32_DEVICE_GET_CLASS(obj);
 
     STM32PartInfo *part_info = st_class->part_info;
-    STM32_MCU_GET_CLASS(obj)->construct(obj, part_info->stm32,
-            &part_info->cortexm, machine);
+
+    DeviceState *dev = DEVICE(obj);
+    /*
+     * Set additional constructor parameters, that were passed via
+     * the .class_data and copied to custom class member.
+     */
+    qdev_prop_set_ptr(dev, "param-cortexm-capabilities",
+            (void *) &part_info->cortexm);
+    qdev_prop_set_ptr(dev, "param-stm32-capabilities",
+            (void *) part_info->stm32);
+
+    STM32_MCU_GET_CLASS(obj)->construct(obj, NULL);
 }
 
 static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)

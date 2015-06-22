@@ -64,20 +64,21 @@ static void cortexm_bitband_init(uint32_t address)
 
 /* ------------------------------------------------------------------------- */
 
-static void cortexm_mcu_construct_callback(Object *obj,
-        const CortexMCapabilities *param_capabilities, MachineState *machine)
+static void cortexm_mcu_construct_callback(Object *obj, void *data)
 {
     qemu_log_function_name();
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
+    const MachineState *machine = cm_state->param_machine;
 
     /* Copy R/O structure to a local R/W copy, to update it. */
     CortexMCapabilities* capabilities = g_new(CortexMCapabilities, 1);
-    memcpy(capabilities, param_capabilities, sizeof(CortexMCapabilities));
+    memcpy(capabilities, cm_state->param_capabilities,
+            sizeof(CortexMCapabilities));
 
     CortexMCoreCapabilities* core_capabilities = g_new(CortexMCoreCapabilities,
             1);
-    memcpy(core_capabilities, param_capabilities->core,
+    memcpy(core_capabilities, cm_state->param_capabilities->core,
             sizeof(CortexMCoreCapabilities));
     capabilities->core = core_capabilities;
 
@@ -192,7 +193,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     int sram_size_kb = cm_state->sram_size_kb;
     if (sram_size_kb == 0) {
         /* Otherwise use the MCU value */
-        sram_size_kb = param_capabilities->sram_size_kb;
+        sram_size_kb = capabilities->sram_size_kb;
     }
 
     /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
@@ -205,7 +206,7 @@ static void cortexm_mcu_construct_callback(Object *obj,
     int flash_size_kb = cm_state->flash_size_kb;
     if (flash_size_kb == 0) {
         /* Otherwise use the MCU value */
-        flash_size_kb = param_capabilities->flash_size_kb;
+        flash_size_kb = capabilities->flash_size_kb;
     }
     cm_state->flash_size_kb = flash_size_kb;
 
@@ -450,6 +451,12 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 
 /* ------------------------------------------------------------------------- */
 
+#define DEFINE_PROP_MACHINE_PTR(_n, _s, _f) \
+    DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const MachineState*)
+
+#define DEFINE_PROP_CORTEXMCAPABILITIES_PTR(_n, _s, _f) \
+    DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const CortexMCapabilities*)
+
 /**
  * Properties for the 'cortexm_mcu' object, used as parent for
  * all vendor MCUs.
@@ -457,6 +464,9 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 static Property cortexm_mcu_properties[] = {
         DEFINE_PROP_UINT32("sram-size-kb", CortexMState, sram_size_kb, 0),
         DEFINE_PROP_UINT32("flash-size-kb", CortexMState, flash_size_kb, 0),
+        DEFINE_PROP_MACHINE_PTR("param-machine", CortexMState, param_machine),
+        DEFINE_PROP_CORTEXMCAPABILITIES_PTR("param-cortexm-capabilities",
+                CortexMState, param_capabilities),
     DEFINE_PROP_END_OF_LIST() };
 
 /**

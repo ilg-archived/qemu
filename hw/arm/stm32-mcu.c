@@ -60,16 +60,15 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
  *
  * TODO: define the special CCM region for the models that include it.
  */
-static void stm32_mcu_construct_callback(Object *obj,
-        const STM32Capabilities *capabilities,
-        const CortexMCapabilities *cortexm_capabilities, MachineState *machine)
+static void stm32_mcu_construct_callback(Object *obj, void *data)
 {
     qemu_log_function_name();
 
     /* Call parent constructor */
-    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, cortexm_capabilities, machine);
+    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, NULL);
 
     STM32MCUState *state = STM32_MCU_STATE(obj);
+    const STM32Capabilities *capabilities = state->param_capabilities;
     assert(capabilities != NULL);
     state->capabilities = capabilities;
 
@@ -252,8 +251,12 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
             flash_alias_mem);
 }
 
+#define DEFINE_PROP_STM32CAPABILITIES_PTR(_n, _s, _f) \
+    DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const STM32Capabilities*)
+
 static Property stm32_mcu_properties[] = {
-    /* TODO: add STM32 specific properties */
+        DEFINE_PROP_STM32CAPABILITIES_PTR("param-stm32-capabilities",
+                STM32MCUState, param_capabilities),
     DEFINE_PROP_END_OF_LIST(), /**/
 };
 

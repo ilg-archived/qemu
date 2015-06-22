@@ -105,8 +105,7 @@ typedef struct {
     CortexMParentClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, const CortexMCapabilities* capabilities,
-            MachineState *machine);
+    void (*construct)(Object *obj, void *data);
     void (*memory_regions_create)(DeviceState *dev);
     void (*image_load)(DeviceState *dev);
 } CortexMClass;
@@ -124,6 +123,10 @@ typedef struct {
     /*< private >*/
     SysBusDevice parent_obj;
     /*< public >*/
+
+    /* Constructor parameters. */
+    const MachineState *param_machine;
+    const CortexMCapabilities *param_capabilities;
 
     /**
      * R/W copy of core capabilities, set by *_instance_init().

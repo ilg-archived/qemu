@@ -78,7 +78,7 @@ typedef struct {
     /**
      * Constructor. Must be called manually after allocation.
      */
-    void (*construct)(Object *obj, MachineState *machine);
+    void (*construct)(Object *obj, void *data);
     STM32PartInfo *part_info;
 } STM32DeviceClass;
 

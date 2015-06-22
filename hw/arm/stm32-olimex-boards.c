@@ -34,7 +34,8 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     cortexm_board_greeting(machine);
     DeviceState *mcu = qdev_alloc(NULL, TYPE_STM32F103RB);
     {
-        STM32_DEVICE_GET_CLASS(mcu)->construct(OBJECT(mcu), machine);
+        qdev_prop_set_ptr(mcu, "param-machine", machine);
+        STM32_DEVICE_GET_CLASS(mcu)->construct(OBJECT(mcu), NULL);
 
         /* Set the board specific oscillator frequencies. */
         qdev_prop_set_uint32(mcu, "hse-freq-hz", 8000000); /* 8.0 MHz */
