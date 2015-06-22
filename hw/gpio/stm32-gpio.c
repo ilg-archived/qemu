@@ -371,42 +371,68 @@ static const MemoryRegionOps stm32_gpio_ops = {
     .valid.max_access_size = 4,
     .endianness = DEVICE_NATIVE_ENDIAN, };
 
-static void stm32_gpio_reset_callback(DeviceState *dev)
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Callback fired when a GPIO input pin changes state (based
+ * on an external stimulus from the machine).
+ */
+static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
 {
     qemu_log_function_name();
 
-    STM32GPIOState *state = STM32_GPIO_STATE(dev);
+    STM32GPIOState *state = STM32_GPIO_STATE(opaque);
+    unsigned pin = n;
+
+    assert(pin < STM32_GPIO_PIN_COUNT);
 
     const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
+    assert(capabilities != NULL);
 
-    state->dir_mask = 0;
-
+    /* Update internal pin state. */
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
-        state->u.f1.reg.crl = 0x44444444;
-        state->u.f1.reg.crh = 0x44444444;
-        state->u.f1.reg.idr = 0x00000000;
-        state->u.f1.reg.odr = 0x00000000;
-        state->u.f1.reg.lckr = 0x00000000;
-
-        stm32f1_gpio_update_dir_mask(state, 0);
-        stm32f1_gpio_update_dir_mask(state, 1);
+        if (level == 0) {
+            state->u.f1.reg.idr &= ~(1 << pin); /* Clear IDR bit. */
+        } else {
+            state->u.f1.reg.idr |= (1 << pin); /* Set IDR bit. */
+        }
         break;
 
     default:
         break;
     }
 
-    // Disabled because it triggers false LED irqs at reset.
-#if 0
-    /* Clear all outgoing interrupts. */
-    for (int pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
-        qemu_irq_lower(state->out_irq[pin]);
-    }
-#endif
+    /* Propagate the pin level to the input IRQs. */
+    qemu_set_irq(state->in_irq[pin], level);
+}
 
-    // TODO: check if incoming interrupts need to be cleared too.
+/* ------------------------------------------------------------------------- */
+
+static void stm32_gpio_instance_init_callback(Object *obj)
+{
+    qemu_log_function_name();
+
+    STM32GPIOState *state = STM32_GPIO_STATE(obj);
+
+    /*
+     * Initialise incoming interrupts, received from machine
+     * devices, like buttons.
+     */
+    SysBusDevice *sbd = SYS_BUS_DEVICE(obj);
+    for (int pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
+        sysbus_init_irq(sbd, &state->in_irq[pin]);
+    }
+    /* Handler for incoming interrupts */
+    qdev_init_gpio_in(DEVICE(obj), stm32_gpio_in_irq_handler,
+    STM32_GPIO_PIN_COUNT);
+
+    /*
+     * Initialise outgoing interrupts, propagated to exceptions
+     * or machine devices like LEDs
+     */
+    qdev_init_gpio_out(DEVICE(obj), state->out_irq, STM32_GPIO_PIN_COUNT);
 }
 
 static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
@@ -475,65 +501,34 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
-/**
- * Callback fired when a GPIO input pin changes state (based
- * on an external stimulus from the machine).
- */
-static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
+static void stm32_gpio_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    STM32GPIOState *state = STM32_GPIO_STATE(opaque);
-    unsigned pin = n;
-
-    assert(pin < STM32_GPIO_PIN_COUNT);
+    STM32GPIOState *state = STM32_GPIO_STATE(dev);
 
     const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
-    assert(capabilities != NULL);
 
-    /* Update internal pin state. */
+    state->dir_mask = 0;
+
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
-        if (level == 0) {
-            state->u.f1.reg.idr &= ~(1 << pin); /* Clear IDR bit. */
-        } else {
-            state->u.f1.reg.idr |= (1 << pin); /* Set IDR bit. */
-        }
+        state->u.f1.reg.crl = 0x44444444;
+        state->u.f1.reg.crh = 0x44444444;
+        state->u.f1.reg.idr = 0x00000000;
+        state->u.f1.reg.odr = 0x00000000;
+        state->u.f1.reg.lckr = 0x00000000;
+
+        stm32f1_gpio_update_dir_mask(state, 0);
+        stm32f1_gpio_update_dir_mask(state, 1);
         break;
 
     default:
         break;
     }
 
-    /* Propagate the pin level to the input IRQs. */
-    qemu_set_irq(state->in_irq[pin], level);
-}
-
-static void stm32_gpio_instance_init_callback(Object *obj)
-{
-    qemu_log_function_name();
-
-    STM32GPIOState *state = STM32_GPIO_STATE(obj);
-
-    /*
-     * Initialise incoming interrupts, received from machine
-     * devices, like buttons.
-     */
-    SysBusDevice *sbd = SYS_BUS_DEVICE(obj);
-    for (int pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
-        sysbus_init_irq(sbd, &state->in_irq[pin]);
-    }
-    /* Handler for incoming interrupts */
-    qdev_init_gpio_in(DEVICE(obj), stm32_gpio_in_irq_handler,
-    STM32_GPIO_PIN_COUNT);
-
-    /*
-     * Initialise outgoing interrupts, propagated to exceptions
-     * or machine devices like LEDs
-     */
-    qdev_init_gpio_out(DEVICE(obj), state->out_irq, STM32_GPIO_PIN_COUNT);
-
+    // TODO: check if incoming interrupts need to be cleared too.
 }
 
 static Property stm32_gpio_properties[] = {
@@ -557,13 +552,14 @@ static const TypeInfo stm32_gpio_type_info = {
     .instance_init = stm32_gpio_instance_init_callback,
     .instance_size = sizeof(STM32GPIOState),
     .class_init = stm32_gpio_class_init_callback,
-    .class_size = sizeof(STM32GPIOClass) };
+    .class_size = sizeof(STM32GPIOClass) /**/
+};
 
 static void stm32_gpio_register_types(void)
 {
     type_register_static(&stm32_gpio_type_info);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
 type_init(stm32_gpio_register_types);
-#endif
+
+/* ------------------------------------------------------------------------- */
