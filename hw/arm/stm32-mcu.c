@@ -209,7 +209,7 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-     qdev_parent_reset(dev, TYPE_STM32_MCU);
+    qdev_parent_reset(dev, TYPE_STM32_MCU);
 }
 
 /**
@@ -274,7 +274,7 @@ static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 static const TypeInfo stm32_mcu_type_info = {
     .abstract = true,
     .name = TYPE_STM32_MCU,
-    .parent = TYPE_CORTEXM_MCU,
+    .parent = TYPE_STM32_MCU_PARENT,
     .instance_size = sizeof(STM32MCUState),
     .class_init = stm32_mcu_class_init_callback,
     .class_size = sizeof(STM32MCUClass) /**/

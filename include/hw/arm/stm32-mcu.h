@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STM32_MCU_H
-#define STM32_MCU_H
+#ifndef STM32_MCU_H_
+#define STM32_MCU_H_
 
 #include "hw/boards.h"
 #include "hw/arm/cortexm-mcu.h"
@@ -30,6 +30,16 @@
 
 #define TYPE_STM32_MCU "stm32-mcu"
 
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
+#define TYPE_STM32_MCU_PARENT TYPE_CORTEXM_MCU
+typedef CortexMClass STM32MCUParentClass;
+typedef CortexMState STM32MCUParentState;
+
+/* ------------------------------------------------------------------------- */
+
+/* Class definitions. */
 #define STM32_MCU_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32MCUClass, (obj), TYPE_STM32_MCU)
 #define STM32_MCU_CLASS(klass) \
@@ -37,7 +47,7 @@
 
 typedef struct STM32MCUClass {
     /*< private >*/
-    CortexMClass parent_class;
+    STM32MCUParentClass parent_class;
     /*< public >*/
 
     void (*construct)(Object *obj, const STM32Capabilities* capabilities,
@@ -46,12 +56,15 @@ typedef struct STM32MCUClass {
 
 } STM32MCUClass;
 
+/* ------------------------------------------------------------------------- */
+
+/* Instance definitions. */
 #define STM32_MCU_STATE(obj) \
     OBJECT_CHECK(STM32MCUState, (obj), TYPE_STM32_MCU)
 
 typedef struct STM32MCUState {
     /*< private >*/
-    CortexMState parent_obj;
+    STM32MCUParentState parent_obj;
     /*< public >*/
 
     /* Specific STM32 capabilities; Cortex-M capabilities are separate. */
@@ -85,4 +98,4 @@ G_INLINE_FUNC DeviceState *stm32_mcu_get_gpio_dev(DeviceState *dev,
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* STM32_MCU_H */
+#endif /* STM32_MCU_H_ */
