@@ -24,8 +24,18 @@
 #include "hw/sysbus.h"
 #include "hw/misc/stm32-sys-bus-device.h"
 
-#define TYPE_STM32_FLASH "stm32-flash"
+/* ------------------------------------------------------------------------- */
 
+#define TYPE_STM32_FLASH "stm32-flash"
+#define TYPE_STM32_FLASH_PARENT TYPE_STM32_SYS_BUS_DEVICE
+
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
+
+/* ------------------------------------------------------------------------- */
+
+/* Class definitions. */
 #define STM32_FLASH_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32FlashClass, (obj), TYPE_STM32_FLASH)
 #define STM32_FLASH_CLASS(klass) \
@@ -36,9 +46,12 @@ typedef struct {
     STM32SysBusDeviceClass parent_class;
     /*< public >*/
 
-    DeviceRealize parent_realize;
+    void (*construct)(Object *obj, void *data);
 } STM32FlashClass;
 
+/* ------------------------------------------------------------------------- */
+
+/* Instance definitions. */
 #define STM32_FLASH_STATE(obj) \
     OBJECT_CHECK(STM32FlashState, (obj), TYPE_STM32_FLASH)
 
@@ -78,5 +91,7 @@ typedef struct {
         } f4;
     } u;
 } STM32FlashState;
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* STM32_FLASH_H_ */

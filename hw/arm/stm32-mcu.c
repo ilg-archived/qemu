@@ -122,8 +122,9 @@ static void stm32_mcu_construct_callback(Object *obj, void *data)
 
     /* FLASH */
     {
-        dev = qdev_create(NULL, TYPE_STM32_FLASH);
+        dev = qdev_alloc(NULL, TYPE_STM32_FLASH);
         qdev_prop_set_ptr(dev, "capabilities", (void *) capabilities);
+        STM32_FLASH_GET_CLASS(dev)->construct(OBJECT(dev), NULL);
 
         /* FLASH will be named "/machine/stm32/flash" */
         object_property_add_child(state->container, "flash", OBJECT(dev), NULL);
