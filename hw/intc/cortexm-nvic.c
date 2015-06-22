@@ -485,7 +485,7 @@ static const MemoryRegionOps nvic_sysreg_ops = {
 /* ------------------------------------------------------------------------- */
 
 static const VMStateDescription vmstate_nvic = {
-    .name = "armv7m_nvic",
+    .name = "cortexm-nvic",
     .version_id = 1,
     .minimum_version_id = 1,
     .fields = (VMStateField[] ) {
@@ -499,14 +499,16 @@ static void cortexm_nvic_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
-    /* We have a different default value for the num-irq property
+    /*
+     * We have a different default value for the num-irq property
      * than our superclass. This function runs after qdev init
      * has set the defaults from the Property array and before
      * any user-specified property setting, so just modify the
      * value in the GICState struct.
      */
     GICState *s = ARM_GIC_COMMON(obj);
-    /* The ARM v7m may have anything from 0 to 496 external interrupt
+    /*
+     * The ARM v7m may have anything from 0 to 496 external interrupt
      * IRQ lines. We default to 64. Other boards may differ and should
      * set the num-irq property appropriately.
      */
@@ -527,12 +529,14 @@ static void cortexm_nvic_construct_callback(DeviceState *dev, void *data)
 
     qemu_log_mask(LOG_TRACE, "NVIC: %d irqs\n", s->num_irq);
 
-        if (!qdev_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {
-            return;
-        }
+    /* Call parent realize() early, to complete GIC construction. */
+    if (!qdev_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {
+        return;
+    }
 
     gic_init_irqs_and_distributor(&s->gic);
-    /* The NVIC and system controller register area looks like this:
+    /*
+     * The NVIC and system controller register area looks like this:
      *  0..0xff : system control registers, including systick
      *  0x100..0xcff : GIC-like registers
      *  0xd00..0xfff : system control registers
@@ -540,7 +544,8 @@ static void cortexm_nvic_construct_callback(DeviceState *dev, void *data)
      * over the top of the system control register region.
      */
     memory_region_init(&s->container, OBJECT(s), "nvic", 0x1000);
-    /* The system register region goes at the bottom of the priority
+    /*
+     * The system register region goes at the bottom of the priority
      * stack as it covers the whole page.
      */
     memory_region_init_io(&s->sysregmem, OBJECT(s), &nvic_sysreg_ops, s,
@@ -553,7 +558,8 @@ static void cortexm_nvic_construct_callback(DeviceState *dev, void *data)
             &s->gic.iomem, 0x100, 0xc00);
     memory_region_add_subregion_overlap(&s->container, 0x100,
             &s->gic_iomem_alias, 1);
-    /* Map the whole thing into system memory at the location required
+    /*
+     * Map the whole thing into system memory at the location required
      * by the v7M architecture.
      */
     memory_region_add_subregion(get_system_memory(), 0xe000e000, &s->container);
@@ -564,10 +570,7 @@ static void cortexm_nvic_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
-//    if (!qdev_parent_realize(dev, errp, TYPE_CORTEXM_NVIC)) {
-//        return;
-//    }
+    /* Parent realize() was already perfomed during construction. */
 }
 
 static void cortexm_nvic_reset_callback(DeviceState *dev)
@@ -575,11 +578,7 @@ static void cortexm_nvic_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    DeviceClass *parent_class = DEVICE_CLASS(
-            object_class_get_parent(object_class_by_name(TYPE_CORTEXM_NVIC)));
-    if (parent_class->reset) {
-        parent_class->reset(dev);
-    }
+    qdev_parent_reset(dev, TYPE_CORTEXM_NVIC);
 
     CortexMNVICState *s = CORTEXM_NVIC_STATE(dev);
     /* Common GIC reset resets to disabled; the NVIC doesn't have
@@ -611,7 +610,8 @@ static const TypeInfo cortexm_nvic_info = {
     .instance_init = cortexm_nvic_instance_init_callback,
     .instance_size = sizeof(CortexMNVICState),
     .class_init = cortexm_nvic_class_init_callback,
-    .class_size = sizeof(CortexMNVICClass), };
+    .class_size = sizeof(CortexMNVICClass), /**/
+};
 
 static void cortexm_nvic_register_type(void)
 {
