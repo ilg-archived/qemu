@@ -23,6 +23,7 @@
 #include "qemu-common.h"
 
 bool qdev_parent_realize(DeviceState *dev, Error **errp, const char *typename);
+bool qdev_class_realize(DeviceState *dev, Error **errp, const char *typename);
 void qdev_parent_reset(DeviceState *dev, const char *typename);
 
 #endif /* CORTEXM_HELPER_H_ */

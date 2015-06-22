@@ -121,6 +121,25 @@ bool qdev_parent_realize(DeviceState *dev, Error **errp, const char *typename)
 }
 
 /**
+ *  Call the realize() of a given type.
+ */
+bool qdev_class_realize(DeviceState *dev, Error **errp, const char *typename)
+{
+    /* Identify parent class. */
+    DeviceClass *parent_class = DEVICE_CLASS(object_class_by_name(typename));
+
+    if (parent_class->realize) {
+        Error *local_err = NULL;
+        parent_class->realize(dev, &local_err);
+        if (local_err) {
+            error_propagate(errp, local_err);
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * Call the parent reset() of a given type.
  */
 void qdev_parent_reset(DeviceState *dev, const char *typename)
