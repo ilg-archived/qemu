@@ -22,8 +22,15 @@
 
 #include "qemu-common.h"
 
-#define DEFINE_PROP_CONST_STRING(_n, _s, _f)             \
+#define DEFINE_PROP_CONST_STRING(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_string, const char*)
+
+#define DEFINE_PROP_NON_VOID_PTR(_n, _s, _f, _t) \
+    DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, _t)
+
+#define DEFINE_PROP_INT32_TYPE(_n, _s, _f, _d, _t) \
+    DEFINE_PROP_DEFAULT(_n, _s, _f, _d, qdev_prop_int32, _t)
+
 
 ARMCPU *cpu_arm_create(const char *cpu_model);
 

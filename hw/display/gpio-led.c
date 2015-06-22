@@ -18,6 +18,7 @@
  */
 
 #include "hw/display/gpio-led.h"
+#include "hw/arm/cortexm-helper.h"
 
 /**
  * This class implements a LED connected to a GPIO device.
@@ -91,12 +92,6 @@ static void gpio_led_instance_init_callback(Object *obj)
 
     /* The connection will be done by the machine */
 }
-
-#define DEFINE_PROP_DEVICE_STATE_PTR(_n, _s, _f) \
-    DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, DeviceState*)
-
-#define DEFINE_PROP_CONST_STRING(_n, _s, _f)             \
-    DEFINE_PROP(_n, _s, _f, qdev_prop_string, const char*)
 
 static Property gpio_led_properties[] = {
         DEFINE_PROP_BOOL("active-low", GPIOLEDState, active_low, false),
