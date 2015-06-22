@@ -449,8 +449,12 @@ static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
-    if (!qdev_parent_realize(dev, errp, TYPE_STM32_MCU)) {
+    /*
+     * Call parent realize().
+     * We do not know the current typename, since it was generated
+     * with a table, so we use the parent typename.
+     */
+    if (!qdev_class_realize(dev, errp, TYPE_STM32_DEVICE_PARENT)) {
         return;
     }
 }
@@ -497,7 +501,7 @@ static void stm32_mcus_types_init()
 
         TypeInfo ti = {
             .name = stm32_mcus[i].name,
-            .parent = TYPE_STM32_MCU,
+            .parent = TYPE_STM32_DEVICE_PARENT,
             .instance_size = sizeof(STM32DeviceState),
             .class_init = stm32_mcus_class_init_callback,
             .class_size = sizeof(STM32DeviceClass),

@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STM32_MCUS_H
-#define STM32_MCUS_H
+#ifndef STM32_MCUS_H_
+#define STM32_MCUS_H_
 
 #include "hw/arm/stm32-mcu.h"
 
@@ -42,9 +42,17 @@
 #define TYPE_STM32F411RE "STM32F411RE"
 #define TYPE_STM32F429ZI "STM32F429ZI"
 
-/*
- * Warning, this cast does not check the type!
- */
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
+#define TYPE_STM32_DEVICE_PARENT TYPE_STM32_MCU
+typedef STM32MCUClass STM32DeviceParentClass;
+typedef STM32MCUState STM32DeviceParentState;
+
+/* ------------------------------------------------------------------------- */
+
+/* Class definitions. */
+/* Warning, this cast does not check the type! */
 #define STM32_DEVICE_GET_CLASS(obj) \
     ((STM32DeviceClass *)object_get_class(OBJECT(obj)))
 
@@ -64,7 +72,7 @@ typedef struct {
 
 typedef struct {
     /*< private >*/
-    STM32MCUClass parent_class;
+    STM32DeviceParentClass parent_class;
     /*< public >*/
 
     /**
@@ -74,13 +82,16 @@ typedef struct {
     STM32PartInfo *part_info;
 } STM32DeviceClass;
 
+/* ------------------------------------------------------------------------- */
+
+/* Instance definitions. */
 typedef struct {
     /*< private >*/
-    STM32MCUState parent_class;
+    STM32DeviceParentState parent_class;
     /*< public >*/
 
 } STM32DeviceState;
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* STM32_MCUS_H */
+#endif /* STM32_MCUS_H_ */
