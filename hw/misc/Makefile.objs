@@ -43,6 +43,6 @@ obj-$(CONFIG_EDU) += edu.o
 
 # [GNU ARM Eclipse]
 # Cortex-M files
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += armv7m-itm.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-itm.o
 obj-$(CONFIG_STM32) += stm32-sys-bus-device.o stm32-rcc.o stm32-flash.o
 # [GNU ARM Eclipse]
