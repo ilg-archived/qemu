@@ -40,7 +40,7 @@ static QEMUMachine sam3_h256_machine = {
 
 static void sam3_h256_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     sam3s4b_mcu_init(machine);
 
     /* TODO: Add board inits */

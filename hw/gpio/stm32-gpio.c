@@ -436,13 +436,13 @@ static void stm32_gpio_instance_init_callback(Object *obj)
     qdev_init_gpio_out(DEVICE(obj), state->out_irq, STM32_GPIO_PIN_COUNT);
 }
 
-static void stm32_gpio_construct_callback(Object *obj, void *data)
+static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* No need to call parent constructor. */
+    /* No need to call parent realize(). */
 
-    STM32GPIOState *state = STM32_GPIO_STATE(obj);
+    STM32GPIOState *state = STM32_GPIO_STATE(dev);
 
     const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
@@ -498,17 +498,10 @@ static void stm32_gpio_construct_callback(Object *obj, void *data)
         break;
     }
 
-    memory_region_init_io(&state->mmio, obj, &stm32_gpio_ops, state, port_name,
-            size);
-    sysbus_init_mmio(SYS_BUS_DEVICE(obj), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, addr);
-}
-
-static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* No need to call parent realize(). */
+    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_gpio_ops, state,
+            port_name, size);
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
 static void stm32_gpio_reset_callback(DeviceState *dev)
@@ -557,9 +550,6 @@ static void stm32_gpio_class_init_callback(ObjectClass *klass, void *data)
     dc->realize = stm32_gpio_realize_callback;
 
     dc->props = stm32_gpio_properties;
-
-    STM32GPIOClass *gp_class = STM32_GPIO_CLASS(klass);
-    gp_class->construct = stm32_gpio_construct_callback;
 }
 
 static const TypeInfo stm32_gpio_type_info = {

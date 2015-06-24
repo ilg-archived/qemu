@@ -434,37 +434,27 @@ static const STM32PartInfo stm32_mcus[] = {
 
 /* ------------------------------------------------------------------------- */
 
-static void stm32_mcus_construct_callback(Object *obj, void *data)
+static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    STM32DeviceClass *st_class = STM32_DEVICE_GET_CLASS(obj);
-
+    STM32DeviceClass *st_class = STM32_DEVICE_GET_CLASS(dev);
     STM32PartInfo *part_info = st_class->part_info;
 
-    DeviceState *dev = DEVICE(obj);
     /*
      * Set additional constructor parameters, that were passed via
      * the .class_data and copied to custom class member.
      */
-    qdev_prop_set_ptr(dev, "param-cortexm-capabilities",
+    qdev_prop_set_ptr(dev, "cortexm-capabilities",
             (void *) &part_info->cortexm);
-    qdev_prop_set_ptr(dev, "param-stm32-capabilities",
-            (void *) part_info->stm32);
-
-    STM32_MCU_GET_CLASS(obj)->construct(obj, NULL);
-}
-
-static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
+    qdev_prop_set_ptr(dev, "stm32-capabilities", (void *) part_info->stm32);
 
     /*
      * Call parent realize().
      * We do not know the current typename, since it was generated
      * with a table, so we use the parent typename.
      */
-    if (!qdev_class_realize(dev, errp, TYPE_STM32_DEVICE_PARENT)) {
+    if (!cm_class_realize(dev, errp, TYPE_STM32_DEVICE_PARENT)) {
         return;
     }
 }
@@ -474,7 +464,7 @@ static void stm32_mcus_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    qdev_parent_reset(dev, TYPE_STM32_MCU);
+    cm_parent_reset(dev, TYPE_STM32_MCU);
 }
 
 static Property stm32_mcus_properties[] = {
@@ -490,8 +480,6 @@ static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
     dc->props = stm32_mcus_properties;
 
     STM32DeviceClass *st_class = (STM32DeviceClass *) (klass);
-    st_class->construct = stm32_mcus_construct_callback;
-
     /*
      * Copy the 'data' param, pointing to a ParamInfo, to the class
      * structure, to be retrieved by the constructor.

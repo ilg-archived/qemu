@@ -160,13 +160,13 @@ static void stm32_flash_instance_init_callback(Object *obj)
     qemu_log_function_name();
 }
 
-static void stm32_flash_construct_callback(Object *obj, void *data)
+static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* No need to call parent constructor. */
+    /* No need to call parent realize(). */
 
-    STM32FlashState *state = STM32_FLASH_STATE(obj);
+    STM32FlashState *state = STM32_FLASH_STATE(dev);
 
     const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
@@ -184,18 +184,11 @@ static void stm32_flash_construct_callback(Object *obj, void *data)
         addr = 0;
     }
 
-    memory_region_init_io(&state->mmio, obj, &stm32_flash_ops, state,
+    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_flash_ops, state,
     TYPE_STM32_FLASH, size);
 
-    sysbus_init_mmio(SYS_BUS_DEVICE(obj), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, addr);
-}
-
-static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* No need to call parent realize(). */
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
 static void stm32_flash_reset_callback(DeviceState *dev)
@@ -221,9 +214,6 @@ static void stm32_flash_class_init_callback(ObjectClass *klass, void *data)
     DeviceClass *dc = DEVICE_CLASS(klass);
     dc->reset = stm32_flash_reset_callback;
     dc->realize = stm32_flash_realize_callback;
-
-    STM32FlashClass *fl_class = STM32_FLASH_CLASS(klass);
-    fl_class->construct = stm32_flash_construct_callback;
 }
 
 static const TypeInfo stm32_flash_type_info = {

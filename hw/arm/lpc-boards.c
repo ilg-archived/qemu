@@ -40,7 +40,7 @@ static QEMUMachine lpcxpresso_lpc1769_machine = {
 
 static void lpcxpresso_lpc1769_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     lpc1769fbd100_mcu_init(machine);
     /* TODO: Add board inits */
 }

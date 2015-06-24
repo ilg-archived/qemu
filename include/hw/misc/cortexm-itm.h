@@ -52,7 +52,6 @@ typedef struct {
     CortexMITMParentClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, void *data);
 } CortexMITMClass;
 
 /* ------------------------------------------------------------------------- */

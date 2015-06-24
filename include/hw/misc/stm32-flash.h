@@ -46,7 +46,6 @@ typedef struct {
     STM32SysBusDeviceClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, void *data);
 } STM32FlashClass;
 
 /* ------------------------------------------------------------------------- */

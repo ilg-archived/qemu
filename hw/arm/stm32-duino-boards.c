@@ -36,7 +36,7 @@ static QEMUMachine netduino2_machine = {
 
 static void netduino2_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     //cortexm_mcu_alloc(machine, TYPE_STM32F205RF);
 
     /* TODO: Add board inits */
@@ -53,7 +53,7 @@ static QEMUMachine netduinoplus2_machine = {
 
 static void netduinoplus2_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     //cortexm_mcu_alloc(machine, TYPE_STM32F405RG);
 
     /* TODO: Add board inits */
@@ -70,7 +70,7 @@ static QEMUMachine netduinogo_machine = {
 
 static void netduinogo_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     //cortexm_mcu_alloc(machine, TYPE_STM32F405RG);
 
     /* TODO: Add board inits */
@@ -87,7 +87,7 @@ static QEMUMachine mapple_machine = {
 
 static void mapple_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     //cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
 
     /* TODO: Add board inits */

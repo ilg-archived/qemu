@@ -64,11 +64,16 @@ static void cortexm_bitband_init(uint32_t address)
 
 /* ------------------------------------------------------------------------- */
 
-static void cortexm_mcu_construct_callback(Object *obj, void *data)
+static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    CortexMState *cm_state = CORTEXM_MCU_STATE(obj);
+    /* Call parent realize(). */
+    if (!cm_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
+        return;
+    }
+
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
     const MachineState *machine = cm_state->param_machine;
 
     /* Copy R/O structure to a local R/W copy, to update it. */
@@ -111,7 +116,7 @@ static void cortexm_mcu_construct_callback(Object *obj, void *data)
     {
         /* ----- Create CPU based on model. ----- */
         ARMCPU *cpu;
-        cpu = cpu_arm_create(cm_state->cpu_model);
+        cpu = cm_cpu_arm_create(cm_state->cpu_model);
         if (cpu == NULL) {
             error_report("Unable to find CPU definition %s",
                     cm_state->cpu_model);
@@ -214,7 +219,7 @@ static void cortexm_mcu_construct_callback(Object *obj, void *data)
     if (verbosity_level >= VERBOSITY_COMMON) {
         const char *cmdline;
 
-        printf("Device: '%s' (%s", object_get_typename(obj),
+        printf("Device: '%s' (%s", object_get_typename(OBJECT(dev)),
                 cm_state->display_model);
         if (capabilities->core->has_mpu) {
             printf(", MPU");
@@ -238,17 +243,12 @@ static void cortexm_mcu_construct_callback(Object *obj, void *data)
 #endif
 
     /* ----- Realize the CPU (derived from a device). ----- */
-    {
-        /* It is done here and not in realize(), because NVIC depends on it. */
-        qdev_realize(DEVICE(cm_state->cpu));
-    }
+    cm_realize(DEVICE(cm_state->cpu));
 
     /* ----- Construct the NVIC object. ----- */
     {
         DeviceState *nvic;
         nvic = qdev_create(NULL, TYPE_CORTEXM_NVIC);
-        cm_state->nvic = nvic;
-        env->nvic = nvic;
 
         int num_irq;
         if (capabilities->core->num_irq) {
@@ -266,11 +266,13 @@ static void cortexm_mcu_construct_callback(Object *obj, void *data)
 
         qdev_prop_set_uint32(nvic, "num-irq", num_irq);
 
+        cm_realize(nvic);
+        cm_state->nvic = nvic;
+        env->nvic = nvic;
+
         /* The NVIC will be available via "/machine/cortexm/nvic" */
         object_property_add_child(cm_state->container, "nvic",
                 OBJECT(cm_state->nvic), NULL);
-
-        CORTEXM_NVIC_GET_CLASS(nvic)->construct(nvic, NULL);
 
         sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
                 qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
@@ -290,20 +292,20 @@ static void cortexm_mcu_construct_callback(Object *obj, void *data)
     /* ----- Construct the ITM object. ----- */
     if (capabilities->core->has_itm) {
         DeviceState *itm;
-        itm = qdev_alloc(NULL, TYPE_CORTEXM_ITM);
-        CORTEXM_ITM_GET_CLASS(itm)->construct(OBJECT(itm), NULL);
+        itm = cm_create(TYPE_CORTEXM_ITM);
+        cm_state->itm = itm;
 
         /* The ITM will be available via "/machine/cortexm/nvic" */
         object_property_add_child(cm_state->container, "itm", OBJECT(itm),
-                NULL);
+        NULL);
 
-        cm_state->itm = itm;
+        cm_realize(DEVICE(itm));
     }
 
     /* ----- Create memory regions. ----- */
     {
-        CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(obj);
-        (*cm_class->memory_regions_create)(DEVICE(obj));
+        CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(dev);
+        (*cm_class->memory_regions_create)(dev);
     }
 
     /* ----- Load image. ----- */
@@ -329,30 +331,6 @@ static void cortexm_mcu_construct_callback(Object *obj, void *data)
      * related peripherals.
      */
     system_clock_scale = get_ticks_per_sec() / 8000000;
-}
-
-static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* Call parent realize(). */
-    if (!qdev_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
-        return;
-    }
-
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-
-    /* The CPU was realized in the constructor, it was needed there. */
-
-    /* ----- Realize the NVIC device. ----- */
-    {
-        qdev_realize(cm_state->nvic);
-    }
-
-    /* ----- Realize the ITM device, if it exists. ----- */
-    if (cm_state->itm) {
-        qdev_realize(DEVICE(cm_state->itm));
-    }
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
@@ -366,7 +344,7 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    qdev_parent_reset(dev, TYPE_CORTEXM_MCU);
+    cm_parent_reset(dev, TYPE_CORTEXM_MCU);
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
@@ -468,8 +446,8 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 static Property cortexm_mcu_properties[] = {
         DEFINE_PROP_UINT32("sram-size-kb", CortexMState, sram_size_kb, 0),
         DEFINE_PROP_UINT32("flash-size-kb", CortexMState, flash_size_kb, 0),
-        DEFINE_PROP_MACHINE_PTR("param-machine", CortexMState, param_machine),
-        DEFINE_PROP_CORTEXMCAPABILITIES_PTR("param-cortexm-capabilities",
+        DEFINE_PROP_MACHINE_PTR("machine", CortexMState, param_machine),
+        DEFINE_PROP_CORTEXMCAPABILITIES_PTR("cortexm-capabilities",
                 CortexMState, param_capabilities),
     DEFINE_PROP_END_OF_LIST() };
 
@@ -486,8 +464,6 @@ static void cortexm_mcu_class_init_callback(ObjectClass *klass, void *data)
     dc->reset = cortexm_mcu_reset_callback;
 
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
-    cm_class->construct = cortexm_mcu_construct_callback;
-
     cm_class->memory_regions_create =
             cortexm_mcu_memory_regions_create_callback;
     cm_class->image_load = cortexm_mcu_image_load_callback;
@@ -517,7 +493,7 @@ type_init(cortexm_types_init);
  *
  * Does not really depend on Cortex-M, but I could not find a better place.
  */
-void cortexm_board_greeting(MachineState *machine)
+void cm_board_greeting(MachineState *machine)
 {
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {

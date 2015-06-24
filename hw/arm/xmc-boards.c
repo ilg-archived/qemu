@@ -40,7 +40,7 @@ static QEMUMachine xmc4500_enterprise_kit_machine = {
 
 static void xmc4500_enterprise_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc4500_f144k1024_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -56,7 +56,7 @@ static QEMUMachine xmc4400_enterprise_kit_machine = {
 
 static void xmc4400_enterprise_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc4400_f100k512_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -73,7 +73,7 @@ static QEMUMachine xmc4200_enterprise_kit_machine = {
 
 static void xmc4200_enterprise_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc4200_q48k256_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -90,7 +90,7 @@ static QEMUMachine xmc4500_relax_kit_machine = {
 
 static void xmc4500_relax_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc4500_f100k1024_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -107,7 +107,7 @@ static QEMUMachine xmc4500_relax_lite_kit_machine = {
 
 static void xmc4500_relax_lite_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc4500_f100f1024_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -124,7 +124,7 @@ static QEMUMachine xmc1300_boot_kit_machine = {
 
 static void xmc1300_boot_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc1302_t038x200_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -141,7 +141,7 @@ static QEMUMachine xmc1200_boot_kit_machine = {
 
 static void xmc1200_boot_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc1201_t038x200_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -158,7 +158,7 @@ static QEMUMachine xmc1100_boot_kit_machine = {
 
 static void xmc1100_boot_kit_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc1100_t038x064_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -175,7 +175,7 @@ static QEMUMachine xmc2go_machine = {
 
 static void xmc2go_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     xmc1100_q024f0064_mcu_init(machine);
 
     /* TODO: Add board inits */

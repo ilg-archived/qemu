@@ -40,7 +40,7 @@ static QEMUMachine frdm_k20d50m_machine = {
 
 static void frdm_k20d50m_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mk20dx128vlh5_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -56,7 +56,7 @@ static QEMUMachine frdm_k22f_machine = {
 
 static void frdm_k22f_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mk22fn512vlh12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -72,7 +72,7 @@ static QEMUMachine frdm_k64f_machine = {
 
 static void frdm_k64f_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mk64fn1m0vll12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -87,7 +87,7 @@ static QEMUMachine twr_k60f120m_machine = {
 
 static void twr_k60f120m_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mk64fn1m0vll12_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -103,7 +103,7 @@ static QEMUMachine frdm_kl25z_machine = {
 
 static void frdm_kl25z_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mkl25z128vlk4_mcu_init(machine);
     /* TODO: Add board inits */
 }
@@ -119,7 +119,7 @@ static QEMUMachine frdm_kl26z_machine = {
 
 static void frdm_kl26z_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mkl26z128vlh4_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -136,7 +136,7 @@ static QEMUMachine frdm_kl43z_machine = {
 
 static void frdm_kl43z_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mkl43z256vlh4_mcu_init(machine);
 
     /* TODO: Add board inits */
@@ -153,7 +153,7 @@ static QEMUMachine frdm_kl46z_machine = {
 
 static void frdm_kl46z_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     mkl46z256vll4_mcu_init(machine);
 
     /* TODO: Add board inits */

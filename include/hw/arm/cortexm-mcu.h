@@ -29,7 +29,7 @@
 /* ------------------------------------------------------------------------- */
 
 void
-cortexm_board_greeting(MachineState *machine);
+cm_board_greeting(MachineState *machine);
 
 /* ------------------------------------------------------------------------- */
 
@@ -112,7 +112,6 @@ typedef struct {
     CortexMParentClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, void *data);
     void (*memory_regions_create)(DeviceState *dev);
     void (*image_load)(DeviceState *dev);
 } CortexMClass;
@@ -175,7 +174,6 @@ typedef struct {
     DeviceState *itm;
 
 } CortexMState;
-
 
 /* ------------------------------------------------------------------------- */
 

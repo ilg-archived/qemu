@@ -50,8 +50,6 @@ typedef struct STM32MCUClass {
     STM32MCUParentClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, void *data);
-
 } STM32MCUClass;
 
 /* ------------------------------------------------------------------------- */
@@ -74,6 +72,12 @@ typedef struct STM32MCUState {
     Object *container;
 
     DeviceState *rcc;
+
+    /* These two properties are duplicated from RCC, to allow
+     * setting them before the object exist. */
+    uint32_t hse_freq_hz;
+    uint32_t lse_freq_hz;
+
     DeviceState *flash;
     DeviceState *gpio[STM32_MAX_GPIO];
 } STM32MCUState;

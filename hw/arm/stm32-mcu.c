@@ -33,20 +33,21 @@
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
         const STM32Capabilities *capabilities)
 {
-    DeviceState *dev;
+    DeviceState *gpio;
 
-    dev = qdev_alloc(NULL, TYPE_STM32_GPIO);
-    qdev_prop_set_ptr(dev, "capabilities", (void *) capabilities);
-    qdev_prop_set_int32(dev, "port-index", index);
-    qdev_prop_set_ptr(dev, "rcc", state->rcc);
-    STM32_GPIO_GET_CLASS(dev)->construct(OBJECT(dev), NULL);
-
-    state->gpio[index] = dev;
+    gpio = cm_create(TYPE_STM32_GPIO);
+    qdev_prop_set_ptr(gpio, "capabilities", (void *) capabilities);
+    qdev_prop_set_int32(gpio, "port-index", index);
+    qdev_prop_set_ptr(gpio, "rcc", state->rcc);
 
     char child_name[10];
     snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
 
-    object_property_add_child(state->container, child_name, OBJECT(dev), NULL);
+    object_property_add_child(state->container, child_name, OBJECT(gpio), NULL);
+
+    cm_realize(gpio);
+
+    state->gpio[index] = gpio;
 }
 
 /**
@@ -56,14 +57,16 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
  *
  * TODO: define the special CCM region for the models that include it.
  */
-static void stm32_mcu_construct_callback(Object *obj, void *data)
+static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent constructor */
-    CORTEXM_MCU_GET_CLASS(obj)->construct(obj, NULL);
+    /* Call parent realize(). */
+    if (!cm_parent_realize(dev, errp, TYPE_STM32_MCU)) {
+        return;
+    }
 
-    STM32MCUState *state = STM32_MCU_STATE(obj);
+    STM32MCUState *state = STM32_MCU_STATE(dev);
     const STM32Capabilities *capabilities = state->param_capabilities;
     assert(capabilities != NULL);
     state->capabilities = capabilities;
@@ -93,43 +96,41 @@ static void stm32_mcu_construct_callback(Object *obj, void *data)
     /* Devices will be addressed below "/machine/stm32". */
     state->container = container_get(qdev_get_machine(), "/stm32");
 
-    DeviceState *dev;
-
     /* RCC */
     {
-        dev = qdev_alloc(NULL, TYPE_STM32_RCC);
+        DeviceState *rcc = cm_create(TYPE_STM32_RCC);
 
         /* Copy capabilities into internal objects. */
-        qdev_prop_set_ptr(dev, "capabilities", (void *) capabilities);
+        qdev_prop_set_ptr(rcc, "capabilities", (void *) capabilities);
 
         /* Copy internal oscillator frequencies from capabilities. */
-        qdev_prop_set_uint32(dev, "hsi-freq-hz", capabilities->hsi_freq_hz);
-        qdev_prop_set_uint32(dev, "lsi-freq-hz", capabilities->lsi_freq_hz);
+        qdev_prop_set_uint32(rcc, "hsi-freq-hz", capabilities->hsi_freq_hz);
+        qdev_prop_set_uint32(rcc, "lsi-freq-hz", capabilities->lsi_freq_hz);
 
-        /* Alias RCC properties to MCU, to hide internal details. */
-        object_property_add_alias(obj, "hse-freq-hz", OBJECT(dev),
-                "hse-freq-hz", NULL);
-        object_property_add_alias(obj, "lse-freq-hz", OBJECT(dev),
-                "lse-freq-hz", NULL);
-
-        STM32_RCC_GET_CLASS(dev)->construct(OBJECT(dev), NULL);
+        /* Forward properties to RCC. */
+        qdev_prop_set_uint32(rcc, "hse-freq-hz", state->hse_freq_hz);
+        qdev_prop_set_uint32(rcc, "lse-freq-hz", state->lse_freq_hz);
 
         /* RCC will be named "/machine/stm32/rcc" */
-        object_property_add_child(state->container, "rcc", OBJECT(dev), NULL);
+        object_property_add_child(state->container, "rcc", OBJECT(rcc), NULL);
 
-        state->rcc = dev;
+        cm_realize(rcc);
+
+        state->rcc = rcc;
     }
 
     /* FLASH */
     {
-        dev = qdev_alloc(NULL, TYPE_STM32_FLASH);
-        qdev_prop_set_ptr(dev, "capabilities", (void *) capabilities);
-        STM32_FLASH_GET_CLASS(dev)->construct(OBJECT(dev), NULL);
+        DeviceState *flash = cm_create(TYPE_STM32_FLASH);
+        qdev_prop_set_ptr(flash, "capabilities", (void *) capabilities);
 
         /* FLASH will be named "/machine/stm32/flash" */
-        object_property_add_child(state->container, "flash", OBJECT(dev), NULL);
+        object_property_add_child(state->container, "flash", OBJECT(flash),
+        NULL);
 
-        state->flash = dev;
+        cm_realize(flash);
+
+        state->flash = flash;
     }
 
     /* GPIOA */
@@ -168,34 +169,7 @@ static void stm32_mcu_construct_callback(Object *obj, void *data)
     }
 
     /* TODO: add more devices. */
-}
 
-static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* Call parent realize(). */
-    if (!qdev_parent_realize(dev, errp, TYPE_STM32_MCU)) {
-        return;
-    }
-
-    STM32MCUState *state = STM32_MCU_STATE(dev);
-
-    /* Propagate realize() to children. */
-
-    /* RCC */
-    qdev_realize(DEVICE(state->rcc));
-
-    /* FLASH */
-    qdev_realize(DEVICE(state->flash));
-
-    /* GPIO[A-G] */
-    for (int i = 0; i < STM32_MAX_GPIO; ++i) {
-        /* Realize all initialised GPIOs */
-        if (state->gpio[i]) {
-            qdev_realize(DEVICE(state->gpio[i]));
-        }
-    }
 }
 
 static void stm32_mcu_reset_callback(DeviceState *dev)
@@ -203,7 +177,7 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    qdev_parent_reset(dev, TYPE_STM32_MCU);
+    cm_parent_reset(dev, TYPE_STM32_MCU);
 }
 
 /**
@@ -250,8 +224,12 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const STM32Capabilities*)
 
 static Property stm32_mcu_properties[] = {
-        DEFINE_PROP_STM32CAPABILITIES_PTR("param-stm32-capabilities",
+        DEFINE_PROP_STM32CAPABILITIES_PTR("stm32-capabilities",
                 STM32MCUState, param_capabilities),
+        DEFINE_PROP_UINT32("hse-freq-hz", STM32MCUState, hse_freq_hz,
+                DEFAULT_HSE_FREQ_HZ),
+        DEFINE_PROP_UINT32("lse-freq-hz", STM32MCUState, lse_freq_hz,
+                DEFAULT_RTC_FREQ_HZ),
     DEFINE_PROP_END_OF_LIST(), /**/
 };
 
@@ -264,9 +242,6 @@ static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 
     CortexMClass *cm_class = CORTEXM_MCU_CLASS(klass);
     cm_class->memory_regions_create = stm32_mcu_memory_regions_create_callback;
-
-    STM32MCUClass *st_class = STM32_MCU_CLASS(klass);
-    st_class->construct = stm32_mcu_construct_callback;
 }
 
 static const TypeInfo stm32_mcu_type_info = {

@@ -158,27 +158,22 @@ static void cortexm_itm_instance_init_callback(Object *obj)
     state->num_ports = CORTEXM_ITM_DEFAULT_NUM_PORTS;
 }
 
-static void cortexm_itm_construct_callback(Object *obj, void *data)
-{
-    qemu_log_function_name();
-
-    CortexMITMState *state = CORTEXM_ITM_STATE(obj);
-
-    uint64_t size = 0x1000;
-    hwaddr addr = 0xE0000000;
-
-    memory_region_init_io(&state->mmio, OBJECT(obj), &armv7m_itm_ops, state,
-    TYPE_CORTEXM_ITM, size);
-
-    sysbus_init_mmio(SYS_BUS_DEVICE(obj), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, addr);
-}
-
 static void cortexm_itm_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
     /* The parent does not need realize(). */
+
+    CortexMITMState *state = CORTEXM_ITM_STATE(dev);
+
+    uint64_t size = 0x1000;
+    hwaddr addr = 0xE0000000;
+
+    memory_region_init_io(&state->mmio, OBJECT(dev), &armv7m_itm_ops, state,
+    TYPE_CORTEXM_ITM, size);
+
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }
 
 static void cortexm_itm_reset_callback(DeviceState *dev)
@@ -211,9 +206,6 @@ static void cortexm_itm_class_init_callback(ObjectClass *klass, void *data)
 
     dc->reset = cortexm_itm_reset_callback;
     dc->realize = cortexm_itm_realize_callback;
-
-    CortexMITMClass *it_class = CORTEXM_ITM_CLASS(klass);
-    it_class->construct = cortexm_itm_construct_callback;
 }
 
 static const TypeInfo cortexm_itm_type_info = {

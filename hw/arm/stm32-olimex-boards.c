@@ -32,29 +32,34 @@
 
 static void stm32_h103_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
-    DeviceState *mcu = qdev_alloc(NULL, TYPE_STM32F103RB);
+    cm_board_greeting(machine);
+
     {
-        qdev_prop_set_ptr(mcu, "param-machine", machine);
-        STM32_DEVICE_GET_CLASS(mcu)->construct(OBJECT(mcu), NULL);
+        /* Create the MCU */
+        DeviceState *mcu = cm_create(TYPE_STM32F103RB);
+
+        qdev_prop_set_ptr(mcu, "machine", machine);
 
         /* Set the board specific oscillator frequencies. */
         qdev_prop_set_uint32(mcu, "hse-freq-hz", 8000000); /* 8.0 MHz */
         qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 KHz */
-    }
-    qdev_realize(mcu);
 
-    /* Board peripheral objects */
-    DeviceState *led = qdev_create(NULL, TYPE_GPIO_LED);
+        cm_realize(mcu);
+    }
+
     {
+        /* Create the board LED */
+        DeviceState *led = cm_create(TYPE_GPIO_LED);
+
         /* STM32-H103 Green LED, GPIOC[12], active low */
-        qdev_prop_set_bool(led, "active-low", true);
+        qdev_prop_set_bit(led, "active-low", true);
         qdev_prop_set_string(led, "on-message", "[Green LED On]\n");
         qdev_prop_set_string(led, "off-message", "[Green LED Off]\n");
 
         gpio_led_connect(led, "/machine/stm32/gpio[c]", 12);
+
+        cm_realize(led);
     }
-    qdev_realize(led);
 }
 
 static QEMUMachine stm32_h103_machine = {
@@ -73,7 +78,7 @@ static QEMUMachine stm32_p103_machine = {
 
 static void stm32_p103_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
 //cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
 
     /* TODO: Add board inits */
@@ -90,7 +95,7 @@ static QEMUMachine olimexino_stm32_machine = {
 
 static void olimexino_stm32_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
 //cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
 
     /* TODO: Add board inits */
@@ -107,7 +112,7 @@ static QEMUMachine stm32_p107_machine = {
 
 static void stm32_p107_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
 //cortexm_mcu_alloc(machine, TYPE_STM32F107VC);
 
     /* TODO: Add board inits */
@@ -124,7 +129,7 @@ static QEMUMachine stm32_e407_machine = {
 
 static void stm32_e407_board_init_callback(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
 //cortexm_mcu_alloc(machine, TYPE_STM32F407ZG);
 
     /* TODO: Add board inits */

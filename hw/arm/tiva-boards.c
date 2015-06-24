@@ -40,7 +40,7 @@ static QEMUMachine ek_tm4c123gxl_machine = {
 
 static void ek_tm4c123gxl_board_init(MachineState *machine)
 {
-    cortexm_board_greeting(machine);
+    cm_board_greeting(machine);
     tm4c123gh6pm_mcu_init(machine);
 
     /* TODO: Add board inits */

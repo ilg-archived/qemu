@@ -29,7 +29,8 @@
  * A version of cpu_generic_init() that does only the object creation and
  * initialisation, without calling realize().
  */
-static CPUState *cpu_generic_create(const char *typename, const char *cpu_model)
+static CPUState *cm_cpu_generic_create(const char *typename,
+        const char *cpu_model)
 {
     char *str, *name, *featurestr;
     CPUState *cpu;
@@ -65,9 +66,9 @@ static CPUState *cpu_generic_create(const char *typename, const char *cpu_model)
  * A version of cpu_arm_init() that does only the object creation and
  * initialisation, without calling realize().
  */
-ARMCPU *cpu_arm_create(const char *cpu_model)
+ARMCPU *cm_cpu_arm_create(const char *cpu_model)
 {
-    return ARM_CPU(cpu_generic_create(TYPE_ARM_CPU, cpu_model));
+    return ARM_CPU(cm_cpu_generic_create(TYPE_ARM_CPU, cpu_model));
 }
 
 /**
@@ -76,7 +77,7 @@ ARMCPU *cpu_arm_create(const char *cpu_model)
  *  qdev_init_nofail not only that it does not call init(), but realize(),
  *  and it may fail, and when it does it exits.
  */
-void qdev_realize(DeviceState *dev)
+void cm_realize(DeviceState *dev)
 {
     Error *err = NULL;
 
@@ -90,20 +91,15 @@ void qdev_realize(DeviceState *dev)
     }
 }
 
-DeviceState *qdev_alloc(BusState *bus, const char *name)
+DeviceState *cm_create(const char *name)
 {
-    return qdev_create(bus, name);
-}
-
-void qdev_prop_set_bool(DeviceState *dev, const char *name, bool value)
-{
-    object_property_set_bool(OBJECT(dev), value, name, &error_abort);
+    return qdev_create(NULL, name);
 }
 
 /**
  *  Call the parent realize() of a given type.
  */
-bool qdev_parent_realize(DeviceState *dev, Error **errp, const char *typename)
+bool cm_parent_realize(DeviceState *dev, Error **errp, const char *typename)
 {
     /* Identify parent class. */
     DeviceClass *parent_class = DEVICE_CLASS(
@@ -123,7 +119,7 @@ bool qdev_parent_realize(DeviceState *dev, Error **errp, const char *typename)
 /**
  *  Call the realize() of a given type.
  */
-bool qdev_class_realize(DeviceState *dev, Error **errp, const char *typename)
+bool cm_class_realize(DeviceState *dev, Error **errp, const char *typename)
 {
     /* Identify parent class. */
     DeviceClass *parent_class = DEVICE_CLASS(object_class_by_name(typename));
@@ -142,7 +138,7 @@ bool qdev_class_realize(DeviceState *dev, Error **errp, const char *typename)
 /**
  * Call the parent reset() of a given type.
  */
-void qdev_parent_reset(DeviceState *dev, const char *typename)
+void cm_parent_reset(DeviceState *dev, const char *typename)
 {
     /* Identify parent class. */
     DeviceClass *parent_class = DEVICE_CLASS(

@@ -75,10 +75,6 @@ typedef struct {
     STM32DeviceParentClass parent_class;
     /*< public >*/
 
-    /**
-     * Constructor. Must be called manually after allocation.
-     */
-    void (*construct)(Object *obj, void *data);
     STM32PartInfo *part_info;
 } STM32DeviceClass;
 

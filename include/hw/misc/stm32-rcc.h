@@ -60,7 +60,6 @@ typedef struct {
     STM32RCCParentClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, void *data);
 } STM32RCCClass;
 
 /* ------------------------------------------------------------------------- */

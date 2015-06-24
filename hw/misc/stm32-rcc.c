@@ -570,13 +570,13 @@ static void stm32_rcc_instance_init_callback(Object *obj)
     qemu_log_function_name();
 }
 
-static void stm32_rcc_construct_callback(Object *obj, void *data)
+static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* No need to call parent constructor. */
+    /* No need to call parent realize(). */
 
-    STM32RCCState *state = STM32_RCC_STATE(obj);
+    STM32RCCState *state = STM32_RCC_STATE(dev);
 
     const STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
@@ -594,10 +594,10 @@ static void stm32_rcc_construct_callback(Object *obj, void *data)
         addr = 0;
     }
 
-    memory_region_init_io(&state->mmio, obj, &stm32_rcc_ops, state,
+    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_rcc_ops, state,
     TYPE_STM32_RCC, size);
 
-    SysBusDevice *sbd = SYS_BUS_DEVICE(obj);
+    SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
     sysbus_init_mmio(sbd, &state->mmio);
     sysbus_mmio_map(sbd, 0, addr);
 
@@ -613,13 +613,6 @@ static void stm32_rcc_construct_callback(Object *obj, void *data)
     if (state->lsi_freq_hz == 0) {
         state->lsi_freq_hz = LSI_FREQ_HZ;
     }
-}
-
-static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* No need to call parent realize(). */
 }
 
 static void stm32_rcc_reset_callback(DeviceState *dev)
@@ -676,9 +669,6 @@ static void stm32_rcc_class_init_callback(ObjectClass *klass, void *data)
     dc->reset = stm32_rcc_reset_callback;
     dc->realize = stm32_rcc_realize_callback;
     dc->props = stm32_rcc_properties;
-
-    STM32RCCClass *rc_class = STM32_RCC_CLASS(klass);
-    rc_class->construct = stm32_rcc_construct_callback;
 }
 
 static const TypeInfo stm32_rcc_type_info = {

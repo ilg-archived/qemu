@@ -43,7 +43,6 @@ typedef struct {
     CortexMNVICParentClass parent_class;
     /*< public >*/
 
-    void (*construct)(DeviceState *dev, void *data);
 } CortexMNVICClass;
 
 #define CORTEXM_NVIC_GET_CLASS(obj) \
