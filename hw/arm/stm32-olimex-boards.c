@@ -42,7 +42,7 @@ static void stm32_h103_board_init_callback(MachineState *machine)
 
         /* Set the board specific oscillator frequencies. */
         qdev_prop_set_uint32(mcu, "hse-freq-hz", 8000000); /* 8.0 MHz */
-        qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 KHz */
+        qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 kHz */
 
         cm_realize(mcu);
     }

@@ -488,23 +488,6 @@ type_init(cortexm_types_init);
 
 /* ------------------------------------------------------------------------- */
 
-/**
- * When verbose, display a line to identify the board (name, description).
- *
- * Does not really depend on Cortex-M, but I could not find a better place.
- */
-void cm_board_greeting(MachineState *machine)
-{
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        MachineClass *mc = MACHINE_GET_CLASS(machine);
-        printf("Board: '%s' (%s).\n", mc->name, mc->desc);
-    }
-#endif
-}
-
-/* ------------------------------------------------------------------------- */
-
 /* TODO: remove all following functions */
 
 /* Cortex-M0 initialisation routine.  */

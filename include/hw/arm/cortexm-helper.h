@@ -22,6 +22,8 @@
 
 #include "qemu-common.h"
 
+/* ------------------------------------------------------------------------- */
+
 #define DEFINE_PROP_CONST_STRING(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_string, const char*)
 
@@ -31,13 +33,21 @@
 #define DEFINE_PROP_INT32_TYPE(_n, _s, _f, _d, _t) \
     DEFINE_PROP_DEFAULT(_n, _s, _f, _d, qdev_prop_int32, _t)
 
+/* ------------------------------------------------------------------------- */
+
+void cm_board_greeting(MachineState *machine);
+
+/* ------------------------------------------------------------------------- */
+
 ARMCPU *cm_cpu_arm_create(const char *cpu_model);
 
-void cm_realize(DeviceState *dev);
 DeviceState *cm_create(const char *name);
+void cm_realize(DeviceState *dev);
 
 bool cm_parent_realize(DeviceState *dev, Error **errp, const char *typename);
 bool cm_class_realize(DeviceState *dev, Error **errp, const char *typename);
 void cm_parent_reset(DeviceState *dev, const char *typename);
+
+/* ------------------------------------------------------------------------- */
 
 #endif /* CORTEXM_HELPER_H_ */

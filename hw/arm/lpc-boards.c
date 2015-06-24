@@ -19,6 +19,7 @@
 
 #include "hw/arm/lpc.h"
 #include "qemu/module.h"
+#include "hw/arm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

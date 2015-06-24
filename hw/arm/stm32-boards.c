@@ -21,6 +21,7 @@
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
 #include "qom/object.h"
+#include "hw/arm/cortexm-helper.h"
 
 /*
  * This file defines several STM32 boards.

@@ -28,11 +28,6 @@
 
 /* ------------------------------------------------------------------------- */
 
-void
-cm_board_greeting(MachineState *machine);
-
-/* ------------------------------------------------------------------------- */
-
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
 #define CORTEX_M_FPU_TYPE_FPV5_SP_D16 (2)

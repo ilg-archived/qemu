@@ -20,6 +20,7 @@
 #include "hw/arm/stm32-mcus.h"
 #include "qemu/module.h"
 #include "sysemu/sysemu.h"
+#include "hw/arm/cortexm-helper.h"
 
 /*
  * This file defines several Arduino-like STM32 boards.

@@ -25,6 +25,29 @@
 #include "hw/arm/cortexm-mcu.h"
 #include "qemu/error-report.h"
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
+/* ------------------------------------------------------------------------- */
+
+/**
+ * When verbose, display a line to identify the board (name, description).
+ *
+ * Does not really depend on Cortex-M, but I could not find a better place.
+ */
+void cm_board_greeting(MachineState *machine)
+{
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_COMMON) {
+        MachineClass *mc = MACHINE_GET_CLASS(machine);
+        printf("Board: '%s' (%s).\n", mc->name, mc->desc);
+    }
+#endif
+}
+
+/* ------------------------------------------------------------------------- */
+
 /**
  * A version of cpu_generic_init() that does only the object creation and
  * initialisation, without calling realize().
@@ -148,3 +171,5 @@ void cm_parent_reset(DeviceState *dev, const char *typename)
         parent_class->reset(dev);
     }
 }
+
+/* ------------------------------------------------------------------------- */
