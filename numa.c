@@ -31,7 +31,6 @@
 #include "qapi-visit.h"
 #include "qapi/opts-visitor.h"
 #include "qapi/dealloc-visitor.h"
-#include "qapi/qmp/qerror.h"
 #include "hw/boards.h"
 #include "sysemu/hostmem.h"
 #include "qmp-commands.h"
@@ -456,7 +455,7 @@ static int query_memdev(Object *obj, void *opaque)
 
         m->value->policy = object_property_get_enum(obj,
                                                     "policy",
-                                                    HostMemPolicy_lookup,
+                                                    "HostMemPolicy",
                                                     &err);
         if (err) {
             goto error;
@@ -485,7 +484,7 @@ MemdevList *qmp_query_memdev(Error **errp)
     Object *obj;
     MemdevList *list = NULL;
 
-    obj = object_resolve_path("/objects", NULL);
+    obj = object_get_objects_root();
     if (obj == NULL) {
         return NULL;
     }

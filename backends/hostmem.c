@@ -13,7 +13,6 @@
 #include "qapi/visitor.h"
 #include "qapi-types.h"
 #include "qapi-visit.h"
-#include "qapi/qmp/qerror.h"
 #include "qemu/config-file.h"
 #include "qom/object_interfaces.h"
 
@@ -113,24 +112,17 @@ host_memory_backend_set_host_nodes(Object *obj, Visitor *v, void *opaque,
 #endif
 }
 
-static void
-host_memory_backend_get_policy(Object *obj, Visitor *v, void *opaque,
-                               const char *name, Error **errp)
+static int
+host_memory_backend_get_policy(Object *obj, Error **errp G_GNUC_UNUSED)
 {
     HostMemoryBackend *backend = MEMORY_BACKEND(obj);
-    int policy = backend->policy;
-
-    visit_type_enum(v, &policy, HostMemPolicy_lookup, NULL, name, errp);
+    return backend->policy;
 }
 
 static void
-host_memory_backend_set_policy(Object *obj, Visitor *v, void *opaque,
-                               const char *name, Error **errp)
+host_memory_backend_set_policy(Object *obj, int policy, Error **errp)
 {
     HostMemoryBackend *backend = MEMORY_BACKEND(obj);
-    int policy;
-
-    visit_type_enum(v, &policy, HostMemPolicy_lookup, NULL, name, errp);
     backend->policy = policy;
 
 #ifndef CONFIG_NUMA
@@ -252,9 +244,10 @@ static void host_memory_backend_init(Object *obj)
     object_property_add(obj, "host-nodes", "int",
                         host_memory_backend_get_host_nodes,
                         host_memory_backend_set_host_nodes, NULL, NULL, NULL);
-    object_property_add(obj, "policy", "str",
-                        host_memory_backend_get_policy,
-                        host_memory_backend_set_policy, NULL, NULL, NULL);
+    object_property_add_enum(obj, "policy", "HostMemPolicy",
+                             HostMemPolicy_lookup,
+                             host_memory_backend_get_policy,
+                             host_memory_backend_set_policy, NULL);
 }
 
 MemoryRegion *

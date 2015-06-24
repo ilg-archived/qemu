@@ -451,21 +451,20 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             size_t input_size;
             size_t output_size;
             int status = 0;
+#if !defined(CONFIG_USER_ONLY)
+            const char *cmdline;
+#endif
             GET_ARG(0);
             GET_ARG(1);
             input_size = arg1;
 
             /* Compute the size of the output string.  */
 #if !defined(CONFIG_USER_ONLY)
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-            const char *cmdline = semihosting_get_cmdline();
+            cmdline = semihosting_get_cmdline();
             if (cmdline == NULL) {
-                cmdline = "";
+                cmdline = ""; /* Default to an empty line. */
             }
-            output_size = strlen(cmdline) + 1;
-#else
-            output_size = strlen(semihosting_get_cmdline()) + 1;
-#endif
+            output_size = strlen(cmdline) + 1; /* Count terminating 0. */
 #else
             unsigned int i;
 
@@ -496,11 +495,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
 
             /* Copy the command-line arguments.  */
 #if !defined(CONFIG_USER_ONLY)
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
             pstrcpy(output_buffer, output_size, cmdline);
-#else
-            pstrcpy(output_buffer, output_size, semihosting_get_cmdline());
-#endif
 #else
             if (output_size == 1) {
                 /* Empty command-line.  */

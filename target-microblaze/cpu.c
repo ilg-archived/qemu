@@ -26,6 +26,43 @@
 #include "hw/qdev-properties.h"
 #include "migration/vmstate.h"
 
+static const struct {
+    const char *name;
+    uint8_t version_id;
+} mb_cpu_lookup[] = {
+    /* These key value are as per MBV field in PVR0 */
+    {"5.00.a", 0x01},
+    {"5.00.b", 0x02},
+    {"5.00.c", 0x03},
+    {"6.00.a", 0x04},
+    {"6.00.b", 0x06},
+    {"7.00.a", 0x05},
+    {"7.00.b", 0x07},
+    {"7.10.a", 0x08},
+    {"7.10.b", 0x09},
+    {"7.10.c", 0x0a},
+    {"7.10.d", 0x0b},
+    {"7.20.a", 0x0c},
+    {"7.20.b", 0x0d},
+    {"7.20.c", 0x0e},
+    {"7.20.d", 0x0f},
+    {"7.30.a", 0x10},
+    {"7.30.b", 0x11},
+    {"8.00.a", 0x12},
+    {"8.00.b", 0x13},
+    {"8.10.a", 0x14},
+    {"8.20.a", 0x15},
+    {"8.20.b", 0x16},
+    {"8.30.a", 0x17},
+    {"8.40.a", 0x18},
+    {"8.40.b", 0x19},
+    {"8.50.a", 0x1A},
+    {"9.0", 0x1B},
+    {"9.1", 0x1D},
+    {"9.2", 0x1F},
+    {"9.3", 0x20},
+    {NULL, 0},
+};
 
 static void mb_cpu_set_pc(CPUState *cs, vaddr value)
 {
@@ -63,45 +100,16 @@ static void mb_cpu_reset(CPUState *s)
 
     mcc->parent_reset(s);
 
-    memset(env, 0, sizeof(CPUMBState));
+    memset(env, 0, offsetof(CPUMBState, pvr));
     env->res_addr = RES_ADDR_NONE;
     tlb_flush(s, 1);
 
     /* Disable stack protector.  */
     env->shr = ~0;
 
-    env->pvr.regs[0] = PVR0_PVR_FULL_MASK \
-                       | PVR0_USE_BARREL_MASK \
-                       | PVR0_USE_DIV_MASK \
-                       | PVR0_USE_HW_MUL_MASK \
-                       | PVR0_USE_EXC_MASK \
-                       | PVR0_USE_ICACHE_MASK \
-                       | PVR0_USE_DCACHE_MASK \
-                       | PVR0_USE_MMU \
-                       | (0xb << 8);
-    env->pvr.regs[2] = PVR2_D_OPB_MASK \
-                        | PVR2_D_LMB_MASK \
-                        | PVR2_I_OPB_MASK \
-                        | PVR2_I_LMB_MASK \
-                        | PVR2_USE_MSR_INSTR \
-                        | PVR2_USE_PCMP_INSTR \
-                        | PVR2_USE_BARREL_MASK \
-                        | PVR2_USE_DIV_MASK \
-                        | PVR2_USE_HW_MUL_MASK \
-                        | PVR2_USE_MUL64_MASK \
-                        | PVR2_USE_FPU_MASK \
-                        | PVR2_USE_FPU2_MASK \
-                        | PVR2_FPU_EXC_MASK \
-                        | 0;
-    env->pvr.regs[10] = 0x0c000000; /* Default to spartan 3a dsp family.  */
-    env->pvr.regs[11] = PVR11_USE_MMU | (16 << 17);
-
-    env->sregs[SR_PC] = cpu->base_vectors;
-
 #if defined(CONFIG_USER_ONLY)
     /* start in user mode with interrupts enabled.  */
     env->sregs[SR_MSR] = MSR_EE | MSR_IE | MSR_VM | MSR_UM;
-    env->pvr.regs[10] = 0x0c000000; /* Spartan 3a dsp.  */
 #else
     env->sregs[SR_MSR] = 0;
     mmu_init(&env->mmu);
@@ -115,9 +123,61 @@ static void mb_cpu_realizefn(DeviceState *dev, Error **errp)
 {
     CPUState *cs = CPU(dev);
     MicroBlazeCPUClass *mcc = MICROBLAZE_CPU_GET_CLASS(dev);
+    MicroBlazeCPU *cpu = MICROBLAZE_CPU(cs);
+    CPUMBState *env = &cpu->env;
+    uint8_t version_code = 0;
+    int i = 0;
 
-    cpu_reset(cs);
     qemu_init_vcpu(cs);
+
+    env->pvr.regs[0] = PVR0_USE_BARREL_MASK \
+                       | PVR0_USE_DIV_MASK \
+                       | PVR0_USE_HW_MUL_MASK \
+                       | PVR0_USE_EXC_MASK \
+                       | PVR0_USE_ICACHE_MASK \
+                       | PVR0_USE_DCACHE_MASK \
+                       | (0xb << 8);
+    env->pvr.regs[2] = PVR2_D_OPB_MASK \
+                        | PVR2_D_LMB_MASK \
+                        | PVR2_I_OPB_MASK \
+                        | PVR2_I_LMB_MASK \
+                        | PVR2_USE_MSR_INSTR \
+                        | PVR2_USE_PCMP_INSTR \
+                        | PVR2_USE_BARREL_MASK \
+                        | PVR2_USE_DIV_MASK \
+                        | PVR2_USE_HW_MUL_MASK \
+                        | PVR2_USE_MUL64_MASK \
+                        | PVR2_FPU_EXC_MASK \
+                        | 0;
+
+    for (i = 0; mb_cpu_lookup[i].name && cpu->cfg.version; i++) {
+        if (strcmp(mb_cpu_lookup[i].name, cpu->cfg.version) == 0) {
+            version_code = mb_cpu_lookup[i].version_id;
+            break;
+        }
+    }
+
+    if (!version_code) {
+        qemu_log("Invalid MicroBlaze version number: %s\n", cpu->cfg.version);
+    }
+
+    env->pvr.regs[0] |= (cpu->cfg.stackprot ? PVR0_SPROT_MASK : 0) |
+                        (cpu->cfg.use_fpu ? PVR0_USE_FPU_MASK : 0) |
+                        (cpu->cfg.use_mmu ? PVR0_USE_MMU_MASK : 0) |
+                        (cpu->cfg.endi ? PVR0_ENDI_MASK : 0) |
+                        (version_code << 16) |
+                        (cpu->cfg.pvr == C_PVR_FULL ? PVR0_PVR_FULL_MASK : 0);
+
+    env->pvr.regs[2] |= (cpu->cfg.use_fpu ? PVR2_USE_FPU_MASK : 0) |
+                        (cpu->cfg.use_fpu > 1 ? PVR2_USE_FPU2_MASK : 0);
+
+    env->pvr.regs[5] |= cpu->cfg.dcache_writeback ?
+                                        PVR5_DCACHE_WRITEBACK_MASK : 0;
+
+    env->pvr.regs[10] = 0x0c000000; /* Default to spartan 3a dsp family.  */
+    env->pvr.regs[11] = PVR11_USE_MMU | (16 << 17);
+
+    env->sregs[SR_PC] = cpu->cfg.base_vectors;
 
     mcc->parent_realize(dev, errp);
 }
@@ -151,7 +211,20 @@ static const VMStateDescription vmstate_mb_cpu = {
 };
 
 static Property mb_properties[] = {
-    DEFINE_PROP_UINT32("xlnx.base-vectors", MicroBlazeCPU, base_vectors, 0),
+    DEFINE_PROP_UINT32("base-vectors", MicroBlazeCPU, cfg.base_vectors, 0),
+    DEFINE_PROP_BOOL("use-stack-protection", MicroBlazeCPU, cfg.stackprot,
+                     false),
+    /* If use-fpu > 0 - FPU is enabled
+     * If use-fpu = 2 - Floating point conversion and square root instructions
+     *                  are enabled
+     */
+    DEFINE_PROP_UINT8("use-fpu", MicroBlazeCPU, cfg.use_fpu, 2),
+    DEFINE_PROP_BOOL("use-mmu", MicroBlazeCPU, cfg.use_mmu, true),
+    DEFINE_PROP_BOOL("dcache-writeback", MicroBlazeCPU, cfg.dcache_writeback,
+                     false),
+    DEFINE_PROP_BOOL("endianness", MicroBlazeCPU, cfg.endi, false),
+    DEFINE_PROP_STRING("version", MicroBlazeCPU, cfg.version),
+    DEFINE_PROP_UINT8("pvr", MicroBlazeCPU, cfg.pvr, C_PVR_FULL),
     DEFINE_PROP_END_OF_LIST(),
 };
 
