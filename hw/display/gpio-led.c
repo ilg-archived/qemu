@@ -28,11 +28,18 @@
 
 /**
  * Connect this LED to the named GPIO port pin.
+ * The port name is the full path to the GPIO port,
+ * something like "/machine/stm32/gpio[c]"; the first
+ * port bit has index 0.
  */
 void gpio_led_connect(DeviceState *dev, const char *port_name, int port_bit)
 {
     GPIOLEDState *state = GPIO_LED_STATE(dev);
 
+    /**
+     * Connect the outgoing port pin irq (the GPIO port has outgoing
+     * irq's for all bits) to this local incoming irq.
+     */
     qdev_connect_gpio_out(DEVICE(object_resolve_path(port_name, NULL)),
             port_bit, state->irq);
 }
@@ -90,7 +97,10 @@ static void gpio_led_instance_init_callback(Object *obj)
     state->irq = qemu_allocate_irq(gpio_led_irq_handler, obj, 0);
     // qdev_init_gpio_in(DEVICE(obj), gpio_led_irq_handler, 1);
 
-    /* The connection will be done by the machine */
+    /*
+     * The connection will be done by the machine.
+     * A helper class is gpio_led_connect().
+     */
 }
 
 static Property gpio_led_properties[] = {
