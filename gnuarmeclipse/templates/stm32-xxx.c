@@ -160,14 +160,6 @@ static void stm32_xxx_instance_init(Object *obj)
     /* ... */
 }
 
-static void stm32_xxx_construct_callback(Object *obj, void *data)
-{
-    qemu_log_function_name();
-
-    /* No need to call parent constructor. */
-
-}
-
 static void stm32_xxx_realize(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
@@ -220,9 +212,6 @@ static void stm32_xxx_class_init(ObjectClass *klass, void *data)
 
     dc->reset = stm32_xxx_reset;
     dc->realize = stm32_xxx_realize;
-  
-    STM32XxxClass *st_class = STM32_XXX_CLASS(klass);
-    st_class->construct = stm32_xxx_construct_callback;
 }
 
 static const TypeInfo stm32_xxx_type_info = {
