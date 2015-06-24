@@ -166,7 +166,18 @@ static void stm32_xxx_construct_callback(Object *obj, void *data)
 
     /* No need to call parent constructor. */
 
-    STM32XxxState *state = STM32_XXX_STATE(obj);
+}
+
+static void stm32_xxx_realize(DeviceState *dev, Error **errp)
+{
+    qemu_log_function_name();
+
+    /* Call parent realize(). */
+    if (!cm_parent_realize(dev, errp, TYPE_STM32_XXX)) {
+        return;
+    }
+
+    STM32XxxState *state = STM32_XXX_STATE(dev);
 
     STM32Capabilities *capabilities =
     STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
@@ -183,23 +194,12 @@ static void stm32_xxx_construct_callback(Object *obj, void *data)
         size = 0; /* This will trigger an assertion to fail */
     }
 
-    memory_region_init_io(&state->mmio, obj, &stm32_gpio_ops, state, TYPE_STM32_XXX,
+    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_gpio_ops, state, TYPE_STM32_XXX,
             size);
 
-    sysbus_init_mmio(SYS_BUS_DEVICE(obj), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(obj), 0, addr);
-}
-
-static void stm32_xxx_realize(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* Call parent realize(). */
-    if (!qdev_parent_realize(dev, errp, TYPE_STM32_XXX)) {
-        return;
-    }
-
-    STM32XxxState *state = STM32_XXX_STATE(dev);
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
+  
     /* ... */
 }
 
@@ -208,7 +208,7 @@ static void stm32_xxx_reset(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    qdev_parent_reset(dev, TYPE_STM32_XXX);
+    cm_parent_reset(dev, TYPE_STM32_XXX);
   
     STM32XxxState *state = STM32_XXX_STATE(dev);
     /* ... */
@@ -227,7 +227,7 @@ static void stm32_xxx_class_init(ObjectClass *klass, void *data)
 
 static const TypeInfo stm32_xxx_type_info = {
     .name = TYPE_STM32_XXX,
-    .parent = TYPE_STM32_SYS_BUS_DEVICE,
+    .parent = TYPE_STM32_XXX_PARENT,
     .instance_init = stm32_xxx_instance_init,
     .instance_size = sizeof(STM32XxxState),
     .class_init = stm32_xxx_class_init,

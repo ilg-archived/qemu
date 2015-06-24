@@ -51,7 +51,6 @@ typedef struct {
     STM32XxxParentClass parent_class;
     /*< public >*/
 
-    void (*construct)(Object *obj, void *data);
 } STM32XxxClass;
 
 /* ------------------------------------------------------------------------- */
