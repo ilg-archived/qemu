@@ -102,16 +102,16 @@ static const STM32Capabilities stm32f103x8b = {
     .has_rcc = true,
     .has_pwr = true,
     .has_rtc = true,
-    .num_bkp = 20,
+    .num_back_bytes = 20,
 
     .has_crc = true,
     .has_exti = true,
     .has_dma1 = true,
     .num_dma1 = 7,
     .has_ac_tim1 = true,
-    .has_gp1_tim2 = true,
-    .has_gp1_tim3 = true,
-    .has_gp1_tim4 = true,
+    .has_gp_tim2 = true,
+    .has_gp_tim3 = true,
+    .has_gp_tim4 = true,
     .has_iwdg = true,
     .has_wwdg = true,
     .has_i2c1 = true,
@@ -156,10 +156,10 @@ static const STM32Capabilities stm32f10_57_xx = {
     .has_dma2 = true,
     .num_dma2 = 5,
     .has_ac_tim1 = true,
-    .has_gp1_tim2 = true,
-    .has_gp1_tim3 = true,
-    .has_gp1_tim4 = true,
-    .has_gp1_tim5 = true,
+    .has_gp_tim2 = true,
+    .has_gp_tim3 = true,
+    .has_gp_tim4 = true,
+    .has_gp_tim5 = true,
     .has_bc_tim6 = true,
     .has_bc_tim7 = true,
     .has_iwdg = true,
@@ -201,7 +201,7 @@ static const STM32Capabilities stm32l15_12_xd = {
     .has_rcc = true,
     .has_rtc = true,
     .eeprom_size_kb = 12,
-    .num_bkp = 128,
+    .num_back_bytes = 128,
 
     .has_gpioa = true,
     .has_gpiob = true,
@@ -220,15 +220,15 @@ static const STM32Capabilities stm32l15_12_xd = {
     .has_ts = true, /* ADC_IN16 */
     .has_dac1 = true,
     .has_dac2 = true,
-    .has_gp1_tim2 = true,
-    .has_gp1_tim3 = true,
-    .has_gp1_tim4 = true,
-    .has_gp1_tim5 = true,
+    .has_gp_tim2 = true,
+    .has_gp_tim3 = true,
+    .has_gp_tim4 = true,
+    .has_gp_tim5 = true,
     .has_bc_tim6 = true,
     .has_bc_tim7 = true,
-    .has_gp2_tim9 = true,
-    .has_gp3_tim10 = true,
-    .has_gp3_tim11 = true,
+    .has_gp_tim9 = true,
+    .has_gp_tim10 = true,
+    .has_gp_tim11 = true,
     .has_iwdg = true,
     .has_wwdg = true,
     .has_i2c1 = true,
@@ -252,6 +252,91 @@ static const STM32Capabilities stm32l15_12_xd = {
  * + comparators
  * + touch sensing
  */
+};
+
+static const STM32Capabilities stm32f407xx = {
+
+    .family = STM32_FAMILY_F4,
+    .f4 = {
+        .is_01_57_xx = true },
+
+    .hsi_freq_hz = 16000000,
+    //.lsi_freq_hz = 40000,
+    .has_rcc = true,
+    .has_pwr = true,
+    .has_rtc = true,
+    .num_back_bytes = 80,
+
+    .ccm_size_kb = 64,
+    .back_sram_size_kb = 4,
+
+    .has_crc = true,
+    .has_dma1 = true,
+    .num_dma1 = 8,
+    .has_dma2 = true,
+    .num_dma2 = 8,
+    .has_fsmc = true,
+    .has_exti = true,
+    .num_exti = 23,
+
+    .has_ac_tim1 = true,
+    .has_ac_tim8 = true,
+    .has_gp_tim2 = true,
+    .has_gp_tim3 = true,
+    .has_gp_tim4 = true,
+    .has_gp_tim5 = true,
+    .has_gp_tim9 = true,
+    .has_gp_tim10 = true,
+    .has_gp_tim11 = true,
+    .has_gp_tim12 = true,
+    .has_gp_tim13 = true,
+    .has_gp_tim14 = true,
+    .has_bc_tim6 = true,
+    .has_bc_tim7 = true,
+    .has_iwdg = true,
+    .has_wwdg = true,
+    .has_i2c1 = true,
+    .has_i2c2 = true,
+    .has_i2c3 = true,
+    .has_usart1 = true,
+    .has_usart2 = true,
+    .has_usart3 = true,
+    .has_usart6 = true,
+    .has_uart4 = true,
+    .has_uart5 = true,
+    .has_spi1 = true,
+    .has_spi2 = true,
+    .has_spi3 = true,
+    .has_i2s1 = true,
+    .has_i2s2 = true,
+    .has_plli2s = true,
+    .has_sdio = true,
+
+    .has_eth = true,
+    .has_bx_can1 = true,
+    .has_bx_can2 = true,
+    .has_usb_otg_fs = true,
+    .has_usb_otg_hs = true,
+    .has_dcmi = true, /* Only 407, not 405 */
+    .has_rng = true,
+
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpioe = true,
+    .has_gpiof = true,
+    .has_gpiog = true,
+    .has_gpioh = true,
+    .has_gpioi = true,
+
+    .has_adc1 = true, /* 12-bits, 16 channels */
+    .has_adc2 = true,
+    .has_adc3 = true,
+    .has_ts = true, /* ADC1_IN16 */
+
+    .has_dac1 = true, /* 12-bits */
+    .has_dac2 = true,
 };
 
 /* ------------------------------------------------------------------------- */
@@ -314,6 +399,22 @@ static const CortexMCoreCapabilities stm32f4xx_core = {
     .cpu_model = "cortex-m4f",
     .has_mpu = true,
     .has_itm = true,
+    .nvic_bits = 4, /**/
+};
+
+static const CortexMCoreCapabilities stm32f4_01_57_xx_core = {
+    .cpu_model = "cortex-m4", /* TODO: make 4f when possible */
+    .has_mpu = true,
+    .has_itm = true,
+    .num_irq = 82,
+    .nvic_bits = 4, /**/
+};
+
+static const CortexMCoreCapabilities stm32f4_23_xxx_core = {
+    .cpu_model = "cortex-m4", /* TODO: make 4f when possible */
+    .has_mpu = true,
+    .has_itm = true,
+    .num_irq = 91,
     .nvic_bits = 4, /**/
 };
 
@@ -392,7 +493,7 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
-            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+            .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
         }, /**/
     },
     {
@@ -400,16 +501,18 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
-            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
-        }, /**/
+            .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
+        },
+        .stm32 = &stm32f407xx, /**/
     },
     {
         .name = TYPE_STM32F407ZG,
         .cortexm = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
-            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
-        }, /**/
+            .core = &stm32f4_01_57_xx_core,
+        },
+        .stm32 = &stm32f407xx /**/
     },
     {
         .name = TYPE_STM32F411RE,
@@ -424,7 +527,7 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 2048,
             .sram_size_kb = 192, /* 64K CCM not counted */
-            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
+            .core = &stm32f4_23_xxx_core, /* TODO: Add .stm32 */
         }, /**/
     },
     {
