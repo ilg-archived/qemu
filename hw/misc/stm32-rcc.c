@@ -163,7 +163,7 @@ static void stm32f1_rcc_write32(STM32RCCState *state, uint32_t offset,
         tmp = (value & STM32F1_RCC_CSR_WRITE_MASK);
         tmp &= ~0x00000002; /* Clear ready bits */
         /* All enabled oscs are ready */
-        value |= ((tmp & 0x00000001) << 1);
+        tmp |= ((tmp & 0x00000001) << 1);
         state->u.f1.reg.csr = tmp;
         stm32_rcc_update_clocks(state);
         break;
@@ -261,15 +261,17 @@ static void stm32f1cl_rcc_write32(STM32RCCState *state, uint32_t offset,
         tmp = (value & STM32F1CL_RCC_CR_WRITE_MASK);
         tmp &= ~0x2A020002; /* Clear ready bits */
         /* All enabled oscs are ready */
-        value |= ((tmp & 0x18010001) << 1);
+        tmp |= ((tmp & 0x15010001) << 1);
         state->u.f1.reg.cr = tmp;
+        stm32_rcc_update_clocks(state);
         break;
     case 0x04:
         tmp = (value & STM32F1CL_RCC_CFGR_WRITE_MASK);
         tmp &= ~0x0000000C; /* Clear SWS bits */
         /* Copy SWS from SW */
-        value |= ((tmp & 0x00000003) << 2);
+        tmp |= ((tmp & 0x00000003) << 2);
         state->u.f1.reg.cfgr = tmp;
+        stm32_rcc_update_clocks(state);
         break;
     case 0x08:
         /* Preserve old value */
@@ -278,6 +280,7 @@ static void stm32f1cl_rcc_write32(STM32RCCState *state, uint32_t offset,
         /* Clear flags */
         tmp &= ~((value >> 16) & 0xFF);
         state->u.f1.reg.cir = tmp;
+        stm32_rcc_update_clocks(state);
         break;
     case 0x0C:
         state->u.f1.reg.apb2rstr = (value & STM32F1CL_RCC_APB2RSTR_WRITE_MASK);
@@ -296,19 +299,22 @@ static void stm32f1cl_rcc_write32(STM32RCCState *state, uint32_t offset,
         break;
     case 0x20:
         state->u.f1.reg.bdcr = (value & STM32F1CL_RCC_BDCR_WRITE_MASK);
+        stm32_rcc_update_clocks(state);
         break;
     case 0x24:
         tmp = (value & STM32F1CL_RCC_CSR_WRITE_MASK);
         tmp &= ~0x00000002; /* Clear LSIRDY */
         /* LSRDY follows LSION */
-        value |= ((tmp & 0x00000001) << 1);
+        tmp |= ((tmp & 0x00000001) << 1);
         state->u.f1.reg.csr = tmp;
+        stm32_rcc_update_clocks(state);
         break;
     case 0x28:
         state->u.f1.reg.ahbrstr = (value & STM32F1CL_RCC_AHBRSTR_WRITE_MASK);
         break;
     case 0x2C:
         state->u.f1.reg.cfgr2 = (value & STM32F1CL_RCC_CFGR2_WRITE_MASK);
+        stm32_rcc_update_clocks(state);
         break;
 
     default:
@@ -600,10 +606,6 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
     SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
     sysbus_init_mmio(sbd, &state->mmio);
     sysbus_mmio_map(sbd, 0, addr);
-
-    // sysbus_init_irq(sbd, &state->irq);
-
-    // qemu_set_irq(state->irq, 1);
 
     /* Set defaults, need to be non-zero */
     if (state->hsi_freq_hz == 0) {
