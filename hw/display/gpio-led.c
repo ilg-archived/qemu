@@ -80,14 +80,8 @@ static void gpio_led_instance_init_callback(Object *obj)
 
     GPIOLEDState *state = GPIO_LED_STATE(obj);
 
-    state->active_low = false;
-
-    /*
-     * String properties must be dynamically allocated, otherwise setting
-     * them as properties fails. (this is a bit odd).
-     */
-    state->on_message = g_strdup("[LED on]\n");
-    state->off_message = g_strdup("[LED off]\n");
+    qdev_prop_set_string(DEVICE(obj), "on-message", "[LED On]\n");
+    qdev_prop_set_string(DEVICE(obj), "off-message", "[LED Off]\n");
 
     /*
      * Allocate 1 single incoming irq, and fill it with
