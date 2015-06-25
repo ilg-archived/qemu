@@ -18,9 +18,6 @@
  */
 
 #include "hw/arm/stm32-mcus.h"
-#include "hw/arm/stm32-mcu.h"
-#include "qemu/module.h"
-#include "sysemu/sysemu.h"
 #include "hw/display/gpio-led.h"
 #include "hw/arm/cortexm-helper.h"
 
@@ -31,6 +28,44 @@
 /* ----- Olimex STM32-H103 ----- */
 
 static void stm32_h103_board_init_callback(MachineState *machine)
+{
+    cm_board_greeting(machine);
+    {
+        /* Create the MCU */
+        DeviceState *mcu = cm_create(TYPE_STM32F103RB);
+
+        qdev_prop_set_ptr(mcu, "machine", machine);
+
+        /* Set the board specific oscillator frequencies. */
+        qdev_prop_set_uint32(mcu, "hse-freq-hz", 8000000); /* 8.0 MHz */
+        qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 kHz */
+
+        cm_realize(mcu);
+    }
+
+    {
+        /* Create the board LED */
+        DeviceState *led = cm_create(TYPE_GPIO_LED);
+
+        /* STM32-H103 Green LED, GPIOC[12], active low */
+        cm_prop_set_bool(led, "active-low", true);
+        qdev_prop_set_string(led, "on-message", "[Green LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Green LED Off]\n");
+
+        gpio_led_connect(led, "/machine/stm32/gpio[c]", 12);
+
+        cm_realize(led);
+    }
+}
+
+static QEMUMachine stm32_h103_machine = {
+    .name = "STM32-H103",
+    .desc = "Olimex Header Board for STM32F103RBT6",
+    .init = stm32_h103_board_init_callback };
+
+/* ----- Olimex STM32-P103 ----- */
+
+static void stm32_p103_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
 
@@ -51,10 +86,10 @@ static void stm32_h103_board_init_callback(MachineState *machine)
         /* Create the board LED */
         DeviceState *led = cm_create(TYPE_GPIO_LED);
 
-        /* STM32-H103 Green LED, GPIOC[12], active low */
-        qdev_prop_set_bit(led, "active-low", true);
-        qdev_prop_set_string(led, "on-message", "[Green LED On]\n");
-        qdev_prop_set_string(led, "off-message", "[Green LED Off]\n");
+        /* STM32-P103 Green LED, GPIOC[12], active low */
+        cm_prop_set_bool(led, "active-low", true);
+        qdev_prop_set_string(led, "on-message", "[Red LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Red LED Off]\n");
 
         gpio_led_connect(led, "/machine/stm32/gpio[c]", 12);
 
@@ -62,78 +97,154 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     }
 }
 
-static QEMUMachine stm32_h103_machine = {
-    .name = "STM32-H103",
-    .desc = "Olimex Header Board for STM32F103RBT6",
-    .init = stm32_h103_board_init_callback };
-
-/* ----- Olimex STM32-P103 ----- */
-static void
-stm32_p103_board_init_callback(MachineState *machine);
-
 static QEMUMachine stm32_p103_machine = {
     .name = "STM32-P103",
-    .desc = "Olimex Prototype Board for STM32F103RBT6 (Experimental)",
+    .desc = "Olimex Prototype Board for STM32F103RBT6",
     .init = stm32_p103_board_init_callback };
 
-static void stm32_p103_board_init_callback(MachineState *machine)
-{
-    cm_board_greeting(machine);
-//cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
-
-    /* TODO: Add board inits */
-}
-
 /* ----- Olimex OLIMEXINO-STM32 ----- */
-static void
-olimexino_stm32_board_init_callback(MachineState *machine);
-
-static QEMUMachine olimexino_stm32_machine = {
-    .name = "OLIMEXINO-STM32",
-    .desc = "Olimex Mapple (Arduino-like) Development Board (Experimental)",
-    .init = olimexino_stm32_board_init_callback };
 
 static void olimexino_stm32_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-//cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        DeviceState *mcu = cm_create(TYPE_STM32F103RB);
+
+        qdev_prop_set_ptr(mcu, "machine", machine);
+
+        /* Set the board specific oscillator frequencies. */
+        qdev_prop_set_uint32(mcu, "hse-freq-hz", 8000000); /* 8.0 MHz */
+        qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 kHz */
+
+        cm_realize(mcu);
+    }
+
+    {
+        /* Create the board LED1 */
+        DeviceState *led = cm_create(TYPE_GPIO_LED);
+
+        /* OLIMEXINO-STM32 Green LED1, PA5, active high */
+        cm_prop_set_bool(led, "active-low", false);
+        qdev_prop_set_string(led, "on-message", "[Green LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Green LED Off]\n");
+
+        gpio_led_connect(led, "/machine/stm32/gpio[a]", 5);
+
+        cm_realize(led);
+    }
+
+    {
+        /* Create the board LED2 */
+        DeviceState *led = cm_create(TYPE_GPIO_LED);
+
+        /* OLIMEXINO-STM32 Yellow LED2, PA1, active high */
+        cm_prop_set_bool(led, "active-low", false);
+        qdev_prop_set_string(led, "on-message", "[Yellow LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Yellow LED Off]\n");
+
+        gpio_led_connect(led, "/machine/stm32/gpio[a]", 1);
+
+        cm_realize(led);
+    }
 }
 
-/* ----- Olimex STM32-P107 ----- */
-static void
-stm32_p107_board_init_callback(MachineState *machine);
+static QEMUMachine olimexino_stm32_machine = {
+    .name = "OLIMEXINO-STM32",
+    .desc = "Olimex Mapple (Arduino-like) Development Board",
+    .init = olimexino_stm32_board_init_callback };
 
-static QEMUMachine stm32_p107_machine = {
-    .name = "STM32-P107",
-    .desc = "Olimex Prototype Board for STM32F107VCT6 (Experimental)",
-    .init = stm32_p107_board_init_callback };
+/* ----- Olimex STM32-P107 ----- */
 
 static void stm32_p107_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-//cortexm_mcu_alloc(machine, TYPE_STM32F107VC);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        DeviceState *mcu = cm_create(TYPE_STM32F107VC);
+
+        qdev_prop_set_ptr(mcu, "machine", machine);
+
+        /* Set the board specific oscillator frequencies. */
+        qdev_prop_set_uint32(mcu, "hse-freq-hz", 25000000); /* 25.0 MHz */
+        qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 kHz */
+
+        cm_realize(mcu);
+    }
+
+    {
+        /* Create the board LED1 STAT1 */
+        DeviceState *led = cm_create(TYPE_GPIO_LED);
+
+        /* STM32-P107 Green LED1, PC6, active high */
+        cm_prop_set_bool(led, "active-low", false);
+        qdev_prop_set_string(led, "on-message", "[Green LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Green LED Off]\n");
+
+        gpio_led_connect(led, "/machine/stm32/gpio[c]", 6);
+
+        cm_realize(led);
+    }
+
+    {
+        /* Create the board LED2 STAT2 */
+        DeviceState *led = cm_create(TYPE_GPIO_LED);
+
+        /* STM32-P107 Yellow LED2, PC7, active high */
+        cm_prop_set_bool(led, "active-low", false);
+        qdev_prop_set_string(led, "on-message", "[Yellow LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Yellow LED Off]\n");
+
+        gpio_led_connect(led, "/machine/stm32/gpio[c]", 7);
+
+        cm_realize(led);
+    }
 }
 
-/* ----- Olimex STM32-P407 ----- */
-static void
-stm32_e407_board_init_callback(MachineState *machine);
+static QEMUMachine stm32_p107_machine = {
+    .name = "STM32-P107",
+    .desc = "Olimex Prototype Board for STM32F107VCT6",
+    .init = stm32_p107_board_init_callback };
 
-static QEMUMachine stm32_e407_machine = {
-    .name = "STM32-E407",
-    .desc = "Olimex Development Board for STM32F407ZGT6 (Experimental)",
-    .init = stm32_e407_board_init_callback };
+/* ----- Olimex STM32-P407 ----- */
 
 static void stm32_e407_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-//cortexm_mcu_alloc(machine, TYPE_STM32F407ZG);
+    {
+        /* Create the MCU */
+        DeviceState *mcu = cm_create(TYPE_STM32F407ZG);
 
-    /* TODO: Add board inits */
+        qdev_prop_set_ptr(mcu, "machine", machine);
+
+        /* Set the board specific oscillator frequencies. */
+        qdev_prop_set_uint32(mcu, "hse-freq-hz", 12000000); /* 12.0 MHz */
+        qdev_prop_set_uint32(mcu, "lse-freq-hz", 32768); /* 32 kHz */
+
+        cm_realize(mcu);
+    }
+
+    {
+        /* Create the board LED */
+        DeviceState *led = cm_create(TYPE_GPIO_LED);
+
+        /* STM32-P107 Green LED1, PC13, active low */
+        cm_prop_set_bool(led, "active-low", true);
+        qdev_prop_set_string(led, "on-message", "[Green LED On]\n");
+        qdev_prop_set_string(led, "off-message", "[Green LED Off]\n");
+
+        gpio_led_connect(led, "/machine/stm32/gpio[c]", 13);
+
+        cm_realize(led);
+    }
 }
+
+static QEMUMachine stm32_e407_machine = {
+    .name = "STM32-E407",
+    .desc = "Olimex Development Board for STM32F407ZGT6",
+    .init = stm32_e407_board_init_callback };
 
 /* ----- Boards inits ----- */
 static void stm32_olimex_machines_init(void)
@@ -145,6 +256,4 @@ static void stm32_olimex_machines_init(void)
     qemu_register_machine(&olimexino_stm32_machine);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
 machine_init(stm32_olimex_machines_init);
-#endif
