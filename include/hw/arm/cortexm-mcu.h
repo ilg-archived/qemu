@@ -76,8 +76,8 @@ typedef struct {
  */
 typedef struct {
 
-    const unsigned int flash_size_kb; /* size of main program area, in KB */
-    const unsigned int sram_size_kb; /* size of main RAM area, in KB */
+    const uint32_t flash_size_kb; /* size of main program area, in KB */
+    const uint32_t sram_size_kb; /* size of main RAM area, in KB */
 
     const CortexMCoreCapabilities *core;
 
