@@ -64,6 +64,23 @@ static void cortexm_bitband_init(uint32_t address)
 
 /* ------------------------------------------------------------------------- */
 
+static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu, hwaddr addr,
+bool is_write, bool is_exec, int opaque, unsigned size)
+{
+    qemu_log_mask(LOG_TRACE,
+            "%s(addr=0x%08llX, size=%d, is_write=%s, is_exec=%s)\n",
+            __FUNCTION__, addr, size, is_write ? "true" : "false",
+            is_exec ? "true" : "false");
+
+    CPUARMState *env;
+    env = cpu->env_ptr;
+
+    /* TODO: check for flag and raise ARMV7M_EXCP_MEM */
+    // cortexm_nvic_set_pending(???, ARMV7M_EXCP_HARD);
+}
+
+/* ------------------------------------------------------------------------- */
+
 static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
@@ -122,6 +139,12 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
                     cm_state->cpu_model);
             exit(1);
         }
+
+        CPUClass *cc;
+        cc = CPU_GET_CLASS(cpu);
+        /* Hook on the CPU unasigned access */
+        cc->do_unassigned_access = cortexm_mcu_do_unassigned_access_callback;
+
         cm_state->cpu = cpu;
         env = &cpu->env;
     }
@@ -482,9 +505,7 @@ static void cortexm_types_init()
     type_register_static(&cortexm_mcu_type_init);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
 type_init(cortexm_types_init);
-#endif
 
 /* ------------------------------------------------------------------------- */
 
