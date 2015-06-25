@@ -21,6 +21,7 @@
 #define CORTEXM_HELPER_H_
 
 #include "qemu-common.h"
+#include "hw/qdev-properties.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -47,6 +48,8 @@ void cm_realize(DeviceState *dev);
 bool cm_parent_realize(DeviceState *dev, Error **errp, const char *typename);
 bool cm_class_realize(DeviceState *dev, Error **errp, const char *typename);
 void cm_parent_reset(DeviceState *dev, const char *typename);
+
+void cm_prop_set_bool(DeviceState *dev, const char *name, bool value);
 
 /* ------------------------------------------------------------------------- */
 

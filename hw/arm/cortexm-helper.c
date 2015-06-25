@@ -19,10 +19,8 @@
 
 #include "hw/arm/cortexm-helper.h"
 
-#include "qemu-common.h"
-#include "qom/cpu.h"
-#include "target-arm/cpu-qom.h"
-#include "hw/arm/cortexm-mcu.h"
+#include "hw/boards.h"
+#include "cpu-qom.h"
 #include "qemu/error-report.h"
 
 #if defined(CONFIG_VERBOSE)
@@ -170,6 +168,14 @@ void cm_parent_reset(DeviceState *dev, const char *typename)
     if (parent_class->reset) {
         parent_class->reset(dev);
     }
+}
+
+/**
+ * qdev has a set_bit() function, which is a poor name for this purpose.
+ */
+void cm_prop_set_bool(DeviceState *dev, const char *name, bool value)
+{
+    object_property_set_bool(OBJECT(dev), value, name, &error_abort);
 }
 
 /* ------------------------------------------------------------------------- */
