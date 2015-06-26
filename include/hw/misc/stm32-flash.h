@@ -20,18 +20,31 @@
 #ifndef STM32_FLASH_H_
 #define STM32_FLASH_H_
 
+#include "hw/misc/peripheral32.h"
+#include "hw/arm/stm32-capabilities.h"
+
+#if 0
 #include "config.h"
 #include "hw/sysbus.h"
 #include "hw/misc/stm32-sys-bus-device.h"
+#endif
 
 /* ------------------------------------------------------------------------- */
 
 #define TYPE_STM32_FLASH "stm32-flash"
-#define TYPE_STM32_FLASH_PARENT TYPE_STM32_SYS_BUS_DEVICE
 
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
+#if 0
+#define TYPE_STM32_FLASH_PARENT TYPE_STM32_SYS_BUS_DEVICE
+typedef STM32SysBusDeviceClass STM32FlashParentClass;
+typedef STM32SysBusDeviceState STM32FlashParentState;
+#else
+#define TYPE_STM32_FLASH_PARENT TYPE_PERIPHERAL32
+typedef Peripheral32Class STM32FlashParentClass;
+typedef Peripheral32State STM32FlashParentState;
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -43,7 +56,7 @@
 
 typedef struct {
     /*< private >*/
-    STM32SysBusDeviceClass parent_class;
+    STM32FlashParentClass parent_class;
     /*< public >*/
 
 } STM32FlashClass;
@@ -56,10 +69,10 @@ typedef struct {
 
 typedef struct {
     /*< private >*/
-    STM32SysBusDeviceState parent_obj;
+    STM32FlashParentState parent_obj;
     /*< public >*/
 
-    MemoryRegion mmio;
+    const STM32Capabilities *capabilities;
 
     union {
         struct {
