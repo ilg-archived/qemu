@@ -19,6 +19,7 @@
  */
 
 #include "hw/misc/stm32-xxx.h"
+#include "hw/arm/cortexm-helper.h"
 
 /**
  * This file implements the STM32 XXX.
@@ -206,6 +207,14 @@ static void stm32_xxx_reset(DeviceState *dev)
     /* ... */
 }
 
+/**
+ * Properties for the 'cortexm_mcu' object, used as parent for
+ * all vendor MCUs.
+ */
+static Property stm32_xxx_properties[] = {
+        DEFINE_PROP_UINT32("sram-size-kb", STM32XxxState, sram_size_kb, 0),
+    DEFINE_PROP_END_OF_LIST() };
+
 static void stm32_xxx_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
@@ -227,9 +236,7 @@ static void stm32_xxx_register_type(void)
     type_register_static(&stm32_xxx_type_info);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-type_init(stm32_xxx_register_types)
-#endif
+type_init(stm32_xxx_register_type);
 
 /* ------------------------------------------------------------------------- */
 

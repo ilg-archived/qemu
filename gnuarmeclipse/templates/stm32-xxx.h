@@ -24,7 +24,7 @@
 
 #include "config.h"
 #include "hw/sysbus.h"
-#include "hw/misc/stm32-sys-busdevice.h"
+#include "hw/misc/stm32-sys-bus-device.h"
 
 #include "exec/address-spaces.h"
 
@@ -41,6 +41,7 @@ typedef STM32SysBusDeviceState STM32XxxParentState;
 
 /* ------------------------------------------------------------------------- */
 
+/* Class definitions. */
 #define STM32_XXX_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32XxxClass, (obj), TYPE_STM32_XXX)
 #define STM32_XXX_CLASS(klass) \
@@ -55,6 +56,7 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
+/* Instance definitions. */
 #define STM32_XXX_STATE(obj) \
     OBJECT_CHECK(STM32XxxState, (obj), TYPE_STM32_XXX)
 
