@@ -74,7 +74,7 @@ typedef struct {
 
 } GPIOLEDState;
 
-void gpio_led_connect(DeviceState *dev, const char *port_name, int port_bit);
+void gpio_led_connect(Object *obj, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */
 

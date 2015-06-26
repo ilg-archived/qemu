@@ -32,9 +32,9 @@
  * something like "/machine/stm32/gpio[c]"; the first
  * port bit has index 0.
  */
-void gpio_led_connect(DeviceState *dev, const char *port_name, int port_bit)
+void gpio_led_connect(Object *obj, const char *port_name, int port_bit)
 {
-    GPIOLEDState *state = GPIO_LED_STATE(dev);
+    GPIOLEDState *state = GPIO_LED_STATE(obj);
 
     /**
      * Connect the outgoing port pin irq (the GPIO port has outgoing

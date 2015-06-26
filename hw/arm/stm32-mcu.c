@@ -33,19 +33,19 @@
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
         const STM32Capabilities *capabilities)
 {
-    DeviceState *gpio;
+    Object *gpio;
 
-    gpio = cm_create(TYPE_STM32_GPIO);
-    qdev_prop_set_ptr(gpio, "capabilities", (void *) capabilities);
-    qdev_prop_set_int32(gpio, "port-index", index);
-    qdev_prop_set_ptr(gpio, "rcc", state->rcc);
+    gpio = cm_object_new(TYPE_STM32_GPIO);
+    qdev_prop_set_ptr(DEVICE(gpio), "capabilities", (void *) capabilities);
+    object_property_set_int(gpio, index, "port-index", NULL);
+    qdev_prop_set_ptr(DEVICE(gpio), "rcc", state->rcc);
 
     char child_name[10];
     snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
 
-    object_property_add_child(state->container, child_name, OBJECT(gpio), NULL);
+    object_property_add_child(state->container, child_name, gpio, NULL);
 
-    cm_realize(gpio);
+    cm_object_realize(gpio);
 
     state->gpio[index] = gpio;
 }
@@ -62,7 +62,7 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     /* Call parent realize(). */
-    if (!cm_parent_realize(dev, errp, TYPE_STM32_MCU)) {
+    if (!cm_object_parent_realize(dev, errp, TYPE_STM32_MCU)) {
         return;
     }
 
@@ -98,37 +98,39 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* RCC */
     {
-        DeviceState *rcc = cm_create(TYPE_STM32_RCC);
+        Object *rcc = cm_object_new(TYPE_STM32_RCC);
 
         /* Copy capabilities into internal objects. */
-        qdev_prop_set_ptr(rcc, "capabilities", (void *) capabilities);
+        qdev_prop_set_ptr(DEVICE(rcc), "capabilities", (void *) capabilities);
 
         /* Copy internal oscillator frequencies from capabilities. */
-        qdev_prop_set_uint32(rcc, "hsi-freq-hz", capabilities->hsi_freq_hz);
-        qdev_prop_set_uint32(rcc, "lsi-freq-hz", capabilities->lsi_freq_hz);
+        object_property_set_int(rcc, capabilities->hsi_freq_hz, "hsi-freq-hz",
+        NULL);
+        object_property_set_int(rcc, capabilities->lsi_freq_hz, "lsi-freq-hz",
+        NULL);
 
         /* Forward properties to RCC. */
-        qdev_prop_set_uint32(rcc, "hse-freq-hz", state->hse_freq_hz);
-        qdev_prop_set_uint32(rcc, "lse-freq-hz", state->lse_freq_hz);
+        object_property_set_int(rcc, state->hse_freq_hz, "hse-freq-hz", NULL);
+        object_property_set_int(rcc, state->lse_freq_hz, "lse-freq-hz", NULL);
 
         /* RCC will be named "/machine/stm32/rcc" */
-        object_property_add_child(state->container, "rcc", OBJECT(rcc), NULL);
+        object_property_add_child(state->container, "rcc", rcc, NULL);
 
-        cm_realize(rcc);
+        cm_object_realize(rcc);
 
         state->rcc = rcc;
     }
 
     /* FLASH */
     {
-        DeviceState *flash = cm_create(TYPE_STM32_FLASH);
-        qdev_prop_set_ptr(flash, "capabilities", (void *) capabilities);
+        Object *flash = cm_object_new(TYPE_STM32_FLASH);
+        qdev_prop_set_ptr(DEVICE(flash), "capabilities", (void *) capabilities);
 
         /* FLASH will be named "/machine/stm32/flash" */
-        object_property_add_child(state->container, "flash", OBJECT(flash),
+        object_property_add_child(state->container, "flash", flash,
         NULL);
 
-        cm_realize(flash);
+        cm_object_realize(flash);
 
         state->flash = flash;
     }
@@ -177,7 +179,7 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_parent_reset(dev, TYPE_STM32_MCU);
+    cm_object_parent_reset(dev, TYPE_STM32_MCU);
 }
 
 /**

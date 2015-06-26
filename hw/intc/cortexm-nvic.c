@@ -519,7 +519,7 @@ static void cortexm_nvic_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    if (!cm_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {
+    if (!cm_object_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {
         return;
     }
 
@@ -534,7 +534,7 @@ static void cortexm_nvic_realize_callback(DeviceState *dev, Error **errp)
     qemu_log_mask(LOG_TRACE, "NVIC: %d irqs\n", s->num_irq);
 
     /* Call parent realize() early, to complete GIC construction. */
-    if (!cm_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {
+    if (!cm_object_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {
         return;
     }
 
@@ -575,7 +575,7 @@ static void cortexm_nvic_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_parent_reset(dev, TYPE_CORTEXM_NVIC);
+    cm_object_parent_reset(dev, TYPE_CORTEXM_NVIC);
 
     CortexMNVICState *s = CORTEXM_NVIC_STATE(dev);
     /* Common GIC reset resets to disabled; the NVIC doesn't have

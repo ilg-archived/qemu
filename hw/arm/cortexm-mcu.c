@@ -64,8 +64,9 @@ static void cortexm_bitband_init(uint32_t address)
 
 /* ------------------------------------------------------------------------- */
 
-static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu, hwaddr addr,
-bool is_write, bool is_exec, int opaque, unsigned size)
+static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
+        hwaddr addr,
+        bool is_write, bool is_exec, int opaque, unsigned size)
 {
     qemu_log_mask(LOG_TRACE,
             "%s(addr=0x%08llX, size=%d, is_write=%s, is_exec=%s)\n",
@@ -86,7 +87,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     /* Call parent realize(). */
-    if (!cm_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
+    if (!cm_object_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
         return;
     }
 
@@ -266,12 +267,12 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 #endif
 
     /* ----- Realize the CPU (derived from a device). ----- */
-    cm_realize(DEVICE(cm_state->cpu));
+    cm_object_realize(OBJECT(cm_state->cpu));
 
     /* ----- Construct the NVIC object. ----- */
     {
-        DeviceState *nvic;
-        nvic = qdev_create(NULL, TYPE_CORTEXM_NVIC);
+        Object *nvic;
+        nvic = OBJECT(qdev_create(NULL, TYPE_CORTEXM_NVIC));
 
         int num_irq;
         if (capabilities->core->num_irq) {
@@ -287,15 +288,15 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         num_irq = (num_irq + 31) & (~31);
         cm_state->num_irq = num_irq;
 
-        qdev_prop_set_uint32(nvic, "num-irq", num_irq);
+        object_property_set_int(nvic, num_irq, "num-irq", NULL);
 
-        cm_realize(nvic);
+        cm_object_realize(OBJECT(nvic));
         cm_state->nvic = nvic;
         env->nvic = nvic;
 
         /* The NVIC will be available via "/machine/cortexm/nvic" */
-        object_property_add_child(cm_state->container, "nvic",
-                OBJECT(cm_state->nvic), NULL);
+        object_property_add_child(cm_state->container, "nvic", cm_state->nvic,
+                NULL);
 
         sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
                 qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
@@ -307,22 +308,22 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
          */
         qemu_irq *pic = g_new(qemu_irq, num_irq);
         for (int i = 0; i < num_irq; i++) {
-            pic[i] = qdev_get_gpio_in(cm_state->nvic, i);
+            pic[i] = qdev_get_gpio_in(DEVICE(cm_state->nvic), i);
         }
         cm_state->pic = pic;
     }
 
     /* ----- Construct the ITM object. ----- */
     if (capabilities->core->has_itm) {
-        DeviceState *itm;
-        itm = cm_create(TYPE_CORTEXM_ITM);
+        Object *itm;
+        itm = cm_object_new(TYPE_CORTEXM_ITM);
         cm_state->itm = itm;
 
         /* The ITM will be available via "/machine/cortexm/nvic" */
         object_property_add_child(cm_state->container, "itm", OBJECT(itm),
         NULL);
 
-        cm_realize(DEVICE(itm));
+        cm_object_realize(itm);
     }
 
     /* ----- Create memory regions. ----- */
@@ -367,7 +368,7 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_parent_reset(dev, TYPE_CORTEXM_MCU);
+    cm_object_parent_reset(dev, TYPE_CORTEXM_MCU);
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 

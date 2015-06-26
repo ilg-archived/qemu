@@ -163,10 +163,10 @@ typedef struct {
      */
     qemu_irq *pic; /* pointer to array of num-irq elements */
 
-    DeviceState *nvic;
+    Object *nvic;
 
     /* Optional */
-    DeviceState *itm;
+    Object *itm;
 
 } CortexMState;
 

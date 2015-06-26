@@ -98,29 +98,30 @@ ARMCPU *cm_cpu_arm_create(const char *cpu_model)
  *  qdev_init_nofail not only that it does not call init(), but realize(),
  *  and it may fail, and when it does it exits.
  */
-void cm_realize(DeviceState *dev)
+void cm_object_realize(Object *obj)
 {
     Error *err = NULL;
 
-    assert(!dev->realized);
-
-    object_property_set_bool(OBJECT(dev), true, "realized", &err);
+    object_property_set_bool(obj, true, "realized", &err);
     if (err) {
         error_report("Initialization of device %s failed: %s",
-                object_get_typename(OBJECT(dev)), error_get_pretty(err));
+                object_get_typename(obj), error_get_pretty(err));
         exit(1);
     }
 }
 
-DeviceState *cm_create(const char *name)
+Object *cm_object_new(const char *name)
 {
-    return qdev_create(NULL, name);
+    // TODO: migrate to QOM
+    return OBJECT(qdev_create(NULL, name));
+    // return DEVICE(object_new(name));
 }
 
 /**
  *  Call the parent realize() of a given type.
  */
-bool cm_parent_realize(DeviceState *dev, Error **errp, const char *typename)
+bool cm_object_parent_realize(DeviceState *dev, Error **errp,
+        const char *typename)
 {
     /* Identify parent class. */
     DeviceClass *parent_class = DEVICE_CLASS(
@@ -140,7 +141,8 @@ bool cm_parent_realize(DeviceState *dev, Error **errp, const char *typename)
 /**
  *  Call the realize() of a given type.
  */
-bool cm_class_realize(DeviceState *dev, Error **errp, const char *typename)
+bool cm_object_by_name_realize(DeviceState *dev, Error **errp,
+        const char *typename)
 {
     /* Identify parent class. */
     DeviceClass *parent_class = DEVICE_CLASS(object_class_by_name(typename));
@@ -159,7 +161,7 @@ bool cm_class_realize(DeviceState *dev, Error **errp, const char *typename)
 /**
  * Call the parent reset() of a given type.
  */
-void cm_parent_reset(DeviceState *dev, const char *typename)
+void cm_object_parent_reset(DeviceState *dev, const char *typename)
 {
     /* Identify parent class. */
     DeviceClass *parent_class = DEVICE_CLASS(
@@ -168,14 +170,6 @@ void cm_parent_reset(DeviceState *dev, const char *typename)
     if (parent_class->reset) {
         parent_class->reset(dev);
     }
-}
-
-/**
- * qdev has a set_bit() function, which is a poor name for this purpose.
- */
-void cm_prop_set_bool(DeviceState *dev, const char *name, bool value)
-{
-    object_property_set_bool(OBJECT(dev), value, name, &error_abort);
 }
 
 /* ------------------------------------------------------------------------- */

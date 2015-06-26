@@ -532,8 +532,6 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
     default:
         break;
     }
-
-    // TODO: check if incoming interrupts need to be cleared too.
 }
 
 static Property stm32_gpio_properties[] = {

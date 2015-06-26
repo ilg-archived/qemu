@@ -557,7 +557,7 @@ static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
      * We do not know the current typename, since it was generated
      * with a table, so we use the parent typename.
      */
-    if (!cm_class_realize(dev, errp, TYPE_STM32_DEVICE_PARENT)) {
+    if (!cm_object_by_name_realize(dev, errp, TYPE_STM32_DEVICE_PARENT)) {
         return;
     }
 }
@@ -567,7 +567,7 @@ static void stm32_mcus_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_parent_reset(dev, TYPE_STM32_MCU);
+    cm_object_parent_reset(dev, TYPE_STM32_MCU);
 }
 
 static Property stm32_mcus_properties[] = {
