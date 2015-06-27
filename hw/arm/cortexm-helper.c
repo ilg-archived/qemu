@@ -104,7 +104,7 @@ void cm_object_realize(Object *obj)
 
     object_property_set_bool(obj, true, "realized", &err);
     if (err) {
-        error_report("Initialization of device %s failed: %s",
+        error_report("Initialization of object %s failed: %s",
                 object_get_typename(obj), error_get_pretty(err));
         exit(1);
     }
@@ -113,19 +113,16 @@ void cm_object_realize(Object *obj)
 Object *cm_object_new(const char *type_name)
 {
     if (object_class_by_name(type_name) == NULL) {
-        return NULL;
+        error_report("Creating object of type %s failed; no such type.",
+                type_name);
+        exit(1);
     }
 
     Object *obj = object_new(type_name);
-
     if (!obj) {
-        return NULL;
+        error_report("Creating object of type %s failed.", type_name);
+        exit(1);
     }
-
-    /* Required because monitor system_reset does not reset properly */
-    qdev_set_parent_bus(DEVICE(obj), sysbus_get_default());
-    object_unref(obj);
-
     return obj;
 }
 
@@ -206,6 +203,40 @@ Object *cm_object_get_machine(void)
     }
 
     return obj;
+}
+
+void cm_object_property_set_int(Object *obj, int64_t value, const char *name)
+{
+    Error *err = NULL;
+    object_property_set_int(obj, value, name, &err);
+    if (err) {
+        error_report("Setting int property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(err));
+        exit(1);
+    }
+}
+
+void cm_object_property_set_bool(Object *obj, bool value, const char *name)
+{
+    Error *err = NULL;
+    object_property_set_bool(obj, value, name, &err);
+    if (err) {
+        error_report("Setting bool property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(err));
+        exit(1);
+    }
+}
+
+void cm_object_property_set_str(Object *obj, const char *value,
+        const char *name)
+{
+    Error *err = NULL;
+    object_property_set_str(obj, value, name, &err);
+    if (err) {
+        error_report("Setting string property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(err));
+        exit(1);
+    }
 }
 
 /* ------------------------------------------------------------------------- */
