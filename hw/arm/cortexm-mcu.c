@@ -73,8 +73,8 @@ static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
             __FUNCTION__, addr, size, is_write ? "true" : "false",
             is_exec ? "true" : "false");
 
-    CPUARMState *env;
-    env = cpu->env_ptr;
+    //CPUARMState *env;
+    //env = cpu->env_ptr;
 
     /* TODO: check for flag and raise ARMV7M_EXCP_MEM */
     // cortexm_nvic_set_pending(???, ARMV7M_EXCP_HARD);
@@ -317,7 +317,8 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
          * the guest application.
          */
         qemu_irq *pic = g_new(qemu_irq, num_irq);
-        for (int i = 0; i < num_irq; i++) {
+        int i;
+        for (i = 0; i < num_irq; i++) {
             pic[i] = qdev_get_gpio_in(DEVICE(cm_state->nvic), i);
         }
         cm_state->pic = pic;
@@ -528,7 +529,7 @@ static const TypeInfo cortexm_mcu_type_init = {
     .class_init = cortexm_mcu_class_init_callback,
     .class_size = sizeof(CortexMClass) };
 
-static void cortexm_types_init()
+static void cortexm_types_init(void)
 {
     type_register_static(&cortexm_mcu_type_init);
 }

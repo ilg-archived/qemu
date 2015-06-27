@@ -118,7 +118,7 @@ static const TypeInfo gpio_led_type_info = {
     .class_init = gpio_led_class_init_callback,
     .class_size = sizeof(GPIOLEDClass) };
 
-static void gpio_led_type_init()
+static void gpio_led_type_init(void)
 {
     type_register_static(&gpio_led_type_info);
 }

@@ -163,8 +163,9 @@ static void stm32f1_gpio_update_dir_mask(STM32GPIOState *s, int index)
 
     unsigned start_pin = index * 8;
     unsigned pin_dir;
+    int pin;
 
-    for (int pin = start_pin; pin < start_pin + 8; pin++) {
+    for (pin = start_pin; pin < start_pin + 8; pin++) {
         pin_dir = stm32f1_gpio_get_mode_bits(s, pin);
         /*
          * If the mode is 0, the pin is input.  Otherwise, it
@@ -206,7 +207,8 @@ static void stm32_gpio_write_odr(STM32GPIOState *state, uint32_t *odr,
     uint32_t changed_out = changed & state->dir_mask;
 
     if (changed_out) {
-        for (int pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
+        int pin;
+        for (pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
             /*
              * If the value of this pin has changed, then update
              * the output IRQ.
@@ -422,7 +424,8 @@ static void stm32_gpio_instance_init_callback(Object *obj)
      * devices, like buttons.
      */
     SysBusDevice *sbd = SYS_BUS_DEVICE(obj);
-    for (int pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
+    int pin;
+    for (pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
         sysbus_init_irq(sbd, &state->in_irq[pin]);
     }
     /* Handler for incoming interrupts */

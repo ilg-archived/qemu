@@ -595,10 +595,10 @@ static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
  * Pass the pointer to the table element as .class_data
  * to the .class_init.
  */
-static void stm32_mcus_types_init()
+static void stm32_mcus_types_init(void)
 {
-
-    for (int i = 0; stm32_mcus[i].name; ++i) {
+    int i;
+    for (i = 0; stm32_mcus[i].name; ++i) {
 
         TypeInfo ti = {
             .name = stm32_mcus[i].name,
@@ -611,8 +611,6 @@ static void stm32_mcus_types_init()
     }
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
 type_init(stm32_mcus_types_init);
-#endif
 
 /* ------------------------------------------------------------------------- */

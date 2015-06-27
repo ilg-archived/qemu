@@ -190,7 +190,8 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
         device_reset(state->flash);
     }
 
-    for (int i = 0; i < STM32_MAX_GPIO; ++i) {
+    int i;
+    for (i = 0; i < STM32_MAX_GPIO; ++i) {
         if (state->gpio[i]) {
             device_reset(state->gpio[i]);
         }
@@ -272,14 +273,12 @@ static const TypeInfo stm32_mcu_type_info = {
 
 /* ----- Type inits. ----- */
 
-static void stm32_type_init()
+static void stm32_type_init(void)
 {
     type_register_static(&stm32_mcu_type_info);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
 type_init(stm32_type_init);
-#endif
 
 /* ------------------------------------------------------------------------- */
 

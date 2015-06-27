@@ -181,12 +181,12 @@ static void cortexm_itm_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     CortexMITMState *state = CORTEXM_ITM_STATE(dev);
-
-    for (int i = 0; i < state->num_ports; ++i) {
+    int i;
+    for (i = 0; i < state->num_ports; ++i) {
         state->reg.stim[i] = 0x00000000;
     }
 
-    for (int i = 0; i < ((state->num_ports + 31) / 32); ++i) {
+    for (i = 0; i < ((state->num_ports + 31) / 32); ++i) {
         state->reg.ter[i] = 0x00000000;
     }
 

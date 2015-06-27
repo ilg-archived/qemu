@@ -43,7 +43,7 @@ static const TypeInfo stm32_sys_bus_device_type_info = {
     .class_init = stm32_sys_bus_device_class_init_callback,
     .class_size = sizeof(STM32SysBusDeviceClass) };
 
-static void stm32_types_init()
+static void stm32_types_init(void)
 {
     type_register_static(&stm32_sys_bus_device_type_info);
 }
