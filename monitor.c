@@ -4048,6 +4048,16 @@ static void handle_hmp_command(Monitor *mon, const char *cmdline)
     QDict *qdict;
     const mon_cmd_t *cmd;
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_VERBOSE)
+        if (verbosity_level >= VERBOSITY_COMMON) {
+            if (mon->flags == 0) {
+                printf("Execute 'mon %s'.\n\n", cmdline);
+            }
+        }
+#endif
+#endif
+
     cmd = monitor_parse_command(mon, &cmdline, mon->cmd_table);
     if (!cmd) {
         return;
@@ -4060,13 +4070,6 @@ static void handle_hmp_command(Monitor *mon, const char *cmdline)
         return;
     }
 
-#if defined(CONFIG_VERBOSE)
-        if (verbosity_level >= VERBOSITY_COMMON) {
-            if (mon->flags == 0) {
-                printf("Execute 'mon %s'.\n\n", cmdline);
-            }
-        }
-#endif
     cmd->mhandler.cmd(mon, qdict);
     QDECREF(qdict);
 }
