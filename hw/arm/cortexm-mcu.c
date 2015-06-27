@@ -356,9 +356,15 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
         cm_class->image_load(DEVICE(cm_state));
 
-        /* Arrange for the MCU to be reset. */
-        qemu_register_reset(cortexm_mcu_registered_reset_callback, cm_state);
     }
+
+    /*
+     * Arrange for the MCU to be reset.
+     * The reset itself is not needed if the image is not given
+     * and will be loaded by GDB, but the reset needs to be
+     * registered, for the system_reset to be effective.
+     */
+    qemu_register_reset(cortexm_mcu_registered_reset_callback, cm_state);
 
     /*
      * The default processor clock is 8000000 Hz.
@@ -390,12 +396,16 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
     }
 #endif
 
-    /* Ensure the image is copied into memory before reset
-     * fetches MSP & PC */
+    /*
+     * Ensure the image is copied into memory before reset
+     * fetches MSP & PC
+     */
     rom_reset(NULL);
 
-    /* With the new image available, MSP & PC are correct
-     * and execution will start. */
+    /*
+     * With the new image available, MSP & PC are correct
+     * and execution will start.
+     */
     cpu_reset(CPU(cm_state->cpu));
 
     device_reset(cm_state->nvic);
