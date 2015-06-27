@@ -45,9 +45,12 @@ ARMCPU *cm_cpu_arm_create(const char *cpu_model);
 Object *cm_object_new(const char *name);
 void cm_object_realize(Object *dev);
 
-bool cm_object_parent_realize(DeviceState *dev, Error **errp, const char *typename);
-bool cm_object_by_name_realize(DeviceState *dev, Error **errp, const char *typename);
-void cm_object_parent_reset(DeviceState *dev, const char *typename);
+bool cm_device_parent_realize(DeviceState *dev, Error **errp, const char *typename);
+bool cm_device_by_name_realize(DeviceState *dev, Error **errp, const char *typename);
+void cm_device_parent_reset(DeviceState *dev, const char *typename);
+void cm_device_by_name_reset(DeviceState *dev, const char *type_name);
+
+Object *cm_object_get_machine(void);
 
 /* ------------------------------------------------------------------------- */
 

@@ -43,7 +43,7 @@ static void register32_realize(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     /* Call parent realize(). */
-    if (!cm_object_parent_realize(dev, errp, TYPE_REGISTER32)) {
+    if (!cm_device_parent_realize(dev, errp, TYPE_REGISTER32)) {
         return;
     }
 
@@ -58,7 +58,7 @@ static void register32_reset(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_object_parent_reset(dev, TYPE_REGISTER32);
+    cm_device_parent_reset(dev, TYPE_REGISTER32);
   
     Register32State *state = REGISTER32_STATE(dev);
 

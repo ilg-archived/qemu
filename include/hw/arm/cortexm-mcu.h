@@ -126,7 +126,6 @@ typedef struct {
     /*< public >*/
 
     /* Constructor parameters. */
-    const MachineState *param_machine;
     const CortexMCapabilities *param_capabilities;
 
     /**
@@ -138,7 +137,7 @@ typedef struct {
 
     /*
      * The following are the actual values used to initialise the object.
-     * May be different from capabilities, if explicitly overwriten.
+     * May be different from capabilities, if explicitly overwritten.
      */
     const char *cpu_model;
     const char *display_model;
@@ -163,10 +162,10 @@ typedef struct {
      */
     qemu_irq *pic; /* pointer to array of num-irq elements */
 
-    Object *nvic;
+    DeviceState *nvic;
 
     /* Optional */
-    Object *itm;
+    DeviceState *itm;
 
 } CortexMState;
 

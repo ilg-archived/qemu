@@ -82,17 +82,26 @@ static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
 
 /* ------------------------------------------------------------------------- */
 
+static void cortexm_mcu_registered_reset_callback(void *opaque)
+{
+    DeviceState *dev = opaque;
+
+    /* This will actually go to derived class reset. */
+    device_reset(dev);
+}
+
+/* ------------------------------------------------------------------------- */
+
 static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
     /* Call parent realize(). */
-    if (!cm_object_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
+    if (!cm_device_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
         return;
     }
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    const MachineState *machine = cm_state->param_machine;
 
     /* Copy R/O structure to a local R/W copy, to update it. */
     CortexMCapabilities* capabilities = g_new(CortexMCapabilities, 1);
@@ -108,6 +117,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     /* Remember the local copy for future use. */
     cm_state->capabilities = (const CortexMCapabilities*) capabilities;
 
+    const MachineState *machine = MACHINE(cm_object_get_machine());
     const char *image_filename = NULL;
     /* Use either the --image or the --kernel */
     if (machine->image_filename) {
@@ -128,7 +138,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     cm_state->cpu_model = cpu_model;
 
     /* The /cortexm container will hold all ARM internal peripherals. */
-    cm_state->container = container_get(qdev_get_machine(), "/cortexm");
+    cm_state->container = container_get(OBJECT(machine), "/cortexm");
 
     CPUARMState *env;
     {
@@ -272,7 +282,10 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     /* ----- Construct the NVIC object. ----- */
     {
         Object *nvic;
-        nvic = OBJECT(qdev_create(NULL, TYPE_CORTEXM_NVIC));
+        nvic = object_new(TYPE_CORTEXM_NVIC);
+
+        /* The NVIC will be available via "/machine/cortexm/nvic" */
+        object_property_add_child(cm_state->container, "nvic", nvic, NULL);
 
         int num_irq;
         if (capabilities->core->num_irq) {
@@ -290,13 +303,10 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
         object_property_set_int(nvic, num_irq, "num-irq", NULL);
 
-        cm_object_realize(OBJECT(nvic));
-        cm_state->nvic = nvic;
-        env->nvic = nvic;
+        cm_object_realize(nvic);
+        cm_state->nvic = DEVICE(nvic);
 
-        /* The NVIC will be available via "/machine/cortexm/nvic" */
-        object_property_add_child(cm_state->container, "nvic", cm_state->nvic,
-                NULL);
+        env->nvic = nvic;
 
         sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
                 qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
@@ -315,15 +325,14 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* ----- Construct the ITM object. ----- */
     if (capabilities->core->has_itm) {
-        Object *itm;
-        itm = cm_object_new(TYPE_CORTEXM_ITM);
-        cm_state->itm = itm;
+        Object *itm = object_new(TYPE_CORTEXM_ITM);
 
         /* The ITM will be available via "/machine/cortexm/nvic" */
-        object_property_add_child(cm_state->container, "itm", OBJECT(itm),
-        NULL);
+        object_property_add_child(cm_state->container, "itm", itm, NULL);
 
         cm_object_realize(itm);
+
+        cm_state->itm = DEVICE(itm);
     }
 
     /* ----- Create memory regions. ----- */
@@ -346,6 +355,9 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
          */
         CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
         cm_class->image_load(DEVICE(cm_state));
+
+        /* Arrange for the MCU to be reset. */
+        qemu_register_reset(cortexm_mcu_registered_reset_callback, cm_state);
     }
 
     /*
@@ -368,7 +380,7 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_object_parent_reset(dev, TYPE_CORTEXM_MCU);
+    cm_device_parent_reset(dev, TYPE_CORTEXM_MCU);
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
@@ -385,6 +397,12 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
     /* With the new image available, MSP & PC are correct
      * and execution will start. */
     cpu_reset(CPU(cm_state->cpu));
+
+    device_reset(cm_state->nvic);
+
+    if (cm_state->itm) {
+        device_reset(cm_state->itm);
+    }
 }
 
 static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
@@ -470,7 +488,6 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 static Property cortexm_mcu_properties[] = {
         DEFINE_PROP_UINT32("sram-size-kb", CortexMState, sram_size_kb, 0),
         DEFINE_PROP_UINT32("flash-size-kb", CortexMState, flash_size_kb, 0),
-        DEFINE_PROP_MACHINE_PTR("machine", CortexMState, param_machine),
         DEFINE_PROP_CORTEXMCAPABILITIES_PTR("cortexm-capabilities",
                 CortexMState, param_capabilities),
     DEFINE_PROP_END_OF_LIST() };

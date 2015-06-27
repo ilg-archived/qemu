@@ -71,15 +71,15 @@ typedef struct STM32MCUState {
 
     Object *container;
 
-    Object *rcc;
+    DeviceState *rcc;
 
     /* These two properties are duplicated from RCC, to allow
      * setting them before the object exist. */
     uint32_t hse_freq_hz;
     uint32_t lse_freq_hz;
 
-    Object *flash;
-    Object *gpio[STM32_MAX_GPIO];
+    DeviceState *flash;
+    DeviceState *gpio[STM32_MAX_GPIO];
 } STM32MCUState;
 
 /* ------ Public ----------------------------------------------------------- */

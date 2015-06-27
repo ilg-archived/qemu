@@ -147,7 +147,7 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     object_property_set_int(obj, size, "mmio-size", NULL);
 
     /* Call parent realize(). */
-    if (!cm_object_parent_realize(dev, errp, TYPE_STM32_FLASH)) {
+    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_FLASH)) {
         return;
     }
 }
@@ -157,7 +157,7 @@ static void stm32_flash_reset_callback(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_object_parent_reset(dev, TYPE_STM32_FLASH);
+    cm_device_parent_reset(dev, TYPE_STM32_FLASH);
 }
 
 static Property stm32_flash_properties[] = {

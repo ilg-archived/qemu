@@ -110,26 +110,38 @@ void cm_object_realize(Object *obj)
     }
 }
 
-Object *cm_object_new(const char *name)
+Object *cm_object_new(const char *type_name)
 {
-    // TODO: migrate to QOM
-    return OBJECT(qdev_create(NULL, name));
-    // return DEVICE(object_new(name));
+    if (object_class_by_name(type_name) == NULL) {
+        return NULL;
+    }
+
+    Object *obj = object_new(type_name);
+
+    if (!obj) {
+        return NULL;
+    }
+
+    /* Required because monitor system_reset does not reset properly */
+    qdev_set_parent_bus(DEVICE(obj), sysbus_get_default());
+    object_unref(obj);
+
+    return obj;
 }
 
 /**
  *  Call the parent realize() of a given type.
  */
-bool cm_object_parent_realize(DeviceState *dev, Error **errp,
-        const char *typename)
+bool cm_device_parent_realize(DeviceState *dev, Error **errp,
+        const char *type_name)
 {
     /* Identify parent class. */
-    DeviceClass *parent_class = DEVICE_CLASS(
-            object_class_get_parent(object_class_by_name(typename)));
+    DeviceClass *klass = DEVICE_CLASS(
+            object_class_get_parent(object_class_by_name(type_name)));
 
-    if (parent_class->realize) {
+    if (klass->realize) {
         Error *local_err = NULL;
-        parent_class->realize(dev, &local_err);
+        klass->realize(dev, &local_err);
         if (local_err) {
             error_propagate(errp, local_err);
             return false;
@@ -141,15 +153,15 @@ bool cm_object_parent_realize(DeviceState *dev, Error **errp,
 /**
  *  Call the realize() of a given type.
  */
-bool cm_object_by_name_realize(DeviceState *dev, Error **errp,
-        const char *typename)
+bool cm_device_by_name_realize(DeviceState *dev, Error **errp,
+        const char *type_name)
 {
-    /* Identify parent class. */
-    DeviceClass *parent_class = DEVICE_CLASS(object_class_by_name(typename));
+    /* Identify class. */
+    DeviceClass *klass = DEVICE_CLASS(object_class_by_name(type_name));
 
-    if (parent_class->realize) {
+    if (klass->realize) {
         Error *local_err = NULL;
-        parent_class->realize(dev, &local_err);
+        klass->realize(dev, &local_err);
         if (local_err) {
             error_propagate(errp, local_err);
             return false;
@@ -161,15 +173,39 @@ bool cm_object_by_name_realize(DeviceState *dev, Error **errp,
 /**
  * Call the parent reset() of a given type.
  */
-void cm_object_parent_reset(DeviceState *dev, const char *typename)
+void cm_device_parent_reset(DeviceState *dev, const char *type_name)
 {
     /* Identify parent class. */
-    DeviceClass *parent_class = DEVICE_CLASS(
-            object_class_get_parent(object_class_by_name(typename)));
+    DeviceClass *klass = DEVICE_CLASS(
+            object_class_get_parent(object_class_by_name(type_name)));
 
-    if (parent_class->reset) {
-        parent_class->reset(dev);
+    if (klass->reset) {
+        klass->reset(dev);
     }
+}
+
+/**
+ * Call the reset() of a given type.
+ */
+void cm_device_by_name_reset(DeviceState *dev, const char *type_name)
+{
+    /* Identify class. */
+    DeviceClass *klass = DEVICE_CLASS(object_class_by_name(type_name));
+
+    if (klass->reset) {
+        klass->reset(dev);
+    }
+}
+
+Object *cm_object_get_machine(void)
+{
+    static Object *obj;
+
+    if (obj == NULL) {
+        obj = container_get(object_get_root(), "/machine");
+    }
+
+    return obj;
 }
 
 /* ------------------------------------------------------------------------- */

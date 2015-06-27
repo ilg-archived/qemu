@@ -83,7 +83,7 @@ static void peripheral32_realize(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     /* Call parent realize(). */
-    if (!cm_object_parent_realize(dev, errp, TYPE_PERIPHERAL32)) {
+    if (!cm_device_parent_realize(dev, errp, TYPE_PERIPHERAL32)) {
         return;
     }
 
@@ -103,7 +103,7 @@ static void peripheral32_reset(DeviceState *dev)
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_object_parent_reset(dev, TYPE_PERIPHERAL32);
+    cm_device_parent_reset(dev, TYPE_PERIPHERAL32);
 
     Peripheral32State *state = PERIPHERAL32_STATE(dev);
 
