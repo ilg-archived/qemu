@@ -46,13 +46,29 @@ static RegisterInfo stm32f1_regs[] = {
         .reset_value = 0x00000030,
         .readable_bits = 0x0000003F,
         .writable_bits = 0x0000001F,
-        .auto_bits = (RegisterAutoBits[] ) {
+        .bitfields = (BitfieldInfo[] ) {
                     {
-                        0x00000010, /* reflect PRFTBE -> PRFTBS */
-                        1 },
-                    { } /**/
-                } /**/
-                },
+                        .name = "latency",
+                        .first_bit = 0,
+                        .last_bit = 2 },
+                    {
+                        .name = "hlfcya",
+                        .desc = "Flash half cycle access enable",
+                        .first_bit = 3 },
+                    {
+                        .name = "prftbe",
+                        .desc = "Prefetch buffer enable",
+                        .first_bit = 4 },
+                    {
+                        .name = "prftbs",
+                        .desc = "Prefetch buffer status",
+                        .first_bit = 5,
+                        .reset_value = 1,
+                        .mode = BITFIELD_MODE_READ,
+                        .follows = "prftbe" },
+                    { }, /**/
+                } , /**/
+    },
 #if 0
     /* TODO: implement */
     {
@@ -78,7 +94,8 @@ static RegisterInfo stm32f1_regs[] = {
         .name = "wrpr",
         .offset = 0x20,},
 #endif
-    { } };
+    { }, /**/
+};
 
 /* In addition to the above, the XL density has a few more registers. */
 static RegisterInfo stm32f1xd_extra_regs[] = {
@@ -142,7 +159,6 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
         size = 0;
     }
 
-    object_property_set_str(obj, TYPE_STM32_FLASH, "mmio-name", NULL);
     object_property_set_int(obj, addr, "mmio-address", NULL);
     object_property_set_int(obj, size, "mmio-size", NULL);
 
