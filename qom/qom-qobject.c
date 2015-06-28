@@ -47,7 +47,7 @@ void object_property_set_qobject(Object *obj, QObject *value, const char *name,
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     if (qemu_loglevel & LOG_TRACE) {
         char buf[100];
-        qemu_log_mask(LOG_TRACE, "%s('%s', '%s', '%s')\n", __FUNCTION__,
+        qemu_log_mask(LOG_TRACE, "%s(%s, %s, '%s')\n", __FUNCTION__,
                 object_get_typename(obj), name,
                 dump_value(value, buf, sizeof(buf)));
     }
