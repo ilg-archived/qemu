@@ -87,9 +87,17 @@ static CPUState *cm_cpu_generic_create(const char *typename,
  * A version of cpu_arm_init() that does only the object creation and
  * initialisation, without calling realize().
  */
-ARMCPU *cm_cpu_arm_create(const char *cpu_model)
+ARMCPU *cm_cpu_arm_create(Object *parent, const char *cpu_model)
 {
-    return ARM_CPU(cm_cpu_generic_create(TYPE_ARM_CPU, cpu_model));
+    ARMCPU *cpu;
+    cpu = ARM_CPU(cm_cpu_generic_create(TYPE_ARM_CPU, cpu_model));
+    if (!cpu) {
+        error_report("Unable to find CPU definition %s", cpu_model);
+        exit(1);
+    }
+    cm_object_property_add_child(parent, "core", OBJECT(cpu));
+
+    return cpu;
 }
 
 /**
@@ -104,13 +112,14 @@ void cm_object_realize(Object *obj)
 
     object_property_set_bool(obj, true, "realized", &err);
     if (err) {
-        error_report("Initialization of object %s failed: %s",
+        error_report("Realization of object %s failed: %s",
                 object_get_typename(obj), error_get_pretty(err));
         exit(1);
     }
 }
 
-Object *cm_object_new(const char *type_name)
+Object *cm_object_new(Object *parent, const char* node_name,
+        const char *type_name)
 {
     if (object_class_by_name(type_name) == NULL) {
         error_report("Creating object of type %s failed; no such type.",
@@ -123,7 +132,14 @@ Object *cm_object_new(const char *type_name)
         error_report("Creating object of type %s failed.", type_name);
         exit(1);
     }
+
+    cm_object_property_add_child(parent, node_name, obj);
     return obj;
+}
+
+Object *cm_object_new_mcu(const char *type_name)
+{
+    return cm_object_new(cm_object_get_machine(), "mcu", type_name);
 }
 
 /**
@@ -237,6 +253,23 @@ void cm_object_property_set_str(Object *obj, const char *value,
                 object_get_typename(obj), error_get_pretty(err));
         exit(1);
     }
+}
+
+void cm_object_property_add_child(Object *obj, const char *node_name,
+        Object *child)
+{
+    Error *err = NULL;
+    object_property_add_child(obj, node_name, child, &err);
+    if (err) {
+        error_report("Adding child %s for %s failed: %s.", node_name,
+                object_get_typename(obj), error_get_pretty(err));
+        exit(1);
+    }
+}
+
+Object *cm_container_get_peripheral(void)
+{
+    return container_get(object_get_root(), "/peripheral");
 }
 
 /* ------------------------------------------------------------------------- */

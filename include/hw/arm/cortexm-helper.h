@@ -40,16 +40,18 @@ void cm_board_greeting(MachineState *machine);
 
 /* ------------------------------------------------------------------------- */
 
-ARMCPU *cm_cpu_arm_create(const char *cpu_model);
+ARMCPU *cm_cpu_arm_create(Object *parent, const char *cpu_model);
 
-Object *cm_object_new(const char *name);
+Object *cm_object_new(Object *parent, const char *name, const char *type_name);
+Object *cm_object_new_mcu(const char *type_name);
+
 void cm_object_realize(Object *dev);
 
 bool cm_device_parent_realize(DeviceState *dev, Error **errp,
-        const char *typename);
+        const char *type_name);
 bool cm_device_by_name_realize(DeviceState *dev, Error **errp,
-        const char *typename);
-void cm_device_parent_reset(DeviceState *dev, const char *typename);
+        const char *type_name);
+void cm_device_parent_reset(DeviceState *dev, const char *type_name);
 void cm_device_by_name_reset(DeviceState *dev, const char *type_name);
 
 Object *cm_object_get_machine(void);
@@ -58,6 +60,11 @@ void cm_object_property_set_int(Object *obj, int64_t value, const char *name);
 void cm_object_property_set_bool(Object *obj, bool value, const char *name);
 void cm_object_property_set_str(Object *obj, const char *value,
         const char *name);
+
+Object *cm_container_get_peripheral(void);
+
+void cm_object_property_add_child(Object *parent, const char *node_name,
+        Object *child);
 
 /* ------------------------------------------------------------------------- */
 
