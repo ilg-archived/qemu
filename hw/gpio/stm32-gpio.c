@@ -502,7 +502,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     }
 
     memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_gpio_ops, state,
-            port_name, size);
+            "mmio", size);
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
 }

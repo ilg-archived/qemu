@@ -601,7 +601,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
     }
 
     memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_rcc_ops, state,
-    TYPE_STM32_RCC, size);
+            "mmio", size);
 
     SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
     sysbus_init_mmio(sbd, &state->mmio);

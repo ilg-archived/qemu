@@ -170,7 +170,7 @@ static void cortexm_itm_realize_callback(DeviceState *dev, Error **errp)
     hwaddr addr = 0xE0000000;
 
     memory_region_init_io(&state->mmio, OBJECT(dev), &armv7m_itm_ops, state,
-    TYPE_CORTEXM_ITM, size);
+            "mmio", size);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
@@ -216,11 +216,11 @@ static const TypeInfo cortexm_itm_type_info = {
     .class_init = cortexm_itm_class_init_callback,
     .class_size = sizeof(CortexMITMClass) };
 
-static void cortexm_itm_register_type(void)
+static void cortexm_itm_register_types(void)
 {
     type_register_static(&cortexm_itm_type_info);
 }
 
-type_init(cortexm_itm_register_type);
+type_init(cortexm_itm_register_types);
 
 /* ------------------------------------------------------------------------- */
