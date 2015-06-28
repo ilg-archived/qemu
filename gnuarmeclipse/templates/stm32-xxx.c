@@ -231,12 +231,12 @@ static const TypeInfo stm32_xxx_type_info = {
     .class_init = stm32_xxx_class_init,
     .class_size = sizeof(STM32XxxClass) };
 
-static void stm32_xxx_register_type(void)
+static void stm32_xxx_register_types(void)
 {
     type_register_static(&stm32_xxx_type_info);
 }
 
-type_init(stm32_xxx_register_type);
+type_init(stm32_xxx_register_types);
 
 /* ------------------------------------------------------------------------- */
 
