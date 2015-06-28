@@ -24,7 +24,49 @@
 
 void peripheral32_add_registers(DeviceState *dev, RegisterInfo *regs)
 {
+    RegisterInfo *preg;
+    for (preg = regs; preg->name; ++preg) {
 
+        Object *obj_reg = cm_object_new(OBJECT(dev), preg->name,
+        TYPE_REGISTER);
+
+        printf("Register %s\n", preg->name);
+        cm_object_property_set_int(obj_reg, preg->offset, "offset");
+        cm_object_property_set_int(obj_reg, preg->reset_value, "reset-value");
+        cm_object_property_set_int(obj_reg, preg->readable_bits,
+                "readable-bits");
+        cm_object_property_set_int(obj_reg, preg->access_flags, "access-flags");
+        cm_object_property_set_int(obj_reg, preg->array_size, "array-size");
+
+        if (preg->bitfields) {
+
+            BitfieldInfo *pbf;
+            for (pbf = preg->bitfields; pbf->name; ++pbf) {
+                printf("Bitfield %s\n", pbf->name);
+
+                Object *obj_bf = cm_object_new(obj_reg, pbf->name,
+                TYPE_BITFIELD);
+
+                assert(pbf->first_bit < 32);
+                cm_object_property_set_int(obj_bf, pbf->first_bit, "first-bit");
+
+                assert(pbf->last_bit < 32);
+                cm_object_property_set_int(obj_bf, pbf->last_bit, "last-bit");
+                cm_object_property_set_int(obj_bf, pbf->reset_value,
+                        "reset-value");
+                if (pbf->mode & BITFIELD_MODE_READ) {
+                    cm_object_property_set_bool(obj_bf, true, "is-readable");
+                }
+                if (pbf->mode & BITFIELD_MODE_WRITE) {
+                    cm_object_property_set_bool(obj_bf, true, "is-writable");
+                }
+                cm_object_property_set_str(obj_bf, pbf->follows, "follows");
+
+                cm_object_realize(obj_bf);
+            }
+        }
+        cm_object_realize(obj_reg);
+    }
 }
 
 /* ----- Private ----------------------------------------------------------- */
@@ -89,8 +131,12 @@ static void peripheral32_realize(DeviceState *dev, Error **errp)
 
     Peripheral32State *state = PERIPHERAL32_STATE(dev);
 
+    const char *node_name = state->mmio_node_name;
+    if (node_name == NULL) {
+        node_name = "mmio";
+    }
     memory_region_init_io(&state->mmio, OBJECT(dev), &register32_ops, state,
-            state->mmio_name, state->mmio_size);
+            node_name, state->mmio_size);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0x0, state->mmio_address);
@@ -112,7 +158,7 @@ static void peripheral32_reset(DeviceState *dev)
 }
 
 static Property peripheral32_properties[] = {
-        DEFINE_PROP_CONST_STRING("mmio-name", Peripheral32State, mmio_name),
+        DEFINE_PROP_CONST_STRING("mmio-node-name", Peripheral32State, mmio_node_name),
         DEFINE_PROP_UINT64("mmio-address", Peripheral32State, mmio_address, 0),
         DEFINE_PROP_UINT32("mmio-size", Peripheral32State, mmio_size, 0),
         DEFINE_PROP_UINT32("default-access-flags", Peripheral32State,

@@ -20,7 +20,7 @@
 #ifndef PERIPHERAL32_H_
 #define PERIPHERAL32_H_
 
-#include "hw/misc/register32.h"
+#include "hw/misc/register.h"
 
 //#include "exec/address-spaces.h"
 
@@ -64,8 +64,8 @@ typedef struct {
     Peripheral32ParentState parent_obj;
     /*< public >*/
 
-    /* Memory region name */
-    const char *mmio_name;
+    /* Memory region node name, as seen in qom-tree */
+    const char *mmio_node_name;
 
     /* Memory region address, relative to system area */
     hwaddr mmio_address;
