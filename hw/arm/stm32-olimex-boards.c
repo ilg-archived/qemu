@@ -30,9 +30,10 @@
 static void stm32_h103_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
+
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
@@ -41,16 +42,17 @@ static void stm32_h103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    Object *peripheral = cm_container_get_peripheral();
     {
         /* Create the board LED */
-        Object *led = cm_object_new(TYPE_GPIO_LED);
+        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
 
         /* STM32-H103 Green LED, GPIOC[12], active low */
         cm_object_property_set_bool(led, true, "active-low");
         cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
         cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
 
-        gpio_led_connect(led, "/machine/stm32/gpio[c]", 12);
+        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 12);
 
         cm_object_realize(led);
     }
@@ -69,7 +71,7 @@ static void stm32_p103_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
@@ -78,16 +80,17 @@ static void stm32_p103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    Object *peripheral = cm_container_get_peripheral();
     {
         /* Create the board LED */
-        Object *led = cm_object_new(TYPE_GPIO_LED);
+        Object *led = cm_object_new(peripheral, "red-led", TYPE_GPIO_LED);
 
         /* STM32-P103 Green LED, GPIOC[12], active low */
         cm_object_property_set_bool(led, true, "active-low");
         cm_object_property_set_str(led, "[Red LED On]\n", "on-message");
         cm_object_property_set_str(led, "[Red LED Off]\n", "off-message");
 
-        gpio_led_connect(led, "/machine/stm32/gpio[c]", 12);
+        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 12);
 
         cm_object_realize(led);
     }
@@ -106,7 +109,7 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
@@ -115,30 +118,31 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    Object *peripheral = cm_container_get_peripheral();
     {
         /* Create the board LED1 */
-        Object *led = cm_object_new(TYPE_GPIO_LED);
+        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
 
         /* OLIMEXINO-STM32 Green LED1, PA5, active high */
         cm_object_property_set_bool(led, false, "active-low");
         cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
         cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
 
-        gpio_led_connect(led, "/machine/stm32/gpio[a]", 5);
+        gpio_led_connect(led, "/machine/mcu/stm32/gpio[a]", 5);
 
         cm_object_realize(led);
     }
 
     {
         /* Create the board LED2 */
-        Object *led = cm_object_new(TYPE_GPIO_LED);
+        Object *led = cm_object_new(peripheral, "yellow-led", TYPE_GPIO_LED);
 
         /* OLIMEXINO-STM32 Yellow LED2, PA1, active high */
         cm_object_property_set_bool(led, false, "active-low");
         cm_object_property_set_str(led, "[Yellow LED On]\n", "on-message");
         cm_object_property_set_str(led, "[Yellow LED Off]\n", "off-message");
 
-        gpio_led_connect(led, "/machine/stm32/gpio[a]", 1);
+        gpio_led_connect(led, "/machine/mcu/stm32/gpio[a]", 1);
 
         cm_object_realize(led);
     }
@@ -157,7 +161,7 @@ static void stm32_p107_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new(TYPE_STM32F107VC);
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F107VC);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
@@ -166,30 +170,31 @@ static void stm32_p107_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    Object *peripheral = cm_container_get_peripheral();
     {
         /* Create the board LED1 STAT1 */
-        Object *led = cm_object_new(TYPE_GPIO_LED);
+        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
 
         /* STM32-P107 Green LED1, PC6, active high */
         cm_object_property_set_bool(led, false, "active-low");
         cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
         cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
 
-        gpio_led_connect(led, "/machine/stm32/gpio[c]", 6);
+        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 6);
 
         cm_object_realize(led);
     }
 
     {
         /* Create the board LED2 STAT2 */
-        Object *led = cm_object_new(TYPE_GPIO_LED);
+        Object *led = cm_object_new(peripheral, "yellow-led", TYPE_GPIO_LED);
 
         /* STM32-P107 Yellow LED2, PC7, active high */
         cm_object_property_set_bool(led, false, "active-low");
         cm_object_property_set_str(led, "[Yellow LED On]\n", "on-message");
         cm_object_property_set_str(led, "[Yellow LED Off]\n", "off-message");
 
-        gpio_led_connect(led, "/machine/stm32/gpio[c]", 7);
+        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 7);
 
         cm_object_realize(led);
     }
@@ -207,7 +212,7 @@ static void stm32_e407_board_init_callback(MachineState *machine)
     cm_board_greeting(machine);
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new(TYPE_STM32F407ZG);
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F407ZG);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 12000000, "hse-freq-hz"); /* 12.0 MHz */
@@ -216,9 +221,10 @@ static void stm32_e407_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    Object *peripheral = cm_container_get_peripheral();
     {
         /* Create the board LED */
-        Object *led = cm_object_new(TYPE_GPIO_LED);
+        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
 
         /* STM32-P107 Green LED1, PC13, active low */
         cm_object_property_set_bool(led, true, "active-low");

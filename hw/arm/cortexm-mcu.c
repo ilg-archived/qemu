@@ -50,13 +50,15 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev);
 /* Redefined from armv7m.c */
 #define TYPE_BITBAND "ARM,bitband-memory"
 
-static void cortexm_bitband_init(uint32_t address)
+static void cortexm_bitband_init(Object *parent, const char *node_name,
+        uint32_t address)
 {
     DeviceState *dev;
 
     /* Make address a multiple of 32MB */
     address &= ~(BITBAND_OFFSET - 1);
     dev = qdev_create(NULL, TYPE_BITBAND);
+    cm_object_property_add_child(parent, node_name, OBJECT(dev));
     qdev_prop_set_uint32(dev, "base", address);
     qdev_init_nofail(dev);
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address + BITBAND_OFFSET);
@@ -137,23 +139,21 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     cm_state->cpu_model = cpu_model;
 
-    /* The /cortexm container will hold all ARM internal peripherals. */
-    cm_state->container = container_get(OBJECT(machine), "/cortexm");
+    /*
+     * The /machine/mcu/cortexm container will hold all
+     * ARM internal peripherals.
+     */
+    cm_state->container = container_get(OBJECT(dev), "/cortexm");
 
     CPUARMState *env;
     {
         /* ----- Create CPU based on model. ----- */
         ARMCPU *cpu;
-        cpu = cm_cpu_arm_create(cm_state->cpu_model);
-        if (cpu == NULL) {
-            error_report("Unable to find CPU definition %s",
-                    cm_state->cpu_model);
-            exit(1);
-        }
+        cpu = cm_cpu_arm_create(cm_state->container, cm_state->cpu_model);
 
         CPUClass *cc;
         cc = CPU_GET_CLASS(cpu);
-        /* Hook on the CPU unasigned access */
+        /* Hook on the CPU unassigned access */
         cc->do_unassigned_access = cortexm_mcu_do_unassigned_access_callback;
 
         cm_state->cpu = cpu;
@@ -281,11 +281,9 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* ----- Construct the NVIC object. ----- */
     {
-        Object *nvic;
-        nvic = object_new(TYPE_CORTEXM_NVIC);
-
         /* The NVIC will be available via "/machine/cortexm/nvic" */
-        object_property_add_child(cm_state->container, "nvic", nvic, NULL);
+        Object *nvic = cm_object_new(cm_state->container, "nvic",
+        TYPE_CORTEXM_NVIC);
 
         int num_irq;
         if (capabilities->core->num_irq) {
@@ -326,10 +324,9 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* ----- Construct the ITM object. ----- */
     if (capabilities->core->has_itm) {
-        Object *itm = object_new(TYPE_CORTEXM_ITM);
-
         /* The ITM will be available via "/machine/cortexm/nvic" */
-        object_property_add_child(cm_state->container, "itm", itm, NULL);
+        Object *itm = cm_object_new(cm_state->container, "itm",
+        TYPE_CORTEXM_ITM);
 
         cm_object_realize(itm);
 
@@ -356,7 +353,6 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
          */
         CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
         cm_class->image_load(DEVICE(cm_state));
-
     }
 
     /*
@@ -428,26 +424,29 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
     int flash_size = cm_state->flash_size_kb * 1024;
     int sram_size = cm_state->sram_size_kb * 1024;
 
+    Object *mem_container = container_get(cm_state->container, "/memory");
+
     MemoryRegion *flash_mem = &cm_state->flash_mem;
     /* Flash programming is done via the SCU, so pretend it is ROM.  */
-    memory_region_init_ram(flash_mem, NULL, "cortexm-mem-flash", flash_size,
+    memory_region_init_ram(flash_mem, mem_container, "flash", flash_size,
             &error_abort);
     vmstate_register_ram_global(flash_mem);
     memory_region_set_readonly(flash_mem, true);
     memory_region_add_subregion(system_memory, 0x00000000, flash_mem);
 
     MemoryRegion *sram_mem = &cm_state->sram_mem;
-    memory_region_init_ram(sram_mem, NULL, "cortexm-mem-sram", sram_size,
+    memory_region_init_ram(sram_mem, mem_container, "sram", sram_size,
             &error_abort);
     vmstate_register_ram_global(sram_mem);
     memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
-    cortexm_bitband_init(0x20000000);
+
+    cortexm_bitband_init(mem_container, "sram-bitband", 0x20000000);
 
     MemoryRegion *hack_mem = &cm_state->hack_mem;
     /* Hack to map an additional page of ram at the top of the address
      * space.  This stops qemu complaining about executing code outside RAM
      * when returning from an exception.  */
-    memory_region_init_ram(hack_mem, NULL, "cortexm-mem-hack", 0x1000,
+    memory_region_init_ram(hack_mem, mem_container, "hack", 0x1000,
             &error_abort);
     vmstate_register_ram_global(hack_mem);
     memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);

@@ -33,10 +33,9 @@
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
         const STM32Capabilities *capabilities)
 {
-    Object *gpio = object_new(TYPE_STM32_GPIO);
     char child_name[10];
     snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
-    object_property_add_child(state->container, child_name, gpio, NULL);
+    Object *gpio = cm_object_new(state->container, child_name, TYPE_STM32_GPIO);
 
     object_property_set_int(gpio, index, "port-index", NULL);
 
@@ -92,28 +91,61 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
     qemu_log_mask(LOG_TRACE, "STM32 Family: %s\n", family);
 
-    /* Devices will be addressed below "/machine/stm32". */
-    state->container = container_get(qdev_get_machine(), "/stm32");
+    /* Devices will be addressed below "/machine/mcu/stm32". */
+    state->container = container_get(OBJECT(dev), "/stm32");
+
+    /* Memory alias */
+    {
+        /**
+         * The STM32 family stores its Flash memory at some base address
+         * in memory (0x08000000 for medium density devices), and then
+         * aliases it to the boot memory space, which starts at 0x00000000
+         * (the "System Memory" can also be aliased to 0x00000000,
+         * but this is not implemented here).
+         * The processor executes the code in the aliased memory at 0x00000000.
+         * We need to make a QEMU alias so that reads in the 0x08000000 area
+         * are passed through to the 0x00000000 area. Note that this is the
+         * opposite of real hardware, where the memory at 0x00000000 passes
+         * reads through the "real" flash memory at 0x08000000, but it works
+         * the same either way.
+         */
+        CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+        int flash_size = cm_state->flash_size_kb * 1024;
+
+        /* Allocate a new region for the alias */
+        MemoryRegion *flash_alias_mem = g_malloc(sizeof(MemoryRegion));
+
+        Object *mem_container = container_get(cm_state->container, "/memory");
+
+        STM32MCUState *state = STM32_MCU_STATE(dev);
+        /* Initialise the new region */
+        memory_region_init_alias(flash_alias_mem, mem_container,
+                "mem-flash-alias", &cm_state->flash_mem, 0, flash_size);
+        memory_region_set_readonly(flash_alias_mem, true);
+
+        /* Alias it as the STM specific 0x08000000 */
+        memory_region_add_subregion(get_system_memory(), 0x08000000,
+                flash_alias_mem);
+    }
 
     /* RCC */
     {
-        Object *rcc = object_new(TYPE_STM32_RCC);
-        /* RCC will be named "/machine/stm32/rcc" */
-        object_property_add_child(state->container, "rcc", rcc, NULL);
+        /* RCC will be named "/machine/mcu/stm32/rcc" */
+        Object *rcc = cm_object_new(state->container, "rcc", TYPE_STM32_RCC);
 
         // TODO: get rid of pointers
         /* Copy capabilities into internal objects. */
         qdev_prop_set_ptr(DEVICE(rcc), "capabilities", (void *) capabilities);
 
         /* Copy internal oscillator frequencies from capabilities. */
-        object_property_set_int(rcc, capabilities->hsi_freq_hz, "hsi-freq-hz",
-        NULL);
-        object_property_set_int(rcc, capabilities->lsi_freq_hz, "lsi-freq-hz",
-        NULL);
+        cm_object_property_set_int(rcc, capabilities->hsi_freq_hz,
+                "hsi-freq-hz");
+        cm_object_property_set_int(rcc, capabilities->lsi_freq_hz,
+                "lsi-freq-hz");
 
         /* Forward properties to RCC. */
-        object_property_set_int(rcc, state->hse_freq_hz, "hse-freq-hz", NULL);
-        object_property_set_int(rcc, state->lse_freq_hz, "lse-freq-hz", NULL);
+        cm_object_property_set_int(rcc, state->hse_freq_hz, "hse-freq-hz");
+        cm_object_property_set_int(rcc, state->lse_freq_hz, "lse-freq-hz");
 
         cm_object_realize(rcc);
 
@@ -122,10 +154,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* FLASH */
     {
-        Object *flash = object_new(TYPE_STM32_FLASH);
-        /* FLASH will be named "/machine/stm32/flash" */
-        object_property_add_child(state->container, "flash", flash,
-        NULL);
+        /* FLASH will be named "/machine/mcu/stm32/flash" */
+        Object *flash = cm_object_new(state->container, "flash",
+        TYPE_STM32_FLASH);
 
         // TODO: get rid of pointers
         qdev_prop_set_ptr(DEVICE(flash), "capabilities", (void *) capabilities);
@@ -209,33 +240,6 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
     CortexMClass *parent_class = CORTEXM_MCU_CLASS(
             object_class_by_name(TYPE_CORTEXM_MCU));
     parent_class->memory_regions_create(dev);
-
-    /**
-     * The STM32 family stores its Flash memory at some base address in memory
-     * (0x08000000 for medium density devices), and then aliases it to the
-     * boot memory space, which starts at 0x00000000 (the "System Memory" can
-     * also be aliased to 0x00000000, but this is not implemented here).
-     * The processor executes the code in the aliased memory at 0x00000000.
-     * We need to make a QEMU alias so that reads in the 0x08000000 area
-     * are passed through to the 0x00000000 area. Note that this is the
-     * opposite of real hardware, where the memory at 0x00000000 passes
-     * reads through the "real" flash memory at 0x08000000, but it works
-     * the same either way.
-     */
-    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
-    int flash_size = cm_state->flash_size_kb * 1024;
-
-    /* Allocate a new region for the alias */
-    MemoryRegion *flash_alias_mem = g_malloc(sizeof(MemoryRegion));
-
-    /* Initialise the new region */
-    memory_region_init_alias(flash_alias_mem, NULL, "stm32-mem-flash-alias",
-            &cm_state->flash_mem, 0, flash_size);
-    memory_region_set_readonly(flash_alias_mem, true);
-
-    /* Alias it as the STM specific 0x08000000 */
-    memory_region_add_subregion(get_system_memory(), 0x08000000,
-            flash_alias_mem);
 }
 
 #define DEFINE_PROP_STM32CAPABILITIES_PTR(_n, _s, _f) \
