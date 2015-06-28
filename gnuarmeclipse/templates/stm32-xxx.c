@@ -187,8 +187,8 @@ static void stm32_xxx_realize(DeviceState *dev, Error **errp)
         size = 0; /* This will trigger an assertion to fail */
     }
 
-    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_gpio_ops, state, TYPE_STM32_XXX,
-            size);
+    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_gpio_ops, state,
+        "mmio", size);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, addr);
