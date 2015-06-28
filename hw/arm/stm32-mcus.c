@@ -1,8 +1,8 @@
 /*
  * STM32 Cortex-M devices emulation.
  *
- * Copyright (c) 2014 Liviu Ionescu
- * Copyright (c) 2010 Andre Beckus
+ * Copyright (c) 2014 Liviu Ionescu.
+ * Copyright (c) 2010 Andre Beckus.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -336,8 +336,7 @@ static const STM32Capabilities stm32f407xx = {
     .has_ts = true, /* ADC1_IN16 */
 
     .has_dac1 = true, /* 12-bits */
-    .has_dac2 = true,
-};
+    .has_dac2 = true, };
 
 /* ------------------------------------------------------------------------- */
 
@@ -510,8 +509,7 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
-            .core = &stm32f4_01_57_xx_core,
-        },
+            .core = &stm32f4_01_57_xx_core, },
         .stm32 = &stm32f407xx /**/
     },
     {

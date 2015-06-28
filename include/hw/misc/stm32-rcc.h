@@ -1,7 +1,7 @@
 /*
  * STM32 MCU - RCC (Reset and Clock Control).
  *
- * Copyright (c) 2015 Liviu Ionescu
+ * Copyright (c) 2015 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
