@@ -49,8 +49,8 @@ typedef struct {
     const char *desc;
     hwaddr offset;
     uint32_t reset_value;
-    uint32_t read_mask;
-    uint32_t write_mask;
+    uint32_t readable_bits;
+    uint32_t writable_bits;
     uint32_t access_flags;
     uint32_t array_size; /* For multiple identical registers, name[0]... */
     uint32_t (*read)(hwaddr addr, unsigned size);

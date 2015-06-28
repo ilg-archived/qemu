@@ -38,21 +38,21 @@
 
 /* ------------------------------------------------------------------------- */
 
-static RegisterAutoBits stm32f1_acr_auto_bits[] = {
-    {
-        0x0010, /* reflect PRFTBE -> PRFTBS */
-        1 },
-    { } };
-
 static RegisterInfo stm32f1_regs[] = {
     {
         .name = "acr",
         .desc = "Flash access control register (FLASH_ACR)",
         .offset = 0x00,
         .reset_value = 0x00000030,
-        .read_mask = 0x0000003F,
-        .write_mask = 0x0000001F,
-        .auto_bits = stm32f1_acr_auto_bits },
+        .readable_bits = 0x0000003F,
+        .writable_bits = 0x0000001F,
+        .auto_bits = (RegisterAutoBits[] ) {
+                    {
+                        0x00000010, /* reflect PRFTBE -> PRFTBS */
+                        1 },
+                    { } /**/
+                } /**/
+                },
 #if 0
     /* TODO: implement */
     {
@@ -182,11 +182,11 @@ static const TypeInfo stm32_flash_type_info = {
     .class_size = sizeof(STM32FlashClass) /**/
 };
 
-static void stm32_flash_register_type(void)
+static void stm32_flash_register_types(void)
 {
     type_register_static(&stm32_flash_type_info);
 }
 
-type_init(stm32_flash_register_type);
+type_init(stm32_flash_register_types);
 
 /* ------------------------------------------------------------------------- */
