@@ -81,12 +81,12 @@ static const TypeInfo register32_type_info = {
     .class_init = register32_class_init,
     .class_size = sizeof(Register32Class) };
 
-static void register32_register_type(void)
+static void register32_register_types(void)
 {
     type_register_static(&register32_type_info);
 }
 
-type_init(register32_register_type);
+type_init(register32_register_types);
 
 /* ------------------------------------------------------------------------- */
 

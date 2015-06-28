@@ -607,11 +607,11 @@ static const TypeInfo cortexm_nvic_info = {
     .class_size = sizeof(CortexMNVICClass), /**/
 };
 
-static void cortexm_nvic_register_type(void)
+static void cortexm_nvic_register_types(void)
 {
     type_register_static(&cortexm_nvic_info);
 }
 
-type_init(cortexm_nvic_register_type);
+type_init(cortexm_nvic_register_types);
 
 /* ------------------------------------------------------------------------- */

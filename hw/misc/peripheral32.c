@@ -136,12 +136,12 @@ static const TypeInfo peripheral32_type_info = {
     .class_init = peripheral32_class_init,
     .class_size = sizeof(Peripheral32Class) };
 
-static void peripheral32_register_type(void)
+static void peripheral32_register_types(void)
 {
     type_register_static(&peripheral32_type_info);
 }
 
-type_init(peripheral32_register_type);
+type_init(peripheral32_register_types);
 
 /* ------------------------------------------------------------------------- */
 
