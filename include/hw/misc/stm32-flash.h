@@ -23,28 +23,18 @@
 #include "hw/misc/peripheral32.h"
 #include "hw/arm/stm32-capabilities.h"
 
-#if 0
-#include "config.h"
-#include "hw/sysbus.h"
-#include "hw/misc/stm32-sys-bus-device.h"
-#endif
-
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_STM32_FLASH "stm32-flash"
+#define TYPE_STM32_FLASH "stm32:flash-peripheral"
+
+//#define TYPE_STM32_FLASH_ACR "stm32:flash-acr-register"
 
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
-#if 0
-#define TYPE_STM32_FLASH_PARENT TYPE_STM32_SYS_BUS_DEVICE
-typedef STM32SysBusDeviceClass STM32FlashParentClass;
-typedef STM32SysBusDeviceState STM32FlashParentState;
-#else
-#define TYPE_STM32_FLASH_PARENT TYPE_PERIPHERAL32
-typedef Peripheral32Class STM32FlashParentClass;
-typedef Peripheral32State STM32FlashParentState;
-#endif
+#define TYPE_STM32_FLASH_PARENT TYPE_PERIPHERAL
+typedef PeripheralClass STM32FlashParentClass;
+typedef PeripheralState STM32FlashParentState;
 
 /* ------------------------------------------------------------------------- */
 
@@ -77,22 +67,21 @@ typedef struct {
     union {
         struct {
             /* F1 specific registers */
-            /* 0x28 most, 0x30 for CL */
             struct {
-                uint32_t acr; /* 0x00 */
-                uint32_t keyr; /* 0x04 */
-                uint32_t optkeyr; /* 0x08 */
-                uint32_t sr; /* 0x0C */
-                uint32_t cr; /* 0x10 */
-                uint32_t ar; /* 0x14 */
-                uint32_t obr; /* 0x1C */
-                uint32_t wrpr; /* 0x20 */
+                DeviceState *acr; /* 0x00 */
+                DeviceState *keyr; /* 0x04 */
+                DeviceState *optkeyr; /* 0x08 */
+                DeviceState *sr; /* 0x0C */
+                DeviceState *cr; /* 0x10 */
+                DeviceState *ar; /* 0x14 */
+                DeviceState *obr; /* 0x1C */
+                DeviceState *wrpr; /* 0x20 */
 
                 /* XL only */
-                uint32_t keyr2; /* 0x44 */
-                uint32_t sr2; /* 0x4C */
-                uint32_t cr2; /* 0x50 */
-                uint32_t ar2; /* 0x54 */
+                DeviceState *keyr2; /* 0x44 */
+                DeviceState *sr2; /* 0x4C */
+                DeviceState *cr2; /* 0x50 */
+                DeviceState *ar2; /* 0x54 */
             } reg;
         } f1;
         struct {
