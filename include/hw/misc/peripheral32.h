@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PERIPHERAL32_H_
-#define PERIPHERAL32_H_
+#ifndef PERIPHERAL_H_
+#define PERIPHERAL_H_
 
 #include "hw/misc/register.h"
 
@@ -31,37 +31,37 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_PERIPHERAL32 "peripheral32"
+#define TYPE_PERIPHERAL "peripheral"
 
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
-#define TYPE_PERIPHERAL32_PARENT TYPE_SYS_BUS_DEVICE
-typedef SysBusDeviceClass Peripheral32ParentClass;
-typedef SysBusDevice Peripheral32ParentState;
+#define TYPE_PERIPHERAL_PARENT TYPE_SYS_BUS_DEVICE
+typedef SysBusDeviceClass PeripheralParentClass;
+typedef SysBusDevice PeripheralParentState;
 
 /* ------------------------------------------------------------------------- */
 
-#define PERIPHERAL32_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(Peripheral32Class, (obj), TYPE_PERIPHERAL32)
-#define PERIPHERAL32_CLASS(klass) \
-    OBJECT_CLASS_CHECK(Peripheral32Class, (klass), TYPE_PERIPHERAL32)
+#define PERIPHERAL_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(PeripheralClass, (obj), TYPE_PERIPHERAL)
+#define PERIPHERAL_CLASS(klass) \
+    OBJECT_CLASS_CHECK(PeripheralClass, (klass), TYPE_PERIPHERAL)
 
 typedef struct {
     /*< private >*/
-    Peripheral32ParentClass parent_class;
+    PeripheralParentClass parent_class;
     /*< public >*/
 
-} Peripheral32Class;
+} PeripheralClass;
 
 /* ------------------------------------------------------------------------- */
 
-#define PERIPHERAL32_STATE(obj) \
-    OBJECT_CHECK(Peripheral32State, (obj), TYPE_PERIPHERAL32)
+#define PERIPHERAL_STATE(obj) \
+    OBJECT_CHECK(PeripheralState, (obj), TYPE_PERIPHERAL)
 
 typedef struct {
     /*< private >*/
-    Peripheral32ParentState parent_obj;
+    PeripheralParentState parent_obj;
     /*< public >*/
 
     /* Memory region node name, as seen in qom-tree */
@@ -78,12 +78,14 @@ typedef struct {
     /* Default access flags, when registers do not define them. */
     uint32_t default_access_flags;
 
-} Peripheral32State;
+} PeripheralState;
 
 /* ------------------------------------------------------------------------- */
 
-void peripheral32_add_registers(DeviceState *dev, RegisterInfo *regs);
+#if 0
+void peripheral32_add_registers(DeviceState *dev, PeripheralRegisterInfo *regs);
+#endif
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* PERIPHERAL32_H_ */
+#endif /* PERIPHERAL_H_ */
