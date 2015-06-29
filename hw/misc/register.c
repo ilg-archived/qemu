@@ -23,96 +23,250 @@
 /**
  * This file implements a peripheral register. It extends all shorter accesses
  * to register size and uses the defined masks to write/read the register.
+ *
+ * If custom read/write actions are needed, it is possible to define new
+ * types that redefine these methods.
  */
+
+static void derived_peripheral_register_instance_init_callback(Object *obj);
+static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
+        void *data);
 
 /* ----- Public ------------------------------------------------------------ */
 
-uint64_t register_get_value(Object* obj)
+uint64_t peripheral_register_get_value(Object* obj)
 {
-    RegisterState *state = REGISTER_STATE(obj);
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     return (state->value & state->readable_bits);
 }
 
+/**
+ * Create a dynamic instance of the peripheral register object, using the
+ * definitions in the Info structure. If present, children bitfields are
+ * also created.
+ */
+Object *peripheral_register_new(Object *parent, const char *node_name,
+        PeripheralRegisterInfo *info)
+{
+    Object *obj_reg = cm_object_new(parent, node_name,
+    TYPE_PERIPHERAL_REGISTER);
+
+    printf("Register %s\n", object_class_get_name(obj_reg));
+    cm_object_property_set_int(obj_reg, info->offset, "offset");
+    cm_object_property_set_int(obj_reg, info->reset_value, "reset-value");
+    cm_object_property_set_int(obj_reg, info->readable_bits, "readable-bits");
+    cm_object_property_set_int(obj_reg, info->access_flags, "access-flags");
+
+    if (info->bitfields) {
+
+        RegisterBitfieldInfo *pbf;
+        for (pbf = info->bitfields; pbf->name; ++pbf) {
+            printf("Bitfield %s\n", pbf->name);
+
+            Object *obj_bf = cm_object_new(obj_reg, pbf->name,
+            TYPE_REGISTER_BITFIELD);
+
+            assert(pbf->first_bit < 32);
+            cm_object_property_set_int(obj_bf, pbf->first_bit, "first-bit");
+
+            assert(pbf->last_bit < 32);
+            cm_object_property_set_int(obj_bf, pbf->last_bit, "last-bit");
+            cm_object_property_set_int(obj_bf, pbf->reset_value, "reset-value");
+            if (pbf->mode & REGISTER_BITFIELD_MODE_READ) {
+                cm_object_property_set_bool(obj_bf, true, "is-readable");
+            }
+            if (pbf->mode & REGISTER_BITFIELD_MODE_WRITE) {
+                cm_object_property_set_bool(obj_bf, true, "is-writable");
+            }
+            cm_object_property_set_str(obj_bf, pbf->follows, "follows");
+
+            /* Should we delay until the register is realized()? */
+            cm_object_realize(obj_bf);
+        }
+    }
+
+    return obj_reg;
+}
+
+Object *derived_peripheral_register_new(Object *parent, const char *node_name,
+        const char *type_name)
+{
+    Object *obj = cm_object_new(parent, node_name, type_name);
+    return obj;
+}
+
+void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg)
+{
+    TypeInfo ti = {
+        .name = reg->name,
+        .parent = TYPE_PERIPHERAL_REGISTER,
+        .instance_init = derived_peripheral_register_instance_init_callback,
+        .class_init = derived_peripheral_register_class_init_callback,
+        .class_data = (void *) reg, /**/
+    };
+
+    type_register(&ti);
+}
+
 /* ----- Private ----------------------------------------------------------- */
 
-#if 0
-static void register_instance_init(Object *obj)
+static uint64_t peripheral_register_read_callback(Object *obj, hwaddr addr,
+        unsigned size)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    uint64_t value = state->value & state->readable_bits;
+
+    // TODO: consider size
+    return value;
+}
+
+static void peripheral_register_write_callback(Object *obj, hwaddr addr,
+        unsigned size, uint64_t value)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    uint32_t tmp;
+    tmp = state->value & (~state->writable_bits);
+    tmp |= (value & state->writable_bits);
+    // TODO: process auto bits
+
+    state->value = tmp;
+}
+
+/* ------------------------------------------------------------------------- */
+
+static void peripheral_register_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
-    RegisterState *state = REGISTER_STATE(obj);
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    /* Add properties and set default values. */
+    cm_object_property_add_uint64(obj, "offset", &state->offset);
+    state->offset = 0x00000000;
+
+    cm_object_property_add_uint64(obj, "reset-value", &state->reset_value);
+    state->reset_value = 0x00000000;
+
+    cm_object_property_add_uint64(obj, "readable-bits", &state->readable_bits);
+    state->readable_bits = 0xFFFFFFFF;
+
+    cm_object_property_add_uint64(obj, "writable-bits", &state->writable_bits);
+    state->writable_bits = 0xFFFFFFFF;
+
+    cm_object_property_add_uint32(obj, "access-flags", &state->access_flags);
+    state->access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
+
+    state->value = 0x00000000;
+}
+
+#if 1
+static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
+{
+    qemu_log_function_name();
+
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, TYPE_PERIPHERAL_REGISTER)) {
+        return;
+    }
+
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
     /* ... */
 }
 #endif
 
-static void register_realize(DeviceState *dev, Error **errp)
-{
-    qemu_log_function_name();
-
-    /* Call parent realize(). */
-    if (!cm_device_parent_realize(dev, errp, TYPE_REGISTER)) {
-        return;
-    }
-
-    RegisterState *state = REGISTER_STATE(dev);
-
-    /* ... */
-}
-
-static void register_reset(DeviceState *dev)
+static void peripheral_register_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
     /* Call parent reset(). */
-    cm_device_parent_reset(dev, TYPE_REGISTER);
+    cm_device_parent_reset(dev, TYPE_PERIPHERAL_REGISTER);
 
-    RegisterState *state = REGISTER_STATE(dev);
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
     state->value = state->reset_value;
 }
 
-static Property register_properties[] = {
-
-        DEFINE_PROP_UINT64("offset", RegisterState, offset,
-                0x00000000),
-        DEFINE_PROP_UINT64("reset-value", RegisterState, reset_value,
-                0x00000000),
-        DEFINE_PROP_UINT64("readable-bits", RegisterState, readable_bits,
-                0xFFFFFFFF),
-        DEFINE_PROP_UINT64("writable-bits", RegisterState, writable_bits,
-                0xFFFFFFFF),
-        DEFINE_PROP_UINT32("access-flags", RegisterState, access_flags,
-                REGISTER_DEFAULT_ACCESS_FLAGS),
-        DEFINE_PROP_UINT32("array-size", RegisterState, array_size,
-                0),
-
-    DEFINE_PROP_END_OF_LIST(), };
-
-static void register_class_init(ObjectClass *klass, void *data)
+static void peripheral_register_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->reset = register_reset;
-    dc->realize = register_realize;
-    dc->props = register_properties;
+    dc->reset = peripheral_register_reset_callback;
+#if 1
+    dc->realize = peripheral_register_realize_callback;
+#endif
+
+    PeripheralRegisterClass *pr_class = PERIPHERAL_REGISTER_CLASS(klass);
+    pr_class->read = peripheral_register_read_callback;
+    pr_class->write = peripheral_register_write_callback;
 }
 
-static const TypeInfo register_type_info = {
-    .name = TYPE_REGISTER,
-    .parent = TYPE_REGISTER_PARENT,
-    //.instance_init = register_instance_init,
-    .instance_size = sizeof(RegisterState),
-    .class_init = register_class_init,
-    .class_size = sizeof(RegisterClass) };
+static const TypeInfo peripheral_register_type_info = {
+    .name = TYPE_PERIPHERAL_REGISTER,
+    .parent = TYPE_PERIPHERAL_REGISTER_PARENT,
+    .instance_init = peripheral_register_instance_init_callback,
+    .instance_size = sizeof(PeripheralRegisterState),
+    .class_init = peripheral_register_class_init,
+    .class_size = sizeof(PeripheralRegisterClass) };
 
-static void register_register_types(void)
+static void register_peripheral_register_types(void)
 {
-    type_register_static(&register_type_info);
+    type_register_static(&peripheral_register_type_info);
 }
 
-type_init(register_register_types);
+type_init(register_peripheral_register_types);
+
+/* ------------------------------------------------------------------------- */
+
+static void derived_peripheral_register_instance_init_callback(Object *obj)
+{
+    qemu_log_function_name();
+
+    const char *type_name = object_get_typename(obj);
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+    PeripheralRegisterDerivedClass *klass =
+            PERIPHERAL_REGISTER_DERIVED_GET_CLASS(obj, type_name);
+
+    /*
+     * After properties are set with default values, copy actual
+     * values from class.
+     */
+    state->offset = klass->offset;
+    state->reset_value = klass->reset_value;
+    state->readable_bits = klass->readable_bits;
+    state->writable_bits = klass->writable_bits;
+    state->access_flags = klass->access_flags;
+
+    state->value = klass->reset_value;
+}
+
+static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
+        void *data)
+{
+    PeripheralRegisterTypeInfo *ti = (PeripheralRegisterTypeInfo *) data;
+    PeripheralRegisterClass *pr_class = PERIPHERAL_REGISTER_CLASS(klass);
+
+    pr_class->read = ti->read;
+    pr_class->write = ti->write;
+
+    const char *type_name = object_class_get_name(klass);
+    PeripheralRegisterDerivedClass *prd_class =
+            PERIPHERAL_REGISTER_DERIVED_CLASS(klass, type_name);
+
+    /* Copy info members into class. */
+    prd_class->name = ti->name;
+    prd_class->desc = ti->desc;
+    prd_class->offset = ti->offset;
+    prd_class->reset_value = ti->reset_value;
+    prd_class->readable_bits = ti->readable_bits;
+    prd_class->writable_bits = ti->writable_bits;
+    prd_class->access_flags = ti->access_flags;
+
+    prd_class->bitfields = ti->bitfields;
+}
 
 /* ------------------------------------------------------------------------- */
 

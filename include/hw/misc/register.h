@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REGISTER_H_
-#define REGISTER_H_
+#ifndef PEIPHERAL_REGISTER_H_
+#define PEIPHERAL_REGISTER_H_
 
 #include "config.h"
 #include "qemu/typedefs.h"
@@ -34,72 +34,137 @@
 /* ------------------------------------------------------------------------- */
 
 /* Allow all accesses, of all sizes. */
-#define REGISTER_DEFAULT_ACCESS_FLAGS     (0x0FFF)
+#define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS     (0xFFFFFFFF)
 
 typedef struct {
-    const char *name;
     const char *desc;
+
     hwaddr offset;
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
     uint32_t access_flags;
-    uint32_t array_size; /* For multiple identical registers, name[0]... */
-    uint64_t (*read)(hwaddr addr, unsigned size);
-    void (*write)(hwaddr addr, unsigned size, uint64_t value);
-    BitfieldInfo *bitfields;
-} RegisterInfo;
+    // uint32_t array_size; /* For multiple identical registers, name[0]... */
+    RegisterBitfieldInfo *bitfields;
+} PeripheralRegisterInfo;
+
+typedef struct {
+    const char *name; /* Type name, like gpio-bssr */
+    const char *desc;
+
+    hwaddr offset;
+    uint64_t reset_value;
+    uint64_t readable_bits;
+    uint64_t writable_bits;
+    uint32_t access_flags;
+    // uint32_t array_size; /* For multiple identical registers, name[0]... */
+    uint64_t (*read)(Object *obj, hwaddr addr, unsigned size);
+    void (*write)(Object *obj, hwaddr addr, unsigned size, uint64_t value);
+    RegisterBitfieldInfo *bitfields;
+} PeripheralRegisterTypeInfo;
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_REGISTER "register"
+#define TYPE_PERIPHERAL_REGISTER "peripheral-register"
+
+#define TYPE_PERIPHERAL_REGISTER_SUFFIX "-register"
 
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
-#define TYPE_REGISTER_PARENT TYPE_DEVICE
-typedef DeviceClass RegisterParentClass;
-typedef DeviceState RegisterParentState;
+#define TYPE_PERIPHERAL_REGISTER_PARENT TYPE_DEVICE
+typedef DeviceClass PeripheralRegisterParentClass;
+typedef DeviceState PeripheralRegisterParentState;
 
 /* ------------------------------------------------------------------------- */
 
-#define REGISTER_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(RegisterClass, (obj), TYPE_REGISTER)
-#define REGISTER_CLASS(klass) \
-    OBJECT_CLASS_CHECK(RegisterClass, (klass), TYPE_REGISTER)
+/* Class definitions. */
+#define PERIPHERAL_REGISTER_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(PeripheralRegisterClass, (obj), TYPE_PERIPHERAL_REGISTER)
+#define PERIPHERAL_REGISTER_CLASS(klass) \
+    OBJECT_CLASS_CHECK(PeripheralRegisterClass, (klass), TYPE_PERIPHERAL_REGISTER)
 
 typedef struct {
     /*< private >*/
-    RegisterParentClass parent_class;
+    PeripheralRegisterParentClass parent_class;
     /*< public >*/
 
-} RegisterClass;
+    uint64_t (*read)(Object *obj, hwaddr addr, unsigned size);
+    void (*write)(Object *obj, hwaddr addr, unsigned size, uint64_t value);
+
+} PeripheralRegisterClass;
 
 /* ------------------------------------------------------------------------- */
 
-#define REGISTER_STATE(obj) \
-    OBJECT_CHECK(RegisterState, (obj), TYPE_REGISTER)
+/* Instance definitions. */
+#define PERIPHERAL_REGISTER_STATE(obj) \
+    OBJECT_CHECK(PeripheralRegisterState, (obj), TYPE_PERIPHERAL_REGISTER)
 
 typedef struct {
     /*< private >*/
-    RegisterParentState parent_obj;
+    PeripheralRegisterParentState parent_obj;
     /*< public >*/
 
-    //MemoryRegion mmio;
     hwaddr offset;
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
     uint32_t access_flags;
-    uint32_t array_size; /* For multiple identical registers, name[0]... */
+    //uint32_t array_size; /* For multiple identical registers, name[0]... */
 
     uint64_t value;
-} RegisterState;
-
-/* ----- Public ------------------------------------------------------------ */
-
-uint64_t register_get_value(Object* obj);
+} PeripheralRegisterState;
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* REGISTER_H_ */
+/* Derived class definitions. */
+#define PERIPHERAL_REGISTER_DERIVED_GET_CLASS(obj, _t) \
+    OBJECT_GET_CLASS(PeripheralRegisterDerivedClass, (obj), _t)
+#define PERIPHERAL_REGISTER_DERIVED_CLASS(klass, _t) \
+    OBJECT_CLASS_CHECK(PeripheralRegisterDerivedClass, (klass), _t)
+
+typedef struct {
+    /*< private >*/
+    PeripheralRegisterParentClass parent_class;
+    /*< public >*/
+
+    const char *name;
+    const char *desc;
+
+    hwaddr offset;
+
+    uint64_t reset_value;
+    uint64_t readable_bits;
+    uint64_t writable_bits;
+    uint32_t access_flags;
+
+    RegisterBitfieldInfo *bitfields;
+
+} PeripheralRegisterDerivedClass;
+
+/* ------------------------------------------------------------------------- */
+
+/* Derived instance definitions. */
+#define PERIPHERAL_REGISTER_DERIVED_STATE(obj, _t) \
+    OBJECT_CHECK(PeripheralRegisterDerivedState, (obj), _t)
+
+typedef struct {
+    /*< private >*/
+    PeripheralRegisterState parent_obj;
+    /*< public >*/
+
+} PeripheralRegisterDerivedState;
+
+/* ----- Public ------------------------------------------------------------ */
+
+uint64_t peripheral_register_get_value(Object* obj);
+Object *peripheral_register_new(Object *parent, const char *node_name,
+        PeripheralRegisterInfo *info);
+Object *derived_peripheral_register_new(Object *parent, const char *node_name,
+        const char *type_name);
+
+void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg);
+
+/* ------------------------------------------------------------------------- */
+
+#endif /* PEIPHERAL_REGISTER_H_ */
