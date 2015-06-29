@@ -66,6 +66,19 @@ Object *cm_container_get_peripheral(void);
 void cm_object_property_add_child(Object *parent, const char *node_name,
         Object *child);
 
+void cm_object_property_add_str(Object *obj, const char *name, char **v);
+
+void cm_object_property_add_const_str(Object *obj, const char *name,
+        const char **v);
+
+void cm_object_property_add_bool(Object *obj, const char *name, const bool *v);
+
+void cm_object_property_add_uint64(Object *obj, const char *name,
+        const uint64_t *v);
+
+void cm_object_property_add_uint32(Object *obj, const char *name,
+        const uint32_t *v);
+
 /* ------------------------------------------------------------------------- */
 
 #endif /* CORTEXM_HELPER_H_ */

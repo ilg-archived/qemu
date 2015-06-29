@@ -22,6 +22,7 @@
 #include "hw/boards.h"
 #include "cpu-qom.h"
 #include "qemu/error-report.h"
+#include "qapi/visitor.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -274,6 +275,150 @@ void cm_object_property_add_child(Object *obj, const char *node_name,
 Object *cm_container_get_peripheral(void)
 {
     return container_get(object_get_root(), "/peripheral");
+}
+
+/* ------------------------------------------------------------------------- */
+
+static void cm_property_get_str(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    char *value = *(char **) opaque;
+    visit_type_str(v, &value, name, errp);
+}
+
+static void cm_property_set_str(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    Error *local_err = NULL;
+    char *value;
+    visit_type_str(v, &value, name, &local_err);
+    if (!local_err) {
+        *((char **) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_str(Object *obj, const char *name, char **v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "string", cm_property_get_str,
+            cm_property_set_str,
+            NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+
+void cm_object_property_add_const_str(Object *obj, const char *name,
+        const char **v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "string", cm_property_get_str,
+            cm_property_set_str,
+            NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+
+static void cm_property_get_bool(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    bool value = *(bool *) opaque;
+    visit_type_bool(v, &value, name, errp);
+}
+
+static void cm_property_set_bool(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    Error *local_err = NULL;
+    bool value;
+
+    visit_type_bool(v, &value, name, &local_err);
+    if (!local_err) {
+        *((bool *) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "bool", cm_property_get_bool,
+            cm_property_set_bool,
+            NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+static void cm_property_get_uint64_ptr(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    uint64_t value = *(uint64_t *) opaque;
+    visit_type_uint64(v, &value, name, errp);
+}
+
+static void cm_property_set_uint64_ptr(Object *obj, struct Visitor *v,
+        void *opaque, const char *name, Error **errp)
+{
+    Error *local_err = NULL;
+    uint64_t value;
+    visit_type_uint64(v, &value, name, &local_err);
+    if (!local_err) {
+        *((uint64_t *) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_uint64(Object *obj, const char *name,
+        const uint64_t *v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "uint64", cm_property_get_uint64_ptr,
+            cm_property_set_uint64_ptr, NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+
+static void cm_property_get_uint32_ptr(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    uint32_t value = *(uint32_t *) opaque;
+    visit_type_uint32(v, &value, name, errp);
+}
+
+static void cm_property_set_uint32_ptr(Object *obj, struct Visitor *v,
+        void *opaque, const char *name, Error **errp)
+{
+    Error *local_err = NULL;
+    uint32_t value;
+    visit_type_uint32(v, &value, name, &local_err);
+    if (!local_err) {
+        *((uint32_t *) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_uint32(Object *obj, const char *name,
+        const uint32_t *v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "uint32", cm_property_get_uint32_ptr,
+            cm_property_set_uint32_ptr, NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
 }
 
 /* ------------------------------------------------------------------------- */
