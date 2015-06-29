@@ -30,7 +30,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_STM32_XXX "stm32-xxx"
+#define TYPE_STM32_XXX "stm32:xxx-peripheral"
 
 /* ------------------------------------------------------------------------- */
 
@@ -71,7 +71,7 @@ typedef struct {
         struct {
             /* F1 specific registers */
             struct {
-                uint32_t cr;
+                Object *acr;
             } reg;
         } f1;
         struct {

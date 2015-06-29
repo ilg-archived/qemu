@@ -87,7 +87,7 @@ static void stm32f1_xxx_write32(STM32XxxState *state, uint32_t offset,
 
 /* ------------------------------------------------------------------------- */
 
-static uint64_t stm32_xxx_read(void *opaque, hwaddr addr, unsigned size)
+static uint64_t stm32_xxx_read_callback(void *opaque, hwaddr addr, unsigned size)
 {
     STM32XxxState *state = (STM32XxxState *) opaque;
     uint32_t offset = addr;
@@ -116,7 +116,7 @@ static uint64_t stm32_xxx_read(void *opaque, hwaddr addr, unsigned size)
     return 0;
 }
 
-static void stm32_xxx_write(void *opaque, hwaddr addr, uint64_t value,
+static void stm32_xxx_write_callback(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
     STM32XxxState *state = (STM32XxxState *) opaque;
@@ -145,14 +145,45 @@ static void stm32_xxx_write(void *opaque, hwaddr addr, uint64_t value,
 }
 
 static const MemoryRegionOps stm32_xxx_ops = {
-    .read = stm32_xxx_read,
-    .write = stm32_xxx_write,
+    .read = stm32_xxx_read_callback,
+    .write = stm32_xxx_write_callback,
     .endianness = DEVICE_NATIVE_ENDIAN, };
 
 /* ------------------------------------------------------------------------- */
 
+static PeripheralRegisterInfo stm32f1_flash_acr_info = {
+    .desc = "Flash access control register (FLASH_ACR)",
+    .offset = 0x00,
+    .reset_value = 0x00000030,
+    .readable_bits = 0x0000003F,
+    .writable_bits = 0x0000001F,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "latency",
+                    .first_bit = 0,
+                    .last_bit = 2 },
+                {
+                    .name = "hlfcya",
+                    .desc = "Flash half cycle access enable",
+                    .first_bit = 3 },
+                {
+                    .name = "prftbe",
+                    .desc = "Prefetch buffer enable",
+                    .first_bit = 4 },
+                {
+                    .name = "prftbs",
+                    .desc = "Prefetch buffer status",
+                    .first_bit = 5,
+                    .reset_value = 1,
+                    .mode = REGISTER_BITFIELD_MODE_READ,
+                    .follows = "prftbe" },
+                { }, /**/
+            } , /**/
+};
 
-static void stm32_xxx_instance_init(Object *obj)
+/* ------------------------------------------------------------------------- */
+
+static void stm32_xxx_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
@@ -161,7 +192,7 @@ static void stm32_xxx_instance_init(Object *obj)
     /* ... */
 }
 
-static void stm32_xxx_realize(DeviceState *dev, Error **errp)
+static void stm32_xxx_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
@@ -180,8 +211,14 @@ static void stm32_xxx_realize(DeviceState *dev, Error **errp)
     hwaddr addr;
     switch (capabilities->stm32.family) {
     case STM32_FAMILY_F1:
-        size = 0x3FF;
+        size = 0x400;
         addr = 0xE0000000;
+        
+        Object *reg;
+        reg = peripheral_register_new(obj, "acr", &stm32f1_flash_acr_info);
+        cm_object_realize(reg);
+        state->u.f1.reg.acr = DEVICE(reg);
+
         break;
     default:
         size = 0; /* This will trigger an assertion to fail */
@@ -196,7 +233,7 @@ static void stm32_xxx_realize(DeviceState *dev, Error **errp)
     /* ... */
 }
 
-static void stm32_xxx_reset(DeviceState *dev)
+static void stm32_xxx_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
@@ -207,28 +244,22 @@ static void stm32_xxx_reset(DeviceState *dev)
     /* ... */
 }
 
-/**
- * Properties for the 'cortexm_mcu' object, used as parent for
- * all vendor MCUs.
- */
-static Property stm32_xxx_properties[] = {
-        DEFINE_PROP_UINT32("sram-size-kb", STM32XxxState, sram_size_kb, 0),
-    DEFINE_PROP_END_OF_LIST() };
-
-static void stm32_xxx_class_init(ObjectClass *klass, void *data)
+static void stm32_xxx_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->reset = stm32_xxx_reset;
-    dc->realize = stm32_xxx_realize;
+    dc->reset = stm32_xxx_reset_callback;
+    dc->realize = stm32_xxx_realize_callback;
+  
+    STM32XxxClass *st_class = STM32_XXX_CLASS(klass);
 }
 
 static const TypeInfo stm32_xxx_type_info = {
     .name = TYPE_STM32_XXX,
     .parent = TYPE_STM32_XXX_PARENT,
-    .instance_init = stm32_xxx_instance_init,
+    .instance_init = stm32_xxx_instance_init_callback,
     .instance_size = sizeof(STM32XxxState),
-    .class_init = stm32_xxx_class_init,
+    .class_init = stm32_xxx_class_init_callback,
     .class_size = sizeof(STM32XxxClass) };
 
 static void stm32_xxx_register_types(void)
