@@ -30,9 +30,10 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define BITFIELD_MODE_READ          (0x01)
-#define BITFIELD_MODE_WRITE         (0x02)
-#define BITFIELD_MODE_READ_WRITE    (BITFIELD_MODE_READ | BITFIELD_MODE_WRITE)
+#define REGISTER_BITFIELD_MODE_READ          (0x01)
+#define REGISTER_BITFIELD_MODE_WRITE         (0x02)
+#define REGISTER_BITFIELD_MODE_READ_WRITE    \
+    (REGISTER_BITFIELD_MODE_READ | REGISTER_BITFIELD_MODE_WRITE)
 
 typedef struct {
     const char *name;
@@ -42,60 +43,62 @@ typedef struct {
     uint64_t reset_value;
     uint32_t mode;
     const char *follows;
-} BitfieldInfo;
+} RegisterBitfieldInfo;
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_BITFIELD "bitfield"
+#define TYPE_REGISTER_BITFIELD "register-bitfield"
 
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
-#define TYPE_BITFIELD_PARENT TYPE_DEVICE
-typedef DeviceClass BitfieldParentClass;
-typedef DeviceState BitfieldParentState;
+#define TYPE_REGISTER_BITFIELD_PARENT TYPE_DEVICE
+typedef DeviceClass RegisterBitfieldParentClass;
+typedef DeviceState RegisterBitfieldParentState;
 
 /* ------------------------------------------------------------------------- */
 
-#define BITFIELD_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(BitfieldClass, (obj), TYPE_BITFIELD)
-#define BITFIELD_CLASS(klass) \
-    OBJECT_CLASS_CHECK(BitfieldClass, (klass), TYPE_BITFIELD)
+#define REGISTER_BITFIELD_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(RegisterBitfieldClass, (obj), TYPE_REGISTER_BITFIELD)
+#define REGISTER_BITFIELD_CLASS(klass) \
+    OBJECT_CLASS_CHECK(RegisterBitfieldClass, (klass), TYPE_REGISTER_BITFIELD)
 
 typedef struct {
     /*< private >*/
-    BitfieldParentClass parent_class;
+    RegisterBitfieldParentClass parent_class;
     /*< public >*/
 
-} BitfieldClass;
+} RegisterBitfieldClass;
 
 /* ------------------------------------------------------------------------- */
 
-#define BITFIELD_STATE(obj) \
-    OBJECT_CHECK(BitfieldState, (obj), TYPE_BITFIELD)
+#define REGISTER_BITFIELD_STATE(obj) \
+    OBJECT_CHECK(RegisterBitfieldState, (obj), TYPE_REGISTER_BITFIELD)
 
 typedef struct {
     /*< private >*/
-    BitfieldParentState parent_obj;
+    RegisterBitfieldParentState parent_obj;
     /*< public >*/
 
     uint32_t register_size_bits;
 
     uint32_t first_bit;
     uint32_t last_bit;
-    uint64_t reset_value;bool is_readable;bool is_writable;
+    uint64_t reset_value; /**/
+    bool is_readable; /**/
+    bool is_writable;
     const char *follows;
 
     /* The field value is ((parent->value & mask) >> shift) */
     uint64_t mask;
     uint32_t shift;
 
-} BitfieldState;
+} RegisterBitfieldState;
 
 /* ----- Public ------------------------------------------------------------ */
 
-bool bitfield_is_zero(Object* obj);
-uint64_t bitfield_get_value(Object* obj);
+bool register_bitfield_is_zero(Object* obj);
+uint64_t register_bitfield_get_value(Object* obj);
 
 /* ------------------------------------------------------------------------- */
 

@@ -33,58 +33,76 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
-uint64_t bitfield_get_value(Object* obj)
+uint64_t register_bitfield_get_value(Object* obj)
 {
 
-    RegisterState *reg_state = REGISTER_STATE(obj->parent);
-    BitfieldState *state = BITFIELD_STATE(obj);
+    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(obj->parent);
+    RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
 
     return (reg_state->value >> state->shift) & state->mask;
 }
 
-bool bitfield_is_zero(Object* obj)
+bool register_bitfield_is_zero(Object* obj)
 {
 
-    RegisterState *reg_state = REGISTER_STATE(obj->parent);
-    BitfieldState *state = BITFIELD_STATE(obj);
+    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(obj->parent);
+    RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
 
     return (reg_state->value & state->mask) == 0;
 }
 
 /* ----- Private ----------------------------------------------------------- */
 
-#if 0
-static void bitfield_instance_init(Object *obj)
+static void register_bitfield_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
-    BitfieldState *state = BITFIELD_STATE(obj);
+    RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
 
-    /* ... */
+    cm_object_property_add_uint32(obj, "register-size-bits",
+            &state->register_size_bits);
+    state->register_size_bits = 32;
+
+    cm_object_property_add_uint32(obj, "first-bit", &state->first_bit);
+    state->first_bit = 0;
+
+    cm_object_property_add_uint32(obj, "last-bit", &state->last_bit);
+    state->last_bit = 0;
+
+    cm_object_property_add_uint64(obj, "reset-value", &state->reset_value);
+    state->reset_value = 0;
+
+    cm_object_property_add_bool(obj, "is-readable", &state->is_readable);
+    state->is_readable = false;
+
+    cm_object_property_add_bool(obj, "is-writable", &state->is_writable);
+    state->is_writable = false;
+
+    cm_object_property_add_const_str(obj, "follows", &state->follows);
+    state->follows = NULL;
 }
-#endif
 
-static void bitfield_realize(DeviceState *dev, Error **errp)
+static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
     /* Call parent realize(). */
-    if (!cm_device_parent_realize(dev, errp, TYPE_BITFIELD)) {
+    if (!cm_device_parent_realize(dev, errp, TYPE_REGISTER_BITFIELD)) {
         return;
     }
 
     Object *parent = OBJECT(dev)->parent;
     assert(parent);
 
-    if (strcmp(TYPE_REGISTER, object_get_typename(parent)) != 0) {
+    if (strcmp(TYPE_PERIPHERAL_REGISTER, object_get_typename(parent)) != 0) {
         if (errp) {
             error_setg(errp, "Bitfield not a child of register\n.");
             return;
         }
     }
-    RegisterState *reg_state = REGISTER_STATE(parent);
+    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(parent);
 
-    BitfieldState *state = BITFIELD_STATE(dev);
+    RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(dev);
     assert(state->register_size_bits);
     assert(state->register_size_bits <= 64);
 
@@ -159,43 +177,27 @@ static void bitfield_realize(DeviceState *dev, Error **errp)
     reg_state->reset_value |= (state->reset_value << state->shift);
 }
 
-static Property bitfield_properties[] = {
-
-        DEFINE_PROP_UINT32("register-size-bits", BitfieldState,
-                register_size_bits, 32),
-        DEFINE_PROP_UINT32("first-bit", BitfieldState, first_bit, 0),
-        DEFINE_PROP_UINT32("last-bit", BitfieldState, last_bit, 0),
-        DEFINE_PROP_UINT64("reset-value", BitfieldState, reset_value, 0x0),
-        DEFINE_PROP_BOOL("is-readable", BitfieldState, is_readable,
-                false),
-        DEFINE_PROP_BOOL("is-writable", BitfieldState, is_writable,
-                false),
-        DEFINE_PROP_CONST_STRING("follows", BitfieldState, follows),
-
-    DEFINE_PROP_END_OF_LIST(), };
-
-static void bitfield_class_init(ObjectClass *klass, void *data)
+static void register_bitfield_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->realize = bitfield_realize;
-    dc->props = bitfield_properties;
+    dc->realize = register_bitfield_realize_callback;
 }
 
-static const TypeInfo bitfield_type_info = {
-    .name = TYPE_BITFIELD,
-    .parent = TYPE_BITFIELD_PARENT,
-    //.instance_init = bitfield_instance_init,
-    .instance_size = sizeof(BitfieldState),
-    .class_init = bitfield_class_init,
-    .class_size = sizeof(BitfieldClass) };
+static const TypeInfo register_bitfield_type_info = {
+    .name = TYPE_REGISTER_BITFIELD,
+    .parent = TYPE_REGISTER_BITFIELD_PARENT,
+    .instance_init = register_bitfield_instance_init_callback,
+    .instance_size = sizeof(RegisterBitfieldState),
+    .class_init = register_bitfield_class_init,
+    .class_size = sizeof(RegisterBitfieldClass) };
 
-static void bitfield_register_types(void)
+static void register_bitfield_register_types(void)
 {
-    type_register_static(&bitfield_type_info);
+    type_register_static(&register_bitfield_type_info);
 }
 
-type_init(bitfield_register_types);
+type_init(register_bitfield_register_types);
 
 /* ------------------------------------------------------------------------- */
 
