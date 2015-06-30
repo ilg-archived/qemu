@@ -101,10 +101,32 @@ ARMCPU *cm_cpu_arm_create(Object *parent, const char *cpu_model)
     return cpu;
 }
 
+/* ------------------------------------------------------------------------- */
+
 Object *cm_object_get_parent(Object *obj)
 {
     return obj->parent;
 }
+
+/**
+ * Return true if the node is of given type. Go up the class hierarchy.
+ */
+bool cm_object_is_instance_of_typename(Object *obj, const char *type_name)
+{
+    ObjectClass *klass = object_get_class(obj);
+    for (; klass;) {
+        const char *name = object_class_get_name(klass);
+
+        if (strcmp(type_name, name) == 0) {
+            return true;
+        }
+        klass = object_class_get_parent(klass);
+    }
+
+    return false;
+}
+
+/* ------------------------------------------------------------------------- */
 
 /**
  *  Realize object. Errors are fatal.
@@ -146,6 +168,16 @@ Object *cm_object_new(Object *parent, const char* node_name,
 Object *cm_object_new_mcu(const char *type_name)
 {
     return cm_object_new(cm_object_get_machine(), "mcu", type_name);
+}
+
+/**
+ * Reset the device, if it exists.
+ */
+void cm_device_reset(DeviceState *dev)
+{
+    if (dev != NULL) {
+        device_reset(dev);
+    }
 }
 
 /**

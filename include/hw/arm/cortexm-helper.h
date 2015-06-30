@@ -50,8 +50,11 @@ Object *cm_object_new(Object *parent, const char *name, const char *type_name);
 Object *cm_object_new_mcu(const char *type_name);
 
 Object *cm_object_get_parent(Object *obj);
+bool cm_object_is_instance_of_typename(Object *obj, const char *type_name);
 
 void cm_object_realize(Object *dev);
+
+void cm_device_reset(DeviceState *dev);
 
 bool cm_device_parent_realize(DeviceState *dev, Error **errp,
         const char *type_name);
