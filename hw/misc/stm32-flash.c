@@ -120,28 +120,46 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     /*
-     * Parent realize() is called after setting properties
-     * and adding registers.
+     * Parent realize() is called after setting properties and creating
+     * registers.
      */
     STM32FlashState *state = STM32_FLASH_STATE(dev);
-
-    Object *obj = OBJECT(dev);
 
     const STM32Capabilities *capabilities = state->capabilities;
     assert(capabilities != NULL);
 
-    uint64_t size;
-    hwaddr addr;
+    Object *obj = OBJECT(dev);
 
     /* Must be defined before creating registers. */
-    cm_object_property_set_int(obj, 32, "register-size-bits");
+    cm_object_property_set_int(obj, 4, "register-size-bytes");
+
+    /* TODO: get it from MCU */
+    cm_object_property_set_bool(obj, true, "is-little-endian");
+
+    uint64_t size;
+    hwaddr addr;
 
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
         addr = 0x40022000;
         size = 0x400;
+        break;
 
-        Object *reg;
+    default:
+        /*
+         * This will trigger an assertion to fail when creating the
+         * memory region in the parent class.
+         */
+        addr = 0;
+        size = 0;
+    }
+
+    cm_object_property_set_int(obj, addr, "mmio-address");
+    cm_object_property_set_int(obj, size, "mmio-size-bytes");
+
+    Object *reg;
+    switch (capabilities->family) {
+    case STM32_FAMILY_F1:
         reg = peripheral_register_new(obj, "acr", &stm32f1_flash_acr_info);
         cm_object_realize(reg);
         state->u.f1.reg.acr = DEVICE(reg);
@@ -206,22 +224,14 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     default:
-        /*
-         * This will trigger an assertion to fail when creating the
-         * memory region in the parent class.
-         */
-        addr = 0;
-        size = 0;
+        break;
     }
-
-    cm_object_property_set_int(obj, addr, "mmio-address");
-    cm_object_property_set_int(obj, size, "mmio-size");
-
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_FLASH)) {
         return;
     }
+
 }
 
 static void stm32_flash_reset_callback(DeviceState *dev)
@@ -230,6 +240,35 @@ static void stm32_flash_reset_callback(DeviceState *dev)
 
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_STM32_FLASH);
+
+    STM32FlashState *state = STM32_FLASH_STATE(dev);
+
+    const STM32Capabilities *capabilities = state->capabilities;
+    assert(capabilities != NULL);
+
+    /* No bus used, explicitly reset all children peripherals. */
+    switch (capabilities->family) {
+    case STM32_FAMILY_F1:
+
+        device_reset(state->u.f1.reg.acr);
+        device_reset(state->u.f1.reg.keyr);
+        device_reset(state->u.f1.reg.optkeyr);
+        device_reset(state->u.f1.reg.sr);
+        device_reset(state->u.f1.reg.cr);
+        device_reset(state->u.f1.reg.ar);
+        device_reset(state->u.f1.reg.obr);
+        device_reset(state->u.f1.reg.wrpr);
+        if (capabilities->f1.is_xd) {
+            device_reset(state->u.f1.reg.keyr2);
+            device_reset(state->u.f1.reg.sr2);
+            device_reset(state->u.f1.reg.cr2);
+            device_reset(state->u.f1.reg.ar2);
+        }
+        break;
+
+    default:
+        break;
+    }
 }
 
 static Property stm32_flash_properties[] = {

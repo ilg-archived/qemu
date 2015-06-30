@@ -50,6 +50,7 @@ typedef struct {
     STM32FlashParentClass parent_class;
     /*< public >*/
 
+    /* None, so far. */
 } STM32FlashClass;
 
 /* ------------------------------------------------------------------------- */
