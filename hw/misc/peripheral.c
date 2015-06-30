@@ -84,6 +84,10 @@ static void peripheral_instance_init_callback(Object *obj)
             &state->default_access_flags);
     /* Allow all */
     state->default_access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
+
+    cm_object_property_add_uint32(obj, "register-size-bits",
+            &state->register_size_bits);
+    state->register_size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BITS;
 }
 
 static void peripheral_realize_callback(DeviceState *dev, Error **errp)

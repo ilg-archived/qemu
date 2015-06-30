@@ -25,8 +25,8 @@
 //#include "exec/address-spaces.h"
 
 /**
- * Parent type for 32-bits peripherals.
- * It builds an array of 32-bits registers and forwards read/writes to them.
+ * Parent type for peripherals.
+ * It builds an array of registers and forwards read/writes to them.
  */
 
 /* ------------------------------------------------------------------------- */
@@ -81,6 +81,8 @@ typedef struct {
 
     /* Default access flags, when registers do not define them. */
     uint32_t default_access_flags;
+
+    uint32_t register_size_bits;
 
 } PeripheralState;
 
