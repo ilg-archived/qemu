@@ -22,6 +22,8 @@
 
 #include "hw/sysbus.h"
 #include "exec/address-spaces.h"
+#include "hw/misc/peripheral.h"
+#include "hw/arm/cortexm-helper.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -30,7 +32,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_CORTEXM_ITM "cortexm-itm"
+#define TYPE_CORTEXM_ITM TYPE_CORTEXM_PREFIX "itm" TYPE_PERIPHERAL_SUFFIX
 
 /* ------------------------------------------------------------------------- */
 

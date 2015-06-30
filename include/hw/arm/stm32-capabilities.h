@@ -182,8 +182,6 @@ typedef struct {
     /* Number of backup bytes */
     uint32_t num_back_bytes;
 
-
-
     /*
      * Note: the family definitions are mutual exclusive, and could
      * be packed in a union, but this makes writing the definitions

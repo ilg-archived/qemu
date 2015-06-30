@@ -23,6 +23,7 @@
 #include "config.h"
 #include "hw/sysbus.h"
 #include "hw/misc/stm32-sys-bus-device.h"
+#include "hw/misc/peripheral.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -38,7 +39,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_STM32_RCC "stm32-rcc"
+#define TYPE_STM32_RCC TYPE_STM32_PREFIX "rcc" TYPE_PERIPHERAL_SUFFIX
 
 /* ------------------------------------------------------------------------- */
 

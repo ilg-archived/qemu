@@ -23,11 +23,15 @@
 #define CORTEXM_NVIC_H
 
 #include "hw/intc/gic_internal.h"
+#include "hw/misc/peripheral.h"
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_CORTEXM_NVIC "cortexm-nvic"
+#define TYPE_CORTEXM_NVIC TYPE_CORTEXM_PREFIX "nvic" TYPE_PERIPHERAL_SUFFIX
 
+/* ------------------------------------------------------------------------- */
+
+/* Parent definitions. */
 #define TYPE_CORTEXM_NVIC_PARENT TYPE_ARM_GIC_COMMON
 typedef ARMGICClass CortexMNVICParentClass;
 typedef GICState CortexMNVICParentState;
@@ -38,6 +42,12 @@ typedef struct {
 
 } CortexMNVICConstruct;
 
+/* Class definitions. */
+#define CORTEXM_NVIC_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(CortexMNVICClass, (obj), TYPE_CORTEXM_NVIC)
+#define CORTEXM_NVIC_CLASS(klass) \
+    OBJECT_CLASS_CHECK(CortexMNVICClass, (klass), TYPE_CORTEXM_NVIC)
+
 typedef struct {
     /*< private >*/
     CortexMNVICParentClass parent_class;
@@ -45,10 +55,11 @@ typedef struct {
 
 } CortexMNVICClass;
 
-#define CORTEXM_NVIC_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(CortexMNVICClass, (obj), TYPE_CORTEXM_NVIC)
-#define CORTEXM_NVIC_CLASS(klass) \
-    OBJECT_CLASS_CHECK(CortexMNVICClass, (klass), TYPE_CORTEXM_NVIC)
+/* ------------------------------------------------------------------------- */
+
+/* Instance definitions. */
+#define CORTEXM_NVIC_STATE(obj) \
+    OBJECT_CHECK(CortexMNVICState, (obj), TYPE_CORTEXM_NVIC)
 
 typedef struct {
     /*< private >*/
@@ -66,9 +77,6 @@ typedef struct {
     MemoryRegion container;
     uint32_t num_irq;
 } CortexMNVICState;
-
-#define CORTEXM_NVIC_STATE(obj) \
-    OBJECT_CHECK(CortexMNVICState, (obj), TYPE_CORTEXM_NVIC)
 
 /* ------------------------------------------------------------------------- */
 

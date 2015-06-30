@@ -25,10 +25,11 @@
 #include "hw/misc/stm32-sys-bus-device.h"
 #include "exec/address-spaces.h"
 #include "hw/misc/stm32-rcc.h"
+#include "hw/misc/peripheral.h"
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_STM32_GPIO "stm32-gpio"
+#define TYPE_STM32_GPIO TYPE_STM32_PREFIX "gpio" TYPE_PERIPHERAL_SUFFIX
 
 /* ------------------------------------------------------------------------- */
 

@@ -25,6 +25,10 @@
 
 /* ------------------------------------------------------------------------- */
 
+#define TYPE_CORTEXM_PREFIX     "cortexm:"
+
+/* ------------------------------------------------------------------------- */
+
 #define DEFINE_PROP_CONST_STRING(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_string, const char*)
 

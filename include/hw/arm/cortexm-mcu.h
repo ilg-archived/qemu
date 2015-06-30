@@ -85,7 +85,7 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_CORTEXM_MCU "cortexm-mcu"
+#define TYPE_CORTEXM_MCU TYPE_CORTEXM_PREFIX "mcu"
 
 /* ------------------------------------------------------------------------- */
 

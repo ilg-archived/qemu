@@ -117,7 +117,6 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
         Object *mem_container = container_get(cm_state->container, "/memory");
 
-        STM32MCUState *state = STM32_MCU_STATE(dev);
         /* Initialise the new region */
         memory_region_init_alias(flash_alias_mem, mem_container,
                 "mem-flash-alias", &cm_state->flash_mem, 0, flash_size);
