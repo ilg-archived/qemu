@@ -62,7 +62,7 @@ static PeripheralRegisterInfo stm32f1_flash_acr_info = {
                     .desc = "Prefetch buffer status",
                     .first_bit = 5,
                     .reset_value = 1,
-                    .mode = REGISTER_BITFIELD_MODE_READ,
+                    .rw_mode = REGISTER_RW_MODE_READ,
                     .follows = "prftbe" },
                 { }, /**/
             } , /**/
@@ -132,6 +132,9 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
     uint64_t size;
     hwaddr addr;
+
+    /* Must be defined before creating registers. */
+    cm_object_property_set_int(obj, 32, "register-size-bits");
 
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
@@ -211,8 +214,9 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
         size = 0;
     }
 
-    object_property_set_int(obj, addr, "mmio-address", NULL);
-    object_property_set_int(obj, size, "mmio-size", NULL);
+    cm_object_property_set_int(obj, addr, "mmio-address");
+    cm_object_property_set_int(obj, size, "mmio-size");
+
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_FLASH)) {
