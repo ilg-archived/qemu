@@ -20,7 +20,7 @@
 #ifndef PERIPHERAL_H_
 #define PERIPHERAL_H_
 
-#include "hw/misc/register.h"
+#include "hw/misc/peripheral-register.h"
 
 //#include "exec/address-spaces.h"
 
@@ -42,6 +42,7 @@ typedef SysBusDevice PeripheralParentState;
 
 /* ------------------------------------------------------------------------- */
 
+/* Class definitions. */
 #define PERIPHERAL_GET_CLASS(obj) \
     OBJECT_GET_CLASS(PeripheralClass, (obj), TYPE_PERIPHERAL)
 #define PERIPHERAL_CLASS(klass) \
@@ -56,6 +57,7 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
+/* Instance definitions. */
 #define PERIPHERAL_STATE(obj) \
     OBJECT_CHECK(PeripheralState, (obj), TYPE_PERIPHERAL)
 

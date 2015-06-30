@@ -17,12 +17,12 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PEIPHERAL_REGISTER_H_
-#define PEIPHERAL_REGISTER_H_
+#ifndef PERIPHERAL_REGISTER_H_
+#define PERIPHERAL_REGISTER_H_
 
 #include "config.h"
 #include "qemu/typedefs.h"
-#include "hw/misc/bitfield.h"
+#include "hw/misc/register-bitfield.h"
 
 //#include "exec/address-spaces.h"
 
@@ -167,4 +167,4 @@ void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg);
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* PEIPHERAL_REGISTER_H_ */
+#endif /* PERIPHERAL_REGISTER_H_ */

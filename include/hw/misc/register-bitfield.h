@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef BITFIELD_H_
-#define BITFIELD_H_
+#ifndef REGISTER_BITFIELD_H_
+#define REGISTER_BITFIELD_H_
 
 #include "config.h"
 #include "qemu/typedefs.h"
@@ -58,6 +58,7 @@ typedef DeviceState RegisterBitfieldParentState;
 
 /* ------------------------------------------------------------------------- */
 
+/* Class definitions. */
 #define REGISTER_BITFIELD_GET_CLASS(obj) \
     OBJECT_GET_CLASS(RegisterBitfieldClass, (obj), TYPE_REGISTER_BITFIELD)
 #define REGISTER_BITFIELD_CLASS(klass) \
@@ -72,6 +73,7 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
+/* Instance definitions. */
 #define REGISTER_BITFIELD_STATE(obj) \
     OBJECT_CHECK(RegisterBitfieldState, (obj), TYPE_REGISTER_BITFIELD)
 
@@ -102,4 +104,4 @@ uint64_t register_bitfield_get_value(Object* obj);
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* BITFIELD_H_ */
+#endif /* REGISTER_BITFIELD_H_ */

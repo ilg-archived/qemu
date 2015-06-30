@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/peripheral32.h"
+#include "hw/misc/peripheral.h"
 #include "hw/arm/cortexm-helper.h"
 
 /* ----- Public ------------------------------------------------------------ */

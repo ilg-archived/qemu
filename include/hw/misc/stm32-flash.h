@@ -20,7 +20,7 @@
 #ifndef STM32_FLASH_H_
 #define STM32_FLASH_H_
 
-#include "hw/misc/peripheral32.h"
+#include "hw/misc/peripheral.h"
 #include "hw/arm/stm32-capabilities.h"
 
 /* ------------------------------------------------------------------------- */

@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/register.h"
+#include "hw/misc/peripheral-register.h"
 #include "hw/arm/cortexm-helper.h"
 
 /**
@@ -52,7 +52,6 @@ Object *peripheral_register_new(Object *parent, const char *node_name,
     Object *obj_reg = cm_object_new(parent, node_name,
     TYPE_PERIPHERAL_REGISTER);
 
-    printf("Register %s\n", object_class_get_name(obj_reg));
     cm_object_property_set_int(obj_reg, info->offset, "offset");
     cm_object_property_set_int(obj_reg, info->reset_value, "reset-value");
     cm_object_property_set_int(obj_reg, info->readable_bits, "readable-bits");
@@ -62,7 +61,6 @@ Object *peripheral_register_new(Object *parent, const char *node_name,
 
         RegisterBitfieldInfo *pbf;
         for (pbf = info->bitfields; pbf->name; ++pbf) {
-            printf("Bitfield %s\n", pbf->name);
 
             Object *obj_bf = cm_object_new(obj_reg, pbf->name,
             TYPE_REGISTER_BITFIELD);

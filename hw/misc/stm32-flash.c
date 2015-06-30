@@ -68,7 +68,7 @@ static PeripheralRegisterInfo stm32f1_flash_acr_info = {
             } , /**/
 };
 
-/* Only very schematic, read after write only. */
+/* Very schematic, functional read after write only. */
 static PeripheralRegisterInfo stm32f1_flash_keyr_info = {
     .offset = 0x04, };
 
@@ -88,6 +88,7 @@ static PeripheralRegisterInfo stm32f1_flash_ar_info = {
 
 static PeripheralRegisterInfo stm32f1_flash_obr_info = {
     .offset = 0x1C, };
+
 static PeripheralRegisterInfo stm32f1_flash_wrpr_info = {
     .offset = 0x20, };
 
