@@ -52,10 +52,11 @@ Object *peripheral_register_new(Object *parent, const char *node_name,
     Object *obj_reg = cm_object_new(parent, node_name,
     TYPE_PERIPHERAL_REGISTER);
 
-    cm_object_property_set_int(obj_reg, info->offset, "offset");
+    cm_object_property_set_int(obj_reg, info->offset_bytes, "offset-bytes");
     cm_object_property_set_int(obj_reg, info->reset_value, "reset-value");
     cm_object_property_set_int(obj_reg, info->readable_bits, "readable-bits");
     cm_object_property_set_int(obj_reg, info->access_flags, "access-flags");
+    cm_object_property_set_int(obj_reg, info->size_bits, "size-bits");
 
     if (info->bitfields) {
 
@@ -142,8 +143,8 @@ static void peripheral_register_instance_init_callback(Object *obj)
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     /* Add properties and set default values. */
-    cm_object_property_add_uint64(obj, "offset", &state->offset);
-    state->offset = 0x00000000;
+    cm_object_property_add_uint64(obj, "offset-bytes", &state->offset_bytes);
+    state->offset_bytes = 0x00000000;
 
     cm_object_property_add_uint64(obj, "reset-value", &state->reset_value);
     state->reset_value = 0x00000000;
@@ -156,6 +157,9 @@ static void peripheral_register_instance_init_callback(Object *obj)
 
     cm_object_property_add_uint32(obj, "access-flags", &state->access_flags);
     state->access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
+
+    cm_object_property_add_uint32(obj, "size-bits", &state->size_bits);
+    state->size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BITS;
 
     state->value = 0x00000000;
 }
@@ -232,7 +236,7 @@ static void derived_peripheral_register_instance_init_callback(Object *obj)
      * After properties are set with default values, copy actual
      * values from class.
      */
-    state->offset = klass->offset;
+    state->offset_bytes = klass->offset_bytes;
     state->reset_value = klass->reset_value;
     state->readable_bits = klass->readable_bits;
     state->writable_bits = klass->writable_bits;
@@ -257,7 +261,7 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
     /* Copy info members into class. */
     prd_class->name = ti->name;
     prd_class->desc = ti->desc;
-    prd_class->offset = ti->offset;
+    prd_class->offset_bytes = ti->offset_bytes;
     prd_class->reset_value = ti->reset_value;
     prd_class->readable_bits = ti->readable_bits;
     prd_class->writable_bits = ti->writable_bits;

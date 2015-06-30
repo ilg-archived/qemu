@@ -40,7 +40,7 @@
 
 static PeripheralRegisterInfo stm32f1_flash_acr_info = {
     .desc = "Flash access control register (FLASH_ACR)",
-    .offset = 0x00,
+    .offset_bytes = 0x00,
     .reset_value = 0x00000030,
     .readable_bits = 0x0000003F,
     .writable_bits = 0x0000001F,
@@ -70,43 +70,43 @@ static PeripheralRegisterInfo stm32f1_flash_acr_info = {
 
 /* Very schematic, functional read after write only. */
 static PeripheralRegisterInfo stm32f1_flash_keyr_info = {
-    .offset = 0x04, };
+    .offset_bytes = 0x04, };
 
 static PeripheralRegisterInfo stm32f1_flash_optkeyr_info = {
-    .offset = 0x08, };
+    .offset_bytes = 0x08, };
 
 static PeripheralRegisterInfo stm32f1_flash_sr_info = {
-    .offset = 0x0C, };
+    .offset_bytes = 0x0C, };
 
 static PeripheralRegisterInfo stm32f1_flash_cr_info = {
-    .offset = 0x10, };
+    .offset_bytes = 0x10, };
 
 static PeripheralRegisterInfo stm32f1_flash_ar_info = {
-    .offset = 0x14, };
+    .offset_bytes = 0x14, };
 
 /* 0x18 is reserved */
 
 static PeripheralRegisterInfo stm32f1_flash_obr_info = {
-    .offset = 0x1C, };
+    .offset_bytes = 0x1C, };
 
 static PeripheralRegisterInfo stm32f1_flash_wrpr_info = {
-    .offset = 0x20, };
+    .offset_bytes = 0x20, };
 
 /*
  * In addition to the above, the XL density devices
  * have a few more registers.
  */
 static PeripheralRegisterInfo stm32f1xd_flash_keyr2_info = {
-    .offset = 0x44, };
+    .offset_bytes = 0x44, };
 
 static PeripheralRegisterInfo stm32f1xd_flash_sr2_info = {
-    .offset = 0x4C, };
+    .offset_bytes = 0x4C, };
 
 static PeripheralRegisterInfo stm32f1xd_flash_cr2_info = {
-    .offset = 0x50, };
+    .offset_bytes = 0x50, };
 
 static PeripheralRegisterInfo stm32f1xd_flash_ar2_info = {
-    .offset = 0x54, };
+    .offset_bytes = 0x54, };
 
 /* ------------------------------------------------------------------------- */
 

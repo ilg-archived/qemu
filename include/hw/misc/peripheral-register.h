@@ -24,8 +24,6 @@
 #include "qemu/typedefs.h"
 #include "hw/misc/register-bitfield.h"
 
-//#include "exec/address-spaces.h"
-
 /**
  * Emulates the behaviour of a peripheral register.
  * Up to 64-bits are supported.
@@ -34,16 +32,19 @@
 /* ------------------------------------------------------------------------- */
 
 /* Allow all accesses, of all sizes. */
-#define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS     (0xFFFFFFFF)
+#define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS    (0xFFFFFFFF)
+
+#define PERIPHERAL_REGISTER_DEFAULT_SIZE_BITS       (32)
 
 typedef struct {
     const char *desc;
 
-    hwaddr offset;
+    hwaddr offset_bytes;
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
     uint32_t access_flags;
+    uint32_t size_bits;
     // uint32_t array_size; /* For multiple identical registers, name[0]... */
     RegisterBitfieldInfo *bitfields;
 } PeripheralRegisterInfo;
@@ -52,11 +53,12 @@ typedef struct {
     const char *name; /* Type name, like gpio-bssr */
     const char *desc;
 
-    hwaddr offset;
+    hwaddr offset_bytes;
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
     uint32_t access_flags;
+    uint32_t size_bits;
     // uint32_t array_size; /* For multiple identical registers, name[0]... */
     uint64_t (*read)(Object *obj, hwaddr addr, unsigned size);
     void (*write)(Object *obj, hwaddr addr, unsigned size, uint64_t value);
@@ -105,12 +107,13 @@ typedef struct {
     PeripheralRegisterParentState parent_obj;
     /*< public >*/
 
-    hwaddr offset;
+    hwaddr offset_bytes;
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
     uint32_t access_flags;
-    //uint32_t array_size; /* For multiple identical registers, name[0]... */
+
+    uint32_t size_bits;
 
     uint64_t value;
 } PeripheralRegisterState;
@@ -131,7 +134,7 @@ typedef struct {
     const char *name;
     const char *desc;
 
-    hwaddr offset;
+    hwaddr offset_bytes;
 
     uint64_t reset_value;
     uint64_t readable_bits;
