@@ -101,6 +101,11 @@ ARMCPU *cm_cpu_arm_create(Object *parent, const char *cpu_model)
     return cpu;
 }
 
+Object *cm_object_get_parent(Object *obj)
+{
+    return obj->parent;
+}
+
 /**
  *  Realize object. Errors are fatal.
  *  Similar to qdev_init_nofail(), but with a less-confusing name, since

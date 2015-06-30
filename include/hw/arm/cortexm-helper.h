@@ -49,6 +49,8 @@ ARMCPU *cm_cpu_arm_create(Object *parent, const char *cpu_model);
 Object *cm_object_new(Object *parent, const char *name, const char *type_name);
 Object *cm_object_new_mcu(const char *type_name);
 
+Object *cm_object_get_parent(Object *obj);
+
 void cm_object_realize(Object *dev);
 
 bool cm_device_parent_realize(DeviceState *dev, Error **errp,
