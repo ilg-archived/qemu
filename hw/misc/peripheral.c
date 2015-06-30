@@ -24,39 +24,79 @@
 
 /* ----- Private ----------------------------------------------------------- */
 
-#define STM32F1_FLASH_ACR_READ_MASK             (0x0000003F)
-#define STM32F1_FLASH_ACR_WRITE_MASK            (0x0000001F)
-
-static uint32_t acr;
-
+/**
+ * Memory region read callback.
+ *
+ * Forward the read to the register. The basic register will do the
+ * endiannes and size magic and return the value from the internal storage.
+ *
+ * For special processing, create a new derived type with custom read()
+ * and add the required actions.
+ */
 static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
         unsigned size)
 {
     PeripheralState *state = (PeripheralState *) opaque;
-    uint32_t offset = addr;
 
-    if (offset == 0) {
-        return (acr & STM32F1_FLASH_ACR_READ_MASK);
+    uint32_t index = addr >> (state->register_size_bytes);
+    assert(index < state->registers_size_ptrs);
+
+    PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(
+            state->registers[index]);
+    if (reg == NULL) {
+        qemu_log_mask(LOG_UNIMP, "%s: Peripheral read of size %d at offset "
+                "0x%llX not implemented.\n", object_get_typename(OBJECT(state)),
+                size, addr);
+        return 0;
     }
-    return 0;
+
+    /* Align address to register margin and pass offset separately. */
+    uint32_t reg_addr = addr & ~(state->register_size_bytes - 1);
+    uint32_t reg_offset = addr & (state->register_size_bytes - 1);
+
+    PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
+
+    /* Read the register value. */
+    uint64_t value = reg_class->read(OBJECT(reg), OBJECT(state), reg_addr,
+            reg_offset, size);
+
+    return value;
 }
 
+/**
+ * Memory region write callback.
+ *
+ * Forward the write to the register. The basic register will do the
+ * endiannes and size magic and store the value internally.
+ *
+ * For special processing, create a new derived type with custom write()
+ * and add the required actions.
+ */
 static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
     PeripheralState *state = (PeripheralState *) opaque;
-    uint32_t offset = addr;
 
-    if (offset == 0) {
-        uint32_t tmp;
+    uint32_t index = addr >> (state->register_size_bytes);
+    assert(index < state->registers_size_ptrs);
 
-        tmp = acr & (~STM32F1_FLASH_ACR_WRITE_MASK);
-        tmp |= (value & STM32F1_FLASH_ACR_WRITE_MASK);
-        tmp &= ~0x00000020; /* Clear ready bits */
-        /* All enabled oscs are ready */
-        tmp |= ((tmp & 0x00000010) << 1);
-        acr = tmp;
+    PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(
+            state->registers[index]);
+    if (reg == NULL) {
+        qemu_log_mask(LOG_UNIMP,
+                "%s: Write of size %d at offset 0x%llX not implemented.\n",
+                object_get_typename(OBJECT(state)), size, addr);
+        return;
     }
+
+    /* Align address to register margin and pass offset separately. */
+    uint32_t reg_addr = addr & ~(state->register_size_bytes - 1);
+    uint32_t reg_offset = addr & (state->register_size_bytes - 1);
+
+    PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
+    /* Write the value to the register. */
+    reg_class->write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset, size,
+            value);
 }
 
 static const MemoryRegionOps register_ops = {
@@ -77,17 +117,57 @@ static void peripheral_instance_init_callback(Object *obj)
     cm_object_property_add_uint64(obj, "mmio-address", &state->mmio_address);
     state->mmio_address = 0;
 
-    cm_object_property_add_uint32(obj, "mmio-size", &state->mmio_size);
-    state->mmio_size = 0;
+    cm_object_property_add_uint32(obj, "mmio-size-bytes",
+            &state->mmio_size_bytes);
+    state->mmio_size_bytes = 0;
 
     cm_object_property_add_uint32(obj, "default-access-flags",
             &state->default_access_flags);
     /* Allow all */
     state->default_access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
 
-    cm_object_property_add_uint32(obj, "register-size-bits",
-            &state->register_size_bits);
-    state->register_size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BITS;
+    cm_object_property_add_uint32(obj, "register-size-bytes",
+            &state->register_size_bytes);
+    state->register_size_bytes = PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES;
+
+    cm_object_property_add_bool(obj, "is-little-endian",
+            &state->is_little_endian);
+    state->is_little_endian = true;
+}
+
+static int peripheral_compute_max_offset(Object *obj, void *opaque)
+{
+    PeripheralState *periph = PERIPHERAL_STATE(opaque);
+
+    int count = 0;
+    /* Process only children that descend from a register. */
+    if (cm_object_is_instance_of_typename(obj, TYPE_PERIPHERAL_REGISTER)) {
+        PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj);
+        if (reg->offset_bytes > periph->max_offset_bytes) {
+            periph->max_offset_bytes = reg->offset_bytes;
+        }
+        count++;
+    }
+    periph->num_registers = count;
+    return 0;
+}
+
+static int peripheral_populate_registers_array(Object *obj, void *opaque)
+{
+    PeripheralState *periph = PERIPHERAL_STATE(opaque);
+    uint32_t num_bytes = periph->register_size_bytes / 8;
+
+    /* Process only children that descend from a register. */
+    if (cm_object_is_instance_of_typename(obj, TYPE_PERIPHERAL_REGISTER)) {
+        PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj);
+
+        uint32_t index = reg->offset_bytes >> num_bytes;
+        assert(periph->registers[index] == NULL);
+
+        periph->registers[index] = obj;
+    }
+
+    return 0;
 }
 
 static void peripheral_realize_callback(DeviceState *dev, Error **errp)
@@ -106,12 +186,36 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
         node_name = "mmio";
     }
     memory_region_init_io(&state->mmio, OBJECT(dev), &register_ops, state,
-            node_name, state->mmio_size);
+            node_name, state->mmio_size_bytes);
 
     sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0x0, state->mmio_address);
 
-    /* ... */
+    /*
+     * For fast access, create an array of registers, indexed by
+     * offset, aligned to register size (4 or 8).
+     *
+     * Warning: for large, sparse, peripherals, this might use a lot
+     * of memory.
+     */
+
+    /* Iterate children and determine the last register. */
+    state->max_offset_bytes = 0;
+    object_child_foreach(OBJECT(dev), peripheral_compute_max_offset,
+            (void *) dev);
+
+    assert(state->max_offset_bytes < state->mmio_size_bytes);
+
+    /* Compute the number of pointers the array should contain. */
+    state->registers_size_ptrs = (state->max_offset_bytes
+            >> (state->register_size_bytes / 8)) + 1;
+
+    /* Allocate the array of pointers to registers. */
+    state->registers = g_malloc0_n(state->registers_size_ptrs, sizeof(Object*));
+
+    /* Fill in the array with pointers to registers. */
+    object_child_foreach(OBJECT(dev), peripheral_populate_registers_array,
+            (void *) dev);
 }
 
 static void peripheral_reset_callback(DeviceState *dev)
@@ -123,8 +227,13 @@ static void peripheral_reset_callback(DeviceState *dev)
 
     PeripheralState *state = PERIPHERAL_STATE(dev);
 
-    acr = 0;
-    /* ... */
+    /* No bus used, explicitly reset all children registers. */
+    int i;
+    for (i = 0; i < state->registers_size_ptrs; ++i) {
+        if (state->registers[i] != NULL) {
+            device_reset(DEVICE(state->registers[i]));
+        }
+    }
 }
 
 static void peripheral_class_init(ObjectClass *klass, void *data)
@@ -136,6 +245,7 @@ static void peripheral_class_init(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo peripheral_type_info = {
+    .abstract = true,
     .name = TYPE_PERIPHERAL,
     .parent = TYPE_PERIPHERAL_PARENT,
     .instance_init = peripheral_instance_init_callback,

@@ -22,8 +22,6 @@
 
 #include "hw/misc/peripheral-register.h"
 
-//#include "exec/address-spaces.h"
-
 /**
  * Parent type for peripherals.
  * It builds an array of registers and forwards read/writes to them.
@@ -55,6 +53,7 @@ typedef struct {
     PeripheralParentClass parent_class;
     /*< public >*/
 
+    /* None, so far. */
 } PeripheralClass;
 
 /* ------------------------------------------------------------------------- */
@@ -75,22 +74,23 @@ typedef struct {
     hwaddr mmio_address;
 
     /* Memory region size, including reservation at the end */
-    uint32_t mmio_size;
+    uint32_t mmio_size_bytes;
 
     MemoryRegion mmio;
 
     /* Default access flags, when registers do not define them. */
     uint32_t default_access_flags;
 
-    uint32_t register_size_bits;
+    uint32_t register_size_bytes;
 
+    uint32_t max_offset_bytes;
+    uint32_t num_registers;
+
+    uint32_t registers_size_ptrs;
+    Object **registers;
+
+    bool is_little_endian;
 } PeripheralState;
-
-/* ------------------------------------------------------------------------- */
-
-#if 0
-void peripheral32_add_registers(DeviceState *dev, PeripheralRegisterInfo *regs);
-#endif
 
 /* ------------------------------------------------------------------------- */
 

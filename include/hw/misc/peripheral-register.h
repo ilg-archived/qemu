@@ -27,6 +27,14 @@
 /**
  * Emulates the behaviour of a peripheral register.
  * Up to 64-bits are supported.
+ *
+ * Register are defined in terms of offset inside the MMIO area,
+ * read/write masks, reset value.
+ *
+ * Registers may have bitfields as direct children.
+ *
+ * A special feature is the possibility to define status bitfields
+ * that follow enable/disable bitfields.
  */
 
 /* ------------------------------------------------------------------------- */
@@ -34,7 +42,7 @@
 /* Allow all accesses, of all sizes. */
 #define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS    (0xFFFFFFFF)
 
-#define PERIPHERAL_REGISTER_DEFAULT_SIZE_BITS       (32)
+#define PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES      (4)
 
 #define REGISTER_RW_MODE_READ          (0x01)
 #define REGISTER_RW_MODE_WRITE         (0x02)
@@ -43,25 +51,41 @@
 
 /* ------------------------------------------------------------------------- */
 
+/*
+ * Pass both the register and the peripheral, to allow
+ * inter-registers settings.
+ */
+typedef uint64_t (*register_read_callback_t)(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size);
+
+typedef void (*register_write_callback_t)(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size, uint64_t value);
+
+/**
+ * Info structure used for creating generic registers.
+ */
 typedef struct {
     const char *desc;
 
-    hwaddr offset_bytes;        /** No default, must be present. */
-    uint64_t reset_value;       /** Default 0x00000000. */
-    uint64_t readable_bits;     /** Default 0xFFFFFFFF. */
-    uint64_t writable_bits;     /** Default 0xFFFFFFFF. */
-    uint32_t access_flags;      /** Default all. */
-    uint32_t size_bits;         /** Default 32. */
-    uint32_t rw_mode;           /** Default R/W. */
+    uint32_t offset_bytes; /** No default, must be present. */
+    uint64_t reset_value; /** Default 0x00000000. */
+    uint64_t readable_bits; /** Default 0xFFFFFFFF. */
+    uint64_t writable_bits; /** Default 0xFFFFFFFF. */
+    uint32_t access_flags; /** Default all. */
+    uint32_t size_bits; /** Default 32. */
+    uint32_t rw_mode; /** Default R/W. */
 
     RegisterBitfieldInfo *bitfields;
 } PeripheralRegisterInfo;
 
+/**
+ * TypeInfo structure used to create new register types.
+ */
 typedef struct {
     const char *name; /* Type name, like gpio-bssr */
     const char *desc;
 
-    hwaddr offset_bytes;
+    uint32_t offset_bytes;
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
@@ -71,9 +95,25 @@ typedef struct {
 
     RegisterBitfieldInfo *bitfields;
 
-    uint64_t (*read)(Object *obj, hwaddr addr, unsigned size);
-    void (*write)(Object *obj, hwaddr addr, unsigned size, uint64_t value);
+    register_read_callback_t read;
+    register_write_callback_t write;
 } PeripheralRegisterTypeInfo;
+
+/*
+ * Automatically reflected bits (like ENABLE) into status bits
+ * (like READY). The mask defines which bits should be reflected and
+ * the shift how many positions should be shifted (+ <<, - >>).
+ *
+ * The operations are:
+ *      value &= ~(mask << shift);
+ *      value |= ((value & mask) << shift);
+ *
+ * The array is terminated by a zero mask.
+ */
+typedef struct {
+    uint64_t mask;
+    int shift;
+} PeripheralRegisterAutoBits;
 
 /* ------------------------------------------------------------------------- */
 
@@ -101,9 +141,8 @@ typedef struct {
     PeripheralRegisterParentClass parent_class;
     /*< public >*/
 
-    uint64_t (*read)(Object *obj, hwaddr addr, unsigned size);
-    void (*write)(Object *obj, hwaddr addr, unsigned size, uint64_t value);
-
+    register_read_callback_t read;
+    register_write_callback_t write;
 } PeripheralRegisterClass;
 
 /* ------------------------------------------------------------------------- */
@@ -119,7 +158,7 @@ typedef struct {
 
     const char *name;
 
-    hwaddr offset_bytes;
+    uint32_t offset_bytes;
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
@@ -129,6 +168,8 @@ typedef struct {
 
     bool is_readable; /**/
     bool is_writable;
+
+    PeripheralRegisterAutoBits *auto_bits;
 
     uint64_t value;
 } PeripheralRegisterState;
@@ -149,7 +190,7 @@ typedef struct {
     const char *name;
     const char *desc;
 
-    hwaddr offset_bytes;
+    uint32_t offset_bytes;
 
     uint64_t reset_value;
     uint64_t readable_bits;
@@ -159,7 +200,6 @@ typedef struct {
     uint32_t size_bits;
 
     RegisterBitfieldInfo *bitfields;
-
 } PeripheralRegisterDerivedClass;
 
 /* ------------------------------------------------------------------------- */
@@ -173,6 +213,7 @@ typedef struct {
     PeripheralRegisterState parent_obj;
     /*< public >*/
 
+    /* None, so far. */
 } PeripheralRegisterDerivedState;
 
 /* ----- Public ------------------------------------------------------------ */

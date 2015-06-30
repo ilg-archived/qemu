@@ -26,11 +26,18 @@
 
 /**
  * Emulates the behaviour of a register bitfield.
+ *
+ * Each bitfield should be the child of a peripheral register.
+ *
+ * Bitfields are automatically created when creating registers.
  */
 
 /* ------------------------------------------------------------------------- */
 
-
+/*
+ * Info structure used to define the bitfield when creating
+ * registers.
+ */
 typedef struct {
     const char *name;
     const char *desc;
@@ -65,6 +72,7 @@ typedef struct {
     RegisterBitfieldParentClass parent_class;
     /*< public >*/
 
+    /* None, so far. */
 } RegisterBitfieldClass;
 
 /* ------------------------------------------------------------------------- */
@@ -86,13 +94,12 @@ typedef struct {
     uint32_t last_bit;
     uint64_t reset_value; /**/
     bool is_readable; /**/
-    bool is_writable;
+    bool is_writable; /**/
     const char *follows;
 
     /* The field value is ((parent->value & mask) >> shift) */
     uint64_t mask;
     uint32_t shift;
-
 } RegisterBitfieldState;
 
 /* ----- Public ------------------------------------------------------------ */

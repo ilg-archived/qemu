@@ -33,6 +33,9 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
+/**
+ * Get the value of a bitfield, shifted to the right.
+ */
 uint64_t register_bitfield_get_value(Object* obj)
 {
 
@@ -42,6 +45,9 @@ uint64_t register_bitfield_get_value(Object* obj)
     return (reg_state->value >> state->shift) & state->mask;
 }
 
+/**
+ * Return true if a bitfield is zero.
+ */
 bool register_bitfield_is_zero(Object* obj)
 {
 
@@ -59,6 +65,9 @@ static void register_bitfield_instance_init_callback(Object *obj)
 
     RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
 
+    /*
+     * Add properties and set the default values.
+     */
     cm_object_property_add_const_str(obj, "name", &state->name);
     state->name = NULL;
 
@@ -95,13 +104,12 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
     }
 
     Object *parent = cm_object_get_parent(OBJECT(dev));
-    ;
     assert(parent);
 
     RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(dev);
     PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(parent);
 
-    if (strcmp(TYPE_PERIPHERAL_REGISTER, object_get_typename(parent)) != 0) {
+    if (!cm_object_is_instance_of_typename(parent, TYPE_PERIPHERAL_REGISTER)) {
         if (errp) {
             error_setg(errp, "Bitfield %s not a child of register %s.\n",
                     state->name, reg->name);
@@ -131,35 +139,58 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
         state->last_bit = tmp;
     }
 
+    assert(state->first_bit < state->register_size_bits);
+    assert(state->last_bit < state->register_size_bits);
+
     state->shift = state->first_bit;
 
-    /* Compute a mask that covers all bitfield bits. */
+    /*
+     * Compute a mask that covers all bitfield bits.
+     */
     uint64_t mask = -1;
     mask >>= (64 - 1 - (state->last_bit - state->first_bit));
     mask <<= state->shift;
+    /* The mask is shifted to the bitfield real position. */
     state->mask = mask;
 
+    /*
+     * Compute if readable/writable, based on bitfield and parent register.
+     */
     if ((!state->is_readable) && (!state->is_writable)) {
         /* Bitfield mode bits not defined, get from register. */
 
         if (!state->is_readable) {
             if (reg->readable_bits != 0) {
+                /*
+                 * The register has some bits set, check the one specified
+                 * in the bitfield mask.
+                 */
                 if (reg->readable_bits & mask) {
                     state->is_readable = true;
                 }
             } else {
-                /* Both register and field are not defined. Default is readable */
+                /*
+                 * Both register and field are not defined.
+                 * Default is readable.
+                 */
                 state->is_readable = true;
             }
         }
 
         if (!state->is_writable) {
-            if (reg->writable_bits == 0) {
+            if (reg->writable_bits != 0) {
+                /*
+                 * The register has some bits set, check the one specified
+                 * in the bitfield mask.
+                 */
                 if (reg->writable_bits & mask) {
                     state->is_writable = true;
                 }
             } else {
-                /* Both register and field are not defined. Default is writable */
+                /*
+                 * Both register and field are not defined.
+                 * Default is writable.
+                 */
                 state->is_writable = true;
             }
         }
@@ -190,17 +221,20 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
         reg->writable_bits &= (~mask);
     }
 
+    /*
+     * Compute bitfield reset value, possibly using parent.
+     * The reset value is right aligned.
+     */
     if (state->reset_value == 0) {
         /* Bitfield reset value not defined (or 0), get from register */
         if (reg->reset_value & mask) {
-            state->reset_value = (reg->reset_value & mask)
-                    >> state->shift;
+            state->reset_value = (reg->reset_value & mask) >> state->shift;
         }
     }
 
     /* Update back the register reset value. */
     reg->reset_value &= (~mask);
-    reg->reset_value |= (state->reset_value << state->shift);
+    reg->reset_value |= ((state->reset_value << state->shift) & mask);
 }
 
 static void register_bitfield_class_init(ObjectClass *klass, void *data)
