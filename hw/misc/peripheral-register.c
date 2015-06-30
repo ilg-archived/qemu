@@ -18,6 +18,7 @@
  */
 
 #include "hw/misc/peripheral-register.h"
+#include "hw/misc/peripheral.h"
 #include "hw/arm/cortexm-helper.h"
 
 /**
@@ -49,43 +50,78 @@ uint64_t peripheral_register_get_value(Object* obj)
 Object *peripheral_register_new(Object *parent, const char *node_name,
         PeripheralRegisterInfo *info)
 {
-    Object *obj_reg = cm_object_new(parent, node_name,
+    Object *reg = cm_object_new(parent, node_name,
     TYPE_PERIPHERAL_REGISTER);
 
-    cm_object_property_set_int(obj_reg, info->offset_bytes, "offset-bytes");
-    cm_object_property_set_int(obj_reg, info->reset_value, "reset-value");
-    cm_object_property_set_int(obj_reg, info->readable_bits, "readable-bits");
-    cm_object_property_set_int(obj_reg, info->access_flags, "access-flags");
-    cm_object_property_set_int(obj_reg, info->size_bits, "size-bits");
+    cm_object_property_set_str(reg, node_name, "name");
+
+    cm_object_property_set_int(reg, info->offset_bytes, "offset-bytes");
+    if (info->reset_value != 0) {
+        cm_object_property_set_int(reg, info->reset_value, "reset-value");
+    }
+    if (info->readable_bits != 0) {
+        cm_object_property_set_int(reg, info->readable_bits, "readable-bits");
+    }
+    if (info->access_flags != 0) {
+        cm_object_property_set_int(reg, info->access_flags, "access-flags");
+    }
+
+    int size_bits = 0;
+    if (info->size_bits != 0) {
+        size_bits = info->size_bits;
+    } else {
+        size_bits = PERIPHERAL_STATE(parent)->register_size_bits;
+    }
+    cm_object_property_set_int(reg, size_bits, "size-bits");
 
     if (info->bitfields) {
 
-        RegisterBitfieldInfo *pbf;
-        for (pbf = info->bitfields; pbf->name; ++pbf) {
+        RegisterBitfieldInfo *bifi_info;
+        for (bifi_info = info->bitfields; bifi_info->name; ++bifi_info) {
 
-            Object *obj_bf = cm_object_new(obj_reg, pbf->name,
+            Object *bifi = cm_object_new(reg, bifi_info->name,
             TYPE_REGISTER_BITFIELD);
 
-            assert(pbf->first_bit < 32);
-            cm_object_property_set_int(obj_bf, pbf->first_bit, "first-bit");
+            cm_object_property_set_str(bifi, bifi_info->name, "name");
 
-            assert(pbf->last_bit < 32);
-            cm_object_property_set_int(obj_bf, pbf->last_bit, "last-bit");
-            cm_object_property_set_int(obj_bf, pbf->reset_value, "reset-value");
-            if (pbf->mode & REGISTER_BITFIELD_MODE_READ) {
-                cm_object_property_set_bool(obj_bf, true, "is-readable");
-            }
-            if (pbf->mode & REGISTER_BITFIELD_MODE_WRITE) {
-                cm_object_property_set_bool(obj_bf, true, "is-writable");
-            }
-            cm_object_property_set_str(obj_bf, pbf->follows, "follows");
+            assert(bifi_info->first_bit < 32);
+            cm_object_property_set_int(bifi, bifi_info->first_bit, "first-bit");
 
+            assert(bifi_info->last_bit < 32);
+            if (bifi_info->last_bit != 0) {
+                cm_object_property_set_int(bifi, bifi_info->last_bit,
+                        "last-bit");
+            }
+
+            if (bifi_info->reset_value != 0) {
+                cm_object_property_set_int(bifi, bifi_info->reset_value,
+                        "reset-value");
+            }
+
+            if (bifi_info->rw_mode != 0) {
+                if (bifi_info->rw_mode & REGISTER_RW_MODE_READ) {
+                    cm_object_property_set_bool(bifi, true, "is-readable");
+                } else {
+                    cm_object_property_set_bool(bifi, false, "is-readable");
+                }
+                if (bifi_info->rw_mode & REGISTER_RW_MODE_WRITE) {
+                    cm_object_property_set_bool(bifi, true, "is-writable");
+                } else {
+                    cm_object_property_set_bool(bifi, false, "is-writable");
+                }
+            }
+
+            cm_object_property_set_int(bifi, size_bits, "register-size-bits");
+
+            if (bifi_info->follows != NULL && strlen(bifi_info->follows) > 0) {
+                cm_object_property_set_str(bifi, bifi_info->follows, "follows");
+            }
             /* Should we delay until the register is realized()? */
-            cm_object_realize(obj_bf);
+            cm_object_realize(bifi);
         }
     }
 
-    return obj_reg;
+    return reg;
 }
 
 Object *derived_peripheral_register_new(Object *parent, const char *node_name,
@@ -143,6 +179,10 @@ static void peripheral_register_instance_init_callback(Object *obj)
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     /* Add properties and set default values. */
+
+    cm_object_property_add_const_str(obj, "name", &state->name);
+    state->name = NULL;
+
     cm_object_property_add_uint64(obj, "offset-bytes", &state->offset_bytes);
     state->offset_bytes = 0x00000000;
 
@@ -159,8 +199,16 @@ static void peripheral_register_instance_init_callback(Object *obj)
     state->access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
 
     cm_object_property_add_uint32(obj, "size-bits", &state->size_bits);
-    state->size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BITS;
+    /* Intentional 0. Default set again in realize(), possibly from parent. */
+    state->size_bits = 0;
 
+    cm_object_property_add_bool(obj, "is-readable", &state->is_readable);
+    state->is_readable = true;
+
+    cm_object_property_add_bool(obj, "is-writable", &state->is_writable);
+    state->is_writable = true;
+
+    /* Reset value. */
     state->value = 0x00000000;
 }
 
@@ -176,7 +224,27 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
 
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
-    /* ... */
+    if (state->size_bits == 0) {
+
+        PeripheralState *parent = PERIPHERAL_STATE(
+                cm_object_get_parent(OBJECT(dev)));
+
+        if (parent->register_size_bits != 0) {
+            state->size_bits = parent->register_size_bits;
+        } else {
+            state->size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BITS;
+        }
+    }
+
+    /* Clear readable bits if non-readable. */
+    if (!state->is_readable) {
+        state->readable_bits = 0;
+    }
+
+    /* Clear writable bits if non-writable. */
+    if (!state->is_writable) {
+        state->writable_bits = 0;
+    }
 }
 #endif
 
@@ -197,9 +265,7 @@ static void peripheral_register_class_init(ObjectClass *klass, void *data)
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     dc->reset = peripheral_register_reset_callback;
-#if 1
     dc->realize = peripheral_register_realize_callback;
-#endif
 
     PeripheralRegisterClass *pr_class = PERIPHERAL_REGISTER_CLASS(klass);
     pr_class->read = peripheral_register_read_callback;
@@ -234,13 +300,39 @@ static void derived_peripheral_register_instance_init_callback(Object *obj)
 
     /*
      * After properties are set with default values, copy actual
-     * values from class.
+     * values from class, if present.
      */
     state->offset_bytes = klass->offset_bytes;
     state->reset_value = klass->reset_value;
-    state->readable_bits = klass->readable_bits;
-    state->writable_bits = klass->writable_bits;
-    state->access_flags = klass->access_flags;
+    if (klass->readable_bits != 0) {
+        state->readable_bits = klass->readable_bits;
+    }
+    if (state->writable_bits != 0) {
+        state->writable_bits = klass->writable_bits;
+    }
+    if (klass->access_flags != 0) {
+        state->access_flags = klass->access_flags;
+    }
+    if (klass->rw_mode != 0) {
+        if (klass->rw_mode & REGISTER_RW_MODE_READ) {
+            state->is_readable = true;
+        } else {
+            state->is_readable = false;
+        }
+        if (klass->rw_mode & REGISTER_RW_MODE_WRITE) {
+            state->is_writable = true;
+        } else {
+            state->is_writable = false;
+        }
+    } else {
+        /* Default both read and write. */
+        state->is_readable = true;
+        state->is_writable = true;
+    }
+
+    if (klass->size_bits != 0) {
+        state->size_bits = klass->size_bits;
+    }
 
     state->value = klass->reset_value;
 }
@@ -266,6 +358,8 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
     prd_class->readable_bits = ti->readable_bits;
     prd_class->writable_bits = ti->writable_bits;
     prd_class->access_flags = ti->access_flags;
+    prd_class->rw_mode = ti->rw_mode;
+    prd_class->size_bits = ti->size_bits;
 
     prd_class->bitfields = ti->bitfields;
 }

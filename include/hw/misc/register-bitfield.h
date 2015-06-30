@@ -30,10 +30,6 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define REGISTER_BITFIELD_MODE_READ          (0x01)
-#define REGISTER_BITFIELD_MODE_WRITE         (0x02)
-#define REGISTER_BITFIELD_MODE_READ_WRITE    \
-    (REGISTER_BITFIELD_MODE_READ | REGISTER_BITFIELD_MODE_WRITE)
 
 typedef struct {
     const char *name;
@@ -41,7 +37,7 @@ typedef struct {
     uint32_t first_bit;
     uint32_t last_bit;
     uint64_t reset_value;
-    uint32_t mode;
+    uint32_t rw_mode;
     const char *follows;
 } RegisterBitfieldInfo;
 
@@ -81,6 +77,8 @@ typedef struct {
     /*< private >*/
     RegisterBitfieldParentState parent_obj;
     /*< public >*/
+
+    const char *name;
 
     uint32_t register_size_bits;
 
