@@ -25,9 +25,10 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_STM32_FLASH "stm32:flash-peripheral"
+#define TYPE_STM32_FLASH TYPE_STM32_PREFIX "flash" TYPE_PERIPHERAL_SUFFIX
 
-//#define TYPE_STM32_FLASH_ACR "stm32:flash-acr-register"
+//#define TYPE_STM32_FLASH_ACR \
+//        TYPE_STM32_PREFIX "flash-acr" TYPE_PERIPHERAL_REGISTER_SUFFIX
 
 /* ------------------------------------------------------------------------- */
 

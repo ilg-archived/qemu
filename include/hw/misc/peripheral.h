@@ -33,6 +33,8 @@
 
 #define TYPE_PERIPHERAL "peripheral"
 
+#define TYPE_PERIPHERAL_SUFFIX "-peripheral"
+
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
