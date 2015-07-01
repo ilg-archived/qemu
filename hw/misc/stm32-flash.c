@@ -39,11 +39,10 @@
 /* ------------------------------------------------------------------------- */
 
 static PeripheralRegisterInfo stm32f1_flash_acr_info = {
+    .name = "acr",
     .desc = "Flash access control register (FLASH_ACR)",
     .offset_bytes = 0x00,
     .reset_value = 0x00000030,
-    .readable_bits = 0x0000003F,
-    .writable_bits = 0x0000001F,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "latency",
@@ -231,7 +230,6 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_FLASH)) {
         return;
     }
-
 }
 
 static void stm32_flash_reset_callback(DeviceState *dev)

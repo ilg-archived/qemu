@@ -74,6 +74,22 @@ Object *peripheral_register_new(Object *parent, const char *node_name,
     }
     cm_object_property_set_int(reg, size_bits, "size-bits");
 
+    if (info->rw_mode != 0) {
+        if (info->rw_mode & REGISTER_RW_MODE_READ) {
+            cm_object_property_set_bool(reg, true, "is-readable");
+        } else {
+            cm_object_property_set_bool(reg, false, "is-readable");
+        }
+        if (info->rw_mode & REGISTER_RW_MODE_WRITE) {
+            cm_object_property_set_bool(reg, true, "is-writable");
+        } else {
+            cm_object_property_set_bool(reg, false, "is-writable");
+        }
+    } else {
+        cm_object_property_set_bool(reg, true, "is-readable");
+        cm_object_property_set_bool(reg, true, "is-writable");
+    }
+
     if (info->bitfields) {
 
         RegisterBitfieldInfo *bifi_info;
@@ -109,6 +125,12 @@ Object *peripheral_register_new(Object *parent, const char *node_name,
                 } else {
                     cm_object_property_set_bool(bifi, false, "is-writable");
                 }
+            } else {
+                /*
+                 * Leave both false, as set by the option defaults,
+                 * in bitfield realize() this dual condition is tested to
+                 * compute the actual values using parent values.
+                 */
             }
 
             cm_object_property_set_int(bifi, size_bits, "register-size-bits");
@@ -123,10 +145,8 @@ Object *peripheral_register_new(Object *parent, const char *node_name,
                         "cleared-by");
             }
 
-            if (bifi_info->set_by != NULL
-                    && strlen(bifi_info->set_by) > 0) {
-                cm_object_property_set_str(bifi, bifi_info->set_by,
-                        "set-by");
+            if (bifi_info->set_by != NULL && strlen(bifi_info->set_by) > 0) {
+                cm_object_property_set_str(bifi, bifi_info->set_by, "set-by");
             }
 
             /* Should we delay until the register is realized()? */
@@ -344,10 +364,10 @@ static void peripheral_register_instance_init_callback(Object *obj)
     state->reset_value = 0x0000000000000000;
 
     cm_object_property_add_uint64(obj, "readable-bits", &state->readable_bits);
-    state->readable_bits = 0xFFFFFFFFFFFFFFFF;
+    state->readable_bits = 0x0000000000000000;
 
     cm_object_property_add_uint64(obj, "writable-bits", &state->writable_bits);
-    state->writable_bits = 0xFFFFFFFFFFFFFFFF;
+    state->writable_bits = 0x0000000000000000;
 
     cm_object_property_add_uint32(obj, "access-flags", &state->access_flags);
     state->access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
@@ -370,6 +390,9 @@ static void peripheral_register_instance_init_callback(Object *obj)
 
 typedef struct {
     uint64_t mask;
+    uint64_t readable_bits;
+    uint64_t writable_bits;
+    uint64_t reset_value;
     PeripheralRegisterState *reg;
     Error *local_err;
 } PeripheralRegisterValidateTmp;
@@ -389,15 +412,26 @@ static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
         RegisterBitfieldState *bifi = REGISTER_BITFIELD_STATE(obj);
 
         if (bifi->mask & validate_tmp->mask) {
-            error_setg(&validate_tmp->local_err,
-                    "Bitfield %s of register %s  "
-                            "overlaps with other bitfield.\n", bifi->name,
-                    reg->name);
+            error_setg(&validate_tmp->local_err, "Bitfield %s of register %s  "
+                    "overlaps with other bitfield.\n", bifi->name, reg->name);
             return 1;
         }
 
         /* Collect more bits in the mask. */
         validate_tmp->mask |= bifi->mask;
+
+        /* Collect readable bits. */
+        if (bifi->is_readable) {
+            validate_tmp->readable_bits |= bifi->mask;
+        }
+        /* Collect writable bits. */
+        if (bifi->is_writable) {
+            validate_tmp->writable_bits |= bifi->mask;
+        }
+
+        validate_tmp->reset_value &= (~bifi->mask);
+        validate_tmp->reset_value |= ((bifi->reset_value << bifi->shift)
+                & bifi->mask);
     }
     return 0; /* Continue iterations. */
 }
@@ -551,6 +585,12 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         return;
     }
 
+    /*
+     * By the time we reach here, the bitfields were already realized().
+     * This also means the readable/writable masks might have been
+     * updated.
+     */
+
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
     if (state->size_bits == 0) {
@@ -563,16 +603,6 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         } else {
             state->size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES;
         }
-    }
-
-    /* Clear readable bits if entire register is non-readable. */
-    if (!state->is_readable) {
-        state->readable_bits = 0;
-    }
-
-    /* Clear writable bits if entire register is non-writable. */
-    if (!state->is_writable) {
-        state->writable_bits = 0;
     }
 
     int ret;
@@ -592,11 +622,54 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
             error_propagate(errp, validate_tmp->local_err);
         }
     }
+    int has_bitfields = (validate_tmp->mask != 0);
+    uint64_t bitfields_mask = validate_tmp->mask;
+    uint64_t bitfields_readable_bits = validate_tmp->readable_bits;
+    uint64_t bitfields_writable_bits = validate_tmp->writable_bits;
+    uint64_t bitfields_reset_value = validate_tmp->reset_value;
+
     g_free(validate_tmp);
 
     if (ret) {
         return;
     }
+
+    if (has_bitfields) {
+        /*
+         * If it has bitfields, to the defined readable/writable masks
+         * the bitfields will contribute more bits.
+         */
+        state->readable_bits |= bitfields_readable_bits;
+        state->writable_bits |= bitfields_writable_bits;
+    } else {
+        /*
+         * It has no bitfields, we might need to do our best to
+         * determine if there are some bitmasks, otherwise set
+         * them to allow all bits.
+         */
+        if (state->readable_bits == 0 && state->is_readable) {
+            /* Default all bits readable. */
+            state->readable_bits = 0xFFFFFFFFFFFFFFFF;
+        }
+
+        if (state->writable_bits == 0 && state->is_writable) {
+            /* Default all bits writable. */
+            state->writable_bits = 0xFFFFFFFFFFFFFFFF;
+        }
+    }
+
+    /* Clear readable bits if entire register is non-readable. */
+    if (!state->is_readable) {
+        state->readable_bits = 0;
+    }
+
+    /* Clear writable bits if entire register is non-writable. */
+    if (!state->is_writable) {
+        state->writable_bits = 0;
+    }
+
+    state->reset_value &= ~(bitfields_reset_value & bitfields_mask);
+    state->reset_value |= (bitfields_reset_value & bitfields_mask);
 
     /*
      * Scan children bitfields to identify those that follow other
@@ -699,8 +772,11 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         return;
     }
 
-    fprintf(stderr, "%s reg, rd %08llX wr %08llX \n", state->name,
-            state->readable_bits, state->writable_bits);
+    qemu_log_mask(LOG_TRACE,
+            "%s() '%s', readable: 0x%08llX, writable: 0x%08llX, reset: 0x%08llX, mode: %s%s\n",
+            __FUNCTION__, state->name, state->readable_bits,
+            state->writable_bits, state->reset_value,
+            state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 
 static void peripheral_register_reset_callback(DeviceState *dev)

@@ -162,6 +162,7 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
 
     /*
      * Compute if readable/writable, based on bitfield and parent register.
+     * The parent register was not realized yet.
      */
     if ((!state->is_readable) && (!state->is_writable)) {
         /* Bitfield mode bits not defined, get from register. */
@@ -211,9 +212,6 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
                     state->name);
             return;
         }
-        reg->readable_bits |= mask;
-    } else {
-        reg->readable_bits &= (~mask);
     }
 
     if (state->is_writable) {
@@ -223,9 +221,6 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
                     state->name);
             return;
         }
-        reg->writable_bits |= mask;
-    } else {
-        reg->writable_bits &= (~mask);
     }
 
     /*
@@ -239,9 +234,11 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
         }
     }
 
-    /* Update back the register reset value. */
-    reg->reset_value &= (~mask);
-    reg->reset_value |= ((state->reset_value << state->shift) & mask);
+    qemu_log_mask(LOG_TRACE,
+            "%s() '%s[%d:%d]', mask: 0x%llX, shift: %d, reset: 0x%llX, mode: %s%s\n",
+            __FUNCTION__, state->name, state->first_bit, state->last_bit,
+            state->mask, state->shift, state->reset_value,
+            state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 
 static void register_bitfield_class_init(ObjectClass *klass, void *data)
