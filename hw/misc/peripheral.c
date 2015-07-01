@@ -38,7 +38,7 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
 {
     PeripheralState *state = (PeripheralState *) opaque;
 
-    uint32_t index = addr >> (state->register_size_bytes);
+    uint32_t index = addr / state->register_size_bytes;
     assert(index < state->registers_size_ptrs);
 
     PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(
@@ -77,7 +77,7 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
 {
     PeripheralState *state = (PeripheralState *) opaque;
 
-    uint32_t index = addr >> (state->register_size_bytes);
+    uint32_t index = addr / state->register_size_bytes;
     assert(index < state->registers_size_ptrs);
 
     PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(
@@ -155,13 +155,13 @@ static int peripheral_compute_max_offset(Object *obj, void *opaque)
 static int peripheral_populate_registers_array(Object *obj, void *opaque)
 {
     PeripheralState *periph = PERIPHERAL_STATE(opaque);
-    uint32_t num_bytes = periph->register_size_bytes / 8;
 
     /* Process only children that descend from a register. */
     if (cm_object_is_instance_of_typename(obj, TYPE_PERIPHERAL_REGISTER)) {
         PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj);
 
-        uint32_t index = reg->offset_bytes >> num_bytes;
+        uint32_t index = reg->offset_bytes / periph->register_size_bytes;
+        assert(index < periph->registers_size_ptrs);
         assert(periph->registers[index] == NULL);
 
         periph->registers[index] = obj;
@@ -208,7 +208,7 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
 
     /* Compute the number of pointers the array should contain. */
     state->registers_size_ptrs = (state->max_offset_bytes
-            >> (state->register_size_bytes / 8)) + 1;
+            / state->register_size_bytes) + 1;
 
     /* Allocate the array of pointers to registers. */
     state->registers = g_malloc0_n(state->registers_size_ptrs, sizeof(Object*));

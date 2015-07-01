@@ -35,7 +35,12 @@
 
 /* ------------------------------------------------------------------------- */
 
-/* Parent definitions. */
+/**
+ * Parent definitions.
+ *
+ * Must be a descendant of SYS_BUS_DEVICE since here are stored the
+ * MMIO settings by sysbus_init_mmio() and sysbus_mmio_map().
+ */
 #define TYPE_PERIPHERAL_PARENT TYPE_SYS_BUS_DEVICE
 typedef SysBusDeviceClass PeripheralParentClass;
 typedef SysBusDevice PeripheralParentState;
@@ -81,6 +86,7 @@ typedef struct {
     /* Default access flags, when registers do not define them. */
     uint32_t default_access_flags;
 
+    /* All peripheral registers have the same size. (1-8) */
     uint32_t register_size_bytes;
 
     uint32_t max_offset_bytes;

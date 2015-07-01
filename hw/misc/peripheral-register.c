@@ -146,27 +146,134 @@ void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg)
 
 /* ----- Private ----------------------------------------------------------- */
 
+/**
+ * Structure used to process endianness.
+ * It overlaps a long long with an array of bytes.
+ */
+typedef union {
+    uint64_t ll;
+    uint8_t b[8];
+} EndiannessUnion;
+
 static uint64_t peripheral_register_read_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
+    PeripheralState *periph_state = PERIPHERAL_STATE(periph);
 
-    uint64_t value = state->value & state->readable_bits;
+    EndiannessUnion tmp;
+    tmp.ll = state->value & state->readable_bits;
 
-    // TODO: consider size
-    return value;
+    EndiannessUnion result;
+    result.ll = 0; /* Start with a zero value. */
+
+    /*
+     * Copy 'size' bytes from register to response.
+     * The other bytes remain zero.
+     * Working at byte level, it copes well with any alignment.
+     */
+    int i;
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    if (periph_state->is_little_endian) {
+        for (i = 0; i < size; ++i) {
+            /*
+             * Source: little-endian (guest register)
+             * Destination: little-endian (host result)
+             */
+            result.b[i] = tmp.b[i + offset];
+        }
+    } else {
+        /*
+         * Source: big-endian (guest register)
+         * Destination: little-endian (host result)
+         */
+        for (i = 0; i < size; ++i) {
+            result.b[i] = tmp.b[8 - (i + offset)];
+        }
+    }
+#else
+    /* Warning: Not tested! */
+    if (periph_state->is_little_endian) {
+        for (i = 0; i < size; ++i) {
+            /*
+             * Source: little-endian (guest register)
+             * Destination: big-endian (host result)
+             */
+            result.b[8 - i] = tmp.b[i + offset];
+        }
+    } else {
+        for (i = 0; i < size; ++i) {
+            /*
+             * Source: big-endian (guest register)
+             * Destination: big-endian (host result)
+             */
+            result.b[8 - i] = tmp.b[8 - (i + offset)];
+        }
+    }
+#endif
+    return result.ll;
 }
 
 static void peripheral_register_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
+    PeripheralState *periph_state = PERIPHERAL_STATE(periph);
+
+    EndiannessUnion in_value;
+    in_value.ll = value;
+
+    EndiannessUnion new_value;
+    new_value.ll = state->value; /* Start with the original value. */
+
+    /*
+     * Overwrite 'size' bytes in new_value with bytes from in_value.
+     * The other bytes remain with their original values.
+     * Working at byte level, it copes well with any alignment.
+     */
+    int i;
+#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+    if (periph_state->is_little_endian) {
+        for (i = 0; i < size; ++i) {
+            /*
+             * Source: little-endian (host in value)
+             * Destination: little-endian (guest register)
+             */
+            new_value.b[i + offset] = in_value.b[i];
+        }
+    } else {
+        for (i = 0; i < size; ++i) {
+            /*
+             * Source: little-endian (host in value)
+             * Destination: big-endian (guest register)
+             */
+            new_value.b[8 - (i + offset)] = in_value.b[i];
+        }
+    }
+#else
+    /* Warning: Not tested! */
+    if (periph_state->is_little_endian) {
+        for (i = 0; i < size; ++i) {
+            /*
+             * Source: big-endian (host in value)
+             * Destination: little-endian (guest register)
+             */
+            new_value.b[i + offset] = in_value.b[8 - i];
+        }
+    } else {
+        for (i = 0; i < size; ++i) {
+            /*
+             * Source: big-endian (host in value)
+             * Destination: big-endian (guest register)
+             */
+            new_value.b[8 - (i + offset)] = in_value.b[8 - i];
+        }
+    }
+#endif
 
     uint64_t tmp;
     tmp = state->value & (~state->writable_bits);
-    tmp |= (value & state->writable_bits);
-
-    // TODO: consider size
+    tmp |= (new_value.ll & state->writable_bits);
 
     PeripheralRegisterAutoBits *auto_bits;
     for (auto_bits = state->auto_bits; auto_bits && auto_bits->mask;
@@ -224,6 +331,8 @@ static void peripheral_register_instance_init_callback(Object *obj)
 
     /* Reset value. */
     state->value = 0x00000000;
+
+    state->auto_bits = NULL;
 }
 
 /**
@@ -349,6 +458,8 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     PeripheralRegisterAutoTmp *auto_tmp = g_malloc0(
             sizeof(PeripheralRegisterAutoTmp));
     auto_tmp->reg = state;
+
+    state->auto_bits = NULL;
 
     int ret = object_child_foreach(OBJECT(dev),
             peripheral_register_create_auto_array, (void *) auto_tmp);
