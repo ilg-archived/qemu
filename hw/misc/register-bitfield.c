@@ -92,6 +92,12 @@ static void register_bitfield_instance_init_callback(Object *obj)
 
     cm_object_property_add_const_str(obj, "follows", &state->follows);
     state->follows = NULL;
+
+    cm_object_property_add_const_str(obj, "cleared-by", &state->cleared_by);
+    state->cleared_by = NULL;
+
+    cm_object_property_add_const_str(obj, "set-by", &state->set_by);
+    state->set_by = NULL;
 }
 
 static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
@@ -146,11 +152,12 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
 
     /*
      * Compute a mask that covers all bitfield bits.
+     * The mask is shifted to the bitfield real position and can be
+     * used on the register value.
      */
     uint64_t mask = -1;
     mask >>= (64 - 1 - (state->last_bit - state->first_bit));
     mask <<= state->shift;
-    /* The mask is shifted to the bitfield real position. */
     state->mask = mask;
 
     /*

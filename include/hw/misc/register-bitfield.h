@@ -46,6 +46,8 @@ typedef struct {
     uint64_t reset_value;
     uint32_t rw_mode;
     const char *follows;
+    const char *cleared_by;
+    const char *set_by;
 } RegisterBitfieldInfo;
 
 /* ------------------------------------------------------------------------- */
@@ -96,6 +98,8 @@ typedef struct {
     bool is_readable; /**/
     bool is_writable; /**/
     const char *follows;
+    const char *cleared_by;
+    const char *set_by;
 
     /* The field value is ((parent->value & mask) >> shift) */
     uint64_t mask;
