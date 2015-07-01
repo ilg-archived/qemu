@@ -116,6 +116,19 @@ Object *peripheral_register_new(Object *parent, const char *node_name,
             if (bifi_info->follows != NULL && strlen(bifi_info->follows) > 0) {
                 cm_object_property_set_str(bifi, bifi_info->follows, "follows");
             }
+
+            if (bifi_info->cleared_by != NULL
+                    && strlen(bifi_info->cleared_by) > 0) {
+                cm_object_property_set_str(bifi, bifi_info->cleared_by,
+                        "cleared-by");
+            }
+
+            if (bifi_info->set_by != NULL
+                    && strlen(bifi_info->set_by) > 0) {
+                cm_object_property_set_str(bifi, bifi_info->set_by,
+                        "set-by");
+            }
+
             /* Should we delay until the register is realized()? */
             cm_object_realize(bifi);
         }
@@ -131,10 +144,11 @@ Object *derived_peripheral_register_new(Object *parent, const char *node_name,
     return obj;
 }
 
-void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg)
+void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg,
+        const char *type_name)
 {
     TypeInfo ti = {
-        .name = reg->name,
+        .name = type_name,
         .parent = TYPE_PERIPHERAL_REGISTER,
         .instance_init = derived_peripheral_register_instance_init_callback,
         .class_init = derived_peripheral_register_class_init_callback,
@@ -278,12 +292,31 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
     PeripheralRegisterAutoBits *auto_bits;
     for (auto_bits = state->auto_bits; auto_bits && auto_bits->mask;
             auto_bits++) {
-        if (auto_bits->shift > 0) {
-            tmp &= ~(auto_bits->mask << auto_bits->shift);
-            tmp |= ((tmp & auto_bits->mask) << auto_bits->shift);
-        } else if (auto_bits->shift < 0) {
-            tmp &= ~(auto_bits->mask >> auto_bits->shift);
-            tmp |= ((tmp & auto_bits->mask) >> auto_bits->shift);
+        if (auto_bits->type == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS) {
+            /* Clear the linked bits and copy those from the referred bits. */
+            if (auto_bits->shift > 0) {
+                tmp &= ~(auto_bits->mask << auto_bits->shift);
+                tmp |= ((tmp & auto_bits->mask) << auto_bits->shift);
+            } else if (auto_bits->shift < 0) {
+                tmp &= ~(auto_bits->mask >> auto_bits->shift);
+                tmp |= ((tmp & auto_bits->mask) >> auto_bits->shift);
+            }
+        } else if (auto_bits->type
+                == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY) {
+            /* If the referred bits are set, clear the linked bits. */
+            if (auto_bits->shift > 0) {
+                tmp &= ~((tmp & auto_bits->mask) << auto_bits->shift);
+            } else if (auto_bits->shift < 0) {
+                tmp &= ~((tmp & auto_bits->mask) >> auto_bits->shift);
+            }
+        } else if (auto_bits->type
+                == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY) {
+            /* If the referred bits are set, set the linked bits. */
+            if (auto_bits->shift > 0) {
+                tmp |= ((tmp & auto_bits->mask) << auto_bits->shift);
+            } else if (auto_bits->shift < 0) {
+                tmp |= ((tmp & auto_bits->mask) >> auto_bits->shift);
+            }
         }
     }
 
@@ -335,16 +368,57 @@ static void peripheral_register_instance_init_callback(Object *obj)
     state->auto_bits = NULL;
 }
 
+typedef struct {
+    uint64_t mask;
+    PeripheralRegisterState *reg;
+    Error *local_err;
+} PeripheralRegisterValidateTmp;
+
+/**
+ * Create the auto_bits array, by concatenating masks of
+ * followed bitfields and grouping based on shift steps.
+ */
+static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
+{
+    PeripheralRegisterValidateTmp *validate_tmp =
+            (PeripheralRegisterValidateTmp *) opaque;
+    PeripheralRegisterState *reg = validate_tmp->reg;
+
+    /* Process only children that descend from a bitfield. */
+    if (cm_object_is_instance_of_typename(obj, TYPE_REGISTER_BITFIELD)) {
+        RegisterBitfieldState *bifi = REGISTER_BITFIELD_STATE(obj);
+
+        if (bifi->mask & validate_tmp->mask) {
+            error_setg(&validate_tmp->local_err,
+                    "Bitfield %s of register %s  "
+                            "overlaps with other bitfield.\n", bifi->name,
+                    reg->name);
+            return 1;
+        }
+
+        /* Collect more bits in the mask. */
+        validate_tmp->mask |= bifi->mask;
+    }
+    return 0; /* Continue iterations. */
+}
+
 /**
  * Internal structure with temporary storage,
  * used to compute the auto_bits array.
  */
 typedef struct {
-    uint64_t left_shif_masks[64];
-    uint64_t right_shif_masks[64];
+    uint64_t left_shift_follows_masks[64];
+    uint64_t right_shift_follows_masks[64];
 
-    const char *to_follow;
-    RegisterBitfieldState *followed_bifi;
+    uint64_t left_shift_cleared_by_masks[64];
+    uint64_t right_shift_cleared_by_masks[64];
+
+    uint64_t left_shift_set_by_masks[64];
+    uint64_t right_shift_set_by_masks[64];
+
+    const char *to_find_bifi;
+    RegisterBitfieldState *found_bifi;
+
     PeripheralRegisterState *reg;
     Error *local_err;
 } PeripheralRegisterAutoTmp;
@@ -354,7 +428,7 @@ typedef struct {
  * Use the temporary structure to pass input/output values.
  * When found, break the iteration.
  */
-static int peripheral_register_find_followed(Object *obj, void *opaque)
+static int peripheral_register_find_bifi(Object *obj, void *opaque)
 {
     PeripheralRegisterAutoTmp *auto_tmp = (PeripheralRegisterAutoTmp *) opaque;
 
@@ -362,8 +436,8 @@ static int peripheral_register_find_followed(Object *obj, void *opaque)
     if (cm_object_is_instance_of_typename(obj, TYPE_REGISTER_BITFIELD)) {
         RegisterBitfieldState *bifi = REGISTER_BITFIELD_STATE(obj);
 
-        if (strcmp(auto_tmp->to_follow, bifi->name) == 0) {
-            auto_tmp->followed_bifi = bifi;
+        if (strcmp(auto_tmp->to_find_bifi, bifi->name) == 0) {
+            auto_tmp->found_bifi = bifi;
             return 1; /* Break iterations. */
         }
     }
@@ -386,30 +460,81 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque)
 
         if (bifi->follows) {
             /* Find the followed bitfield. */
-            auto_tmp->to_follow = bifi->follows;
-            auto_tmp->followed_bifi = NULL;
+            auto_tmp->to_find_bifi = bifi->follows;
+            auto_tmp->found_bifi = NULL;
 
             /* Try to find the followed bitfield among its siblings. */
-            object_child_foreach(OBJECT(reg), peripheral_register_find_followed,
+            object_child_foreach(OBJECT(reg), peripheral_register_find_bifi,
                     (void *) auto_tmp);
 
-            if (auto_tmp->followed_bifi == NULL) {
+            if (auto_tmp->found_bifi == NULL) {
                 error_setg(&auto_tmp->local_err,
                         "Bitfield %s of register %s follows "
                                 "missing %s bitfield.\n", bifi->name, reg->name,
-                        auto_tmp->to_follow);
+                        auto_tmp->to_find_bifi);
                 return 1;
             }
 
             /* Positive values means shift left, negative shift right. */
-            int delta_shift = bifi->first_bit
-                    - auto_tmp->followed_bifi->first_bit;
+            int delta_shift = bifi->first_bit - auto_tmp->found_bifi->first_bit;
             if (delta_shift > 0) {
-                auto_tmp->left_shif_masks[delta_shift] |=
-                        auto_tmp->followed_bifi->mask;
+                auto_tmp->left_shift_follows_masks[delta_shift] |=
+                        auto_tmp->found_bifi->mask;
             } else if (delta_shift < 0) {
-                auto_tmp->right_shif_masks[-delta_shift] |=
-                        auto_tmp->followed_bifi->mask;
+                auto_tmp->right_shift_follows_masks[-delta_shift] |=
+                        auto_tmp->found_bifi->mask;
+            }
+        } else if (bifi->cleared_by) {
+            /* Find the .cleared_by bitfield. */
+            auto_tmp->to_find_bifi = bifi->cleared_by;
+            auto_tmp->found_bifi = NULL;
+
+            /* Try to find the followed bitfield among its siblings. */
+            object_child_foreach(OBJECT(reg), peripheral_register_find_bifi,
+                    (void *) auto_tmp);
+
+            if (auto_tmp->found_bifi == NULL) {
+                error_setg(&auto_tmp->local_err,
+                        "Bitfield %s of register %s cleared by "
+                                "missing %s bitfield.\n", bifi->name, reg->name,
+                        auto_tmp->to_find_bifi);
+                return 1;
+            }
+
+            /* Positive values means shift left, negative shift right. */
+            int delta_shift = bifi->first_bit - auto_tmp->found_bifi->first_bit;
+            if (delta_shift > 0) {
+                auto_tmp->left_shift_cleared_by_masks[delta_shift] |=
+                        auto_tmp->found_bifi->mask;
+            } else if (delta_shift < 0) {
+                auto_tmp->right_shift_cleared_by_masks[-delta_shift] |=
+                        auto_tmp->found_bifi->mask;
+            }
+        } else if (bifi->set_by) {
+            /* Find the .set_by bitfield. */
+            auto_tmp->to_find_bifi = bifi->cleared_by;
+            auto_tmp->found_bifi = NULL;
+
+            /* Try to find the followed bitfield among its siblings. */
+            object_child_foreach(OBJECT(reg), peripheral_register_find_bifi,
+                    (void *) auto_tmp);
+
+            if (auto_tmp->found_bifi == NULL) {
+                error_setg(&auto_tmp->local_err,
+                        "Bitfield %s of register %s set by "
+                                "missing %s bitfield.\n", bifi->name, reg->name,
+                        auto_tmp->to_find_bifi);
+                return 1;
+            }
+
+            /* Positive values means shift left, negative shift right. */
+            int delta_shift = bifi->first_bit - auto_tmp->found_bifi->first_bit;
+            if (delta_shift > 0) {
+                auto_tmp->left_shift_set_by_masks[delta_shift] |=
+                        auto_tmp->found_bifi->mask;
+            } else if (delta_shift < 0) {
+                auto_tmp->right_shift_set_by_masks[-delta_shift] |=
+                        auto_tmp->found_bifi->mask;
             }
         }
     }
@@ -450,6 +575,29 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         state->writable_bits = 0;
     }
 
+    int ret;
+    /*
+     * Scan bitfields and validate by checking if masks do not overlap.
+     */
+    PeripheralRegisterValidateTmp *validate_tmp = g_malloc0(
+            sizeof(PeripheralRegisterValidateTmp));
+    validate_tmp->reg = state;
+    validate_tmp->mask = 0;
+
+    ret = object_child_foreach(OBJECT(dev),
+            peripheral_register_validate_bitfields, (void *) validate_tmp);
+
+    if (ret) {
+        if (validate_tmp->local_err) {
+            error_propagate(errp, validate_tmp->local_err);
+        }
+    }
+    g_free(validate_tmp);
+
+    if (ret) {
+        return;
+    }
+
     /*
      * Scan children bitfields to identify those that follow other
      * bitfields. Compute the signed distance between bitfields
@@ -461,7 +609,7 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
 
     state->auto_bits = NULL;
 
-    int ret = object_child_foreach(OBJECT(dev),
+    ret = object_child_foreach(OBJECT(dev),
             peripheral_register_create_auto_array, (void *) auto_tmp);
 
     if (ret) {
@@ -472,10 +620,22 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         int count = 0;
         int i;
         for (i = 0; i < 64; ++i) {
-            if (auto_tmp->left_shif_masks[i] != 0) {
+            if (auto_tmp->left_shift_follows_masks[i] != 0) {
                 count++;
             }
-            if (auto_tmp->right_shif_masks[i] != 0) {
+            if (auto_tmp->right_shift_follows_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->left_shift_cleared_by_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->right_shift_cleared_by_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->left_shift_set_by_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->right_shift_set_by_masks[i] != 0) {
                 count++;
             }
         }
@@ -488,14 +648,40 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
             PeripheralRegisterAutoBits *p = auto_bits;
 
             for (i = 0; i < 64; ++i) {
-                if (auto_tmp->left_shif_masks[i] != 0) {
-                    p->mask = auto_tmp->left_shif_masks[i];
+                if (auto_tmp->left_shift_follows_masks[i] != 0) {
+                    p->mask = auto_tmp->left_shift_follows_masks[i];
                     p->shift = i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS;
                     ++p;
                 }
-                if (auto_tmp->right_shif_masks[i] != 0) {
-                    p->mask = auto_tmp->right_shif_masks[i];
+                if (auto_tmp->right_shift_follows_masks[i] != 0) {
+                    p->mask = auto_tmp->right_shift_follows_masks[i];
                     p->shift = -i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS;
+                    ++p;
+                }
+                if (auto_tmp->left_shift_cleared_by_masks[i] != 0) {
+                    p->mask = auto_tmp->left_shift_cleared_by_masks[i];
+                    p->shift = i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY;
+                    ++p;
+                }
+                if (auto_tmp->right_shift_cleared_by_masks[i] != 0) {
+                    p->mask = auto_tmp->right_shift_cleared_by_masks[i];
+                    p->shift = -i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY;
+                    ++p;
+                }
+                if (auto_tmp->left_shift_set_by_masks[i] != 0) {
+                    p->mask = auto_tmp->left_shift_set_by_masks[i];
+                    p->shift = i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY;
+                    ++p;
+                }
+                if (auto_tmp->right_shift_set_by_masks[i] != 0) {
+                    p->mask = auto_tmp->right_shift_set_by_masks[i];
+                    p->shift = -i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY;
                     ++p;
                 }
             }
@@ -512,6 +698,9 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     if (ret) {
         return;
     }
+
+    fprintf(stderr, "%s reg, rd %08llX wr %08llX \n", state->name,
+            state->readable_bits, state->writable_bits);
 }
 
 static void peripheral_register_reset_callback(DeviceState *dev)
@@ -610,17 +799,25 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
     PeripheralRegisterTypeInfo *ti = (PeripheralRegisterTypeInfo *) data;
     PeripheralRegisterClass *pr_class = PERIPHERAL_REGISTER_CLASS(klass);
 
-    assert(ti->read);
-    assert(ti->write);
-    pr_class->read = ti->read;
-    pr_class->write = ti->write;
-
     const char *type_name = object_class_get_name(klass);
     PeripheralRegisterDerivedClass *prd_class =
             PERIPHERAL_REGISTER_DERIVED_CLASS(klass, type_name);
 
+    /*
+     * Derived classes can use parent_read() & parent_write() to
+     * perform the peripheral read/write's.
+     */
+    if (ti->read) {
+        prd_class->parent_read = pr_class->read;
+        pr_class->read = ti->read;
+    }
+    if (ti->write) {
+        prd_class->parent_write = pr_class->write;
+        pr_class->write = ti->write;
+    }
+
     /* Copy info members into class. */
-    prd_class->name = ti->name;
+    prd_class->name = ti->type_name;
     prd_class->desc = ti->desc;
     prd_class->offset_bytes = ti->offset_bytes;
     prd_class->reset_value = ti->reset_value;
