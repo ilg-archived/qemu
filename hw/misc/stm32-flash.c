@@ -38,8 +38,8 @@
 
 /* ------------------------------------------------------------------------- */
 
-static PeripheralRegisterInfo stm32f1_flash_acr_info = {
-    .name = "acr",
+static PeripheralRegisterTypeInfo stm32f1_flash_acr_type_info = {
+    .type_name = TYPE_STM32_FLASH_ACR,
     .desc = "Flash access control register (FLASH_ACR)",
     .offset_bytes = 0x00,
     .reset_value = 0x00000030,
@@ -67,6 +67,7 @@ static PeripheralRegisterInfo stm32f1_flash_acr_info = {
             } , /**/
 };
 
+#if 0
 /* Very schematic, functional read after write only. */
 static PeripheralRegisterInfo stm32f1_flash_keyr_info = {
     .offset_bytes = 0x04, };
@@ -106,6 +107,7 @@ static PeripheralRegisterInfo stm32f1xd_flash_cr2_info = {
 
 static PeripheralRegisterInfo stm32f1xd_flash_ar2_info = {
     .offset_bytes = 0x54, };
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -159,10 +161,10 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     Object *reg;
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
-        reg = peripheral_register_new(obj, "acr", &stm32f1_flash_acr_info);
+        reg = derived_peripheral_register_new(obj, "acr", TYPE_STM32_FLASH_ACR);
         cm_object_realize(reg);
         state->u.f1.reg.acr = DEVICE(reg);
-
+#if 0
         reg = peripheral_register_new(obj, "keyr", &stm32f1_flash_keyr_info);
         cm_object_realize(reg);
         state->u.f1.reg.keyr = DEVICE(reg);
@@ -220,6 +222,7 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
             state->u.f1.reg.ar2 = DEVICE(reg);
 
         }
+#endif
         break;
 
     default:
@@ -239,34 +242,6 @@ static void stm32_flash_reset_callback(DeviceState *dev)
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_STM32_FLASH);
 
-    STM32FlashState *state = STM32_FLASH_STATE(dev);
-
-    const STM32Capabilities *capabilities = state->capabilities;
-    assert(capabilities != NULL);
-
-    /* No bus used, explicitly reset all children peripherals. */
-    switch (capabilities->family) {
-    case STM32_FAMILY_F1:
-
-        device_reset(state->u.f1.reg.acr);
-        device_reset(state->u.f1.reg.keyr);
-        device_reset(state->u.f1.reg.optkeyr);
-        device_reset(state->u.f1.reg.sr);
-        device_reset(state->u.f1.reg.cr);
-        device_reset(state->u.f1.reg.ar);
-        device_reset(state->u.f1.reg.obr);
-        device_reset(state->u.f1.reg.wrpr);
-        if (capabilities->f1.is_xd) {
-            device_reset(state->u.f1.reg.keyr2);
-            device_reset(state->u.f1.reg.sr2);
-            device_reset(state->u.f1.reg.cr2);
-            device_reset(state->u.f1.reg.ar2);
-        }
-        break;
-
-    default:
-        break;
-    }
 }
 
 static Property stm32_flash_properties[] = {
@@ -293,6 +268,7 @@ static const TypeInfo stm32_flash_type_info = {
 
 static void stm32_flash_register_types(void)
 {
+    derived_peripheral_register_type_register(&stm32f1_flash_acr_type_info);
     type_register_static(&stm32_flash_type_info);
 }
 

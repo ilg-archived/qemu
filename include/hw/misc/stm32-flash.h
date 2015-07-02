@@ -27,8 +27,8 @@
 
 #define TYPE_STM32_FLASH TYPE_STM32_PREFIX "flash" TYPE_PERIPHERAL_SUFFIX
 
-//#define TYPE_STM32_FLASH_ACR \
-//        TYPE_STM32_PREFIX "flash-acr" TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32_FLASH_ACR \
+       TYPE_STM32_PREFIX "flash-acr" TYPE_PERIPHERAL_REGISTER_SUFFIX
 
 /* ------------------------------------------------------------------------- */
 
@@ -71,6 +71,7 @@ typedef struct {
             /* F1 specific registers */
             struct {
                 DeviceState *acr; /* 0x00 */
+#if 0
                 DeviceState *keyr; /* 0x04 */
                 DeviceState *optkeyr; /* 0x08 */
                 DeviceState *sr; /* 0x0C */
@@ -84,6 +85,7 @@ typedef struct {
                 DeviceState *sr2; /* 0x4C */
                 DeviceState *cr2; /* 0x50 */
                 DeviceState *ar2; /* 0x54 */
+#endif
             } reg;
         } f1;
         struct {
