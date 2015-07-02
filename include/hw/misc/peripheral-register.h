@@ -62,28 +62,10 @@ typedef void (*register_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size, uint64_t value);
 
 /**
- * Info structure used for creating generic registers.
- */
-typedef struct {
-    const char *name;
-    const char *desc;
-
-    uint32_t offset_bytes; /** No default, must be present. */
-    uint64_t reset_value; /** Default 0x00000000. */
-    uint64_t readable_bits; /** Default 0xFFFFFFFF. */
-    uint64_t writable_bits; /** Default 0xFFFFFFFF. */
-    uint32_t access_flags; /** Default all. */
-    uint32_t size_bits; /** Default 32. */
-    uint32_t rw_mode; /** Default R/W. */
-
-    RegisterBitfieldInfo *bitfields;
-} PeripheralRegisterInfo;
-
-/**
  * TypeInfo structure used to create new register types.
  */
 typedef struct {
-    const char *name;
+    const char *type_name;
     const char *desc;
 
     uint32_t offset_bytes;
@@ -99,8 +81,7 @@ typedef struct {
     register_read_callback_t read;
     register_write_callback_t write;
 
-    /*< private >*/
-    const char *type_name;
+    const char *name;
 } PeripheralRegisterTypeInfo;
 
 typedef enum {
@@ -197,22 +178,10 @@ typedef struct {
 
 typedef struct {
     /*< private >*/
-    PeripheralRegisterParentClass parent_class;
+    PeripheralRegisterClass parent_class;
     /*< public >*/
 
-    const char *name;
-    const char *desc;
-
-    uint32_t offset_bytes;
-
-    uint64_t reset_value;
-    uint64_t readable_bits;
-    uint64_t writable_bits;
-    uint32_t access_flags;
-    uint32_t rw_mode;
-    uint32_t size_bits;
-
-    RegisterBitfieldInfo *bitfields;
+    void *data;
 
     register_read_callback_t parent_read;
     register_write_callback_t parent_write;
@@ -236,13 +205,13 @@ typedef struct {
 
 uint64_t peripheral_register_get_value(Object* obj);
 
-Object *peripheral_register_new(Object *parent, const char *node_name,
-        PeripheralRegisterInfo *info);
+//Object *peripheral_register_new(Object *parent, const char *node_name,
+//        PeripheralRegisterInfo *info);
 Object *derived_peripheral_register_new(Object *parent, const char *node_name,
         const char *type_name);
 
-void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg,
-        const char *type_name);
+void derived_peripheral_register_type_register(
+        PeripheralRegisterTypeInfo *type_info);
 
 /* ------------------------------------------------------------------------- */
 

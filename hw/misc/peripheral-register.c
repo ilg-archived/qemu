@@ -42,137 +42,93 @@ uint64_t peripheral_register_get_value(Object* obj)
     return (state->value & state->readable_bits);
 }
 
-/**
- * Create a dynamic instance of the peripheral register object, using the
- * definitions in the Info structure. If present, children bitfields are
- * also created.
- */
-Object *peripheral_register_new(Object *parent, const char *node_name,
-        PeripheralRegisterInfo *info)
+static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
+        int size_bits, Object *reg)
 {
-    Object *reg = cm_object_new(parent, node_name,
-    TYPE_PERIPHERAL_REGISTER);
 
-    cm_object_property_set_str(reg, node_name, "name");
+    RegisterBitfieldInfo *bifi_info;
+    for (bifi_info = bitfields; bifi_info->name; ++bifi_info) {
 
-    cm_object_property_set_int(reg, info->offset_bytes, "offset-bytes");
-    if (info->reset_value != 0) {
-        cm_object_property_set_int(reg, info->reset_value, "reset-value");
-    }
-    if (info->readable_bits != 0) {
-        cm_object_property_set_int(reg, info->readable_bits, "readable-bits");
-    }
-    if (info->access_flags != 0) {
-        cm_object_property_set_int(reg, info->access_flags, "access-flags");
-    }
+        Object *bifi = cm_object_new(reg, bifi_info->name,
+        TYPE_REGISTER_BITFIELD);
 
-    int size_bits = 0;
-    if (info->size_bits != 0) {
-        size_bits = info->size_bits;
-    } else {
-        size_bits = PERIPHERAL_STATE(parent)->register_size_bytes * 8;
-    }
-    cm_object_property_set_int(reg, size_bits, "size-bits");
+        cm_object_property_set_str(bifi, bifi_info->name, "name");
 
-    if (info->rw_mode != 0) {
-        if (info->rw_mode & REGISTER_RW_MODE_READ) {
-            cm_object_property_set_bool(reg, true, "is-readable");
-        } else {
-            cm_object_property_set_bool(reg, false, "is-readable");
+        assert(bifi_info->first_bit < 32);
+        cm_object_property_set_int(bifi, bifi_info->first_bit, "first-bit");
+
+        assert(bifi_info->last_bit < 32);
+        if (bifi_info->last_bit != 0) {
+            cm_object_property_set_int(bifi, bifi_info->last_bit, "last-bit");
         }
-        if (info->rw_mode & REGISTER_RW_MODE_WRITE) {
-            cm_object_property_set_bool(reg, true, "is-writable");
-        } else {
-            cm_object_property_set_bool(reg, false, "is-writable");
+
+        if (bifi_info->reset_value != 0) {
+            cm_object_property_set_int(bifi, bifi_info->reset_value,
+                    "reset-value");
         }
-    } else {
-        cm_object_property_set_bool(reg, true, "is-readable");
-        cm_object_property_set_bool(reg, true, "is-writable");
-    }
 
-    if (info->bitfields) {
-
-        RegisterBitfieldInfo *bifi_info;
-        for (bifi_info = info->bitfields; bifi_info->name; ++bifi_info) {
-
-            Object *bifi = cm_object_new(reg, bifi_info->name,
-            TYPE_REGISTER_BITFIELD);
-
-            cm_object_property_set_str(bifi, bifi_info->name, "name");
-
-            assert(bifi_info->first_bit < 32);
-            cm_object_property_set_int(bifi, bifi_info->first_bit, "first-bit");
-
-            assert(bifi_info->last_bit < 32);
-            if (bifi_info->last_bit != 0) {
-                cm_object_property_set_int(bifi, bifi_info->last_bit,
-                        "last-bit");
-            }
-
-            if (bifi_info->reset_value != 0) {
-                cm_object_property_set_int(bifi, bifi_info->reset_value,
-                        "reset-value");
-            }
-
-            if (bifi_info->rw_mode != 0) {
-                if (bifi_info->rw_mode & REGISTER_RW_MODE_READ) {
-                    cm_object_property_set_bool(bifi, true, "is-readable");
-                } else {
-                    cm_object_property_set_bool(bifi, false, "is-readable");
-                }
-                if (bifi_info->rw_mode & REGISTER_RW_MODE_WRITE) {
-                    cm_object_property_set_bool(bifi, true, "is-writable");
-                } else {
-                    cm_object_property_set_bool(bifi, false, "is-writable");
-                }
+        if (bifi_info->rw_mode != 0) {
+            if (bifi_info->rw_mode & REGISTER_RW_MODE_READ) {
+                cm_object_property_set_bool(bifi, true, "is-readable");
             } else {
-                /*
-                 * Leave both false, as set by the option defaults,
-                 * in bitfield realize() this dual condition is tested to
-                 * compute the actual values using parent values.
-                 */
+                cm_object_property_set_bool(bifi, false, "is-readable");
             }
-
-            cm_object_property_set_int(bifi, size_bits, "register-size-bits");
-
-            if (bifi_info->follows != NULL && strlen(bifi_info->follows) > 0) {
-                cm_object_property_set_str(bifi, bifi_info->follows, "follows");
+            if (bifi_info->rw_mode & REGISTER_RW_MODE_WRITE) {
+                cm_object_property_set_bool(bifi, true, "is-writable");
+            } else {
+                cm_object_property_set_bool(bifi, false, "is-writable");
             }
-
-            if (bifi_info->cleared_by != NULL
-                    && strlen(bifi_info->cleared_by) > 0) {
-                cm_object_property_set_str(bifi, bifi_info->cleared_by,
-                        "cleared-by");
-            }
-
-            if (bifi_info->set_by != NULL && strlen(bifi_info->set_by) > 0) {
-                cm_object_property_set_str(bifi, bifi_info->set_by, "set-by");
-            }
-
-            /* Should we delay until the register is realized()? */
-            cm_object_realize(bifi);
+        } else {
+            /*
+             * Leave both false, as set by the option defaults,
+             * in bitfield realize() this dual condition is tested to
+             * compute the actual values using parent values.
+             */
         }
+
+        cm_object_property_set_int(bifi, size_bits, "register-size-bits");
+
+        if (bifi_info->follows != NULL && strlen(bifi_info->follows) > 0) {
+            cm_object_property_set_str(bifi, bifi_info->follows, "follows");
+        }
+
+        if (bifi_info->cleared_by != NULL
+                && strlen(bifi_info->cleared_by) > 0) {
+            cm_object_property_set_str(bifi, bifi_info->cleared_by,
+                    "cleared-by");
+        }
+
+        if (bifi_info->set_by != NULL && strlen(bifi_info->set_by) > 0) {
+            cm_object_property_set_str(bifi, bifi_info->set_by, "set-by");
+        }
+
+        /* Should we delay until the register is realized()? */
+        cm_object_realize(bifi);
     }
 
-    return reg;
 }
 
 Object *derived_peripheral_register_new(Object *parent, const char *node_name,
         const char *type_name)
 {
     Object *obj = cm_object_new(parent, node_name, type_name);
+
+    /* Store local copy of name, for easier access.  */
+    cm_object_property_set_str(obj, node_name, "name");
+
     return obj;
 }
 
-void derived_peripheral_register_type_register(PeripheralRegisterTypeInfo *reg,
-        const char *type_name)
+void derived_peripheral_register_type_register(
+        PeripheralRegisterTypeInfo *type_info)
 {
     TypeInfo ti = {
-        .name = type_name,
+        .name = type_info->type_name,
         .parent = TYPE_PERIPHERAL_REGISTER,
         .instance_init = derived_peripheral_register_instance_init_callback,
         .class_init = derived_peripheral_register_class_init_callback,
-        .class_data = (void *) reg, /**/
+        .class_size = sizeof(PeripheralRegisterDerivedClass),
+        .class_data = (void *) type_info, /**/
     };
 
     type_register(&ti);
@@ -593,17 +549,11 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
 
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
-    if (state->size_bits == 0) {
-
-        PeripheralState *parent = PERIPHERAL_STATE(
-                cm_object_get_parent(OBJECT(dev)));
-
-        if (parent->register_size_bytes != 0) {
-            state->size_bits = parent->register_size_bytes * 8;
-        } else {
-            state->size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES;
-        }
-    }
+    /*
+     * The size should have been already computed by derived_realize(),
+     * which is executed before this function.
+     */
+    assert(state->size_bits != 0);
 
     int ret;
     /*
@@ -805,6 +755,7 @@ static void peripheral_register_class_init(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo peripheral_register_type_info = {
+    .abstract = true,
     .name = TYPE_PERIPHERAL_REGISTER,
     .parent = TYPE_PERIPHERAL_REGISTER_PARENT,
     .instance_init = peripheral_register_instance_init_callback,
@@ -825,48 +776,76 @@ static void derived_peripheral_register_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
+}
+
+static void derived_peripheral_register_realize_callback(DeviceState *dev,
+        Error **errp)
+{
+    qemu_log_function_name();
+
+    Object *obj = OBJECT(dev);
     const char *type_name = object_get_typename(obj);
-    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
     PeripheralRegisterDerivedClass *klass =
             PERIPHERAL_REGISTER_DERIVED_GET_CLASS(obj, type_name);
 
     /*
-     * After properties are set with default values, copy actual
-     * values from class, if present.
+     * After properties are set with default values by parent class,
+     * copy actual values from class type info.
      */
-    state->offset_bytes = klass->offset_bytes;
-    state->reset_value = klass->reset_value;
-    if (klass->readable_bits != 0) {
-        state->readable_bits = klass->readable_bits;
+    PeripheralRegisterTypeInfo *info =
+            (PeripheralRegisterTypeInfo *) (klass->data);
+
+    cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
+    if (info->reset_value != 0) {
+        cm_object_property_set_int(obj, info->reset_value, "reset-value");
     }
-    if (state->writable_bits != 0) {
-        state->writable_bits = klass->writable_bits;
+    if (info->readable_bits != 0) {
+        cm_object_property_set_int(obj, info->readable_bits, "readable-bits");
     }
-    if (klass->access_flags != 0) {
-        state->access_flags = klass->access_flags;
+    if (info->access_flags != 0) {
+        cm_object_property_set_int(obj, info->access_flags, "access-flags");
     }
-    if (klass->rw_mode != 0) {
-        if (klass->rw_mode & REGISTER_RW_MODE_READ) {
-            state->is_readable = true;
+
+    int size_bits = 0;
+    if (info->size_bits != 0) {
+        size_bits = info->size_bits;
+    } else {
+        PeripheralState *parent = PERIPHERAL_STATE(
+                cm_object_get_parent(OBJECT(dev)));
+
+        if (parent->register_size_bytes != 0) {
+            size_bits = parent->register_size_bytes * 8;
         } else {
-            state->is_readable = false;
+            size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES;
         }
-        if (klass->rw_mode & REGISTER_RW_MODE_WRITE) {
-            state->is_writable = true;
+    }
+    cm_object_property_set_int(obj, size_bits, "size-bits");
+
+    if (info->rw_mode != 0) {
+        if (info->rw_mode & REGISTER_RW_MODE_READ) {
+            cm_object_property_set_bool(obj, true, "is-readable");
         } else {
-            state->is_writable = false;
+            cm_object_property_set_bool(obj, false, "is-readable");
+        }
+        if (info->rw_mode & REGISTER_RW_MODE_WRITE) {
+            cm_object_property_set_bool(obj, true, "is-writable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-writable");
         }
     } else {
-        /* Default both read and write. */
-        state->is_readable = true;
-        state->is_writable = true;
+        cm_object_property_set_bool(obj, true, "is-readable");
+        cm_object_property_set_bool(obj, true, "is-writable");
     }
 
-    if (klass->size_bits != 0) {
-        state->size_bits = klass->size_bits;
+    if (info->bitfields) {
+        peripheral_register_add_bitfields(info->bitfields, size_bits, obj);
     }
 
-    state->value = klass->reset_value;
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, type_name)) {
+        return;
+    }
+
 }
 
 static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
@@ -892,18 +871,10 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
         pr_class->write = ti->write;
     }
 
-    /* Copy info members into class. */
-    prd_class->name = ti->type_name;
-    prd_class->desc = ti->desc;
-    prd_class->offset_bytes = ti->offset_bytes;
-    prd_class->reset_value = ti->reset_value;
-    prd_class->readable_bits = ti->readable_bits;
-    prd_class->writable_bits = ti->writable_bits;
-    prd_class->access_flags = ti->access_flags;
-    prd_class->rw_mode = ti->rw_mode;
-    prd_class->size_bits = ti->size_bits;
+    prd_class->data = data;
 
-    prd_class->bitfields = ti->bitfields;
+    DeviceClass *dc = DEVICE_CLASS(klass);
+    dc->realize = derived_peripheral_register_realize_callback;
 }
 
 /* ------------------------------------------------------------------------- */
