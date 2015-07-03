@@ -358,7 +358,7 @@ static bool stm32f1_gpio_is_enabled(Object *obj)
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
     /* GPIO clock enable bits are in apb2enr for families. */
-    if ((peripheral_register_read_value(state->rcc->u.f1.reg.apb2enr)
+    if ((peripheral_register_read_value(state->rcc->f1.reg.apb2enr)
             & (0x4 << state->port_index)) != 0) {
         return true;
     }
