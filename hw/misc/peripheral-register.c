@@ -35,12 +35,49 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
 
 /* ----- Public ------------------------------------------------------------ */
 
-uint64_t peripheral_register_get_value(Object* obj)
+uint64_t peripheral_register_read_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     return (state->value & state->readable_bits);
 }
+
+void peripheral_register_write_value(Object* obj, uint64_t value)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->value = value & state->writable_bits;
+}
+
+uint64_t peripheral_register_get_raw_value(Object* obj)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    return state->value;
+}
+
+void peripheral_register_set_raw_value(Object* obj, uint64_t value)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->value = value;
+}
+
+void peripheral_register_or_raw_value(Object* obj, uint64_t value)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->value |= value;
+}
+
+void peripheral_register_and_raw_value(Object* obj, uint64_t value)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->value &= value;
+}
+
+/* ----- Private ----------------------------------------------------------- */
 
 static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
         int size_bits, Object *reg)
@@ -58,8 +95,9 @@ static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
         cm_object_property_set_int(bifi, bifi_info->first_bit, "first-bit");
 
         assert(bifi_info->width_bits < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
-        if (bifi_info->width_bits){
-            cm_object_property_set_int(bifi, bifi_info->width_bits, "width-bits");
+        if (bifi_info->width_bits) {
+            cm_object_property_set_int(bifi, bifi_info->width_bits,
+                    "width-bits");
         }
 
         if (bifi_info->reset_value != 0) {
@@ -858,8 +896,14 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
     PeripheralRegisterTypeInfo *ti = (PeripheralRegisterTypeInfo *) data;
     PeripheralRegisterClass *pr_class = PERIPHERAL_REGISTER_CLASS(klass);
 
+    if (ti->read) {
+        pr_class->read = ti->read;
+    }
     pr_class->pre_read = ti->pre_read;
     pr_class->post_write = ti->post_write;
+    if (ti->write) {
+        pr_class->write = ti->write;
+    }
 
     const char *type_name = object_class_get_name(klass);
     PeripheralRegisterDerivedClass *prd_class =

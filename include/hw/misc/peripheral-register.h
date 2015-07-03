@@ -79,7 +79,16 @@ typedef struct {
 
     RegisterBitfieldInfo *bitfields;
 
+    /* Always copied to class. */
     register_read_callback_t pre_read;
+
+    /* Copied to class only if not null. */
+    register_read_callback_t read;
+
+    /* Copied to class only if not null. */
+    register_write_callback_t write;
+
+    /* Always copied to class. */
     register_write_callback_t post_write;
 } PeripheralRegisterTypeInfo;
 
@@ -201,10 +210,18 @@ typedef struct {
 
 /* ----- Public ------------------------------------------------------------ */
 
-uint64_t peripheral_register_get_value(Object* obj);
+uint64_t peripheral_register_read_value(Object* obj);
 
-//Object *peripheral_register_new(Object *parent, const char *node_name,
-//        PeripheralRegisterInfo *info);
+void peripheral_register_write_value(Object* obj, uint64_t value);
+
+uint64_t peripheral_register_get_raw_value(Object* obj);
+
+void peripheral_register_set_raw_value(Object* obj, uint64_t value);
+
+void peripheral_register_or_raw_value(Object* obj, uint64_t value);
+
+void peripheral_register_and_raw_value(Object* obj, uint64_t value);
+
 Object *derived_peripheral_register_new(Object *parent, const char *node_name,
         const char *type_name);
 
