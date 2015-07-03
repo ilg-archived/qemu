@@ -80,8 +80,6 @@ typedef struct {
 
     register_read_callback_t pre_read;
     register_write_callback_t post_write;
-
-    const char *name;
 } PeripheralRegisterTypeInfo;
 
 typedef enum {
