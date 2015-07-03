@@ -42,7 +42,7 @@ typedef struct {
     const char *name;
     const char *desc;
     uint32_t first_bit;
-    uint32_t last_bit;
+    uint32_t width_bits;
     uint64_t reset_value;
     uint32_t rw_mode;
     const char *follows;
@@ -93,7 +93,7 @@ typedef struct {
     uint32_t register_size_bits;
 
     uint32_t first_bit;
-    uint32_t last_bit;
+    uint32_t width_bits;
     uint64_t reset_value; /**/
     bool is_readable; /**/
     bool is_writable; /**/

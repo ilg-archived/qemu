@@ -54,12 +54,12 @@ static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
 
         cm_object_property_set_str(bifi, bifi_info->name, "name");
 
-        assert(bifi_info->first_bit < 32);
+        assert(bifi_info->first_bit < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
         cm_object_property_set_int(bifi, bifi_info->first_bit, "first-bit");
 
-        assert(bifi_info->last_bit < 32);
-        if (bifi_info->last_bit != 0) {
-            cm_object_property_set_int(bifi, bifi_info->last_bit, "last-bit");
+        assert(bifi_info->width_bits < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
+        if (bifi_info->width_bits){
+            cm_object_property_set_int(bifi, bifi_info->width_bits, "width-bits");
         }
 
         if (bifi_info->reset_value != 0) {

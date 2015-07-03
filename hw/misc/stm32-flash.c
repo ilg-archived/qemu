@@ -47,15 +47,15 @@ static PeripheralRegisterTypeInfo stm32f1_flash_acr_type_info = {
                 {
                     .name = "latency",
                     .first_bit = 0,
-                    .last_bit = 2 },
+                    .width_bits = 3, },
                 {
                     .name = "hlfcya",
                     .desc = "Flash half cycle access enable",
-                    .first_bit = 3 },
+                    .first_bit = 3, },
                 {
                     .name = "prftbe",
                     .desc = "Prefetch buffer enable",
-                    .first_bit = 4 },
+                    .first_bit = 4, },
                 {
                     .name = "prftbs",
                     .desc = "Prefetch buffer status",
@@ -70,43 +70,43 @@ static PeripheralRegisterTypeInfo stm32f1_flash_acr_type_info = {
 #if 0
 /* Very schematic, functional read after write only. */
 static PeripheralRegisterInfo stm32f1_flash_keyr_info = {
-    .offset_bytes = 0x04, };
+    .offset_bytes = 0x04,};
 
 static PeripheralRegisterInfo stm32f1_flash_optkeyr_info = {
-    .offset_bytes = 0x08, };
+    .offset_bytes = 0x08,};
 
 static PeripheralRegisterInfo stm32f1_flash_sr_info = {
-    .offset_bytes = 0x0C, };
+    .offset_bytes = 0x0C,};
 
 static PeripheralRegisterInfo stm32f1_flash_cr_info = {
-    .offset_bytes = 0x10, };
+    .offset_bytes = 0x10,};
 
 static PeripheralRegisterInfo stm32f1_flash_ar_info = {
-    .offset_bytes = 0x14, };
+    .offset_bytes = 0x14,};
 
 /* 0x18 is reserved */
 
 static PeripheralRegisterInfo stm32f1_flash_obr_info = {
-    .offset_bytes = 0x1C, };
+    .offset_bytes = 0x1C,};
 
 static PeripheralRegisterInfo stm32f1_flash_wrpr_info = {
-    .offset_bytes = 0x20, };
+    .offset_bytes = 0x20,};
 
 /*
  * In addition to the above, the XL density devices
  * have a few more registers.
  */
 static PeripheralRegisterInfo stm32f1xd_flash_keyr2_info = {
-    .offset_bytes = 0x44, };
+    .offset_bytes = 0x44,};
 
 static PeripheralRegisterInfo stm32f1xd_flash_sr2_info = {
-    .offset_bytes = 0x4C, };
+    .offset_bytes = 0x4C,};
 
 static PeripheralRegisterInfo stm32f1xd_flash_cr2_info = {
-    .offset_bytes = 0x50, };
+    .offset_bytes = 0x50,};
 
 static PeripheralRegisterInfo stm32f1xd_flash_ar2_info = {
-    .offset_bytes = 0x54, };
+    .offset_bytes = 0x54,};
 #endif
 
 /* ------------------------------------------------------------------------- */

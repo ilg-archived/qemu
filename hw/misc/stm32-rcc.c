@@ -77,12 +77,12 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_cr_type_info = {
                     .name = "hsitrim",
                     .desc = "Internal high-speed clock trimming",
                     .first_bit = 3,
-                    .last_bit = 7, },
+                    .width_bits = 5, },
                 {
                     .name = "hsical",
                     .desc = "Internal high-speed clock calibration",
                     .first_bit = 8,
-                    .last_bit = 15,
+                    .width_bits = 8,
                     .rw_mode = REGISTER_RW_MODE_READ, },
                 {
                     .name = "hseon",
@@ -127,34 +127,34 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_cfgr_type_info = {
                     .name = "sw",
                     .desc = "System clock switch",
                     .first_bit = 0,
-                    .last_bit = 1, },
+                    .width_bits = 2, },
                 {
                     .name = "sws",
                     .desc = "System clock switch status",
                     .first_bit = 2,
-                    .last_bit = 3,
+                    .width_bits = 2,
                     .rw_mode = REGISTER_RW_MODE_READ,
                     .follows = "sw", },
                 {
                     .name = "hpre",
                     .desc = "AHB prescaler",
                     .first_bit = 4,
-                    .last_bit = 7, },
+                    .width_bits = 4, },
                 {
                     .name = "ppre1",
                     .desc = "APB low-speed prescaler (APB1)",
                     .first_bit = 8,
-                    .last_bit = 10, },
+                    .width_bits = 3, },
                 {
                     .name = "ppre2",
                     .desc = "APB high-speed prescaler (APB2)",
                     .first_bit = 11,
-                    .last_bit = 13, },
+                    .width_bits = 3, },
                 {
                     .name = "adcpre",
                     .desc = "ADC prescaler",
                     .first_bit = 14,
-                    .last_bit = 15, },
+                    .width_bits = 2, },
                 {
                     .name = "pllsrc",
                     .desc = "PLL entry clock source",
@@ -167,7 +167,7 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_cfgr_type_info = {
                     .name = "pllmul",
                     .desc = "PLL multiplication factor",
                     .first_bit = 18,
-                    .last_bit = 21, },
+                    .width_bits = 4, },
                 {
                     .name = "usbpre",
                     .desc = "USB prescaler",
@@ -176,7 +176,7 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_cfgr_type_info = {
                     .name = "mco",
                     .desc = "Microcontroller clock output",
                     .first_bit = 24,
-                    .last_bit = 26, },
+                    .width_bits = 3, },
                 { }, /**/
             } , /**/
 };
@@ -416,7 +416,7 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_bdcr_type_info = {
                     .name = "rtcsel",
                     .desc = "RTC clock source selection",
                     .first_bit = 8,
-                    .last_bit = 9, },
+                    .width_bits = 2, },
                 {
                     .name = "rtcen",
                     .desc = "RTC clock enable",
@@ -509,12 +509,12 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cr_type_info = {
                     .name = "hsitrim",
                     .desc = "Internal high-speed clock trimming",
                     .first_bit = 3,
-                    .last_bit = 7, },
+                    .width_bits = 5, },
                 {
                     .name = "hsical",
                     .desc = "Internal high-speed clock calibration",
                     .first_bit = 8,
-                    .last_bit = 15,
+                    .width_bits = 8,
                     .rw_mode = REGISTER_RW_MODE_READ, },
                 {
                     .name = "hseon",
@@ -579,34 +579,34 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr_type_info = {
                     .name = "sw",
                     .desc = "System clock switch",
                     .first_bit = 0,
-                    .last_bit = 1, },
+                    .width_bits = 2, },
                 {
                     .name = "sws",
                     .desc = "System clock switch status",
                     .first_bit = 2,
-                    .last_bit = 3,
+                    .width_bits = 2,
                     .rw_mode = REGISTER_RW_MODE_READ,
                     .follows = "sw", },
                 {
                     .name = "hpre",
                     .desc = "AHB prescaler",
                     .first_bit = 4,
-                    .last_bit = 7, },
+                    .width_bits = 4, },
                 {
                     .name = "ppre1",
                     .desc = "APB low-speed prescaler (APB1)",
                     .first_bit = 8,
-                    .last_bit = 10, },
+                    .width_bits = 3, },
                 {
                     .name = "ppre2",
                     .desc = "APB high-speed prescaler (APB2)",
                     .first_bit = 11,
-                    .last_bit = 13, },
+                    .width_bits = 3, },
                 {
                     .name = "adcpre",
                     .desc = "ADC prescaler",
                     .first_bit = 14,
-                    .last_bit = 15, },
+                    .width_bits = 2, },
                 {
                     .name = "pllsrc",
                     .desc = "PLL entry clock source",
@@ -619,7 +619,7 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr_type_info = {
                     .name = "pllmul",
                     .desc = "PLL multiplication factor",
                     .first_bit = 18,
-                    .last_bit = 21, },
+                    .width_bits = 4, },
                 {
                     .name = "otgfspre",
                     .desc = "OTG FS prescaler",
@@ -628,7 +628,7 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr_type_info = {
                     .name = "mco",
                     .desc = "Microcontroller clock output",
                     .first_bit = 24,
-                    .last_bit = 26, },
+                    .width_bits = 3, },
                 { }, /**/
             } , /**/
 };
@@ -870,7 +870,7 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_bdcr_type_info = {
                     .name = "rtcsel",
                     .desc = "RTC clock source selection",
                     .first_bit = 8,
-                    .last_bit = 9, },
+                    .width_bits = 2, },
                 {
                     .name = "rtcen",
                     .desc = "RTC clock enable",
@@ -957,22 +957,22 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr2_type_info = {
                     .name = "prediv1",
                     .desc = "PREDIV1 division factor",
                     .first_bit = 0,
-                    .last_bit = 3, },
+                    .width_bits = 4, },
                 {
                     .name = "prediv2",
                     .desc = "PREDIV2 division factor",
                     .first_bit = 4,
-                    .last_bit = 7, },
+                    .width_bits = 4, },
                 {
                     .name = "pll2mul",
                     .desc = "PLL2 Multiplication factor",
                     .first_bit = 8,
-                    .last_bit = 11, },
+                    .width_bits = 4, },
                 {
                     .name = "pll3mul",
                     .desc = "PLL3 Multiplication factor",
                     .first_bit = 12,
-                    .last_bit = 15, },
+                    .width_bits = 4, },
                 {
                     .name = "prediv1src",
                     .desc = "PREDIV1 entry clock source",

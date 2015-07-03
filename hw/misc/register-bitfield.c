@@ -78,8 +78,8 @@ static void register_bitfield_instance_init_callback(Object *obj)
     cm_object_property_add_uint32(obj, "first-bit", &state->first_bit);
     state->first_bit = 0;
 
-    cm_object_property_add_uint32(obj, "last-bit", &state->last_bit);
-    state->last_bit = 0;
+    cm_object_property_add_uint32(obj, "width-bits", &state->width_bits);
+    state->width_bits = 1;
 
     cm_object_property_add_uint64(obj, "reset-value", &state->reset_value);
     state->reset_value = 0;
@@ -128,25 +128,12 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
     }
 
     assert(state->register_size_bits);
-    assert(state->register_size_bits <= 64);
-
-    if (state->first_bit != 0 && state->last_bit == 0) {
-        /* Implicit single bit field. */
-        state->last_bit = state->first_bit;
-    }
-
-    /*
-     * First bit must be the lowest bit in the register.
-     * If not, switch values.
-     */
-    if (state->first_bit > state->last_bit) {
-        uint32_t tmp = state->first_bit;
-        state->first_bit = state->last_bit;
-        state->last_bit = tmp;
-    }
+    assert(state->register_size_bits <= PERIPHERAL_REGISTER_MAX_SIZE_BITS);
 
     assert(state->first_bit < state->register_size_bits);
-    assert(state->last_bit < state->register_size_bits);
+    assert(
+            state->first_bit + state->width_bits - 1
+                    < state->register_size_bits);
 
     state->shift = state->first_bit;
 
@@ -156,7 +143,7 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
      * used on the register value.
      */
     uint64_t mask = -1;
-    mask >>= (64 - 1 - (state->last_bit - state->first_bit));
+    mask >>= (64 - state->width_bits);
     mask <<= state->shift;
     state->mask = mask;
 
@@ -236,9 +223,10 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
 
     qemu_log_mask(LOG_TRACE,
             "%s() '%s[%d:%d]', mask: 0x%llX, shift: %d, reset: 0x%llX, mode: %s%s\n",
-            __FUNCTION__, state->name, state->first_bit, state->last_bit,
-            state->mask, state->shift, state->reset_value,
-            state->is_readable ? "r" : "", state->is_writable ? "w" : "");
+            __FUNCTION__, state->name, state->first_bit,
+            state->first_bit + state->width_bits + 1, state->mask, state->shift,
+            state->reset_value, state->is_readable ? "r" : "",
+            state->is_writable ? "w" : "");
 }
 
 static void register_bitfield_class_init(ObjectClass *klass, void *data)
