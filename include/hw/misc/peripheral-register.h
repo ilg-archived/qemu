@@ -78,8 +78,8 @@ typedef struct {
 
     RegisterBitfieldInfo *bitfields;
 
-    register_read_callback_t read;
-    register_write_callback_t write;
+    register_read_callback_t pre_read;
+    register_write_callback_t post_write;
 
     const char *name;
 } PeripheralRegisterTypeInfo;
@@ -133,8 +133,10 @@ typedef struct {
     PeripheralRegisterParentClass parent_class;
     /*< public >*/
 
+    register_read_callback_t pre_read;
     register_read_callback_t read;
     register_write_callback_t write;
+    register_write_callback_t post_write;
 } PeripheralRegisterClass;
 
 /* ------------------------------------------------------------------------- */
@@ -182,9 +184,6 @@ typedef struct {
     /*< public >*/
 
     void *data;
-
-    register_read_callback_t parent_read;
-    register_write_callback_t parent_write;
 } PeripheralRegisterDerivedClass;
 
 /* ------------------------------------------------------------------------- */

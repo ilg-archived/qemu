@@ -56,6 +56,11 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
 
     PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
 
+    if (reg_class->pre_read) {
+        reg_class->pre_read(OBJECT(reg), OBJECT(state), reg_addr, reg_offset,
+                size);
+    }
+
     /* Read the register value. */
     uint64_t value = reg_class->read(OBJECT(reg), OBJECT(state), reg_addr,
             reg_offset, size);
@@ -97,6 +102,12 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
     /* Write the value to the register. */
     reg_class->write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset, size,
             value);
+
+    if (reg_class->post_write) {
+        reg_class->post_write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset,
+                size, value);
+    }
+
 }
 
 static const MemoryRegionOps register_ops = {

@@ -845,7 +845,6 @@ static void derived_peripheral_register_realize_callback(DeviceState *dev,
     if (!cm_device_parent_realize(dev, errp, type_name)) {
         return;
     }
-
 }
 
 static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
@@ -854,27 +853,17 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
     PeripheralRegisterTypeInfo *ti = (PeripheralRegisterTypeInfo *) data;
     PeripheralRegisterClass *pr_class = PERIPHERAL_REGISTER_CLASS(klass);
 
+    pr_class->pre_read = ti->pre_read;
+    pr_class->post_write = ti->post_write;
+
     const char *type_name = object_class_get_name(klass);
     PeripheralRegisterDerivedClass *prd_class =
             PERIPHERAL_REGISTER_DERIVED_CLASS(klass, type_name);
-
-    /*
-     * Derived classes can use parent_read() & parent_write() to
-     * perform the peripheral read/write's.
-     */
-    if (ti->read) {
-        prd_class->parent_read = pr_class->read;
-        pr_class->read = ti->read;
-    }
-    if (ti->write) {
-        prd_class->parent_write = pr_class->write;
-        pr_class->write = ti->write;
-    }
-
     prd_class->data = data;
 
     DeviceClass *dc = DEVICE_CLASS(klass);
     dc->realize = derived_peripheral_register_realize_callback;
+
 }
 
 /* ------------------------------------------------------------------------- */
