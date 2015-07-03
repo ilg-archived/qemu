@@ -37,6 +37,14 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
         unsigned size)
 {
     PeripheralState *state = (PeripheralState *) opaque;
+    PeripheralClass *per_class = PERIPHERAL_GET_CLASS(opaque);
+
+    if (per_class->is_enabled) {
+        if (!per_class->is_enabled(OBJECT(state))) {
+            /* If peripheral is not enabled, return a convenience value. */
+            return 0;
+        }
+    }
 
     uint32_t index = addr / state->register_size_bytes;
     assert(index < state->registers_size_ptrs);
@@ -56,14 +64,22 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
 
     PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
 
+    /*
+     * Specific actions required to get the actual values are implemented
+     * with pre read callbacks. These should prepare the value in the
+     * register.
+     */
     if (reg_class->pre_read) {
         reg_class->pre_read(OBJECT(reg), OBJECT(state), reg_addr, reg_offset,
                 size);
     }
 
     /* Read the register value. */
-    uint64_t value = reg_class->read(OBJECT(reg), OBJECT(state), reg_addr,
-            reg_offset, size);
+    uint64_t value = 0;
+    if (reg_class->read) {
+        value = reg_class->read(OBJECT(reg), OBJECT(state), reg_addr,
+                reg_offset, size);
+    }
 
     return value;
 }
@@ -81,6 +97,15 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
     PeripheralState *state = (PeripheralState *) opaque;
+
+    PeripheralClass *per_class = PERIPHERAL_GET_CLASS(opaque);
+
+    if (per_class->is_enabled) {
+        if (!per_class->is_enabled(OBJECT(state))) {
+            /* If peripheral is not enabled, do not attempt any write. */
+            return;
+        }
+    }
 
     uint32_t index = addr / state->register_size_bytes;
     assert(index < state->registers_size_ptrs);
@@ -100,14 +125,19 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
 
     PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
     /* Write the value to the register. */
-    reg_class->write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset, size,
-            value);
+    if (reg_class->write) {
+        reg_class->write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset, size,
+                value);
+    }
 
+    /*
+     * Actions associated with registers are implemented with post write
+     * callbacks.
+     */
     if (reg_class->post_write) {
         reg_class->post_write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset,
                 size, value);
     }
-
 }
 
 static const MemoryRegionOps register_ops = {
@@ -146,7 +176,7 @@ static void peripheral_instance_init_callback(Object *obj)
     state->is_little_endian = true;
 }
 
-static int peripheral_compute_max_offset(Object *obj, void *opaque)
+static int peripheral_compute_max_offset_foreach(Object *obj, void *opaque)
 {
     PeripheralState *periph = PERIPHERAL_STATE(opaque);
 
@@ -163,7 +193,8 @@ static int peripheral_compute_max_offset(Object *obj, void *opaque)
     return 0;
 }
 
-static int peripheral_populate_registers_array(Object *obj, void *opaque)
+static int peripheral_populate_registers_array_foreach(Object *obj,
+        void *opaque)
 {
     PeripheralState *periph = PERIPHERAL_STATE(opaque);
 
@@ -212,7 +243,7 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
 
     /* Iterate children and determine the last register. */
     state->max_offset_bytes = 0;
-    object_child_foreach(OBJECT(dev), peripheral_compute_max_offset,
+    object_child_foreach(OBJECT(dev), peripheral_compute_max_offset_foreach,
             (void *) dev);
 
     assert(state->max_offset_bytes < state->mmio_size_bytes);
@@ -225,8 +256,8 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
     state->registers = g_malloc0_n(state->registers_size_ptrs, sizeof(Object*));
 
     /* Fill in the array with pointers to registers. */
-    object_child_foreach(OBJECT(dev), peripheral_populate_registers_array,
-            (void *) dev);
+    object_child_foreach(OBJECT(dev),
+            peripheral_populate_registers_array_foreach, (void *) dev);
 }
 
 static void peripheral_reset_callback(DeviceState *dev)

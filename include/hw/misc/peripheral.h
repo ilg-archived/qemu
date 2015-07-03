@@ -47,6 +47,8 @@ typedef SysBusDevice PeripheralParentState;
 
 /* ------------------------------------------------------------------------- */
 
+typedef     bool (*peripheral_is_enabled_t)(Object *obj);
+
 /* Class definitions. */
 #define PERIPHERAL_GET_CLASS(obj) \
     OBJECT_GET_CLASS(PeripheralClass, (obj), TYPE_PERIPHERAL)
@@ -58,7 +60,7 @@ typedef struct {
     PeripheralParentClass parent_class;
     /*< public >*/
 
-    /* None, so far. */
+    peripheral_is_enabled_t is_enabled;
 } PeripheralClass;
 
 /* ------------------------------------------------------------------------- */
