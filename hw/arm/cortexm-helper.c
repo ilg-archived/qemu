@@ -126,6 +126,39 @@ bool cm_object_is_instance_of_typename(Object *obj, const char *type_name)
     return false;
 }
 
+typedef struct {
+    Object *parent;
+    Object *child;
+    const char *name;
+} GetChildByNameTmp;
+
+static int cm_object_get_child_by_name_foreach(Object *child, void *opaque)
+{
+    GetChildByNameTmp *p = (GetChildByNameTmp*) opaque;
+
+    p->child = object_resolve_path_component(p->parent, p->name);
+    if (p->child) {
+        return 1;
+    }
+    return 0;
+}
+
+Object *cm_object_get_child_by_name(Object *obj, const char *name)
+{
+    GetChildByNameTmp tmp;
+    tmp.parent = obj;
+    tmp.name = name;
+    tmp.child = NULL;
+    int ret = object_child_foreach(obj, cm_object_get_child_by_name_foreach,
+            (void *) &tmp);
+    if (ret == 0) {
+        error_report("Unable to find child %s", name);
+        exit(1);
+    }
+
+    return tmp.child;
+}
+
 /* ------------------------------------------------------------------------- */
 
 /**

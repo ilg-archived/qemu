@@ -51,6 +51,7 @@ Object *cm_object_new_mcu(const char *type_name);
 
 Object *cm_object_get_parent(Object *obj);
 bool cm_object_is_instance_of_typename(Object *obj, const char *type_name);
+Object *cm_object_get_child_by_name(Object *obj, const char *name);
 
 void cm_object_realize(Object *dev);
 
