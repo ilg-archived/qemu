@@ -53,10 +53,13 @@
 static bool stm32f1_rcc_is_gpio_enabled(STM32RCCState *dev, int port_index)
 {
     assert(dev);
+#if 1
     /* GPIO clock enable bits are in apb2enr for families. */
-    if ((dev->u.f1.reg.apb2enr & (0x4 << port_index)) != 0) {
+    if ((peripheral_register_get_value(dev->u.f1.reg.apb2enr)
+            & (0x4 << port_index)) != 0) {
         return true;
     }
+#endif
     return false;
 }
 

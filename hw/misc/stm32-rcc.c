@@ -18,6 +18,7 @@
  */
 
 #include "hw/misc/stm32-rcc.h"
+#include "hw/arm/cortexm-helper.h"
 
 /**
  * This file implements the STM32 RCC (Reset and Clock Control).
@@ -44,358 +45,949 @@ static void stm32_rcc_update_clocks(STM32RCCState *state);
 
 /* ------------------------------------------------------------------------- */
 
+static void stm32f1_rcc_post_write_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+{
+    STM32RCCState *state = STM32_RCC_STATE(periph);
+    stm32_rcc_update_clocks(state);
+}
+
+/* ------------------------------------------------------------------------- */
+
 /* STM32F1[LMHX]D */
 
-#define STM32F1_RCC_CR_READ_MASK            (0x030FFFFB)
-#define STM32F1_RCC_CR_WRITE_MASK           (0x010D00F9)
-#define STM32F1_RCC_CFGR_READ_MASK          (0x077FFFFF)
-#define STM32F1_RCC_CFGR_WRITE_MASK         (0x077FFFF3)
-#define STM32F1_RCC_CIR_READ_MASK           (0x00001F9F)
-#define STM32F1_RCC_CIR_WRITE_MASK          (0x00001F00)
-#define STM32F1_RCC_APB2RSTR_READ_MASK      (0x0038FFFD)
-#define STM32F1_RCC_APB2RSTR_WRITE_MASK     (0x0038FFFD)
-#define STM32F1_RCC_APB1RSTR_READ_MASK      (0x3AFEC9FF)
-#define STM32F1_RCC_APB1RSTR_WRITE_MASK     (0x3AFEC9FF)
-#define STM32F1_RCC_AHBENR_READ_MASK        (0x00000557)
-#define STM32F1_RCC_AHBENR_WRITE_MASK       (0x00000557)
-#define STM32F1_RCC_AHB2ENR_READ_MASK       (0x0038FFFD)
-#define STM32F1_RCC_AHB2ENR_WRITE_MASK      (0x0038FFFD)
-#define STM32F1_RCC_AHB1ENR_READ_MASK       (0x3AFEC9FF)
-#define STM32F1_RCC_AHB1ENR_WRITE_MASK      (0x3AFEC9FF)
-#define STM32F1_RCC_BDCR_READ_MASK          (0x00018307)
-#define STM32F1_RCC_BDCR_WRITE_MASK         (0x00018305)
-#define STM32F1_RCC_CSR_READ_MASK           (0xFD000003)
-#define STM32F1_RCC_CSR_WRITE_MASK          (0xFD000001)
+static PeripheralRegisterTypeInfo stm32f1_rcc_cr_type_info = {
+    .desc = "Clock control register (RCC_CR)",
+    .type_name = TYPE_STM32F1_RCC_CR,
+    .offset_bytes = 0x00,
+    .reset_value = 0x00000083,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "hsion",
+                    .desc = "Internal high-speed clock enable",
+                    .first_bit = 0, },
+                {
+                    .name = "hsirdy",
+                    .desc = "Internal high-speed clock ready flag",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "hsion", },
+                {
+                    .name = "hsitrim",
+                    .desc = "Internal high-speed clock trimming",
+                    .first_bit = 3,
+                    .last_bit = 7, },
+                {
+                    .name = "hsical",
+                    .desc = "Internal high-speed clock calibration",
+                    .first_bit = 8,
+                    .last_bit = 15,
+                    .rw_mode = REGISTER_RW_MODE_READ, },
+                {
+                    .name = "hseon",
+                    .desc = "External clock enable",
+                    .first_bit = 16, },
+                {
+                    .name = "hserdy",
+                    .desc = "External high-speed clock ready flag",
+                    .first_bit = 17,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "hseon", },
+                {
+                    .name = "hsebyp",
+                    .desc = "External high-speed clock bypass",
+                    .first_bit = 18, },
+                {
+                    .name = "csson",
+                    .desc = "Clock security system enable",
+                    .first_bit = 19, },
+                {
+                    .name = "pllon",
+                    .desc = "PLL enable",
+                    .first_bit = 24, },
+                {
+                    .name = "pllrdy",
+                    .desc = "PLL clock ready flag",
+                    .first_bit = 25,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "pllon", },
+                { }, /**/
+            } , /**/
+};
 
-/**
- * STM32F1 Low-, medium-, high- and XL-density reset and clock control (RCC)
- * read 32-bits.
- */
-static uint32_t stm32f1_rcc_read32(STM32RCCState *state, uint32_t offset,
-        unsigned size)
-{
-    switch (offset) {
-    case 0x00:
-        return (state->u.f1.reg.cr & STM32F1_RCC_CR_READ_MASK);
-    case 0x04:
-        return (state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_READ_MASK);
-    case 0x08:
-        return (state->u.f1.reg.cir & STM32F1_RCC_CIR_READ_MASK);
-    case 0x0C:
-        return (state->u.f1.reg.apb2rstr & STM32F1_RCC_APB2RSTR_READ_MASK);
-    case 0x10:
-        return (state->u.f1.reg.apb1rstr & STM32F1_RCC_APB1RSTR_READ_MASK);
-    case 0x14:
-        return (state->u.f1.reg.ahbenr & STM32F1_RCC_AHBENR_READ_MASK);
-    case 0x18:
-        return (state->u.f1.reg.apb2enr & STM32F1_RCC_AHB2ENR_READ_MASK);
-    case 0x1C:
-        return (state->u.f1.reg.apb1enr & STM32F1_RCC_AHB1ENR_READ_MASK);
-    case 0x20:
-        return (state->u.f1.reg.bdcr & STM32F1_RCC_BDCR_READ_MASK);
-    case 0x24:
-        return (state->u.f1.reg.csr & STM32F1_RCC_CSR_READ_MASK);
+static PeripheralRegisterTypeInfo stm32f1_rcc_cfgr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_CFGR,
+    .desc = "Clock configuration register (RCC_CFGR)",
+    .offset_bytes = 0x04,
+    .reset_value = 0x00000000,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "sw",
+                    .desc = "System clock switch",
+                    .first_bit = 0,
+                    .last_bit = 1, },
+                {
+                    .name = "sws",
+                    .desc = "System clock switch status",
+                    .first_bit = 2,
+                    .last_bit = 3,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "sw", },
+                {
+                    .name = "hpre",
+                    .desc = "AHB prescaler",
+                    .first_bit = 4,
+                    .last_bit = 7, },
+                {
+                    .name = "ppre1",
+                    .desc = "APB low-speed prescaler (APB1)",
+                    .first_bit = 8,
+                    .last_bit = 10, },
+                {
+                    .name = "ppre2",
+                    .desc = "APB high-speed prescaler (APB2)",
+                    .first_bit = 11,
+                    .last_bit = 13, },
+                {
+                    .name = "adcpre",
+                    .desc = "ADC prescaler",
+                    .first_bit = 14,
+                    .last_bit = 15, },
+                {
+                    .name = "pllsrc",
+                    .desc = "PLL entry clock source",
+                    .first_bit = 16, },
+                {
+                    .name = "pllxtpre",
+                    .desc = "HSE divider for PLL entry",
+                    .first_bit = 17, },
+                {
+                    .name = "pllmul",
+                    .desc = "PLL multiplication factor",
+                    .first_bit = 18,
+                    .last_bit = 21, },
+                {
+                    .name = "usbpre",
+                    .desc = "USB prescaler",
+                    .first_bit = 22, },
+                {
+                    .name = "mco",
+                    .desc = "Microcontroller clock output",
+                    .first_bit = 24,
+                    .last_bit = 26, },
+                { }, /**/
+            } , /**/
+};
 
-    default:
-        qemu_log_mask(LOG_UNIMP,
-                "RCC: Read of size %d at offset 0x%x not implemented\n", size,
-                offset);
-        break;
-    }
+static PeripheralRegisterTypeInfo stm32f1_rcc_cir_type_info = {
+    .type_name = TYPE_STM32F1_RCC_CIR,
+    .desc = "Clock interrupt register (RCC_CIR)",
+    .offset_bytes = 0x08,
+    .reset_value = 0x00000000,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lsirdyf",
+                    .desc = "LSI ready interrupt flag",
+                    .first_bit = 0,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "lsirdyc", },
+                {
+                    .name = "lserdyf",
+                    .desc = "LSE ready interrupt flag",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "lserdyc", },
+                {
+                    .name = "hsirdyf",
+                    .desc = "HSI ready interrupt flag",
+                    .first_bit = 2,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "hsirdyc", },
+                {
+                    .name = "hserdyf",
+                    .desc = "HSE ready interrupt flag",
+                    .first_bit = 3,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "hserdyc", },
+                {
+                    .name = "pllrdyf",
+                    .desc = "PLL ready interrupt flag",
+                    .first_bit = 4,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "pllrdyc", },
+                {
+                    .name = "cssf",
+                    .desc = "Clock security system interrupt flag",
+                    .first_bit = 7,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "cssc", },
+                {
+                    .name = "lsirdyie",
+                    .desc = "LSI ready interrupt enable",
+                    .first_bit = 8, },
+                {
+                    .name = "lserdyie",
+                    .desc = "LSE ready interrupt enable",
+                    .first_bit = 9, },
+                {
+                    .name = "hsirdyie",
+                    .desc = "HSI ready interrupt enable",
+                    .first_bit = 10, },
+                {
+                    .name = "hserdyie",
+                    .desc = "HSE ready interrupt enable",
+                    .first_bit = 11, },
+                {
+                    .name = "pllrdyie",
+                    .desc = "PLL ready interrupt enable",
+                    .first_bit = 12, },
+                {
+                    .name = "lsirdyc",
+                    .desc = "LSI ready interrupt clear",
+                    .first_bit = 16,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "lserdyc",
+                    .desc = "LSE ready interrupt clear",
+                    .first_bit = 17,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "hsirdyc",
+                    .desc = "HSI ready interrupt clear",
+                    .first_bit = 18,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "hserdyc",
+                    .desc = "HSE ready interrupt clear",
+                    .first_bit = 19,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "pllrdyc",
+                    .desc = "PLL ready interrupt clear",
+                    .first_bit = 20,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "cssc",
+                    .desc = "Clock security system interrupt clear",
+                    .first_bit = 23,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                { }, /**/
+            } , /**/
+};
 
-    return 0;
-}
+static PeripheralRegisterTypeInfo stm32f1_rcc_apb2rstr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_APB2RSTR,
+    .desc = "APB2 peripheral reset register (RCC_APB2RSTR)",
+    .offset_bytes = 0x0C,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x0038FFFD,
+    .writable_bits = 0x0038FFFD, };
 
-/**
- * STM32F1 - Low-, medium-, high- and XL-density reset and clock control (RCC)
- * write 32-bits.
- */
-static void stm32f1_rcc_write32(STM32RCCState *state, uint32_t offset,
-        uint32_t value, unsigned size)
-{
-    uint32_t tmp;
+static PeripheralRegisterTypeInfo stm32f1_rcc_apb1rstr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_APB1RSTR,
+    .desc = "APB1 peripheral reset register (RCC_APB1RSTR)",
+    .offset_bytes = 0x10,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x3AFEC9FF,
+    .writable_bits = 0x3AFEC9FF, };
 
-    switch (offset) {
-    case 0x00:
-        tmp = (value & STM32F1_RCC_CR_WRITE_MASK);
-        tmp &= ~0x02020002; /* Clear ready bits */
-        /* All enabled oscs are ready */
-        tmp |= ((tmp & 0x01010001) << 1);
-        state->u.f1.reg.cr = tmp;
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x04:
-        tmp = (value & STM32F1_RCC_CFGR_WRITE_MASK);
-        tmp &= ~0x0000000C; /* Clear SWS bits */
-        /* Copy SWS from SW */
-        tmp |= ((tmp & 0x00000003) << 2);
-        state->u.f1.reg.cfgr = tmp;
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x08:
-        /* Preserve old value */
-        tmp = state->u.f1.reg.cir & ~STM32F1_RCC_CIR_WRITE_MASK;
-        tmp |= (value & STM32F1_RCC_CIR_WRITE_MASK);
-        /* Clear flags */
-        tmp &= ~((value >> 16) & 0x9F);
-        state->u.f1.reg.cir = tmp;
-        break;
-    case 0x0C:
-        state->u.f1.reg.apb2rstr = (value & STM32F1_RCC_APB2RSTR_WRITE_MASK);
-        break;
-    case 0x10:
-        state->u.f1.reg.apb1rstr = (value & STM32F1_RCC_APB1RSTR_WRITE_MASK);
-        break;
-    case 0x14:
-        state->u.f1.reg.ahbenr = (value & STM32F1_RCC_AHBENR_WRITE_MASK);
-        break;
-    case 0x18:
-        state->u.f1.reg.apb2enr = (value & STM32F1_RCC_AHB2ENR_WRITE_MASK);
-        break;
-    case 0x1C:
-        state->u.f1.reg.apb1enr = (value & STM32F1_RCC_AHB1ENR_WRITE_MASK);
-        break;
-    case 0x20:
-        state->u.f1.reg.bdcr = (value & STM32F1_RCC_BDCR_WRITE_MASK);
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x24:
-        tmp = (value & STM32F1_RCC_CSR_WRITE_MASK);
-        tmp &= ~0x00000002; /* Clear ready bits */
-        /* All enabled oscs are ready */
-        tmp |= ((tmp & 0x00000001) << 1);
-        state->u.f1.reg.csr = tmp;
-        stm32_rcc_update_clocks(state);
-        break;
+static PeripheralRegisterTypeInfo stm32f1_rcc_ahbenr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_AHBENR,
+    .desc = "AHB peripheral clock enable register (RCC_AHBENR)",
+    .offset_bytes = 0x14,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x00000557,
+    .writable_bits = 0x00000557, };
 
-    default:
-        qemu_log_mask(LOG_UNIMP,
-                "RCC: Write of size %d at offset 0x%x not implemented\n", size,
-                offset);
-    }
-}
+static PeripheralRegisterTypeInfo stm32f1_rcc_apb2enr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_APB2ENR,
+    .desc = "APB2 peripheral clock enable register (RCC_APB2ENR)",
+    .offset_bytes = 0x18,
+    .reset_value = 0x00000000,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "afioen",
+                    .desc = "Alternate function IO clock enable",
+                    .first_bit = 0, },
+                {
+                    .name = "iopaen",
+                    .desc = "IO port A clock enable",
+                    .first_bit = 2, },
+                {
+                    .name = "iopben",
+                    .desc = "IO port B clock enable",
+                    .first_bit = 3, },
+                {
+                    .name = "iopcen",
+                    .desc = "IO port C clock enable",
+                    .first_bit = 4, },
+                {
+                    .name = "iopden",
+                    .desc = "IO port D clock enable",
+                    .first_bit = 5, },
+                {
+                    .name = "iopeen",
+                    .desc = "IO port E clock enable",
+                    .first_bit = 6, },
+                {
+                    .name = "iopfen",
+                    .desc = "IO port F clock enable",
+                    .first_bit = 7, },
+                {
+                    .name = "iopgen",
+                    .desc = "IO port G clock enable",
+                    .first_bit = 8, },
+                {
+                    .name = "adc1en",
+                    .desc = "ADC1 interface clock enable",
+                    .first_bit = 9, },
+                {
+                    .name = "adc2en",
+                    .desc = "ADC2 interface clock enable",
+                    .first_bit = 10, },
+                {
+                    .name = "tim1en",
+                    .desc = "TIM1 timer clock enable",
+                    .first_bit = 11, },
+                {
+                    .name = "spi1en",
+                    .desc = "SPI1 clock enable",
+                    .first_bit = 12, },
+                {
+                    .name = "tim8en",
+                    .desc = "TIM8 timer clock enable",
+                    .first_bit = 13, },
+                {
+                    .name = "usart1en",
+                    .desc = "USART1 clock enable",
+                    .first_bit = 14, },
+                {
+                    .name = "adc3en",
+                    .desc = "ADC3 interface clock enable",
+                    .first_bit = 15, },
+                {
+                    .name = "tim9en",
+                    .desc = "TIM9 timer clock enable",
+                    .first_bit = 19, },
+                {
+                    .name = "tim10en",
+                    .desc = "TIM10 timer clock enable",
+                    .first_bit = 20, },
+                {
+                    .name = "tim11en",
+                    .desc = "TIM11 timer clock enable",
+                    .first_bit = 21, },
+                { }, /**/
+            } , /**/
+};
+
+static PeripheralRegisterTypeInfo stm32f1_rcc_apb1enr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_APB1ENR,
+    .desc = "APB1 peripheral clock enable register (RCC_APB1ENR)",
+    .offset_bytes = 0x1C,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x3AFEC9FF,
+    .writable_bits = 0x3AFEC9FF, };
+
+static PeripheralRegisterTypeInfo stm32f1_rcc_bdcr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_BDCR,
+    .desc = "Backup domain control register (RCC_BDCR)",
+    .offset_bytes = 0x20,
+    .reset_value = 0x00000000,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lseon",
+                    .desc = "External low-speed oscillator enable",
+                    .first_bit = 0, },
+                {
+                    .name = "lserdy",
+                    .desc = "External low-speed oscillator ready",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "lseon", },
+                {
+                    .name = "lsebyp",
+                    .desc = "External low-speed oscillator bypass",
+                    .first_bit = 2, },
+                {
+                    .name = "rtcsel",
+                    .desc = "RTC clock source selection",
+                    .first_bit = 8,
+                    .last_bit = 9, },
+                {
+                    .name = "rtcen",
+                    .desc = "RTC clock enable",
+                    .first_bit = 15, },
+                {
+                    .name = "bdrst",
+                    .desc = "Backup domain software reset",
+                    .first_bit = 16, },
+                { }, /**/
+            } , /**/
+};
+
+static PeripheralRegisterTypeInfo stm32f1_rcc_csr_type_info = {
+    .type_name = TYPE_STM32F1_RCC_CSR,
+    .desc = "Control/status register (RCC_CSR)",
+    .offset_bytes = 0x24,
+    .reset_value = 0x0C000000,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lsion",
+                    .desc = "Internal low-speed oscillator enable",
+                    .first_bit = 0, },
+                {
+                    .name = "lsirdy",
+                    .desc = "Internal low-speed oscillator ready",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "lsion", },
+                {
+                    .name = "rmvf",
+                    .desc = "Remove reset flag",
+                    .first_bit = 24, },
+                {
+                    .name = "pinrstf",
+                    .desc = "PIN reset flag",
+                    .first_bit = 26,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "porrstf",
+                    .desc = "POR/PDR reset flag",
+                    .first_bit = 27,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "stfrstf",
+                    .desc = "Software reset flag",
+                    .first_bit = 28,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "iwdgrstf",
+                    .desc = "Independent watchdog reset flag",
+                    .first_bit = 29,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "wwdgrstf",
+                    .desc = "Window watchdog reset flag",
+                    .first_bit = 30,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "lrwrrstf",
+                    .desc = "Low-power reset flag",
+                    .first_bit = 31,
+                    .cleared_by = "rmvf", },
+                { }, /**/
+            } , /**/
+};
 
 /* ------------------------------------------------------------------------- */
 
 /* STM32F1CL */
 
-#define STM32F1CL_RCC_CR_READ_MASK          (0x3F0FFFFB)
-#define STM32F1CL_RCC_CR_WRITE_MASK         (0x150D00F9)
-#define STM32F1CL_RCC_CFGR_READ_MASK        (0x0F7FFFFF)
-#define STM32F1CL_RCC_CFGR_WRITE_MASK       (0x0F7FFFF3)
-#define STM32F1CL_RCC_CIR_READ_MASK         (0x00007FFF)
-#define STM32F1CL_RCC_CIR_WRITE_MASK        (0x00FF7F00)
-#define STM32F1CL_RCC_APB2RSTR_READ_MASK    (0x00005E7D)
-#define STM32F1CL_RCC_APB2RSTR_WRITE_MASK   (0x00005E7D)
-#define STM32F1CL_RCC_APB1RSTR_READ_MASK    (0x3E7EC83F)
-#define STM32F1CL_RCC_APB1RSTR_WRITE_MASK   (0x3E7EC83F)
-#define STM32F1CL_RCC_AHBENR_READ_MASK      (0x0001D057)
-#define STM32F1CL_RCC_AHBENR_WRITE_MASK     (0x0001D057)
-#define STM32F1CL_RCC_AHB2ENR_READ_MASK     (0x00005E7D)
-#define STM32F1CL_RCC_AHB2ENR_WRITE_MASK    (0x00005E7D)
-#define STM32F1CL_RCC_AHB1ENR_READ_MASK     (0x3E7EE87F)
-#define STM32F1CL_RCC_AHB1ENR_WRITE_MASK    (0x3E7EE87F)
-#define STM32F1CL_RCC_BDCR_READ_MASK        (0x00018307)
-#define STM32F1CL_RCC_BDCR_WRITE_MASK       (0x00018305)
-#define STM32F1CL_RCC_CSR_READ_MASK         (0xFD000003)
-#define STM32F1CL_RCC_CSR_WRITE_MASK        (0xFD000001)
-#define STM32F1CL_RCC_AHBRSTR_READ_MASK     (0x00007000)
-#define STM32F1CL_RCC_AHBRSTR_WRITE_MASK    (0x00007000)
-#define STM32F1CL_RCC_CFGR2_READ_MASK       (0x0007FFFF)
-#define STM32F1CL_RCC_CFGR2_WRITE_MASK      (0x0007FFFF)
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_cr_type_info = {
+    .desc = "Clock control register (RCC_CR)",
+    .type_name = TYPE_STM32F1CL_RCC_CR,
+    .offset_bytes = 0x00,
+    .reset_value = 0x00000083,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "hsion",
+                    .desc = "Internal high-speed clock enable",
+                    .first_bit = 0, },
+                {
+                    .name = "hsirdy",
+                    .desc = "Internal high-speed clock ready flag",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "hsion", },
+                {
+                    .name = "hsitrim",
+                    .desc = "Internal high-speed clock trimming",
+                    .first_bit = 3,
+                    .last_bit = 7, },
+                {
+                    .name = "hsical",
+                    .desc = "Internal high-speed clock calibration",
+                    .first_bit = 8,
+                    .last_bit = 15,
+                    .rw_mode = REGISTER_RW_MODE_READ, },
+                {
+                    .name = "hseon",
+                    .desc = "External clock enable",
+                    .first_bit = 16, },
+                {
+                    .name = "hserdy",
+                    .desc = "External high-speed clock ready flag",
+                    .first_bit = 17,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "hseon", },
+                {
+                    .name = "hsebyp",
+                    .desc = "External high-speed clock bypass",
+                    .first_bit = 18, },
+                {
+                    .name = "csson",
+                    .desc = "Clock security system enable",
+                    .first_bit = 19, },
+                {
+                    .name = "pllon",
+                    .desc = "PLL enable",
+                    .first_bit = 24, },
+                {
+                    .name = "pllrdy",
+                    .desc = "PLL clock ready flag",
+                    .first_bit = 25,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "pllon", },
+                {
+                    .name = "pll2on",
+                    .desc = "PLL2 enable",
+                    .first_bit = 26, },
+                {
+                    .name = "pll2rdy",
+                    .desc = "PLL2 clock ready flag",
+                    .first_bit = 27,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "pll2on", },
+                {
+                    .name = "pll3on",
+                    .desc = "PLL3 enable",
+                    .first_bit = 28, },
+                {
+                    .name = "pll3rdy",
+                    .desc = "PLL3 clock ready flag",
+                    .first_bit = 29,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "pll3on", },
+                { }, /**/
+            } , /**/
+};
 
-/**
- * STM32F1CL - Connectivity line devices: reset and clock control (RCC)
- * read 32-bits.
- */
-static uint32_t stm32f1cl_rcc_read32(STM32RCCState *state, uint32_t offset,
-        unsigned size)
-{
-    switch (offset) {
-    case 0x00:
-        return (state->u.f1.reg.cr & STM32F1CL_RCC_CR_READ_MASK);
-    case 0x04:
-        return (state->u.f1.reg.cfgr & STM32F1CL_RCC_CFGR_READ_MASK);
-    case 0x08:
-        return (state->u.f1.reg.cir & STM32F1CL_RCC_CIR_READ_MASK);
-    case 0x0C:
-        return (state->u.f1.reg.apb2rstr & STM32F1CL_RCC_APB2RSTR_READ_MASK);
-    case 0x10:
-        return (state->u.f1.reg.apb1rstr & STM32F1CL_RCC_APB1RSTR_READ_MASK);
-    case 0x14:
-        return (state->u.f1.reg.ahbenr & STM32F1CL_RCC_AHBENR_READ_MASK);
-    case 0x18:
-        return (state->u.f1.reg.apb2enr & STM32F1CL_RCC_AHB2ENR_READ_MASK);
-    case 0x1C:
-        return (state->u.f1.reg.apb1enr & STM32F1CL_RCC_AHB1ENR_READ_MASK);
-    case 0x20:
-        return (state->u.f1.reg.bdcr & STM32F1CL_RCC_BDCR_READ_MASK);
-    case 0x24:
-        return (state->u.f1.reg.csr & STM32F1CL_RCC_CSR_READ_MASK);
-    case 0x28:
-        return (state->u.f1.reg.ahbrstr & STM32F1CL_RCC_AHBRSTR_READ_MASK);
-    case 0x2C:
-        return (state->u.f1.reg.cfgr2 & STM32F1CL_RCC_CFGR2_READ_MASK);
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_CFGR,
+    .desc = "Clock configuration register (RCC_CFGR)",
+    .offset_bytes = 0x04,
+    .reset_value = 0x00000000,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "sw",
+                    .desc = "System clock switch",
+                    .first_bit = 0,
+                    .last_bit = 1, },
+                {
+                    .name = "sws",
+                    .desc = "System clock switch status",
+                    .first_bit = 2,
+                    .last_bit = 3,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "sw", },
+                {
+                    .name = "hpre",
+                    .desc = "AHB prescaler",
+                    .first_bit = 4,
+                    .last_bit = 7, },
+                {
+                    .name = "ppre1",
+                    .desc = "APB low-speed prescaler (APB1)",
+                    .first_bit = 8,
+                    .last_bit = 10, },
+                {
+                    .name = "ppre2",
+                    .desc = "APB high-speed prescaler (APB2)",
+                    .first_bit = 11,
+                    .last_bit = 13, },
+                {
+                    .name = "adcpre",
+                    .desc = "ADC prescaler",
+                    .first_bit = 14,
+                    .last_bit = 15, },
+                {
+                    .name = "pllsrc",
+                    .desc = "PLL entry clock source",
+                    .first_bit = 16, },
+                {
+                    .name = "pllxtpre",
+                    .desc = "HSE divider for PLL entry",
+                    .first_bit = 17, },
+                {
+                    .name = "pllmul",
+                    .desc = "PLL multiplication factor",
+                    .first_bit = 18,
+                    .last_bit = 21, },
+                {
+                    .name = "otgfspre",
+                    .desc = "OTG FS prescaler",
+                    .first_bit = 22, },
+                {
+                    .name = "mco",
+                    .desc = "Microcontroller clock output",
+                    .first_bit = 24,
+                    .last_bit = 26, },
+                { }, /**/
+            } , /**/
+};
 
-    default:
-        qemu_log_mask(LOG_UNIMP,
-                "RCC: Read of size %d at offset 0x%x not implemented\n", size,
-                offset);
-        break;
-    }
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_cir_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_CIR,
+    .desc = "Clock interrupt register (RCC_CIR)",
+    .offset_bytes = 0x08,
+    .reset_value = 0x00000000,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lsirdyf",
+                    .desc = "LSI ready interrupt flag",
+                    .first_bit = 0,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "lsirdyc", },
+                {
+                    .name = "lserdyf",
+                    .desc = "LSE ready interrupt flag",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "lserdyc", },
+                {
+                    .name = "hsirdyf",
+                    .desc = "HSI ready interrupt flag",
+                    .first_bit = 2,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "hsirdyc", },
+                {
+                    .name = "hserdyf",
+                    .desc = "HSE ready interrupt flag",
+                    .first_bit = 3,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "hserdyc", },
+                {
+                    .name = "pllrdyf",
+                    .desc = "PLL ready interrupt flag",
+                    .first_bit = 4,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "pllrdyc", },
+                {
+                    .name = "pll2rdyf",
+                    .desc = "PLL2 ready interrupt flag",
+                    .first_bit = 5,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "pll2rdyc", },
+                {
+                    .name = "pll3rdyf",
+                    .desc = "PLL3 ready interrupt flag",
+                    .first_bit = 6,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "pll3rdyc", },
+                {
+                    .name = "cssf",
+                    .desc = "Clock security system interrupt flag",
+                    .first_bit = 7,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .cleared_by = "cssc", },
+                {
+                    .name = "lsirdyie",
+                    .desc = "LSI ready interrupt enable",
+                    .first_bit = 8, },
+                {
+                    .name = "lserdyie",
+                    .desc = "LSE ready interrupt enable",
+                    .first_bit = 9, },
+                {
+                    .name = "hsirdyie",
+                    .desc = "HSI ready interrupt enable",
+                    .first_bit = 10, },
+                {
+                    .name = "hserdyie",
+                    .desc = "HSE ready interrupt enable",
+                    .first_bit = 11, },
+                {
+                    .name = "pllrdyie",
+                    .desc = "PLL ready interrupt enable",
+                    .first_bit = 12, },
+                {
+                    .name = "pll2rdyie",
+                    .desc = "PLL2 ready interrupt enable",
+                    .first_bit = 13, },
+                {
+                    .name = "pll3rdyie",
+                    .desc = "PLL3 ready interrupt enable",
+                    .first_bit = 14, },
+                {
+                    .name = "lsirdyc",
+                    .desc = "LSI ready interrupt clear",
+                    .first_bit = 16,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "lserdyc",
+                    .desc = "LSE ready interrupt clear",
+                    .first_bit = 17,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "hsirdyc",
+                    .desc = "HSI ready interrupt clear",
+                    .first_bit = 18,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "hserdyc",
+                    .desc = "HSE ready interrupt clear",
+                    .first_bit = 19,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "pllrdyc",
+                    .desc = "PLL ready interrupt clear",
+                    .first_bit = 20,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "pll2rdyc",
+                    .desc = "PLL2 ready interrupt clear",
+                    .first_bit = 21,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "pll3rdyc",
+                    .desc = "PLL3 ready interrupt clear",
+                    .first_bit = 22,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                {
+                    .name = "cssc",
+                    .desc = "Clock security system interrupt clear",
+                    .first_bit = 23,
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
+                { }, /**/
+            } , /**/
+};
 
-    return 0;
-}
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb2rstr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_APB2RSTR,
+    .desc = "APB2 peripheral reset register (RCC_APB2RSTR)",
+    .offset_bytes = 0x0C,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x00005E7D,
+    .writable_bits = 0x00005E7D, };
 
-/**
- * STM32F1CL - Connectivity line devices: reset and clock control (RCC)
- * write 32-bits.
- */
-static void stm32f1cl_rcc_write32(STM32RCCState *state, uint32_t offset,
-        uint32_t value, unsigned size)
-{
-    uint32_t tmp;
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb1rstr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_APB1RSTR,
+    .desc = "APB1 peripheral reset register (RCC_APB1RSTR)",
+    .offset_bytes = 0x10,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x377EC83F,
+    .writable_bits = 0x377EC83F, };
 
-    switch (offset) {
-    case 0x00:
-        tmp = (value & STM32F1CL_RCC_CR_WRITE_MASK);
-        tmp &= ~0x2A020002; /* Clear ready bits */
-        /* All enabled oscs are ready */
-        tmp |= ((tmp & 0x15010001) << 1);
-        state->u.f1.reg.cr = tmp;
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x04:
-        tmp = (value & STM32F1CL_RCC_CFGR_WRITE_MASK);
-        tmp &= ~0x0000000C; /* Clear SWS bits */
-        /* Copy SWS from SW */
-        tmp |= ((tmp & 0x00000003) << 2);
-        state->u.f1.reg.cfgr = tmp;
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x08:
-        /* Preserve old value */
-        tmp = state->u.f1.reg.cir & ~STM32F1CL_RCC_CIR_WRITE_MASK;
-        tmp |= (value & STM32F1CL_RCC_CIR_WRITE_MASK);
-        /* Clear flags */
-        tmp &= ~((value >> 16) & 0xFF);
-        state->u.f1.reg.cir = tmp;
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x0C:
-        state->u.f1.reg.apb2rstr = (value & STM32F1CL_RCC_APB2RSTR_WRITE_MASK);
-        break;
-    case 0x10:
-        state->u.f1.reg.apb1rstr = (value & STM32F1CL_RCC_APB1RSTR_WRITE_MASK);
-        break;
-    case 0x14:
-        state->u.f1.reg.ahbenr = (value & STM32F1CL_RCC_AHBENR_WRITE_MASK);
-        break;
-    case 0x18:
-        state->u.f1.reg.apb2enr = (value & STM32F1CL_RCC_AHB2ENR_WRITE_MASK);
-        break;
-    case 0x1C:
-        state->u.f1.reg.apb1enr = (value & STM32F1CL_RCC_AHB1ENR_WRITE_MASK);
-        break;
-    case 0x20:
-        state->u.f1.reg.bdcr = (value & STM32F1CL_RCC_BDCR_WRITE_MASK);
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x24:
-        tmp = (value & STM32F1CL_RCC_CSR_WRITE_MASK);
-        tmp &= ~0x00000002; /* Clear LSIRDY */
-        /* LSRDY follows LSION */
-        tmp |= ((tmp & 0x00000001) << 1);
-        state->u.f1.reg.csr = tmp;
-        stm32_rcc_update_clocks(state);
-        break;
-    case 0x28:
-        state->u.f1.reg.ahbrstr = (value & STM32F1CL_RCC_AHBRSTR_WRITE_MASK);
-        break;
-    case 0x2C:
-        state->u.f1.reg.cfgr2 = (value & STM32F1CL_RCC_CFGR2_WRITE_MASK);
-        stm32_rcc_update_clocks(state);
-        break;
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_ahbenr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_AHBENR,
+    .desc = "AHB peripheral clock enable register (RCC_AHBENR)",
+    .offset_bytes = 0x14,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x0001D057,
+    .writable_bits = 0x0001D057, };
 
-    default:
-        qemu_log_mask(LOG_UNIMP,
-                "RCC: Write of size %d at offset 0x%x not implemented\n", size,
-                offset);
-    }
-}
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb2enr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_APB2ENR,
+    .desc = "APB2 peripheral clock enable register (RCC_APB2ENR)",
+    .offset_bytes = 0x18,
+    .reset_value = 0x00000000,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "afioen",
+                    .desc = "Alternate function IO clock enable",
+                    .first_bit = 0, },
+                {
+                    .name = "iopaen",
+                    .desc = "IO port A clock enable",
+                    .first_bit = 2, },
+                {
+                    .name = "iopben",
+                    .desc = "IO port B clock enable",
+                    .first_bit = 3, },
+                {
+                    .name = "iopcen",
+                    .desc = "IO port C clock enable",
+                    .first_bit = 4, },
+                {
+                    .name = "iopden",
+                    .desc = "IO port D clock enable",
+                    .first_bit = 5, },
+                {
+                    .name = "iopeen",
+                    .desc = "IO port E clock enable",
+                    .first_bit = 6, },
+                {
+                    .name = "adc1en",
+                    .desc = "ADC1 interface clock enable",
+                    .first_bit = 9, },
+                {
+                    .name = "adc2en",
+                    .desc = "ADC2 interface clock enable",
+                    .first_bit = 10, },
+                {
+                    .name = "tim1en",
+                    .desc = "TIM1 timer clock enable",
+                    .first_bit = 11, },
+                {
+                    .name = "spi1en",
+                    .desc = "SPI1 clock enable",
+                    .first_bit = 12, },
+                {
+                    .name = "usart1en",
+                    .desc = "USART1 clock enable",
+                    .first_bit = 14, },
+                { }, /**/
+            } , /**/
+};
 
-/* ------------------------------------------------------------------------- */
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb1enr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_APB1ENR,
+    .desc = "APB1 peripheral clock enable register (RCC_APB1ENR)",
+    .offset_bytes = 0x1C,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x3E7EC83F,
+    .writable_bits = 0x3E7EC83F, };
 
-static uint64_t stm32_rcc_read_callback(void *opaque, hwaddr addr,
-        unsigned size)
-{
-    STM32RCCState *state = (STM32RCCState *) opaque;
-    uint32_t offset = addr;
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_bdcr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_BDCR,
+    .desc = "Backup domain control register (RCC_BDCR)",
+    .offset_bytes = 0x20,
+    .reset_value = 0x00000000,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lseon",
+                    .desc = "External low-speed oscillator enable",
+                    .first_bit = 0, },
+                {
+                    .name = "lserdy",
+                    .desc = "External low-speed oscillator ready",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "lseon", },
+                {
+                    .name = "lsebyp",
+                    .desc = "External low-speed oscillator bypass",
+                    .first_bit = 2, },
+                {
+                    .name = "rtcsel",
+                    .desc = "RTC clock source selection",
+                    .first_bit = 8,
+                    .last_bit = 9, },
+                {
+                    .name = "rtcen",
+                    .desc = "RTC clock enable",
+                    .first_bit = 15, },
+                {
+                    .name = "bdrst",
+                    .desc = "Backup domain software reset",
+                    .first_bit = 16, },
+                { }, /**/
+            } , /**/
+};
 
-    if (size != 4) {
-        qemu_log_mask(LOG_UNIMP,
-                "RCC: Read of size %d at offset 0x%x not implemented\n", size,
-                offset);
-        return 0;
-    }
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_csr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_CSR,
+    .desc = "Control/status register (RCC_CSR)",
+    .offset_bytes = 0x24,
+    .reset_value = 0x0C000000,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lsion",
+                    .desc = "Internal low-speed oscillator enable",
+                    .first_bit = 0, },
+                {
+                    .name = "lsirdy",
+                    .desc = "Internal low-speed oscillator ready",
+                    .first_bit = 1,
+                    .rw_mode = REGISTER_RW_MODE_READ,
+                    .follows = "lsion", },
+                {
+                    .name = "rmvf",
+                    .desc = "Remove reset flag",
+                    .first_bit = 24, },
+                {
+                    .name = "pinrstf",
+                    .desc = "PIN reset flag",
+                    .first_bit = 26,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "porrstf",
+                    .desc = "POR/PDR reset flag",
+                    .first_bit = 27,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "stfrstf",
+                    .desc = "Software reset flag",
+                    .first_bit = 28,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "iwdgrstf",
+                    .desc = "Independent watchdog reset flag",
+                    .first_bit = 29,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "wwdgrstf",
+                    .desc = "Window watchdog reset flag",
+                    .first_bit = 30,
+                    .cleared_by = "rmvf", },
+                {
+                    .name = "lrwrrstf",
+                    .desc = "Low-power reset flag",
+                    .first_bit = 31,
+                    .cleared_by = "rmvf", },
+                { }, /**/
+            } , /**/
+};
 
-    const STM32Capabilities *capabilities =
-    STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_ahbrstr_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_AHBRSTR,
+    .desc = "AHB peripheral clock reset register (RCC_AHBRSTR)",
+    .offset_bytes = 0x28,
+    .reset_value = 0x00000000,
+    .readable_bits = 0x00005000,
+    .writable_bits = 0x00005000, };
 
-    switch (capabilities->family) {
-    case STM32_FAMILY_F1:
-        if (capabilities->f1.is_cl) {
-            return stm32f1cl_rcc_read32(state, offset, size);
-        } else {
-            return stm32f1_rcc_read32(state, offset, size);
-        }
-        break;
-
-    default:
-        qemu_log_mask(LOG_GUEST_ERROR,
-                "RCC: Read of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->family);
-    }
-
-    return 0;
-}
-
-static void stm32_rcc_write_callback(void *opaque, hwaddr addr, uint64_t value,
-        unsigned size)
-{
-    STM32RCCState *state = (STM32RCCState *) opaque;
-    uint32_t offset = addr;
-
-    if (size != 4) {
-        qemu_log_mask(LOG_UNIMP,
-                "RCC: Write of size %d at offset 0x%x not implemented\n", size,
-                offset);
-        return;
-    }
-
-    const STM32Capabilities *capabilities =
-    STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
-
-    switch (capabilities->family) {
-    case STM32_FAMILY_F1:
-        if (capabilities->f1.is_cl) {
-            stm32f1cl_rcc_write32(state, offset, value, size);
-        } else {
-            stm32f1_rcc_write32(state, offset, value, size);
-        }
-        break;
-
-    default:
-        qemu_log_mask(LOG_GUEST_ERROR,
-                "RCC: Write of size %d at offset 0x%x for unknown family %d\n",
-                size, offset, capabilities->family);
-    }
-}
-
-static const MemoryRegionOps stm32_rcc_ops = {
-    .read = stm32_rcc_read_callback,
-    .write = stm32_rcc_write_callback,
-    .endianness = DEVICE_NATIVE_ENDIAN, };
+static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr2_type_info = {
+    .type_name = TYPE_STM32F1CL_RCC_CFGR2,
+    .desc = "Clock configuration register2 (RCC_CFGR2)",
+    .offset_bytes = 0x2C,
+    .reset_value = 0x00000000,
+    .post_write = stm32f1_rcc_post_write_callback,
+    .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "prediv1",
+                    .desc = "PREDIV1 division factor",
+                    .first_bit = 0,
+                    .last_bit = 3, },
+                {
+                    .name = "prediv2",
+                    .desc = "PREDIV2 division factor",
+                    .first_bit = 4,
+                    .last_bit = 7, },
+                {
+                    .name = "pll2mul",
+                    .desc = "PLL2 Multiplication factor",
+                    .first_bit = 8,
+                    .last_bit = 11, },
+                {
+                    .name = "pll3mul",
+                    .desc = "PLL3 Multiplication factor",
+                    .first_bit = 12,
+                    .last_bit = 15, },
+                {
+                    .name = "prediv1src",
+                    .desc = "PREDIV1 entry clock source",
+                    .first_bit = 16, },
+                {
+                    .name = "i2s2src",
+                    .desc = "I2S2 clock source",
+                    .first_bit = 17, },
+                {
+                    .name = "i2s3src",
+                    .desc = "I2S2 clock source",
+                    .first_bit = 18, },
+                { }, /**/
+            } , /**/
+};
 
 /* ------------------------------------------------------------------------- */
 
@@ -432,19 +1024,20 @@ static uint8_t AHBPrescTable[16] = {
 
 extern int system_clock_scale;
 
+/**
+ * Code inspired by CMSIS init sequences.
+ */
 static void stm32_rcc_update_clocks(STM32RCCState *state)
 {
     // qemu_log_function_name();
 
-    const STM32Capabilities *capabilities =
-    STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
+    const STM32Capabilities *capabilities = state->capabilities;
 
     uint32_t prediv1factor = 0;
     uint32_t tmp = 0;
     uint32_t pllmull = 0;
     uint32_t pllsource = 0;
     uint32_t cpu_freq_hz = 0;
-
     uint32_t prediv1source = 0;
     uint32_t prediv2factor = 0;
     uint32_t pll2mull = 0;
@@ -454,7 +1047,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 
         /* The following code was copied from the CMSIS system_stm32f10x.c  */
 
-        tmp = state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_SWS;
+        tmp = peripheral_register_get_value(
+                state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_SWS;
 
         switch (tmp) {
         case 0x00: /* HSI used as system clock */
@@ -466,8 +1060,10 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
         case 0x08: /* PLL used as system clock */
 
             /* Get PLL clock source and multiplication factor ---------------*/
-            pllmull = state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_PLLMULL;
-            pllsource = state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_PLLSRC;
+            pllmull = peripheral_register_get_value(
+                    state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_PLLMULL;
+            pllsource = peripheral_register_get_value(
+                    state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_PLLSRC;
 
             if (!capabilities->f1.is_cl) {
                 pllmull = (pllmull >> 18) + 2;
@@ -479,7 +1075,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
                 } else {
                     if (capabilities->f1.is_ldvl || capabilities->f1.is_mdvl
                             || capabilities->f1.is_hdvl) {
-                        prediv1factor = (state->u.f1.reg.cfgr2
+                        prediv1factor = (peripheral_register_get_value(
+                                state->u.f1.reg.cfgr2)
                                 & STM32F1_RCC_CFGR2_PREDIV1) + 1;
                         /* HSE oscillator clock selected as PREDIV1
                          * clock entry */
@@ -487,8 +1084,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
                                 * pllmull;
                     } else {
                         /* HSE selected as PLL clock entry */
-                        if ((state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_PLLXTPRE)
-                                != (uint32_t) RESET) {
+                        if ((peripheral_register_get_value(state->u.f1.reg.cfgr)
+                                & STM32F1_RCC_CFGR_PLLXTPRE) != (uint32_t) RESET) {
                             /* HSE oscillator clock divided by 2 */
                             cpu_freq_hz = (state->hse_freq_hz >> 1) * pllmull;
                         } else {
@@ -513,10 +1110,12 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
                 } else {
                     /* PREDIV1 selected as PLL clock entry */
                     /* Get PREDIV1 clock source and division factor */
-                    prediv1source = state->u.f1.reg.cfgr2
-                            & STM32F1_RCC_CFGR2_PREDIV1SRC;
-                    prediv1factor = (state->u.f1.reg.cfgr2
-                            & STM32F1_RCC_CFGR2_PREDIV1) + 1;
+                    prediv1source =
+                            peripheral_register_get_value(
+                                    state->u.f1.reg.cfgr2) & STM32F1_RCC_CFGR2_PREDIV1SRC;
+                    prediv1factor = (peripheral_register_get_value(
+                            state->u.f1.reg.cfgr2) & STM32F1_RCC_CFGR2_PREDIV1)
+                            + 1;
 
                     if (prediv1source == 0) {
                         /* HSE oscillator clock selected as PREDIV1
@@ -527,9 +1126,11 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 
                         /* Get PREDIV2 division factor and PLL2
                          * multiplication factor */
-                        prediv2factor = ((state->u.f1.reg.cfgr2
+                        prediv2factor = ((peripheral_register_get_value(
+                                state->u.f1.reg.cfgr2)
                                 & STM32F1_RCC_CFGR2_PREDIV2) >> 4) + 1;
-                        pll2mull = ((state->u.f1.reg.cfgr2
+                        pll2mull = ((peripheral_register_get_value(
+                                state->u.f1.reg.cfgr2)
                                 & STM32F1_RCC_CFGR2_PLL2MUL) >> 8) + 2;
                         cpu_freq_hz = (((state->hse_freq_hz / prediv2factor)
                                 * pll2mull) / prediv1factor) * pllmull;
@@ -545,9 +1146,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 
         /* Compute HCLK clock frequency */
         /* Get HCLK prescaler */
-        tmp =
-                AHBPrescTable[((state->u.f1.reg.cfgr & STM32F1_RCC_CFGR_HPRE)
-                        >> 4)];
+        tmp = AHBPrescTable[((peripheral_register_get_value(
+                state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_HPRE) >> 4)];
         /* HCLK clock frequency */
         cpu_freq_hz >>= tmp;
 
@@ -574,38 +1174,62 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 static void stm32_rcc_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
+
+    STM32RCCState *state = STM32_RCC_STATE(obj);
+
+    cm_object_property_add_uint32(obj, "hse-freq-hz", &state->hse_freq_hz);
+    state->hse_freq_hz = DEFAULT_HSE_FREQ_HZ;
+
+    cm_object_property_add_uint32(obj, "lse-freq-hz", &state->lse_freq_hz);
+    state->lse_freq_hz = DEFAULT_RTC_FREQ_HZ;
+
+    cm_object_property_add_uint32(obj, "hsi-freq-hz", &state->hsi_freq_hz);
+    state->hsi_freq_hz = HSI_FREQ_HZ;
+
+    cm_object_property_add_uint32(obj, "lsi-freq-hz", &state->lsi_freq_hz);
+    state->lsi_freq_hz = LSI_FREQ_HZ;
 }
 
 static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* No need to call parent realize(). */
-
+    /*
+     * Parent realize() is called after setting properties and creating
+     * registers.
+     */
     STM32RCCState *state = STM32_RCC_STATE(dev);
 
-    const STM32Capabilities *capabilities =
-    STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
+    const STM32Capabilities *capabilities = state->capabilities;
     assert(capabilities != NULL);
+
+    Object *obj = OBJECT(dev);
+
+    /* Must be defined before creating registers. */
+    cm_object_property_set_int(obj, 4, "register-size-bytes");
+
+    /* TODO: get it from MCU */
+    cm_object_property_set_bool(obj, true, "is-little-endian");
 
     uint64_t size;
     hwaddr addr;
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
-        size = 0x400;
         addr = 0x40021000;
+        size = 0x400;
         break;
+
     default:
-        size = 0; /* This will trigger an assertion to fail */
+        /*
+         * This will trigger an assertion to fail when creating the
+         * memory region in the parent class.
+         */
+        size = 0;
         addr = 0;
     }
 
-    memory_region_init_io(&state->mmio, OBJECT(dev), &stm32_rcc_ops, state,
-            "mmio", size);
-
-    SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
-    sysbus_init_mmio(sbd, &state->mmio);
-    sysbus_mmio_map(sbd, 0, addr);
+    cm_object_property_set_int(obj, addr, "mmio-address");
+    cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
     /* Set defaults, need to be non-zero */
     if (state->hsi_freq_hz == 0) {
@@ -614,6 +1238,132 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
     if (state->lsi_freq_hz == 0) {
         state->lsi_freq_hz = LSI_FREQ_HZ;
+    }
+
+    Object *reg;
+    switch (capabilities->family) {
+    case STM32_FAMILY_F1:
+
+        if (!capabilities->f1.is_cl) {
+            reg = derived_peripheral_register_new(obj, "cr",
+            TYPE_STM32F1_RCC_CR);
+            cm_object_realize(reg);
+            state->u.f1.reg.cr = reg;
+
+            reg = derived_peripheral_register_new(obj, "cfgr",
+            TYPE_STM32F1_RCC_CFGR);
+            cm_object_realize(reg);
+            state->u.f1.reg.cfgr = reg;
+
+            reg = derived_peripheral_register_new(obj, "cir",
+            TYPE_STM32F1_RCC_CIR);
+            cm_object_realize(reg);
+            state->u.f1.reg.cir = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb2rstr",
+            TYPE_STM32F1_RCC_APB2RSTR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb2rstr = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb1rstr",
+            TYPE_STM32F1_RCC_APB1RSTR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb1rstr = reg;
+
+            reg = derived_peripheral_register_new(obj, "ahbenr",
+            TYPE_STM32F1_RCC_AHBENR);
+            cm_object_realize(reg);
+            state->u.f1.reg.ahbenr = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb2enr",
+            TYPE_STM32F1_RCC_APB2ENR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb2enr = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb1enr",
+            TYPE_STM32F1_RCC_APB1ENR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb1enr = reg;
+
+            reg = derived_peripheral_register_new(obj, "bdcr",
+            TYPE_STM32F1_RCC_BDCR);
+            cm_object_realize(reg);
+            state->u.f1.reg.bdcr = reg;
+
+            reg = derived_peripheral_register_new(obj, "csr",
+            TYPE_STM32F1_RCC_CSR);
+            cm_object_realize(reg);
+            state->u.f1.reg.csr = reg;
+        } else {
+            reg = derived_peripheral_register_new(obj, "cr",
+            TYPE_STM32F1CL_RCC_CR);
+            cm_object_realize(reg);
+            state->u.f1.reg.cr = reg;
+
+            reg = derived_peripheral_register_new(obj, "cfgr",
+            TYPE_STM32F1CL_RCC_CFGR);
+            cm_object_realize(reg);
+            state->u.f1.reg.cfgr = reg;
+
+            reg = derived_peripheral_register_new(obj, "cir",
+            TYPE_STM32F1CL_RCC_CIR);
+            cm_object_realize(reg);
+            state->u.f1.reg.cir = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb2rstr",
+            TYPE_STM32F1CL_RCC_APB2RSTR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb2rstr = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb1rstr",
+            TYPE_STM32F1CL_RCC_APB1RSTR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb1rstr = reg;
+
+            reg = derived_peripheral_register_new(obj, "ahbenr",
+            TYPE_STM32F1CL_RCC_AHBENR);
+            cm_object_realize(reg);
+            state->u.f1.reg.ahbenr = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb2enr",
+            TYPE_STM32F1CL_RCC_APB2ENR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb2enr = reg;
+
+            reg = derived_peripheral_register_new(obj, "apb1enr",
+            TYPE_STM32F1CL_RCC_APB1ENR);
+            cm_object_realize(reg);
+            state->u.f1.reg.apb1enr = reg;
+
+            reg = derived_peripheral_register_new(obj, "bdcr",
+            TYPE_STM32F1CL_RCC_BDCR);
+            cm_object_realize(reg);
+            state->u.f1.reg.bdcr = reg;
+
+            reg = derived_peripheral_register_new(obj, "csr",
+            TYPE_STM32F1CL_RCC_CSR);
+            cm_object_realize(reg);
+            state->u.f1.reg.csr = reg;
+
+            reg = derived_peripheral_register_new(obj, "ahbrstr",
+            TYPE_STM32F1CL_RCC_AHBRSTR);
+            cm_object_realize(reg);
+            state->u.f1.reg.ahbrstr = reg;
+
+            reg = derived_peripheral_register_new(obj, "cfgr2",
+            TYPE_STM32F1CL_RCC_CFGR2);
+            cm_object_realize(reg);
+            state->u.f1.reg.cfgr2 = reg;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_RCC)) {
+        return;
     }
 }
 
@@ -625,44 +1375,15 @@ static void stm32_rcc_reset_callback(DeviceState *dev)
 
     STM32RCCState *state = STM32_RCC_STATE(dev);
 
-    const STM32Capabilities *capabilities =
-    STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
-
-    switch (capabilities->family) {
-    case STM32_FAMILY_F1:
-
-        state->u.f1.reg.cr = 0x00000083;
-        state->u.f1.reg.cfgr = 0x00000000;
-        state->u.f1.reg.cir = 0x00000000;
-        state->u.f1.reg.apb2rstr = 0x00000000;
-        state->u.f1.reg.apb1rstr = 0x00000000;
-        state->u.f1.reg.ahbenr = 0x00000014;
-        state->u.f1.reg.apb2enr = 0x00000000;
-        state->u.f1.reg.apb1enr = 0x00000000;
-        state->u.f1.reg.bdcr = 0x00000000;
-        state->u.f1.reg.csr = 0x0C000000;
-        if (capabilities->f1.is_cl) {
-            state->u.f1.reg.ahbrstr = 0x00000000;
-            state->u.f1.reg.cfgr2 = 0x00000000;
-        }
-
-        break;
-    default:
-        break;
-    }
+    /* Call parent reset(). */
+    cm_device_parent_reset(dev, TYPE_STM32_RCC);
 
     stm32_rcc_update_clocks(state);
 }
 
 static Property stm32_rcc_properties[] = {
-        DEFINE_PROP_UINT32("hse-freq-hz", STM32RCCState, hse_freq_hz,
-                DEFAULT_HSE_FREQ_HZ),
-        DEFINE_PROP_UINT32("lse-freq-hz", STM32RCCState, lse_freq_hz,
-                DEFAULT_RTC_FREQ_HZ),
-        DEFINE_PROP_UINT32("hsi-freq-hz", STM32RCCState, hsi_freq_hz,
-                HSI_FREQ_HZ),
-        DEFINE_PROP_UINT32("lsi-freq-hz", STM32RCCState, lsi_freq_hz,
-                LSI_FREQ_HZ),
+        DEFINE_PROP_NON_VOID_PTR("capabilities", STM32RCCState,
+                capabilities, const STM32Capabilities *),
     DEFINE_PROP_END_OF_LIST(), };
 
 static void stm32_rcc_class_init_callback(ObjectClass *klass, void *data)
@@ -675,7 +1396,7 @@ static void stm32_rcc_class_init_callback(ObjectClass *klass, void *data)
 
 static const TypeInfo stm32_rcc_type_info = {
     .name = TYPE_STM32_RCC,
-    .parent = TYPE_STM32_SYS_BUS_DEVICE,
+    .parent = TYPE_STM32_RCC_PARENT,
     .instance_init = stm32_rcc_instance_init_callback,
     .instance_size = sizeof(STM32RCCState),
     .class_init = stm32_rcc_class_init_callback,
@@ -685,6 +1406,33 @@ static const TypeInfo stm32_rcc_type_info = {
 static void stm32_rcc_register_types(void)
 {
     type_register_static(&stm32_rcc_type_info);
+
+    derived_peripheral_register_type_register(&stm32f1_rcc_cr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_cfgr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_cir_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_apb2rstr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_apb1rstr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_ahbenr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_apb2enr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_apb1enr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_bdcr_type_info);
+    derived_peripheral_register_type_register(&stm32f1_rcc_csr_type_info);
+
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_cr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_cfgr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_cir_type_info);
+    derived_peripheral_register_type_register(
+            &stm32f1cl_rcc_apb2rstr_type_info);
+    derived_peripheral_register_type_register(
+            &stm32f1cl_rcc_apb1rstr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_ahbenr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_apb2enr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_apb1enr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_bdcr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_csr_type_info);
+
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_ahbrstr_type_info);
+    derived_peripheral_register_type_register(&stm32f1cl_rcc_cfgr2_type_info);
 }
 
 type_init(stm32_rcc_register_types);

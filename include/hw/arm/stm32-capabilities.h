@@ -29,7 +29,9 @@
  * STM32 MCUs are grouped by families and sub-families.
  */
 
-#define TYPE_STM32_PREFIX      "stm32:"
+#define TYPE_STM32_PREFIX       "stm32:"
+#define TYPE_STM32F1_PREFIX     "stm32f1:"
+#define TYPE_STM32F1CL_PREFIX   "stm32f1cl:"
 
 /**
  * The family is the main differentiator for STM32 MCUs.

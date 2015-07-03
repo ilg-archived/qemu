@@ -20,10 +20,8 @@
 #ifndef STM32_RCC_H_
 #define STM32_RCC_H_
 
-#include "config.h"
-#include "hw/sysbus.h"
-#include "hw/misc/stm32-sys-bus-device.h"
 #include "hw/misc/peripheral.h"
+#include "hw/arm/stm32-capabilities.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -41,12 +39,58 @@
 
 #define TYPE_STM32_RCC TYPE_STM32_PREFIX "rcc" TYPE_PERIPHERAL_SUFFIX
 
+#define TYPE_STM32F1_RCC_CR TYPE_STM32F1_PREFIX "rcc-cr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_CFGR TYPE_STM32F1_PREFIX "rcc-cfgr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_CIR TYPE_STM32F1_PREFIX "rcc-cir" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_APB2RSTR TYPE_STM32F1_PREFIX "rcc-apb2rstr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_APB1RSTR TYPE_STM32F1_PREFIX "rcc-apb1rstr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_AHBENR TYPE_STM32F1_PREFIX "rcc-ahbenr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_APB2ENR TYPE_STM32F1_PREFIX "rcc-apb2enr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_APB1ENR TYPE_STM32F1_PREFIX "rcc-apb1enr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_BDCR TYPE_STM32F1_PREFIX "rcc-bdcr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_RCC_CSR TYPE_STM32F1_PREFIX "rcc-csr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+
+#define TYPE_STM32F1CL_RCC_CR TYPE_STM32F1CL_PREFIX "rcc-cr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_CFGR TYPE_STM32F1CL_PREFIX "rcc-cfgr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_CIR TYPE_STM32F1CL_PREFIX "rcc-cir" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_APB2RSTR TYPE_STM32F1CL_PREFIX "rcc-apb2rstr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_APB1RSTR TYPE_STM32F1CL_PREFIX "rcc-apb1rstr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_AHBENR TYPE_STM32F1CL_PREFIX "rcc-ahbenr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_APB2ENR TYPE_STM32F1CL_PREFIX "rcc-apb2enr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_APB1ENR TYPE_STM32F1CL_PREFIX "rcc-apb1enr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_BDCR TYPE_STM32F1CL_PREFIX "rcc-bdcr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_CSR TYPE_STM32F1CL_PREFIX "rcc-csr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_AHBRSTR TYPE_STM32F1CL_PREFIX "rcc-ahbrstr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1CL_RCC_CFGR2 TYPE_STM32F1CL_PREFIX "rcc-cfgr2" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
-#define TYPE_STM32_RCC_PARENT TYPE_STM32_SYS_BUS_DEVICE
-typedef STM32SysBusDeviceClass STM32RCCParentClass;
-typedef STM32SysBusDeviceState STM32RCCParentState;
+#define TYPE_STM32_RCC_PARENT TYPE_PERIPHERAL
+typedef PeripheralClass STM32RCCParentClass;
+typedef PeripheralState STM32RCCParentState;
 
 /* ------------------------------------------------------------------------- */
 
@@ -61,6 +105,7 @@ typedef struct {
     STM32RCCParentClass parent_class;
     /*< public >*/
 
+    /* None, so far. */
 } STM32RCCClass;
 
 /* ------------------------------------------------------------------------- */
@@ -89,21 +134,20 @@ typedef struct {
             /* F1 specific registers */
             /* 0x28 most, 0x30 for CL */
             struct {
-                uint32_t cr; /* 0x00 */
-                uint32_t cfgr; /* 0x04 */
-                uint32_t cir; /* 0x08 */
-                uint32_t apb2rstr; /* 0x0C */
-                uint32_t apb1rstr; /* 0x10 */
-                uint32_t ahbenr; /* 0x14 */
-                uint32_t apb2enr; /* 0x18 */
-                uint32_t apb1enr; /* 0x1C */
-                uint32_t bdcr; /* 0x20 */
-                uint32_t csr; /* 0x24 */
+                Object *cr; /* 0x00 */
+                Object *cfgr; /* 0x04 */
+                Object *cir; /* 0x08 */
+                Object *apb2rstr; /* 0x0C */
+                Object *apb1rstr; /* 0x10 */
+                Object *ahbenr; /* 0x14 */
+                Object *apb2enr; /* 0x18 */
+                Object *apb1enr; /* 0x1C */
+                Object *bdcr; /* 0x20 */
+                Object *csr; /* 0x24 */
 
                 /* Connectivity line devices */
-                uint32_t ahbrstr; /* 0x28 */
-                uint32_t cfgr2; /* 0x2C */
-
+                Object *ahbrstr; /* 0x28 */
+                Object *cfgr2; /* 0x2C */
             } reg;
         } f1;
         struct {
@@ -113,6 +157,8 @@ typedef struct {
             } reg;
         } f4;
     } u;
+
+    const STM32Capabilities *capabilities;
 } STM32RCCState;
 
 /* ------------------------------------------------------------------------- */
