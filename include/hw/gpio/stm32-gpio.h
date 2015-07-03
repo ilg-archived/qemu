@@ -21,6 +21,10 @@
 #ifndef STM32_GPIO_H_
 #define STM32_GPIO_H_
 
+#include "hw/misc/peripheral.h"
+#include "hw/arm/stm32-capabilities.h"
+#include "hw/misc/stm32-rcc.h"
+
 #include "config.h"
 #include "hw/misc/stm32-sys-bus-device.h"
 #include "exec/address-spaces.h"
@@ -31,11 +35,26 @@
 
 #define TYPE_STM32_GPIO TYPE_STM32_PREFIX "gpio" TYPE_PERIPHERAL_SUFFIX
 
+#define TYPE_STM32F1_GPIO_CRL TYPE_STM32F1_PREFIX "gpio-crl" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_GPIO_CRH TYPE_STM32F1_PREFIX "gpio-crh" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_GPIO_IDR TYPE_STM32F1_PREFIX "gpio-idr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_GPIO_ODR TYPE_STM32F1_PREFIX "gpio-odr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_GPIO_BSRR TYPE_STM32F1_PREFIX "gpio-bsrr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_GPIO_BRR TYPE_STM32F1_PREFIX "gpio-brr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+#define TYPE_STM32F1_GPIO_LCKR TYPE_STM32F1_PREFIX "gpio-lckr" \
+    TYPE_PERIPHERAL_REGISTER_SUFFIX
+
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_STM32_GPIO_PARENT TYPE_STM32_SYS_BUS_DEVICE
-typedef SysBusDeviceClass STM32GPIOParentClass;
-typedef STM32SysBusDeviceState STM32GPIOParentState;
+#define TYPE_STM32_GPIO_PARENT TYPE_PERIPHERAL
+typedef PeripheralClass STM32GPIOParentClass;
+typedef PeripheralState STM32GPIOParentState;
 
 /* ------------------------------------------------------------------------- */
 
@@ -48,7 +67,6 @@ typedef struct {
     /*< private >*/
     STM32GPIOParentClass parent_class;
     /*< public >*/
-
 } STM32GPIOClass;
 
 /* ------------------------------------------------------------------------- */
@@ -109,11 +127,13 @@ typedef struct {
         struct {
             /* F1 specific registers */
             struct {
-                uint32_t crl;
-                uint32_t crh;
-                uint32_t idr;
-                uint32_t odr;
-                uint32_t lckr;
+                Object *crl;
+                Object *crh;
+                Object *idr;
+                Object *odr;
+                Object *bsrr;
+                Object *brr;
+                Object *lckr;
             } reg;
         } f1;
         struct {
@@ -123,6 +143,8 @@ typedef struct {
             } reg;
         } f4;
     } u;
+
+    const STM32Capabilities *capabilities;
 } STM32GPIOState;
 
 /* ------------------------------------------------------------------------- */
