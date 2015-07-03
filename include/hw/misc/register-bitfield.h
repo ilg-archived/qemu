@@ -109,7 +109,7 @@ typedef struct {
 /* ----- Public ------------------------------------------------------------ */
 
 bool register_bitfield_is_zero(Object* obj);
-uint64_t register_bitfield_get_value(Object* obj);
+uint64_t register_bitfield_read_value(Object* obj);
 
 /* ------------------------------------------------------------------------- */
 

@@ -36,13 +36,16 @@
 /**
  * Get the value of a bitfield, shifted to the right.
  */
-uint64_t register_bitfield_get_value(Object* obj)
+uint64_t register_bitfield_read_value(Object* obj)
 {
+    assert(obj);
 
-    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(obj->parent);
+    PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj->parent);
+    assert(reg);
+
     RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
 
-    return (reg_state->value >> state->shift) & state->mask;
+    return (reg->value & state->mask) >> state->shift;
 }
 
 /**
@@ -50,11 +53,14 @@ uint64_t register_bitfield_get_value(Object* obj)
  */
 bool register_bitfield_is_zero(Object* obj)
 {
+    assert(obj);
 
-    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(obj->parent);
+    PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj->parent);
+    assert(reg);
+
     RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
 
-    return (reg_state->value & state->mask) == 0;
+    return (reg->value & state->mask) == 0;
 }
 
 /* ----- Private ----------------------------------------------------------- */
