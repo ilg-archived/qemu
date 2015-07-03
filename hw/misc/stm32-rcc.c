@@ -1025,115 +1025,112 @@ static uint8_t AHBPrescTable[16] = {
 extern int system_clock_scale;
 
 /**
- * Code inspired by CMSIS init sequences.
+ * Recompute the system clock, after each change in the RCC registers.
+ * The code is inspired by CMSIS init sequences.
  */
 static void stm32_rcc_update_clocks(STM32RCCState *state)
 {
-    // qemu_log_function_name();
-
     const STM32Capabilities *capabilities = state->capabilities;
 
-    uint32_t prediv1factor = 0;
-    uint32_t tmp = 0;
-    uint32_t pllmull = 0;
-    uint32_t pllsource = 0;
     uint32_t cpu_freq_hz = 0;
-    uint32_t prediv1source = 0;
-    uint32_t prediv2factor = 0;
-    uint32_t pll2mull = 0;
 
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
         /* The following code was copied from the CMSIS system_stm32f10x.c  */
 
-        tmp = peripheral_register_get_value(
-                state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_SWS;
-
-        switch (tmp) {
-        case 0x00: /* HSI used as system clock */
+        switch (register_bitfield_read_value(state->f1.cfgr.sws)) {
+        case 0:
+            /* HSI used as system clock. */
             cpu_freq_hz = state->hsi_freq_hz;
             break;
-        case 0x04: /* HSE used as system clock */
+
+        case 1:
+            /* HSE used as system clock. */
             cpu_freq_hz = state->hse_freq_hz;
             break;
-        case 0x08: /* PLL used as system clock */
 
-            /* Get PLL clock source and multiplication factor ---------------*/
-            pllmull = peripheral_register_get_value(
-                    state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_PLLMULL;
-            pllsource = peripheral_register_get_value(
-                    state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_PLLSRC;
-
+        case 2:
+            /* PLL used as system clock. */
             if (!capabilities->f1.is_cl) {
-                pllmull = (pllmull >> 18) + 2;
+                /* Most F1 families, except CL. */
 
-                if (pllsource == 0x00) {
+                /* Get PLL clock source and multiplication factor. */
+                uint32_t pllmul = register_bitfield_read_value(
+                        state->f1.cfgr.pllmul) + 2;
+                if (register_bitfield_is_zero(state->f1.cfgr.pllsrc)) {
                     /* HSI oscillator clock divided by 2 selected as PLL
                      * clock entry */
-                    cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmull;
+                    cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmul;
                 } else {
                     if (capabilities->f1.is_ldvl || capabilities->f1.is_mdvl
                             || capabilities->f1.is_hdvl) {
-                        prediv1factor = (peripheral_register_get_value(
-                                state->u.f1.reg.cfgr2)
-                                & STM32F1_RCC_CFGR2_PREDIV1) + 1;
-                        /* HSE oscillator clock selected as PREDIV1
-                         * clock entry */
+                        /* The value line families use the CFGR2. */
+                        uint32_t prediv1factor = 0;
+                        prediv1factor = register_bitfield_read_value(
+                                state->f1.cfgr2.prediv1) + 1;
+                        /*
+                         * HSE oscillator clock selected as PREDIV1
+                         * clock entry.
+                         */
                         cpu_freq_hz = (state->hse_freq_hz / prediv1factor)
-                                * pllmull;
+                                * pllmul;
                     } else {
-                        /* HSE selected as PLL clock entry */
-                        if ((peripheral_register_get_value(state->u.f1.reg.cfgr)
-                                & STM32F1_RCC_CFGR_PLLXTPRE) != (uint32_t) RESET) {
-                            /* HSE oscillator clock divided by 2 */
-                            cpu_freq_hz = (state->hse_freq_hz >> 1) * pllmull;
+                        /* HSE selected as PLL clock entry. */
+                        if (!register_bitfield_is_zero(
+                                state->f1.cfgr.pllxtpre)) {
+                            /* HSE oscillator clock divided by 2. */
+                            cpu_freq_hz = (state->hse_freq_hz >> 1) * pllmul;
                         } else {
-                            cpu_freq_hz = state->hse_freq_hz * pllmull;
+                            cpu_freq_hz = state->hse_freq_hz * pllmul;
                         }
                     }
                 }
             } else {
-                pllmull = pllmull >> 18;
+                /* The F1 CL family. */
+                uint32_t pllmul = register_bitfield_read_value(
+                        state->f1.cfgr.pllmul);
 
-                if (pllmull != 0x0D) {
-                    pllmull += 2;
+                if (pllmul != 13) {
+                    pllmul += 2;
                 } else {
                     /* PLL multiplication factor = PLL input clock * 6.5 */
-                    pllmull = 13 / 2;
+                    pllmul = 13 / 2;
                 }
 
-                if (pllsource == 0x00) {
-                    /* HSI oscillator clock divided by 2 selected as PLL
-                     * clock entry */
-                    cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmull;
+                if (register_bitfield_is_zero(state->f1.cfgr.pllsrc)) {
+                    /*
+                     * HSI oscillator clock divided by 2 selected as PLL
+                     * clock entry.
+                     */
+                    cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmul;
                 } else {
-                    /* PREDIV1 selected as PLL clock entry */
-                    /* Get PREDIV1 clock source and division factor */
-                    prediv1source =
-                            peripheral_register_get_value(
-                                    state->u.f1.reg.cfgr2) & STM32F1_RCC_CFGR2_PREDIV1SRC;
-                    prediv1factor = (peripheral_register_get_value(
-                            state->u.f1.reg.cfgr2) & STM32F1_RCC_CFGR2_PREDIV1)
-                            + 1;
+                    /*
+                     * PREDIV1 selected as PLL clock entry.
+                     * Get PREDIV1 clock source and division factor.
+                     */
+                    uint32_t prediv1factor = register_bitfield_read_value(
+                            state->f1.cfgr2.prediv1) + 1;
 
-                    if (prediv1source == 0) {
-                        /* HSE oscillator clock selected as PREDIV1
-                         * clock entry */
+                    if (register_bitfield_is_zero(state->f1.cfgr2.prediv1src)) {
+                        /*
+                         * HSE oscillator clock selected as PREDIV1
+                         * clock entry.
+                         */
                         cpu_freq_hz = (state->hse_freq_hz / prediv1factor)
-                                * pllmull;
-                    } else {/* PLL2 clock selected as PREDIV1 clock entry */
-
-                        /* Get PREDIV2 division factor and PLL2
-                         * multiplication factor */
-                        prediv2factor = ((peripheral_register_get_value(
-                                state->u.f1.reg.cfgr2)
-                                & STM32F1_RCC_CFGR2_PREDIV2) >> 4) + 1;
-                        pll2mull = ((peripheral_register_get_value(
-                                state->u.f1.reg.cfgr2)
-                                & STM32F1_RCC_CFGR2_PLL2MUL) >> 8) + 2;
+                                * pllmul;
+                    } else {
+                        /*
+                         * PLL2 clock selected as PREDIV1 clock entry.
+                         * Get PREDIV2 division factor and PLL2
+                         * multiplication factor.
+                         */
+                        uint32_t prediv2factor = register_bitfield_read_value(
+                                state->f1.cfgr2.prediv2) + 1;
+                        uint32_t pll2mull = register_bitfield_read_value(
+                                state->f1.cfgr2.pll2mul) + 2;
                         cpu_freq_hz = (((state->hse_freq_hz / prediv2factor)
-                                * pll2mull) / prediv1factor) * pllmull;
+                                * pll2mull) / prediv1factor) * pllmul;
                     }
                 }
             }
@@ -1144,12 +1141,13 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
             break;
         }
 
-        /* Compute HCLK clock frequency */
-        /* Get HCLK prescaler */
-        tmp = AHBPrescTable[((peripheral_register_get_value(
-                state->u.f1.reg.cfgr) & STM32F1_RCC_CFGR_HPRE) >> 4)];
+        /*
+         * Compute HCLK clock frequency. Get HCLK pre-scaler.
+         */
+        int pre_scaler = AHBPrescTable[register_bitfield_read_value(
+                state->f1.cfgr.hpre)];
         /* HCLK clock frequency */
-        cpu_freq_hz >>= tmp;
+        cpu_freq_hz >>= pre_scaler;
 
         break;
     default:
@@ -1157,7 +1155,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
     }
 
     if (cpu_freq_hz == 0) {
-        cpu_freq_hz = state->hsi_freq_hz; /* Should be non-zero */
+        cpu_freq_hz = state->hsi_freq_hz; /* Should be non-zero. */
     }
     state->cpu_freq_hz = cpu_freq_hz;
 
@@ -1226,6 +1224,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
          */
         size = 0;
         addr = 0;
+        break;
     }
 
     cm_object_property_set_int(obj, addr, "mmio-address");
@@ -1248,112 +1247,133 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             reg = derived_peripheral_register_new(obj, "cr",
             TYPE_STM32F1_RCC_CR);
             cm_object_realize(reg);
-            state->u.f1.reg.cr = reg;
+            state->f1.reg.cr = reg;
 
             reg = derived_peripheral_register_new(obj, "cfgr",
             TYPE_STM32F1_RCC_CFGR);
             cm_object_realize(reg);
-            state->u.f1.reg.cfgr = reg;
+            state->f1.reg.cfgr = reg;
+
+            state->f1.cfgr.sws = cm_object_get_child_by_name(reg, "sws");
+            state->f1.cfgr.pllmul = cm_object_get_child_by_name(reg, "pllmul");
+            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(reg, "pllsrc");
+            state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(reg,
+                    "pllxtpre");
+            state->f1.cfgr.hpre = cm_object_get_child_by_name(reg, "hpre");
 
             reg = derived_peripheral_register_new(obj, "cir",
             TYPE_STM32F1_RCC_CIR);
             cm_object_realize(reg);
-            state->u.f1.reg.cir = reg;
+            state->f1.reg.cir = reg;
 
             reg = derived_peripheral_register_new(obj, "apb2rstr",
             TYPE_STM32F1_RCC_APB2RSTR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb2rstr = reg;
+            state->f1.reg.apb2rstr = reg;
 
             reg = derived_peripheral_register_new(obj, "apb1rstr",
             TYPE_STM32F1_RCC_APB1RSTR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb1rstr = reg;
+            state->f1.reg.apb1rstr = reg;
 
             reg = derived_peripheral_register_new(obj, "ahbenr",
             TYPE_STM32F1_RCC_AHBENR);
             cm_object_realize(reg);
-            state->u.f1.reg.ahbenr = reg;
+            state->f1.reg.ahbenr = reg;
 
             reg = derived_peripheral_register_new(obj, "apb2enr",
             TYPE_STM32F1_RCC_APB2ENR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb2enr = reg;
+            state->f1.reg.apb2enr = reg;
 
             reg = derived_peripheral_register_new(obj, "apb1enr",
             TYPE_STM32F1_RCC_APB1ENR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb1enr = reg;
+            state->f1.reg.apb1enr = reg;
 
             reg = derived_peripheral_register_new(obj, "bdcr",
             TYPE_STM32F1_RCC_BDCR);
             cm_object_realize(reg);
-            state->u.f1.reg.bdcr = reg;
+            state->f1.reg.bdcr = reg;
 
             reg = derived_peripheral_register_new(obj, "csr",
             TYPE_STM32F1_RCC_CSR);
             cm_object_realize(reg);
-            state->u.f1.reg.csr = reg;
+            state->f1.reg.csr = reg;
         } else {
             reg = derived_peripheral_register_new(obj, "cr",
             TYPE_STM32F1CL_RCC_CR);
             cm_object_realize(reg);
-            state->u.f1.reg.cr = reg;
+            state->f1.reg.cr = reg;
 
             reg = derived_peripheral_register_new(obj, "cfgr",
             TYPE_STM32F1CL_RCC_CFGR);
             cm_object_realize(reg);
-            state->u.f1.reg.cfgr = reg;
+            state->f1.reg.cfgr = reg;
+
+            state->f1.cfgr.sws = cm_object_get_child_by_name(reg, "sws");
+            state->f1.cfgr.hpre = cm_object_get_child_by_name(reg, "hpre");
+            state->f1.cfgr.pllmul = cm_object_get_child_by_name(reg, "pllmul");
+            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(reg, "pllsrc");
 
             reg = derived_peripheral_register_new(obj, "cir",
             TYPE_STM32F1CL_RCC_CIR);
             cm_object_realize(reg);
-            state->u.f1.reg.cir = reg;
+            state->f1.reg.cir = reg;
 
             reg = derived_peripheral_register_new(obj, "apb2rstr",
             TYPE_STM32F1CL_RCC_APB2RSTR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb2rstr = reg;
+            state->f1.reg.apb2rstr = reg;
 
             reg = derived_peripheral_register_new(obj, "apb1rstr",
             TYPE_STM32F1CL_RCC_APB1RSTR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb1rstr = reg;
+            state->f1.reg.apb1rstr = reg;
 
             reg = derived_peripheral_register_new(obj, "ahbenr",
             TYPE_STM32F1CL_RCC_AHBENR);
             cm_object_realize(reg);
-            state->u.f1.reg.ahbenr = reg;
+            state->f1.reg.ahbenr = reg;
 
             reg = derived_peripheral_register_new(obj, "apb2enr",
             TYPE_STM32F1CL_RCC_APB2ENR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb2enr = reg;
+            state->f1.reg.apb2enr = reg;
 
             reg = derived_peripheral_register_new(obj, "apb1enr",
             TYPE_STM32F1CL_RCC_APB1ENR);
             cm_object_realize(reg);
-            state->u.f1.reg.apb1enr = reg;
+            state->f1.reg.apb1enr = reg;
 
             reg = derived_peripheral_register_new(obj, "bdcr",
             TYPE_STM32F1CL_RCC_BDCR);
             cm_object_realize(reg);
-            state->u.f1.reg.bdcr = reg;
+            state->f1.reg.bdcr = reg;
 
             reg = derived_peripheral_register_new(obj, "csr",
             TYPE_STM32F1CL_RCC_CSR);
             cm_object_realize(reg);
-            state->u.f1.reg.csr = reg;
+            state->f1.reg.csr = reg;
 
             reg = derived_peripheral_register_new(obj, "ahbrstr",
             TYPE_STM32F1CL_RCC_AHBRSTR);
             cm_object_realize(reg);
-            state->u.f1.reg.ahbrstr = reg;
+            state->f1.reg.ahbrstr = reg;
 
             reg = derived_peripheral_register_new(obj, "cfgr2",
             TYPE_STM32F1CL_RCC_CFGR2);
             cm_object_realize(reg);
-            state->u.f1.reg.cfgr2 = reg;
+            state->f1.reg.cfgr2 = reg;
+
+            state->f1.cfgr2.prediv1 = cm_object_get_child_by_name(reg,
+                    "prediv1");
+            state->f1.cfgr2.prediv2 = cm_object_get_child_by_name(reg,
+                    "prediv2");
+            state->f1.cfgr2.pll2mul = cm_object_get_child_by_name(reg,
+                    "pll2mul");
+            state->f1.cfgr2.prediv1src = cm_object_get_child_by_name(reg,
+                    "prediv1src");
         }
         break;
 

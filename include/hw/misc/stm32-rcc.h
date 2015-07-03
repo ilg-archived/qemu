@@ -129,34 +129,46 @@ typedef struct {
     MemoryRegion mmio;
     // qemu_irq irq;
 
-    union {
+    struct {
+        /* F1 specific registers */
+        /* 0x28 most, 0x30 for CL */
         struct {
-            /* F1 specific registers */
-            /* 0x28 most, 0x30 for CL */
-            struct {
-                Object *cr; /* 0x00 */
-                Object *cfgr; /* 0x04 */
-                Object *cir; /* 0x08 */
-                Object *apb2rstr; /* 0x0C */
-                Object *apb1rstr; /* 0x10 */
-                Object *ahbenr; /* 0x14 */
-                Object *apb2enr; /* 0x18 */
-                Object *apb1enr; /* 0x1C */
-                Object *bdcr; /* 0x20 */
-                Object *csr; /* 0x24 */
+            Object *cr; /* 0x00 */
+            Object *cfgr; /* 0x04 */
+            Object *cir; /* 0x08 */
+            Object *apb2rstr; /* 0x0C */
+            Object *apb1rstr; /* 0x10 */
+            Object *ahbenr; /* 0x14 */
+            Object *apb2enr; /* 0x18 */
+            Object *apb1enr; /* 0x1C */
+            Object *bdcr; /* 0x20 */
+            Object *csr; /* 0x24 */
 
-                /* Connectivity line devices */
-                Object *ahbrstr; /* 0x28 */
-                Object *cfgr2; /* 0x2C */
-            } reg;
-        } f1;
+            /* Connectivity line devices */
+            Object *ahbrstr; /* 0x28 */
+            Object *cfgr2; /* 0x2C */
+        } reg;
         struct {
-            /* F4 specific registers */
-            struct {
-                // TODO: add them
-            } reg;
-        } f4;
-    } u;
+            Object *sws;
+            Object *pllmul;
+            Object *pllsrc;
+            Object *pllxtpre;
+            Object *hpre;
+        } cfgr;
+        struct {
+            Object *prediv1;
+            Object *prediv2;
+            Object *pll2mul;
+            Object *prediv1src;
+        } cfgr2;
+
+    } f1;
+    struct {
+        /* F4 specific registers */
+        struct {
+            // TODO: add them
+        } reg;
+    } f4;
 
     const STM32Capabilities *capabilities;
 } STM32RCCState;
