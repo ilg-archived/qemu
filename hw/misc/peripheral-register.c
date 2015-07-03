@@ -262,7 +262,9 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
 #endif
 
     uint64_t tmp;
+    /* Clear all writable bits, preserve the rest. */
     tmp = state->value & (~state->writable_bits);
+    /* Set all writable bits with the new values. */
     tmp |= (new_value.ll & state->writable_bits);
 
     PeripheralRegisterAutoBits *auto_bits;
@@ -801,6 +803,9 @@ static void derived_peripheral_register_realize_callback(DeviceState *dev,
     }
     if (info->readable_bits != 0) {
         cm_object_property_set_int(obj, info->readable_bits, "readable-bits");
+    }
+    if (info->writable_bits != 0) {
+        cm_object_property_set_int(obj, info->writable_bits, "writable-bits");
     }
     if (info->access_flags != 0) {
         cm_object_property_set_int(obj, info->access_flags, "access-flags");
