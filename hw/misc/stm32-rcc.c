@@ -62,7 +62,7 @@ static PeripheralRegisterInfo stm32f1_rcc_cr_info = {
     .offset_bytes = 0x00,
     .reset_value = 0x00000083,
     .reset_mask = 0xFFFF00FF,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "hsion",
@@ -121,7 +121,7 @@ static PeripheralRegisterInfo stm32f1_rcc_cfgr_info = {
     .desc = "Clock configuration register (RCC_CFGR)",
     .offset_bytes = 0x04,
     .reset_value = 0x00000000,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "sw",
@@ -389,7 +389,7 @@ static PeripheralRegisterInfo stm32f1_rcc_bdcr_info = {
     .desc = "Backup domain control register (RCC_BDCR)",
     .offset_bytes = 0x20,
     .reset_value = 0x00000000,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "lseon",
@@ -426,7 +426,7 @@ static PeripheralRegisterInfo stm32f1_rcc_csr_info = {
     .desc = "Control/status register (RCC_CSR)",
     .offset_bytes = 0x24,
     .reset_value = 0x0C000000,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "lsion",
@@ -485,7 +485,7 @@ static PeripheralRegisterInfo stm32f1cl_rcc_cr_info = {
     .offset_bytes = 0x00,
     .reset_value = 0x00000083,
     .reset_mask = 0xFFFF00FF,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "hsion",
@@ -564,7 +564,7 @@ static PeripheralRegisterInfo stm32f1cl_rcc_cfgr_info = {
     .desc = "Clock configuration register (RCC_CFGR)",
     .offset_bytes = 0x04,
     .reset_value = 0x00000000,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "sw",
@@ -834,7 +834,7 @@ static PeripheralRegisterInfo stm32f1cl_rcc_bdcr_info = {
     .desc = "Backup domain control register (RCC_BDCR)",
     .offset_bytes = 0x20,
     .reset_value = 0x00000000,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "lseon",
@@ -871,7 +871,7 @@ static PeripheralRegisterInfo stm32f1cl_rcc_csr_info = {
     .desc = "Control/status register (RCC_CSR)",
     .offset_bytes = 0x24,
     .reset_value = 0x0C000000,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "lsion",
@@ -932,7 +932,7 @@ static PeripheralRegisterInfo stm32f1cl_rcc_cfgr2_info = {
     .desc = "Clock configuration register2 (RCC_CFGR2)",
     .offset_bytes = 0x2C,
     .reset_value = 0x00000000,
-    .post_write = stm32f1_rcc_post_write_callback,
+    .post_write = &stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
                     .name = "prediv1",
