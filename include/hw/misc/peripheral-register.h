@@ -74,6 +74,7 @@ typedef struct {
 
     uint32_t offset_bytes;
     peripheral_register_t reset_value;
+    peripheral_register_t reset_mask;
     peripheral_register_t readable_bits;
     peripheral_register_t writable_bits;
     uint64_t access_flags;
@@ -165,6 +166,7 @@ typedef struct {
 
     uint32_t offset_bytes;
     peripheral_register_t reset_value;
+    peripheral_register_t reset_mask;
     peripheral_register_t readable_bits;
     peripheral_register_t writable_bits;
     uint64_t access_flags;

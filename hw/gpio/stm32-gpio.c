@@ -268,6 +268,7 @@ static PeripheralRegisterInfo stm32f1_gpio_idr_info = {
     .desc = "Port input data register (GPIOx_IDR)",
     .offset_bytes = 0x08,
     .reset_value = 0x00000000,
+    .reset_mask = 0xFFFF0000,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .readable_bits = 0x0000FFFF,
     .rw_mode = REGISTER_RW_MODE_READ, };
@@ -362,6 +363,7 @@ static PeripheralRegisterInfo stm32f1_gpio_lckr_info = {
     .offset_bytes = 0x18,
     .reset_value = 0x0001FFFF,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
+    .readable_bits = 0x0001FFFF,
     .writable_bits = 0x0001FFFF, };
 
 /* ------------------------------------------------------------------------- */

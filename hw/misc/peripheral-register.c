@@ -34,8 +34,8 @@ static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *peripheral_register_new_with_info(Object *parent_obj, const char *node_name,
-        PeripheralRegisterInfo *info)
+Object *peripheral_register_new_with_info(Object *parent_obj,
+        const char *node_name, PeripheralRegisterInfo *info)
 {
     Object *obj = cm_object_new(parent_obj, node_name,
     TYPE_PERIPHERAL_REGISTER);
@@ -51,6 +51,9 @@ Object *peripheral_register_new_with_info(Object *parent_obj, const char *node_n
     cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
     if (info->reset_value != 0) {
         cm_object_property_set_int(obj, info->reset_value, "reset-value");
+    }
+    if (info->reset_mask != 0) {
+        cm_object_property_set_int(obj, info->reset_mask, "reset-mask");
     }
     if (info->readable_bits != 0) {
         cm_object_property_set_int(obj, info->readable_bits, "readable-bits");
@@ -177,11 +180,6 @@ static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
         if (bifi_info->width_bits) {
             cm_object_property_set_int(bifi, bifi_info->width_bits,
                     "width-bits");
-        }
-
-        if (bifi_info->reset_value != 0) {
-            cm_object_property_set_int(bifi, bifi_info->reset_value,
-                    "reset-value");
         }
 
         if (bifi_info->rw_mode != 0) {
@@ -450,6 +448,9 @@ static void peripheral_register_instance_init_callback(Object *obj)
     cm_object_property_add_uint64(obj, "reset-value", &state->reset_value);
     state->reset_value = 0x0000000000000000;
 
+    cm_object_property_add_uint64(obj, "reset-mask", &state->reset_mask);
+    state->reset_mask = 0xFFFFFFFFFFFFFFFF;
+
     cm_object_property_add_uint64(obj, "readable-bits", &state->readable_bits);
     state->readable_bits = 0x0000000000000000;
 
@@ -470,7 +471,7 @@ static void peripheral_register_instance_init_callback(Object *obj)
     state->is_writable = true;
 
     /* Reset value. */
-    state->value = 0x00000000;
+    state->value = state->reset_value;
 
     state->auto_bits = NULL;
 }
@@ -479,7 +480,6 @@ typedef struct {
     peripheral_register_t mask;
     peripheral_register_t readable_bits;
     peripheral_register_t writable_bits;
-    peripheral_register_t reset_value;
     PeripheralRegisterState *reg;
     Error *local_err;
 } PeripheralRegisterValidateTmp;
@@ -516,9 +516,6 @@ static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
             validate_tmp->writable_bits |= bifi->mask;
         }
 
-        validate_tmp->reset_value &= (~bifi->mask);
-        validate_tmp->reset_value |= ((bifi->reset_value << bifi->shift)
-                & bifi->mask);
     }
     return 0; /* Continue iterations. */
 }
@@ -710,10 +707,8 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         }
     }
     int has_bitfields = (validate_tmp->mask != 0);
-    peripheral_register_t bitfields_mask = validate_tmp->mask;
     peripheral_register_t bitfields_readable_bits = validate_tmp->readable_bits;
     peripheral_register_t bitfields_writable_bits = validate_tmp->writable_bits;
-    peripheral_register_t bitfields_reset_value = validate_tmp->reset_value;
 
     g_free(validate_tmp);
 
@@ -754,9 +749,6 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     if (!state->is_writable) {
         state->writable_bits = 0;
     }
-
-    state->reset_value &= ~(bitfields_reset_value & bitfields_mask);
-    state->reset_value |= (bitfields_reset_value & bitfields_mask);
 
     /*
      * Scan children bitfields to identify those that follow other
@@ -875,8 +867,12 @@ static void peripheral_register_reset_callback(DeviceState *dev)
 
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
-    /* Initialise the register value with the reset value. */
-    state->value = state->reset_value;
+    /* Clear the value according to the reset mask. */
+    state->reset_value &= ~(state->reset_mask);
+
+    /* Copy bits from reset value. */
+    state->reset_value |= (state->reset_value & state->reset_mask);
+
 }
 
 static void peripheral_register_class_init(ObjectClass *klass, void *data)

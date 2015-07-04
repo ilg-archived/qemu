@@ -61,6 +61,7 @@ static PeripheralRegisterInfo stm32f1_rcc_cr_info = {
     .desc = "Clock control register (RCC_CR)",
     .offset_bytes = 0x00,
     .reset_value = 0x00000083,
+    .reset_mask = 0xFFFF00FF,
     .post_write = stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
@@ -483,6 +484,7 @@ static PeripheralRegisterInfo stm32f1cl_rcc_cr_info = {
     .desc = "Clock control register (RCC_CR)",
     .offset_bytes = 0x00,
     .reset_value = 0x00000083,
+    .reset_mask = 0xFFFF00FF,
     .post_write = stm32f1_rcc_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
@@ -969,19 +971,6 @@ static PeripheralRegisterInfo stm32f1cl_rcc_cfgr2_info = {
 };
 
 /* ------------------------------------------------------------------------- */
-
-#define STM32F1_RCC_CFGR_SWS ((uint32_t)0x0000000C)
-#define STM32F1_RCC_CFGR_PLLMULL ((uint32_t)0x003C0000)
-#define STM32F1_RCC_CFGR_PLLSRC ((uint32_t)0x00010000)
-#define STM32F1_RCC_CFGR_PLLXTPRE ((uint32_t)0x00020000)
-#define STM32F1_RCC_CFGR_HPRE ((uint32_t)0x000000F0)
-
-#define STM32F1_RCC_CFGR2_PREDIV1SRC ((uint32_t)0x00010000)
-#define STM32F1_RCC_CFGR2_PREDIV1 ((uint32_t)0x0000000F)
-#define STM32F1_RCC_CFGR2_PREDIV2 ((uint32_t)0x000000F0)
-#define STM32F1_RCC_CFGR2_PLL2MUL ((uint32_t)0x00000F00)
-
-#define RESET 0
 
 static uint8_t AHBPrescTable[16] = {
     0,

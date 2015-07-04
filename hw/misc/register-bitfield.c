@@ -87,9 +87,6 @@ static void register_bitfield_instance_init_callback(Object *obj)
     cm_object_property_add_uint32(obj, "width-bits", &state->width_bits);
     state->width_bits = 1;
 
-    cm_object_property_add_uint64(obj, "reset-value", &state->reset_value);
-    state->reset_value = 0;
-
     cm_object_property_add_bool(obj, "is-readable", &state->is_readable);
     state->is_readable = false; /* Computed in realize() */
 
@@ -216,23 +213,11 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
         }
     }
 
-    /*
-     * Compute bitfield reset value, possibly using parent.
-     * The reset value is right aligned.
-     */
-    if (state->reset_value == 0) {
-        /* Bitfield reset value not defined (or 0), get from register */
-        if (reg->reset_value & mask) {
-            state->reset_value = (reg->reset_value & mask) >> state->shift;
-        }
-    }
-
     qemu_log_mask(LOG_TRACE,
-            "%s() '%s[%d:%d]', mask: 0x%llX, shift: %d, reset: 0x%llX, mode: %s%s\n",
+            "%s() '%s[%d:%d]', mask: 0x%llX, shift: %d, mode: %s%s\n",
             __FUNCTION__, state->name, state->first_bit,
             state->first_bit + state->width_bits + 1, state->mask, state->shift,
-            state->reset_value, state->is_readable ? "r" : "",
-            state->is_writable ? "w" : "");
+            state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 
 static void register_bitfield_class_init(ObjectClass *klass, void *data)

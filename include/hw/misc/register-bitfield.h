@@ -44,7 +44,6 @@ typedef struct {
     const char *desc;
     uint32_t first_bit;
     uint32_t width_bits;
-    peripheral_register_t reset_value;
     uint32_t rw_mode;
     const char *follows;
     const char *cleared_by;
@@ -94,8 +93,7 @@ typedef struct {
     uint32_t register_size_bits;
 
     uint32_t first_bit;
-    uint32_t width_bits;
-    peripheral_register_t reset_value; /**/
+    uint32_t width_bits; /**/
     bool is_readable; /**/
     bool is_writable; /**/
     const char *follows;
@@ -103,14 +101,14 @@ typedef struct {
     const char *set_by;
 
     /* The field value is ((parent->value & mask) >> shift) */
-    uint64_t mask;
+    peripheral_register_t mask;
     uint32_t shift;
 } RegisterBitfieldState;
 
 /* ----- Public ------------------------------------------------------------ */
 
 bool register_bitfield_is_zero(Object* obj);
-uint64_t register_bitfield_read_value(Object* obj);
+peripheral_register_t register_bitfield_read_value(Object* obj);
 
 /* ------------------------------------------------------------------------- */
 

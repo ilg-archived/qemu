@@ -59,7 +59,6 @@ static PeripheralRegisterInfo stm32f1_flash_acr_info = {
                     .name = "prftbs",
                     .desc = "Prefetch buffer status",
                     .first_bit = 5,
-                    .reset_value = 1,
                     .rw_mode = REGISTER_RW_MODE_READ,
                     .follows = "prftbe" },
                 { }, /**/
