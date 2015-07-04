@@ -35,49 +35,49 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
 
 /* ----- Public ------------------------------------------------------------ */
 
-uint64_t peripheral_register_read_value(Object* obj)
+peripheral_register_t peripheral_register_read_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     return (state->value & state->readable_bits);
 }
 
-void peripheral_register_write_value(Object* obj, uint64_t value)
+void peripheral_register_write_value(Object* obj, peripheral_register_t value)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     state->value = value & state->writable_bits;
 }
 
-uint64_t peripheral_register_get_raw_value(Object* obj)
+peripheral_register_t peripheral_register_get_raw_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     return state->value;
 }
 
-void peripheral_register_set_raw_value(Object* obj, uint64_t value)
+void peripheral_register_set_raw_value(Object* obj, peripheral_register_t value)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     state->value = value;
 }
 
-void peripheral_register_or_raw_value(Object* obj, uint64_t value)
+void peripheral_register_or_raw_value(Object* obj, peripheral_register_t value)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     state->value |= value;
 }
 
-void peripheral_register_and_raw_value(Object* obj, uint64_t value)
+void peripheral_register_and_raw_value(Object* obj, peripheral_register_t value)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     state->value &= value;
 }
 
-uint64_t peripheral_register_get_raw_prev_value(Object* obj)
+peripheral_register_t peripheral_register_get_raw_prev_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
@@ -184,12 +184,12 @@ void derived_peripheral_register_type_register(
  * It overlaps a long long with an array of bytes.
  */
 typedef union {
-    uint64_t ll;
-    uint8_t b[8];
+    peripheral_register_t ll;
+    uint8_t b[sizeof(peripheral_register_t)];
 } EndiannessUnion;
 
-uint64_t peripheral_register_shorten(uint64_t value, uint32_t offset,
-        unsigned size, bool is_little_endian)
+peripheral_register_t peripheral_register_shorten(peripheral_register_t value,
+        uint32_t offset, unsigned size, bool is_little_endian)
 {
     EndiannessUnion tmp;
     tmp.ll = value;
@@ -244,8 +244,9 @@ uint64_t peripheral_register_shorten(uint64_t value, uint32_t offset,
     return result.ll;
 }
 
-uint64_t peripheral_register_widen(uint64_t old_value, uint64_t value,
-        uint32_t offset, unsigned size, bool is_little_endian)
+peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
+        peripheral_register_t value, uint32_t offset, unsigned size,
+        bool is_little_endian)
 {
     EndiannessUnion in_value;
     in_value.ll = value;
@@ -302,8 +303,8 @@ uint64_t peripheral_register_widen(uint64_t old_value, uint64_t value,
 
 /* ----- Private ----------------------------------------------------------- */
 
-static uint64_t peripheral_register_read_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size)
+static peripheral_register_t peripheral_register_read_callback(Object *reg,
+        Object *periph, uint32_t addr, uint32_t offset, unsigned size)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
     PeripheralState *periph_state = PERIPHERAL_STATE(periph);
@@ -327,15 +328,16 @@ static uint64_t peripheral_register_read_callback(Object *reg, Object *periph,
 }
 
 static void peripheral_register_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
     PeripheralState *periph_state = PERIPHERAL_STATE(periph);
 
-    uint64_t new_value = peripheral_register_widen(state->value, value, offset,
-            size, periph_state->is_little_endian);
+    peripheral_register_t new_value = peripheral_register_widen(state->value,
+            value, offset, size, periph_state->is_little_endian);
 
-    uint64_t tmp;
+    peripheral_register_t tmp;
     /* Clear all writable bits, preserve the rest. */
     tmp = state->value & (~state->writable_bits);
     /* Set all writable bits with the new values. */
@@ -431,10 +433,10 @@ static void peripheral_register_instance_init_callback(Object *obj)
 }
 
 typedef struct {
-    uint64_t mask;
-    uint64_t readable_bits;
-    uint64_t writable_bits;
-    uint64_t reset_value;
+    peripheral_register_t mask;
+    peripheral_register_t readable_bits;
+    peripheral_register_t writable_bits;
+    peripheral_register_t reset_value;
     PeripheralRegisterState *reg;
     Error *local_err;
 } PeripheralRegisterValidateTmp;
@@ -483,14 +485,20 @@ static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
  * used to compute the auto_bits array.
  */
 typedef struct {
-    uint64_t left_shift_follows_masks[64];
-    uint64_t right_shift_follows_masks[64];
+    peripheral_register_t left_shift_follows_masks[sizeof(peripheral_register_t)
+            * 8];
+    peripheral_register_t right_shift_follows_masks[sizeof(peripheral_register_t)
+            * 8];
 
-    uint64_t left_shift_cleared_by_masks[64];
-    uint64_t right_shift_cleared_by_masks[64];
+    peripheral_register_t left_shift_cleared_by_masks[sizeof(peripheral_register_t)
+            * 8];
+    peripheral_register_t right_shift_cleared_by_masks[sizeof(peripheral_register_t)
+            * 8];
 
-    uint64_t left_shift_set_by_masks[64];
-    uint64_t right_shift_set_by_masks[64];
+    peripheral_register_t left_shift_set_by_masks[sizeof(peripheral_register_t)
+            * 8];
+    peripheral_register_t right_shift_set_by_masks[sizeof(peripheral_register_t)
+            * 8];
 
     const char *to_find_bifi;
     RegisterBitfieldState *found_bifi;
@@ -659,10 +667,10 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         }
     }
     int has_bitfields = (validate_tmp->mask != 0);
-    uint64_t bitfields_mask = validate_tmp->mask;
-    uint64_t bitfields_readable_bits = validate_tmp->readable_bits;
-    uint64_t bitfields_writable_bits = validate_tmp->writable_bits;
-    uint64_t bitfields_reset_value = validate_tmp->reset_value;
+    peripheral_register_t bitfields_mask = validate_tmp->mask;
+    peripheral_register_t bitfields_readable_bits = validate_tmp->readable_bits;
+    peripheral_register_t bitfields_writable_bits = validate_tmp->writable_bits;
+    peripheral_register_t bitfields_reset_value = validate_tmp->reset_value;
 
     g_free(validate_tmp);
 
@@ -728,7 +736,7 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     } else {
         int count = 0;
         int i;
-        for (i = 0; i < 64; ++i) {
+        for (i = 0; i < sizeof(peripheral_register_t) * 8; ++i) {
             if (auto_tmp->left_shift_follows_masks[i] != 0) {
                 count++;
             }
@@ -756,7 +764,7 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
 
             PeripheralRegisterAutoBits *p = auto_bits;
 
-            for (i = 0; i < 64; ++i) {
+            for (i = 0; i < sizeof(peripheral_register_t) * 8; ++i) {
                 if (auto_tmp->left_shift_follows_masks[i] != 0) {
                     p->mask = auto_tmp->left_shift_follows_masks[i];
                     p->shift = i;
@@ -841,7 +849,6 @@ static void peripheral_register_class_init(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo peripheral_register_type_info = {
-    .abstract = true,
     .name = TYPE_PERIPHERAL_REGISTER,
     .parent = TYPE_PERIPHERAL_REGISTER_PARENT,
     .instance_init = peripheral_register_instance_init_callback,
@@ -861,7 +868,6 @@ type_init(register_peripheral_register_types);
 static void derived_peripheral_register_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
-
 }
 
 static void derived_peripheral_register_realize_callback(DeviceState *dev,
@@ -958,7 +964,6 @@ static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
 
     DeviceClass *dc = DEVICE_CLASS(klass);
     dc->realize = derived_peripheral_register_realize_callback;
-
 }
 
 /* ------------------------------------------------------------------------- */

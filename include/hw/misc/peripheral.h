@@ -47,7 +47,7 @@ typedef SysBusDevice PeripheralParentState;
 
 /* ------------------------------------------------------------------------- */
 
-typedef     bool (*peripheral_is_enabled_t)(Object *obj);
+typedef bool (*peripheral_is_enabled_t)(Object *obj);
 
 /* Class definitions. */
 #define PERIPHERAL_GET_CLASS(obj) \

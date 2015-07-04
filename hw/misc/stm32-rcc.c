@@ -46,7 +46,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state);
 /* ------------------------------------------------------------------------- */
 
 static void stm32f1_rcc_post_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
 {
     STM32RCCState *state = STM32_RCC_STATE(periph);
     stm32_rcc_update_clocks(state);
@@ -1209,7 +1210,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
     /* TODO: get it from MCU */
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
-    uint64_t size;
+    uint32_t size;
     hwaddr addr;
     switch (capabilities->family) {
     case STM32_FAMILY_F1:

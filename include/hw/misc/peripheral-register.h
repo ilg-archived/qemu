@@ -59,11 +59,12 @@
  * Pass both the register and the peripheral, to allow
  * inter-registers settings.
  */
-typedef uint64_t (*register_read_callback_t)(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size);
+typedef peripheral_register_t (*register_read_callback_t)(Object *reg,
+        Object *periph, uint32_t addr, uint32_t offset, unsigned size);
 
 typedef void (*register_write_callback_t)(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value);
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value);
 
 /**
  * TypeInfo structure used to create new register types.
@@ -73,9 +74,9 @@ typedef struct {
     const char *desc;
 
     uint32_t offset_bytes;
-    uint64_t reset_value;
-    uint64_t readable_bits;
-    uint64_t writable_bits;
+    peripheral_register_t reset_value;
+    peripheral_register_t readable_bits;
+    peripheral_register_t writable_bits;
     uint64_t access_flags;
     uint32_t size_bits;
     uint32_t rw_mode;
@@ -113,7 +114,7 @@ typedef enum {
  * The array is terminated by a zero mask.
  */
 typedef struct {
-    uint64_t mask;
+    peripheral_register_t mask;
     int shift;
     peripheral_register_auto_bits_type_t type;
 } PeripheralRegisterAutoBits;
@@ -164,9 +165,9 @@ typedef struct {
     const char *name;
 
     uint32_t offset_bytes;
-    uint64_t reset_value;
-    uint64_t readable_bits;
-    uint64_t writable_bits;
+    peripheral_register_t reset_value;
+    peripheral_register_t readable_bits;
+    peripheral_register_t writable_bits;
     uint64_t access_flags;
 
     uint32_t size_bits;
@@ -177,10 +178,10 @@ typedef struct {
     PeripheralRegisterAutoBits *auto_bits;
 
     /* Current register value; returned (masked) by reads. */
-    uint64_t value;
+    peripheral_register_t value;
 
     /* Previous value, used to compute changes. */
-    uint64_t prev_value;
+    peripheral_register_t prev_value;
 } PeripheralRegisterState;
 
 /* ------------------------------------------------------------------------- */
@@ -217,25 +218,28 @@ typedef struct {
 
 /* ----- Public ------------------------------------------------------------ */
 
-uint64_t peripheral_register_read_value(Object* obj);
+peripheral_register_t peripheral_register_read_value(Object* obj);
 
-void peripheral_register_write_value(Object* obj, uint64_t value);
+void peripheral_register_write_value(Object* obj, peripheral_register_t value);
 
-uint64_t peripheral_register_get_raw_value(Object* obj);
+peripheral_register_t peripheral_register_get_raw_value(Object* obj);
 
-void peripheral_register_set_raw_value(Object* obj, uint64_t value);
+void peripheral_register_set_raw_value(Object* obj,
+        peripheral_register_t value);
 
-void peripheral_register_or_raw_value(Object* obj, uint64_t value);
+void peripheral_register_or_raw_value(Object* obj, peripheral_register_t value);
 
-void peripheral_register_and_raw_value(Object* obj, uint64_t value);
+void peripheral_register_and_raw_value(Object* obj,
+        peripheral_register_t value);
 
-uint64_t peripheral_register_get_raw_prev_value(Object* obj);
+peripheral_register_t peripheral_register_get_raw_prev_value(Object* obj);
 
-uint64_t peripheral_register_shorten(uint64_t value, uint32_t offset,
-        unsigned size, bool is_little_endian);
-
-uint64_t peripheral_register_widen(uint64_t old_value, uint64_t value,
+peripheral_register_t peripheral_register_shorten(peripheral_register_t value,
         uint32_t offset, unsigned size, bool is_little_endian);
+
+peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
+        peripheral_register_t value, uint32_t offset, unsigned size,
+        bool is_little_endian);
 
 Object *derived_peripheral_register_new(Object *parent, const char *node_name,
         const char *type_name);

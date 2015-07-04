@@ -65,7 +65,8 @@ static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
 /* The peripheral registers have to be accessed by words (32-bit). */
 
 static void stm32_gpio_crl_post_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -165,7 +166,8 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_crl_type_info = {
 };
 
 static void stm32_gpio_crh_post_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -274,7 +276,8 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_idr_type_info = {
     .rw_mode = REGISTER_RW_MODE_READ, };
 
 static void stm32_gpio_odr_post_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -299,7 +302,8 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_odr_type_info = {
     .post_write = stm32_gpio_odr_post_write_callback, };
 
 static void stm32_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -331,7 +335,8 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_bsrr_type_info = {
     .post_write = stm32_gpio_bsrr_post_write_callback, };
 
 static void stm32_gpio_brr_post_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -629,7 +634,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     /* TODO: get it from MCU */
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
-    uint64_t size;
+    uint32_t size;
     hwaddr addr;
     const char *port_name;
     switch (capabilities->family) {

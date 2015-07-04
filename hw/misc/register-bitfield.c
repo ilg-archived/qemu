@@ -36,7 +36,7 @@
 /**
  * Get the value of a bitfield, shifted to the right.
  */
-uint64_t register_bitfield_read_value(Object* obj)
+peripheral_register_t register_bitfield_read_value(Object* obj)
 {
     assert(obj);
 
@@ -148,8 +148,8 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
      * The mask is shifted to the bitfield real position and can be
      * used on the register value.
      */
-    uint64_t mask = -1;
-    mask >>= (64 - state->width_bits);
+    peripheral_register_t mask = -1;
+    mask >>= ((sizeof(peripheral_register_t) * 8) - state->width_bits);
     mask <<= state->shift;
     state->mask = mask;
 
