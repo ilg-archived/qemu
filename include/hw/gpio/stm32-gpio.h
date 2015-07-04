@@ -64,6 +64,10 @@ typedef enum {
     STM32_GPIO_PORT_E,
     STM32_GPIO_PORT_F,
     STM32_GPIO_PORT_G,
+    STM32_GPIO_PORT_H,
+    STM32_GPIO_PORT_I,
+    STM32_GPIO_PORT_J,
+    STM32_GPIO_PORT_K,
     STM32_GPIO_PORT_UNDEFINED,
 } stm32_gpio_index_t;
 
@@ -125,7 +129,16 @@ typedef struct {
         struct {
             /* F4 specific registers */
             struct {
-
+                Object *moder;
+                Object *otyper;
+                Object *ospeeder;
+                Object *pupdr;
+                Object *idr;
+                Object *odr;
+                Object *bsrr;
+                Object *lckr;
+                Object *afrl;
+                Object *afrh;
             } reg;
         } f4;
     } u;
