@@ -70,7 +70,6 @@ typedef void (*register_write_callback_t)(Object *reg, Object *periph,
  * TypeInfo structure used to create new register types.
  */
 typedef struct {
-    const char *type_name;
     const char *desc;
 
     uint32_t offset_bytes;
@@ -94,7 +93,7 @@ typedef struct {
 
     /* Always copied to class. */
     register_write_callback_t post_write;
-} PeripheralRegisterTypeInfo;
+} PeripheralRegisterInfo;
 
 typedef enum {
     PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS = 1,
@@ -182,41 +181,21 @@ typedef struct {
 
     /* Previous value, used to compute changes. */
     peripheral_register_t prev_value;
+
+    /*
+     * Placing pointers to functions in the instance data is not very
+     * nice, but the alternative to create new times and make these
+     * functions virtuals is not very practical, since there are
+     * hundreds of such objects, mostly used only once.
+     */
+    register_read_callback_t pre_read;
+    register_write_callback_t post_write;
 } PeripheralRegisterState;
 
-/* ------------------------------------------------------------------------- */
-
-/* Derived class definitions. */
-#define PERIPHERAL_REGISTER_DERIVED_GET_CLASS(obj, _t) \
-    OBJECT_GET_CLASS(PeripheralRegisterDerivedClass, (obj), _t)
-#define PERIPHERAL_REGISTER_DERIVED_CLASS(klass, _t) \
-    OBJECT_CLASS_CHECK(PeripheralRegisterDerivedClass, (klass), _t)
-#define PERIPHERAL_REGISTER_DERIVED_GET_CLASS_FAST(obj) \
-    ((PeripheralRegisterDerivedClass *)(object_get_class(obj)))
-
-typedef struct {
-    /*< private >*/
-    PeripheralRegisterClass parent_class;
-    /*< public >*/
-
-    void *data;
-} PeripheralRegisterDerivedClass;
-
-/* ------------------------------------------------------------------------- */
-
-/* Derived instance definitions. */
-#define PERIPHERAL_REGISTER_DERIVED_STATE(obj, _t) \
-    OBJECT_CHECK(PeripheralRegisterDerivedState, (obj), _t)
-
-typedef struct {
-    /*< private >*/
-    PeripheralRegisterState parent_obj;
-    /*< public >*/
-
-    /* None, so far. */
-} PeripheralRegisterDerivedState;
-
 /* ----- Public ------------------------------------------------------------ */
+
+Object *peripheral_register_new(Object *parent_obj, const char *node_name,
+        PeripheralRegisterInfo *info);
 
 peripheral_register_t peripheral_register_read_value(Object* obj);
 
@@ -240,12 +219,6 @@ peripheral_register_t peripheral_register_shorten(peripheral_register_t value,
 peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
         peripheral_register_t value, uint32_t offset, unsigned size,
         bool is_little_endian);
-
-Object *derived_peripheral_register_new(Object *parent, const char *node_name,
-        const char *type_name);
-
-void derived_peripheral_register_type_register(
-        PeripheralRegisterTypeInfo *type_info);
 
 /* ------------------------------------------------------------------------- */
 

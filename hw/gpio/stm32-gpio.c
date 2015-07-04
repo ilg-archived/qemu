@@ -73,9 +73,8 @@ static void stm32_gpio_crl_post_write_callback(Object *reg, Object *periph,
     stm32f1_gpio_update_dir_mask(state, 0);
 }
 
-static PeripheralRegisterTypeInfo stm32f1_gpio_crl_type_info = {
+static PeripheralRegisterInfo stm32f1_gpio_crl_info = {
     .desc = "Port configuration register low (GPIOx_CRL)",
-    .type_name = TYPE_STM32F1_GPIO_CRL,
     .offset_bytes = 0x00,
     .reset_value = 0x44444444,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
@@ -174,9 +173,8 @@ static void stm32_gpio_crh_post_write_callback(Object *reg, Object *periph,
     stm32f1_gpio_update_dir_mask(state, 1);
 }
 
-static PeripheralRegisterTypeInfo stm32f1_gpio_crh_type_info = {
+static PeripheralRegisterInfo stm32f1_gpio_crh_info = {
     .desc = "Port configuration register low (GPIOx_CRH)",
-    .type_name = TYPE_STM32F1_GPIO_CRH,
     .offset_bytes = 0x04,
     .reset_value = 0x44444444,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
@@ -266,9 +264,8 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_crh_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1_gpio_idr_type_info = {
+static PeripheralRegisterInfo stm32f1_gpio_idr_info = {
     .desc = "Port input data register (GPIOx_IDR)",
-    .type_name = TYPE_STM32F1_GPIO_IDR,
     .offset_bytes = 0x08,
     .reset_value = 0x00000000,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
@@ -291,9 +288,8 @@ static void stm32_gpio_odr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_idr(state, new_value);
 }
 
-static PeripheralRegisterTypeInfo stm32f1_gpio_odr_type_info = {
+static PeripheralRegisterInfo stm32f1_gpio_odr_info = {
     .desc = "Port output data register (GPIOx_ODR)",
-    .type_name = TYPE_STM32F1_GPIO_ODR,
     .offset_bytes = 0x0C,
     .reset_value = 0x00000000,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
@@ -324,9 +320,8 @@ static void stm32_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, new_value);
 }
 
-static PeripheralRegisterTypeInfo stm32f1_gpio_bsrr_type_info = {
+static PeripheralRegisterInfo stm32f1_gpio_bsrr_info = {
     .desc = "Port bit set/reset register (GPIOx_BSRR)",
-    .type_name = TYPE_STM32F1_GPIO_BSRR,
     .offset_bytes = 0x10,
     .reset_value = 0x00000000,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
@@ -352,9 +347,8 @@ static void stm32_gpio_brr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, new_value);
 }
 
-static PeripheralRegisterTypeInfo stm32f1_gpio_brr_type_info = {
+static PeripheralRegisterInfo stm32f1_gpio_brr_info = {
     .desc = "Port bit reset register (GPIOx_BRR) ",
-    .type_name = TYPE_STM32F1_GPIO_BRR,
     .offset_bytes = 0x14,
     .reset_value = 0x00000000,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
@@ -363,9 +357,8 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_brr_type_info = {
     .post_write = stm32_gpio_brr_post_write_callback, };
 
 /* Not yet implemented. */
-static PeripheralRegisterTypeInfo stm32f1_gpio_lckr_type_info = {
+static PeripheralRegisterInfo stm32f1_gpio_lckr_info = {
     .desc = "Port configuration lock register (GPIOx_LCKR)",
-    .type_name = TYPE_STM32F1_GPIO_LCKR,
     .offset_bytes = 0x18,
     .reset_value = 0x0001FFFF,
     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
@@ -691,38 +684,33 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        reg = derived_peripheral_register_new(obj, "crl",
-        TYPE_STM32F1_GPIO_CRL);
+        reg = peripheral_register_new(obj, "crl", &stm32f1_gpio_crl_info);
         cm_object_realize(reg);
         state->u.f1.reg.crl = reg;
 
-        reg = derived_peripheral_register_new(obj, "crh",
-        TYPE_STM32F1_GPIO_CRH);
+        reg = peripheral_register_new(obj, "crh", &stm32f1_gpio_crh_info);
         cm_object_realize(reg);
         state->u.f1.reg.crh = reg;
 
-        reg = derived_peripheral_register_new(obj, "idr",
-        TYPE_STM32F1_GPIO_IDR);
+        reg = peripheral_register_new(obj, "idr", &stm32f1_gpio_idr_info);
         cm_object_realize(reg);
         state->u.f1.reg.idr = reg;
 
-        reg = derived_peripheral_register_new(obj, "odr",
-        TYPE_STM32F1_GPIO_ODR);
+        reg = peripheral_register_new(obj, "odr", &stm32f1_gpio_odr_info);
         cm_object_realize(reg);
         state->u.f1.reg.odr = reg;
 
-        reg = derived_peripheral_register_new(obj, "bsrr",
-        TYPE_STM32F1_GPIO_BSRR);
+        reg = peripheral_register_new(obj, "bsrr",
+                &stm32f1_gpio_bsrr_info);
         cm_object_realize(reg);
         state->u.f1.reg.bsrr = reg;
 
-        reg = derived_peripheral_register_new(obj, "brr",
-        TYPE_STM32F1_GPIO_BRR);
+        reg = peripheral_register_new(obj, "brr", &stm32f1_gpio_brr_info);
         cm_object_realize(reg);
         state->u.f1.reg.brr = reg;
 
-        reg = derived_peripheral_register_new(obj, "lckr",
-        TYPE_STM32F1_GPIO_LCKR);
+        reg = peripheral_register_new(obj, "lckr",
+                &stm32f1_gpio_lckr_info);
         cm_object_realize(reg);
         state->u.f1.reg.lckr = reg;
 
@@ -799,14 +787,6 @@ static const TypeInfo stm32_gpio_type_info = {
 static void stm32_gpio_register_types(void)
 {
     type_register_static(&stm32_gpio_type_info);
-
-    derived_peripheral_register_type_register(&stm32f1_gpio_crl_type_info);
-    derived_peripheral_register_type_register(&stm32f1_gpio_crh_type_info);
-    derived_peripheral_register_type_register(&stm32f1_gpio_idr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_gpio_odr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_gpio_bsrr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_gpio_brr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_gpio_lckr_type_info);
 }
 
 type_init(stm32_gpio_register_types);

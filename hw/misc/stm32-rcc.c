@@ -57,9 +57,8 @@ static void stm32f1_rcc_post_write_callback(Object *reg, Object *periph,
 
 /* STM32F1[LMHX]D */
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_cr_type_info = {
+static PeripheralRegisterInfo stm32f1_rcc_cr_info = {
     .desc = "Clock control register (RCC_CR)",
-    .type_name = TYPE_STM32F1_RCC_CR,
     .offset_bytes = 0x00,
     .reset_value = 0x00000083,
     .post_write = stm32f1_rcc_post_write_callback,
@@ -117,8 +116,7 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_cr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_cfgr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_CFGR,
+static PeripheralRegisterInfo stm32f1_rcc_cfgr_info = {
     .desc = "Clock configuration register (RCC_CFGR)",
     .offset_bytes = 0x04,
     .reset_value = 0x00000000,
@@ -182,8 +180,7 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_cfgr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_cir_type_info = {
-    .type_name = TYPE_STM32F1_RCC_CIR,
+static PeripheralRegisterInfo stm32f1_rcc_cir_info = {
     .desc = "Clock interrupt register (RCC_CIR)",
     .offset_bytes = 0x08,
     .reset_value = 0x00000000,
@@ -278,32 +275,28 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_cir_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_apb2rstr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_APB2RSTR,
+static PeripheralRegisterInfo stm32f1_rcc_apb2rstr_info = {
     .desc = "APB2 peripheral reset register (RCC_APB2RSTR)",
     .offset_bytes = 0x0C,
     .reset_value = 0x00000000,
     .readable_bits = 0x0038FFFD,
     .writable_bits = 0x0038FFFD, };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_apb1rstr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_APB1RSTR,
+static PeripheralRegisterInfo stm32f1_rcc_apb1rstr_info = {
     .desc = "APB1 peripheral reset register (RCC_APB1RSTR)",
     .offset_bytes = 0x10,
     .reset_value = 0x00000000,
     .readable_bits = 0x3AFEC9FF,
     .writable_bits = 0x3AFEC9FF, };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_ahbenr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_AHBENR,
+static PeripheralRegisterInfo stm32f1_rcc_ahbenr_info = {
     .desc = "AHB peripheral clock enable register (RCC_AHBENR)",
     .offset_bytes = 0x14,
     .reset_value = 0x00000000,
     .readable_bits = 0x00000557,
     .writable_bits = 0x00000557, };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_apb2enr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_APB2ENR,
+static PeripheralRegisterInfo stm32f1_rcc_apb2enr_info = {
     .desc = "APB2 peripheral clock enable register (RCC_APB2ENR)",
     .offset_bytes = 0x18,
     .reset_value = 0x00000000,
@@ -384,16 +377,14 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_apb2enr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_apb1enr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_APB1ENR,
+static PeripheralRegisterInfo stm32f1_rcc_apb1enr_info = {
     .desc = "APB1 peripheral clock enable register (RCC_APB1ENR)",
     .offset_bytes = 0x1C,
     .reset_value = 0x00000000,
     .readable_bits = 0x3AFEC9FF,
     .writable_bits = 0x3AFEC9FF, };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_bdcr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_BDCR,
+static PeripheralRegisterInfo stm32f1_rcc_bdcr_info = {
     .desc = "Backup domain control register (RCC_BDCR)",
     .offset_bytes = 0x20,
     .reset_value = 0x00000000,
@@ -430,8 +421,7 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_bdcr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1_rcc_csr_type_info = {
-    .type_name = TYPE_STM32F1_RCC_CSR,
+static PeripheralRegisterInfo stm32f1_rcc_csr_info = {
     .desc = "Control/status register (RCC_CSR)",
     .offset_bytes = 0x24,
     .reset_value = 0x0C000000,
@@ -489,9 +479,8 @@ static PeripheralRegisterTypeInfo stm32f1_rcc_csr_type_info = {
 
 /* STM32F1CL */
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_cr_type_info = {
+static PeripheralRegisterInfo stm32f1cl_rcc_cr_info = {
     .desc = "Clock control register (RCC_CR)",
-    .type_name = TYPE_STM32F1CL_RCC_CR,
     .offset_bytes = 0x00,
     .reset_value = 0x00000083,
     .post_write = stm32f1_rcc_post_write_callback,
@@ -569,8 +558,7 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_CFGR,
+static PeripheralRegisterInfo stm32f1cl_rcc_cfgr_info = {
     .desc = "Clock configuration register (RCC_CFGR)",
     .offset_bytes = 0x04,
     .reset_value = 0x00000000,
@@ -634,8 +622,7 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_cir_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_CIR,
+static PeripheralRegisterInfo stm32f1cl_rcc_cir_info = {
     .desc = "Clock interrupt register (RCC_CIR)",
     .offset_bytes = 0x08,
     .reset_value = 0x00000000,
@@ -760,32 +747,28 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_cir_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb2rstr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_APB2RSTR,
+static PeripheralRegisterInfo stm32f1cl_rcc_apb2rstr_info = {
     .desc = "APB2 peripheral reset register (RCC_APB2RSTR)",
     .offset_bytes = 0x0C,
     .reset_value = 0x00000000,
     .readable_bits = 0x00005E7D,
     .writable_bits = 0x00005E7D, };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb1rstr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_APB1RSTR,
+static PeripheralRegisterInfo stm32f1cl_rcc_apb1rstr_info = {
     .desc = "APB1 peripheral reset register (RCC_APB1RSTR)",
     .offset_bytes = 0x10,
     .reset_value = 0x00000000,
     .readable_bits = 0x377EC83F,
     .writable_bits = 0x377EC83F, };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_ahbenr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_AHBENR,
+static PeripheralRegisterInfo stm32f1cl_rcc_ahbenr_info = {
     .desc = "AHB peripheral clock enable register (RCC_AHBENR)",
     .offset_bytes = 0x14,
     .reset_value = 0x00000000,
     .readable_bits = 0x0001D057,
     .writable_bits = 0x0001D057, };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb2enr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_APB2ENR,
+static PeripheralRegisterInfo stm32f1cl_rcc_apb2enr_info = {
     .desc = "APB2 peripheral clock enable register (RCC_APB2ENR)",
     .offset_bytes = 0x18,
     .reset_value = 0x00000000,
@@ -838,16 +821,14 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb2enr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_apb1enr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_APB1ENR,
+static PeripheralRegisterInfo stm32f1cl_rcc_apb1enr_info = {
     .desc = "APB1 peripheral clock enable register (RCC_APB1ENR)",
     .offset_bytes = 0x1C,
     .reset_value = 0x00000000,
     .readable_bits = 0x3E7EC83F,
     .writable_bits = 0x3E7EC83F, };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_bdcr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_BDCR,
+static PeripheralRegisterInfo stm32f1cl_rcc_bdcr_info = {
     .desc = "Backup domain control register (RCC_BDCR)",
     .offset_bytes = 0x20,
     .reset_value = 0x00000000,
@@ -884,8 +865,7 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_bdcr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_csr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_CSR,
+static PeripheralRegisterInfo stm32f1cl_rcc_csr_info = {
     .desc = "Control/status register (RCC_CSR)",
     .offset_bytes = 0x24,
     .reset_value = 0x0C000000,
@@ -939,16 +919,14 @@ static PeripheralRegisterTypeInfo stm32f1cl_rcc_csr_type_info = {
             } , /**/
 };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_ahbrstr_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_AHBRSTR,
+static PeripheralRegisterInfo stm32f1cl_rcc_ahbrstr_info = {
     .desc = "AHB peripheral clock reset register (RCC_AHBRSTR)",
     .offset_bytes = 0x28,
     .reset_value = 0x00000000,
     .readable_bits = 0x00005000,
     .writable_bits = 0x00005000, };
 
-static PeripheralRegisterTypeInfo stm32f1cl_rcc_cfgr2_type_info = {
-    .type_name = TYPE_STM32F1CL_RCC_CFGR2,
+static PeripheralRegisterInfo stm32f1cl_rcc_cfgr2_info = {
     .desc = "Clock configuration register2 (RCC_CFGR2)",
     .offset_bytes = 0x2C,
     .reset_value = 0x00000000,
@@ -1245,13 +1223,12 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F1:
 
         if (!capabilities->f1.is_cl) {
-            reg = derived_peripheral_register_new(obj, "cr",
-            TYPE_STM32F1_RCC_CR);
+            reg = peripheral_register_new(obj, "cr", &stm32f1_rcc_cr_info);
             cm_object_realize(reg);
             state->f1.reg.cr = reg;
 
-            reg = derived_peripheral_register_new(obj, "cfgr",
-            TYPE_STM32F1_RCC_CFGR);
+            reg = peripheral_register_new(obj, "cfgr",
+                    &stm32f1_rcc_cfgr_info);
             cm_object_realize(reg);
             state->f1.reg.cfgr = reg;
 
@@ -1262,53 +1239,53 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     "pllxtpre");
             state->f1.cfgr.hpre = cm_object_get_child_by_name(reg, "hpre");
 
-            reg = derived_peripheral_register_new(obj, "cir",
-            TYPE_STM32F1_RCC_CIR);
+            reg = peripheral_register_new(obj, "cir",
+                    &stm32f1_rcc_cir_info);
             cm_object_realize(reg);
             state->f1.reg.cir = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb2rstr",
-            TYPE_STM32F1_RCC_APB2RSTR);
+            reg = peripheral_register_new(obj, "apb2rstr",
+                    &stm32f1_rcc_apb2rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2rstr = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb1rstr",
-            TYPE_STM32F1_RCC_APB1RSTR);
+            reg = peripheral_register_new(obj, "apb1rstr",
+                    &stm32f1_rcc_apb1rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1rstr = reg;
 
-            reg = derived_peripheral_register_new(obj, "ahbenr",
-            TYPE_STM32F1_RCC_AHBENR);
+            reg = peripheral_register_new(obj, "ahbenr",
+                    &stm32f1_rcc_ahbenr_info);
             cm_object_realize(reg);
             state->f1.reg.ahbenr = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb2enr",
-            TYPE_STM32F1_RCC_APB2ENR);
+            reg = peripheral_register_new(obj, "apb2enr",
+                    &stm32f1_rcc_apb2enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2enr = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb1enr",
-            TYPE_STM32F1_RCC_APB1ENR);
+            reg = peripheral_register_new(obj, "apb1enr",
+                    &stm32f1_rcc_apb1enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1enr = reg;
 
-            reg = derived_peripheral_register_new(obj, "bdcr",
-            TYPE_STM32F1_RCC_BDCR);
+            reg = peripheral_register_new(obj, "bdcr",
+                    &stm32f1_rcc_bdcr_info);
             cm_object_realize(reg);
             state->f1.reg.bdcr = reg;
 
-            reg = derived_peripheral_register_new(obj, "csr",
-            TYPE_STM32F1_RCC_CSR);
+            reg = peripheral_register_new(obj, "csr",
+                    &stm32f1_rcc_csr_info);
             cm_object_realize(reg);
             state->f1.reg.csr = reg;
         } else {
-            reg = derived_peripheral_register_new(obj, "cr",
-            TYPE_STM32F1CL_RCC_CR);
+            reg = peripheral_register_new(obj, "cr",
+                    &stm32f1cl_rcc_cr_info);
             cm_object_realize(reg);
             state->f1.reg.cr = reg;
 
-            reg = derived_peripheral_register_new(obj, "cfgr",
-            TYPE_STM32F1CL_RCC_CFGR);
+            reg = peripheral_register_new(obj, "cfgr",
+                    &stm32f1cl_rcc_cfgr_info);
             cm_object_realize(reg);
             state->f1.reg.cfgr = reg;
 
@@ -1317,53 +1294,53 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             state->f1.cfgr.pllmul = cm_object_get_child_by_name(reg, "pllmul");
             state->f1.cfgr.pllsrc = cm_object_get_child_by_name(reg, "pllsrc");
 
-            reg = derived_peripheral_register_new(obj, "cir",
-            TYPE_STM32F1CL_RCC_CIR);
+            reg = peripheral_register_new(obj, "cir",
+                    &stm32f1cl_rcc_cir_info);
             cm_object_realize(reg);
             state->f1.reg.cir = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb2rstr",
-            TYPE_STM32F1CL_RCC_APB2RSTR);
+            reg = peripheral_register_new(obj, "apb2rstr",
+                    &stm32f1cl_rcc_apb2rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2rstr = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb1rstr",
-            TYPE_STM32F1CL_RCC_APB1RSTR);
+            reg = peripheral_register_new(obj, "apb1rstr",
+                    &stm32f1cl_rcc_apb1rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1rstr = reg;
 
-            reg = derived_peripheral_register_new(obj, "ahbenr",
-            TYPE_STM32F1CL_RCC_AHBENR);
+            reg = peripheral_register_new(obj, "ahbenr",
+                    &stm32f1cl_rcc_ahbenr_info);
             cm_object_realize(reg);
             state->f1.reg.ahbenr = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb2enr",
-            TYPE_STM32F1CL_RCC_APB2ENR);
+            reg = peripheral_register_new(obj, "apb2enr",
+                    &stm32f1cl_rcc_apb2enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2enr = reg;
 
-            reg = derived_peripheral_register_new(obj, "apb1enr",
-            TYPE_STM32F1CL_RCC_APB1ENR);
+            reg = peripheral_register_new(obj, "apb1enr",
+                    &stm32f1cl_rcc_apb1enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1enr = reg;
 
-            reg = derived_peripheral_register_new(obj, "bdcr",
-            TYPE_STM32F1CL_RCC_BDCR);
+            reg = peripheral_register_new(obj, "bdcr",
+                    &stm32f1cl_rcc_bdcr_info);
             cm_object_realize(reg);
             state->f1.reg.bdcr = reg;
 
-            reg = derived_peripheral_register_new(obj, "csr",
-            TYPE_STM32F1CL_RCC_CSR);
+            reg = peripheral_register_new(obj, "csr",
+                    &stm32f1cl_rcc_csr_info);
             cm_object_realize(reg);
             state->f1.reg.csr = reg;
 
-            reg = derived_peripheral_register_new(obj, "ahbrstr",
-            TYPE_STM32F1CL_RCC_AHBRSTR);
+            reg = peripheral_register_new(obj, "ahbrstr",
+                    &stm32f1cl_rcc_ahbrstr_info);
             cm_object_realize(reg);
             state->f1.reg.ahbrstr = reg;
 
-            reg = derived_peripheral_register_new(obj, "cfgr2",
-            TYPE_STM32F1CL_RCC_CFGR2);
+            reg = peripheral_register_new(obj, "cfgr2",
+                    &stm32f1cl_rcc_cfgr2_info);
             cm_object_realize(reg);
             state->f1.reg.cfgr2 = reg;
 
@@ -1427,33 +1404,6 @@ static const TypeInfo stm32_rcc_type_info = {
 static void stm32_rcc_register_types(void)
 {
     type_register_static(&stm32_rcc_type_info);
-
-    derived_peripheral_register_type_register(&stm32f1_rcc_cr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_cfgr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_cir_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_apb2rstr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_apb1rstr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_ahbenr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_apb2enr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_apb1enr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_bdcr_type_info);
-    derived_peripheral_register_type_register(&stm32f1_rcc_csr_type_info);
-
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_cr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_cfgr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_cir_type_info);
-    derived_peripheral_register_type_register(
-            &stm32f1cl_rcc_apb2rstr_type_info);
-    derived_peripheral_register_type_register(
-            &stm32f1cl_rcc_apb1rstr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_ahbenr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_apb2enr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_apb1enr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_bdcr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_csr_type_info);
-
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_ahbrstr_type_info);
-    derived_peripheral_register_type_register(&stm32f1cl_rcc_cfgr2_type_info);
 }
 
 type_init(stm32_rcc_register_types);

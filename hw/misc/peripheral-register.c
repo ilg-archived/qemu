@@ -29,11 +29,83 @@
  * types that redefine these methods.
  */
 
-static void derived_peripheral_register_instance_init_callback(Object *obj);
-static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
-        void *data);
+static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
+        int size_bits, Object *reg);
 
 /* ----- Public ------------------------------------------------------------ */
+
+Object *peripheral_register_new(Object *parent_obj, const char *node_name,
+        PeripheralRegisterInfo *info)
+{
+    Object *obj = cm_object_new(parent_obj, node_name,
+    TYPE_PERIPHERAL_REGISTER);
+
+    /*
+     * After properties are set to default values by .instance_init,
+     * copy actual values from info.
+     */
+
+    /* Store a local copy of the node name, for easier access.  */
+    cm_object_property_set_str(obj, node_name, "name");
+
+    cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
+    if (info->reset_value != 0) {
+        cm_object_property_set_int(obj, info->reset_value, "reset-value");
+    }
+    if (info->readable_bits != 0) {
+        cm_object_property_set_int(obj, info->readable_bits, "readable-bits");
+    }
+    if (info->writable_bits != 0) {
+        cm_object_property_set_int(obj, info->writable_bits, "writable-bits");
+    }
+    if (info->access_flags != 0) {
+        cm_object_property_set_int(obj, info->access_flags, "access-flags");
+    }
+
+    int size_bits = 0;
+    if (info->size_bits != 0) {
+        size_bits = info->size_bits;
+    } else {
+        PeripheralState *parent = PERIPHERAL_STATE(parent_obj);
+
+        if (parent->register_size_bytes != 0) {
+            size_bits = parent->register_size_bytes * 8;
+        } else {
+            size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES;
+        }
+    }
+    cm_object_property_set_int(obj, size_bits, "size-bits");
+
+    if (info->rw_mode != 0) {
+        if (info->rw_mode & REGISTER_RW_MODE_READ) {
+            cm_object_property_set_bool(obj, true, "is-readable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-readable");
+        }
+        if (info->rw_mode & REGISTER_RW_MODE_WRITE) {
+            cm_object_property_set_bool(obj, true, "is-writable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-writable");
+        }
+    } else {
+        cm_object_property_set_bool(obj, true, "is-readable");
+        cm_object_property_set_bool(obj, true, "is-writable");
+    }
+
+    if (info->bitfields) {
+        peripheral_register_add_bitfields(info->bitfields, size_bits, obj);
+    }
+
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    /* Direct pointer access. Not very nice, but this is an exception. */
+    state->pre_read = info->pre_read;
+    state->post_write = info->post_write;
+
+    return obj;
+}
+
+/* ------------------------------------------------------------------------- */
 
 peripheral_register_t peripheral_register_read_value(Object* obj)
 {
@@ -150,33 +222,6 @@ static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
         /* Should we delay until the register is realized()? */
         cm_object_realize(bifi);
     }
-
-}
-
-Object *derived_peripheral_register_new(Object *parent, const char *node_name,
-        const char *type_name)
-{
-    Object *obj = cm_object_new(parent, node_name, type_name);
-
-    /* Store local copy of name, for easier access.  */
-    cm_object_property_set_str(obj, node_name, "name");
-
-    return obj;
-}
-
-void derived_peripheral_register_type_register(
-        PeripheralRegisterTypeInfo *type_info)
-{
-    TypeInfo ti = {
-        .name = type_info->type_name,
-        .parent = TYPE_PERIPHERAL_REGISTER,
-        .instance_init = derived_peripheral_register_instance_init_callback,
-        .class_init = derived_peripheral_register_class_init_callback,
-        .class_size = sizeof(PeripheralRegisterDerivedClass),
-        .class_data = (void *) type_info, /**/
-    };
-
-    type_register(&ti);
 }
 
 /**
@@ -314,10 +359,9 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
      * with pre read callbacks. These should prepare the value in the
      * register.
      */
-    PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
-    if (reg_class->pre_read) {
-        uint64_t new_value;
-        new_value = reg_class->pre_read(reg, periph, addr, offset, size);
+    if (state->pre_read) {
+        peripheral_register_t new_value;
+        new_value = state->pre_read(reg, periph, addr, offset, size);
 
         state->value &= (new_value & state->readable_bits);
         state->value |= (new_value & state->readable_bits);
@@ -381,9 +425,8 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
      * Actions associated with registers are implemented with post write
      * callbacks.
      */
-    PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
-    if (reg_class->post_write) {
-        reg_class->post_write(reg, periph, addr, offset, size, value);
+    if (state->post_write) {
+        state->post_write(reg, periph, addr, offset, size, value);
     }
 }
 
@@ -862,109 +905,6 @@ static void register_peripheral_register_types(void)
 }
 
 type_init(register_peripheral_register_types);
-
-/* ------------------------------------------------------------------------- */
-
-static void derived_peripheral_register_instance_init_callback(Object *obj)
-{
-    qemu_log_function_name();
-}
-
-static void derived_peripheral_register_realize_callback(DeviceState *dev,
-        Error **errp)
-{
-    qemu_log_function_name();
-
-    Object *obj = OBJECT(dev);
-    const char *type_name = object_get_typename(obj);
-    PeripheralRegisterDerivedClass *klass =
-            PERIPHERAL_REGISTER_DERIVED_GET_CLASS(obj, type_name);
-
-    /*
-     * After properties are set with default values by parent class,
-     * copy actual values from class type info.
-     */
-    PeripheralRegisterTypeInfo *info =
-            (PeripheralRegisterTypeInfo *) (klass->data);
-
-    cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
-    if (info->reset_value != 0) {
-        cm_object_property_set_int(obj, info->reset_value, "reset-value");
-    }
-    if (info->readable_bits != 0) {
-        cm_object_property_set_int(obj, info->readable_bits, "readable-bits");
-    }
-    if (info->writable_bits != 0) {
-        cm_object_property_set_int(obj, info->writable_bits, "writable-bits");
-    }
-    if (info->access_flags != 0) {
-        cm_object_property_set_int(obj, info->access_flags, "access-flags");
-    }
-
-    int size_bits = 0;
-    if (info->size_bits != 0) {
-        size_bits = info->size_bits;
-    } else {
-        PeripheralState *parent = PERIPHERAL_STATE(
-                cm_object_get_parent(OBJECT(dev)));
-
-        if (parent->register_size_bytes != 0) {
-            size_bits = parent->register_size_bytes * 8;
-        } else {
-            size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES;
-        }
-    }
-    cm_object_property_set_int(obj, size_bits, "size-bits");
-
-    if (info->rw_mode != 0) {
-        if (info->rw_mode & REGISTER_RW_MODE_READ) {
-            cm_object_property_set_bool(obj, true, "is-readable");
-        } else {
-            cm_object_property_set_bool(obj, false, "is-readable");
-        }
-        if (info->rw_mode & REGISTER_RW_MODE_WRITE) {
-            cm_object_property_set_bool(obj, true, "is-writable");
-        } else {
-            cm_object_property_set_bool(obj, false, "is-writable");
-        }
-    } else {
-        cm_object_property_set_bool(obj, true, "is-readable");
-        cm_object_property_set_bool(obj, true, "is-writable");
-    }
-
-    if (info->bitfields) {
-        peripheral_register_add_bitfields(info->bitfields, size_bits, obj);
-    }
-
-    /* Call parent realize(). */
-    if (!cm_device_parent_realize(dev, errp, type_name)) {
-        return;
-    }
-}
-
-static void derived_peripheral_register_class_init_callback(ObjectClass *klass,
-        void *data)
-{
-    PeripheralRegisterTypeInfo *ti = (PeripheralRegisterTypeInfo *) data;
-    PeripheralRegisterClass *pr_class = PERIPHERAL_REGISTER_CLASS(klass);
-
-    if (ti->read) {
-        pr_class->read = ti->read;
-    }
-    pr_class->pre_read = ti->pre_read;
-    pr_class->post_write = ti->post_write;
-    if (ti->write) {
-        pr_class->write = ti->write;
-    }
-
-    const char *type_name = object_class_get_name(klass);
-    PeripheralRegisterDerivedClass *prd_class =
-            PERIPHERAL_REGISTER_DERIVED_CLASS(klass, type_name);
-    prd_class->data = data;
-
-    DeviceClass *dc = DEVICE_CLASS(klass);
-    dc->realize = derived_peripheral_register_realize_callback;
-}
 
 /* ------------------------------------------------------------------------- */
 
