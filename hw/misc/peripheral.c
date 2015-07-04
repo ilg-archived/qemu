@@ -64,16 +64,6 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
 
     PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
 
-    /*
-     * Specific actions required to get the actual values are implemented
-     * with pre read callbacks. These should prepare the value in the
-     * register.
-     */
-    if (reg_class->pre_read) {
-        reg_class->pre_read(OBJECT(reg), OBJECT(state), reg_addr, reg_offset,
-                size);
-    }
-
     /* Read the register value. */
     uint64_t value = 0;
     if (reg_class->read) {
@@ -130,14 +120,6 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
                 value);
     }
 
-    /*
-     * Actions associated with registers are implemented with post write
-     * callbacks.
-     */
-    if (reg_class->post_write) {
-        reg_class->post_write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset,
-                size, value);
-    }
 }
 
 static const MemoryRegionOps register_ops = {
@@ -162,7 +144,7 @@ static void peripheral_instance_init_callback(Object *obj)
             &state->mmio_size_bytes);
     state->mmio_size_bytes = 0;
 
-    cm_object_property_add_uint32(obj, "default-access-flags",
+    cm_object_property_add_uint64(obj, "default-access-flags",
             &state->default_access_flags);
     /* Allow all */
     state->default_access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;

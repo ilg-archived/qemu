@@ -77,6 +77,13 @@ void peripheral_register_and_raw_value(Object* obj, uint64_t value)
     state->value &= value;
 }
 
+uint64_t peripheral_register_get_raw_prev_value(Object* obj)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    return state->prev_value;
+}
+
 /* ----- Private ----------------------------------------------------------- */
 
 static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
@@ -172,8 +179,6 @@ void derived_peripheral_register_type_register(
     type_register(&ti);
 }
 
-/* ----- Private ----------------------------------------------------------- */
-
 /**
  * Structure used to process endianness.
  * It overlaps a long long with an array of bytes.
@@ -183,14 +188,11 @@ typedef union {
     uint8_t b[8];
 } EndiannessUnion;
 
-static uint64_t peripheral_register_read_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size)
+uint64_t peripheral_register_shorten(uint64_t value, uint32_t offset,
+        unsigned size, bool is_little_endian)
 {
-    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
-    PeripheralState *periph_state = PERIPHERAL_STATE(periph);
-
     EndiannessUnion tmp;
-    tmp.ll = state->value & state->readable_bits;
+    tmp.ll = value;
 
     EndiannessUnion result;
     result.ll = 0; /* Start with a zero value. */
@@ -202,7 +204,7 @@ static uint64_t peripheral_register_read_callback(Object *reg, Object *periph,
      */
     int i;
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    if (periph_state->is_little_endian) {
+    if (is_little_endian) {
         for (i = 0; i < size; ++i) {
             /*
              * Source: little-endian (guest register)
@@ -242,17 +244,14 @@ static uint64_t peripheral_register_read_callback(Object *reg, Object *periph,
     return result.ll;
 }
 
-static void peripheral_register_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+uint64_t peripheral_register_widen(uint64_t old_value, uint64_t value,
+        uint32_t offset, unsigned size, bool is_little_endian)
 {
-    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
-    PeripheralState *periph_state = PERIPHERAL_STATE(periph);
-
     EndiannessUnion in_value;
     in_value.ll = value;
 
     EndiannessUnion new_value;
-    new_value.ll = state->value; /* Start with the original value. */
+    new_value.ll = old_value; /* Start with the original value. */
 
     /*
      * Overwrite 'size' bytes in new_value with bytes from in_value.
@@ -261,7 +260,7 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
      */
     int i;
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    if (periph_state->is_little_endian) {
+    if (is_little_endian) {
         for (i = 0; i < size; ++i) {
             /*
              * Source: little-endian (host in value)
@@ -298,12 +297,49 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
         }
     }
 #endif
+    return new_value.ll;
+}
+
+/* ----- Private ----------------------------------------------------------- */
+
+static uint64_t peripheral_register_read_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
+    PeripheralState *periph_state = PERIPHERAL_STATE(periph);
+
+    /*
+     * Specific actions required to get the actual values are implemented
+     * with pre read callbacks. These should prepare the value in the
+     * register.
+     */
+    PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
+    if (reg_class->pre_read) {
+        uint64_t new_value;
+        new_value = reg_class->pre_read(reg, periph, addr, offset, size);
+
+        state->value &= (new_value & state->readable_bits);
+        state->value |= (new_value & state->readable_bits);
+    }
+
+    return peripheral_register_shorten(state->value & state->readable_bits,
+            offset, size, periph_state->is_little_endian);
+}
+
+static void peripheral_register_write_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
+    PeripheralState *periph_state = PERIPHERAL_STATE(periph);
+
+    uint64_t new_value = peripheral_register_widen(state->value, value, offset,
+            size, periph_state->is_little_endian);
 
     uint64_t tmp;
     /* Clear all writable bits, preserve the rest. */
     tmp = state->value & (~state->writable_bits);
     /* Set all writable bits with the new values. */
-    tmp |= (new_value.ll & state->writable_bits);
+    tmp |= (new_value & state->writable_bits);
 
     PeripheralRegisterAutoBits *auto_bits;
     for (auto_bits = state->auto_bits; auto_bits && auto_bits->mask;
@@ -336,7 +372,17 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
         }
     }
 
+    state->prev_value = state->value;
     state->value = tmp;
+
+    /*
+     * Actions associated with registers are implemented with post write
+     * callbacks.
+     */
+    PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
+    if (reg_class->post_write) {
+        reg_class->post_write(reg, periph, addr, offset, size, value);
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -365,7 +411,7 @@ static void peripheral_register_instance_init_callback(Object *obj)
     cm_object_property_add_uint64(obj, "writable-bits", &state->writable_bits);
     state->writable_bits = 0x0000000000000000;
 
-    cm_object_property_add_uint32(obj, "access-flags", &state->access_flags);
+    cm_object_property_add_uint64(obj, "access-flags", &state->access_flags);
     state->access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
 
     cm_object_property_add_uint32(obj, "size-bits", &state->size_bits);

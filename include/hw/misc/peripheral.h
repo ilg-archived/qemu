@@ -86,7 +86,7 @@ typedef struct {
     MemoryRegion mmio;
 
     /* Default access flags, when registers do not define them. */
-    uint32_t default_access_flags;
+    uint64_t default_access_flags;
 
     /* All peripheral registers have the same size. (1-8) */
     uint32_t register_size_bytes;

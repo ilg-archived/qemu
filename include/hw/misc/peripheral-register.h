@@ -40,7 +40,10 @@
 /* ------------------------------------------------------------------------- */
 
 /* Allow all accesses, of all sizes. */
-#define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS    (0xFFFFFFFF)
+#define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS    (0xFFFFFFFFFFFFFFFF)
+#define PERIPHERAL_REGISTER_64BITS_ALL                  (0xFFFFFFFFFFFFFFFF)
+#define PERIPHERAL_REGISTER_32BITS_ALL                  (0x0F0F0F0F)
+#define PERIPHERAL_REGISTER_32BITS_WORD                 (0x01000000)
 
 #define PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES      (4)
 #define PERIPHERAL_REGISTER_MAX_SIZE_BITS           (64)
@@ -73,7 +76,7 @@ typedef struct {
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
-    uint32_t access_flags;
+    uint64_t access_flags;
     uint32_t size_bits;
     uint32_t rw_mode;
 
@@ -164,7 +167,7 @@ typedef struct {
     uint64_t reset_value;
     uint64_t readable_bits;
     uint64_t writable_bits;
-    uint32_t access_flags;
+    uint64_t access_flags;
 
     uint32_t size_bits;
 
@@ -173,7 +176,11 @@ typedef struct {
 
     PeripheralRegisterAutoBits *auto_bits;
 
+    /* Current register value; returned (masked) by reads. */
     uint64_t value;
+
+    /* Previous value, used to compute changes. */
+    uint64_t prev_value;
 } PeripheralRegisterState;
 
 /* ------------------------------------------------------------------------- */
@@ -221,6 +228,14 @@ void peripheral_register_set_raw_value(Object* obj, uint64_t value);
 void peripheral_register_or_raw_value(Object* obj, uint64_t value);
 
 void peripheral_register_and_raw_value(Object* obj, uint64_t value);
+
+uint64_t peripheral_register_get_raw_prev_value(Object* obj);
+
+uint64_t peripheral_register_shorten(uint64_t value, uint32_t offset,
+        unsigned size, bool is_little_endian);
+
+uint64_t peripheral_register_widen(uint64_t old_value, uint64_t value,
+        uint32_t offset, unsigned size, bool is_little_endian);
 
 Object *derived_peripheral_register_new(Object *parent, const char *node_name,
         const char *type_name);
