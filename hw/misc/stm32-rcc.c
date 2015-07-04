@@ -1223,11 +1223,12 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F1:
 
         if (!capabilities->f1.is_cl) {
-            reg = peripheral_register_new(obj, "cr", &stm32f1_rcc_cr_info);
+            reg = peripheral_register_new_with_info(obj, "cr",
+                    &stm32f1_rcc_cr_info);
             cm_object_realize(reg);
             state->f1.reg.cr = reg;
 
-            reg = peripheral_register_new(obj, "cfgr",
+            reg = peripheral_register_new_with_info(obj, "cfgr",
                     &stm32f1_rcc_cfgr_info);
             cm_object_realize(reg);
             state->f1.reg.cfgr = reg;
@@ -1239,52 +1240,52 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     "pllxtpre");
             state->f1.cfgr.hpre = cm_object_get_child_by_name(reg, "hpre");
 
-            reg = peripheral_register_new(obj, "cir",
+            reg = peripheral_register_new_with_info(obj, "cir",
                     &stm32f1_rcc_cir_info);
             cm_object_realize(reg);
             state->f1.reg.cir = reg;
 
-            reg = peripheral_register_new(obj, "apb2rstr",
+            reg = peripheral_register_new_with_info(obj, "apb2rstr",
                     &stm32f1_rcc_apb2rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2rstr = reg;
 
-            reg = peripheral_register_new(obj, "apb1rstr",
+            reg = peripheral_register_new_with_info(obj, "apb1rstr",
                     &stm32f1_rcc_apb1rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1rstr = reg;
 
-            reg = peripheral_register_new(obj, "ahbenr",
+            reg = peripheral_register_new_with_info(obj, "ahbenr",
                     &stm32f1_rcc_ahbenr_info);
             cm_object_realize(reg);
             state->f1.reg.ahbenr = reg;
 
-            reg = peripheral_register_new(obj, "apb2enr",
+            reg = peripheral_register_new_with_info(obj, "apb2enr",
                     &stm32f1_rcc_apb2enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2enr = reg;
 
-            reg = peripheral_register_new(obj, "apb1enr",
+            reg = peripheral_register_new_with_info(obj, "apb1enr",
                     &stm32f1_rcc_apb1enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1enr = reg;
 
-            reg = peripheral_register_new(obj, "bdcr",
+            reg = peripheral_register_new_with_info(obj, "bdcr",
                     &stm32f1_rcc_bdcr_info);
             cm_object_realize(reg);
             state->f1.reg.bdcr = reg;
 
-            reg = peripheral_register_new(obj, "csr",
+            reg = peripheral_register_new_with_info(obj, "csr",
                     &stm32f1_rcc_csr_info);
             cm_object_realize(reg);
             state->f1.reg.csr = reg;
         } else {
-            reg = peripheral_register_new(obj, "cr",
+            reg = peripheral_register_new_with_info(obj, "cr",
                     &stm32f1cl_rcc_cr_info);
             cm_object_realize(reg);
             state->f1.reg.cr = reg;
 
-            reg = peripheral_register_new(obj, "cfgr",
+            reg = peripheral_register_new_with_info(obj, "cfgr",
                     &stm32f1cl_rcc_cfgr_info);
             cm_object_realize(reg);
             state->f1.reg.cfgr = reg;
@@ -1294,52 +1295,52 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             state->f1.cfgr.pllmul = cm_object_get_child_by_name(reg, "pllmul");
             state->f1.cfgr.pllsrc = cm_object_get_child_by_name(reg, "pllsrc");
 
-            reg = peripheral_register_new(obj, "cir",
+            reg = peripheral_register_new_with_info(obj, "cir",
                     &stm32f1cl_rcc_cir_info);
             cm_object_realize(reg);
             state->f1.reg.cir = reg;
 
-            reg = peripheral_register_new(obj, "apb2rstr",
+            reg = peripheral_register_new_with_info(obj, "apb2rstr",
                     &stm32f1cl_rcc_apb2rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2rstr = reg;
 
-            reg = peripheral_register_new(obj, "apb1rstr",
+            reg = peripheral_register_new_with_info(obj, "apb1rstr",
                     &stm32f1cl_rcc_apb1rstr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1rstr = reg;
 
-            reg = peripheral_register_new(obj, "ahbenr",
+            reg = peripheral_register_new_with_info(obj, "ahbenr",
                     &stm32f1cl_rcc_ahbenr_info);
             cm_object_realize(reg);
             state->f1.reg.ahbenr = reg;
 
-            reg = peripheral_register_new(obj, "apb2enr",
+            reg = peripheral_register_new_with_info(obj, "apb2enr",
                     &stm32f1cl_rcc_apb2enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb2enr = reg;
 
-            reg = peripheral_register_new(obj, "apb1enr",
+            reg = peripheral_register_new_with_info(obj, "apb1enr",
                     &stm32f1cl_rcc_apb1enr_info);
             cm_object_realize(reg);
             state->f1.reg.apb1enr = reg;
 
-            reg = peripheral_register_new(obj, "bdcr",
+            reg = peripheral_register_new_with_info(obj, "bdcr",
                     &stm32f1cl_rcc_bdcr_info);
             cm_object_realize(reg);
             state->f1.reg.bdcr = reg;
 
-            reg = peripheral_register_new(obj, "csr",
+            reg = peripheral_register_new_with_info(obj, "csr",
                     &stm32f1cl_rcc_csr_info);
             cm_object_realize(reg);
             state->f1.reg.csr = reg;
 
-            reg = peripheral_register_new(obj, "ahbrstr",
+            reg = peripheral_register_new_with_info(obj, "ahbrstr",
                     &stm32f1cl_rcc_ahbrstr_info);
             cm_object_realize(reg);
             state->f1.reg.ahbrstr = reg;
 
-            reg = peripheral_register_new(obj, "cfgr2",
+            reg = peripheral_register_new_with_info(obj, "cfgr2",
                     &stm32f1cl_rcc_cfgr2_info);
             cm_object_realize(reg);
             state->f1.reg.cfgr2 = reg;

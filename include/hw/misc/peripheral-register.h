@@ -194,8 +194,8 @@ typedef struct {
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *peripheral_register_new(Object *parent_obj, const char *node_name,
-        PeripheralRegisterInfo *info);
+Object *peripheral_register_new_with_info(Object *parent_obj,
+        const char *node_name, PeripheralRegisterInfo *info);
 
 peripheral_register_t peripheral_register_read_value(Object* obj);
 

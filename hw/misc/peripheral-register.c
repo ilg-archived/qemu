@@ -34,7 +34,7 @@ static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *peripheral_register_new(Object *parent_obj, const char *node_name,
+Object *peripheral_register_new_with_info(Object *parent_obj, const char *node_name,
         PeripheralRegisterInfo *info)
 {
     Object *obj = cm_object_new(parent_obj, node_name,

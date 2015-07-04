@@ -159,36 +159,43 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        reg = peripheral_register_new(obj, "acr", &stm32f1_flash_acr_info);
+        reg = peripheral_register_new_with_info(obj, "acr",
+                &stm32f1_flash_acr_info);
         cm_object_realize(reg);
         state->u.f1.reg.acr = DEVICE(reg);
 
-        reg = peripheral_register_new(obj, "keyr", &stm32f1_flash_keyr_info);
+        reg = peripheral_register_new_with_info(obj, "keyr",
+                &stm32f1_flash_keyr_info);
         cm_object_realize(reg);
         state->u.f1.reg.keyr = DEVICE(reg);
 
-        reg = peripheral_register_new(obj, "optkeyr",
+        reg = peripheral_register_new_with_info(obj, "optkeyr",
                 &stm32f1_flash_optkeyr_info);
         cm_object_realize(reg);
         state->u.f1.reg.optkeyr = DEVICE(reg);
 
-        reg = peripheral_register_new(obj, "sr", &stm32f1_flash_sr_info);
+        reg = peripheral_register_new_with_info(obj, "sr",
+                &stm32f1_flash_sr_info);
         cm_object_realize(reg);
         state->u.f1.reg.sr = DEVICE(reg);
 
-        reg = peripheral_register_new(obj, "cr", &stm32f1_flash_cr_info);
+        reg = peripheral_register_new_with_info(obj, "cr",
+                &stm32f1_flash_cr_info);
         cm_object_realize(reg);
         state->u.f1.reg.cr = DEVICE(reg);
 
-        reg = peripheral_register_new(obj, "ar", &stm32f1_flash_ar_info);
+        reg = peripheral_register_new_with_info(obj, "ar",
+                &stm32f1_flash_ar_info);
         cm_object_realize(reg);
         state->u.f1.reg.ar = DEVICE(reg);
 
-        reg = peripheral_register_new(obj, "obr", &stm32f1_flash_obr_info);
+        reg = peripheral_register_new_with_info(obj, "obr",
+                &stm32f1_flash_obr_info);
         cm_object_realize(reg);
         state->u.f1.reg.obr = DEVICE(reg);
 
-        reg = peripheral_register_new(obj, "wrpr", &stm32f1_flash_wrpr_info);
+        reg = peripheral_register_new_with_info(obj, "wrpr",
+                &stm32f1_flash_wrpr_info);
         cm_object_realize(reg);
         state->u.f1.reg.wrpr = DEVICE(reg);
 
@@ -199,22 +206,22 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
              * have a few more registers.
              */
 
-            reg = peripheral_register_new(obj, "keyr2",
+            reg = peripheral_register_new_with_info(obj, "keyr2",
                     &stm32f1xd_flash_keyr2_info);
             cm_object_realize(reg);
             state->u.f1.reg.keyr2 = DEVICE(reg);
 
-            reg = peripheral_register_new(obj, "sr2",
+            reg = peripheral_register_new_with_info(obj, "sr2",
                     &stm32f1xd_flash_sr2_info);
             cm_object_realize(reg);
             state->u.f1.reg.sr2 = DEVICE(reg);
 
-            reg = peripheral_register_new(obj, "cr2",
+            reg = peripheral_register_new_with_info(obj, "cr2",
                     &stm32f1xd_flash_cr2_info);
             cm_object_realize(reg);
             state->u.f1.reg.cr2 = DEVICE(reg);
 
-            reg = peripheral_register_new(obj, "ar2",
+            reg = peripheral_register_new_with_info(obj, "ar2",
                     &stm32f1xd_flash_ar2_info);
             cm_object_realize(reg);
             state->u.f1.reg.ar2 = DEVICE(reg);

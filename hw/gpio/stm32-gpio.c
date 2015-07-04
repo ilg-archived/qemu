@@ -684,32 +684,37 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        reg = peripheral_register_new(obj, "crl", &stm32f1_gpio_crl_info);
+        reg = peripheral_register_new_with_info(obj, "crl",
+                &stm32f1_gpio_crl_info);
         cm_object_realize(reg);
         state->u.f1.reg.crl = reg;
 
-        reg = peripheral_register_new(obj, "crh", &stm32f1_gpio_crh_info);
+        reg = peripheral_register_new_with_info(obj, "crh",
+                &stm32f1_gpio_crh_info);
         cm_object_realize(reg);
         state->u.f1.reg.crh = reg;
 
-        reg = peripheral_register_new(obj, "idr", &stm32f1_gpio_idr_info);
+        reg = peripheral_register_new_with_info(obj, "idr",
+                &stm32f1_gpio_idr_info);
         cm_object_realize(reg);
         state->u.f1.reg.idr = reg;
 
-        reg = peripheral_register_new(obj, "odr", &stm32f1_gpio_odr_info);
+        reg = peripheral_register_new_with_info(obj, "odr",
+                &stm32f1_gpio_odr_info);
         cm_object_realize(reg);
         state->u.f1.reg.odr = reg;
 
-        reg = peripheral_register_new(obj, "bsrr",
+        reg = peripheral_register_new_with_info(obj, "bsrr",
                 &stm32f1_gpio_bsrr_info);
         cm_object_realize(reg);
         state->u.f1.reg.bsrr = reg;
 
-        reg = peripheral_register_new(obj, "brr", &stm32f1_gpio_brr_info);
+        reg = peripheral_register_new_with_info(obj, "brr",
+                &stm32f1_gpio_brr_info);
         cm_object_realize(reg);
         state->u.f1.reg.brr = reg;
 
-        reg = peripheral_register_new(obj, "lckr",
+        reg = peripheral_register_new_with_info(obj, "lckr",
                 &stm32f1_gpio_lckr_info);
         cm_object_realize(reg);
         state->u.f1.reg.lckr = reg;
