@@ -114,8 +114,9 @@ typedef struct {
 
     /**
      * Cached direction mask. 1 = output pin.
+     * No more than 16 bits/port.
      */
-    uint32_t dir_mask;
+    uint16_t dir_mask;
 
     /**
      * Mutually exclusive all families registers.

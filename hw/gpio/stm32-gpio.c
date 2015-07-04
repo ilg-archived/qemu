@@ -48,14 +48,21 @@
 
 /* ------------------------------------------------------------------------- */
 
-static void stm32f1_gpio_update_dir_mask(STM32GPIOState *s, int index);
+static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index);
+
+static void stm32_gpio_update_idr(STM32GPIOState *state, uint16_t new_odr);
+
 static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state,
-        uint32_t new_value);
-static void stm32f1_gpio_update_dir_mask(STM32GPIOState *s, int index);
+        uint16_t new_value);
+
+static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
+        uint16_t new_odr);
 
 /* ------------------------------------------------------------------------- */
 
 /* STM32F1[LMHX]D, STM32F1CL */
+
+/* The peripheral registers have to be accessed by words (32-bit). */
 
 static void stm32_gpio_crl_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
@@ -70,6 +77,7 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_crl_type_info = {
     .type_name = TYPE_STM32F1_GPIO_CRL,
     .offset_bytes = 0x00,
     .reset_value = 0x44444444,
+    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .post_write = stm32_gpio_crl_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
@@ -169,6 +177,7 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_crh_type_info = {
     .type_name = TYPE_STM32F1_GPIO_CRH,
     .offset_bytes = 0x04,
     .reset_value = 0x44444444,
+    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .post_write = stm32_gpio_crh_post_write_callback,
     .bitfields = (RegisterBitfieldInfo[] ) {
                 {
@@ -260,25 +269,23 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_idr_type_info = {
     .type_name = TYPE_STM32F1_GPIO_IDR,
     .offset_bytes = 0x08,
     .reset_value = 0x00000000,
+    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .readable_bits = 0x0000FFFF,
     .rw_mode = REGISTER_RW_MODE_READ, };
-
-static void stm32_gpio_odr_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
-{
-    /*
-     * Prevent the default write, the operation will be done
-     * in post_write.
-     */
-    return;
-}
 
 static void stm32_gpio_odr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size, uint64_t value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
-    stm32_gpio_update_odr_and_idr(state, value);
+    Object *odr = state->u.f1.reg.odr;
+    assert(odr);
+
+    uint16_t prev_value = peripheral_register_get_raw_prev_value(odr);
+    uint16_t new_value = peripheral_register_get_raw_value(odr);
+
+    stm32_gpio_set_odr_irqs(state, prev_value, new_value);
+    stm32_gpio_update_idr(state, new_value);
 }
 
 static PeripheralRegisterTypeInfo stm32f1_gpio_odr_type_info = {
@@ -286,9 +293,9 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_odr_type_info = {
     .type_name = TYPE_STM32F1_GPIO_ODR,
     .offset_bytes = 0x0C,
     .reset_value = 0x00000000,
+    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .writable_bits = 0x0000FFFF,
     .rw_mode = REGISTER_RW_MODE_WRITE,
-    .write = stm32_gpio_odr_write_callback,
     .post_write = stm32_gpio_odr_post_write_callback, };
 
 static void stm32_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
@@ -296,16 +303,20 @@ static void stm32_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
+    Object *odr = state->u.f1.reg.odr;
+    assert(odr);
+
     uint32_t new_value;
     uint32_t bits_to_set;
     uint32_t bits_to_reset;
 
+    /* Value is word (32-bits). */
     bits_to_set = (value & 0x0000FFFF);
     bits_to_reset = ((value >> 16) & 0x0000FFFF);
 
     /* Clear the BR bits and set the BS bits. */
-    new_value = (peripheral_register_read_value(state->u.f1.reg.odr)
-            & (~bits_to_reset)) | bits_to_set;
+    new_value = (peripheral_register_get_raw_value(odr) & (~bits_to_reset))
+            | bits_to_set;
     stm32_gpio_update_odr_and_idr(state, new_value);
 }
 
@@ -314,6 +325,7 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_bsrr_type_info = {
     .type_name = TYPE_STM32F1_GPIO_BSRR,
     .offset_bytes = 0x10,
     .reset_value = 0x00000000,
+    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .writable_bits = 0xFFFFFFFF,
     .rw_mode = REGISTER_RW_MODE_WRITE,
     .post_write = stm32_gpio_bsrr_post_write_callback, };
@@ -323,13 +335,15 @@ static void stm32_gpio_brr_post_write_callback(Object *reg, Object *periph,
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
+    Object *odr = state->u.f1.reg.odr;
+    assert(odr);
+
     uint32_t new_value;
     uint32_t bits_to_reset;
     bits_to_reset = (value & 0x0000FFFF);
 
     /* Clear the BR bits. */
-    new_value = peripheral_register_get_raw_value(state->u.f1.reg.odr)
-            & ~bits_to_reset;
+    new_value = peripheral_register_get_raw_value(odr) & ~bits_to_reset;
     stm32_gpio_update_odr_and_idr(state, new_value);
 }
 
@@ -338,6 +352,7 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_brr_type_info = {
     .type_name = TYPE_STM32F1_GPIO_BRR,
     .offset_bytes = 0x14,
     .reset_value = 0x00000000,
+    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .writable_bits = 0x0000FFFF,
     .rw_mode = REGISTER_RW_MODE_WRITE,
     .post_write = stm32_gpio_brr_post_write_callback, };
@@ -348,6 +363,7 @@ static PeripheralRegisterTypeInfo stm32f1_gpio_lckr_type_info = {
     .type_name = TYPE_STM32F1_GPIO_LCKR,
     .offset_bytes = 0x18,
     .reset_value = 0x0001FFFF,
+    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
     .writable_bits = 0x0001FFFF, };
 
 /* ------------------------------------------------------------------------- */
@@ -380,7 +396,8 @@ static uint32_t stm32f1_gpio_get_pin_config(STM32GPIOState *state, unsigned pin)
      */
     uint64_t cr_64 = ((uint64_t) peripheral_register_get_raw_value(
             state->u.f1.reg.crh) << 32)
-            | peripheral_register_get_raw_value(state->u.f1.reg.crl);
+            | (peripheral_register_get_raw_value(state->u.f1.reg.crl)
+                    & 0xFFFFFFFF);
     return extract64(cr_64, pin * 4, 4);
 }
 
@@ -423,7 +440,7 @@ static uint32_t stm32f1_gpio_get_mode_bits(STM32GPIOState *state, unsigned pin)
  * index == 0 - CRL
  * index == 1 - CRH
  */
-static void stm32f1_gpio_update_dir_mask(STM32GPIOState *s, int index)
+static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index)
 {
     assert((index == 0) || (index == 1));
 
@@ -432,50 +449,29 @@ static void stm32f1_gpio_update_dir_mask(STM32GPIOState *s, int index)
     int pin;
 
     for (pin = start_pin; pin < start_pin + 8; pin++) {
-        pin_dir = stm32f1_gpio_get_mode_bits(s, pin);
+        pin_dir = stm32f1_gpio_get_mode_bits(state, pin);
         /*
          * If the mode is 0, the pin is input.  Otherwise, it
          * is output.
          */
         if (pin_dir == 0) {
-            s->dir_mask &= ~(1 << pin); /* Input pin */
+            state->dir_mask &= ~(1 << pin); /* Input pin */
         } else {
-            s->dir_mask |= (1 << pin); /* Output pin */
+            state->dir_mask |= (1 << pin); /* Output pin */
         }
     }
 }
 
-/**
- * Write the ODR register and trigger interrupts for changed pins
- * (output only).
- *
- * The odr pointer is passed to make the function useful for other
- * families too.
- */
-static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state,
-        uint32_t new_value)
+static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
+        uint16_t new_odr)
 {
-    Object *odr = state->u.f1.reg.odr;
-    Object *idr = state->u.f1.reg.idr;
-
-    assert(odr != NULL);
-
-    /* Preserve old value, to compute changed bits */
-    uint32_t old_value = peripheral_register_get_raw_value(odr);
-
-    /*
-     * Update register value. Per documentation, the upper 16 bits
-     * always read as 0.
-     */
-    peripheral_register_set_raw_value(odr, new_value & 0x0000FFFF);
-
     /* Compute pins that changed value. */
-    uint32_t changed = old_value ^ new_value;
+    uint16_t changed = old_odr ^ new_odr;
 
     /* Filter changed pins that are outputs - do not touch input pins. */
-    uint32_t changed_out = changed & state->dir_mask;
+    uint16_t changed_out = changed & state->dir_mask;
 
-    uint32_t mask = 1;
+    uint16_t mask = 1;
     if (changed_out) {
         int pin;
         for (pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++, mask <<= 1) {
@@ -484,7 +480,7 @@ static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state,
              * the output IRQ.
              */
             if (changed_out & mask) {
-                qemu_set_irq(state->out_irq[pin], (new_value & mask) ? 1 : 0);
+                qemu_set_irq(state->out_irq[pin], (new_odr & mask) ? 1 : 0);
 
                 /*
                  * Andre Beckus used:
@@ -502,16 +498,48 @@ static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state,
             }
         }
     }
+}
+
+/**
+ * For output pins, make them read back the written value.
+ *
+ * TODO: check if there is anything special for open-drain pins.
+ */
+static void stm32_gpio_update_idr(STM32GPIOState *state, uint16_t new_odr)
+{
+    Object *idr = state->u.f1.reg.idr;
+    assert(idr);
+
+    /* Clear output bits. */
+    peripheral_register_and_raw_value(idr, ~state->dir_mask);
+    /* Copy output bits from ODR. */
+    peripheral_register_or_raw_value(idr, (new_odr & state->dir_mask));
+}
+
+/**
+ * Write the ODR register and trigger interrupts for changed pins
+ * (output only).
+ *
+ * The odr pointer is passed to make the function useful for other
+ * families too.
+ */
+static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state,
+        uint16_t new_value)
+{
+    Object *odr = state->u.f1.reg.odr;
+    assert(odr);
+
+    /* Preserve old value, to compute changed bits */
+    uint16_t old_value = peripheral_register_get_raw_value(odr);
 
     /*
-     * For output pins, make them read the written value.
-     *
-     * TODO: check if there is anything special for open-drain pins.
+     * Update register value. Per documentation, the upper 16 bits
+     * always read as 0, so write is used, to apply the mask.
      */
-    uint32_t tmp = (peripheral_register_get_raw_value(idr))
-            & (~state->dir_mask);
-    peripheral_register_set_raw_value(idr,
-            (tmp | (new_value & state->dir_mask)) & 0x0000FFFF);
+    peripheral_register_write_value(odr, new_value);
+
+    stm32_gpio_set_odr_irqs(state, old_value, new_value);
+    stm32_gpio_update_idr(state, new_value);
 }
 
 /* ------------------------------------------------------------------------- */
