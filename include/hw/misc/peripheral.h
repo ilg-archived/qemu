@@ -27,6 +27,13 @@
  * It builds an array of registers and forwards read/writes to them.
  */
 
+typedef struct {
+    const char *desc;
+    // const char *name;
+
+    PeripheralRegisterInfo *registers;
+} PeripheralInfo;
+
 /* ------------------------------------------------------------------------- */
 
 #define TYPE_PERIPHERAL "peripheral"
@@ -99,6 +106,11 @@ typedef struct {
 
     bool is_little_endian;
 } PeripheralState;
+
+/* ----- Public ------------------------------------------------------------ */
+
+Object *peripheral_new_with_info(Object *parent_obj, const char *node_name,
+        PeripheralInfo *info);
 
 /* ------------------------------------------------------------------------- */
 

@@ -22,6 +22,29 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
+Object *peripheral_new_with_info(Object *parent_obj, const char *node_name,
+        PeripheralInfo *info)
+{
+    Object *obj = parent_obj;
+    if (node_name) {
+        obj = cm_object_new(parent_obj, node_name, TYPE_PERIPHERAL);
+    }
+    /* TODO: Add properties. */
+
+    if (info->registers) {
+        PeripheralRegisterInfo *bifi_info;
+        for (bifi_info = info->registers; bifi_info->name; ++bifi_info) {
+
+            Object *bifi = peripheral_register_new_with_info(obj,
+                    bifi_info->name, bifi_info);
+
+            cm_object_realize(bifi);
+        }
+    }
+
+    return obj;
+}
+
 /* ----- Private ----------------------------------------------------------- */
 
 /**
