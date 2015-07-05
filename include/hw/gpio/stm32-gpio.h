@@ -113,35 +113,33 @@ typedef struct {
      * The 'reg' structure was used to mark explicitly that the member is
      * a MCU processor and also in case other family variables are needed.
      */
-    union {
+    struct {
+        /* F1 specific registers */
         struct {
-            /* F1 specific registers */
-            struct {
-                Object *crl;
-                Object *crh;
-                Object *idr;
-                Object *odr;
-                Object *bsrr;
-                Object *brr;
-                Object *lckr;
-            } reg;
-        } f1;
+            Object *crl;
+            Object *crh;
+            Object *idr;
+            Object *odr;
+            Object *bsrr;
+            Object *brr;
+            Object *lckr;
+        } reg;
+    } f1;
+    struct {
+        /* F4 specific registers */
         struct {
-            /* F4 specific registers */
-            struct {
-                Object *moder;
-                Object *otyper;
-                Object *ospeeder;
-                Object *pupdr;
-                Object *idr;
-                Object *odr;
-                Object *bsrr;
-                Object *lckr;
-                Object *afrl;
-                Object *afrh;
-            } reg;
-        } f4;
-    } u;
+            Object *moder;
+            Object *otyper;
+            Object *ospeeder;
+            Object *pupdr;
+            Object *idr;
+            Object *odr;
+            Object *bsrr;
+            Object *lckr;
+            Object *afrl;
+            Object *afrh;
+        } reg;
+    } f4;
 
     const STM32Capabilities *capabilities;
 } STM32GPIOState;
