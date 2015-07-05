@@ -74,18 +74,6 @@ Object *register_bitfield_new_with_info(Object *parent_obj,
 
     cm_object_property_set_int(obj, size_bits, "register-size-bits");
 
-    if (info->follows != NULL && strlen(info->follows) > 0) {
-        cm_object_property_set_str(obj, info->follows, "follows");
-    }
-
-    if (info->cleared_by != NULL && strlen(info->cleared_by) > 0) {
-        cm_object_property_set_str(obj, info->cleared_by, "cleared-by");
-    }
-
-    if (info->set_by != NULL && strlen(info->set_by) > 0) {
-        cm_object_property_set_str(obj, info->set_by, "set-by");
-    }
-
     return obj;
 }
 

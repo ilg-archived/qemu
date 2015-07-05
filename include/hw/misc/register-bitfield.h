@@ -45,9 +45,6 @@ typedef struct {
     uint32_t first_bit;
     uint32_t width_bits;
     uint32_t rw_mode;
-    const char *follows;
-    const char *cleared_by;
-    const char *set_by;
 } RegisterBitfieldInfo;
 
 /* ------------------------------------------------------------------------- */
