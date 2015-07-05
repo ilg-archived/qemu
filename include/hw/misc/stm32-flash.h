@@ -63,33 +63,34 @@ typedef struct {
 
     const STM32Capabilities *capabilities;
 
-    union {
+    struct {
+        /* F1 specific registers */
         struct {
-            /* F1 specific registers */
-            struct {
-                DeviceState *acr; /* 0x00 */
-                DeviceState *keyr; /* 0x04 */
-                DeviceState *optkeyr; /* 0x08 */
-                DeviceState *sr; /* 0x0C */
-                DeviceState *cr; /* 0x10 */
-                DeviceState *ar; /* 0x14 */
-                DeviceState *obr; /* 0x1C */
-                DeviceState *wrpr; /* 0x20 */
+            Object *acr; /* 0x00 */
+            Object *keyr; /* 0x04 */
+            Object *optkeyr; /* 0x08 */
+            Object *sr; /* 0x0C */
+            Object *cr; /* 0x10 */
+            Object *ar; /* 0x14 */
+            Object *obr; /* 0x1C */
+            Object *wrpr; /* 0x20 */
 
-                /* XL only */
-                DeviceState *keyr2; /* 0x44 */
-                DeviceState *sr2; /* 0x4C */
-                DeviceState *cr2; /* 0x50 */
-                DeviceState *ar2; /* 0x54 */
-            } reg;
-        } f1;
+            /* XL only */
+            Object *keyr2; /* 0x44 */
+            Object *sr2; /* 0x4C */
+            Object *cr2; /* 0x50 */
+            Object *ar2; /* 0x54 */
+        } reg;
         struct {
-            /* F4 specific registers */
-            struct {
-                // TODO: add them
-            } reg;
-        } f4;
-    } u;
+            Object *prftbs;
+        } acr;
+    } f1;
+    struct {
+        /* F4 specific registers */
+        struct {
+            // TODO: add them
+        } reg;
+    } f4;
 } STM32FlashState;
 
 /* ------------------------------------------------------------------------- */

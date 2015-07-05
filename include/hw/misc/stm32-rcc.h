@@ -102,6 +102,15 @@ typedef struct {
             Object *ahbrstr; /* 0x28 */
             Object *cfgr2; /* 0x2C */
         } reg;
+
+        /* Bitfields. */
+        struct {
+            Object *hsirdy;
+            Object *hserdy;
+            Object *pllrdy;
+            Object *pll2rdy; /* CL */
+            Object *pll3rdy; /* CL */
+        } cr;
         struct {
             Object *sws;
             Object *pllmul;
@@ -109,6 +118,28 @@ typedef struct {
             Object *pllxtpre;
             Object *hpre;
         } cfgr;
+        struct {
+            Object *lsirdyf;
+            Object *lserdyf;
+            Object *hsirdyf;
+            Object *hserdyf;
+            Object *pllrdyf;
+            Object *pll2rdyf;
+            Object *pll3rdyf;
+            Object *cssf;
+        } cir;
+        struct {
+            Object *lserdy;
+        } bdcr;
+        struct {
+            Object *lsirdy;
+            Object *pinrstf;
+            Object *porrstf;
+            Object *stfrstf;
+            Object *iwdgrstf;
+            Object *wwdgrstf;
+            Object *lrwrrstf;
+        } csr;
         struct {
             Object *prediv1;
             Object *prediv2;

@@ -715,7 +715,6 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, addr, "mmio-address");
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
-    Object *reg;
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 

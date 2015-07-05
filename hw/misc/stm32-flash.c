@@ -38,72 +38,136 @@
 
 /* ------------------------------------------------------------------------- */
 
-static PeripheralRegisterInfo stm32f1_flash_acr_info = {
-    .desc = "Flash access control register (FLASH_ACR)",
-    .offset_bytes = 0x00,
-    .reset_value = 0x00000030,
-    .bitfields = (RegisterBitfieldInfo[] ) {
+static PeripheralInfo stm32f1_flash_info = {
+    .desc = "Reset and clock control (RCC)",
+
+    .registers = (PeripheralRegisterInfo[] ) {
                 {
-                    .name = "latency",
-                    .first_bit = 0,
-                    .width_bits = 3, },
+                    .desc = "Flash access control register (FLASH_ACR)",
+                    .name = "acr",
+                    .offset_bytes = 0x00,
+                    .reset_value = 0x00000030,
+                    .bitfields = (RegisterBitfieldInfo[] ) {
+                                {
+                                    .name = "latency",
+                                    .first_bit = 0,
+                                    .width_bits = 3, },
+                                {
+                                    .name = "hlfcya",
+                                    .desc = "Flash half cycle access enable",
+                                    .first_bit = 3, },
+                                {
+                                    .name = "prftbe",
+                                    .desc = "Prefetch buffer enable",
+                                    .first_bit = 4, },
+                                {
+                                    .name = "prftbs",
+                                    .desc = "Prefetch buffer status",
+                                    .first_bit = 5,
+                                    .rw_mode = REGISTER_RW_MODE_READ, },
+                                { }, /**/
+                            } , /**/
+                },
+                /* Very schematic, functional read after write only. */
                 {
-                    .name = "hlfcya",
-                    .desc = "Flash half cycle access enable",
-                    .first_bit = 3, },
+                    .name = "keyr",
+                    .offset_bytes = 0x04, },
                 {
-                    .name = "prftbe",
-                    .desc = "Prefetch buffer enable",
-                    .first_bit = 4, },
+                    .name = "optkeyr",
+                    .offset_bytes = 0x08, },
                 {
-                    .name = "prftbs",
-                    .desc = "Prefetch buffer status",
-                    .first_bit = 5,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "prftbe" },
+                    .name = "sr",
+                    .offset_bytes = 0x0C, },
+                {
+                    .name = "cr",
+                    .offset_bytes = 0x10, },
+                {
+                    .name = "ar",
+                    .offset_bytes = 0x14, },
+                /* 0x18 is reserved */
+                {
+                    .name = "obr",
+                    .offset_bytes = 0x1C, },
+                {
+                    .name = "wrpr",
+                    .offset_bytes = 0x20, },
                 { }, /**/
             } , /**/
 };
 
-/* Very schematic, functional read after write only. */
-static PeripheralRegisterInfo stm32f1_flash_keyr_info = {
-    .offset_bytes = 0x04, };
+static PeripheralInfo stm32f1xl_flash_info = {
+    .desc = "Reset and clock control (RCC)",
 
-static PeripheralRegisterInfo stm32f1_flash_optkeyr_info = {
-    .offset_bytes = 0x08, };
+    .registers = (PeripheralRegisterInfo[] ) {
+                {
+                    .desc = "Flash access control register (FLASH_ACR)",
+                    .name = "acr",
+                    .offset_bytes = 0x00,
+                    .reset_value = 0x00000030,
+                    .bitfields = (RegisterBitfieldInfo[] ) {
+                                {
+                                    .name = "latency",
+                                    .first_bit = 0,
+                                    .width_bits = 3, },
+                                {
+                                    .name = "hlfcya",
+                                    .desc = "Flash half cycle access enable",
+                                    .first_bit = 3, },
+                                {
+                                    .name = "prftbe",
+                                    .desc = "Prefetch buffer enable",
+                                    .first_bit = 4, },
+                                {
+                                    .name = "prftbs",
+                                    .desc = "Prefetch buffer status",
+                                    .first_bit = 5,
+                                    .rw_mode = REGISTER_RW_MODE_READ, },
+                                { }, /**/
+                            } , /**/
+                },
+                /* Very schematic, functional read after write only. */
+                {
+                    .name = "keyr",
+                    .offset_bytes = 0x04, },
+                {
+                    .name = "optkeyr",
+                    .offset_bytes = 0x08, },
+                {
+                    .name = "sr",
+                    .offset_bytes = 0x0C, },
+                {
+                    .name = "cr",
+                    .offset_bytes = 0x10, },
+                {
+                    .name = "ar",
+                    .offset_bytes = 0x14, },
+                /* 0x18 is reserved */
+                {
+                    .name = "obr",
+                    .offset_bytes = 0x1C, },
+                {
+                    .name = "wrpr",
+                    .offset_bytes = 0x20, },
 
-static PeripheralRegisterInfo stm32f1_flash_sr_info = {
-    .offset_bytes = 0x0C, };
+                /*
+                 * XL density devices specific.
+                 */
+                {
+                    .name = "keyr2",
+                    .offset_bytes = 0x44, },
+                {
+                    .name = "sr2",
+                    .offset_bytes = 0x4C, },
+                {
+                    .name = "cr2",
+                    .offset_bytes = 0x50, },
+                {
+                    .name = "ar2",
+                    .offset_bytes = 0x54, },
 
-static PeripheralRegisterInfo stm32f1_flash_cr_info = {
-    .offset_bytes = 0x10, };
-
-static PeripheralRegisterInfo stm32f1_flash_ar_info = {
-    .offset_bytes = 0x14, };
-
-/* 0x18 is reserved */
-
-static PeripheralRegisterInfo stm32f1_flash_obr_info = {
-    .offset_bytes = 0x1C, };
-
-static PeripheralRegisterInfo stm32f1_flash_wrpr_info = {
-    .offset_bytes = 0x20, };
-
-/*
- * In addition to the above, the XL density devices
- * have a few more registers.
- */
-static PeripheralRegisterInfo stm32f1xd_flash_keyr2_info = {
-    .offset_bytes = 0x44, };
-
-static PeripheralRegisterInfo stm32f1xd_flash_sr2_info = {
-    .offset_bytes = 0x4C, };
-
-static PeripheralRegisterInfo stm32f1xd_flash_cr2_info = {
-    .offset_bytes = 0x50, };
-
-static PeripheralRegisterInfo stm32f1xd_flash_ar2_info = {
-    .offset_bytes = 0x54, };
+                { }, /**/
+            } , /**/
+};
 
 /* ------------------------------------------------------------------------- */
 
@@ -154,77 +218,52 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, addr, "mmio-address");
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
-    Object *reg;
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        reg = peripheral_register_new_with_info(obj, "acr",
-                &stm32f1_flash_acr_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.acr = DEVICE(reg);
+        if (!capabilities->f1.is_xd) {
+            peripheral_new_with_info(obj, NULL, &stm32f1_flash_info);
 
-        reg = peripheral_register_new_with_info(obj, "keyr",
-                &stm32f1_flash_keyr_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.keyr = DEVICE(reg);
+            state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
+            state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
+            state->f1.reg.optkeyr = cm_object_get_child_by_name(obj, "optkeyr");
+            state->f1.reg.sr = cm_object_get_child_by_name(obj, "sr");
+            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+            state->f1.reg.ar = cm_object_get_child_by_name(obj, "ar");
+            state->f1.reg.obr = cm_object_get_child_by_name(obj, "obr");
+            state->f1.reg.wrpr = cm_object_get_child_by_name(obj, "wrpr");
 
-        reg = peripheral_register_new_with_info(obj, "optkeyr",
-                &stm32f1_flash_optkeyr_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.optkeyr = DEVICE(reg);
+            /* ACR bitfields. */
+            state->f1.acr.prftbs = cm_object_get_child_by_name(
+                    OBJECT(state->f1.reg.acr), "prftbs");
 
-        reg = peripheral_register_new_with_info(obj, "sr",
-                &stm32f1_flash_sr_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.sr = DEVICE(reg);
+            /* Auto bits. */
+            cm_object_property_set_str(state->f1.acr.prftbs, "prftbe",
+                    "follows");
+        } else {
+            peripheral_new_with_info(obj, NULL, &stm32f1xl_flash_info);
 
-        reg = peripheral_register_new_with_info(obj, "cr",
-                &stm32f1_flash_cr_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.cr = DEVICE(reg);
+            state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
+            state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
+            state->f1.reg.optkeyr = cm_object_get_child_by_name(obj, "optkeyr");
+            state->f1.reg.sr = cm_object_get_child_by_name(obj, "sr");
+            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+            state->f1.reg.ar = cm_object_get_child_by_name(obj, "ar");
+            state->f1.reg.obr = cm_object_get_child_by_name(obj, "obr");
+            state->f1.reg.wrpr = cm_object_get_child_by_name(obj, "wrpr");
 
-        reg = peripheral_register_new_with_info(obj, "ar",
-                &stm32f1_flash_ar_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.ar = DEVICE(reg);
+            state->f1.reg.keyr2 = cm_object_get_child_by_name(obj, "keyr2");
+            state->f1.reg.sr2 = cm_object_get_child_by_name(obj, "sr2");
+            state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "cr2");
+            state->f1.reg.ar2 = cm_object_get_child_by_name(obj, "ar2");
 
-        reg = peripheral_register_new_with_info(obj, "obr",
-                &stm32f1_flash_obr_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.obr = DEVICE(reg);
+            /* ACR bitfields. */
+            state->f1.acr.prftbs = cm_object_get_child_by_name(
+                    OBJECT(state->f1.reg.acr), "prftbs");
 
-        reg = peripheral_register_new_with_info(obj, "wrpr",
-                &stm32f1_flash_wrpr_info);
-        cm_object_realize(reg);
-        state->u.f1.reg.wrpr = DEVICE(reg);
-
-        if (capabilities->f1.is_xd) {
-
-            /*
-             * In addition to the above, the XL density devices
-             * have a few more registers.
-             */
-
-            reg = peripheral_register_new_with_info(obj, "keyr2",
-                    &stm32f1xd_flash_keyr2_info);
-            cm_object_realize(reg);
-            state->u.f1.reg.keyr2 = DEVICE(reg);
-
-            reg = peripheral_register_new_with_info(obj, "sr2",
-                    &stm32f1xd_flash_sr2_info);
-            cm_object_realize(reg);
-            state->u.f1.reg.sr2 = DEVICE(reg);
-
-            reg = peripheral_register_new_with_info(obj, "cr2",
-                    &stm32f1xd_flash_cr2_info);
-            cm_object_realize(reg);
-            state->u.f1.reg.cr2 = DEVICE(reg);
-
-            reg = peripheral_register_new_with_info(obj, "ar2",
-                    &stm32f1xd_flash_ar2_info);
-            cm_object_realize(reg);
-            state->u.f1.reg.ar2 = DEVICE(reg);
-
+            /* Auto bits. */
+            cm_object_property_set_str(state->f1.acr.prftbs, "prftbe",
+                    "follows");
         }
 
         break;
@@ -245,7 +284,6 @@ static void stm32_flash_reset_callback(DeviceState *dev)
 
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_STM32_FLASH);
-
 }
 
 static Property stm32_flash_properties[] = {

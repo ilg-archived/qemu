@@ -82,8 +82,7 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "Internal high-speed clock ready flag",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "hsion", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hsitrim",
                                                             .desc =
@@ -109,8 +108,7 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "External high-speed clock ready flag",
                                                             .first_bit = 17,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "hseon", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hsebyp",
                                                             .desc =
@@ -131,8 +129,7 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "PLL clock ready flag",
                                                             .first_bit = 25,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "pllon", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         { }, /**/
                                                     } , /**/
                                 },
@@ -157,8 +154,7 @@ static PeripheralInfo stm32f1_rcc_info =
                                                             .first_bit = 2,
                                                             .width_bits = 2,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "sw", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hpre",
                                                             .desc =
@@ -226,53 +222,42 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "LSI ready interrupt flag",
                                                             .first_bit = 0,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "lsirdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "lserdyf",
                                                             .desc =
                                                                     "LSE ready interrupt flag",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "lserdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hsirdyf",
                                                             .desc =
                                                                     "HSI ready interrupt flag",
                                                             .first_bit = 2,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "hsirdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hserdyf",
                                                             .desc =
                                                                     "HSE ready interrupt flag",
                                                             .first_bit = 3,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "hserdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "pllrdyf",
                                                             .desc =
                                                                     "PLL ready interrupt flag",
                                                             .first_bit = 4,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "pllrdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "cssf",
                                                             .desc =
                                                                     "Clock security system interrupt flag",
                                                             .first_bit = 7,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by = "cssc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "lsirdyie",
                                                             .desc =
@@ -495,8 +480,7 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "External low-speed oscillator ready",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "lseon", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "lsebyp",
                                                             .desc =
@@ -539,8 +523,7 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "Internal low-speed oscillator ready",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "lsion", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "rmvf",
                                                             .desc =
@@ -550,38 +533,32 @@ static PeripheralInfo stm32f1_rcc_info =
                                                             .name = "pinrstf",
                                                             .desc =
                                                                     "PIN reset flag",
-                                                            .first_bit = 26,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 26, },
                                                         {
                                                             .name = "porrstf",
                                                             .desc =
                                                                     "POR/PDR reset flag",
-                                                            .first_bit = 27,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 27, },
                                                         {
                                                             .name = "stfrstf",
                                                             .desc =
                                                                     "Software reset flag",
-                                                            .first_bit = 28,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 28, },
                                                         {
                                                             .name = "iwdgrstf",
                                                             .desc =
                                                                     "Independent watchdog reset flag",
-                                                            .first_bit = 29,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 29, },
                                                         {
                                                             .name = "wwdgrstf",
                                                             .desc =
                                                                     "Window watchdog reset flag",
-                                                            .first_bit = 30,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 30, },
                                                         {
                                                             .name = "lrwrrstf",
                                                             .desc =
                                                                     "Low-power reset flag",
-                                                            .first_bit = 31,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 31, },
                                                         { }, /**/
                                                     } , /**/
                                 },
@@ -618,8 +595,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "Internal high-speed clock ready flag",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "hsion", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hsitrim",
                                                             .desc =
@@ -645,8 +621,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "External high-speed clock ready flag",
                                                             .first_bit = 17,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "hseon", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hsebyp",
                                                             .desc =
@@ -667,8 +642,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "PLL clock ready flag",
                                                             .first_bit = 25,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "pllon", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "pll2on",
                                                             .desc =
@@ -680,8 +654,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "PLL2 clock ready flag",
                                                             .first_bit = 27,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "pll2on", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "pll3on",
                                                             .desc =
@@ -693,8 +666,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "PLL3 clock ready flag",
                                                             .first_bit = 29,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "pll3on", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         { }, /**/
                                                     } , /**/
                                 },
@@ -719,8 +691,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                             .first_bit = 2,
                                                             .width_bits = 2,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "sw", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hpre",
                                                             .desc =
@@ -788,71 +759,56 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "LSI ready interrupt flag",
                                                             .first_bit = 0,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "lsirdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "lserdyf",
                                                             .desc =
                                                                     "LSE ready interrupt flag",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "lserdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hsirdyf",
                                                             .desc =
                                                                     "HSI ready interrupt flag",
                                                             .first_bit = 2,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "hsirdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "hserdyf",
                                                             .desc =
                                                                     "HSE ready interrupt flag",
                                                             .first_bit = 3,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "hserdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "pllrdyf",
                                                             .desc =
                                                                     "PLL ready interrupt flag",
                                                             .first_bit = 4,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "pllrdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "pll2rdyf",
                                                             .desc =
                                                                     "PLL2 ready interrupt flag",
                                                             .first_bit = 5,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "pll2rdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "pll3rdyf",
                                                             .desc =
                                                                     "PLL3 ready interrupt flag",
                                                             .first_bit = 6,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by =
-                                                                    "pll3rdyc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "cssf",
                                                             .desc =
                                                                     "Clock security system interrupt flag",
                                                             .first_bit = 7,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .cleared_by = "cssc", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "lsirdyie",
                                                             .desc =
@@ -1064,8 +1020,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "External low-speed oscillator ready",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "lseon", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "lsebyp",
                                                             .desc =
@@ -1108,8 +1063,7 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "Internal low-speed oscillator ready",
                                                             .first_bit = 1,
                                                             .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                            .follows = "lsion", },
+                                                                    REGISTER_RW_MODE_READ, },
                                                         {
                                                             .name = "rmvf",
                                                             .desc =
@@ -1119,38 +1073,32 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                             .name = "pinrstf",
                                                             .desc =
                                                                     "PIN reset flag",
-                                                            .first_bit = 26,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 26, },
                                                         {
                                                             .name = "porrstf",
                                                             .desc =
                                                                     "POR/PDR reset flag",
-                                                            .first_bit = 27,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 27, },
                                                         {
                                                             .name = "stfrstf",
                                                             .desc =
                                                                     "Software reset flag",
-                                                            .first_bit = 28,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 28, },
                                                         {
                                                             .name = "iwdgrstf",
                                                             .desc =
                                                                     "Independent watchdog reset flag",
-                                                            .first_bit = 29,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 29, },
                                                         {
                                                             .name = "wwdgrstf",
                                                             .desc =
                                                                     "Window watchdog reset flag",
-                                                            .first_bit = 30,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 30, },
                                                         {
                                                             .name = "lrwrrstf",
                                                             .desc =
                                                                     "Low-power reset flag",
-                                                            .first_bit = 31,
-                                                            .cleared_by = "rmvf", },
+                                                            .first_bit = 31, },
                                                         { }, /**/
                                                     } , /**/
                                 },
@@ -1476,6 +1424,15 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "bdcr");
             state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
 
+            /* CR bitfields. */
+            state->f1.cr.hsirdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "hsirdy");
+            state->f1.cr.hserdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "hserdy");
+            state->f1.cr.pllrdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "pllrdy");
+
+            /* CFGR bitfields. */
             state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr,
                     "sws");
             state->f1.cfgr.pllmul = cm_object_get_child_by_name(
@@ -1487,7 +1444,41 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             state->f1.cfgr.hpre = cm_object_get_child_by_name(
                     state->f1.reg.cfgr, "hpre");
 
-            /* Add callbacks. */
+            /* CIR bitfields. */
+            state->f1.cir.lsirdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "lsirdyf");
+            state->f1.cir.lserdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "lserdyf");
+            state->f1.cir.hsirdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "hsirdyf");
+            state->f1.cir.hserdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "hserdyf");
+            state->f1.cir.pllrdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "pllrdyf");
+            state->f1.cir.cssf = cm_object_get_child_by_name(state->f1.reg.cir,
+                    "cssf");
+
+            /* BDCR bitfields. */
+            state->f1.bdcr.lserdy = cm_object_get_child_by_name(
+                    state->f1.reg.bdcr, "lserdy");
+
+            /* CSR bitfields. */
+            state->f1.csr.lsirdy = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "lsirdy");
+            state->f1.csr.pinrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "pinrstf");
+            state->f1.csr.porrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "porrstf");
+            state->f1.csr.stfrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "stfrstf");
+            state->f1.csr.iwdgrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "iwdgrstf");
+            state->f1.csr.wwdgrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "wwdgrstf");
+            state->f1.csr.lrwrrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "lrwrrstf");
+
+            /* Callbacks. */
             peripheral_register_set_post_write(state->f1.reg.cr,
                     &stm32f1_rcc_post_write_callback);
             peripheral_register_set_post_write(state->f1.reg.cfgr,
@@ -1496,6 +1487,44 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     &stm32f1_rcc_post_write_callback);
             peripheral_register_set_post_write(state->f1.reg.csr,
                     &stm32f1_rcc_post_write_callback);
+
+            /* Auto bits. */
+            cm_object_property_set_str(state->f1.cr.hsirdy, "hsion", "follows");
+            cm_object_property_set_str(state->f1.cr.hserdy, "hseon", "follows");
+            cm_object_property_set_str(state->f1.cr.pllrdy, "pllon", "follows");
+
+            cm_object_property_set_str(state->f1.cfgr.sws, "sw", "follows");
+
+            cm_object_property_set_str(state->f1.cir.lsirdyf, "lsirdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.lserdyf, "lserdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.hsirdyf, "hsirdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.hserdyf, "hserdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.pllrdyf, "pllrdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.cssf, "cssc",
+                    "cleared-by");
+
+            cm_object_property_set_str(state->f1.bdcr.lserdy, "lseon",
+                    "follows");
+
+            cm_object_property_set_str(state->f1.csr.lsirdy, "lsion",
+                    "follows");
+            cm_object_property_set_str(state->f1.csr.pinrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.porrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.stfrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.iwdgrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.wwdgrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.lrwrrstf, "rmvf",
+                    "cleared-by");
 
         } else {
 
@@ -1518,15 +1547,69 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             state->f1.reg.ahbrstr = cm_object_get_child_by_name(obj, "ahbrstr");
             state->f1.reg.cfgr2 = cm_object_get_child_by_name(obj, "cfgr2");
 
+            /* CR bitfields. */
+            state->f1.cr.hsirdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "hsirdy");
+            state->f1.cr.hserdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "hserdy");
+            state->f1.cr.pllrdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "pllrdy");
+            state->f1.cr.pll2rdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "pll2rdy");
+            state->f1.cr.pll3rdy = cm_object_get_child_by_name(state->f1.reg.cr,
+                    "pll3rdy");
+
+            /* CFGR bitfields. */
             state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr,
                     "sws");
-            state->f1.cfgr.hpre = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "hpre");
             state->f1.cfgr.pllmul = cm_object_get_child_by_name(
                     state->f1.reg.cfgr, "pllmul");
             state->f1.cfgr.pllsrc = cm_object_get_child_by_name(
                     state->f1.reg.cfgr, "pllsrc");
+            state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "pllxtpre");
+            state->f1.cfgr.hpre = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "hpre");
 
+            /* CIR bitfields. */
+            state->f1.cir.lsirdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "lsirdyf");
+            state->f1.cir.lserdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "lserdyf");
+            state->f1.cir.hsirdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "hsirdyf");
+            state->f1.cir.hserdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "hserdyf");
+            state->f1.cir.pllrdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "pllrdyf");
+            state->f1.cir.pll2rdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "pll2rdyf");
+            state->f1.cir.pll3rdyf = cm_object_get_child_by_name(
+                    state->f1.reg.cir, "pll3rdyf");
+            state->f1.cir.cssf = cm_object_get_child_by_name(state->f1.reg.cir,
+                    "cssf");
+
+            /* BDCR bitfields. */
+            state->f1.bdcr.lserdy = cm_object_get_child_by_name(
+                    state->f1.reg.bdcr, "lserdy");
+
+            /* CSR bitfields. */
+            state->f1.csr.lsirdy = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "lsirdy");
+            state->f1.csr.pinrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "pinrstf");
+            state->f1.csr.porrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "porrstf");
+            state->f1.csr.stfrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "stfrstf");
+            state->f1.csr.iwdgrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "iwdgrstf");
+            state->f1.csr.wwdgrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "wwdgrstf");
+            state->f1.csr.lrwrrstf = cm_object_get_child_by_name(
+                    state->f1.reg.csr, "lrwrrstf");
+
+            /* CFGR2 bitfields. */
             state->f1.cfgr2.prediv1 = cm_object_get_child_by_name(
                     state->f1.reg.cfgr2, "prediv1");
             state->f1.cfgr2.prediv2 = cm_object_get_child_by_name(
@@ -1547,6 +1630,52 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     &stm32f1_rcc_post_write_callback);
             peripheral_register_set_post_write(state->f1.reg.cfgr2,
                     &stm32f1_rcc_post_write_callback);
+
+            /* Auto bits. */
+            cm_object_property_set_str(state->f1.cr.hsirdy, "hsion", "follows");
+            cm_object_property_set_str(state->f1.cr.hserdy, "hseon", "follows");
+            cm_object_property_set_str(state->f1.cr.pllrdy, "pllon", "follows");
+            cm_object_property_set_str(state->f1.cr.pll2rdy, "pll2on",
+                    "follows");
+            cm_object_property_set_str(state->f1.cr.pll3rdy, "pll3on",
+                    "follows");
+
+            cm_object_property_set_str(state->f1.cfgr.sws, "sw", "follows");
+
+            cm_object_property_set_str(state->f1.cir.lsirdyf, "lsirdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.lserdyf, "lserdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.hsirdyf, "hsirdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.hserdyf, "hserdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.pllrdyf, "pllrdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.pll2rdyf, "pll2rdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.pll3rdyf, "pll3rdyc",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.cir.cssf, "cssc",
+                    "cleared-by");
+
+            cm_object_property_set_str(state->f1.bdcr.lserdy, "lseon",
+                    "follows");
+
+            cm_object_property_set_str(state->f1.csr.lsirdy, "lsion",
+                    "follows");
+            cm_object_property_set_str(state->f1.csr.pinrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.porrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.stfrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.iwdgrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.wwdgrstf, "rmvf",
+                    "cleared-by");
+            cm_object_property_set_str(state->f1.csr.lrwrrstf, "rmvf",
+                    "cleared-by");
 
         }
         break;
