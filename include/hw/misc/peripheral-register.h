@@ -67,10 +67,11 @@ typedef void (*register_write_callback_t)(Object *reg, Object *periph,
         peripheral_register_t value);
 
 /**
- * TypeInfo structure used to create new register types.
+ * Info structure used to create new register types.
  */
 typedef struct {
     const char *desc;
+    const char *name;
 
     uint32_t offset_bytes;
     peripheral_register_t reset_value;
@@ -83,16 +84,8 @@ typedef struct {
 
     RegisterBitfieldInfo *bitfields;
 
-    /* Always copied to class. */
+    /* Copied to instance. */
     register_read_callback_t pre_read;
-
-    /* Copied to class only if not null. */
-    register_read_callback_t read;
-
-    /* Copied to class only if not null. */
-    register_write_callback_t write;
-
-    /* Always copied to class. */
     register_write_callback_t post_write;
 } PeripheralRegisterInfo;
 
