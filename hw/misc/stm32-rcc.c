@@ -57,918 +57,1183 @@ static void stm32f1_rcc_post_write_callback(Object *reg, Object *periph,
 
 /* STM32F1[LMHX]D */
 
-static PeripheralRegisterInfo stm32f1_rcc_cr_info = {
-    .desc = "Clock control register (RCC_CR)",
-    .offset_bytes = 0x00,
-    .reset_value = 0x00000083,
-    .reset_mask = 0xFFFF00FF,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "hsion",
-                    .desc = "Internal high-speed clock enable",
-                    .first_bit = 0, },
-                {
-                    .name = "hsirdy",
-                    .desc = "Internal high-speed clock ready flag",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "hsion", },
-                {
-                    .name = "hsitrim",
-                    .desc = "Internal high-speed clock trimming",
-                    .first_bit = 3,
-                    .width_bits = 5, },
-                {
-                    .name = "hsical",
-                    .desc = "Internal high-speed clock calibration",
-                    .first_bit = 8,
-                    .width_bits = 8,
-                    .rw_mode = REGISTER_RW_MODE_READ, },
-                {
-                    .name = "hseon",
-                    .desc = "External clock enable",
-                    .first_bit = 16, },
-                {
-                    .name = "hserdy",
-                    .desc = "External high-speed clock ready flag",
-                    .first_bit = 17,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "hseon", },
-                {
-                    .name = "hsebyp",
-                    .desc = "External high-speed clock bypass",
-                    .first_bit = 18, },
-                {
-                    .name = "csson",
-                    .desc = "Clock security system enable",
-                    .first_bit = 19, },
-                {
-                    .name = "pllon",
-                    .desc = "PLL enable",
-                    .first_bit = 24, },
-                {
-                    .name = "pllrdy",
-                    .desc = "PLL clock ready flag",
-                    .first_bit = 25,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "pllon", },
-                { }, /**/
-            } , /**/
-};
+static PeripheralInfo stm32f1_rcc_info =
+        {
+            .desc = "Reset and clock control (RCC)",
 
-static PeripheralRegisterInfo stm32f1_rcc_cfgr_info = {
-    .desc = "Clock configuration register (RCC_CFGR)",
-    .offset_bytes = 0x04,
-    .reset_value = 0x00000000,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "sw",
-                    .desc = "System clock switch",
-                    .first_bit = 0,
-                    .width_bits = 2, },
-                {
-                    .name = "sws",
-                    .desc = "System clock switch status",
-                    .first_bit = 2,
-                    .width_bits = 2,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "sw", },
-                {
-                    .name = "hpre",
-                    .desc = "AHB prescaler",
-                    .first_bit = 4,
-                    .width_bits = 4, },
-                {
-                    .name = "ppre1",
-                    .desc = "APB low-speed prescaler (APB1)",
-                    .first_bit = 8,
-                    .width_bits = 3, },
-                {
-                    .name = "ppre2",
-                    .desc = "APB high-speed prescaler (APB2)",
-                    .first_bit = 11,
-                    .width_bits = 3, },
-                {
-                    .name = "adcpre",
-                    .desc = "ADC prescaler",
-                    .first_bit = 14,
-                    .width_bits = 2, },
-                {
-                    .name = "pllsrc",
-                    .desc = "PLL entry clock source",
-                    .first_bit = 16, },
-                {
-                    .name = "pllxtpre",
-                    .desc = "HSE divider for PLL entry",
-                    .first_bit = 17, },
-                {
-                    .name = "pllmul",
-                    .desc = "PLL multiplication factor",
-                    .first_bit = 18,
-                    .width_bits = 4, },
-                {
-                    .name = "usbpre",
-                    .desc = "USB prescaler",
-                    .first_bit = 22, },
-                {
-                    .name = "mco",
-                    .desc = "Microcontroller clock output",
-                    .first_bit = 24,
-                    .width_bits = 3, },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1_rcc_cir_info = {
-    .desc = "Clock interrupt register (RCC_CIR)",
-    .offset_bytes = 0x08,
-    .reset_value = 0x00000000,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "lsirdyf",
-                    .desc = "LSI ready interrupt flag",
-                    .first_bit = 0,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "lsirdyc", },
-                {
-                    .name = "lserdyf",
-                    .desc = "LSE ready interrupt flag",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "lserdyc", },
-                {
-                    .name = "hsirdyf",
-                    .desc = "HSI ready interrupt flag",
-                    .first_bit = 2,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "hsirdyc", },
-                {
-                    .name = "hserdyf",
-                    .desc = "HSE ready interrupt flag",
-                    .first_bit = 3,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "hserdyc", },
-                {
-                    .name = "pllrdyf",
-                    .desc = "PLL ready interrupt flag",
-                    .first_bit = 4,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "pllrdyc", },
-                {
-                    .name = "cssf",
-                    .desc = "Clock security system interrupt flag",
-                    .first_bit = 7,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "cssc", },
-                {
-                    .name = "lsirdyie",
-                    .desc = "LSI ready interrupt enable",
-                    .first_bit = 8, },
-                {
-                    .name = "lserdyie",
-                    .desc = "LSE ready interrupt enable",
-                    .first_bit = 9, },
-                {
-                    .name = "hsirdyie",
-                    .desc = "HSI ready interrupt enable",
-                    .first_bit = 10, },
-                {
-                    .name = "hserdyie",
-                    .desc = "HSE ready interrupt enable",
-                    .first_bit = 11, },
-                {
-                    .name = "pllrdyie",
-                    .desc = "PLL ready interrupt enable",
-                    .first_bit = 12, },
-                {
-                    .name = "lsirdyc",
-                    .desc = "LSI ready interrupt clear",
-                    .first_bit = 16,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "lserdyc",
-                    .desc = "LSE ready interrupt clear",
-                    .first_bit = 17,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "hsirdyc",
-                    .desc = "HSI ready interrupt clear",
-                    .first_bit = 18,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "hserdyc",
-                    .desc = "HSE ready interrupt clear",
-                    .first_bit = 19,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "pllrdyc",
-                    .desc = "PLL ready interrupt clear",
-                    .first_bit = 20,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "cssc",
-                    .desc = "Clock security system interrupt clear",
-                    .first_bit = 23,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1_rcc_apb2rstr_info = {
-    .desc = "APB2 peripheral reset register (RCC_APB2RSTR)",
-    .offset_bytes = 0x0C,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x0038FFFD,
-    .writable_bits = 0x0038FFFD, };
-
-static PeripheralRegisterInfo stm32f1_rcc_apb1rstr_info = {
-    .desc = "APB1 peripheral reset register (RCC_APB1RSTR)",
-    .offset_bytes = 0x10,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x3AFEC9FF,
-    .writable_bits = 0x3AFEC9FF, };
-
-static PeripheralRegisterInfo stm32f1_rcc_ahbenr_info = {
-    .desc = "AHB peripheral clock enable register (RCC_AHBENR)",
-    .offset_bytes = 0x14,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x00000557,
-    .writable_bits = 0x00000557, };
-
-static PeripheralRegisterInfo stm32f1_rcc_apb2enr_info = {
-    .desc = "APB2 peripheral clock enable register (RCC_APB2ENR)",
-    .offset_bytes = 0x18,
-    .reset_value = 0x00000000,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "afioen",
-                    .desc = "Alternate function IO clock enable",
-                    .first_bit = 0, },
-                {
-                    .name = "iopaen",
-                    .desc = "IO port A clock enable",
-                    .first_bit = 2, },
-                {
-                    .name = "iopben",
-                    .desc = "IO port B clock enable",
-                    .first_bit = 3, },
-                {
-                    .name = "iopcen",
-                    .desc = "IO port C clock enable",
-                    .first_bit = 4, },
-                {
-                    .name = "iopden",
-                    .desc = "IO port D clock enable",
-                    .first_bit = 5, },
-                {
-                    .name = "iopeen",
-                    .desc = "IO port E clock enable",
-                    .first_bit = 6, },
-                {
-                    .name = "iopfen",
-                    .desc = "IO port F clock enable",
-                    .first_bit = 7, },
-                {
-                    .name = "iopgen",
-                    .desc = "IO port G clock enable",
-                    .first_bit = 8, },
-                {
-                    .name = "adc1en",
-                    .desc = "ADC1 interface clock enable",
-                    .first_bit = 9, },
-                {
-                    .name = "adc2en",
-                    .desc = "ADC2 interface clock enable",
-                    .first_bit = 10, },
-                {
-                    .name = "tim1en",
-                    .desc = "TIM1 timer clock enable",
-                    .first_bit = 11, },
-                {
-                    .name = "spi1en",
-                    .desc = "SPI1 clock enable",
-                    .first_bit = 12, },
-                {
-                    .name = "tim8en",
-                    .desc = "TIM8 timer clock enable",
-                    .first_bit = 13, },
-                {
-                    .name = "usart1en",
-                    .desc = "USART1 clock enable",
-                    .first_bit = 14, },
-                {
-                    .name = "adc3en",
-                    .desc = "ADC3 interface clock enable",
-                    .first_bit = 15, },
-                {
-                    .name = "tim9en",
-                    .desc = "TIM9 timer clock enable",
-                    .first_bit = 19, },
-                {
-                    .name = "tim10en",
-                    .desc = "TIM10 timer clock enable",
-                    .first_bit = 20, },
-                {
-                    .name = "tim11en",
-                    .desc = "TIM11 timer clock enable",
-                    .first_bit = 21, },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1_rcc_apb1enr_info = {
-    .desc = "APB1 peripheral clock enable register (RCC_APB1ENR)",
-    .offset_bytes = 0x1C,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x3AFEC9FF,
-    .writable_bits = 0x3AFEC9FF, };
-
-static PeripheralRegisterInfo stm32f1_rcc_bdcr_info = {
-    .desc = "Backup domain control register (RCC_BDCR)",
-    .offset_bytes = 0x20,
-    .reset_value = 0x00000000,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "lseon",
-                    .desc = "External low-speed oscillator enable",
-                    .first_bit = 0, },
-                {
-                    .name = "lserdy",
-                    .desc = "External low-speed oscillator ready",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "lseon", },
-                {
-                    .name = "lsebyp",
-                    .desc = "External low-speed oscillator bypass",
-                    .first_bit = 2, },
-                {
-                    .name = "rtcsel",
-                    .desc = "RTC clock source selection",
-                    .first_bit = 8,
-                    .width_bits = 2, },
-                {
-                    .name = "rtcen",
-                    .desc = "RTC clock enable",
-                    .first_bit = 15, },
-                {
-                    .name = "bdrst",
-                    .desc = "Backup domain software reset",
-                    .first_bit = 16, },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1_rcc_csr_info = {
-    .desc = "Control/status register (RCC_CSR)",
-    .offset_bytes = 0x24,
-    .reset_value = 0x0C000000,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "lsion",
-                    .desc = "Internal low-speed oscillator enable",
-                    .first_bit = 0, },
-                {
-                    .name = "lsirdy",
-                    .desc = "Internal low-speed oscillator ready",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "lsion", },
-                {
-                    .name = "rmvf",
-                    .desc = "Remove reset flag",
-                    .first_bit = 24, },
-                {
-                    .name = "pinrstf",
-                    .desc = "PIN reset flag",
-                    .first_bit = 26,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "porrstf",
-                    .desc = "POR/PDR reset flag",
-                    .first_bit = 27,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "stfrstf",
-                    .desc = "Software reset flag",
-                    .first_bit = 28,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "iwdgrstf",
-                    .desc = "Independent watchdog reset flag",
-                    .first_bit = 29,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "wwdgrstf",
-                    .desc = "Window watchdog reset flag",
-                    .first_bit = 30,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "lrwrrstf",
-                    .desc = "Low-power reset flag",
-                    .first_bit = 31,
-                    .cleared_by = "rmvf", },
-                { }, /**/
-            } , /**/
-};
+            .registers =
+                    (PeripheralRegisterInfo[] ) {
+                                {
+                                    .desc = "Clock control register (RCC_CR)",
+                                    .name = "cr",
+                                    .offset_bytes = 0x00,
+                                    .reset_value = 0x00000083,
+                                    .reset_mask = 0xFFFF00FF,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "hsion",
+                                                            .desc =
+                                                                    "Internal high-speed clock enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "hsirdy",
+                                                            .desc =
+                                                                    "Internal high-speed clock ready flag",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "hsion", },
+                                                        {
+                                                            .name = "hsitrim",
+                                                            .desc =
+                                                                    "Internal high-speed clock trimming",
+                                                            .first_bit = 3,
+                                                            .width_bits = 5, },
+                                                        {
+                                                            .name = "hsical",
+                                                            .desc =
+                                                                    "Internal high-speed clock calibration",
+                                                            .first_bit = 8,
+                                                            .width_bits = 8,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ, },
+                                                        {
+                                                            .name = "hseon",
+                                                            .desc =
+                                                                    "External clock enable",
+                                                            .first_bit = 16, },
+                                                        {
+                                                            .name = "hserdy",
+                                                            .desc =
+                                                                    "External high-speed clock ready flag",
+                                                            .first_bit = 17,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "hseon", },
+                                                        {
+                                                            .name = "hsebyp",
+                                                            .desc =
+                                                                    "External high-speed clock bypass",
+                                                            .first_bit = 18, },
+                                                        {
+                                                            .name = "csson",
+                                                            .desc =
+                                                                    "Clock security system enable",
+                                                            .first_bit = 19, },
+                                                        {
+                                                            .name = "pllon",
+                                                            .desc = "PLL enable",
+                                                            .first_bit = 24, },
+                                                        {
+                                                            .name = "pllrdy",
+                                                            .desc =
+                                                                    "PLL clock ready flag",
+                                                            .first_bit = 25,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "pllon", },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc =
+                                            "Clock configuration register (RCC_CFGR)",
+                                    .name = "cfgr",
+                                    .offset_bytes = 0x04,
+                                    .reset_value = 0x00000000,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "sw",
+                                                            .desc =
+                                                                    "System clock switch",
+                                                            .first_bit = 0,
+                                                            .width_bits = 2, },
+                                                        {
+                                                            .name = "sws",
+                                                            .desc =
+                                                                    "System clock switch status",
+                                                            .first_bit = 2,
+                                                            .width_bits = 2,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "sw", },
+                                                        {
+                                                            .name = "hpre",
+                                                            .desc =
+                                                                    "AHB prescaler",
+                                                            .first_bit = 4,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "ppre1",
+                                                            .desc =
+                                                                    "APB low-speed prescaler (APB1)",
+                                                            .first_bit = 8,
+                                                            .width_bits = 3, },
+                                                        {
+                                                            .name = "ppre2",
+                                                            .desc =
+                                                                    "APB high-speed prescaler (APB2)",
+                                                            .first_bit = 11,
+                                                            .width_bits = 3, },
+                                                        {
+                                                            .name = "adcpre",
+                                                            .desc =
+                                                                    "ADC prescaler",
+                                                            .first_bit = 14,
+                                                            .width_bits = 2, },
+                                                        {
+                                                            .name = "pllsrc",
+                                                            .desc =
+                                                                    "PLL entry clock source",
+                                                            .first_bit = 16, },
+                                                        {
+                                                            .name = "pllxtpre",
+                                                            .desc =
+                                                                    "HSE divider for PLL entry",
+                                                            .first_bit = 17, },
+                                                        {
+                                                            .name = "pllmul",
+                                                            .desc =
+                                                                    "PLL multiplication factor",
+                                                            .first_bit = 18,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "usbpre",
+                                                            .desc =
+                                                                    "USB prescaler",
+                                                            .first_bit = 22, },
+                                                        {
+                                                            .name = "mco",
+                                                            .desc =
+                                                                    "Microcontroller clock output",
+                                                            .first_bit = 24,
+                                                            .width_bits = 3, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc = "Clock interrupt register (RCC_CIR)",
+                                    .name = "cir",
+                                    .offset_bytes = 0x08,
+                                    .reset_value = 0x00000000,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "lsirdyf",
+                                                            .desc =
+                                                                    "LSI ready interrupt flag",
+                                                            .first_bit = 0,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "lsirdyc", },
+                                                        {
+                                                            .name = "lserdyf",
+                                                            .desc =
+                                                                    "LSE ready interrupt flag",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "lserdyc", },
+                                                        {
+                                                            .name = "hsirdyf",
+                                                            .desc =
+                                                                    "HSI ready interrupt flag",
+                                                            .first_bit = 2,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "hsirdyc", },
+                                                        {
+                                                            .name = "hserdyf",
+                                                            .desc =
+                                                                    "HSE ready interrupt flag",
+                                                            .first_bit = 3,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "hserdyc", },
+                                                        {
+                                                            .name = "pllrdyf",
+                                                            .desc =
+                                                                    "PLL ready interrupt flag",
+                                                            .first_bit = 4,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "pllrdyc", },
+                                                        {
+                                                            .name = "cssf",
+                                                            .desc =
+                                                                    "Clock security system interrupt flag",
+                                                            .first_bit = 7,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by = "cssc", },
+                                                        {
+                                                            .name = "lsirdyie",
+                                                            .desc =
+                                                                    "LSI ready interrupt enable",
+                                                            .first_bit = 8, },
+                                                        {
+                                                            .name = "lserdyie",
+                                                            .desc =
+                                                                    "LSE ready interrupt enable",
+                                                            .first_bit = 9, },
+                                                        {
+                                                            .name = "hsirdyie",
+                                                            .desc =
+                                                                    "HSI ready interrupt enable",
+                                                            .first_bit = 10, },
+                                                        {
+                                                            .name = "hserdyie",
+                                                            .desc =
+                                                                    "HSE ready interrupt enable",
+                                                            .first_bit = 11, },
+                                                        {
+                                                            .name = "pllrdyie",
+                                                            .desc =
+                                                                    "PLL ready interrupt enable",
+                                                            .first_bit = 12, },
+                                                        {
+                                                            .name = "lsirdyc",
+                                                            .desc =
+                                                                    "LSI ready interrupt clear",
+                                                            .first_bit = 16,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "lserdyc",
+                                                            .desc =
+                                                                    "LSE ready interrupt clear",
+                                                            .first_bit = 17,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "hsirdyc",
+                                                            .desc =
+                                                                    "HSI ready interrupt clear",
+                                                            .first_bit = 18,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "hserdyc",
+                                                            .desc =
+                                                                    "HSE ready interrupt clear",
+                                                            .first_bit = 19,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "pllrdyc",
+                                                            .desc =
+                                                                    "PLL ready interrupt clear",
+                                                            .first_bit = 20,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "cssc",
+                                                            .desc =
+                                                                    "Clock security system interrupt clear",
+                                                            .first_bit = 23,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc =
+                                            "APB2 peripheral reset register (RCC_APB2RSTR)",
+                                    .name = "apb2rstr",
+                                    .offset_bytes = 0x0C,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x0038FFFD,
+                                    .writable_bits = 0x0038FFFD, },
+                                {
+                                    .desc =
+                                            "APB1 peripheral reset register (RCC_APB1RSTR)",
+                                    .name = "apb1rstr",
+                                    .offset_bytes = 0x10,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x3AFEC9FF,
+                                    .writable_bits = 0x3AFEC9FF, },
+                                {
+                                    .desc =
+                                            "AHB peripheral clock enable register (RCC_AHBENR)",
+                                    .name = "ahbenr",
+                                    .offset_bytes = 0x14,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x00000557,
+                                    .writable_bits = 0x00000557, },
+                                {
+                                    .desc =
+                                            "APB2 peripheral clock enable register (RCC_APB2ENR)",
+                                    .name = "apb2enr",
+                                    .offset_bytes = 0x18,
+                                    .reset_value = 0x00000000,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "afioen",
+                                                            .desc =
+                                                                    "Alternate function IO clock enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "iopaen",
+                                                            .desc =
+                                                                    "IO port A clock enable",
+                                                            .first_bit = 2, },
+                                                        {
+                                                            .name = "iopben",
+                                                            .desc =
+                                                                    "IO port B clock enable",
+                                                            .first_bit = 3, },
+                                                        {
+                                                            .name = "iopcen",
+                                                            .desc =
+                                                                    "IO port C clock enable",
+                                                            .first_bit = 4, },
+                                                        {
+                                                            .name = "iopden",
+                                                            .desc =
+                                                                    "IO port D clock enable",
+                                                            .first_bit = 5, },
+                                                        {
+                                                            .name = "iopeen",
+                                                            .desc =
+                                                                    "IO port E clock enable",
+                                                            .first_bit = 6, },
+                                                        {
+                                                            .name = "iopfen",
+                                                            .desc =
+                                                                    "IO port F clock enable",
+                                                            .first_bit = 7, },
+                                                        {
+                                                            .name = "iopgen",
+                                                            .desc =
+                                                                    "IO port G clock enable",
+                                                            .first_bit = 8, },
+                                                        {
+                                                            .name = "adc1en",
+                                                            .desc =
+                                                                    "ADC1 interface clock enable",
+                                                            .first_bit = 9, },
+                                                        {
+                                                            .name = "adc2en",
+                                                            .desc =
+                                                                    "ADC2 interface clock enable",
+                                                            .first_bit = 10, },
+                                                        {
+                                                            .name = "tim1en",
+                                                            .desc =
+                                                                    "TIM1 timer clock enable",
+                                                            .first_bit = 11, },
+                                                        {
+                                                            .name = "spi1en",
+                                                            .desc =
+                                                                    "SPI1 clock enable",
+                                                            .first_bit = 12, },
+                                                        {
+                                                            .name = "tim8en",
+                                                            .desc =
+                                                                    "TIM8 timer clock enable",
+                                                            .first_bit = 13, },
+                                                        {
+                                                            .name = "usart1en",
+                                                            .desc =
+                                                                    "USART1 clock enable",
+                                                            .first_bit = 14, },
+                                                        {
+                                                            .name = "adc3en",
+                                                            .desc =
+                                                                    "ADC3 interface clock enable",
+                                                            .first_bit = 15, },
+                                                        {
+                                                            .name = "tim9en",
+                                                            .desc =
+                                                                    "TIM9 timer clock enable",
+                                                            .first_bit = 19, },
+                                                        {
+                                                            .name = "tim10en",
+                                                            .desc =
+                                                                    "TIM10 timer clock enable",
+                                                            .first_bit = 20, },
+                                                        {
+                                                            .name = "tim11en",
+                                                            .desc =
+                                                                    "TIM11 timer clock enable",
+                                                            .first_bit = 21, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc =
+                                            "APB1 peripheral clock enable register (RCC_APB1ENR)",
+                                    .name = "apb1enr",
+                                    .offset_bytes = 0x1C,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x3AFEC9FF,
+                                    .writable_bits = 0x3AFEC9FF, },
+                                {
+                                    .desc =
+                                            "Backup domain control register (RCC_BDCR)",
+                                    .name = "bdcr",
+                                    .offset_bytes = 0x20,
+                                    .reset_value = 0x00000000,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "lseon",
+                                                            .desc =
+                                                                    "External low-speed oscillator enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "lserdy",
+                                                            .desc =
+                                                                    "External low-speed oscillator ready",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "lseon", },
+                                                        {
+                                                            .name = "lsebyp",
+                                                            .desc =
+                                                                    "External low-speed oscillator bypass",
+                                                            .first_bit = 2, },
+                                                        {
+                                                            .name = "rtcsel",
+                                                            .desc =
+                                                                    "RTC clock source selection",
+                                                            .first_bit = 8,
+                                                            .width_bits = 2, },
+                                                        {
+                                                            .name = "rtcen",
+                                                            .desc =
+                                                                    "RTC clock enable",
+                                                            .first_bit = 15, },
+                                                        {
+                                                            .name = "bdrst",
+                                                            .desc =
+                                                                    "Backup domain software reset",
+                                                            .first_bit = 16, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc = "Control/status register (RCC_CSR)",
+                                    .name = "csr",
+                                    .offset_bytes = 0x24,
+                                    .reset_value = 0x0C000000,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "lsion",
+                                                            .desc =
+                                                                    "Internal low-speed oscillator enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "lsirdy",
+                                                            .desc =
+                                                                    "Internal low-speed oscillator ready",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "lsion", },
+                                                        {
+                                                            .name = "rmvf",
+                                                            .desc =
+                                                                    "Remove reset flag",
+                                                            .first_bit = 24, },
+                                                        {
+                                                            .name = "pinrstf",
+                                                            .desc =
+                                                                    "PIN reset flag",
+                                                            .first_bit = 26,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "porrstf",
+                                                            .desc =
+                                                                    "POR/PDR reset flag",
+                                                            .first_bit = 27,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "stfrstf",
+                                                            .desc =
+                                                                    "Software reset flag",
+                                                            .first_bit = 28,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "iwdgrstf",
+                                                            .desc =
+                                                                    "Independent watchdog reset flag",
+                                                            .first_bit = 29,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "wwdgrstf",
+                                                            .desc =
+                                                                    "Window watchdog reset flag",
+                                                            .first_bit = 30,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "lrwrrstf",
+                                                            .desc =
+                                                                    "Low-power reset flag",
+                                                            .first_bit = 31,
+                                                            .cleared_by = "rmvf", },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                { }, /**/
+                            } , /**/
+        };
 
 /* ------------------------------------------------------------------------- */
 
 /* STM32F1CL */
 
-static PeripheralRegisterInfo stm32f1cl_rcc_cr_info = {
-    .desc = "Clock control register (RCC_CR)",
-    .offset_bytes = 0x00,
-    .reset_value = 0x00000083,
-    .reset_mask = 0xFFFF00FF,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "hsion",
-                    .desc = "Internal high-speed clock enable",
-                    .first_bit = 0, },
-                {
-                    .name = "hsirdy",
-                    .desc = "Internal high-speed clock ready flag",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "hsion", },
-                {
-                    .name = "hsitrim",
-                    .desc = "Internal high-speed clock trimming",
-                    .first_bit = 3,
-                    .width_bits = 5, },
-                {
-                    .name = "hsical",
-                    .desc = "Internal high-speed clock calibration",
-                    .first_bit = 8,
-                    .width_bits = 8,
-                    .rw_mode = REGISTER_RW_MODE_READ, },
-                {
-                    .name = "hseon",
-                    .desc = "External clock enable",
-                    .first_bit = 16, },
-                {
-                    .name = "hserdy",
-                    .desc = "External high-speed clock ready flag",
-                    .first_bit = 17,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "hseon", },
-                {
-                    .name = "hsebyp",
-                    .desc = "External high-speed clock bypass",
-                    .first_bit = 18, },
-                {
-                    .name = "csson",
-                    .desc = "Clock security system enable",
-                    .first_bit = 19, },
-                {
-                    .name = "pllon",
-                    .desc = "PLL enable",
-                    .first_bit = 24, },
-                {
-                    .name = "pllrdy",
-                    .desc = "PLL clock ready flag",
-                    .first_bit = 25,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "pllon", },
-                {
-                    .name = "pll2on",
-                    .desc = "PLL2 enable",
-                    .first_bit = 26, },
-                {
-                    .name = "pll2rdy",
-                    .desc = "PLL2 clock ready flag",
-                    .first_bit = 27,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "pll2on", },
-                {
-                    .name = "pll3on",
-                    .desc = "PLL3 enable",
-                    .first_bit = 28, },
-                {
-                    .name = "pll3rdy",
-                    .desc = "PLL3 clock ready flag",
-                    .first_bit = 29,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "pll3on", },
-                { }, /**/
-            } , /**/
-};
+static PeripheralInfo stm32f1cl_rcc_info =
+        {
+            .desc = "Reset and clock control (RCC)",
 
-static PeripheralRegisterInfo stm32f1cl_rcc_cfgr_info = {
-    .desc = "Clock configuration register (RCC_CFGR)",
-    .offset_bytes = 0x04,
-    .reset_value = 0x00000000,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "sw",
-                    .desc = "System clock switch",
-                    .first_bit = 0,
-                    .width_bits = 2, },
-                {
-                    .name = "sws",
-                    .desc = "System clock switch status",
-                    .first_bit = 2,
-                    .width_bits = 2,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "sw", },
-                {
-                    .name = "hpre",
-                    .desc = "AHB prescaler",
-                    .first_bit = 4,
-                    .width_bits = 4, },
-                {
-                    .name = "ppre1",
-                    .desc = "APB low-speed prescaler (APB1)",
-                    .first_bit = 8,
-                    .width_bits = 3, },
-                {
-                    .name = "ppre2",
-                    .desc = "APB high-speed prescaler (APB2)",
-                    .first_bit = 11,
-                    .width_bits = 3, },
-                {
-                    .name = "adcpre",
-                    .desc = "ADC prescaler",
-                    .first_bit = 14,
-                    .width_bits = 2, },
-                {
-                    .name = "pllsrc",
-                    .desc = "PLL entry clock source",
-                    .first_bit = 16, },
-                {
-                    .name = "pllxtpre",
-                    .desc = "HSE divider for PLL entry",
-                    .first_bit = 17, },
-                {
-                    .name = "pllmul",
-                    .desc = "PLL multiplication factor",
-                    .first_bit = 18,
-                    .width_bits = 4, },
-                {
-                    .name = "otgfspre",
-                    .desc = "OTG FS prescaler",
-                    .first_bit = 22, },
-                {
-                    .name = "mco",
-                    .desc = "Microcontroller clock output",
-                    .first_bit = 24,
-                    .width_bits = 3, },
-                { }, /**/
-            } , /**/
-};
+            .registers =
+                    (PeripheralRegisterInfo[] ) {
+                                {
+                                    .desc = "Clock control register (RCC_CR)",
+                                    .name = "cr",
+                                    .offset_bytes = 0x00,
+                                    .reset_value = 0x00000083,
+                                    .reset_mask = 0xFFFF00FF,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "hsion",
+                                                            .desc =
+                                                                    "Internal high-speed clock enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "hsirdy",
+                                                            .desc =
+                                                                    "Internal high-speed clock ready flag",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "hsion", },
+                                                        {
+                                                            .name = "hsitrim",
+                                                            .desc =
+                                                                    "Internal high-speed clock trimming",
+                                                            .first_bit = 3,
+                                                            .width_bits = 5, },
+                                                        {
+                                                            .name = "hsical",
+                                                            .desc =
+                                                                    "Internal high-speed clock calibration",
+                                                            .first_bit = 8,
+                                                            .width_bits = 8,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ, },
+                                                        {
+                                                            .name = "hseon",
+                                                            .desc =
+                                                                    "External clock enable",
+                                                            .first_bit = 16, },
+                                                        {
+                                                            .name = "hserdy",
+                                                            .desc =
+                                                                    "External high-speed clock ready flag",
+                                                            .first_bit = 17,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "hseon", },
+                                                        {
+                                                            .name = "hsebyp",
+                                                            .desc =
+                                                                    "External high-speed clock bypass",
+                                                            .first_bit = 18, },
+                                                        {
+                                                            .name = "csson",
+                                                            .desc =
+                                                                    "Clock security system enable",
+                                                            .first_bit = 19, },
+                                                        {
+                                                            .name = "pllon",
+                                                            .desc = "PLL enable",
+                                                            .first_bit = 24, },
+                                                        {
+                                                            .name = "pllrdy",
+                                                            .desc =
+                                                                    "PLL clock ready flag",
+                                                            .first_bit = 25,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "pllon", },
+                                                        {
+                                                            .name = "pll2on",
+                                                            .desc =
+                                                                    "PLL2 enable",
+                                                            .first_bit = 26, },
+                                                        {
+                                                            .name = "pll2rdy",
+                                                            .desc =
+                                                                    "PLL2 clock ready flag",
+                                                            .first_bit = 27,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "pll2on", },
+                                                        {
+                                                            .name = "pll3on",
+                                                            .desc =
+                                                                    "PLL3 enable",
+                                                            .first_bit = 28, },
+                                                        {
+                                                            .name = "pll3rdy",
+                                                            .desc =
+                                                                    "PLL3 clock ready flag",
+                                                            .first_bit = 29,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "pll3on", },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc =
+                                            "Clock configuration register (RCC_CFGR)",
+                                    .name = "cfgr",
+                                    .offset_bytes = 0x04,
+                                    .reset_value = 0x00000000,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "sw",
+                                                            .desc =
+                                                                    "System clock switch",
+                                                            .first_bit = 0,
+                                                            .width_bits = 2, },
+                                                        {
+                                                            .name = "sws",
+                                                            .desc =
+                                                                    "System clock switch status",
+                                                            .first_bit = 2,
+                                                            .width_bits = 2,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "sw", },
+                                                        {
+                                                            .name = "hpre",
+                                                            .desc =
+                                                                    "AHB prescaler",
+                                                            .first_bit = 4,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "ppre1",
+                                                            .desc =
+                                                                    "APB low-speed prescaler (APB1)",
+                                                            .first_bit = 8,
+                                                            .width_bits = 3, },
+                                                        {
+                                                            .name = "ppre2",
+                                                            .desc =
+                                                                    "APB high-speed prescaler (APB2)",
+                                                            .first_bit = 11,
+                                                            .width_bits = 3, },
+                                                        {
+                                                            .name = "adcpre",
+                                                            .desc =
+                                                                    "ADC prescaler",
+                                                            .first_bit = 14,
+                                                            .width_bits = 2, },
+                                                        {
+                                                            .name = "pllsrc",
+                                                            .desc =
+                                                                    "PLL entry clock source",
+                                                            .first_bit = 16, },
+                                                        {
+                                                            .name = "pllxtpre",
+                                                            .desc =
+                                                                    "HSE divider for PLL entry",
+                                                            .first_bit = 17, },
+                                                        {
+                                                            .name = "pllmul",
+                                                            .desc =
+                                                                    "PLL multiplication factor",
+                                                            .first_bit = 18,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "otgfspre",
+                                                            .desc =
+                                                                    "OTG FS prescaler",
+                                                            .first_bit = 22, },
+                                                        {
+                                                            .name = "mco",
+                                                            .desc =
+                                                                    "Microcontroller clock output",
+                                                            .first_bit = 24,
+                                                            .width_bits = 3, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc = "Clock interrupt register (RCC_CIR)",
+                                    .name = "cir",
+                                    .offset_bytes = 0x08,
+                                    .reset_value = 0x00000000,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "lsirdyf",
+                                                            .desc =
+                                                                    "LSI ready interrupt flag",
+                                                            .first_bit = 0,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "lsirdyc", },
+                                                        {
+                                                            .name = "lserdyf",
+                                                            .desc =
+                                                                    "LSE ready interrupt flag",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "lserdyc", },
+                                                        {
+                                                            .name = "hsirdyf",
+                                                            .desc =
+                                                                    "HSI ready interrupt flag",
+                                                            .first_bit = 2,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "hsirdyc", },
+                                                        {
+                                                            .name = "hserdyf",
+                                                            .desc =
+                                                                    "HSE ready interrupt flag",
+                                                            .first_bit = 3,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "hserdyc", },
+                                                        {
+                                                            .name = "pllrdyf",
+                                                            .desc =
+                                                                    "PLL ready interrupt flag",
+                                                            .first_bit = 4,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "pllrdyc", },
+                                                        {
+                                                            .name = "pll2rdyf",
+                                                            .desc =
+                                                                    "PLL2 ready interrupt flag",
+                                                            .first_bit = 5,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "pll2rdyc", },
+                                                        {
+                                                            .name = "pll3rdyf",
+                                                            .desc =
+                                                                    "PLL3 ready interrupt flag",
+                                                            .first_bit = 6,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by =
+                                                                    "pll3rdyc", },
+                                                        {
+                                                            .name = "cssf",
+                                                            .desc =
+                                                                    "Clock security system interrupt flag",
+                                                            .first_bit = 7,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .cleared_by = "cssc", },
+                                                        {
+                                                            .name = "lsirdyie",
+                                                            .desc =
+                                                                    "LSI ready interrupt enable",
+                                                            .first_bit = 8, },
+                                                        {
+                                                            .name = "lserdyie",
+                                                            .desc =
+                                                                    "LSE ready interrupt enable",
+                                                            .first_bit = 9, },
+                                                        {
+                                                            .name = "hsirdyie",
+                                                            .desc =
+                                                                    "HSI ready interrupt enable",
+                                                            .first_bit = 10, },
+                                                        {
+                                                            .name = "hserdyie",
+                                                            .desc =
+                                                                    "HSE ready interrupt enable",
+                                                            .first_bit = 11, },
+                                                        {
+                                                            .name = "pllrdyie",
+                                                            .desc =
+                                                                    "PLL ready interrupt enable",
+                                                            .first_bit = 12, },
+                                                        {
+                                                            .name = "pll2rdyie",
+                                                            .desc =
+                                                                    "PLL2 ready interrupt enable",
+                                                            .first_bit = 13, },
+                                                        {
+                                                            .name = "pll3rdyie",
+                                                            .desc =
+                                                                    "PLL3 ready interrupt enable",
+                                                            .first_bit = 14, },
+                                                        {
+                                                            .name = "lsirdyc",
+                                                            .desc =
+                                                                    "LSI ready interrupt clear",
+                                                            .first_bit = 16,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "lserdyc",
+                                                            .desc =
+                                                                    "LSE ready interrupt clear",
+                                                            .first_bit = 17,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "hsirdyc",
+                                                            .desc =
+                                                                    "HSI ready interrupt clear",
+                                                            .first_bit = 18,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "hserdyc",
+                                                            .desc =
+                                                                    "HSE ready interrupt clear",
+                                                            .first_bit = 19,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "pllrdyc",
+                                                            .desc =
+                                                                    "PLL ready interrupt clear",
+                                                            .first_bit = 20,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "pll2rdyc",
+                                                            .desc =
+                                                                    "PLL2 ready interrupt clear",
+                                                            .first_bit = 21,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "pll3rdyc",
+                                                            .desc =
+                                                                    "PLL3 ready interrupt clear",
+                                                            .first_bit = 22,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "cssc",
+                                                            .desc =
+                                                                    "Clock security system interrupt clear",
+                                                            .first_bit = 23,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc =
+                                            "APB2 peripheral reset register (RCC_APB2RSTR)",
+                                    .name = "apb2rstr",
+                                    .offset_bytes = 0x0C,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x00005E7D,
+                                    .writable_bits = 0x00005E7D, },
+                                {
+                                    .desc =
+                                            "APB1 peripheral reset register (RCC_APB1RSTR)",
+                                    .name = "apb1rstr",
+                                    .offset_bytes = 0x10,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x377EC83F,
+                                    .writable_bits = 0x377EC83F, },
+                                {
+                                    .desc =
+                                            "AHB peripheral clock enable register (RCC_AHBENR)",
+                                    .name = "ahbenr",
+                                    .offset_bytes = 0x14,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x0001D057,
+                                    .writable_bits = 0x0001D057, },
+                                {
+                                    .desc =
+                                            "APB2 peripheral clock enable register (RCC_APB2ENR)",
+                                    .name = "apb2enr",
+                                    .offset_bytes = 0x18,
+                                    .reset_value = 0x00000000,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "afioen",
+                                                            .desc =
+                                                                    "Alternate function IO clock enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "iopaen",
+                                                            .desc =
+                                                                    "IO port A clock enable",
+                                                            .first_bit = 2, },
+                                                        {
+                                                            .name = "iopben",
+                                                            .desc =
+                                                                    "IO port B clock enable",
+                                                            .first_bit = 3, },
+                                                        {
+                                                            .name = "iopcen",
+                                                            .desc =
+                                                                    "IO port C clock enable",
+                                                            .first_bit = 4, },
+                                                        {
+                                                            .name = "iopden",
+                                                            .desc =
+                                                                    "IO port D clock enable",
+                                                            .first_bit = 5, },
+                                                        {
+                                                            .name = "iopeen",
+                                                            .desc =
+                                                                    "IO port E clock enable",
+                                                            .first_bit = 6, },
+                                                        {
+                                                            .name = "adc1en",
+                                                            .desc =
+                                                                    "ADC1 interface clock enable",
+                                                            .first_bit = 9, },
+                                                        {
+                                                            .name = "adc2en",
+                                                            .desc =
+                                                                    "ADC2 interface clock enable",
+                                                            .first_bit = 10, },
+                                                        {
+                                                            .name = "tim1en",
+                                                            .desc =
+                                                                    "TIM1 timer clock enable",
+                                                            .first_bit = 11, },
+                                                        {
+                                                            .name = "spi1en",
+                                                            .desc =
+                                                                    "SPI1 clock enable",
+                                                            .first_bit = 12, },
+                                                        {
+                                                            .name = "usart1en",
+                                                            .desc =
+                                                                    "USART1 clock enable",
+                                                            .first_bit = 14, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc =
+                                            "APB1 peripheral clock enable register (RCC_APB1ENR)",
+                                    .name = "apb1enr",
+                                    .offset_bytes = 0x1C,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x3E7EC83F,
+                                    .writable_bits = 0x3E7EC83F, },
+                                {
+                                    .desc =
+                                            "Backup domain control register (RCC_BDCR)",
+                                    .name = "bdcr",
+                                    .offset_bytes = 0x20,
+                                    .reset_value = 0x00000000,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "lseon",
+                                                            .desc =
+                                                                    "External low-speed oscillator enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "lserdy",
+                                                            .desc =
+                                                                    "External low-speed oscillator ready",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "lseon", },
+                                                        {
+                                                            .name = "lsebyp",
+                                                            .desc =
+                                                                    "External low-speed oscillator bypass",
+                                                            .first_bit = 2, },
+                                                        {
+                                                            .name = "rtcsel",
+                                                            .desc =
+                                                                    "RTC clock source selection",
+                                                            .first_bit = 8,
+                                                            .width_bits = 2, },
+                                                        {
+                                                            .name = "rtcen",
+                                                            .desc =
+                                                                    "RTC clock enable",
+                                                            .first_bit = 15, },
+                                                        {
+                                                            .name = "bdrst",
+                                                            .desc =
+                                                                    "Backup domain software reset",
+                                                            .first_bit = 16, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc = "Control/status register (RCC_CSR)",
+                                    .name = "csr",
+                                    .offset_bytes = 0x24,
+                                    .reset_value = 0x0C000000,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "lsion",
+                                                            .desc =
+                                                                    "Internal low-speed oscillator enable",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "lsirdy",
+                                                            .desc =
+                                                                    "Internal low-speed oscillator ready",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ,
+                                                            .follows = "lsion", },
+                                                        {
+                                                            .name = "rmvf",
+                                                            .desc =
+                                                                    "Remove reset flag",
+                                                            .first_bit = 24, },
+                                                        {
+                                                            .name = "pinrstf",
+                                                            .desc =
+                                                                    "PIN reset flag",
+                                                            .first_bit = 26,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "porrstf",
+                                                            .desc =
+                                                                    "POR/PDR reset flag",
+                                                            .first_bit = 27,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "stfrstf",
+                                                            .desc =
+                                                                    "Software reset flag",
+                                                            .first_bit = 28,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "iwdgrstf",
+                                                            .desc =
+                                                                    "Independent watchdog reset flag",
+                                                            .first_bit = 29,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "wwdgrstf",
+                                                            .desc =
+                                                                    "Window watchdog reset flag",
+                                                            .first_bit = 30,
+                                                            .cleared_by = "rmvf", },
+                                                        {
+                                                            .name = "lrwrrstf",
+                                                            .desc =
+                                                                    "Low-power reset flag",
+                                                            .first_bit = 31,
+                                                            .cleared_by = "rmvf", },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
+                                {
+                                    .desc =
+                                            "AHB peripheral clock reset register (RCC_AHBRSTR)",
+                                    .name = "ahbrstr",
+                                    .offset_bytes = 0x28,
+                                    .reset_value = 0x00000000,
+                                    .readable_bits = 0x00005000,
+                                    .writable_bits = 0x00005000, },
+                                {
+                                    .desc =
+                                            "Clock configuration register2 (RCC_CFGR2)",
+                                    .name = "cfgr2",
+                                    .offset_bytes = 0x2C,
+                                    .reset_value = 0x00000000,
+                                    .post_write =
+                                            &stm32f1_rcc_post_write_callback,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "prediv1",
+                                                            .desc =
+                                                                    "PREDIV1 division factor",
+                                                            .first_bit = 0,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "prediv2",
+                                                            .desc =
+                                                                    "PREDIV2 division factor",
+                                                            .first_bit = 4,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "pll2mul",
+                                                            .desc =
+                                                                    "PLL2 Multiplication factor",
+                                                            .first_bit = 8,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "pll3mul",
+                                                            .desc =
+                                                                    "PLL3 Multiplication factor",
+                                                            .first_bit = 12,
+                                                            .width_bits = 4, },
+                                                        {
+                                                            .name = "prediv1src",
+                                                            .desc =
+                                                                    "PREDIV1 entry clock source",
+                                                            .first_bit = 16, },
+                                                        {
+                                                            .name = "i2s2src",
+                                                            .desc =
+                                                                    "I2S2 clock source",
+                                                            .first_bit = 17, },
+                                                        {
+                                                            .name = "i2s3src",
+                                                            .desc =
+                                                                    "I2S2 clock source",
+                                                            .first_bit = 18, },
+                                                        { }, /**/
+                                                    } , /**/
+                                },
 
-static PeripheralRegisterInfo stm32f1cl_rcc_cir_info = {
-    .desc = "Clock interrupt register (RCC_CIR)",
-    .offset_bytes = 0x08,
-    .reset_value = 0x00000000,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "lsirdyf",
-                    .desc = "LSI ready interrupt flag",
-                    .first_bit = 0,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "lsirdyc", },
-                {
-                    .name = "lserdyf",
-                    .desc = "LSE ready interrupt flag",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "lserdyc", },
-                {
-                    .name = "hsirdyf",
-                    .desc = "HSI ready interrupt flag",
-                    .first_bit = 2,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "hsirdyc", },
-                {
-                    .name = "hserdyf",
-                    .desc = "HSE ready interrupt flag",
-                    .first_bit = 3,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "hserdyc", },
-                {
-                    .name = "pllrdyf",
-                    .desc = "PLL ready interrupt flag",
-                    .first_bit = 4,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "pllrdyc", },
-                {
-                    .name = "pll2rdyf",
-                    .desc = "PLL2 ready interrupt flag",
-                    .first_bit = 5,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "pll2rdyc", },
-                {
-                    .name = "pll3rdyf",
-                    .desc = "PLL3 ready interrupt flag",
-                    .first_bit = 6,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "pll3rdyc", },
-                {
-                    .name = "cssf",
-                    .desc = "Clock security system interrupt flag",
-                    .first_bit = 7,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .cleared_by = "cssc", },
-                {
-                    .name = "lsirdyie",
-                    .desc = "LSI ready interrupt enable",
-                    .first_bit = 8, },
-                {
-                    .name = "lserdyie",
-                    .desc = "LSE ready interrupt enable",
-                    .first_bit = 9, },
-                {
-                    .name = "hsirdyie",
-                    .desc = "HSI ready interrupt enable",
-                    .first_bit = 10, },
-                {
-                    .name = "hserdyie",
-                    .desc = "HSE ready interrupt enable",
-                    .first_bit = 11, },
-                {
-                    .name = "pllrdyie",
-                    .desc = "PLL ready interrupt enable",
-                    .first_bit = 12, },
-                {
-                    .name = "pll2rdyie",
-                    .desc = "PLL2 ready interrupt enable",
-                    .first_bit = 13, },
-                {
-                    .name = "pll3rdyie",
-                    .desc = "PLL3 ready interrupt enable",
-                    .first_bit = 14, },
-                {
-                    .name = "lsirdyc",
-                    .desc = "LSI ready interrupt clear",
-                    .first_bit = 16,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "lserdyc",
-                    .desc = "LSE ready interrupt clear",
-                    .first_bit = 17,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "hsirdyc",
-                    .desc = "HSI ready interrupt clear",
-                    .first_bit = 18,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "hserdyc",
-                    .desc = "HSE ready interrupt clear",
-                    .first_bit = 19,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "pllrdyc",
-                    .desc = "PLL ready interrupt clear",
-                    .first_bit = 20,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "pll2rdyc",
-                    .desc = "PLL2 ready interrupt clear",
-                    .first_bit = 21,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "pll3rdyc",
-                    .desc = "PLL3 ready interrupt clear",
-                    .first_bit = 22,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                {
-                    .name = "cssc",
-                    .desc = "Clock security system interrupt clear",
-                    .first_bit = 23,
-                    .rw_mode = REGISTER_RW_MODE_WRITE, },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1cl_rcc_apb2rstr_info = {
-    .desc = "APB2 peripheral reset register (RCC_APB2RSTR)",
-    .offset_bytes = 0x0C,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x00005E7D,
-    .writable_bits = 0x00005E7D, };
-
-static PeripheralRegisterInfo stm32f1cl_rcc_apb1rstr_info = {
-    .desc = "APB1 peripheral reset register (RCC_APB1RSTR)",
-    .offset_bytes = 0x10,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x377EC83F,
-    .writable_bits = 0x377EC83F, };
-
-static PeripheralRegisterInfo stm32f1cl_rcc_ahbenr_info = {
-    .desc = "AHB peripheral clock enable register (RCC_AHBENR)",
-    .offset_bytes = 0x14,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x0001D057,
-    .writable_bits = 0x0001D057, };
-
-static PeripheralRegisterInfo stm32f1cl_rcc_apb2enr_info = {
-    .desc = "APB2 peripheral clock enable register (RCC_APB2ENR)",
-    .offset_bytes = 0x18,
-    .reset_value = 0x00000000,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "afioen",
-                    .desc = "Alternate function IO clock enable",
-                    .first_bit = 0, },
-                {
-                    .name = "iopaen",
-                    .desc = "IO port A clock enable",
-                    .first_bit = 2, },
-                {
-                    .name = "iopben",
-                    .desc = "IO port B clock enable",
-                    .first_bit = 3, },
-                {
-                    .name = "iopcen",
-                    .desc = "IO port C clock enable",
-                    .first_bit = 4, },
-                {
-                    .name = "iopden",
-                    .desc = "IO port D clock enable",
-                    .first_bit = 5, },
-                {
-                    .name = "iopeen",
-                    .desc = "IO port E clock enable",
-                    .first_bit = 6, },
-                {
-                    .name = "adc1en",
-                    .desc = "ADC1 interface clock enable",
-                    .first_bit = 9, },
-                {
-                    .name = "adc2en",
-                    .desc = "ADC2 interface clock enable",
-                    .first_bit = 10, },
-                {
-                    .name = "tim1en",
-                    .desc = "TIM1 timer clock enable",
-                    .first_bit = 11, },
-                {
-                    .name = "spi1en",
-                    .desc = "SPI1 clock enable",
-                    .first_bit = 12, },
-                {
-                    .name = "usart1en",
-                    .desc = "USART1 clock enable",
-                    .first_bit = 14, },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1cl_rcc_apb1enr_info = {
-    .desc = "APB1 peripheral clock enable register (RCC_APB1ENR)",
-    .offset_bytes = 0x1C,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x3E7EC83F,
-    .writable_bits = 0x3E7EC83F, };
-
-static PeripheralRegisterInfo stm32f1cl_rcc_bdcr_info = {
-    .desc = "Backup domain control register (RCC_BDCR)",
-    .offset_bytes = 0x20,
-    .reset_value = 0x00000000,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "lseon",
-                    .desc = "External low-speed oscillator enable",
-                    .first_bit = 0, },
-                {
-                    .name = "lserdy",
-                    .desc = "External low-speed oscillator ready",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "lseon", },
-                {
-                    .name = "lsebyp",
-                    .desc = "External low-speed oscillator bypass",
-                    .first_bit = 2, },
-                {
-                    .name = "rtcsel",
-                    .desc = "RTC clock source selection",
-                    .first_bit = 8,
-                    .width_bits = 2, },
-                {
-                    .name = "rtcen",
-                    .desc = "RTC clock enable",
-                    .first_bit = 15, },
-                {
-                    .name = "bdrst",
-                    .desc = "Backup domain software reset",
-                    .first_bit = 16, },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1cl_rcc_csr_info = {
-    .desc = "Control/status register (RCC_CSR)",
-    .offset_bytes = 0x24,
-    .reset_value = 0x0C000000,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "lsion",
-                    .desc = "Internal low-speed oscillator enable",
-                    .first_bit = 0, },
-                {
-                    .name = "lsirdy",
-                    .desc = "Internal low-speed oscillator ready",
-                    .first_bit = 1,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                    .follows = "lsion", },
-                {
-                    .name = "rmvf",
-                    .desc = "Remove reset flag",
-                    .first_bit = 24, },
-                {
-                    .name = "pinrstf",
-                    .desc = "PIN reset flag",
-                    .first_bit = 26,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "porrstf",
-                    .desc = "POR/PDR reset flag",
-                    .first_bit = 27,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "stfrstf",
-                    .desc = "Software reset flag",
-                    .first_bit = 28,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "iwdgrstf",
-                    .desc = "Independent watchdog reset flag",
-                    .first_bit = 29,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "wwdgrstf",
-                    .desc = "Window watchdog reset flag",
-                    .first_bit = 30,
-                    .cleared_by = "rmvf", },
-                {
-                    .name = "lrwrrstf",
-                    .desc = "Low-power reset flag",
-                    .first_bit = 31,
-                    .cleared_by = "rmvf", },
-                { }, /**/
-            } , /**/
-};
-
-static PeripheralRegisterInfo stm32f1cl_rcc_ahbrstr_info = {
-    .desc = "AHB peripheral clock reset register (RCC_AHBRSTR)",
-    .offset_bytes = 0x28,
-    .reset_value = 0x00000000,
-    .readable_bits = 0x00005000,
-    .writable_bits = 0x00005000, };
-
-static PeripheralRegisterInfo stm32f1cl_rcc_cfgr2_info = {
-    .desc = "Clock configuration register2 (RCC_CFGR2)",
-    .offset_bytes = 0x2C,
-    .reset_value = 0x00000000,
-    .post_write = &stm32f1_rcc_post_write_callback,
-    .bitfields = (RegisterBitfieldInfo[] ) {
-                {
-                    .name = "prediv1",
-                    .desc = "PREDIV1 division factor",
-                    .first_bit = 0,
-                    .width_bits = 4, },
-                {
-                    .name = "prediv2",
-                    .desc = "PREDIV2 division factor",
-                    .first_bit = 4,
-                    .width_bits = 4, },
-                {
-                    .name = "pll2mul",
-                    .desc = "PLL2 Multiplication factor",
-                    .first_bit = 8,
-                    .width_bits = 4, },
-                {
-                    .name = "pll3mul",
-                    .desc = "PLL3 Multiplication factor",
-                    .first_bit = 12,
-                    .width_bits = 4, },
-                {
-                    .name = "prediv1src",
-                    .desc = "PREDIV1 entry clock source",
-                    .first_bit = 16, },
-                {
-                    .name = "i2s2src",
-                    .desc = "I2S2 clock source",
-                    .first_bit = 17, },
-                {
-                    .name = "i2s3src",
-                    .desc = "I2S2 clock source",
-                    .first_bit = 18, },
-                { }, /**/
-            } , /**/
-};
+                                { }, /**/
+                            } , /**/
+        };
 
 /* ------------------------------------------------------------------------- */
 
@@ -1207,141 +1472,76 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
         state->lsi_freq_hz = LSI_FREQ_HZ;
     }
 
-    Object *reg;
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
         if (!capabilities->f1.is_cl) {
-            reg = peripheral_register_new_with_info(obj, "cr",
-                    &stm32f1_rcc_cr_info);
-            cm_object_realize(reg);
-            state->f1.reg.cr = reg;
 
-            reg = peripheral_register_new_with_info(obj, "cfgr",
-                    &stm32f1_rcc_cfgr_info);
-            cm_object_realize(reg);
-            state->f1.reg.cfgr = reg;
+            peripheral_new_with_info(obj, NULL, &stm32f1_rcc_info);
 
-            state->f1.cfgr.sws = cm_object_get_child_by_name(reg, "sws");
-            state->f1.cfgr.pllmul = cm_object_get_child_by_name(reg, "pllmul");
-            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(reg, "pllsrc");
-            state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(reg,
-                    "pllxtpre");
-            state->f1.cfgr.hpre = cm_object_get_child_by_name(reg, "hpre");
+            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+            state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
+            state->f1.reg.cir = cm_object_get_child_by_name(obj, "cir");
+            state->f1.reg.apb2rstr = cm_object_get_child_by_name(obj,
+                    "apb2rstr");
+            state->f1.reg.apb1rstr = cm_object_get_child_by_name(obj,
+                    "apb1rstr");
+            state->f1.reg.ahbenr = cm_object_get_child_by_name(obj, "ahbenr");
+            state->f1.reg.apb2enr = cm_object_get_child_by_name(obj, "apb2enr");
 
-            reg = peripheral_register_new_with_info(obj, "cir",
-                    &stm32f1_rcc_cir_info);
-            cm_object_realize(reg);
-            state->f1.reg.cir = reg;
+            state->f1.reg.apb1enr = cm_object_get_child_by_name(obj, "apb1enr");
+            state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "bdcr");
+            state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
 
-            reg = peripheral_register_new_with_info(obj, "apb2rstr",
-                    &stm32f1_rcc_apb2rstr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb2rstr = reg;
+            state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr,
+                    "sws");
+            state->f1.cfgr.pllmul = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "pllmul");
+            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "pllsrc");
+            state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "pllxtpre");
+            state->f1.cfgr.hpre = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "hpre");
 
-            reg = peripheral_register_new_with_info(obj, "apb1rstr",
-                    &stm32f1_rcc_apb1rstr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb1rstr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "ahbenr",
-                    &stm32f1_rcc_ahbenr_info);
-            cm_object_realize(reg);
-            state->f1.reg.ahbenr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "apb2enr",
-                    &stm32f1_rcc_apb2enr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb2enr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "apb1enr",
-                    &stm32f1_rcc_apb1enr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb1enr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "bdcr",
-                    &stm32f1_rcc_bdcr_info);
-            cm_object_realize(reg);
-            state->f1.reg.bdcr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "csr",
-                    &stm32f1_rcc_csr_info);
-            cm_object_realize(reg);
-            state->f1.reg.csr = reg;
         } else {
-            reg = peripheral_register_new_with_info(obj, "cr",
-                    &stm32f1cl_rcc_cr_info);
-            cm_object_realize(reg);
-            state->f1.reg.cr = reg;
 
-            reg = peripheral_register_new_with_info(obj, "cfgr",
-                    &stm32f1cl_rcc_cfgr_info);
-            cm_object_realize(reg);
-            state->f1.reg.cfgr = reg;
+            peripheral_new_with_info(obj, NULL, &stm32f1cl_rcc_info);
 
-            state->f1.cfgr.sws = cm_object_get_child_by_name(reg, "sws");
-            state->f1.cfgr.hpre = cm_object_get_child_by_name(reg, "hpre");
-            state->f1.cfgr.pllmul = cm_object_get_child_by_name(reg, "pllmul");
-            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(reg, "pllsrc");
+            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+            state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
+            state->f1.reg.cir = cm_object_get_child_by_name(obj, "cir");
+            state->f1.reg.apb2rstr = cm_object_get_child_by_name(obj,
+                    "apb2rstr");
+            state->f1.reg.apb1rstr = cm_object_get_child_by_name(obj,
+                    "apb1rstr");
+            state->f1.reg.ahbenr = cm_object_get_child_by_name(obj, "ahbenr");
+            state->f1.reg.apb2enr = cm_object_get_child_by_name(obj, "apb2enr");
 
-            reg = peripheral_register_new_with_info(obj, "cir",
-                    &stm32f1cl_rcc_cir_info);
-            cm_object_realize(reg);
-            state->f1.reg.cir = reg;
+            state->f1.reg.apb1enr = cm_object_get_child_by_name(obj, "apb1enr");
+            state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "bdcr");
+            state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
 
-            reg = peripheral_register_new_with_info(obj, "apb2rstr",
-                    &stm32f1cl_rcc_apb2rstr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb2rstr = reg;
+            state->f1.reg.ahbrstr = cm_object_get_child_by_name(obj, "ahbrstr");
+            state->f1.reg.cfgr2 = cm_object_get_child_by_name(obj, "cfgr2");
 
-            reg = peripheral_register_new_with_info(obj, "apb1rstr",
-                    &stm32f1cl_rcc_apb1rstr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb1rstr = reg;
+            state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr,
+                    "sws");
+            state->f1.cfgr.hpre = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "hpre");
+            state->f1.cfgr.pllmul = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "pllmul");
+            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr, "pllsrc");
 
-            reg = peripheral_register_new_with_info(obj, "ahbenr",
-                    &stm32f1cl_rcc_ahbenr_info);
-            cm_object_realize(reg);
-            state->f1.reg.ahbenr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "apb2enr",
-                    &stm32f1cl_rcc_apb2enr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb2enr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "apb1enr",
-                    &stm32f1cl_rcc_apb1enr_info);
-            cm_object_realize(reg);
-            state->f1.reg.apb1enr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "bdcr",
-                    &stm32f1cl_rcc_bdcr_info);
-            cm_object_realize(reg);
-            state->f1.reg.bdcr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "csr",
-                    &stm32f1cl_rcc_csr_info);
-            cm_object_realize(reg);
-            state->f1.reg.csr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "ahbrstr",
-                    &stm32f1cl_rcc_ahbrstr_info);
-            cm_object_realize(reg);
-            state->f1.reg.ahbrstr = reg;
-
-            reg = peripheral_register_new_with_info(obj, "cfgr2",
-                    &stm32f1cl_rcc_cfgr2_info);
-            cm_object_realize(reg);
-            state->f1.reg.cfgr2 = reg;
-
-            state->f1.cfgr2.prediv1 = cm_object_get_child_by_name(reg,
-                    "prediv1");
-            state->f1.cfgr2.prediv2 = cm_object_get_child_by_name(reg,
-                    "prediv2");
-            state->f1.cfgr2.pll2mul = cm_object_get_child_by_name(reg,
-                    "pll2mul");
-            state->f1.cfgr2.prediv1src = cm_object_get_child_by_name(reg,
-                    "prediv1src");
+            state->f1.cfgr2.prediv1 = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr2, "prediv1");
+            state->f1.cfgr2.prediv2 = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr2, "prediv2");
+            state->f1.cfgr2.pll2mul = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr2, "pll2mul");
+            state->f1.cfgr2.prediv1src = cm_object_get_child_by_name(
+                    state->f1.reg.cfgr2, "prediv1src");
         }
         break;
 
