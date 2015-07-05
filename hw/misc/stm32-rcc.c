@@ -69,8 +69,6 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .offset_bytes = 0x00,
                                     .reset_value = 0x00000083,
                                     .reset_mask = 0xFFFF00FF,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -144,8 +142,6 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .name = "cfgr",
                                     .offset_bytes = 0x04,
                                     .reset_value = 0x00000000,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -486,8 +482,6 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .name = "bdcr",
                                     .offset_bytes = 0x20,
                                     .reset_value = 0x00000000,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -532,8 +526,6 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .name = "csr",
                                     .offset_bytes = 0x24,
                                     .reset_value = 0x0C000000,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -613,8 +605,6 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .offset_bytes = 0x00,
                                     .reset_value = 0x00000083,
                                     .reset_mask = 0xFFFF00FF,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -714,8 +704,6 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .name = "cfgr",
                                     .offset_bytes = 0x04,
                                     .reset_value = 0x00000000,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -1063,8 +1051,6 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .name = "bdcr",
                                     .offset_bytes = 0x20,
                                     .reset_value = 0x00000000,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -1109,8 +1095,6 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .name = "csr",
                                     .offset_bytes = 0x24,
                                     .reset_value = 0x0C000000,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -1184,8 +1168,6 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .name = "cfgr2",
                                     .offset_bytes = 0x2C,
                                     .reset_value = 0x00000000,
-                                    .post_write =
-                                            &stm32f1_rcc_post_write_callback,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -1383,6 +1365,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
         cpu_freq_hz >>= pre_scaler;
 
         break;
+
     default:
         break;
     }
@@ -1504,6 +1487,16 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             state->f1.cfgr.hpre = cm_object_get_child_by_name(
                     state->f1.reg.cfgr, "hpre");
 
+            /* Add callbacks. */
+            peripheral_register_set_post_write(state->f1.reg.cr,
+                    &stm32f1_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f1.reg.cfgr,
+                    &stm32f1_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f1.reg.bdcr,
+                    &stm32f1_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f1.reg.csr,
+                    &stm32f1_rcc_post_write_callback);
+
         } else {
 
             peripheral_new_with_info(obj, NULL, &stm32f1cl_rcc_info);
@@ -1542,6 +1535,19 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     state->f1.reg.cfgr2, "pll2mul");
             state->f1.cfgr2.prediv1src = cm_object_get_child_by_name(
                     state->f1.reg.cfgr2, "prediv1src");
+
+            /* Add callbacks. */
+            peripheral_register_set_post_write(state->f1.reg.cr,
+                    &stm32f1_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f1.reg.cfgr,
+                    &stm32f1_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f1.reg.bdcr,
+                    &stm32f1_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f1.reg.csr,
+                    &stm32f1_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f1.reg.cfgr2,
+                    &stm32f1_rcc_post_write_callback);
+
         }
         break;
 

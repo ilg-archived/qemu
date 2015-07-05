@@ -174,15 +174,13 @@ static PeripheralInfo stm32f1_gpio_info = {
                     .name = "crl",
                     .offset_bytes = 0x00,
                     .reset_value = 0x44444444,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
-                    .post_write = &stm32f1_gpio_crl_post_write_callback, },
+                    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD, },
                 {
                     .desc = "Port configuration register low (GPIOx_CRH)",
                     .name = "crh",
                     .offset_bytes = 0x04,
                     .reset_value = 0x44444444,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
-                    .post_write = &stm32f1_gpio_crh_post_write_callback, },
+                    .access_flags = PERIPHERAL_REGISTER_32BITS_WORD, },
                 {
                     .desc = "Port input data register (GPIOx_IDR)",
                     .name = "idr",
@@ -199,8 +197,7 @@ static PeripheralInfo stm32f1_gpio_info = {
                     .reset_value = 0x00000000,
                     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
                     .writable_bits = 0x0000FFFF,
-                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                    .post_write = &stm32f1_gpio_odr_post_write_callback, },
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
                 {
                     .desc = "Port bit set/reset register (GPIOx_BSRR)",
                     .name = "bsrr",
@@ -208,8 +205,7 @@ static PeripheralInfo stm32f1_gpio_info = {
                     .reset_value = 0x00000000,
                     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
                     .writable_bits = 0xFFFFFFFF,
-                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                    .post_write = &stm32f1_gpio_bsrr_post_write_callback, },
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
                 {
                     .desc = "Port bit reset register (GPIOx_BRR) ",
                     .name = "brr",
@@ -217,8 +213,7 @@ static PeripheralInfo stm32f1_gpio_info = {
                     .reset_value = 0x00000000,
                     .access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
                     .writable_bits = 0x0000FFFF,
-                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                    .post_write = &stm32f1_gpio_brr_post_write_callback, },
+                    .rw_mode = REGISTER_RW_MODE_WRITE, },
                 {
                     .desc = "Port configuration lock register (GPIOx_LCKR)",
                     .name = "lckr",
@@ -243,10 +238,11 @@ static uint32_t stm32f1_gpio_get_pin_config(STM32GPIOState *state, unsigned pin)
      * Simplify extract logic by combining both 32 bit registers into
      * one 64 bit value.
      */
-    uint64_t cr_64 = ((uint64_t) peripheral_register_get_raw_value(
-            state->f1.reg.crh) << 32)
-            | (peripheral_register_get_raw_value(state->f1.reg.crl)
-                    & 0xFFFFFFFF);
+    uint64_t cr_64 =
+            ((uint64_t) peripheral_register_get_raw_value(state->f1.reg.crh)
+                    << 32)
+                    | (peripheral_register_get_raw_value(state->f1.reg.crl)
+                            & 0xFFFFFFFF);
     return extract64(cr_64, pin * 4, 4);
 }
 
@@ -382,9 +378,7 @@ static PeripheralInfo stm32f4_gpio_info =
                                     /* 0xA8000000 for port A, 0x00000280 for port B */
                                     .reset_value = 0x00000000,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
-                                    .post_write =
-                                            &stm32f4_gpio_moder_post_write_callback, },
+                                    PERIPHERAL_REGISTER_32BITS_ALL, },
                                 {
                                     .desc =
                                             "GPIO port output type register (GPIOx_OTYPER)",
@@ -432,9 +426,7 @@ static PeripheralInfo stm32f4_gpio_info =
                                     .access_flags =
                                     PERIPHERAL_REGISTER_32BITS_ALL,
                                     .writable_bits = 0x0000FFFF,
-                                    .readable_bits = 0x0000FFFF,
-                                    .post_write =
-                                            &stm32f4_gpio_odr_post_write_callback, },
+                                    .readable_bits = 0x0000FFFF, },
                                 {
                                     .desc =
                                             "GPIO Port bit set/reset register (GPIOx_BSRR) ",
@@ -443,9 +435,7 @@ static PeripheralInfo stm32f4_gpio_info =
                                     .reset_value = 0x00000000,
                                     .access_flags =
                                     PERIPHERAL_REGISTER_32BITS_ALL,
-                                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                                    .post_write =
-                                            &stm32f4_gpio_bsrr_post_write_callback, },
+                                    .rw_mode = REGISTER_RW_MODE_WRITE, },
                                 {
                                     .desc =
                                             "GPIO alternate function low register (GPIOx_AFRL)",
@@ -739,6 +729,18 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         state->f1.reg.brr = cm_object_get_child_by_name(obj, "brr");
         state->f1.reg.lckr = cm_object_get_child_by_name(obj, "lckr");
 
+        /* Add callbacks. */
+        peripheral_register_set_post_write(state->f1.reg.crl,
+                &stm32f1_gpio_crl_post_write_callback);
+        peripheral_register_set_post_write(state->f1.reg.crh,
+                &stm32f1_gpio_crh_post_write_callback);
+        peripheral_register_set_post_write(state->f1.reg.odr,
+                &stm32f1_gpio_odr_post_write_callback);
+        peripheral_register_set_post_write(state->f1.reg.bsrr,
+                &stm32f1_gpio_bsrr_post_write_callback);
+        peripheral_register_set_post_write(state->f1.reg.brr,
+                &stm32f1_gpio_brr_post_write_callback);
+
         break;
 
     case STM32_FAMILY_F4:
@@ -755,6 +757,14 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         state->f4.reg.afrl = cm_object_get_child_by_name(obj, "afrl");
         state->f4.reg.afrh = cm_object_get_child_by_name(obj, "afrh");
         state->f4.reg.lckr = cm_object_get_child_by_name(obj, "lckr");
+
+        /* Add callbacks. */
+        peripheral_register_set_post_write(state->f4.reg.moder,
+                &stm32f4_gpio_moder_post_write_callback);
+        peripheral_register_set_post_write(state->f4.reg.odr,
+                &stm32f4_gpio_odr_post_write_callback);
+        peripheral_register_set_post_write(state->f4.reg.bsrr,
+                &stm32f4_gpio_bsrr_post_write_callback);
 
         break;
 
