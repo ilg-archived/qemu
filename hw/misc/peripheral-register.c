@@ -29,6 +29,8 @@
  * types that redefine these methods.
  */
 
+static int peripheral_register_create_auto_array(Object *obj, void *opaque);
+
 /* ----- Public ------------------------------------------------------------ */
 
 Object *peripheral_register_new_with_info(Object *parent_obj,
@@ -105,6 +107,137 @@ Object *peripheral_register_new_with_info(Object *parent_obj,
     }
 
     return obj;
+}
+
+/**
+ * Internal structure with temporary storage,
+ * used to compute the auto_bits array.
+ */
+typedef struct {
+    peripheral_register_t left_shift_follows_masks[sizeof(peripheral_register_t)
+            * 8];
+    peripheral_register_t right_shift_follows_masks[sizeof(peripheral_register_t)
+            * 8];
+
+    peripheral_register_t left_shift_cleared_by_masks[sizeof(peripheral_register_t)
+            * 8];
+    peripheral_register_t right_shift_cleared_by_masks[sizeof(peripheral_register_t)
+            * 8];
+
+    peripheral_register_t left_shift_set_by_masks[sizeof(peripheral_register_t)
+            * 8];
+    peripheral_register_t right_shift_set_by_masks[sizeof(peripheral_register_t)
+            * 8];
+
+    const char *to_find_bifi;
+    RegisterBitfieldState *found_bifi;
+
+    PeripheralRegisterState *reg;
+    Error *local_err;
+} PeripheralRegisterAutoTmp;
+
+void peripheral_register_compute_auto_bits(Object *obj)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    /*
+     * Scan children bitfields to identify those that follow other
+     * bitfields. Compute the signed distance between bitfields
+     * and for each distance accumulate a bitmask.
+     */
+    PeripheralRegisterAutoTmp *auto_tmp = g_malloc0(
+            sizeof(PeripheralRegisterAutoTmp));
+    auto_tmp->reg = state;
+
+    state->auto_bits = NULL;
+
+    int ret;
+    ret = object_child_foreach(obj, peripheral_register_create_auto_array,
+            (void *) auto_tmp);
+
+    if (ret) {
+        if (auto_tmp->local_err) {
+            error_report_err(auto_tmp->local_err);
+            exit(1);
+        }
+    } else {
+        int count = 0;
+        int i;
+        for (i = 0; i < sizeof(peripheral_register_t) * 8; ++i) {
+            if (auto_tmp->left_shift_follows_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->right_shift_follows_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->left_shift_cleared_by_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->right_shift_cleared_by_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->left_shift_set_by_masks[i] != 0) {
+                count++;
+            }
+            if (auto_tmp->right_shift_set_by_masks[i] != 0) {
+                count++;
+            }
+        }
+
+        if (count) {
+            count++; /* One more for the terminator. */
+            PeripheralRegisterAutoBits *auto_bits = g_malloc_n(count,
+                    sizeof(PeripheralRegisterAutoBits));
+
+            PeripheralRegisterAutoBits *p = auto_bits;
+
+            for (i = 0; i < sizeof(peripheral_register_t) * 8; ++i) {
+                if (auto_tmp->left_shift_follows_masks[i] != 0) {
+                    p->mask = auto_tmp->left_shift_follows_masks[i];
+                    p->shift = i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS;
+                    ++p;
+                }
+                if (auto_tmp->right_shift_follows_masks[i] != 0) {
+                    p->mask = auto_tmp->right_shift_follows_masks[i];
+                    p->shift = -i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS;
+                    ++p;
+                }
+                if (auto_tmp->left_shift_cleared_by_masks[i] != 0) {
+                    p->mask = auto_tmp->left_shift_cleared_by_masks[i];
+                    p->shift = i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY;
+                    ++p;
+                }
+                if (auto_tmp->right_shift_cleared_by_masks[i] != 0) {
+                    p->mask = auto_tmp->right_shift_cleared_by_masks[i];
+                    p->shift = -i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY;
+                    ++p;
+                }
+                if (auto_tmp->left_shift_set_by_masks[i] != 0) {
+                    p->mask = auto_tmp->left_shift_set_by_masks[i];
+                    p->shift = i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY;
+                    ++p;
+                }
+                if (auto_tmp->right_shift_set_by_masks[i] != 0) {
+                    p->mask = auto_tmp->right_shift_set_by_masks[i];
+                    p->shift = -i;
+                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY;
+                    ++p;
+                }
+            }
+
+            /* End of array. */
+            p->mask = 0;
+            p->shift = 0;
+
+            state->auto_bits = auto_bits;
+        }
+    }
+    g_free(auto_tmp);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -474,33 +607,6 @@ static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
 }
 
 /**
- * Internal structure with temporary storage,
- * used to compute the auto_bits array.
- */
-typedef struct {
-    peripheral_register_t left_shift_follows_masks[sizeof(peripheral_register_t)
-            * 8];
-    peripheral_register_t right_shift_follows_masks[sizeof(peripheral_register_t)
-            * 8];
-
-    peripheral_register_t left_shift_cleared_by_masks[sizeof(peripheral_register_t)
-            * 8];
-    peripheral_register_t right_shift_cleared_by_masks[sizeof(peripheral_register_t)
-            * 8];
-
-    peripheral_register_t left_shift_set_by_masks[sizeof(peripheral_register_t)
-            * 8];
-    peripheral_register_t right_shift_set_by_masks[sizeof(peripheral_register_t)
-            * 8];
-
-    const char *to_find_bifi;
-    RegisterBitfieldState *found_bifi;
-
-    PeripheralRegisterState *reg;
-    Error *local_err;
-} PeripheralRegisterAutoTmp;
-
-/**
  * Find the followed bitfield among its siblings.
  * Use the temporary structure to pass input/output values.
  * When found, break the iteration.
@@ -703,111 +809,10 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         state->writable_bits = 0;
     }
 
-    /*
-     * Scan children bitfields to identify those that follow other
-     * bitfields. Compute the signed distance between bitfields
-     * and for each distance accumulate a bitmask.
-     */
-    PeripheralRegisterAutoTmp *auto_tmp = g_malloc0(
-            sizeof(PeripheralRegisterAutoTmp));
-    auto_tmp->reg = state;
-
-    state->auto_bits = NULL;
-
-    ret = object_child_foreach(OBJECT(dev),
-            peripheral_register_create_auto_array, (void *) auto_tmp);
-
-    if (ret) {
-        if (auto_tmp->local_err) {
-            error_propagate(errp, auto_tmp->local_err);
-        }
-    } else {
-        int count = 0;
-        int i;
-        for (i = 0; i < sizeof(peripheral_register_t) * 8; ++i) {
-            if (auto_tmp->left_shift_follows_masks[i] != 0) {
-                count++;
-            }
-            if (auto_tmp->right_shift_follows_masks[i] != 0) {
-                count++;
-            }
-            if (auto_tmp->left_shift_cleared_by_masks[i] != 0) {
-                count++;
-            }
-            if (auto_tmp->right_shift_cleared_by_masks[i] != 0) {
-                count++;
-            }
-            if (auto_tmp->left_shift_set_by_masks[i] != 0) {
-                count++;
-            }
-            if (auto_tmp->right_shift_set_by_masks[i] != 0) {
-                count++;
-            }
-        }
-
-        if (count) {
-            count++; /* One more for the terminator. */
-            PeripheralRegisterAutoBits *auto_bits = g_malloc_n(count,
-                    sizeof(PeripheralRegisterAutoBits));
-
-            PeripheralRegisterAutoBits *p = auto_bits;
-
-            for (i = 0; i < sizeof(peripheral_register_t) * 8; ++i) {
-                if (auto_tmp->left_shift_follows_masks[i] != 0) {
-                    p->mask = auto_tmp->left_shift_follows_masks[i];
-                    p->shift = i;
-                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS;
-                    ++p;
-                }
-                if (auto_tmp->right_shift_follows_masks[i] != 0) {
-                    p->mask = auto_tmp->right_shift_follows_masks[i];
-                    p->shift = -i;
-                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS;
-                    ++p;
-                }
-                if (auto_tmp->left_shift_cleared_by_masks[i] != 0) {
-                    p->mask = auto_tmp->left_shift_cleared_by_masks[i];
-                    p->shift = i;
-                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY;
-                    ++p;
-                }
-                if (auto_tmp->right_shift_cleared_by_masks[i] != 0) {
-                    p->mask = auto_tmp->right_shift_cleared_by_masks[i];
-                    p->shift = -i;
-                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY;
-                    ++p;
-                }
-                if (auto_tmp->left_shift_set_by_masks[i] != 0) {
-                    p->mask = auto_tmp->left_shift_set_by_masks[i];
-                    p->shift = i;
-                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY;
-                    ++p;
-                }
-                if (auto_tmp->right_shift_set_by_masks[i] != 0) {
-                    p->mask = auto_tmp->right_shift_set_by_masks[i];
-                    p->shift = -i;
-                    p->type = PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY;
-                    ++p;
-                }
-            }
-
-            /* End of array. */
-            p->mask = 0;
-            p->shift = 0;
-
-            state->auto_bits = auto_bits;
-        }
-    }
-    g_free(auto_tmp);
-
-    if (ret) {
-        return;
-    }
-
     qemu_log_mask(LOG_TRACE,
-            "%s() '%s', readable: 0x%08llX, writable: 0x%08llX, reset: 0x%08llX, mode: %s%s\n",
-            __FUNCTION__, state->name, state->readable_bits,
-            state->writable_bits, state->reset_value,
+            "%s() '%s', readable: 0x%08llX, writable: 0x%08llX, "
+                    "reset: 0x%08llX, mode: %s%s\n", __FUNCTION__, state->name,
+            state->readable_bits, state->writable_bits, state->reset_value,
             state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 

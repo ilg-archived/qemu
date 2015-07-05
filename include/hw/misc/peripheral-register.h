@@ -192,6 +192,8 @@ typedef struct {
 Object *peripheral_register_new_with_info(Object *parent_obj,
         const char *node_name, PeripheralRegisterInfo *info);
 
+void peripheral_register_compute_auto_bits(Object *obj);
+
 peripheral_register_t peripheral_register_read_value(Object* obj);
 
 void peripheral_register_write_value(Object* obj, peripheral_register_t value);

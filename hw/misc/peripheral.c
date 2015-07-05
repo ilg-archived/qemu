@@ -212,6 +212,8 @@ static int peripheral_populate_registers_array_foreach(Object *obj,
         assert(periph->registers[index] == NULL);
 
         periph->registers[index] = obj;
+
+        peripheral_register_compute_auto_bits(obj);
     }
 
     return 0;
