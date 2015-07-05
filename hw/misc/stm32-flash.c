@@ -95,7 +95,27 @@ static PeripheralInfo stm32f1_flash_info = {
             } , /**/
 };
 
-static PeripheralInfo stm32f1xl_flash_info = {
+static void stm32f1_flash_create_objects(Object *obj)
+{
+    STM32FlashState *state = STM32_FLASH_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f1_flash_info);
+
+    state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
+    state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
+    state->f1.reg.optkeyr = cm_object_get_child_by_name(obj, "optkeyr");
+    state->f1.reg.sr = cm_object_get_child_by_name(obj, "sr");
+    state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+    state->f1.reg.ar = cm_object_get_child_by_name(obj, "ar");
+    state->f1.reg.obr = cm_object_get_child_by_name(obj, "obr");
+    state->f1.reg.wrpr = cm_object_get_child_by_name(obj, "wrpr");
+
+    /* ACR bitfields. */
+    state->f1.acr.prftbs = cm_object_get_child_by_name(
+            OBJECT(state->f1.reg.acr), "prftbs");
+}
+
+static PeripheralInfo stm32f1xd_flash_info = {
     .desc = "Reset and clock control (RCC)",
 
     .registers = (PeripheralRegisterInfo[] ) {
@@ -169,6 +189,31 @@ static PeripheralInfo stm32f1xl_flash_info = {
             } , /**/
 };
 
+static void stm32f1xd_flash_create_objects(Object *obj)
+{
+    STM32FlashState *state = STM32_FLASH_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f1xd_flash_info);
+
+    state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
+    state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
+    state->f1.reg.optkeyr = cm_object_get_child_by_name(obj, "optkeyr");
+    state->f1.reg.sr = cm_object_get_child_by_name(obj, "sr");
+    state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+    state->f1.reg.ar = cm_object_get_child_by_name(obj, "ar");
+    state->f1.reg.obr = cm_object_get_child_by_name(obj, "obr");
+    state->f1.reg.wrpr = cm_object_get_child_by_name(obj, "wrpr");
+
+    state->f1.reg.keyr2 = cm_object_get_child_by_name(obj, "keyr2");
+    state->f1.reg.sr2 = cm_object_get_child_by_name(obj, "sr2");
+    state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "cr2");
+    state->f1.reg.ar2 = cm_object_get_child_by_name(obj, "ar2");
+
+    /* ACR bitfields. */
+    state->f1.acr.prftbs = cm_object_get_child_by_name(
+            OBJECT(state->f1.reg.acr), "prftbs");
+}
+
 /* ------------------------------------------------------------------------- */
 
 static void stm32_flash_instance_init_callback(Object *obj)
@@ -222,44 +267,13 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F1:
 
         if (!capabilities->f1.is_xd) {
-            peripheral_new_with_info(obj, NULL, &stm32f1_flash_info);
-
-            state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
-            state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
-            state->f1.reg.optkeyr = cm_object_get_child_by_name(obj, "optkeyr");
-            state->f1.reg.sr = cm_object_get_child_by_name(obj, "sr");
-            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
-            state->f1.reg.ar = cm_object_get_child_by_name(obj, "ar");
-            state->f1.reg.obr = cm_object_get_child_by_name(obj, "obr");
-            state->f1.reg.wrpr = cm_object_get_child_by_name(obj, "wrpr");
-
-            /* ACR bitfields. */
-            state->f1.acr.prftbs = cm_object_get_child_by_name(
-                    OBJECT(state->f1.reg.acr), "prftbs");
+            stm32f1_flash_create_objects(obj);
 
             /* Auto bits. */
             cm_object_property_set_str(state->f1.acr.prftbs, "prftbe",
                     "follows");
         } else {
-            peripheral_new_with_info(obj, NULL, &stm32f1xl_flash_info);
-
-            state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
-            state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
-            state->f1.reg.optkeyr = cm_object_get_child_by_name(obj, "optkeyr");
-            state->f1.reg.sr = cm_object_get_child_by_name(obj, "sr");
-            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
-            state->f1.reg.ar = cm_object_get_child_by_name(obj, "ar");
-            state->f1.reg.obr = cm_object_get_child_by_name(obj, "obr");
-            state->f1.reg.wrpr = cm_object_get_child_by_name(obj, "wrpr");
-
-            state->f1.reg.keyr2 = cm_object_get_child_by_name(obj, "keyr2");
-            state->f1.reg.sr2 = cm_object_get_child_by_name(obj, "sr2");
-            state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "cr2");
-            state->f1.reg.ar2 = cm_object_get_child_by_name(obj, "ar2");
-
-            /* ACR bitfields. */
-            state->f1.acr.prftbs = cm_object_get_child_by_name(
-                    OBJECT(state->f1.reg.acr), "prftbs");
+            stm32f1xd_flash_create_objects(obj);
 
             /* Auto bits. */
             cm_object_property_set_str(state->f1.acr.prftbs, "prftbe",

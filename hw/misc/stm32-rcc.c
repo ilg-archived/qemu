@@ -45,16 +45,6 @@ static void stm32_rcc_update_clocks(STM32RCCState *state);
 
 /* ------------------------------------------------------------------------- */
 
-static void stm32f1_rcc_post_write_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
-{
-    STM32RCCState *state = STM32_RCC_STATE(periph);
-    stm32_rcc_update_clocks(state);
-}
-
-/* ------------------------------------------------------------------------- */
-
 /* STM32F1[LMHX]D */
 
 static PeripheralInfo stm32f1_rcc_info =
@@ -565,6 +555,77 @@ static PeripheralInfo stm32f1_rcc_info =
                                 { }, /**/
                             } , /**/
         };
+
+static void stm32f1_rcc_create_objects(Object *obj)
+{
+    STM32RCCState *state = STM32_RCC_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f1_rcc_info);
+
+    state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+    state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
+    state->f1.reg.cir = cm_object_get_child_by_name(obj, "cir");
+    state->f1.reg.apb2rstr = cm_object_get_child_by_name(obj, "apb2rstr");
+    state->f1.reg.apb1rstr = cm_object_get_child_by_name(obj, "apb1rstr");
+    state->f1.reg.ahbenr = cm_object_get_child_by_name(obj, "ahbenr");
+    state->f1.reg.apb2enr = cm_object_get_child_by_name(obj, "apb2enr");
+
+    state->f1.reg.apb1enr = cm_object_get_child_by_name(obj, "apb1enr");
+    state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "bdcr");
+    state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
+
+    /* CR bitfields. */
+    state->f1.cr.hsirdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "hsirdy");
+    state->f1.cr.hserdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "hserdy");
+    state->f1.cr.pllrdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "pllrdy");
+
+    /* CFGR bitfields. */
+    state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr, "sws");
+    state->f1.cfgr.pllmul = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "pllmul");
+    state->f1.cfgr.pllsrc = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "pllsrc");
+    state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "pllxtpre");
+    state->f1.cfgr.hpre = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "hpre");
+
+    /* CIR bitfields. */
+    state->f1.cir.lsirdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "lsirdyf");
+    state->f1.cir.lserdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "lserdyf");
+    state->f1.cir.hsirdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "hsirdyf");
+    state->f1.cir.hserdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "hserdyf");
+    state->f1.cir.pllrdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "pllrdyf");
+    state->f1.cir.cssf = cm_object_get_child_by_name(state->f1.reg.cir, "cssf");
+
+    /* BDCR bitfields. */
+    state->f1.bdcr.lserdy = cm_object_get_child_by_name(state->f1.reg.bdcr,
+            "lserdy");
+
+    /* CSR bitfields. */
+    state->f1.csr.lsirdy = cm_object_get_child_by_name(state->f1.reg.csr,
+            "lsirdy");
+    state->f1.csr.pinrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "pinrstf");
+    state->f1.csr.porrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "porrstf");
+    state->f1.csr.stfrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "stfrstf");
+    state->f1.csr.iwdgrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "iwdgrstf");
+    state->f1.csr.wwdgrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "wwdgrstf");
+    state->f1.csr.lrwrrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "lrwrrstf");
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -1165,6 +1226,98 @@ static PeripheralInfo stm32f1cl_rcc_info =
                             } , /**/
         };
 
+static void stm32f1cl_rcc_create_objects(Object *obj)
+{
+    STM32RCCState *state = STM32_RCC_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f1cl_rcc_info);
+
+    state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
+    state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
+    state->f1.reg.cir = cm_object_get_child_by_name(obj, "cir");
+    state->f1.reg.apb2rstr = cm_object_get_child_by_name(obj, "apb2rstr");
+    state->f1.reg.apb1rstr = cm_object_get_child_by_name(obj, "apb1rstr");
+    state->f1.reg.ahbenr = cm_object_get_child_by_name(obj, "ahbenr");
+    state->f1.reg.apb2enr = cm_object_get_child_by_name(obj, "apb2enr");
+
+    state->f1.reg.apb1enr = cm_object_get_child_by_name(obj, "apb1enr");
+    state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "bdcr");
+    state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
+
+    state->f1.reg.ahbrstr = cm_object_get_child_by_name(obj, "ahbrstr");
+    state->f1.reg.cfgr2 = cm_object_get_child_by_name(obj, "cfgr2");
+
+    /* CR bitfields. */
+    state->f1.cr.hsirdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "hsirdy");
+    state->f1.cr.hserdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "hserdy");
+    state->f1.cr.pllrdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "pllrdy");
+    state->f1.cr.pll2rdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "pll2rdy");
+    state->f1.cr.pll3rdy = cm_object_get_child_by_name(state->f1.reg.cr,
+            "pll3rdy");
+
+    /* CFGR bitfields. */
+    state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr, "sws");
+    state->f1.cfgr.pllmul = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "pllmul");
+    state->f1.cfgr.pllsrc = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "pllsrc");
+    state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "pllxtpre");
+    state->f1.cfgr.hpre = cm_object_get_child_by_name(state->f1.reg.cfgr,
+            "hpre");
+
+    /* CIR bitfields. */
+    state->f1.cir.lsirdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "lsirdyf");
+    state->f1.cir.lserdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "lserdyf");
+    state->f1.cir.hsirdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "hsirdyf");
+    state->f1.cir.hserdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "hserdyf");
+    state->f1.cir.pllrdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "pllrdyf");
+    state->f1.cir.pll2rdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "pll2rdyf");
+    state->f1.cir.pll3rdyf = cm_object_get_child_by_name(state->f1.reg.cir,
+            "pll3rdyf");
+    state->f1.cir.cssf = cm_object_get_child_by_name(state->f1.reg.cir, "cssf");
+
+    /* BDCR bitfields. */
+    state->f1.bdcr.lserdy = cm_object_get_child_by_name(state->f1.reg.bdcr,
+            "lserdy");
+
+    /* CSR bitfields. */
+    state->f1.csr.lsirdy = cm_object_get_child_by_name(state->f1.reg.csr,
+            "lsirdy");
+    state->f1.csr.pinrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "pinrstf");
+    state->f1.csr.porrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "porrstf");
+    state->f1.csr.stfrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "stfrstf");
+    state->f1.csr.iwdgrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "iwdgrstf");
+    state->f1.csr.wwdgrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "wwdgrstf");
+    state->f1.csr.lrwrrstf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "lrwrrstf");
+
+    /* CFGR2 bitfields. */
+    state->f1.cfgr2.prediv1 = cm_object_get_child_by_name(state->f1.reg.cfgr2,
+            "prediv1");
+    state->f1.cfgr2.prediv2 = cm_object_get_child_by_name(state->f1.reg.cfgr2,
+            "prediv2");
+    state->f1.cfgr2.pll2mul = cm_object_get_child_by_name(state->f1.reg.cfgr2,
+            "pll2mul");
+    state->f1.cfgr2.prediv1src = cm_object_get_child_by_name(
+            state->f1.reg.cfgr2, "prediv1src");
+}
+
 /* ------------------------------------------------------------------------- */
 
 static uint8_t AHBPrescTable[16] = {
@@ -1186,6 +1339,16 @@ static uint8_t AHBPrescTable[16] = {
     9 };
 
 extern int system_clock_scale;
+
+/* ------------------------------------------------------------------------- */
+
+static void stm32f1_rcc_post_write_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value)
+{
+    STM32RCCState *state = STM32_RCC_STATE(periph);
+    stm32_rcc_update_clocks(state);
+}
 
 /**
  * Recompute the system clock, after each change in the RCC registers.
@@ -1408,75 +1571,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
         if (!capabilities->f1.is_cl) {
 
-            peripheral_new_with_info(obj, NULL, &stm32f1_rcc_info);
-
-            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
-            state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
-            state->f1.reg.cir = cm_object_get_child_by_name(obj, "cir");
-            state->f1.reg.apb2rstr = cm_object_get_child_by_name(obj,
-                    "apb2rstr");
-            state->f1.reg.apb1rstr = cm_object_get_child_by_name(obj,
-                    "apb1rstr");
-            state->f1.reg.ahbenr = cm_object_get_child_by_name(obj, "ahbenr");
-            state->f1.reg.apb2enr = cm_object_get_child_by_name(obj, "apb2enr");
-
-            state->f1.reg.apb1enr = cm_object_get_child_by_name(obj, "apb1enr");
-            state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "bdcr");
-            state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
-
-            /* CR bitfields. */
-            state->f1.cr.hsirdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "hsirdy");
-            state->f1.cr.hserdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "hserdy");
-            state->f1.cr.pllrdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "pllrdy");
-
-            /* CFGR bitfields. */
-            state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr,
-                    "sws");
-            state->f1.cfgr.pllmul = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "pllmul");
-            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "pllsrc");
-            state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "pllxtpre");
-            state->f1.cfgr.hpre = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "hpre");
-
-            /* CIR bitfields. */
-            state->f1.cir.lsirdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "lsirdyf");
-            state->f1.cir.lserdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "lserdyf");
-            state->f1.cir.hsirdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "hsirdyf");
-            state->f1.cir.hserdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "hserdyf");
-            state->f1.cir.pllrdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "pllrdyf");
-            state->f1.cir.cssf = cm_object_get_child_by_name(state->f1.reg.cir,
-                    "cssf");
-
-            /* BDCR bitfields. */
-            state->f1.bdcr.lserdy = cm_object_get_child_by_name(
-                    state->f1.reg.bdcr, "lserdy");
-
-            /* CSR bitfields. */
-            state->f1.csr.lsirdy = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "lsirdy");
-            state->f1.csr.pinrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "pinrstf");
-            state->f1.csr.porrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "porrstf");
-            state->f1.csr.stfrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "stfrstf");
-            state->f1.csr.iwdgrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "iwdgrstf");
-            state->f1.csr.wwdgrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "wwdgrstf");
-            state->f1.csr.lrwrrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "lrwrrstf");
+            stm32f1_rcc_create_objects(obj);
 
             /* Callbacks. */
             peripheral_register_set_post_write(state->f1.reg.cr,
@@ -1528,96 +1623,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
         } else {
 
-            peripheral_new_with_info(obj, NULL, &stm32f1cl_rcc_info);
-
-            state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
-            state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
-            state->f1.reg.cir = cm_object_get_child_by_name(obj, "cir");
-            state->f1.reg.apb2rstr = cm_object_get_child_by_name(obj,
-                    "apb2rstr");
-            state->f1.reg.apb1rstr = cm_object_get_child_by_name(obj,
-                    "apb1rstr");
-            state->f1.reg.ahbenr = cm_object_get_child_by_name(obj, "ahbenr");
-            state->f1.reg.apb2enr = cm_object_get_child_by_name(obj, "apb2enr");
-
-            state->f1.reg.apb1enr = cm_object_get_child_by_name(obj, "apb1enr");
-            state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "bdcr");
-            state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
-
-            state->f1.reg.ahbrstr = cm_object_get_child_by_name(obj, "ahbrstr");
-            state->f1.reg.cfgr2 = cm_object_get_child_by_name(obj, "cfgr2");
-
-            /* CR bitfields. */
-            state->f1.cr.hsirdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "hsirdy");
-            state->f1.cr.hserdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "hserdy");
-            state->f1.cr.pllrdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "pllrdy");
-            state->f1.cr.pll2rdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "pll2rdy");
-            state->f1.cr.pll3rdy = cm_object_get_child_by_name(state->f1.reg.cr,
-                    "pll3rdy");
-
-            /* CFGR bitfields. */
-            state->f1.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr,
-                    "sws");
-            state->f1.cfgr.pllmul = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "pllmul");
-            state->f1.cfgr.pllsrc = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "pllsrc");
-            state->f1.cfgr.pllxtpre = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "pllxtpre");
-            state->f1.cfgr.hpre = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr, "hpre");
-
-            /* CIR bitfields. */
-            state->f1.cir.lsirdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "lsirdyf");
-            state->f1.cir.lserdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "lserdyf");
-            state->f1.cir.hsirdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "hsirdyf");
-            state->f1.cir.hserdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "hserdyf");
-            state->f1.cir.pllrdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "pllrdyf");
-            state->f1.cir.pll2rdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "pll2rdyf");
-            state->f1.cir.pll3rdyf = cm_object_get_child_by_name(
-                    state->f1.reg.cir, "pll3rdyf");
-            state->f1.cir.cssf = cm_object_get_child_by_name(state->f1.reg.cir,
-                    "cssf");
-
-            /* BDCR bitfields. */
-            state->f1.bdcr.lserdy = cm_object_get_child_by_name(
-                    state->f1.reg.bdcr, "lserdy");
-
-            /* CSR bitfields. */
-            state->f1.csr.lsirdy = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "lsirdy");
-            state->f1.csr.pinrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "pinrstf");
-            state->f1.csr.porrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "porrstf");
-            state->f1.csr.stfrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "stfrstf");
-            state->f1.csr.iwdgrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "iwdgrstf");
-            state->f1.csr.wwdgrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "wwdgrstf");
-            state->f1.csr.lrwrrstf = cm_object_get_child_by_name(
-                    state->f1.reg.csr, "lrwrrstf");
-
-            /* CFGR2 bitfields. */
-            state->f1.cfgr2.prediv1 = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr2, "prediv1");
-            state->f1.cfgr2.prediv2 = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr2, "prediv2");
-            state->f1.cfgr2.pll2mul = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr2, "pll2mul");
-            state->f1.cfgr2.prediv1src = cm_object_get_child_by_name(
-                    state->f1.reg.cfgr2, "prediv1src");
+            stm32f1cl_rcc_create_objects(obj);
 
             /* Add callbacks. */
             peripheral_register_set_post_write(state->f1.reg.cr,
@@ -1676,7 +1682,6 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     "cleared-by");
             cm_object_property_set_str(state->f1.csr.lrwrrstf, "rmvf",
                     "cleared-by");
-
         }
         break;
 

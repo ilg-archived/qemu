@@ -226,6 +226,20 @@ static PeripheralInfo stm32f1_gpio_info = {
             } , /**/
 };
 
+static void stm32f1_gpio_create_objects(Object *obj)
+{
+    STM32GPIOState *state = STM32_GPIO_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f1_gpio_info);
+
+    state->f1.reg.crl = cm_object_get_child_by_name(obj, "crl");
+    state->f1.reg.crh = cm_object_get_child_by_name(obj, "crh");
+    state->f1.reg.idr = cm_object_get_child_by_name(obj, "idr");
+    state->f1.reg.odr = cm_object_get_child_by_name(obj, "odr");
+    state->f1.reg.bsrr = cm_object_get_child_by_name(obj, "bsrr");
+    state->f1.reg.brr = cm_object_get_child_by_name(obj, "brr");
+    state->f1.reg.lckr = cm_object_get_child_by_name(obj, "lckr");
+}
 /* ------------------------------------------------------------------------- */
 
 /**
@@ -465,6 +479,24 @@ static PeripheralInfo stm32f4_gpio_info =
                                 { }, /**/
                             } , /**/
         };
+
+static void stm32f4_gpio_create_objects(Object *obj)
+{
+    STM32GPIOState *state = STM32_GPIO_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f4_gpio_info);
+
+    state->f4.reg.moder = cm_object_get_child_by_name(obj, "moder");
+    state->f4.reg.otyper = cm_object_get_child_by_name(obj, "otyper");
+    state->f4.reg.ospeeder = cm_object_get_child_by_name(obj, "ospeeder");
+    state->f4.reg.pupdr = cm_object_get_child_by_name(obj, "pupdr");
+    state->f4.reg.idr = cm_object_get_child_by_name(obj, "idr");
+    state->f4.reg.odr = cm_object_get_child_by_name(obj, "odr");
+    state->f4.reg.bsrr = cm_object_get_child_by_name(obj, "bsrr");
+    state->f4.reg.afrl = cm_object_get_child_by_name(obj, "afrl");
+    state->f4.reg.afrh = cm_object_get_child_by_name(obj, "afrh");
+    state->f4.reg.lckr = cm_object_get_child_by_name(obj, "lckr");
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -717,16 +749,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
-
-        peripheral_new_with_info(obj, NULL, &stm32f1_gpio_info);
-
-        state->f1.reg.crl = cm_object_get_child_by_name(obj, "crl");
-        state->f1.reg.crh = cm_object_get_child_by_name(obj, "crh");
-        state->f1.reg.idr = cm_object_get_child_by_name(obj, "idr");
-        state->f1.reg.odr = cm_object_get_child_by_name(obj, "odr");
-        state->f1.reg.bsrr = cm_object_get_child_by_name(obj, "bsrr");
-        state->f1.reg.brr = cm_object_get_child_by_name(obj, "brr");
-        state->f1.reg.lckr = cm_object_get_child_by_name(obj, "lckr");
+        stm32f1_gpio_create_objects(obj);
 
         /* Add callbacks. */
         peripheral_register_set_post_write(state->f1.reg.crl,
@@ -743,19 +766,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F4:
-
-        peripheral_new_with_info(obj, NULL, &stm32f4_gpio_info);
-
-        state->f4.reg.moder = cm_object_get_child_by_name(obj, "moder");
-        state->f4.reg.otyper = cm_object_get_child_by_name(obj, "otyper");
-        state->f4.reg.ospeeder = cm_object_get_child_by_name(obj, "ospeeder");
-        state->f4.reg.pupdr = cm_object_get_child_by_name(obj, "pupdr");
-        state->f4.reg.idr = cm_object_get_child_by_name(obj, "idr");
-        state->f4.reg.odr = cm_object_get_child_by_name(obj, "odr");
-        state->f4.reg.bsrr = cm_object_get_child_by_name(obj, "bsrr");
-        state->f4.reg.afrl = cm_object_get_child_by_name(obj, "afrl");
-        state->f4.reg.afrh = cm_object_get_child_by_name(obj, "afrh");
-        state->f4.reg.lckr = cm_object_get_child_by_name(obj, "lckr");
+        stm32f4_gpio_create_objects(obj);
 
         /* Add callbacks. */
         peripheral_register_set_post_write(state->f4.reg.moder,
