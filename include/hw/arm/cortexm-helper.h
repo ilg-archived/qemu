@@ -80,6 +80,11 @@ Object *cm_container_get_peripheral(void);
 void cm_object_property_add_child(Object *parent, const char *node_name,
         Object *child);
 
+ObjectProperty *
+cm_object_property_add(Object *obj, const char *name, const char *type,
+        ObjectPropertyAccessor *get, ObjectPropertyAccessor *set,
+        ObjectPropertyRelease *release, void *opaque);
+
 void cm_object_property_add_str(Object *obj, const char *name, char **v);
 
 void cm_object_property_add_const_str(Object *obj, const char *name,

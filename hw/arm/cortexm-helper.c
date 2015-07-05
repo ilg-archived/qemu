@@ -415,6 +415,24 @@ static void cm_property_set_bool(Object *obj, Visitor *v, void *opaque,
     error_propagate(errp, local_err);
 }
 
+ObjectProperty *
+cm_object_property_add(Object *obj, const char *name, const char *type,
+        ObjectPropertyAccessor *get, ObjectPropertyAccessor *set,
+        ObjectPropertyRelease *release, void *opaque)
+{
+    Error *local_err = NULL;
+    ObjectProperty *prop;
+    prop = object_property_add(obj, name, type, get, set, release, opaque,
+            &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+
+    return prop;
+}
+
 void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
 {
     Error *local_err = NULL;
