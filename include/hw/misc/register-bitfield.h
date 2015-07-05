@@ -107,6 +107,9 @@ typedef struct {
 
 /* ----- Public ------------------------------------------------------------ */
 
+Object *register_bitfield_new_with_info(Object *reg, const char *node_name,
+        RegisterBitfieldInfo *bifi_info);
+
 bool register_bitfield_is_zero(Object* obj);
 peripheral_register_t register_bitfield_read_value(Object* obj);
 

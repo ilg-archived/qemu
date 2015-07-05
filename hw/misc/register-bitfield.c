@@ -33,6 +33,65 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
+Object *register_bitfield_new_with_info(Object *parent_obj,
+        const char *node_name, RegisterBitfieldInfo *info)
+{
+    Object *obj = cm_object_new(parent_obj, node_name,
+    TYPE_REGISTER_BITFIELD);
+
+    cm_object_property_set_str(obj, node_name, "name");
+
+    assert(info->first_bit < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
+    cm_object_property_set_int(obj, info->first_bit, "first-bit");
+
+    assert(info->width_bits < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
+    if (info->width_bits) {
+        cm_object_property_set_int(obj, info->width_bits,
+                "width-bits");
+    }
+
+    if (info->rw_mode != 0) {
+        if (info->rw_mode & REGISTER_RW_MODE_READ) {
+            cm_object_property_set_bool(obj, true, "is-readable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-readable");
+        }
+        if (info->rw_mode & REGISTER_RW_MODE_WRITE) {
+            cm_object_property_set_bool(obj, true, "is-writable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-writable");
+        }
+    } else {
+        /*
+         * Leave both false, as set by the option defaults,
+         * in bitfield realize() this dual condition is tested to
+         * compute the actual values using parent values.
+         */
+    }
+
+    int size_bits = 0;
+    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(parent_obj);
+    size_bits = reg_state->size_bits;
+
+    cm_object_property_set_int(obj, size_bits, "register-size-bits");
+
+    if (info->follows != NULL && strlen(info->follows) > 0) {
+        cm_object_property_set_str(obj, info->follows, "follows");
+    }
+
+    if (info->cleared_by != NULL
+            && strlen(info->cleared_by) > 0) {
+        cm_object_property_set_str(obj, info->cleared_by,
+                "cleared-by");
+    }
+
+    if (info->set_by != NULL && strlen(info->set_by) > 0) {
+        cm_object_property_set_str(obj, info->set_by, "set-by");
+    }
+
+    return obj;
+}
+
 /**
  * Get the value of a bitfield, shifted to the right.
  */

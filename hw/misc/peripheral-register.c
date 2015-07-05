@@ -29,9 +29,6 @@
  * types that redefine these methods.
  */
 
-static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
-        int size_bits, Object *reg);
-
 /* ----- Public ------------------------------------------------------------ */
 
 Object *peripheral_register_new_with_info(Object *parent_obj,
@@ -96,7 +93,15 @@ Object *peripheral_register_new_with_info(Object *parent_obj,
     }
 
     if (info->bitfields) {
-        peripheral_register_add_bitfields(info->bitfields, size_bits, obj);
+        RegisterBitfieldInfo *bifi_info;
+        for (bifi_info = info->bitfields; bifi_info->name; ++bifi_info) {
+
+            Object *bifi = register_bitfield_new_with_info(obj, bifi_info->name,
+                    bifi_info);
+
+            /* Should we delay until the register is realized()? */
+            cm_object_realize(bifi);
+        }
     }
 
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
@@ -160,67 +165,6 @@ peripheral_register_t peripheral_register_get_raw_prev_value(Object* obj)
 }
 
 /* ----- Private ----------------------------------------------------------- */
-
-static void peripheral_register_add_bitfields(RegisterBitfieldInfo *bitfields,
-        int size_bits, Object *reg)
-{
-
-    RegisterBitfieldInfo *bifi_info;
-    for (bifi_info = bitfields; bifi_info->name; ++bifi_info) {
-
-        Object *bifi = cm_object_new(reg, bifi_info->name,
-        TYPE_REGISTER_BITFIELD);
-
-        cm_object_property_set_str(bifi, bifi_info->name, "name");
-
-        assert(bifi_info->first_bit < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
-        cm_object_property_set_int(bifi, bifi_info->first_bit, "first-bit");
-
-        assert(bifi_info->width_bits < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
-        if (bifi_info->width_bits) {
-            cm_object_property_set_int(bifi, bifi_info->width_bits,
-                    "width-bits");
-        }
-
-        if (bifi_info->rw_mode != 0) {
-            if (bifi_info->rw_mode & REGISTER_RW_MODE_READ) {
-                cm_object_property_set_bool(bifi, true, "is-readable");
-            } else {
-                cm_object_property_set_bool(bifi, false, "is-readable");
-            }
-            if (bifi_info->rw_mode & REGISTER_RW_MODE_WRITE) {
-                cm_object_property_set_bool(bifi, true, "is-writable");
-            } else {
-                cm_object_property_set_bool(bifi, false, "is-writable");
-            }
-        } else {
-            /*
-             * Leave both false, as set by the option defaults,
-             * in bitfield realize() this dual condition is tested to
-             * compute the actual values using parent values.
-             */
-        }
-
-        cm_object_property_set_int(bifi, size_bits, "register-size-bits");
-
-        if (bifi_info->follows != NULL && strlen(bifi_info->follows) > 0) {
-            cm_object_property_set_str(bifi, bifi_info->follows, "follows");
-        }
-
-        if (bifi_info->cleared_by != NULL
-                && strlen(bifi_info->cleared_by) > 0) {
-            cm_object_property_set_str(bifi, bifi_info->cleared_by,
-                    "cleared-by");
-        }
-
-        if (bifi_info->set_by != NULL && strlen(bifi_info->set_by) > 0) {
-            cm_object_property_set_str(bifi, bifi_info->set_by, "set-by");
-        }
-
-        /* Should we delay until the register is realized()? */
-        cm_object_realize(bifi);
-    }
-}
 
 /**
  * Structure used to process endianness.
