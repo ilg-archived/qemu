@@ -104,12 +104,6 @@ Object *peripheral_register_new_with_info(Object *parent_obj,
         }
     }
 
-    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
-
-    /* Direct pointer access. Not very nice, but this is an exception. */
-    state->pre_read = info->pre_read;
-    state->post_write = info->post_write;
-
     return obj;
 }
 
@@ -162,6 +156,21 @@ peripheral_register_t peripheral_register_get_raw_prev_value(Object* obj)
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     return state->prev_value;
+}
+
+void peripheral_register_set_post_write(Object* obj,
+        register_write_callback_t ptr)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->post_write = ptr;
+}
+
+void peripheral_register_set_pre_read(Object* obj, register_read_callback_t ptr)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->pre_read = ptr;
 }
 
 /* ----- Private ----------------------------------------------------------- */

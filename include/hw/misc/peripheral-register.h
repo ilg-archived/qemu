@@ -85,8 +85,8 @@ typedef struct {
     RegisterBitfieldInfo *bitfields;
 
     /* Copied to instance. */
-    register_read_callback_t pre_read;
-    register_write_callback_t post_write;
+    //register_read_callback_t pre_read;
+    //register_write_callback_t post_write;
 } PeripheralRegisterInfo;
 
 typedef enum {
@@ -214,6 +214,12 @@ peripheral_register_t peripheral_register_shorten(peripheral_register_t value,
 peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
         peripheral_register_t value, uint32_t offset, unsigned size,
         bool is_little_endian);
+
+void peripheral_register_set_post_write(Object* obj,
+        register_write_callback_t ptr);
+
+void peripheral_register_set_pre_read(Object* obj,
+        register_read_callback_t ptr);
 
 /* ------------------------------------------------------------------------- */
 
