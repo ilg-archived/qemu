@@ -50,7 +50,7 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev);
 /* Redefined from armv7m.c */
 #define TYPE_BITBAND "ARM,bitband-memory"
 
-static void cortexm_bitband_init(Object *parent, const char *node_name,
+void cortexm_bitband_init(Object *parent, const char *node_name,
         uint32_t address)
 {
     DeviceState *dev;
@@ -213,7 +213,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         display_model = "Cortex-M7F";
         core_capabilities->model = CORTEX_M7F;
         core_capabilities->has_fpu = true;
-        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_SP_D16;
+        core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_DP_D16;
     } else {
         error_report("Unsupported '--cpu %s' "
                 "(cortex-m0,m0p,m1,m3,m4,m4f,m7,m7f only).", cpu_model);
@@ -440,6 +440,10 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
     vmstate_register_ram_global(sram_mem);
     memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
 
+    /*
+     * Bitband the 1 MB from 0x20000000-0x200FFFFF area to
+     * 32 MB at 0x22000000-0x23FFFFFF.
+     */
     cortexm_bitband_init(mem_container, "sram-bitband", 0x20000000);
 
     MemoryRegion *hack_mem = &cm_state->hack_mem;

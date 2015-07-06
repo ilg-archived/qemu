@@ -31,6 +31,7 @@
 #define CORTEX_M_FPU_TYPE_NONE (0)
 #define CORTEX_M_FPU_TYPE_FPV4_SP_D16 (1)
 #define CORTEX_M_FPU_TYPE_FPV5_SP_D16 (2)
+#define CORTEX_M_FPU_TYPE_FPV5_DP_D16 (3)
 
 typedef enum {
     CORTEX_UNDEFINED = 0,
