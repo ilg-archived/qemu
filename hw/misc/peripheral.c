@@ -19,6 +19,7 @@
 
 #include "hw/misc/peripheral.h"
 #include "hw/arm/cortexm-helper.h"
+#include "qemu/error-report.h"
 
 /* ----- Public ------------------------------------------------------------ */
 
@@ -209,7 +210,11 @@ static int peripheral_populate_registers_array_foreach(Object *obj,
 
         uint32_t index = reg->offset_bytes / periph->register_size_bytes;
         assert(index < periph->registers_size_ptrs);
-        assert(periph->registers[index] == NULL);
+        if (periph->registers[index]) {
+            error_report("Register %s overlaps %s at 0x%X", reg->name,
+            PERIPHERAL_REGISTER_STATE(periph->registers[index])->name,
+                    reg->offset_bytes);
+        }
 
         periph->registers[index] = obj;
 
