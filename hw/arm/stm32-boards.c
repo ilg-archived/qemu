@@ -18,9 +18,7 @@
  */
 
 #include "hw/arm/stm32-mcus.h"
-#include "qemu/module.h"
-#include "sysemu/sysemu.h"
-#include "qom/object.h"
+#include "hw/display/gpio-led.h"
 #include "hw/arm/cortexm-helper.h"
 
 /*
@@ -29,21 +27,58 @@
  */
 
 /* ----- ST STM32F4-Discovery ----- */
-static void
-stm32f4_discovery_board_init_callback(MachineState *machine);
 
-static QEMUMachine stm32f4_discovery_machine = {
-    .name = "STM32F4-Discovery",
-    .desc = "ST Discovery kit for STM32F407/417 lines (Experimental)",
-    .init = stm32f4_discovery_board_init_callback };
+static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = false,
+        .colour_message = "Green",
+        .gpio_path = "/machine/mcu/stm32/gpio[d]",
+        .port_bit = 12, },
+    {
+        .name = "orange-led",
+        .active_low = false,
+        .colour_message = "Orange",
+        .gpio_path = "/machine/mcu/stm32/gpio[d]",
+        .port_bit = 13, },
+    {
+        .name = "red-led",
+        .active_low = false,
+        .colour_message = "Red",
+        .gpio_path = "/machine/mcu/stm32/gpio[d]",
+        .port_bit = 14, },
+    {
+        .name = "blue-led",
+        .active_low = false,
+        .colour_message = "Blue",
+        .gpio_path = "/machine/mcu/stm32/gpio[d]",
+        .port_bit = 15, },
+    { }, /**/
+};
 
 static void stm32f4_discovery_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F407VG);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F407VG);
+
+        /* Set the board specific oscillator frequencies. */
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+
+        cm_object_realize(mcu);
+    }
+
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info);
 }
+
+static QEMUMachine stm32f4_discovery_machine = {
+    .name = "STM32F4-Discovery",
+    .desc = "ST Discovery kit for STM32F407/417 lines",
+    .init = stm32f4_discovery_board_init_callback };
 
 /* ----- ST STM32F429I-Discovery ----- */
 static void
