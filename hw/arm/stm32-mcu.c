@@ -127,6 +127,14 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
                 flash_alias_mem);
     }
 
+    /* Peripheral bitband. */
+    {
+        if (capabilities->has_periph_bitband) {
+            cortexm_bitband_init(state->container, "periph-bitband",
+                    0x40000000);
+        }
+    }
+
     /* RCC */
     {
         /* RCC will be named "/machine/mcu/stm32/rcc" */
@@ -163,6 +171,18 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         cm_object_realize(flash);
 
         state->flash = DEVICE(flash);
+    }
+
+    if (capabilities->has_pwr) {
+        Object *pwr = cm_object_new(state->container, "pwr",
+        TYPE_STM32_PWR);
+
+        // TODO: get rid of pointers
+        qdev_prop_set_ptr(DEVICE(pwr), "capabilities", (void *) capabilities);
+
+        cm_object_realize(pwr);
+
+        state->pwr = DEVICE(pwr);
     }
 
     /* GPIOA */
@@ -239,6 +259,7 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
     CortexMClass *parent_class = CORTEXM_MCU_CLASS(
             object_class_by_name(TYPE_CORTEXM_MCU));
     parent_class->memory_regions_create(dev);
+
 }
 
 #define DEFINE_PROP_STM32CAPABILITIES_PTR(_n, _s, _f) \

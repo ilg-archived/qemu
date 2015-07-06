@@ -63,6 +63,11 @@ typedef struct {
     uint32_t back_sram_size_kb; /* size of backup SRAM area, in KB */
 
     /*
+     * Bitband the 1 MB from 0x40000000-0x400FFFFF area to
+     * 32 MB at 0x42000000-0x43FFFFFF.
+     */
+    unsigned int has_periph_bitband :1;
+    /*
      * Peripherals common to all families.
      */
     unsigned int has_rcc :1;

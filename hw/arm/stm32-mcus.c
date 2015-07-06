@@ -103,6 +103,7 @@ static const STM32Capabilities stm32f103x8b = {
     .has_pwr = true,
     .has_rtc = true,
     .num_back_bytes = 20,
+    .has_periph_bitband = true,
 
     .has_crc = true,
     .has_exti = true,
@@ -266,6 +267,7 @@ static const STM32Capabilities stm32f407xx = {
     .has_pwr = true,
     .has_rtc = true,
     .num_back_bytes = 80,
+    .has_periph_bitband = true,
 
     .ccm_size_kb = 64,
     .back_sram_size_kb = 4,
