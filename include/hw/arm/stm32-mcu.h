@@ -24,6 +24,7 @@
 #include "hw/arm/cortexm-mcu.h"
 #include "hw/misc/stm32-rcc.h"
 #include "hw/misc/stm32-flash.h"
+#include "hw/misc/stm32-pwr.h"
 #include "hw/gpio/stm32-gpio.h"
 
 /* ------------------------------------------------------------------------- */
@@ -79,6 +80,7 @@ typedef struct STM32MCUState {
     uint32_t lse_freq_hz;
 
     DeviceState *flash;
+    DeviceState *pwr;
     DeviceState *gpio[STM32_MAX_GPIO];
 } STM32MCUState;
 
