@@ -151,8 +151,88 @@ typedef struct {
     struct {
         /* F4 specific registers */
         struct {
-            // TODO: add them
+            Object *cr; /* 0x00 */
+            Object *pllcfgr; /* 0x04 */
+            Object *cfgr; /* 0x08 */
+            Object *cir; /* 0x0C */
+            Object *ahb1rstr; /* 0x10 */
+            Object *ahb2rstr; /* 0x14 */
+            Object *ahb3rstr; /* 0x18 */
+            Object *apb1rstr; /* 0x20 */
+            Object *apb2rstr; /* 0x24 */
+            Object *ahb1enr; /* 0x30 */
+            Object *ahb2enr; /* 0x34 */
+            Object *ahb3enr; /* 0x38 */
+            Object *apb1enr; /* 0x40 */
+            Object *apb2enr; /* 0x44 */
+            Object *ahb1lpenr; /* 0x50 */
+            Object *ahb2lpenr; /* 0x54 */
+            Object *ahb3lpenr; /* 0x58 */
+            Object *apb1lpenr; /* 0x60 */
+            Object *apb2lpenr; /* 0x64 */
+            Object *bdcr; /* 0x70 */
+            Object *csr; /* 0x74 */
+            Object *sscgr; /* 0x80 */
+            Object *plli2scfgr; /* 0x84 */
         } reg;
+        struct {
+            struct {
+                Object *hsion;
+                Object *hsirdy;
+                Object *hsitrim;
+                Object *hsical;
+                Object *hseon;
+                Object *hserdy;
+                Object *hsebyp;
+                Object *csson;
+                Object *pllon;
+                Object *pllrdy;
+                Object *plli2son;
+                Object *plli2srdy;
+            } cr;
+            struct {
+                Object *pllm;
+                Object *plln;
+                Object *pllp;
+                Object *pllsrc;
+                Object *pllq;
+            } pllcfgr;
+            struct {
+                Object *sw;
+                Object *sws;
+                Object *hpre;
+                Object *ppre1;
+                Object *ppre2;
+                Object *rtcpre;
+                Object *mco1;
+                Object *i2ssrc;
+                Object *mco1pre;
+                Object *mco2pre;
+                Object *mco2;
+            } cfgr;
+            struct {
+                Object *lsirdyf;
+                Object *lserdyf;
+                Object *hsirdyf;
+                Object *hserdyf;
+                Object *pllrdyf;
+                Object *plli2srdyf;
+                Object *cssf;
+            } cir;
+            struct {
+                Object *lserdy;
+            } bdcr;
+            struct {
+                Object *lsirdy;
+                Object *pinrstf;
+                Object *porrstf;
+                Object *stfrstf;
+                Object *iwdgrstf;
+                Object *wwdgrstf;
+                Object *lpwrrstf;
+            } csr;
+
+        } fld;
     } f4;
 
     const STM32Capabilities *capabilities;
