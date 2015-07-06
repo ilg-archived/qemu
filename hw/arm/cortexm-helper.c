@@ -317,6 +317,7 @@ void cm_object_property_set_bool(Object *obj, bool value, const char *name)
 void cm_object_property_set_str(Object *obj, const char *value,
         const char *name)
 {
+    assert(obj);
     if (value == NULL) {
         return;
     }

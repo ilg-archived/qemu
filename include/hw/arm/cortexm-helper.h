@@ -48,6 +48,9 @@ void cm_board_greeting(MachineState *machine);
 
 /* ------------------------------------------------------------------------- */
 
+void cortexm_bitband_init(Object *parent, const char *node_name,
+        uint32_t address);
+
 ARMCPU *cm_cpu_arm_create(Object *parent, const char *cpu_model);
 
 Object *cm_object_new(Object *parent, const char *name, const char *type_name);
