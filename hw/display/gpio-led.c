@@ -27,6 +27,51 @@
 /* ----- Public ------------------------------------------------------------ */
 
 /**
+ * Create a number of LEDs, using details from an array of Info structures.
+ */
+void gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array)
+{
+    GPIOLEDInfo *info = info_array;
+    for (; info->name; info++) {
+        /* Create the board LED1 */
+        Object *led = cm_object_new(parent, info->name, TYPE_GPIO_LED);
+
+        /* OLIMEXINO-STM32 Green LED1, PA5, active high */
+        cm_object_property_set_bool(led, false, "active-low");
+        const char *msg = NULL;
+        size_t len;
+        if (info->on_message) {
+            msg = info->on_message;
+        } else if (info->colour_message) {
+            len = strlen(info->colour_message) + 16;
+            msg = g_malloc(len);
+            snprintf((char * )msg, len, "[%s LED On]\n", info->colour_message);
+        }
+        if (msg) {
+            cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
+        }
+
+        msg = NULL;
+        if (info->off_message) {
+            msg = info->off_message;
+        } else if (info->colour_message) {
+            len = strlen(info->colour_message) + 16;
+            msg = g_malloc(len);
+            snprintf((char * )msg, len, "[%s LED Off]\n", info->colour_message);
+        }
+        if (msg) {
+            cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
+        }
+
+        if (info->gpio_path) {
+            gpio_led_connect(led, info->gpio_path, info->port_bit);
+        }
+
+        cm_object_realize(led);
+    }
+}
+
+/**
  * Connect this LED to the named GPIO port pin.
  * The port name is the full path to the GPIO port,
  * something like "/machine/stm32/gpio[c]"; the first

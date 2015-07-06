@@ -31,6 +31,22 @@
 
 /* ------------------------------------------------------------------------- */
 
+typedef struct {
+
+    const char *name; /* NULL for table end. */
+
+    bool active_low;
+    const char *colour_message;
+    const char *on_message;
+    const char *off_message;
+
+    const char *gpio_path;
+    int port_bit;
+
+} GPIOLEDInfo;
+
+/* ------------------------------------------------------------------------- */
+
 #define TYPE_GPIO_LED "gpio-led"
 
 // TODO: Change this to TYPE_DEVICE
@@ -74,6 +90,7 @@ typedef struct {
 
 } GPIOLEDState;
 
+void gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array);
 void gpio_led_connect(Object *obj, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */
