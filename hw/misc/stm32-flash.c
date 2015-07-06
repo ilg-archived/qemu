@@ -214,6 +214,95 @@ static void stm32f1xd_flash_create_objects(Object *obj)
             OBJECT(state->f1.reg.acr), "prftbs");
 }
 
+static PeripheralInfo stm32f4_01_57_xx_flash_info = {
+    .desc = "Reset and clock control (RCC)",
+
+    .registers = (PeripheralRegisterInfo[] ) {
+                {
+                    .desc = "Flash access control register (FLASH_ACR)",
+                    .name = "acr",
+                    .offset_bytes = 0x00,
+                    .reset_value = 0x00000030,
+                    .bitfields = (RegisterBitfieldInfo[] ) {
+                                {
+                                    .name = "latency",
+                                    .first_bit = 0,
+                                    .width_bits = 3, },
+                                {
+                                    .name = "prften",
+                                    .desc = "Prefetch enable",
+                                    .first_bit = 8, },
+                                {
+                                    .name = "icen",
+                                    .desc = "Prefetch enable",
+                                    .first_bit = 9, },
+                                {
+                                    .name = "dcen",
+                                    .desc = "Data cache enable",
+                                    .first_bit = 10, },
+                                {
+                                    .name = "icrst",
+                                    .desc = "Instruction cache reset",
+                                    .first_bit = 11,
+                                    .rw_mode = REGISTER_RW_MODE_READ, },
+                                {
+                                    .name = "dcrst",
+                                    .desc = "Data cache reset",
+                                    .first_bit = 12, },
+                                { }, /**/
+                            } , /**/
+                },
+                /* Very schematic, functional read after write only. */
+                {
+                    .name = "keyr",
+                    .offset_bytes = 0x04, },
+                {
+                    .name = "optkeyr",
+                    .offset_bytes = 0x08, },
+                {
+                    .name = "sr",
+                    .offset_bytes = 0x0C, },
+                {
+                    .name = "cr",
+                    .offset_bytes = 0x10, },
+                {
+                    .name = "ar",
+                    .offset_bytes = 0x14, },
+                /* 0x18 is reserved */
+                {
+                    .name = "obr",
+                    .offset_bytes = 0x1C, },
+                {
+                    .name = "wrpr",
+                    .offset_bytes = 0x20, },
+
+                /*
+                 * XL density devices specific.
+                 */
+                {
+                    .name = "keyr2",
+                    .offset_bytes = 0x44, },
+                {
+                    .name = "sr2",
+                    .offset_bytes = 0x4C, },
+                {
+                    .name = "cr2",
+                    .offset_bytes = 0x50, },
+                {
+                    .name = "ar2",
+                    .offset_bytes = 0x54, },
+
+                { }, /**/
+            } , /**/
+};
+
+static void stm32f4_01_57_xx_flash_create_objects(Object *obj)
+{
+    //STM32FlashState *state = STM32_FLASH_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f4_01_57_xx_flash_info);
+}
+
 /* ------------------------------------------------------------------------- */
 
 static void stm32_flash_instance_init_callback(Object *obj)
@@ -251,6 +340,11 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
         size = 0x400;
         break;
 
+    case STM32_FAMILY_F4:
+        addr = 0x40023C00;
+        size = 0x400;
+        break;
+
     default:
         /*
          * This will trigger an assertion to fail when creating the
@@ -280,6 +374,13 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
                     "follows");
         }
 
+        break;
+
+    case STM32_FAMILY_F4:
+
+        if (capabilities->f4.is_01_57_xx) {
+            stm32f4_01_57_xx_flash_create_objects(obj);
+        }
         break;
 
     default:
