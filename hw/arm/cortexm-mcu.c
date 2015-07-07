@@ -261,7 +261,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         if (capabilities->core->has_fpu) {
             printf(", FPU");
         }
-        printf("), Flash: %d KB, RAM: %d KB.\n", flash_size_kb, sram_size_kb);
+        printf("), Flash: %d kB, RAM: %d kB.\n", flash_size_kb, sram_size_kb);
         if (image_filename) {
             printf("Image: '%s'.\n", image_filename);
         }
