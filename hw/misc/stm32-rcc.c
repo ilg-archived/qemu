@@ -2372,7 +2372,11 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
             /* Auto bits. */
             cm_object_property_set_str(state->f1.cr.hsirdy, "hsion", "follows");
-            cm_object_property_set_str(state->f1.cr.hserdy, "hseon", "follows");
+
+            if (state->hse_freq_hz) {
+                cm_object_property_set_str(state->f1.cr.hserdy, "hseon",
+                        "follows");
+            }
             cm_object_property_set_str(state->f1.cr.pllrdy, "pllon", "follows");
 
             cm_object_property_set_str(state->f1.cfgr.sws, "sw", "follows");
@@ -2426,7 +2430,10 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
             /* Auto bits. */
             cm_object_property_set_str(state->f1.cr.hsirdy, "hsion", "follows");
-            cm_object_property_set_str(state->f1.cr.hserdy, "hseon", "follows");
+            if (state->hse_freq_hz) {
+                cm_object_property_set_str(state->f1.cr.hserdy, "hseon",
+                        "follows");
+            }
             cm_object_property_set_str(state->f1.cr.pllrdy, "pllon", "follows");
             cm_object_property_set_str(state->f1.cr.pll2rdy, "pll2on",
                     "follows");
@@ -2487,8 +2494,10 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.cr.hsirdy, "hsion",
                     "follows");
-            cm_object_property_set_str(state->f4.fld.cr.hserdy, "hseon",
-                    "follows");
+            if (state->hse_freq_hz) {
+                cm_object_property_set_str(state->f4.fld.cr.hserdy, "hseon",
+                        "follows");
+            }
             cm_object_property_set_str(state->f4.fld.cr.pllrdy, "pllon",
                     "follows");
             cm_object_property_set_str(state->f4.fld.cr.plli2srdy, "plli2son",
