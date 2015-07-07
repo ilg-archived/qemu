@@ -66,8 +66,26 @@ typedef struct {
     struct {
         /* F1 specific registers */
         struct {
-            Object *acr;
+            Object *cr;
+            Object *csr;
         } reg;
+        struct {
+            struct {
+                Object *lpds;
+                Object *pdds;
+                Object *cwuf;
+                Object *csbf;
+                Object *pvde;
+                Object *pls;
+                Object *dbp;
+            } cr;
+            struct {
+                Object *wuf;
+                Object *sbf;
+                Object *pvdo;
+                Object *ewup;
+            } csr;
+        } fld;
     } f1;
     struct {
         /* F4 specific registers */
