@@ -2437,6 +2437,116 @@ Timers, UARTs, ADC, I@math{^2}C and SSI interfaces.
 OSRAM Pictiva 128x64 OLED with SSD0323 controller connected via SSI.
 @end itemize
 
+The ST STM32F4-Discovery board:
+
+@itemize @minus
+@item
+STM32F407VG (Cortex-M4 CPU core, FP not emulated).
+@item
+1024k Flash and 128k SRAM.
+@item
+4 LEDs, active high (Green PD12, Orange PD13, Red PD14, Blue PD15).
+@end itemize
+
+The ST NUCLEO-F103RB board:
+
+@itemize @minus
+@item
+STM32F103RB (Cortex-M3 CPU core).
+@item
+128k Flash and 20k SRAM.
+@item
+1 LED, active high (Green PA5).
+@end itemize
+
+The NetduinoPlus2 board:
+
+@itemize @minus
+@item
+STM32F405RG (Cortex-M4 CPU core, FP not emulated).
+@item
+1024k Flash and 128k SRAM.
+@item
+1 LED, active high (Green PA10).
+@end itemize
+
+The NetduinoGo board:
+
+@itemize @minus
+@item
+STM32F405RG (Cortex-M4 CPU core, FP not emulated).
+@item
+1024k Flash and 128k SRAM.
+@item
+8 LEDs, active high (White PB4-PB9, PC4-PC9).
+@end itemize
+
+The LeafLab Mapple board:
+
+@itemize @minus
+@item
+STM32F103RB (Cortex-M3 CPU core).
+@item
+128k Flash and 20k SRAM.
+@item
+1 LED, active high (Green PA5).
+@end itemize
+
+The Olimex STM32-H103 board:
+
+@itemize @minus
+@item
+STM32F103RB (Cortex-M3 CPU core).
+@item
+128k Flash and 20k SRAM.
+@item
+1 LED, active low (Green PC12).
+@end itemize
+
+The Olimex STM32-P103 board:
+
+@itemize @minus
+@item
+STM32F103RB (Cortex-M3 CPU core).
+@item
+128k Flash and 20k SRAM.
+@item
+1 LED, active low (Red PC12).
+@end itemize
+
+The Olimex OLIMEXINO-STM32 board:
+
+@itemize @minus
+@item
+STM32F103RB (Cortex-M3 CPU core).
+@item
+128k Flash and 20k SRAM.
+@item
+2 LEDs, active high (Green PA5, Yellow PA1).
+@end itemize
+
+The Olimex STM32-P107 board:
+
+@itemize @minus
+@item
+STM32F107VC (Cortex-M3 CPU core).
+@item
+256k Flash and 64k SRAM.
+@item
+2 LEDs, active high (Green PC6, Yellow PC7).
+@end itemize
+
+The Olimex STM32-E407 board:
+
+@itemize @minus
+@item
+STM32F407ZG (Cortex-M4 CPU core, FP not emulated).
+@item
+1024k Flash and 128k SRAM.
+@item
+1 LED, active low (Green PC13).
+@end itemize
+
 The Freecom MusicPal internet radio emulation includes the following
 elements:
 
