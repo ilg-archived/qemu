@@ -18,14 +18,14 @@
  */
 
 #include "hw/arm/stm32-mcus.h"
-#include "qemu/module.h"
-#include "sysemu/sysemu.h"
+#include "hw/display/gpio-led.h"
 #include "hw/arm/cortexm-helper.h"
 
 /*
  * This file defines several Arduino-like STM32 boards.
  */
 
+#if 0
 /* ----- Netduino 2 ----- */
 static void
 netduino2_board_init_callback(MachineState *machine);
@@ -33,7 +33,7 @@ netduino2_board_init_callback(MachineState *machine);
 static QEMUMachine netduino2_machine = {
     .name = "Netduino2",
     .desc = "Netduino Development Board with STM32F2 (Experimental)",
-    .init = netduino2_board_init_callback };
+    .init = netduino2_board_init_callback};
 
 static void netduino2_board_init_callback(MachineState *machine)
 {
@@ -42,62 +42,172 @@ static void netduino2_board_init_callback(MachineState *machine)
 
     /* TODO: Add board inits */
 }
+#endif
 
 /* ----- Netduino Plus 2 ----- */
-static void
-netduinoplus2_board_init_callback(MachineState *machine);
 
-static QEMUMachine netduinoplus2_machine = {
-    .name = "NetduinoPlus2",
-    .desc = "Netduino Development Board with STM32F4 (Experimental)",
-    .init = netduinoplus2_board_init_callback };
+static GPIOLEDInfo netduinoplus2_leds_info[] = {
+    {
+        .name = "blue-led",
+        .active_low = false,
+        .colour_message = "Blue",
+        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .port_bit = 10, },
+    { }, /**/
+};
 
 static void netduinoplus2_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F405RG);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F405RG);
+
+        /* Set the board specific oscillator frequencies. */
+        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+
+        cm_object_realize(mcu);
+    }
+
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, netduinoplus2_leds_info);
 }
 
-/* ----- Netduino Go ----- */
-static void
-netduinogo_board_init_callback(MachineState *machine);
+static QEMUMachine netduinoplus2_machine = {
+    .name = "NetduinoPlus2",
+    .desc = "Netduino Development Board with STM32F4",
+    .init = netduinoplus2_board_init_callback };
 
-static QEMUMachine netduinogo_machine = {
-    .name = "NetduinoGo",
-    .desc = "Netduino GoBus Development Board with STM32F4 (Experimental)",
-    .init = netduinogo_board_init_callback };
+/* ----- Netduino Go ----- */
+
+static GPIOLEDInfo netduinogo_leds_info[] = {
+    {
+        .name = "white-led1",
+        .active_low = false,
+        .on_message = "[White LED1 On]\n",
+        .on_message = "[White LED1 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+        .port_bit = 6, },
+    {
+        .name = "white-led2",
+        .active_low = false,
+        .on_message = "[White LED2 On]\n",
+        .on_message = "[White LED2 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+        .port_bit = 7, },
+    {
+        .name = "white-led3",
+        .active_low = false,
+        .on_message = "[White LED3 On]\n",
+        .on_message = "[White LED3 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+        .port_bit = 8, },
+    {
+        .name = "white-led4",
+        .active_low = false,
+        .on_message = "[White LED4 On]\n",
+        .on_message = "[White LED4 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+        .port_bit = 9, },
+    {
+        .name = "white-led5",
+        .active_low = false,
+        .on_message = "[White LED5 On]\n",
+        .on_message = "[White LED5 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 6, },
+    {
+        .name = "white-led6",
+        .active_low = false,
+        .on_message = "[White LED6 On]\n",
+        .on_message = "[White LED6 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 7, },
+    {
+        .name = "white-led7",
+        .active_low = false,
+        .on_message = "[White LED7 On]\n",
+        .on_message = "[White LED7 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 8, },
+    {
+        .name = "white-led8",
+        .active_low = false,
+        .on_message = "[White LED8 On]\n",
+        .on_message = "[White LED8 Off]\n",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 9, },
+    { }, /**/
+};
 
 static void netduinogo_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F405RG);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F405RG);
+
+        /* Set the board specific oscillator frequencies. */
+        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+
+        cm_object_realize(mcu);
+    }
+
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, netduinogo_leds_info);
 }
 
-/* ----- Mapple ----- */
-static void
-mapple_board_init_callback(MachineState *machine);
+static QEMUMachine netduinogo_machine = {
+    .name = "NetduinoGo",
+    .desc = "Netduino GoBus Development Board with STM32F4",
+    .init = netduinogo_board_init_callback };
 
-static QEMUMachine mapple_machine = {
-    .name = "Mapple",
-    .desc = "LeafLab Arduino-style STM32 microcontroller board (Experimental)",
-    .init = mapple_board_init_callback };
+/* ----- Mapple r5 ----- */
+
+static GPIOLEDInfo mapple_leds_info[] = {
+    {
+        .name = "blue-led",
+        .active_low = false,
+        .colour_message = "Blue",
+        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .port_bit = 5, },
+    { }, /**/
+};
 
 static void mapple_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
+
+        /* Set the board specific oscillator frequencies. */
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+
+        cm_object_realize(mcu);
+    }
+
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, mapple_leds_info);
 }
+
+static QEMUMachine mapple_machine = {
+    .name = "Mapple",
+    .desc = "LeafLab Arduino-style STM32 microcontroller board (r5)",
+    .init = mapple_board_init_callback };
 
 /* ----- Boards inits ----- */
 static void stm32_duino_machines_init(void)
 {
+#if 0
     qemu_register_machine(&netduino2_machine);
+#endif
     qemu_register_machine(&netduinoplus2_machine);
     qemu_register_machine(&netduinogo_machine);
     qemu_register_machine(&mapple_machine);

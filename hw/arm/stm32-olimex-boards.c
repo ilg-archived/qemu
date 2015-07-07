@@ -27,6 +27,16 @@
 
 /* ----- Olimex STM32-H103 ----- */
 
+static GPIOLEDInfo stm32_h103_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = true,
+        .colour_message = "Green",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 12, },
+    { }, /**/
+};
+
 static void stm32_h103_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -43,19 +53,7 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    {
-        /* Create the board LED */
-        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
-
-        /* STM32-H103 Green LED, GPIOC[12], active low */
-        cm_object_property_set_bool(led, true, "active-low");
-        cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
-        cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
-
-        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 12);
-
-        cm_object_realize(led);
-    }
+    gpio_led_create_from_info(peripheral, stm32_h103_leds_info);
 }
 
 static QEMUMachine stm32_h103_machine = {
@@ -64,6 +62,16 @@ static QEMUMachine stm32_h103_machine = {
     .init = stm32_h103_board_init_callback };
 
 /* ----- Olimex STM32-P103 ----- */
+
+static GPIOLEDInfo stm32_p103_leds_info[] = {
+    {
+        .name = "red-led",
+        .active_low = true,
+        .colour_message = "Red",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 12, },
+    { }, /**/
+};
 
 static void stm32_p103_board_init_callback(MachineState *machine)
 {
@@ -81,19 +89,7 @@ static void stm32_p103_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    {
-        /* Create the board LED */
-        Object *led = cm_object_new(peripheral, "red-led", TYPE_GPIO_LED);
-
-        /* STM32-P103 Green LED, GPIOC[12], active low */
-        cm_object_property_set_bool(led, true, "active-low");
-        cm_object_property_set_str(led, "[Red LED On]\n", "on-message");
-        cm_object_property_set_str(led, "[Red LED Off]\n", "off-message");
-
-        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 12);
-
-        cm_object_realize(led);
-    }
+    gpio_led_create_from_info(peripheral, stm32_p103_leds_info);
 }
 
 static QEMUMachine stm32_p103_machine = {
@@ -102,6 +98,22 @@ static QEMUMachine stm32_p103_machine = {
     .init = stm32_p103_board_init_callback };
 
 /* ----- Olimex OLIMEXINO-STM32 ----- */
+
+static GPIOLEDInfo olimexino_stm32_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = false,
+        .colour_message = "Green",
+        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .port_bit = 5, },
+    {
+        .name = "yellow-led",
+        .active_low = false,
+        .colour_message = "Yellow",
+        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .port_bit = 1, },
+    { }, /**/
+};
 
 static void olimexino_stm32_board_init_callback(MachineState *machine)
 {
@@ -119,33 +131,7 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    {
-        /* Create the board LED1 */
-        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
-
-        /* OLIMEXINO-STM32 Green LED1, PA5, active high */
-        cm_object_property_set_bool(led, false, "active-low");
-        cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
-        cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
-
-        gpio_led_connect(led, "/machine/mcu/stm32/gpio[a]", 5);
-
-        cm_object_realize(led);
-    }
-
-    {
-        /* Create the board LED2 */
-        Object *led = cm_object_new(peripheral, "yellow-led", TYPE_GPIO_LED);
-
-        /* OLIMEXINO-STM32 Yellow LED2, PA1, active high */
-        cm_object_property_set_bool(led, false, "active-low");
-        cm_object_property_set_str(led, "[Yellow LED On]\n", "on-message");
-        cm_object_property_set_str(led, "[Yellow LED Off]\n", "off-message");
-
-        gpio_led_connect(led, "/machine/mcu/stm32/gpio[a]", 1);
-
-        cm_object_realize(led);
-    }
+    gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info);
 }
 
 static QEMUMachine olimexino_stm32_machine = {
@@ -154,6 +140,22 @@ static QEMUMachine olimexino_stm32_machine = {
     .init = olimexino_stm32_board_init_callback };
 
 /* ----- Olimex STM32-P107 ----- */
+
+static GPIOLEDInfo stm32_p107_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = false,
+        .colour_message = "Green",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 6, },
+    {
+        .name = "yellow-led",
+        .active_low = false,
+        .colour_message = "Yellow",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 7, },
+    { }, /**/
+};
 
 static void stm32_p107_board_init_callback(MachineState *machine)
 {
@@ -171,33 +173,7 @@ static void stm32_p107_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    {
-        /* Create the board LED1 STAT1 */
-        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
-
-        /* STM32-P107 Green LED1, PC6, active high */
-        cm_object_property_set_bool(led, false, "active-low");
-        cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
-        cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
-
-        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 6);
-
-        cm_object_realize(led);
-    }
-
-    {
-        /* Create the board LED2 STAT2 */
-        Object *led = cm_object_new(peripheral, "yellow-led", TYPE_GPIO_LED);
-
-        /* STM32-P107 Yellow LED2, PC7, active high */
-        cm_object_property_set_bool(led, false, "active-low");
-        cm_object_property_set_str(led, "[Yellow LED On]\n", "on-message");
-        cm_object_property_set_str(led, "[Yellow LED Off]\n", "off-message");
-
-        gpio_led_connect(led, "/machine/mcu/stm32/gpio[c]", 7);
-
-        cm_object_realize(led);
-    }
+    gpio_led_create_from_info(peripheral, stm32_p107_leds_info);
 }
 
 static QEMUMachine stm32_p107_machine = {
@@ -206,6 +182,16 @@ static QEMUMachine stm32_p107_machine = {
     .init = stm32_p107_board_init_callback };
 
 /* ----- Olimex STM32-P407 ----- */
+
+static GPIOLEDInfo stm32_e407_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = true,
+        .colour_message = "Green",
+        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .port_bit = 13, },
+    { }, /**/
+};
 
 static void stm32_e407_board_init_callback(MachineState *machine)
 {
@@ -222,19 +208,7 @@ static void stm32_e407_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    {
-        /* Create the board LED */
-        Object *led = cm_object_new(peripheral, "green-led", TYPE_GPIO_LED);
-
-        /* STM32-P107 Green LED1, PC13, active low */
-        cm_object_property_set_bool(led, true, "active-low");
-        cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
-        cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
-
-        gpio_led_connect(led, "/machine/stm32/gpio[c]", 13);
-
-        cm_object_realize(led);
-    }
+    gpio_led_create_from_info(peripheral, stm32_e407_leds_info);
 }
 
 static QEMUMachine stm32_e407_machine = {

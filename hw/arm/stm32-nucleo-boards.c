@@ -18,13 +18,65 @@
  */
 
 #include "hw/arm/stm32-mcus.h"
-#include "qemu/module.h"
-#include "sysemu/sysemu.h"
+#include "hw/display/gpio-led.h"
 #include "hw/arm/cortexm-helper.h"
 
 /*
  * This file defines several STM32 Nucleo boards.
  */
+
+/* ----- ST NUCLEO-F103RB ----- */
+
+static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = false,
+        .colour_message = "Green",
+        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .port_bit = 5, },
+    { }, /**/
+};
+
+static void nucleo_f103rb_board_init_callback(MachineState *machine)
+{
+    cm_board_greeting(machine);
+
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
+
+        /* The board has no oscillators. */
+        cm_object_property_set_int(mcu, 0, "hse-freq-hz"); /* N/A */
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+
+        cm_object_realize(mcu);
+    }
+
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info);
+}
+
+static QEMUMachine nucleo_f103rb_machine = {
+    .name = "NUCLEO-F103RB",
+    .desc = "ST Nucleo Development Board for STM32 F1 series",
+    .init = nucleo_f103rb_board_init_callback };
+
+#if 0
+/* ----- ST NUCLEO-L152RE ----- */
+static void nucleo_l152re_board_init_callback(MachineState *machine);
+
+static QEMUMachine nucleo_l152re_machine = {
+    .name = "NUCLEO-L152RE",
+    .desc = "ST Nucleo Development Board with STM32L152RET6 (Experimental)",
+    .init = nucleo_l152re_board_init_callback};
+
+static void nucleo_l152re_board_init_callback(MachineState *machine)
+{
+    cm_board_greeting(machine);
+    //cortexm_mcu_alloc(machine, TYPE_STM32L152RE);
+
+    /* TODO: Add board inits */
+}
 
 /* ----- ST NUCLEO-F411RE ----- */
 static void nucleo_f411re_board_init_callback(MachineState *machine);
@@ -32,7 +84,7 @@ static void nucleo_f411re_board_init_callback(MachineState *machine);
 static QEMUMachine nucleo_f411re_machine = {
     .name = "NUCLEO-F411RE",
     .desc = "ST Nucleo Development Board for STM32 F4 series (Experimental)",
-    .init = nucleo_f411re_board_init_callback };
+    .init = nucleo_f411re_board_init_callback};
 
 static void nucleo_f411re_board_init_callback(MachineState *machine)
 {
@@ -48,7 +100,7 @@ static void nucleo_f334r8_board_init_callback(MachineState *machine);
 static QEMUMachine nucleo_f334r8_machine = {
     .name = "NUCLEO-F334R8",
     .desc = "ST Nucleo Development Board for STM32 F3 series (Experimental)",
-    .init = nucleo_f334r8_board_init_callback };
+    .init = nucleo_f334r8_board_init_callback};
 
 static void nucleo_f334r8_board_init_callback(MachineState *machine)
 {
@@ -57,46 +109,17 @@ static void nucleo_f334r8_board_init_callback(MachineState *machine)
 
     /* TODO: Add board inits */
 }
-
-/* ----- ST NUCLEO-F103RB ----- */
-static void nucleo_f103rb_board_init_callback(MachineState *machine);
-
-static QEMUMachine nucleo_f103rb_machine = {
-    .name = "NUCLEO-F103RB",
-    .desc = "ST Nucleo Development Board for STM32 F1 series (Experimental)",
-    .init = nucleo_f103rb_board_init_callback };
-
-static void nucleo_f103rb_board_init_callback(MachineState *machine)
-{
-    cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F103RB);
-
-    /* TODO: Add board inits */
-}
-
-/* ----- ST NUCLEO-L152RE ----- */
-static void nucleo_l152re_board_init_callback(MachineState *machine);
-
-static QEMUMachine nucleo_l152re_machine = {
-    .name = "NUCLEO-L152RE",
-    .desc = "ST Nucleo Development Board with STM32L152RET6 (Experimental)",
-    .init = nucleo_l152re_board_init_callback };
-
-static void nucleo_l152re_board_init_callback(MachineState *machine)
-{
-    cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32L152RE);
-
-    /* TODO: Add board inits */
-}
+#endif
 
 /* ----- Boards inits ----- */
 static void stm32_machines_init(void)
 {
+    qemu_register_machine(&nucleo_f103rb_machine);
+#if 0
+    qemu_register_machine(&nucleo_l152re_machine);
     qemu_register_machine(&nucleo_f411re_machine);
     qemu_register_machine(&nucleo_f334r8_machine);
-    qemu_register_machine(&nucleo_f103rb_machine);
-    qemu_register_machine(&nucleo_l152re_machine);
+#endif
 }
 
 machine_init(stm32_machines_init);
