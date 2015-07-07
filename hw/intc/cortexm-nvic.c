@@ -31,6 +31,7 @@
 #include "cpu.h"
 #include "hw/intc/cortexm-nvic.h"
 #include "hw/arm/cortexm-helper.h"
+#include "qemu/error-report.h"
 
 /* ----- Public ------------------------------------------------------------ */
 
@@ -406,6 +407,15 @@ static void nvic_writel(CortexMNVICState *s, uint32_t offset, uint32_t value)
                 "NVIC: fault status registers unimplemented\n");
         break;
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
+    case 0xD88: /* CPACR.  */
+        if (value & (((3UL << 10 * 2) | (3UL << 11 * 2)))) {
+            /* Attempt to enable CP10 & CP11 (the FPU). */
+            error_report("Attempt to set CP10/11 in SCB->CPACR, "
+                    "but FP is not supported yet.\n");
+            exit(1);
+        }
+        break;
+
     case 0xDF0: /* DHCSR.  */
     case 0xDF4: /* DCRSR.  */
     case 0xDF8: /* DCRDR.  */
