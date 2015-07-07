@@ -36,8 +36,7 @@ void gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array)
         /* Create the board LED1 */
         Object *led = cm_object_new(parent, info->name, TYPE_GPIO_LED);
 
-        /* OLIMEXINO-STM32 Green LED1, PA5, active high */
-        cm_object_property_set_bool(led, false, "active-low");
+        cm_object_property_set_bool(led, info->active_low, "active-low");
         const char *msg = NULL;
         size_t len;
         if (info->on_message) {
