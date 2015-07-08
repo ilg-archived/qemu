@@ -2437,6 +2437,17 @@ Timers, UARTs, ADC, I@math{^2}C and SSI interfaces.
 OSRAM Pictiva 128x64 OLED with SSD0323 controller connected via SSI.
 @end itemize
 
+The ST STM32F429I-Discovery board:
+
+@itemize @minus
+@item
+STM32F429ZI (Cortex-M4 CPU core, FP not emulated).
+@item
+2048k Flash and 192k SRAM.
+@item
+2 LEDs, active high (Green PG13, Red PG14).
+@end itemize
+
 The ST STM32F4-Discovery board:
 
 @itemize @minus

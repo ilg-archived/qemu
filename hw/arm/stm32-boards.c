@@ -80,24 +80,50 @@ static QEMUMachine stm32f4_discovery_machine = {
     .desc = "ST Discovery kit for STM32F407/417 lines",
     .init = stm32f4_discovery_board_init_callback };
 
-#if 0
 /* ----- ST STM32F429I-Discovery ----- */
-static void
-stm32f429i_discovery_board_init_callback(MachineState *machine);
 
-static QEMUMachine stm32f429i_discovery_machine = {
-    .name = "STM32F429I-Discovery",
-    .desc = "ST Discovery kit for STM32F429/439 lines (Experimental)",
-    .init = stm32f429i_discovery_board_init_callback};
+static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = false,
+        .colour_message = "Green",
+        .gpio_path = "/machine/mcu/stm32/gpio[g]",
+        .port_bit = 13, },
+    {
+        .name = "red-led",
+        .active_low = false,
+        .colour_message = "Red",
+        .gpio_path = "/machine/mcu/stm32/gpio[g]",
+        .port_bit = 14, },
+    { }, /**/
+};
 
 static void stm32f429i_discovery_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F429ZI);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F429ZI);
+
+        /* Set the board specific oscillator frequencies. */
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+
+        cm_object_realize(mcu);
+    }
+
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info);
 }
 
+static QEMUMachine stm32f429i_discovery_machine = {
+    .name = "STM32F429I-Discovery",
+    .desc = "ST Discovery kit for STM32F429/439 lines",
+    .init = stm32f429i_discovery_board_init_callback};
+
+
+#if 0
 /* ----- ST STM32F3-Discovery ----- */
 static void
 stm32f3_discovery_board_init_callback(MachineState *machine);
@@ -154,8 +180,8 @@ static void stm32vl_discovery_init_callback(MachineState *machine)
 static void stm32_machines_init(void)
 {
     qemu_register_machine(&stm32f4_discovery_machine);
-#if 0
     qemu_register_machine(&stm32f429i_discovery_machine);
+#if 0
     qemu_register_machine(&stm32f3_discovery_machine);
     qemu_register_machine(&stm32f0_discovery_machine);
     qemu_register_machine(&stm32vl_discovery_machine);
