@@ -174,6 +174,8 @@ typedef struct {
             Object *csr; /* 0x74 */
             Object *sscgr; /* 0x80 */
             Object *plli2scfgr; /* 0x84 */
+            Object *pllsaicfgr; /* 0x84 */
+            Object *plldckcfgr; /* 0x84 */
         } reg;
         struct {
             struct {
@@ -189,6 +191,8 @@ typedef struct {
                 Object *pllrdy;
                 Object *plli2son;
                 Object *plli2srdy;
+                Object *pllsaion;
+                Object *pllsairdy;
             } cr;
             struct {
                 Object *pllm;
@@ -217,6 +221,7 @@ typedef struct {
                 Object *hserdyf;
                 Object *pllrdyf;
                 Object *plli2srdyf;
+                Object *pllsairdyf;
                 Object *cssf;
             } cir;
             struct {
@@ -224,6 +229,7 @@ typedef struct {
             } bdcr;
             struct {
                 Object *lsirdy;
+                Object *borrstf;
                 Object *pinrstf;
                 Object *porrstf;
                 Object *stfrstf;

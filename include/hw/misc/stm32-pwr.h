@@ -103,7 +103,17 @@ typedef struct {
                 Object *pls;
                 Object *dbp;
                 Object *fpds;
+
+                Object *lpuds; /* [23]xxx */
+                Object *mruds; /* [23]xxx */
+                Object *adcdc1; /* [23]xxx */
+
                 Object *vos;
+
+                /* [23]xxx */
+                Object *oden;
+                Object *odswen;
+                Object *uden;
             } cr;
             struct {
                 Object *wuf;
@@ -113,6 +123,10 @@ typedef struct {
                 Object *ewup;
                 Object *bre;
                 Object *vosrdy;
+                /* [23]xxx */
+                Object *odrdy;
+                Object *odswrdy;
+                Object *udrdy;
             } csr;
         } fld;
     } f4;
