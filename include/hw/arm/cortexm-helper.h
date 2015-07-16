@@ -45,6 +45,7 @@ typedef uint64_t peripheral_register_t;
 /* ------------------------------------------------------------------------- */
 
 void cm_board_greeting(MachineState *machine);
+void *cm_board_init_image(const char *file_name, const char *caption);
 
 /* ------------------------------------------------------------------------- */
 
@@ -100,6 +101,15 @@ void cm_object_property_add_uint64(Object *obj, const char *name,
 
 void cm_object_property_add_uint32(Object *obj, const char *name,
         const uint32_t *v);
+
+void cm_object_property_add_uint16(Object *obj, const char *name,
+        const uint16_t *v);
+
+void cm_object_property_add_uint8(Object *obj, const char *name,
+        const uint8_t *v);
+
+void cm_object_property_add_int16(Object *obj, const char *name,
+        const int16_t *v);
 
 /* ------------------------------------------------------------------------- */
 

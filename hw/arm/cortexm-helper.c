@@ -24,6 +24,12 @@
 #include "qemu/error-report.h"
 #include "qapi/visitor.h"
 
+#include "sysemu/sysemu.h"
+#if defined(CONFIG_SDL)
+#include "SDL/SDL.h"
+#include "SDL/SDL_Image.h"
+#endif
+
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
 #endif
@@ -45,6 +51,39 @@ void cm_board_greeting(MachineState *machine)
 #endif
 }
 
+void *cm_board_init_image(const char *file_name, const char *caption)
+{
+    void *board_surface = NULL;
+#if defined(CONFIG_SDL)
+    if (display_type != DT_NOGRAPHIC) {
+        //Start SDL
+        if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
+            SDL_Init(SDL_INIT_EVERYTHING);
+        }
+
+#if 1
+        SDL_Surface* board_bitmap = SDL_LoadBMP(
+                qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name));
+#else
+        SDL_Surface* board_bitmap = IMG_Load(
+                qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name));
+#endif
+        SDL_WM_SetCaption(caption, NULL);
+        SDL_Surface* screen = SDL_SetVideoMode(board_bitmap->w, board_bitmap->h,
+                32, SDL_DOUBLEBUF);
+
+        SDL_Surface* board = SDL_DisplayFormat(board_bitmap);
+        SDL_FreeSurface(board_bitmap);
+
+        /* Apply image to screen */
+        SDL_BlitSurface(board, NULL, screen, NULL);
+        /* Update screen */
+        SDL_Flip(screen);
+        board_surface = screen;
+    }
+#endif
+    return board_surface;
+}
 /* ------------------------------------------------------------------------- */
 
 /**
@@ -510,4 +549,101 @@ void cm_object_property_add_uint32(Object *obj, const char *name,
     }
 }
 
+static void cm_property_get_uint16_ptr(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    uint16_t value = *(uint16_t *) opaque;
+    visit_type_uint16(v, &value, name, errp);
+}
+
+static void cm_property_set_uint16_ptr(Object *obj, struct Visitor *v,
+        void *opaque, const char *name, Error **errp)
+{
+    Error *local_err = NULL;
+    uint16_t value;
+    visit_type_uint16(v, &value, name, &local_err);
+    if (!local_err) {
+        *((uint16_t *) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_uint16(Object *obj, const char *name,
+        const uint16_t *v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "uint16", cm_property_get_uint16_ptr,
+            cm_property_set_uint16_ptr, NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+
+static void cm_property_get_uint8_ptr(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    uint8_t value = *(uint8_t *) opaque;
+    visit_type_uint8(v, &value, name, errp);
+}
+
+static void cm_property_set_uint8_ptr(Object *obj, struct Visitor *v,
+        void *opaque, const char *name, Error **errp)
+{
+    Error *local_err = NULL;
+    uint8_t value;
+    visit_type_uint8(v, &value, name, &local_err);
+    if (!local_err) {
+        *((uint8_t *) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_uint8(Object *obj, const char *name,
+        const uint8_t *v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "uint8", cm_property_get_uint8_ptr,
+            cm_property_set_uint8_ptr, NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+
+static void cm_property_get_int16_ptr(Object *obj, Visitor *v, void *opaque,
+        const char *name, Error **errp)
+{
+    int16_t value = *(int16_t *) opaque;
+    visit_type_int16(v, &value, name, errp);
+}
+
+static void cm_property_set_int16_ptr(Object *obj, struct Visitor *v,
+        void *opaque, const char *name, Error **errp)
+{
+    Error *local_err = NULL;
+    int16_t value;
+    visit_type_int16(v, &value, name, &local_err);
+    if (!local_err) {
+        *((int16_t *) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_int16(Object *obj, const char *name,
+        const int16_t *v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "int16", cm_property_get_int16_ptr,
+            cm_property_set_int16_ptr, NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+
 /* ------------------------------------------------------------------------- */
+
