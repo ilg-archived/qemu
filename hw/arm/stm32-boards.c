@@ -20,6 +20,7 @@
 #include "hw/arm/stm32-mcus.h"
 #include "hw/display/gpio-led.h"
 #include "hw/arm/cortexm-helper.h"
+#include "sysemu/sysemu.h"
 
 /*
  * This file defines several STM32 boards.
@@ -33,24 +34,40 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .name = "green-led",
         .active_low = false,
         .colour_message = "Green",
+        .x = 254,
+        .y = 213,
+        .w = 8,
+        .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
         .port_bit = 12, },
     {
         .name = "orange-led",
         .active_low = false,
         .colour_message = "Orange",
+        .x = 283, //282,
+        .y = 241,
+        .w = 8,
+        .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
         .port_bit = 13, },
     {
         .name = "red-led",
         .active_low = false,
         .colour_message = "Red",
+        .x = 254,
+        .y = 269,
+        .w = 8,
+        .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
         .port_bit = 14, },
     {
         .name = "blue-led",
         .active_low = false,
         .colour_message = "Blue",
+        .x = 226,
+        .y = 241,
+        .w = 8,
+        .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
         .port_bit = 15, },
     { }, /**/
@@ -71,8 +88,11 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("STM32F4-Discovery.bmp",
+            "STM32F4-Discovery");
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info);
+    gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
+            board_surface);
 }
 
 static QEMUMachine stm32f4_discovery_machine = {
@@ -114,14 +134,13 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info);
+    gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info, NULL);
 }
 
 static QEMUMachine stm32f429i_discovery_machine = {
     .name = "STM32F429I-Discovery",
     .desc = "ST Discovery kit for STM32F429/439 lines",
-    .init = stm32f429i_discovery_board_init_callback};
-
+    .init = stm32f429i_discovery_board_init_callback };
 
 #if 0
 /* ----- ST STM32F3-Discovery ----- */
