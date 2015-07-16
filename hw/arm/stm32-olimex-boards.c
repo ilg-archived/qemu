@@ -53,7 +53,7 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_h103_leds_info);
+    gpio_led_create_from_info(peripheral, stm32_h103_leds_info, NULL);
 }
 
 static QEMUMachine stm32_h103_machine = {
@@ -89,7 +89,7 @@ static void stm32_p103_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_p103_leds_info);
+    gpio_led_create_from_info(peripheral, stm32_p103_leds_info, NULL);
 }
 
 static QEMUMachine stm32_p103_machine = {
@@ -131,7 +131,7 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info);
+    gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info, NULL);
 }
 
 static QEMUMachine olimexino_stm32_machine = {
@@ -173,7 +173,7 @@ static void stm32_p107_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_p107_leds_info);
+    gpio_led_create_from_info(peripheral, stm32_p107_leds_info, NULL);
 }
 
 static QEMUMachine stm32_p107_machine = {
@@ -208,7 +208,7 @@ static void stm32_e407_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_e407_leds_info);
+    gpio_led_create_from_info(peripheral, stm32_e407_leds_info, NULL);
 }
 
 static QEMUMachine stm32_e407_machine = {

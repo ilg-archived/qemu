@@ -72,7 +72,7 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, netduinoplus2_leds_info);
+    gpio_led_create_from_info(peripheral, netduinoplus2_leds_info, NULL);
 }
 
 static QEMUMachine netduinoplus2_machine = {
@@ -158,7 +158,7 @@ static void netduinogo_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, netduinogo_leds_info);
+    gpio_led_create_from_info(peripheral, netduinogo_leds_info, NULL);
 }
 
 static QEMUMachine netduinogo_machine = {
@@ -194,7 +194,7 @@ static void mapple_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, mapple_leds_info);
+    gpio_led_create_from_info(peripheral, mapple_leds_info, NULL);
 }
 
 static QEMUMachine mapple_machine = {

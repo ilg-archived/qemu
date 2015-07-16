@@ -53,7 +53,7 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info);
+    gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info, NULL);
 }
 
 static QEMUMachine nucleo_f103rb_machine = {
