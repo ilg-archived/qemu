@@ -2323,7 +2323,12 @@ char *qemu_find_file(int type, const char *name)
     case QEMU_FILE_TYPE_KEYMAP:
         subdir = "keymaps/";
         break;
-    default:
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    case QEMU_FILE_TYPE_IMAGES:
+        subdir = "images/";
+        break;
+#endif
+        default:
         abort();
     }
 

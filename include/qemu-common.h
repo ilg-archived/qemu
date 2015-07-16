@@ -353,6 +353,10 @@ const char *qemu_get_vm_name(void);
 
 #define QEMU_FILE_TYPE_BIOS   0
 #define QEMU_FILE_TYPE_KEYMAP 1
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define QEMU_FILE_TYPE_IMAGES 2
+#endif
+
 char *qemu_find_file(int type, const char *name);
 
 /* OS specific functions */
