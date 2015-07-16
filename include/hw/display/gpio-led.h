@@ -24,6 +24,10 @@
 #include "qemu/typedefs.h"
 #include "hw/sysbus.h"
 
+#if defined(CONFIG_SDL)
+#include "SDL/SDL.h"
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 #define DEFINE_PROP_GPIO_LED_PTR(_n, _s, _f) \
@@ -39,6 +43,17 @@ typedef struct {
     const char *colour_message;
     const char *on_message;
     const char *off_message;
+
+    uint32_t x;
+    uint32_t y;
+    uint32_t w;
+    uint32_t h;
+
+    struct {
+        uint8_t red;
+        uint8_t green;
+        uint8_t blue;
+    } colour;
 
     const char *gpio_path;
     int port_bit;
@@ -82,6 +97,18 @@ typedef struct {
     const char *on_message;
     const char *off_message;
 
+#if defined(CONFIG_SDL)
+    SDL_Rect rectangle;
+    struct {
+        uint8_t red;
+        uint8_t green;
+        uint8_t blue;
+    } colour;
+    SDL_Surface *crop_off;
+    SDL_Surface *crop_on;
+    SDL_Surface *board_surface;
+#endif
+
     /**
      * The actual irq used to blink the LED. It works connected to
      * a GPIO device outgoing irq.
@@ -90,7 +117,8 @@ typedef struct {
 
 } GPIOLEDState;
 
-void gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array);
+Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
+        void* board_surface);
 void gpio_led_connect(Object *obj, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */

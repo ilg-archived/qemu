@@ -29,10 +29,22 @@
 /**
  * Create a number of LEDs, using details from an array of Info structures.
  */
-void gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array)
+Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
+        void* board_surface)
 {
-    GPIOLEDInfo *info = info_array;
-    for (; info->name; info++) {
+    GPIOLEDInfo *info;
+
+    int count = 0;
+    for (info = info_array; info->name; info++) {
+        count++;
+    }
+
+    Object **arr;
+    arr = g_malloc0_n(count + 1, sizeof(Object*));
+
+    Object **p = arr;
+
+    for (info = info_array; info->name; info++) {
         /* Create the board LED1 */
         Object *led = cm_object_new(parent, info->name, TYPE_GPIO_LED);
 
@@ -66,8 +78,46 @@ void gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array)
             gpio_led_connect(led, info->gpio_path, info->port_bit);
         }
 
+        if (info->w && info->h) {
+            cm_object_property_set_int(led, info->x, "x");
+            cm_object_property_set_int(led, info->y, "y");
+            cm_object_property_set_int(led, info->w, "w");
+            cm_object_property_set_int(led, info->h, "h");
+        }
+
+        if (info->colour.red == 0 && info->colour.green == 0
+                && info->colour.blue == 0) {
+
+            if (strcasecmp(info->colour_message, "red") == 0) {
+                cm_object_property_set_int(led, 255, "colour.red");
+            } else if (strcasecmp(info->colour_message, "green") == 0) {
+                cm_object_property_set_int(led, 255, "colour.green");
+            } else if (strcasecmp(info->colour_message, "blue") == 0) {
+                cm_object_property_set_int(led, 255, "colour.blue");
+                cm_object_property_set_int(led, 128, "colour.green");
+            } else if (strcasecmp(info->colour_message, "yellow") == 0) {
+                cm_object_property_set_int(led, 255, "colour.red");
+                cm_object_property_set_int(led, 255, "colour.green");
+            } else if (strcasecmp(info->colour_message, "orange") == 0) {
+                cm_object_property_set_int(led, 255, "colour.red");
+                cm_object_property_set_int(led, 128, "colour.green");
+            } else {
+                /* White LED */
+                cm_object_property_set_int(led, 255, "colour.red");
+                cm_object_property_set_int(led, 255, "colour.green");
+                cm_object_property_set_int(led, 255, "colour.blue");
+            }
+
+        }
+
+        GPIO_LED_STATE(led)->board_surface = (SDL_Surface *) board_surface;
+
         cm_object_realize(led);
+
+        *p++ = led;
     }
+
+    return arr;
 }
 
 /**
@@ -90,6 +140,32 @@ void gpio_led_connect(Object *obj, const char *port_name, int port_bit)
 
 /* ----- Private ----------------------------------------------------------- */
 
+static void gpio_led_turn_on(GPIOLEDState *state)
+{
+    fprintf(stderr, "%s", state->on_message);
+
+#if defined(CONFIG_SDL)
+    if (state->board_surface) {
+        SDL_BlitSurface(state->crop_on, NULL, state->board_surface,
+                &state->rectangle);
+        SDL_Flip(state->board_surface);
+    }
+#endif
+}
+
+static void gpio_led_turn_off(GPIOLEDState *state)
+{
+    fprintf(stderr, "%s", state->off_message);
+
+#if defined(CONFIG_SDL)
+    if (state->board_surface) {
+        SDL_BlitSurface(state->crop_off, NULL, state->board_surface,
+                &state->rectangle);
+        SDL_Flip(state->board_surface);
+    }
+#endif
+}
+
 /**
  * Callback used to notify the LED status change.
  */
@@ -100,20 +176,26 @@ static void gpio_led_irq_handler(void *opaque, int n, int level)
     /* There should be only one IRQ for the LED */
     assert(n == 0);
 
-    FILE *file = stderr;
     /*
      * Assume that the IRQ is only triggered if the LED has changed state.
      * If this is not correct, we may get multiple LED Offs or Ons in a row.
      */
     switch (level) {
     case 0:
-        fprintf(file, "%s",
-                state->active_low ? state->on_message : state->off_message);
+
+        if (state->active_low) {
+            gpio_led_turn_on(state);
+        } else {
+            gpio_led_turn_off(state);
+        }
         break;
 
     case 1:
-        fprintf(file, "%s",
-                state->active_low ? state->off_message : state->on_message);
+        if (state->active_low) {
+            gpio_led_turn_off(state);
+        } else {
+            gpio_led_turn_on(state);
+        }
         break;
     }
 }
@@ -124,8 +206,23 @@ static void gpio_led_instance_init_callback(Object *obj)
 
     GPIOLEDState *state = GPIO_LED_STATE(obj);
 
-    qdev_prop_set_string(DEVICE(obj), "on-message", "[LED On]\n");
-    qdev_prop_set_string(DEVICE(obj), "off-message", "[LED Off]\n");
+    cm_object_property_add_bool(obj, "active-low", &state->active_low);
+    cm_object_property_add_const_str(obj, "on-message", &state->on_message);
+    cm_object_property_add_const_str(obj, "off-message", &state->off_message);
+
+    cm_object_property_set_str(obj, "[LED On]\n", "on-message");
+    cm_object_property_set_str(obj, "[LED Off]\n", "off-message");
+
+#if defined(CONFIG_SDL)
+    cm_object_property_add_int16(obj, "x", &state->rectangle.x);
+    cm_object_property_add_int16(obj, "y", &state->rectangle.y);
+    cm_object_property_add_uint16(obj, "w", &state->rectangle.w);
+    cm_object_property_add_uint16(obj, "h", &state->rectangle.h);
+
+    cm_object_property_add_uint8(obj, "colour.red", &state->colour.red);
+    cm_object_property_add_uint8(obj, "colour.green", &state->colour.green);
+    cm_object_property_add_uint8(obj, "colour.blue", &state->colour.blue);
+#endif
 
     /*
      * Allocate 1 single incoming irq, and fill it with
@@ -141,17 +238,38 @@ static void gpio_led_instance_init_callback(Object *obj)
      */
 }
 
-static Property gpio_led_properties[] = {
-        DEFINE_PROP_BOOL("active-low", GPIOLEDState, active_low, false),
-        DEFINE_PROP_CONST_STRING("on-message", GPIOLEDState, on_message),
-        DEFINE_PROP_CONST_STRING("off-message", GPIOLEDState, off_message),
-    DEFINE_PROP_END_OF_LIST() };
+static SDL_Surface* crop_surface(SDL_Surface* sprite_sheet, SDL_Rect *rectangle)
+{
+    SDL_Surface* surface = SDL_CreateRGBSurface(sprite_sheet->flags,
+            rectangle->w, rectangle->h, sprite_sheet->format->BitsPerPixel,
+            sprite_sheet->format->Rmask, sprite_sheet->format->Gmask,
+            sprite_sheet->format->Bmask, sprite_sheet->format->Amask);
+    SDL_BlitSurface(sprite_sheet, rectangle, surface, 0);
+    return surface;
+}
+
+static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
+{
+    qemu_log_function_name();
+
+    GPIOLEDState *state = GPIO_LED_STATE(dev);
+
+    if (state->board_surface) {
+
+        state->crop_off = crop_surface(state->board_surface, &state->rectangle);
+        state->crop_on = crop_surface(state->board_surface, &state->rectangle);
+
+        Uint32 colour = SDL_MapRGB(state->crop_off->format, state->colour.red,
+                state->colour.green, state->colour.blue);
+        SDL_FillRect(state->crop_on, NULL, colour);
+    }
+}
 
 static void gpio_led_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    dc->props = gpio_led_properties;
+    dc->realize = gpio_led_realize_callback;
 }
 
 static const TypeInfo gpio_led_type_info = {
