@@ -27,7 +27,7 @@
 #include "sysemu/sysemu.h"
 #if defined(CONFIG_SDL)
 #include "SDL/SDL.h"
-#include "SDL/SDL_Image.h"
+#include "SDL/SDL_image.h"
 #endif
 
 #if defined(CONFIG_VERBOSE)
