@@ -61,13 +61,10 @@ void *cm_board_init_image(const char *file_name, const char *caption)
             SDL_Init(SDL_INIT_EVERYTHING);
         }
 
-#if 1
-        SDL_Surface* board_bitmap = SDL_LoadBMP(
-                qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name));
-#else
+        /* A better SDL_LoadBMP(). */
         SDL_Surface* board_bitmap = IMG_Load(
                 qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name));
-#endif
+
         SDL_WM_SetCaption(caption, NULL);
         SDL_Surface* screen = SDL_SetVideoMode(board_bitmap->w, board_bitmap->h,
                 32, SDL_DOUBLEBUF);

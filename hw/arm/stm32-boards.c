@@ -88,7 +88,7 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32F4-Discovery.bmp",
+    void *board_surface = cm_board_init_image("STM32F4-Discovery.png",
             "STM32F4-Discovery");
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
