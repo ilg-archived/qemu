@@ -137,7 +137,11 @@ static const char *data_dir[16];
 static int data_dir_idx;
 const char *bios_name = NULL;
 enum vga_retrace_method vga_retrace_method = VGA_RETRACE_DUMB;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+DisplayType display_type = DT_NONE;
+#else
 DisplayType display_type = DT_DEFAULT;
+#endif
 int request_opengl = -1;
 int display_opengl;
 static int display_remote;
