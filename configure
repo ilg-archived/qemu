@@ -765,7 +765,7 @@ case $target_list in
     strip_opt="no"
     gtk="no"
     vnc="no"
-    sdl="no"
+    sdl="yes"
     cocoa="no"
     xen="no"
     audio_drv_list=""
@@ -2325,9 +2325,18 @@ if test "$sdl" = "yes" ; then
 #endif
 int main(void) { return 0; }
 EOF
+  # --- [GNU ARM Eclipse] ---
+  echo "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs"
+  # --- [GNU ARM Eclipse] ---
   if compile_prog "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs" ; then
     sdl_cflags="$sdl_cflags $x11_cflags"
     sdl_libs="$sdl_libs $x11_libs"
+  else
+    # --- [GNU ARM Eclipse] ---
+    sdl_cflags="$sdl_cflags $x11_cflags"
+    sdl_libs="$sdl_libs -lSDL_image $x11_libs"
+    echo "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs"
+    # --- [GNU ARM Eclipse] ---
   fi
   libs_softmmu="$sdl_libs $libs_softmmu"
 fi
