@@ -2331,9 +2331,6 @@ EOF
   if compile_prog "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs" ; then
     sdl_cflags="$sdl_cflags $x11_cflags"
     sdl_libs="$sdl_libs $x11_libs"
-  else
-    sdl_cflags="$sdl_cflags $x11_cflags"
-    sdl_libs="$sdl_libs $x11_libs"
   fi
   # --- [GNU ARM Eclipse] ---
   sdl_libs="$sdl_libs -lSDL_image"
