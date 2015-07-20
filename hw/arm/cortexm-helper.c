@@ -61,9 +61,18 @@ void *cm_board_init_image(const char *file_name, const char *caption)
             SDL_Init(SDL_INIT_EVERYTHING);
         }
 
+        const char *fullname = qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name);
+        if (fullname == NULL) {
+            error_printf("Image file '%s' not found.\n", file_name);
+            exit(1);
+        }
+
         /* A better SDL_LoadBMP(). */
-        SDL_Surface* board_bitmap = IMG_Load(
-                qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name));
+        SDL_Surface* board_bitmap = IMG_Load(fullname);
+        if (board_bitmap == NULL) {
+            error_printf("Cannot load image file '%s'.\n", fullname);
+            exit(1);
+        }
 
         SDL_WM_SetCaption(caption, NULL);
         SDL_Surface* screen = SDL_SetVideoMode(board_bitmap->w, board_bitmap->h,
