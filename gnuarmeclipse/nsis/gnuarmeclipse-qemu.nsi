@@ -135,8 +135,8 @@ File "${INSTALL_FOLDER}\gnuarmeclipse\CHANGES.txt"
 SetOutPath "$INSTDIR\keymaps"
 File "${INSTALL_FOLDER}\keymaps\*"
 
-SetOutPath "$INSTDIR\share"
-File /r "${INSTALL_FOLDER}\share\*"
+SetOutPath "$INSTDIR\images"
+File /r "${INSTALL_FOLDER}\share\qemu\images\*"
 
 ; Write the uninstaller file
 WriteUninstaller "${UNINSTALL_EXE}"
