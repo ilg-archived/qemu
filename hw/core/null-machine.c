@@ -15,6 +15,7 @@
 #include "hw/hw.h"
 #include "hw/boards.h"
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
 static void machine_none_init(MachineState *machine)
 {
 }
@@ -32,4 +33,5 @@ static void register_machines(void)
 }
 
 machine_init(register_machines);
+#endif
 
