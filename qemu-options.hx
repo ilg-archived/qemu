@@ -2709,6 +2709,30 @@ Use @var{elf-file} sections as image of the application to emulate. It is
 the same file used to program the flash via a JTAG/SWD programmer.
 ETEXI
 
+DEF("board", HAS_ARG, QEMU_OPTION_board, \
+    "-board [type=]name\n", QEMU_ARCH_ALL)
+STEXI
+@item -board [type=]@var{name}
+@findex -board
+Select the emulated board by @var{name}. Use @code{-board help} to list
+available boards. The names generally follow the CMSIS board definitions 
+and case is important. Each board defines a certain MCU, but a different
+MCU can be used during emulation if @code{-mcu} is added.
+
+If not specified, a default board is used, and @code{-mcu} becomes mandatory.
+ETEXI
+
+DEF("mcu", HAS_ARG, QEMU_OPTION_mcu,
+    "-mcu device        select MCU ('-mcu help' for list)\n", QEMU_ARCH_ALL)
+STEXI
+@item -mcu @var{model}
+@findex -mcu
+Select MCU model (@code{-mcu help} for list and additional feature selection). 
+The names follow the CMSIS device definitions and case is significant.
+
+If not specified, the board default is used.
+ETEXI
+
 STEXI
 @end table
 ETEXI
