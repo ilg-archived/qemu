@@ -654,6 +654,8 @@ static ObjectClass *arm_cpu_class_by_name(const char *cpu_model)
 /* CPU models. These are not needed for the AArch64 linux-user build. */
 #if !defined(CONFIG_USER_ONLY) || !defined(TARGET_AARCH64)
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
 static void arm926_initfn(Object *obj)
 {
     ARMCPU *cpu = ARM_CPU(obj);
@@ -841,6 +843,8 @@ static void arm11mpcore_initfn(Object *obj)
     cpu->id_isar4 = 0x141;
     cpu->reset_auxcr = 1;
 }
+
+#endif
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 
@@ -1337,6 +1341,8 @@ typedef struct ARMCPUInfo {
 
 static const ARMCPUInfo arm_cpus[] = {
 #if !defined(CONFIG_USER_ONLY) || !defined(TARGET_AARCH64)
+
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     { .name = "arm926",      .initfn = arm926_initfn },
     { .name = "arm946",      .initfn = arm946_initfn },
     { .name = "arm1026",     .initfn = arm1026_initfn },
@@ -1348,6 +1354,7 @@ static const ARMCPUInfo arm_cpus[] = {
     { .name = "arm1136",     .initfn = arm1136_initfn },
     { .name = "arm1176",     .initfn = arm1176_initfn },
     { .name = "arm11mpcore", .initfn = arm11mpcore_initfn },
+#endif
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     /* Cortex-M cores - experimental support.  */
@@ -1365,6 +1372,8 @@ static const ARMCPUInfo arm_cpus[] = {
                              .class_init = arm_v7m_class_init },
     { .name = "cortex-m4",   .initfn = cortex_m4_initfn,
                              .class_init = arm_v7m_class_init },
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
     { .name = "cortex-r5",   .initfn = cortex_r5_initfn },
     { .name = "cortex-a8",   .initfn = cortex_a8_initfn },
     { .name = "cortex-a9",   .initfn = cortex_a9_initfn },
@@ -1387,6 +1396,7 @@ static const ARMCPUInfo arm_cpus[] = {
     { .name = "pxa270-c5",   .initfn = pxa270c5_initfn },
 #ifdef CONFIG_USER_ONLY
     { .name = "any",         .initfn = arm_any_initfn },
+#endif
 #endif
 #endif
     { .name = NULL }
