@@ -1,26 +1,27 @@
 # [GNU ARM Eclipse]
 # Disable most.
 
-#obj-y += boot.o collie.o exynos4_boards.o gumstix.o highbank.o
-#obj-$(CONFIG_DIGIC) += digic_boards.o
-#obj-y += integratorcp.o kzm.o mainstone.o musicpal.o nseries.o
-#obj-y += omap_sx1.o palm.o realview.o spitz.o stellaris.o
-#obj-y += tosa.o versatilepb.o vexpress.o virt.o xilinx_zynq.o z2.o
-#obj-$(CONFIG_ACPI) += virt-acpi-build.o
-#obj-y += netduino2.o
-#obj-y += sysbus-fdt.o
+ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+obj-y += boot.o collie.o exynos4_boards.o gumstix.o highbank.o
+obj-$(CONFIG_DIGIC) += digic_boards.o
+obj-y += integratorcp.o kzm.o mainstone.o musicpal.o nseries.o
+obj-y += omap_sx1.o palm.o realview.o spitz.o stellaris.o
+obj-y += tosa.o versatilepb.o vexpress.o virt.o xilinx_zynq.o z2.o
+obj-$(CONFIG_ACPI) += virt-acpi-build.o
+obj-y += netduino2.o
+obj-y += sysbus-fdt.o
 
-#obj-y += armv7m.o exynos4210.o pxa2xx.o pxa2xx_gpio.o pxa2xx_pic.o
-#obj-$(CONFIG_DIGIC) += digic.o
-#obj-y += omap1.o omap2.o strongarm.o
-#obj-$(CONFIG_ALLWINNER_A10) += allwinner-a10.o cubieboard.o
-#obj-$(CONFIG_STM32F205_SOC) += stm32f205_soc.o
-
+obj-y += armv7m.o exynos4210.o pxa2xx.o pxa2xx_gpio.o pxa2xx_pic.o
+obj-$(CONFIG_DIGIC) += digic.o
+obj-y += omap1.o omap2.o strongarm.o
+obj-$(CONFIG_ALLWINNER_A10) += allwinner-a10.o cubieboard.o
+obj-$(CONFIG_STM32F205_SOC) += stm32f205_soc.o
+endif
 
 # [GNU ARM Eclipse]
 obj-y += armv7m.o
 # Cortex-M files
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-mcu.o cortexm-helper.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-mcu.o cortexm-helper.o cortexm-board.o
 obj-$(CONFIG_STM32) += stm32-mcu.o stm32-mcus.o stm32-boards.o stm32-olimex-boards.o
 obj-$(CONFIG_STM32) += stm32-duino-boards.o stm32-nucleo-boards.o
 obj-$(CONFIG_KINETIS) += kinetis-mcus.o kinetis-boards.o
