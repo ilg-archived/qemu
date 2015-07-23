@@ -88,7 +88,7 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32F4-Discovery.png",
+    void *board_surface = cm_board_init_image("STM32F4-Discovery.jpg",
             "STM32F4-Discovery");
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
@@ -99,6 +99,33 @@ static QEMUMachine stm32f4_discovery_machine = {
     .name = "STM32F4-Discovery",
     .desc = "ST Discovery kit for STM32F407/417 lines",
     .init = stm32f4_discovery_board_init_callback };
+
+static void stm32f4_discovery2_board_init_callback(MachineState *machine)
+{
+    cm_board_greeting(machine);
+
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(TYPE_STM32F407VG);
+
+        /* Set the board specific oscillator frequencies. */
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+
+        cm_object_realize(mcu);
+    }
+
+    void *board_surface = cm_board_init_image("STM32F4-Discovery.png",
+            "STM32F4-Discovery");
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
+            board_surface);
+}
+
+static QEMUMachine stm32f4_discovery2_machine = {
+    .name = "STM32F4-Discovery2",
+    .desc = "ST Discovery kit for STM32F407/417 lines",
+    .init = stm32f4_discovery2_board_init_callback };
 
 /* ----- ST STM32F429I-Discovery ----- */
 
@@ -199,6 +226,7 @@ static void stm32vl_discovery_init_callback(MachineState *machine)
 static void stm32_machines_init(void)
 {
     qemu_register_machine(&stm32f4_discovery_machine);
+    qemu_register_machine(&stm32f4_discovery2_machine);
     qemu_register_machine(&stm32f429i_discovery_machine);
 #if 0
     qemu_register_machine(&stm32f3_discovery_machine);
