@@ -56,7 +56,7 @@ void *cm_board_init_image(const char *file_name, const char *caption)
     void *board_surface = NULL;
 #if defined(CONFIG_SDL)
     if (display_type != DT_NOGRAPHIC) {
-        //Start SDL
+        // Start SDL, if needed.
         if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
             SDL_Init(SDL_INIT_EVERYTHING);
         }
@@ -67,12 +67,26 @@ void *cm_board_init_image(const char *file_name, const char *caption)
             exit(1);
         }
 
+        int res = IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
+        if ((res
+                & (IMG_INIT_JPG | IMG_INIT_PNG))
+                        != (IMG_INIT_JPG | IMG_INIT_PNG)) {
+            error_printf("IMG_init failed (%s).\n", IMG_GetError());
+            exit(1);
+        }
         /* A better SDL_LoadBMP(). */
         SDL_Surface* board_bitmap = IMG_Load(fullname);
         if (board_bitmap == NULL) {
-            error_printf("Cannot load image file '%s'.\n", fullname);
+            error_printf("Cannot load image file '%s' (%s).\n", fullname,
+                    IMG_GetError());
             exit(1);
         }
+
+#if defined(CONFIG_VERBOSE)
+        if (verbosity_level >= VERBOSITY_COMMON) {
+            printf("Board picture: '%s'.\n", fullname);
+        }
+#endif
 
         SDL_WM_SetCaption(caption, NULL);
         SDL_Surface* screen = SDL_SetVideoMode(board_bitmap->w, board_bitmap->h,
