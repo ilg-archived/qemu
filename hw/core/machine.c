@@ -94,7 +94,7 @@ static void machine_set_image(Object *obj, const char *value, Error **errp)
 {
     MachineState *ms = MACHINE(obj);
 
-    g_free(ms->image_filename);
+    g_free((void*)ms->image_filename);
     ms->image_filename = g_strdup(value);
 }
 
@@ -447,7 +447,7 @@ static void machine_finalize(Object *obj)
     g_free(ms->initrd_filename);
     g_free(ms->kernel_cmdline);
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    g_free(ms->image_filename);
+    g_free((void*)ms->image_filename);
 #endif
     g_free(ms->dtb);
     g_free(ms->dumpdtb);
