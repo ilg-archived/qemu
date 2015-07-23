@@ -2329,7 +2329,11 @@ char *qemu_find_file(int type, const char *name)
         break;
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     case QEMU_FILE_TYPE_IMAGES:
+#if defined(CONFIG_WIN32)
+        subdir = "images\\";
+#else
         subdir = "images/";
+#endif
         break;
 #endif
         default:
@@ -2337,9 +2341,19 @@ char *qemu_find_file(int type, const char *name)
     }
 
     for (i = 0; i < data_dir_idx; i++) {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_WIN32)
+        buf = g_strdup_printf("%s\\%s%s", data_dir[i], subdir, name);
+#else
         buf = g_strdup_printf("%s/%s%s", data_dir[i], subdir, name);
+#endif
+#else
+        buf = g_strdup_printf("%s/%s%s", data_dir[i], subdir, name);
+#endif
+        // fprintf(stderr, "check %s\n", buf);
         if (access(buf, R_OK) == 0) {
             trace_load_file(name, buf);
+            // fprintf(stderr, "check %s ok\n", buf);
             return buf;
         }
         g_free(buf);
@@ -4273,6 +4287,7 @@ int main(int argc, char **argv, char **envp)
        executable path.  */
     if (data_dir_idx < ARRAY_SIZE(data_dir)) {
         data_dir[data_dir_idx] = os_find_datadir();
+        fprintf(stderr, "%s\n", data_dir[data_dir_idx]);
         if (data_dir[data_dir_idx] != NULL) {
             data_dir_idx++;
         }

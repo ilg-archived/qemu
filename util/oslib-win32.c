@@ -237,6 +237,13 @@ void qemu_init_exec_dir(const char *argv0)
     while (p != buf && *p != '\\') {
         p--;
     }
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    /* Eat-up \bin too */
+    --p;
+    while (p != buf && *p != '\\') {
+        p--;
+    }
+#endif
     *p = 0;
     if (access(buf, R_OK) == 0) {
         pstrcpy(exec_dir, sizeof(exec_dir), buf);
