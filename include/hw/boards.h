@@ -147,7 +147,8 @@ struct MachineState {
     char *kernel_cmdline;
     char *initrd_filename;
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    char *image_filename;
+    const char *image_filename;
+    const char *mcu_device;
 #endif
     const char *cpu_model;
     AccelState *accelerator;
