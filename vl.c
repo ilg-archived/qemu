@@ -2735,10 +2735,19 @@ static gint machine_class_cmp(gconstpointer a, gconstpointer b)
         return mc;
     }
     if (name && !is_help_option(name)) {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        error_report("Unsupported board.");
+        error_printf("Use -board help to list supported boards!\n");
+#else
         error_report("Unsupported machine type");
         error_printf("Use -machine help to list supported machines!\n");
+#endif
     } else {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        printf("Supported boards are:\n");
+#else
         printf("Supported machines are:\n");
+#endif
         machines = g_slist_sort(machines, machine_class_cmp);
         for (el = machines; el; el = el->next) {
             MachineClass *mc = el->data;
@@ -3085,9 +3094,14 @@ int main(int argc, char **argv, char **envp)
     Error *main_loop_err = NULL;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
+    const char *mcu_device = NULL;
     const char *image_filename = NULL;
     int actual_argc = argc;
-    with_gdb = false;   
+    with_gdb = false;
+
+    /* Most emulated applications need semihosting, so start with it enabled. */
+    semihosting.enabled = true;
+    semihosting.target = SEMIHOSTING_TARGET_NATIVE;
 #endif
 
     qemu_init_cpu_loop();
@@ -3239,6 +3253,9 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_cpu:
                 /* hw initialization will check this */
                 cpu_model = optarg;
+                break;
+            case QEMU_OPTION_mcu:
+                mcu_device = optarg;
                 break;
             case QEMU_OPTION_hda:
                 {
@@ -3813,6 +3830,7 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_M:
             case QEMU_OPTION_machine:
+            case QEMU_OPTION_board:
                 olist = qemu_find_opts("machine");
                 opts = qemu_opts_parse_noisily(olist, optarg, true);
                 if (!opts) {
@@ -4163,17 +4181,52 @@ int main(int argc, char **argv, char **envp)
         }
     }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    /* Moved before machine test to allow -d help */
+
+    if (log_file) {
+        qemu_set_log_filename(log_file);
+    }
+
+    if (log_mask) {
+        int mask;
+        mask = qemu_str_to_log_mask(log_mask);
+        if (!mask) {
+            qemu_print_log_usage(stdout);
+            exit(1);
+        }
+        qemu_set_log(mask);
+    }
+
+#endif
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    opts = qemu_get_machine_opts();
+    optarg = qemu_opt_get(opts, "type");
+    if (optarg == NULL) {
+        optarg = "generic";
+    }
+
+    machine_class = machine_parse(optarg);
+
+    if (machine_class == NULL && mcu_device == NULL) {
+        fprintf(stderr,
+                "Neither board or mcu specified, and there is no default.\n"
+                        "Use -board help to list supported boards!\n");
+        exit(1);
+    }
+
+#else
+
     opts = qemu_get_machine_opts();
     optarg = qemu_opt_get(opts, "type");
     if (optarg) {
         machine_class = machine_parse(optarg);
     }
 
-    if (machine_class == NULL) {
-        fprintf(stderr, "No machine specified, and there is no default.\n"
-                "Use -machine help to list supported machines!\n");
-        exit(1);
-    }
+#endif
 
     set_memory_options(&ram_slots, &maxram_size, machine_class);
 
@@ -4208,31 +4261,13 @@ int main(int argc, char **argv, char **envp)
     }
 #endif
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-
-    /* Moved before machine test to allow -d help */
-
-    if (log_file) {
-        qemu_set_log_filename(log_file);
-    }
-
-    if (log_mask) {
-        int mask;
-        mask = qemu_str_to_log_mask(log_mask);
-        if (!mask) {
-            qemu_print_log_usage(stdout);
-            exit(1);
-        }
-        qemu_set_log(mask);
-    }
-
-#endif
-
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     if (machine_class == NULL) {
         fprintf(stderr, "No machine specified, and there is no default.\n"
                 "Use -machine help to list supported machines!\n");
         exit(1);
     }
+#endif
 
     current_machine = MACHINE(object_new(object_class_get_name(
                           OBJECT_CLASS(machine_class))));
@@ -4287,7 +4322,6 @@ int main(int argc, char **argv, char **envp)
        executable path.  */
     if (data_dir_idx < ARRAY_SIZE(data_dir)) {
         data_dir[data_dir_idx] = os_find_datadir();
-        fprintf(stderr, "%s\n", data_dir[data_dir_idx]);
         if (data_dir[data_dir_idx] != NULL) {
             data_dir_idx++;
         }
@@ -4692,6 +4726,9 @@ int main(int argc, char **argv, char **envp)
     current_machine->ram_slots = ram_slots;
     current_machine->boot_order = boot_order;
     current_machine->cpu_model = cpu_model;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    current_machine->mcu_device = mcu_device;
+#endif
 
     machine_class->init(current_machine);
 
