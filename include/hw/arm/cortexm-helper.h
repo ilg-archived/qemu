@@ -46,6 +46,8 @@ typedef uint64_t peripheral_register_t;
 
 void cm_board_greeting(MachineState *machine);
 void *cm_board_init_image(const char *file_name, const char *caption);
+const char *cm_board_get_name(MachineState *machine);
+const char *cm_board_get_desc(MachineState *machine);
 
 bool cm_mcu_help_func(const char *mcu_device);
 bool cm_board_help_func(const char *name);

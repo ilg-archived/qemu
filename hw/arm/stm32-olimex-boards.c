@@ -56,7 +56,8 @@ static void stm32_h103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32-H103.jpg", "STM32-H103");
+    void *board_surface = cm_board_init_image("STM32-H103.jpg",
+            cm_board_get_desc(machine));
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32_h103_leds_info, board_surface);
@@ -98,7 +99,8 @@ static void stm32_p103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32-P103.jpg", "STM32-P103");
+    void *board_surface = cm_board_init_image("STM32-P103.jpg",
+            cm_board_get_desc(machine));
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32_p103_leds_info, board_surface);
@@ -151,7 +153,7 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
     }
 
     void *board_surface = cm_board_init_image("OLIMEXINO-STM32.jpg",
-            "OLIMEXINO-STM32");
+            cm_board_get_desc(machine));
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info,
@@ -204,7 +206,8 @@ static void stm32_p107_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32-P107.jpg", "STM32-P107");
+    void *board_surface = cm_board_init_image("STM32-P107.jpg",
+            cm_board_get_desc(machine));
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32_p107_leds_info, board_surface);
@@ -245,7 +248,8 @@ static void stm32_e407_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32-E407.jpg", "STM32-E407");
+    void *board_surface = cm_board_init_image("STM32-E407.jpg",
+            cm_board_get_desc(machine));
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32_e407_leds_info, board_surface);

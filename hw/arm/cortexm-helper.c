@@ -21,6 +21,7 @@
 #include "hw/arm/cortexm-mcu.h"
 
 #include "hw/boards.h"
+#include "qom/object.h"
 #include "cpu-qom.h"
 #include "qemu/error-report.h"
 #include "qapi/visitor.h"
@@ -164,6 +165,14 @@ bool cm_board_help_func(const char *name)
     }
 
     return true;
+}
+
+const char *cm_board_get_name(MachineState *machine) {
+    return object_class_get_name(DEVICE_CLASS(machine));
+}
+
+const char *cm_board_get_desc(MachineState *machine) {
+    return MACHINE_GET_CLASS(machine)->desc;
 }
 
 /* ------------------------------------------------------------------------- */
