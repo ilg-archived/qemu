@@ -32,6 +32,10 @@ static GPIOLEDInfo stm32_h103_leds_info[] = {
         .name = "green-led",
         .active_low = true,
         .colour_message = "Green",
+        .x = 97,
+        .y = 243,
+        .w = 14,
+        .h = 12,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
         .port_bit = 12, },
     { }, /**/
@@ -52,8 +56,10 @@ static void stm32_h103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("STM32-H103.jpg", "STM32-H103");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_h103_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, stm32_h103_leds_info, board_surface);
 }
 
 static QEMUMachine stm32_h103_machine = {
@@ -68,6 +74,10 @@ static GPIOLEDInfo stm32_p103_leds_info[] = {
         .name = "red-led",
         .active_low = true,
         .colour_message = "Red",
+        .x = 331,
+        .y = 362,
+        .w = 12,
+        .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
         .port_bit = 12, },
     { }, /**/
@@ -88,8 +98,10 @@ static void stm32_p103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("STM32-P103.jpg", "STM32-P103");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_p103_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, stm32_p103_leds_info, board_surface);
 }
 
 static QEMUMachine stm32_p103_machine = {
@@ -104,12 +116,20 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
         .name = "green-led",
         .active_low = false,
         .colour_message = "Green",
+        .x = 137,
+        .y = 40,
+        .w = 10,
+        .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .port_bit = 5, },
     {
         .name = "yellow-led",
         .active_low = false,
         .colour_message = "Yellow",
+        .x = 168,
+        .y = 40,
+        .w = 10,
+        .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .port_bit = 1, },
     { }, /**/
@@ -130,8 +150,12 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("OLIMEXINO-STM32.jpg",
+            "OLIMEXINO-STM32");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info,
+            board_surface);
 }
 
 static QEMUMachine olimexino_stm32_machine = {
@@ -146,12 +170,20 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
         .name = "green-led",
         .active_low = false,
         .colour_message = "Green",
+        .x = 171,
+        .y = 354,
+        .w = 6,
+        .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
         .port_bit = 6, },
     {
         .name = "yellow-led",
         .active_low = false,
         .colour_message = "Yellow",
+        .x = 227,
+        .y = 354,
+        .w = 6,
+        .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
         .port_bit = 7, },
     { }, /**/
@@ -172,8 +204,10 @@ static void stm32_p107_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("STM32-P107.jpg", "STM32-P107");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_p107_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, stm32_p107_leds_info, board_surface);
 }
 
 static QEMUMachine stm32_p107_machine = {
@@ -188,6 +222,10 @@ static GPIOLEDInfo stm32_e407_leds_info[] = {
         .name = "green-led",
         .active_low = true,
         .colour_message = "Green",
+        .x = 73,
+        .y = 408,
+        .w = 8,
+        .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
         .port_bit = 13, },
     { }, /**/
@@ -207,8 +245,10 @@ static void stm32_e407_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("STM32-E407.jpg", "STM32-E407");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_e407_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, stm32_e407_leds_info, board_surface);
 }
 
 static QEMUMachine stm32_e407_machine = {

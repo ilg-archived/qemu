@@ -90,6 +90,7 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
 
     void *board_surface = cm_board_init_image("STM32F4-Discovery.jpg",
             "STM32F4-Discovery");
+
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
             board_surface);
@@ -134,12 +135,20 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .name = "green-led",
         .active_low = false,
         .colour_message = "Green",
+        .x = 519,
+        .y = 109,
+        .w = 10,
+        .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[g]",
         .port_bit = 13, },
     {
         .name = "red-led",
         .active_low = false,
         .colour_message = "Red",
+        .x = 519,
+        .y = 130,
+        .w = 10,
+        .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[g]",
         .port_bit = 14, },
     { }, /**/
@@ -160,8 +169,12 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("STM32F429I-Discovery.jpg",
+            "STM32F429I-Discovery");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info,
+            board_surface);
 }
 
 static QEMUMachine stm32f429i_discovery_machine = {

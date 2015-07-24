@@ -51,6 +51,10 @@ static GPIOLEDInfo netduinoplus2_leds_info[] = {
         .name = "blue-led",
         .active_low = false,
         .colour_message = "Blue",
+        .x = 507,
+        .y = 183,
+        .w = 12,
+        .h = 14,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .port_bit = 10, },
     { }, /**/
@@ -71,8 +75,11 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("NetduinoPlus2.jpg",
+            "NetduinoPlus2");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, netduinoplus2_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, netduinoplus2_leds_info, board_surface);
 }
 
 static QEMUMachine netduinoplus2_machine = {
@@ -86,6 +93,11 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led1",
         .active_low = false,
+        .colour_message = "White",
+        .x = 140,
+        .y = 457,
+        .w = 8,
+        .h = 12,
         .on_message = "[White LED1 On]\n",
         .on_message = "[White LED1 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
@@ -93,6 +105,11 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led2",
         .active_low = false,
+        .colour_message = "White",
+        .x = 286,
+        .y = 457,
+        .w = 8,
+        .h = 12,
         .on_message = "[White LED2 On]\n",
         .on_message = "[White LED2 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
@@ -100,6 +117,11 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led3",
         .active_low = false,
+        .colour_message = "White",
+        .x = 432,
+        .y = 457,
+        .w = 8,
+        .h = 12,
         .on_message = "[White LED3 On]\n",
         .on_message = "[White LED3 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
@@ -107,6 +129,11 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led4",
         .active_low = false,
+        .colour_message = "White",
+        .x = 614,
+        .y = 405,
+        .w = 12,
+        .h = 8,
         .on_message = "[White LED4 On]\n",
         .on_message = "[White LED4 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
@@ -114,6 +141,11 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led5",
         .active_low = false,
+        .colour_message = "White",
+        .x = 614,
+        .y = 259,
+        .w = 12,
+        .h = 8,
         .on_message = "[White LED5 On]\n",
         .on_message = "[White LED5 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
@@ -121,12 +153,22 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led6",
         .active_low = false,
+        .colour_message = "White",
+        .x = 564,
+        .y = 70,
+        .w = 8,
+        .h = 12,
         .on_message = "[White LED6 On]\n",
         .on_message = "[White LED6 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
         .port_bit = 7, },
     {
         .name = "white-led7",
+        .colour_message = "White",
+        .x = 419,
+        .y = 70,
+        .w = 8,
+        .h = 12,
         .active_low = false,
         .on_message = "[White LED7 On]\n",
         .on_message = "[White LED7 Off]\n",
@@ -135,6 +177,11 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led8",
         .active_low = false,
+        .colour_message = "White",
+        .x = 274,
+        .y = 70,
+        .w = 8,
+        .h = 12,
         .on_message = "[White LED8 On]\n",
         .on_message = "[White LED8 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
@@ -157,8 +204,11 @@ static void netduinogo_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("NetduinoGo.jpg",
+            "NetduinoGo");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, netduinogo_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, netduinogo_leds_info, board_surface);
 }
 
 static QEMUMachine netduinogo_machine = {
@@ -173,6 +223,10 @@ static GPIOLEDInfo mapple_leds_info[] = {
         .name = "blue-led",
         .active_low = false,
         .colour_message = "Blue",
+        .x = 215,
+        .y = 161,
+        .w = 10,
+        .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .port_bit = 5, },
     { }, /**/
@@ -193,8 +247,11 @@ static void mapple_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("Mapple.jpg",
+            "Mapple");
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, mapple_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, mapple_leds_info, board_surface);
 }
 
 static QEMUMachine mapple_machine = {
