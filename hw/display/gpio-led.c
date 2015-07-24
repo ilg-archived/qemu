@@ -79,8 +79,9 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         }
 
         if (info->w && info->h) {
-            cm_object_property_set_int(led, info->x, "x");
-            cm_object_property_set_int(led, info->y, "y");
+            /* Compute corner coordinate from centre coordinate. */
+            cm_object_property_set_int(led, info->x - (info->w/2), "x");
+            cm_object_property_set_int(led, info->y - (info->h/2), "y");
             cm_object_property_set_int(led, info->w, "w");
             cm_object_property_set_int(led, info->h, "h");
         }

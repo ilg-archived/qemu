@@ -44,8 +44,10 @@ typedef struct {
     const char *on_message;
     const char *off_message;
 
+    /* Centre of the LED. */
     uint32_t x;
     uint32_t y;
+    /* Size of the rectangle to lit. */
     uint32_t w;
     uint32_t h;
 
