@@ -124,6 +124,7 @@ int main(int argc, char **argv)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include <strings.h>
+#include "hw/arm/cortexm-helper.h"
 #endif
 
 #if defined(CONFIG_VERBOSE)
@@ -4204,18 +4205,32 @@ int main(int argc, char **argv, char **envp)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 
     opts = qemu_get_machine_opts();
-    optarg = qemu_opt_get(opts, "type");
-    if (optarg == NULL) {
-        optarg = "generic";
+    const char *board_name;
+    board_name = qemu_opt_get(opts, "type");
+
+    if (board_name == NULL && mcu_device == NULL) {
+        fprintf(stderr,
+                "Neither board nor mcu specified, and there is no default.\n"
+                        "Use -board help or -mcu help to list supported boards or devices!\n");
+        exit(1);
     }
 
-    machine_class = machine_parse(optarg);
+    if (cm_board_help_func(board_name)) {
+        cm_mcu_help_func(mcu_device);
+        exit(0);
+    }
 
-    if (machine_class == NULL && mcu_device == NULL) {
-        fprintf(stderr,
-                "Neither board or mcu specified, and there is no default.\n"
-                        "Use -board help to list supported boards!\n");
-        exit(1);
+    if (cm_mcu_help_func(mcu_device)) {
+        exit(0);
+    }
+
+    if (board_name == NULL) {
+        board_name = "generic";
+    }
+
+    machine_class = find_machine(board_name);
+    if (machine_class == NULL) {
+        cm_board_help_func("?");
     }
 
 #else
@@ -4271,9 +4286,12 @@ int main(int argc, char **argv, char **envp)
 
     current_machine = MACHINE(object_new(object_class_get_name(
                           OBJECT_CLASS(machine_class))));
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     if (machine_help_func(qemu_get_machine_opts(), current_machine)) {
-        exit(0);
+         exit(0);
     }
+#endif
+
     object_property_add_child(object_get_root(), "machine",
                               OBJECT(current_machine), &error_abort);
     cpu_exec_init_all();

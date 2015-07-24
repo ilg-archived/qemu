@@ -79,7 +79,8 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F407VG);
+        const char *device_name = cm_board_get_device_name(machine, TYPE_STM32F407VG);
+        Object *mcu = cm_object_new_mcu(device_name);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
@@ -106,7 +107,8 @@ static void stm32f4_discovery2_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F407VG);
+        const char *device_name = cm_board_get_device_name(machine, TYPE_STM32F407VG);
+        Object *mcu = cm_object_new_mcu(device_name);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */

@@ -35,7 +35,7 @@ static void cortexm_board_init_callback(MachineState *machine)
 
 static QEMUMachine machine_none = {
     .name = "generic",
-    .desc = "Generic Cortex-M board (use -mcu to define the device)",
+    .desc = "Generic Cortex-M board; use -mcu to define the device",
     .init = cortexm_board_init_callback,
 };
 

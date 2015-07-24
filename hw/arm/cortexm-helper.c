@@ -18,6 +18,7 @@
  */
 
 #include "hw/arm/cortexm-helper.h"
+#include "hw/arm/cortexm-mcu.h"
 
 #include "hw/boards.h"
 #include "cpu-qom.h"
@@ -51,6 +52,16 @@ void cm_board_greeting(MachineState *machine)
 #endif
 }
 
+const char *cm_board_get_device_name(MachineState *machine,
+        const char *board_device)
+{
+    if (machine->mcu_device) {
+        return machine->mcu_device;
+    }
+
+    return board_device;
+}
+
 void *cm_board_init_image(const char *file_name, const char *caption)
 {
     void *board_surface = NULL;
@@ -68,9 +79,8 @@ void *cm_board_init_image(const char *file_name, const char *caption)
         }
 
         int res = IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
-        if ((res
-                & (IMG_INIT_JPG | IMG_INIT_PNG))
-                        != (IMG_INIT_JPG | IMG_INIT_PNG)) {
+        if ((res & (IMG_INIT_JPG | IMG_INIT_PNG))
+                != (IMG_INIT_JPG | IMG_INIT_PNG)) {
             error_printf("IMG_init failed (%s).\n", IMG_GetError());
             exit(1);
         }
@@ -83,7 +93,7 @@ void *cm_board_init_image(const char *file_name, const char *caption)
         }
 
 #if defined(CONFIG_VERBOSE)
-        if (verbosity_level >= VERBOSITY_COMMON) {
+        if (verbosity_level >= VERBOSITY_DETAILED) {
             printf("Board picture: '%s'.\n", fullname);
         }
 #endif
@@ -104,6 +114,68 @@ void *cm_board_init_image(const char *file_name, const char *caption)
 #endif
     return board_surface;
 }
+
+static void cm_mcu_help_foreach(gpointer data, gpointer user_data)
+{
+    ObjectClass *oc = data;
+    const char *typename;
+
+    typename = object_class_get_name(oc);
+    printf("  %s\n", typename);
+}
+
+static gint object_class_cmp(gconstpointer a, gconstpointer b)
+{
+    return strcmp(object_class_get_name(OBJECT_CLASS(a)),
+            object_class_get_name(OBJECT_CLASS(b)));
+}
+
+bool cm_mcu_help_func(const char *mcu_device)
+{
+
+    if ((mcu_device == NULL) || !is_help_option(mcu_device)) {
+        return false;
+    }
+
+    GSList *list;
+
+    list = object_class_get_list(TYPE_CORTEXM_MCU, false);
+    list = g_slist_sort(list, object_class_cmp);
+
+    printf("\nSupported MCUs:\n");
+    g_slist_foreach(list, cm_mcu_help_foreach, NULL);
+    g_slist_free(list);
+
+    return true;
+}
+
+bool cm_board_help_func(const char *name)
+{
+        if ((name == NULL) || !is_help_option(name)) {
+            return false;
+        }
+
+    GSList *list;
+
+    list = object_class_get_list(TYPE_CORTEXM_MCU, false);
+
+    printf("\nSupported boards:\n");
+
+    GSList *el, *machines = object_class_get_list(TYPE_MACHINE, false);
+
+    machines = g_slist_sort(machines, object_class_cmp);
+    for (el = machines; el; el = el->next) {
+        MachineClass *mc = el->data;
+        if (mc->alias) {
+            printf("  %-20s %s (alias of %s)\n", mc->alias, mc->desc, mc->name);
+        }
+        printf("  %-20s %s%s\n", mc->name, mc->desc,
+                mc->is_default ? " (default)" : "");
+    }
+
+    return true;
+}
+
 /* ------------------------------------------------------------------------- */
 
 /**
@@ -147,10 +219,10 @@ static CPUState *cm_cpu_generic_create(const char *typename,
  * A version of cpu_arm_init() that does only the object creation and
  * initialisation, without calling realize().
  */
-ARMCPU *cm_cpu_arm_create(Object *parent, const char *cpu_model)
+void *cm_cpu_arm_create(Object *parent, const char *cpu_model)
 {
     ARMCPU *cpu;
-    cpu = ARM_CPU(cm_cpu_generic_create(TYPE_ARM_CPU, cpu_model));
+    cpu = (ARMCPU*) ARM_CPU(cm_cpu_generic_create(TYPE_ARM_CPU, cpu_model));
     if (!cpu) {
         error_report("Unable to find CPU definition %s", cpu_model);
         exit(1);
