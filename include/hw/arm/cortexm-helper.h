@@ -46,8 +46,6 @@ typedef uint64_t peripheral_register_t;
 
 void cm_board_greeting(MachineState *machine);
 void *cm_board_init_image(const char *file_name, const char *caption);
-const char *cm_board_get_device_name(MachineState *machine,
-        const char *board_device);
 
 bool cm_mcu_help_func(const char *mcu_device);
 bool cm_board_help_func(const char *name);
@@ -60,7 +58,7 @@ void cortexm_bitband_init(Object *parent, const char *node_name,
 void *cm_cpu_arm_create(Object *parent, const char *cpu_model);
 
 Object *cm_object_new(Object *parent, const char *name, const char *type_name);
-Object *cm_object_new_mcu(const char *type_name);
+Object *cm_object_new_mcu(MachineState *machine, const char *board_device_name);
 
 Object *cm_object_get_parent(Object *obj);
 bool cm_object_is_instance_of_typename(Object *obj, const char *type_name);

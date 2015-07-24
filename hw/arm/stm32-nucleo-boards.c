@@ -43,7 +43,7 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
         /* The board has no oscillators. */
         cm_object_property_set_int(mcu, 0, "hse-freq-hz"); /* N/A */

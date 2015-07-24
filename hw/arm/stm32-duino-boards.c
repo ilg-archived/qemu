@@ -62,7 +62,7 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F405RG);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F405RG);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
@@ -148,7 +148,7 @@ static void netduinogo_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F405RG);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F405RG);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
@@ -184,7 +184,7 @@ static void mapple_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */

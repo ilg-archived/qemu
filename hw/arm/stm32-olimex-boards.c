@@ -43,7 +43,7 @@ static void stm32_h103_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
@@ -79,7 +79,7 @@ static void stm32_p103_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
@@ -121,7 +121,7 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F103RB);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
@@ -163,7 +163,7 @@ static void stm32_p107_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F107VC);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F107VC);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
@@ -198,7 +198,7 @@ static void stm32_e407_board_init_callback(MachineState *machine)
     cm_board_greeting(machine);
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(TYPE_STM32F407ZG);
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F407ZG);
 
         /* Set the board specific oscillator frequencies. */
         cm_object_property_set_int(mcu, 12000000, "hse-freq-hz"); /* 12.0 MHz */

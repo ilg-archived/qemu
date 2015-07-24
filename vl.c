@@ -1593,6 +1593,8 @@ MachineInfoList *qmp_query_machines(Error **errp)
     return mach_list;
 }
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
 static int machine_help_func(QemuOpts *opts, MachineState *machine)
 {
     ObjectProperty *prop;
@@ -1617,6 +1619,9 @@ static int machine_help_func(QemuOpts *opts, MachineState *machine)
 
     return 1;
 }
+
+#endif
+
 
 /***********************************************************/
 /* main execution loop */
@@ -2689,6 +2694,8 @@ static int debugcon_parse(const char *devname)
     return 0;
 }
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
 static gint machine_class_cmp(gconstpointer a, gconstpointer b)
 {
     const MachineClass *mc1 = a, *mc2 = b;
@@ -2736,19 +2743,10 @@ static gint machine_class_cmp(gconstpointer a, gconstpointer b)
         return mc;
     }
     if (name && !is_help_option(name)) {
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-        error_report("Unsupported board.");
-        error_printf("Use -board help to list supported boards!\n");
-#else
         error_report("Unsupported machine type");
         error_printf("Use -machine help to list supported machines!\n");
-#endif
     } else {
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-        printf("Supported boards are:\n");
-#else
         printf("Supported machines are:\n");
-#endif
         machines = g_slist_sort(machines, machine_class_cmp);
         for (el = machines; el; el = el->next) {
             MachineClass *mc = el->data;
@@ -2763,6 +2761,8 @@ static gint machine_class_cmp(gconstpointer a, gconstpointer b)
     g_slist_free(machines);
     exit(!name || !is_help_option(name));
 }
+
+#endif
 
 void qemu_add_exit_notifier(Notifier *notify)
 {

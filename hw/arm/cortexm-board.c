@@ -27,7 +27,7 @@ static void cortexm_board_init_callback(MachineState *machine)
 
     {
         /* Create the MCU */
-        Object *mcu = cm_object_new_mcu(machine->mcu_device);
+        Object *mcu = cm_object_new_mcu(machine, NULL);
 
         cm_object_realize(mcu);
     }
@@ -36,8 +36,7 @@ static void cortexm_board_init_callback(MachineState *machine)
 static QEMUMachine machine_none = {
     .name = "generic",
     .desc = "Generic Cortex-M board; use -mcu to define the device",
-    .init = cortexm_board_init_callback,
-};
+    .init = cortexm_board_init_callback, };
 
 static void cortexm_board_init(void)
 {

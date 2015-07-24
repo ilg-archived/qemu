@@ -52,16 +52,6 @@ void cm_board_greeting(MachineState *machine)
 #endif
 }
 
-const char *cm_board_get_device_name(MachineState *machine,
-        const char *board_device)
-{
-    if (machine->mcu_device) {
-        return machine->mcu_device;
-    }
-
-    return board_device;
-}
-
 void *cm_board_init_image(const char *file_name, const char *caption)
 {
     void *board_surface = NULL;
@@ -151,9 +141,9 @@ bool cm_mcu_help_func(const char *mcu_device)
 
 bool cm_board_help_func(const char *name)
 {
-        if ((name == NULL) || !is_help_option(name)) {
-            return false;
-        }
+    if ((name == NULL) || !is_help_option(name)) {
+        return false;
+    }
 
     GSList *list;
 
@@ -329,9 +319,14 @@ Object *cm_object_new(Object *parent, const char* node_name,
     return obj;
 }
 
-Object *cm_object_new_mcu(const char *type_name)
+Object *cm_object_new_mcu(MachineState *machine, const char *board_device_name)
 {
-    return cm_object_new(cm_object_get_machine(), "mcu", type_name);
+    const char *device_name = board_device_name;
+    if (machine && machine->mcu_device) {
+        device_name = machine->mcu_device;
+    }
+
+    return cm_object_new(cm_object_get_machine(), "mcu", device_name);
 }
 
 /**
