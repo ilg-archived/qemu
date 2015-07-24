@@ -4230,7 +4230,9 @@ int main(int argc, char **argv, char **envp)
 
     machine_class = find_machine(board_name);
     if (machine_class == NULL) {
+        fprintf(stderr, "Board '%s' not supported.\n", board_name);
         cm_board_help_func("?");
+        exit(1);
     }
 
 #else
