@@ -64,13 +64,31 @@ static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state, Object *odr,
 // TODO: rework reference to RCC to use links.
 static bool stm32_gpio_is_enabled(Object *obj)
 {
-#if 0
+#if 1
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    /* GPIO clock enable bits are in apb2enr for families. */
-    if ((peripheral_register_read_value(state->rcc->f1.reg.apb2enr)
-                    & (0x4 << state->port_index)) != 0) {
-        return true;
+    const STM32Capabilities *capabilities = state->capabilities;
+    assert(capabilities != NULL);
+
+    switch (capabilities->family) {
+    case STM32_FAMILY_F1:
+
+        if ((peripheral_register_read_value(state->rcc->f1.reg.apb2enr)
+                & (0x4 << state->port_index)) != 0) {
+            return true;
+        }
+        break;
+
+    case STM32_FAMILY_F4:
+
+        if ((peripheral_register_read_value(state->rcc->f4.reg.ahb1enr)
+                & (0x1 << state->port_index)) != 0) {
+            return true;
+        }
+        break;
+
+    default:
+        break;
     }
 
     return false;
@@ -352,7 +370,7 @@ static void stm32f4_gpio_odr_post_write_callback(Object *reg, Object *periph,
     uint16_t new_value = peripheral_register_get_raw_value(odr);
 
     stm32_gpio_set_odr_irqs(state, prev_value, new_value);
-    stm32_gpio_update_idr(state, state->f1.reg.idr, new_value);
+    stm32_gpio_update_idr(state, state->f4.reg.idr, new_value);
 }
 
 static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
@@ -625,8 +643,7 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
 
     assert(pin < STM32_GPIO_PIN_COUNT);
 
-    const STM32Capabilities *capabilities =
-    STM32_SYS_BUS_DEVICE_STATE(state)->capabilities;
+    const STM32Capabilities *capabilities = state->capabilities;
     assert(capabilities != NULL);
 
     Object *idr;
