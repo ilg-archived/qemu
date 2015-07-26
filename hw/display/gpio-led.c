@@ -59,6 +59,8 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             snprintf((char * )msg, len, "[%s LED On]\n", info->colour_message);
         }
         if (msg) {
+            cm_object_property_set_str(led, msg, "on-message");
+        } else {
             cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
         }
 
@@ -71,6 +73,8 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             snprintf((char * )msg, len, "[%s LED Off]\n", info->colour_message);
         }
         if (msg) {
+            cm_object_property_set_str(led, msg, "off-message");
+        } else {
             cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
         }
 
