@@ -168,7 +168,7 @@ bool cm_board_help_func(const char *name)
 }
 
 const char *cm_board_get_name(MachineState *machine) {
-    return object_class_get_name(DEVICE_CLASS(machine));
+    return object_class_get_name(OBJECT_CLASS(machine));
 }
 
 const char *cm_board_get_desc(MachineState *machine) {
