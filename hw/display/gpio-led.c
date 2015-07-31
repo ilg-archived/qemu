@@ -20,6 +20,10 @@
 #include "hw/display/gpio-led.h"
 #include "hw/arm/cortexm-helper.h"
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
 /**
  * This class implements a LED connected to a GPIO device.
  */
@@ -84,8 +88,8 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
 
         if (info->w && info->h) {
             /* Compute corner coordinate from centre coordinate. */
-            cm_object_property_set_int(led, info->x - (info->w/2), "x");
-            cm_object_property_set_int(led, info->y - (info->h/2), "y");
+            cm_object_property_set_int(led, info->x - (info->w / 2), "x");
+            cm_object_property_set_int(led, info->y - (info->h / 2), "y");
             cm_object_property_set_int(led, info->w, "w");
             cm_object_property_set_int(led, info->h, "h");
         }
@@ -105,7 +109,8 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
                 cm_object_property_set_int(led, 255, "colour.green");
             } else if (strcasecmp(info->colour_message, "orange") == 0) {
                 cm_object_property_set_int(led, 255, "colour.red");
-                cm_object_property_set_int(led, 128, "colour.green");
+                cm_object_property_set_int(led, 153, "colour.green");
+                cm_object_property_set_int(led, 51, "colour.blue");
             } else {
                 /* White LED */
                 cm_object_property_set_int(led, 255, "colour.red");
@@ -118,6 +123,23 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         GPIO_LED_STATE(led)->board_surface = (SDL_Surface *) board_surface;
 
         cm_object_realize(led);
+
+#if defined(CONFIG_VERBOSE)
+        if (verbosity_level >= VERBOSITY_DETAILED) {
+            printf("LED:");
+            if (info->colour_message) {
+                printf(" %s", info->colour_message);
+            }
+            printf(" active %s", info->active_low ? "low" : "high");
+            if (info->w && info->h) {
+                printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
+            }
+            if (info->gpio_path) {
+                printf(" %s,%d", info->gpio_path, info->port_bit);
+            }
+            printf("\n");
+        }
+#endif /* defined(CONFIG_VERBOSE) */
 
         *p++ = led;
     }
