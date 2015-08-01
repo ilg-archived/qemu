@@ -1,5 +1,85 @@
 
+GNU ARM Eclipse 64-bits QEMU v2.3.50 (qemu-system-gnuarmeclipse).
+
+Supported boards:
+  Mapple               LeafLab Arduino-style STM32 microcontroller board (r5)
+  NUCLEO-F103RB        ST Nucleo Development Board for STM32 F1 series
+  NetduinoGo           Netduino GoBus Development Board with STM32F4
+  NetduinoPlus2        Netduino Development Board with STM32F4
+  OLIMEXINO-STM32      Olimex Mapple (Arduino-like) Development Board
+  STM32-E407           Olimex Development Board for STM32F407ZGT6
+  STM32-H103           Olimex Header Board for STM32F103RBT6
+  STM32-P103           Olimex Prototype Board for STM32F103RBT6
+  STM32-P107           Olimex Prototype Board for STM32F107VCT6
+  STM32F4-Discovery    ST Discovery kit for STM32F407/417 lines
+  STM32F4-Discovery2   ST Discovery kit for STM32F407/417 lines
+  STM32F429I-Discovery ST Discovery kit for STM32F429/439 lines
+  generic              Generic Cortex-M board; use -mcu to define the device
+
+Supported MCUs:
+  STM32F103RB
+  STM32F107VC
+  STM32F405RG
+  STM32F407VG
+  STM32F407ZG
+  STM32F429ZI
+  STM32L152RE
+
+-------------------------------------------------------------------------------
+
 The following changes were applied to the QEMU master branch:
+
+[2015-07-23]
+
+- qemu-options.hx: -board, -mcu added
+- vl.c: -board & -mcu parsed
+- null-machine.c disabled
+- cortexm-board.c added ('generic')
+
+[2015-07-16]
+
+- build: add SDL
+- gpio-led: add graphical blink support
+
+[2015-06-25]
+
+- cortex-mcu: use *_do_unassigned_access_callback; currently just display 
+a message, no exceptions thrown.
+
+[2015-06-22]
+
+- cortexm-nvic added
+
+[2015-06-21]
+
+- add '--image filename.elf'
+
+[2015-06-17]
+
+- stm32: add F2, F3, L1 families
+- /machine/cortexm container added; nvic & itm inside
+- /machine/stm32 container; rcc, flash, gpio[%c] in
+
+[2015-06-10]
+
+- cortexm-mcu: properties *-size-kb renamed
+- stm32-mcu: add hsi-freq-hz & lsi-freq-hz props
+- stm32-rcc: update clock functional
+
+[2015-06-09]
+
+- cpu.c: log MSP & PC
+
+[2015-06-08]
+
+- '-d trace_mr' (LOG_TRACE) added to log; intended for development use
+- loader.c: add verbosity for loaded segments
+- loader: make rom_reset public
+- cortexm: do a rom_reset() before cpu_reset()
+
+[2015-06-02]
+
+- '-d trace' (LOG_TRACE) added to log; intended for development use
 
 [2015-05-12]
 
