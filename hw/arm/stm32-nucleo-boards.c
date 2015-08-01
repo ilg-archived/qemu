@@ -32,6 +32,10 @@ static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
         .name = "green-led",
         .active_low = false,
         .colour_message = "Green",
+        .x = 277,
+        .y = 271,
+        .w = 8,
+        .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .port_bit = 5, },
     { }, /**/
@@ -52,8 +56,12 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    void *board_surface = cm_board_init_image("NUCLEO-F103RB.jpg",
+            cm_board_get_desc(machine));
+
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info, NULL);
+    gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info,
+            board_surface);
 }
 
 static QEMUMachine nucleo_f103rb_machine = {
@@ -77,7 +85,10 @@ static void nucleo_l152re_board_init_callback(MachineState *machine)
 
     /* TODO: Add board inits */
 }
+#endif
 
+#if 0
+// Disabled due to HAL clock init problems when no clock is defined.
 /* ----- ST NUCLEO-F411RE ----- */
 static void nucleo_f411re_board_init_callback(MachineState *machine);
 
@@ -93,7 +104,9 @@ static void nucleo_f411re_board_init_callback(MachineState *machine)
 
     /* TODO: Add board inits */
 }
+#endif
 
+#if 0
 /* ----- ST NUCLEO-F334R8 ----- */
 static void nucleo_f334r8_board_init_callback(MachineState *machine);
 
