@@ -146,10 +146,6 @@ bool cm_board_help_func(const char *name)
         return false;
     }
 
-    GSList *list;
-
-    list = object_class_get_list(TYPE_CORTEXM_MCU, false);
-
     printf("\nSupported boards:\n");
 
     GSList *el, *machines = object_class_get_list(TYPE_MACHINE, false);
