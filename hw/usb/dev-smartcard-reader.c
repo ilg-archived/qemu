@@ -38,7 +38,6 @@
 #include "qemu/error-report.h"
 #include "hw/usb.h"
 #include "hw/usb/desc.h"
-#include "monitor/monitor.h"
 
 #include "ccid.h"
 
@@ -55,7 +54,7 @@ do { \
 #define D_VERBOSE 4
 
 #define CCID_DEV_NAME "usb-ccid"
-
+#define USB_CCID_DEV(obj) OBJECT_CHECK(USBCCIDState, (obj), CCID_DEV_NAME)
 /*
  * The two options for variable sized buffers:
  * make them constant size, for large enough constant,
@@ -649,7 +648,7 @@ static void ccid_detach(USBCCIDState *s)
 
 static void ccid_handle_reset(USBDevice *dev)
 {
-    USBCCIDState *s = DO_UPCAST(USBCCIDState, dev, dev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     DPRINTF(s, 1, "Reset\n");
 
@@ -692,7 +691,7 @@ static const char *ccid_control_to_str(USBCCIDState *s, int request)
 static void ccid_handle_control(USBDevice *dev, USBPacket *p, int request,
                                int value, int index, int length, uint8_t *data)
 {
-    USBCCIDState *s = DO_UPCAST(USBCCIDState, dev, dev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
     int ret;
 
     DPRINTF(s, 1, "%s: got control %s (%x), value %x\n", __func__,
@@ -1104,7 +1103,7 @@ static void ccid_bulk_in_copy_to_guest(USBCCIDState *s, USBPacket *p)
 
 static void ccid_handle_data(USBDevice *dev, USBPacket *p)
 {
-    USBCCIDState *s = DO_UPCAST(USBCCIDState, dev, dev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
     uint8_t buf[2];
 
     switch (p->pid) {
@@ -1148,7 +1147,7 @@ static void ccid_handle_data(USBDevice *dev, USBPacket *p)
 
 static void ccid_handle_destroy(USBDevice *dev)
 {
-    USBCCIDState *s = DO_UPCAST(USBCCIDState, dev, dev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     ccid_bulk_in_clear(s);
 }
@@ -1184,8 +1183,9 @@ static const TypeInfo ccid_bus_info = {
 void ccid_card_send_apdu_to_guest(CCIDCardState *card,
                                   uint8_t *apdu, uint32_t len)
 {
-    USBCCIDState *s = DO_UPCAST(USBCCIDState, dev.qdev,
-                                card->qdev.parent_bus->parent);
+    DeviceState *qdev = DEVICE(card);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
     Answer *answer;
 
     if (!ccid_has_pending_answers(s)) {
@@ -1206,8 +1206,9 @@ void ccid_card_send_apdu_to_guest(CCIDCardState *card,
 
 void ccid_card_card_removed(CCIDCardState *card)
 {
-    USBCCIDState *s =
-        DO_UPCAST(USBCCIDState, dev.qdev, card->qdev.parent_bus->parent);
+    DeviceState *qdev = DEVICE(card);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     ccid_on_slot_change(s, false);
     ccid_flush_pending_answers(s);
@@ -1216,8 +1217,9 @@ void ccid_card_card_removed(CCIDCardState *card)
 
 int ccid_card_ccid_attach(CCIDCardState *card)
 {
-    USBCCIDState *s =
-        DO_UPCAST(USBCCIDState, dev.qdev, card->qdev.parent_bus->parent);
+    DeviceState *qdev = DEVICE(card);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     DPRINTF(s, 1, "CCID Attach\n");
     if (s->migration_state == MIGRATION_MIGRATED) {
@@ -1228,8 +1230,9 @@ int ccid_card_ccid_attach(CCIDCardState *card)
 
 void ccid_card_ccid_detach(CCIDCardState *card)
 {
-    USBCCIDState *s =
-        DO_UPCAST(USBCCIDState, dev.qdev, card->qdev.parent_bus->parent);
+    DeviceState *qdev = DEVICE(card);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     DPRINTF(s, 1, "CCID Detach\n");
     if (ccid_card_inserted(s)) {
@@ -1240,8 +1243,9 @@ void ccid_card_ccid_detach(CCIDCardState *card)
 
 void ccid_card_card_error(CCIDCardState *card, uint64_t error)
 {
-    USBCCIDState *s =
-        DO_UPCAST(USBCCIDState, dev.qdev, card->qdev.parent_bus->parent);
+    DeviceState *qdev = DEVICE(card);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     s->bmCommandStatus = COMMAND_STATUS_FAILED;
     s->last_answer_error = error;
@@ -1258,8 +1262,9 @@ void ccid_card_card_error(CCIDCardState *card, uint64_t error)
 
 void ccid_card_card_inserted(CCIDCardState *card)
 {
-    USBCCIDState *s =
-        DO_UPCAST(USBCCIDState, dev.qdev, card->qdev.parent_bus->parent);
+    DeviceState *qdev = DEVICE(card);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     s->bmCommandStatus = COMMAND_STATUS_NO_ERROR;
     ccid_flush_pending_answers(s);
@@ -1270,8 +1275,8 @@ static int ccid_card_exit(DeviceState *qdev)
 {
     int ret = 0;
     CCIDCardState *card = CCID_CARD(qdev);
-    USBCCIDState *s =
-        DO_UPCAST(USBCCIDState, dev.qdev, card->qdev.parent_bus->parent);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     if (ccid_card_inserted(s)) {
         ccid_card_card_removed(card);
@@ -1284,8 +1289,8 @@ static int ccid_card_exit(DeviceState *qdev)
 static int ccid_card_init(DeviceState *qdev)
 {
     CCIDCardState *card = CCID_CARD(qdev);
-    USBCCIDState *s =
-        DO_UPCAST(USBCCIDState, dev.qdev, card->qdev.parent_bus->parent);
+    USBDevice *dev = USB_DEVICE(qdev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
     int ret = 0;
 
     if (card->slot != 0) {
@@ -1306,7 +1311,7 @@ static int ccid_card_init(DeviceState *qdev)
 
 static void ccid_realize(USBDevice *dev, Error **errp)
 {
-    USBCCIDState *s = DO_UPCAST(USBCCIDState, dev, dev);
+    USBCCIDState *s = USB_CCID_DEV(dev);
 
     usb_desc_create_serial(dev);
     usb_desc_init(dev);

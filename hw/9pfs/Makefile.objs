@@ -1,3 +1,7 @@
+# [GNU ARM Eclipse]
+# Disable all.
+
+ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
 common-obj-y  = virtio-9p.o
 common-obj-y += virtio-9p-local.o virtio-9p-xattr.o
 common-obj-y += virtio-9p-xattr-user.o virtio-9p-posix-acl.o
@@ -7,3 +11,4 @@ common-obj-$(CONFIG_OPEN_BY_HANDLE) +=  virtio-9p-handle.o
 common-obj-y += virtio-9p-proxy.o
 
 obj-y += virtio-9p-device.o
+endif

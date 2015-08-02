@@ -65,8 +65,8 @@ struct VMStateDescription;
  * Operations depending on @props static properties should go into @realize.
  * After successful realization, setting static properties will fail.
  *
- * As an interim step, the #DeviceState:realized property is set by deprecated
- * functions qdev_init() and qdev_init_nofail().
+ * As an interim step, the #DeviceState:realized property can also be
+ * set with qdev_init_nofail().
  * In the future, devices will propagate this state change to their children
  * and along busses they expose.
  * The point in time will be deferred to machine creation, so that values
@@ -226,7 +226,7 @@ struct Property {
     PropertyInfo *info;
     int          offset;
     uint8_t      bitnr;
-    uint8_t      qtype;
+    qtype_code   qtype;
     int64_t      defval;
     int          arrayoffset;
     PropertyInfo *arrayinfo;
@@ -236,7 +236,7 @@ struct Property {
 struct PropertyInfo {
     const char *name;
     const char *description;
-    const char **enum_table;
+    const char * const *enum_table;
     int (*print)(DeviceState *dev, Property *prop, char *dest, size_t len);
     ObjectPropertyAccessor *get;
     ObjectPropertyAccessor *set;
@@ -262,10 +262,10 @@ typedef struct GlobalProperty {
 
 DeviceState *qdev_create(BusState *bus, const char *name);
 DeviceState *qdev_try_create(BusState *bus, const char *name);
-int qdev_init(DeviceState *dev) QEMU_WARN_UNUSED_RESULT;
 void qdev_init_nofail(DeviceState *dev);
 void qdev_set_legacy_instance_id(DeviceState *dev, int alias_id,
                                  int required_for_version);
+HotplugHandler *qdev_get_hotplug_handler(DeviceState *dev);
 void qdev_unplug(DeviceState *dev, Error **errp);
 void qdev_simple_device_unplug_cb(HotplugHandler *hotplug_dev,
                                   DeviceState *dev, Error **errp);
@@ -342,6 +342,7 @@ void qbus_reset_all_fn(void *opaque);
 BusState *sysbus_get_default(void);
 
 char *qdev_get_fw_dev_path(DeviceState *dev);
+char *qdev_get_own_fw_dev_path_from_handler(BusState *bus, DeviceState *dev);
 
 /**
  * @qdev_machine_init

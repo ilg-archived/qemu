@@ -42,6 +42,9 @@ void readline_show_prompt(ReadLineState *rs)
 /* update the displayed command line */
 static void readline_update(ReadLineState *rs)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    // Do not update, since this sends funny chars to Eclipse console.
+#else
     int i, delta, len;
 
     if (rs->cmd_buf_size != rs->last_cmd_buf_size ||
@@ -77,6 +80,7 @@ static void readline_update(ReadLineState *rs)
         rs->last_cmd_buf_index = rs->cmd_buf_index;
     }
     rs->flush_func(rs->opaque);
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 }
 
 static void readline_insert_char(ReadLineState *rs, int ch)

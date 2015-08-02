@@ -179,16 +179,11 @@ static uint32_t cc_calc_subu_64(uint64_t a1, uint64_t a2, uint64_t ar)
 
 static uint32_t cc_calc_subb_64(uint64_t a1, uint64_t a2, uint64_t ar)
 {
-    /* We had borrow-in if normal subtraction isn't equal.  */
-    int borrow_in = ar - (a1 - a2);
     int borrow_out;
 
-    /* If a2 was ULONG_MAX, and borrow_in, then a2 is logically 65 bits,
-       and we must have had borrow out.  */
-    if (borrow_in && a2 == (uint64_t)-1) {
-        borrow_out = 1;
+    if (ar != a1 - a2) {	/* difference means borrow-in */
+        borrow_out = (a2 >= a1);
     } else {
-        a2 += borrow_in;
         borrow_out = (a2 > a1);
     }
 
@@ -200,7 +195,7 @@ static uint32_t cc_calc_abs_64(int64_t dst)
     if ((uint64_t)dst == 0x8000000000000000ULL) {
         return 3;
     } else if (dst) {
-        return 1;
+        return 2;
     } else {
         return 0;
     }
@@ -285,16 +280,11 @@ static uint32_t cc_calc_subu_32(uint32_t a1, uint32_t a2, uint32_t ar)
 
 static uint32_t cc_calc_subb_32(uint32_t a1, uint32_t a2, uint32_t ar)
 {
-    /* We had borrow-in if normal subtraction isn't equal.  */
-    int borrow_in = ar - (a1 - a2);
     int borrow_out;
 
-    /* If a2 was UINT_MAX, and borrow_in, then a2 is logically 65 bits,
-       and we must have had borrow out.  */
-    if (borrow_in && a2 == (uint32_t)-1) {
-        borrow_out = 1;
+    if (ar != a1 - a2) {	/* difference means borrow-in */
+        borrow_out = (a2 >= a1);
     } else {
-        a2 += borrow_in;
         borrow_out = (a2 > a1);
     }
 
@@ -306,7 +296,7 @@ static uint32_t cc_calc_abs_32(int32_t dst)
     if ((uint32_t)dst == 0x80000000UL) {
         return 3;
     } else if (dst) {
-        return 1;
+        return 2;
     } else {
         return 0;
     }

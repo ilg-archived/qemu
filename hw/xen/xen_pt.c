@@ -234,11 +234,12 @@ static void xen_pt_pci_write_config(PCIDevice *d, uint32_t addr,
     int index = 0;
     XenPTRegGroup *reg_grp_entry = NULL;
     int rc = 0;
-    uint32_t read_val = 0;
+    uint32_t read_val = 0, wb_mask;
     int emul_len = 0;
     XenPTReg *reg_entry = NULL;
     uint32_t find_addr = addr;
     XenPTRegInfo *reg = NULL;
+    bool wp_flag = false;
 
     if (xen_pt_pci_config_access_check(d, addr, len)) {
         return;
@@ -271,10 +272,17 @@ static void xen_pt_pci_write_config(PCIDevice *d, uint32_t addr,
     if (rc < 0) {
         XEN_PT_ERR(d, "pci_read_block failed. return value: %d.\n", rc);
         memset(&read_val, 0xff, len);
+        wb_mask = 0;
+    } else {
+        wb_mask = 0xFFFFFFFF >> ((4 - len) << 3);
     }
 
     /* pass directly to the real device for passthrough type register group */
     if (reg_grp_entry == NULL) {
+        if (!s->permissive) {
+            wb_mask = 0;
+            wp_flag = true;
+        }
         goto out;
     }
 
@@ -295,9 +303,17 @@ static void xen_pt_pci_write_config(PCIDevice *d, uint32_t addr,
             uint32_t real_offset = reg_grp_entry->base_offset + reg->offset;
             uint32_t valid_mask = 0xFFFFFFFF >> ((4 - emul_len) << 3);
             uint8_t *ptr_val = NULL;
+            uint32_t wp_mask = reg->emu_mask | reg->ro_mask;
 
             valid_mask <<= (find_addr - real_offset) << 3;
             ptr_val = (uint8_t *)&val + (real_offset & 3);
+            if (!s->permissive) {
+                wp_mask |= reg->res_mask;
+            }
+            if (wp_mask == (0xFFFFFFFF >> ((4 - reg->size) << 3))) {
+                wb_mask &= ~((wp_mask >> ((find_addr - real_offset) << 3))
+                             << ((len - emul_len) << 3));
+            }
 
             /* do emulation based on register size */
             switch (reg->size) {
@@ -339,6 +355,16 @@ static void xen_pt_pci_write_config(PCIDevice *d, uint32_t addr,
         } else {
             /* nothing to do with passthrough type register,
              * continue to find next byte */
+            if (!s->permissive) {
+                wb_mask &= ~(0xff << ((len - emul_len) << 3));
+                /* Unused BARs will make it here, but we don't want to issue
+                 * warnings for writes to them (bogus writes get dealt with
+                 * above).
+                 */
+                if (index < 0) {
+                    wp_flag = true;
+                }
+            }
             emul_len--;
             find_addr++;
         }
@@ -350,10 +376,26 @@ static void xen_pt_pci_write_config(PCIDevice *d, uint32_t addr,
     memory_region_transaction_commit();
 
 out:
-    if (!(reg && reg->no_wb)) {
+    if (wp_flag && !s->permissive_warned) {
+        s->permissive_warned = true;
+        xen_pt_log(d, "Write-back to unknown field 0x%02x (partially) inhibited (0x%0*x)\n",
+                   addr, len * 2, wb_mask);
+        xen_pt_log(d, "If the device doesn't work, try enabling permissive mode\n");
+        xen_pt_log(d, "(unsafe) and if it helps report the problem to xen-devel\n");
+    }
+    for (index = 0; wb_mask; index += len) {
         /* unknown regs are passed through */
-        rc = xen_host_pci_set_block(&s->real_device, addr,
-                                    (uint8_t *)&val, len);
+        while (!(wb_mask & 0xff)) {
+            index++;
+            wb_mask >>= 8;
+        }
+        len = 0;
+        do {
+            len++;
+            wb_mask >>= 8;
+        } while (wb_mask & 0xff);
+        rc = xen_host_pci_set_block(&s->real_device, addr + index,
+                                    (uint8_t *)&val + index, len);
 
         if (rc < 0) {
             XEN_PT_ERR(d, "pci_write_block failed. return value: %d.\n", rc);
@@ -388,7 +430,7 @@ static const MemoryRegionOps ops = {
     .write = xen_pt_bar_write,
 };
 
-static int xen_pt_register_regions(XenPCIPassthroughState *s)
+static int xen_pt_register_regions(XenPCIPassthroughState *s, uint16_t *cmd)
 {
     int i = 0;
     XenHostPCIDevice *d = &s->real_device;
@@ -406,6 +448,7 @@ static int xen_pt_register_regions(XenPCIPassthroughState *s)
 
         if (r->type & XEN_HOST_PCI_REGION_TYPE_IO) {
             type = PCI_BASE_ADDRESS_SPACE_IO;
+            *cmd |= PCI_COMMAND_IO;
         } else {
             type = PCI_BASE_ADDRESS_SPACE_MEMORY;
             if (r->type & XEN_HOST_PCI_REGION_TYPE_PREFETCH) {
@@ -414,6 +457,7 @@ static int xen_pt_register_regions(XenPCIPassthroughState *s)
             if (r->type & XEN_HOST_PCI_REGION_TYPE_MEM_64) {
                 type |= PCI_BASE_ADDRESS_MEM_TYPE_64;
             }
+            *cmd |= PCI_COMMAND_MEMORY;
         }
 
         memory_region_init_io(&s->bar[i], OBJECT(s), &ops, &s->dev,
@@ -638,6 +682,7 @@ static int xen_pt_initfn(PCIDevice *d)
     XenPCIPassthroughState *s = DO_UPCAST(XenPCIPassthroughState, dev, d);
     int rc = 0;
     uint8_t machine_irq = 0;
+    uint16_t cmd = 0;
     int pirq = XEN_PT_UNASSIGNED_PIRQ;
 
     /* register real device */
@@ -672,7 +717,7 @@ static int xen_pt_initfn(PCIDevice *d)
     s->io_listener = xen_pt_io_listener;
 
     /* Handle real device's MMIO/PIO BARs */
-    xen_pt_register_regions(s);
+    xen_pt_register_regions(s, &cmd);
 
     /* reinitialize each config register to be emulated */
     if (xen_pt_config_init(s)) {
@@ -736,6 +781,11 @@ static int xen_pt_initfn(PCIDevice *d)
     }
 
 out:
+    if (cmd) {
+        xen_host_pci_set_word(&s->real_device, PCI_COMMAND,
+                              pci_get_word(d->config + PCI_COMMAND) | cmd);
+    }
+
     memory_listener_register(&s->memory_listener, &s->dev.bus_master_as);
     memory_listener_register(&s->io_listener, &address_space_io);
     XEN_PT_LOG(d,
@@ -799,6 +849,7 @@ static void xen_pt_unregister_device(PCIDevice *d)
 
 static Property xen_pci_passthrough_properties[] = {
     DEFINE_PROP_PCI_HOST_DEVADDR("hostaddr", XenPCIPassthroughState, hostaddr),
+    DEFINE_PROP_BOOL("permissive", XenPCIPassthroughState, permissive, false),
     DEFINE_PROP_END_OF_LIST(),
 };
 

@@ -82,9 +82,6 @@ struct AioContext {
     /* Used for aio_notify.  */
     EventNotifier notifier;
 
-    /* GPollFDs for aio_poll() */
-    GArray *pollfds;
-
     /* Thread pool for performing work and receiving completion callbacks */
     struct ThreadPool *thread_pool;
 
@@ -121,13 +118,14 @@ void aio_context_ref(AioContext *ctx);
 void aio_context_unref(AioContext *ctx);
 
 /* Take ownership of the AioContext.  If the AioContext will be shared between
- * threads, a thread must have ownership when calling aio_poll().
+ * threads, and a thread does not want to be interrupted, it will have to
+ * take ownership around calls to aio_poll().  Otherwise, aio_poll()
+ * automatically takes care of calling aio_context_acquire and
+ * aio_context_release.
  *
- * Note that multiple threads calling aio_poll() means timers, BHs, and
- * callbacks may be invoked from a different thread than they were registered
- * from.  Therefore, code must use AioContext acquire/release or use
- * fine-grained synchronization to protect shared state if other threads will
- * be accessing it simultaneously.
+ * Access to timers and BHs from a thread that has not acquired AioContext
+ * is possible.  Access to callbacks for now must be done while the AioContext
+ * is owned by the thread (FIXME).
  */
 void aio_context_acquire(AioContext *ctx);
 
@@ -243,7 +241,7 @@ bool aio_dispatch(AioContext *ctx);
 bool aio_poll(AioContext *ctx, bool blocking);
 
 /* Register a file descriptor and associated callbacks.  Behaves very similarly
- * to qemu_set_fd_handler2.  Unlike qemu_set_fd_handler2, these callbacks will
+ * to qemu_set_fd_handler.  Unlike qemu_set_fd_handler, these callbacks will
  * be invoked when using aio_poll().
  *
  * Code that invokes AIO completion functions should rely on this function

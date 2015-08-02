@@ -33,6 +33,8 @@
 #define QEMU_VM_SECTION_END          0x03
 #define QEMU_VM_SECTION_FULL         0x04
 #define QEMU_VM_SUBSECTION           0x05
+#define QEMU_VM_VMDESCRIPTION        0x06
+#define QEMU_VM_SECTION_FOOTER       0x7e
 
 struct MigrationParams {
     bool blk;
@@ -40,6 +42,20 @@ struct MigrationParams {
 };
 
 typedef struct MigrationState MigrationState;
+
+typedef QLIST_HEAD(, LoadStateEntry) LoadStateEntry_Head;
+
+/* State for the incoming migration */
+struct MigrationIncomingState {
+    QEMUFile *file;
+
+    /* See savevm.c */
+    LoadStateEntry_Head loadvm_handlers;
+};
+
+MigrationIncomingState *migration_incoming_get_current(void);
+MigrationIncomingState *migration_incoming_state_new(QEMUFile *f);
+void migration_incoming_state_destroy(void);
 
 struct MigrationState
 {
@@ -49,6 +65,7 @@ struct MigrationState
     QemuThread thread;
     QEMUBH *cleanup_bh;
     QEMUFile *file;
+    int parameters[MIGRATION_PARAMETER_MAX];
 
     int state;
     MigrationParams params;
@@ -69,10 +86,6 @@ void process_incoming_migration(QEMUFile *f);
 void qemu_start_incoming_migration(const char *uri, Error **errp);
 
 uint64_t migrate_max_downtime(void);
-
-void do_info_migrate_print(Monitor *mon, const QObject *data);
-
-void do_info_migrate(Monitor *mon, QObject **ret_data);
 
 void exec_start_incoming_migration(const char *host_port, Error **errp);
 
@@ -107,6 +120,10 @@ bool migration_has_finished(MigrationState *);
 bool migration_has_failed(MigrationState *);
 MigrationState *migrate_get_current(void);
 
+void migrate_compress_threads_create(void);
+void migrate_compress_threads_join(void);
+void migrate_decompress_threads_create(void);
+void migrate_decompress_threads_join(void);
 uint64_t ram_bytes_remaining(void);
 uint64_t ram_bytes_transferred(void);
 uint64_t ram_bytes_total(void);
@@ -142,7 +159,6 @@ void migrate_add_blocker(Error *reason);
  */
 void migrate_del_blocker(Error *reason);
 
-bool migrate_rdma_pin_all(void);
 bool migrate_zero_blocks(void);
 
 bool migrate_auto_converge(void);
@@ -155,6 +171,11 @@ int migrate_use_xbzrle(void);
 int64_t migrate_xbzrle_cache_size(void);
 
 int64_t xbzrle_cache_resize(int64_t new_size);
+
+bool migrate_use_compression(void);
+int migrate_compress_level(void);
+int migrate_compress_threads(void);
+int migrate_decompress_threads(void);
 
 void ram_control_before_iterate(QEMUFile *f, uint64_t flags);
 void ram_control_after_iterate(QEMUFile *f, uint64_t flags);
@@ -172,6 +193,8 @@ void ram_control_load_hook(QEMUFile *f, uint64_t flags);
 
 size_t ram_control_save_page(QEMUFile *f, ram_addr_t block_offset,
                              ram_addr_t offset, size_t size,
-                             int *bytes_sent);
+                             uint64_t *bytes_sent);
 
+void ram_mig_init(void);
+void savevm_skip_section_footers(void);
 #endif

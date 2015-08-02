@@ -20,6 +20,7 @@
 #ifndef QEMU_ARM_CPU_QOM_H
 #define QEMU_ARM_CPU_QOM_H
 
+#include "config-host.h"
 #include "qom/cpu.h"
 
 #define TYPE_ARM_CPU "arm-cpu"
@@ -103,6 +104,11 @@ typedef struct ARMCPU {
     /* CPU has security extension */
     bool has_el3;
 
+    /* CPU has memory protection unit */
+    bool has_mpu;
+    /* PMSAv7 MPU number of supported regions */
+    uint32_t pmsav7_dregion;
+
     /* PSCI conduit used to invoke PSCI methods
      * 0 - disabled, 1 - smc, 2 - hvc
      */
@@ -116,6 +122,9 @@ typedef struct ARMCPU {
     /* KVM init features for this CPU */
     uint32_t kvm_init_features[7];
 
+    /* Uniprocessor system with MP extensions */
+    bool mp_is_up;
+
     /* The instance init functions for implementation-specific subclasses
      * set these fields to specify the implementation-dependent values of
      * various constant registers and reset values of non-constant
@@ -127,6 +136,7 @@ typedef struct ARMCPU {
      * prefix means a constant register.
      */
     uint32_t midr;
+    uint32_t revidr;
     uint32_t reset_fpsid;
     uint32_t mvfr0;
     uint32_t mvfr1;
@@ -159,6 +169,7 @@ typedef struct ARMCPU {
     uint64_t id_aa64mmfr1;
     uint32_t dbgdidr;
     uint32_t clidr;
+    uint64_t mp_affinity; /* MP ID without feature bits */
     /* The elements of this array are the CCSIDR values for each cache,
      * in the order L1DCache, L1ICache, L2DCache, L2ICache, etc.
      */
@@ -201,7 +212,9 @@ void init_cpreg_list(ARMCPU *cpu);
 
 void arm_cpu_do_interrupt(CPUState *cpu);
 void arm_v7m_cpu_do_interrupt(CPUState *cpu);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 void arm_v6m_cpu_do_interrupt(CPUState *cpu);
+#endif
 bool arm_cpu_exec_interrupt(CPUState *cpu, int int_req);
 
 void arm_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,

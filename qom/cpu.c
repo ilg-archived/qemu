@@ -71,8 +71,7 @@ CPUState *cpu_generic_init(const char *typename, const char *cpu_model)
 
 out:
     if (err != NULL) {
-        error_report("%s", error_get_pretty(err));
-        error_free(err);
+        error_report_err(err);
         object_unref(OBJECT(cpu));
         return NULL;
     }
@@ -97,7 +96,7 @@ void cpu_get_memory_mapping(CPUState *cpu, MemoryMappingList *list,
 {
     CPUClass *cc = CPU_GET_CLASS(cpu);
 
-    return cc->get_memory_mapping(cpu, list, errp);
+    cc->get_memory_mapping(cpu, list, errp);
 }
 
 static void cpu_common_get_memory_mapping(CPUState *cpu,
@@ -225,6 +224,10 @@ void cpu_dump_statistics(CPUState *cpu, FILE *f, fprintf_function cpu_fprintf,
 
 void cpu_reset(CPUState *cpu)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    qemu_log_function_name();
+#endif
+
     CPUClass *klass = CPU_GET_CLASS(cpu);
 
     if (klass->reset != NULL) {

@@ -36,12 +36,11 @@ typedef struct CPUMBState CPUMBState;
 
 #define ELF_MACHINE	EM_MICROBLAZE
 
-#define EXCP_NMI        1
-#define EXCP_MMU        2
-#define EXCP_IRQ        3
-#define EXCP_BREAK      4
-#define EXCP_HW_BREAK   5
-#define EXCP_HW_EXCP    6
+#define EXCP_MMU        1
+#define EXCP_IRQ        2
+#define EXCP_BREAK      3
+#define EXCP_HW_BREAK   4
+#define EXCP_HW_EXCP    5
 
 /* MicroBlaze-specific interrupt pending bits.  */
 #define CPU_INTERRUPT_NMI       CPU_INTERRUPT_TGT_EXT_3
@@ -123,12 +122,13 @@ typedef struct CPUMBState CPUMBState;
 #define PVR0_USE_EXC_MASK               0x04000000
 #define PVR0_USE_ICACHE_MASK            0x02000000
 #define PVR0_USE_DCACHE_MASK            0x01000000
-#define PVR0_USE_MMU                    0x00800000      /* new */
+#define PVR0_USE_MMU_MASK               0x00800000
 #define PVR0_USE_BTC			0x00400000
-#define PVR0_ENDI			0x00200000
+#define PVR0_ENDI_MASK                  0x00200000
 #define PVR0_FAULT			0x00100000
 #define PVR0_VERSION_MASK               0x0000FF00
 #define PVR0_USER1_MASK                 0x000000FF
+#define PVR0_SPROT_MASK                 0x00000001
 
 /* User 2 PVR mask */
 #define PVR1_USER2_MASK                 0xFFFFFFFF
@@ -212,7 +212,9 @@ typedef struct CPUMBState CPUMBState;
 /* MSR Reset value PVR mask */
 #define PVR11_MSR_RESET_VALUE_MASK      0x000007FF
 
-
+#define C_PVR_NONE                      0
+#define C_PVR_BASIC                     1
+#define C_PVR_FULL                      2
 
 /* CPU flags.  */
 
@@ -261,16 +263,18 @@ struct CPUMBState {
 #define IFLAGS_TB_MASK  (D_FLAG | IMM_FLAG | DRTI_FLAG | DRTE_FLAG | DRTB_FLAG)
     uint32_t iflags;
 
-    struct {
-        uint32_t regs[16];
-    } pvr;
-
 #if !defined(CONFIG_USER_ONLY)
     /* Unified MMU.  */
     struct microblaze_mmu mmu;
 #endif
 
     CPU_COMMON
+
+    /* These fields are preserved on reset.  */
+
+    struct {
+        uint32_t regs[16];
+    } pvr;
 };
 
 #include "cpu-qom.h"
@@ -284,27 +288,13 @@ int cpu_mb_exec(CPUMBState *s);
 int cpu_mb_signal_handler(int host_signum, void *pinfo,
                           void *puc);
 
-enum {
-    CC_OP_DYNAMIC, /* Use env->cc_op  */
-    CC_OP_FLAGS,
-    CC_OP_CMP,
-};
-
 /* FIXME: MB uses variable pages down to 1K but linux only uses 4k.  */
 #define TARGET_PAGE_BITS 12
-#define MMAP_SHIFT TARGET_PAGE_BITS
 
 #define TARGET_PHYS_ADDR_SPACE_BITS 32
 #define TARGET_VIRT_ADDR_SPACE_BITS 32
 
-static inline CPUMBState *cpu_init(const char *cpu_model)
-{
-    MicroBlazeCPU *cpu = cpu_mb_init(cpu_model);
-    if (cpu == NULL) {
-        return NULL;
-    }
-    return &cpu->env;
-}
+#define cpu_init(cpu_model) CPU(cpu_mb_init(cpu_model))
 
 #define cpu_exec cpu_mb_exec
 #define cpu_gen_code cpu_mb_gen_code
@@ -333,17 +323,7 @@ static inline int cpu_mmu_index (CPUMBState *env)
 int mb_cpu_handle_mmu_fault(CPUState *cpu, vaddr address, int rw,
                             int mmu_idx);
 
-static inline int cpu_interrupts_enabled(CPUMBState *env)
-{
-    return env->sregs[SR_MSR] & MSR_IE;
-}
-
 #include "exec/cpu-all.h"
-
-static inline target_ulong cpu_get_pc(CPUMBState *env)
-{
-    return env->sregs[SR_PC];
-}
 
 static inline void cpu_get_tb_cpu_state(CPUMBState *env, target_ulong *pc,
                                         target_ulong *cs_base, int *flags)

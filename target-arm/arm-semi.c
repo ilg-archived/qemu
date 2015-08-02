@@ -26,7 +26,9 @@
 #include <stdio.h>
 #include <time.h>
 
+#include "config-host.h"
 #include "cpu.h"
+#include "exec/semihost.h"
 #ifdef CONFIG_USER_ONLY
 #include "qemu.h"
 
@@ -35,8 +37,15 @@
 #include "qemu-common.h"
 #include "exec/gdbstub.h"
 #include "hw/arm/arm.h"
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qemu/option.h"
 #include "qemu/config-file.h"
+#include "sysemu/sysemu.h"
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif
+
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
 #endif
 
 #define TARGET_SYS_OPEN        0x01
@@ -219,7 +228,12 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             return (uint32_t)-1;
         }
         if (strcmp(s, ":tt") == 0) {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+            /* Mode is 0="r" for stdin, 4="w" for stdout, 8="a" for stderr */
+            int result_fileno = arg1 < 4 ? STDIN_FILENO : (arg1 < 8 ? STDOUT_FILENO : STDERR_FILENO);
+#else
             int result_fileno = arg1 < 4 ? STDIN_FILENO : STDOUT_FILENO;
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
             unlock_user(s, arg0, 0);
             return result_fileno;
         }
@@ -437,26 +451,20 @@ uint32_t do_arm_semihosting(CPUARMState *env)
             size_t input_size;
             size_t output_size;
             int status = 0;
+#if !defined(CONFIG_USER_ONLY)
+            const char *cmdline;
+#endif
             GET_ARG(0);
             GET_ARG(1);
             input_size = arg1;
 
             /* Compute the size of the output string.  */
 #if !defined(CONFIG_USER_ONLY)
-            QemuOpts *opts;
-            const char *cmdline;
-
-            opts = qemu_opts_find(qemu_find_opts("semihosting-config"), NULL);
-            cmdline = qemu_opt_get(opts, "cmdline");
-
-            if (cmdline) {
-                output_size = strlen(cmdline) + 1;
-            } else {
-                output_size = strlen(ts->boot_info->kernel_filename)
-                        + 1  /* Separating space.  */
-                        + strlen(ts->boot_info->kernel_cmdline)
-                        + 1; /* Terminating null byte.  */
+            cmdline = semihosting_get_cmdline();
+            if (cmdline == NULL) {
+                cmdline = ""; /* Default to an empty line. */
             }
+            output_size = strlen(cmdline) + 1; /* Count terminating 0. */
 #else
             unsigned int i;
 
@@ -487,15 +495,7 @@ uint32_t do_arm_semihosting(CPUARMState *env)
 
             /* Copy the command-line arguments.  */
 #if !defined(CONFIG_USER_ONLY)
-            if (cmdline) {
-                pstrcpy(output_buffer, output_size, cmdline);
-            } else {
-                pstrcpy(output_buffer, output_size,
-                        ts->boot_info->kernel_filename);
-                pstrcat(output_buffer, output_size, " ");
-                pstrcat(output_buffer, output_size,
-                        ts->boot_info->kernel_cmdline);
-            }
+            pstrcpy(output_buffer, output_size, cmdline);
 #else
             if (output_size == 1) {
                 /* Empty command-line.  */
@@ -578,6 +578,12 @@ uint32_t do_arm_semihosting(CPUARMState *env)
          * exit, everything else is considered an error */
         ret = (args == ADP_Stopped_ApplicationExit) ? 0 : 1;
         gdb_exit(env, ret);
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_COMMON) {
+        fsync(STDERR_FILENO);
+        printf("QEMU exit(%d)\n", ret);
+    }
+#endif
         exit(ret);
     default:
         fprintf(stderr, "qemu: Unsupported SemiHosting SWI 0x%02x\n", nr);

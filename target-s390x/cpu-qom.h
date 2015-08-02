@@ -66,6 +66,9 @@ typedef struct S390CPU {
     /*< public >*/
 
     CPUS390XState env;
+    /* needed for live migration */
+    void *irqstate;
+    uint32_t irqstate_saved_size;
 } S390CPU;
 
 static inline S390CPU *s390_env_get_cpu(CPUS390XState *env)
@@ -95,5 +98,6 @@ hwaddr s390_cpu_get_phys_addr_debug(CPUState *cpu, vaddr addr);
 int s390_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
 int s390_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);
 void s390_cpu_gdb_init(CPUState *cs);
+void s390x_cpu_debug_excp_handler(CPUState *cs);
 
 #endif

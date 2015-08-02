@@ -86,7 +86,7 @@ long vnc_client_write_sasl(VncState *vs)
      * SASL encoded output
      */
     if (vs->output.offset == 0) {
-        qemu_set_fd_handler2(vs->csock, NULL, vnc_client_read, NULL, vs);
+        qemu_set_fd_handler(vs->csock, vnc_client_read, NULL, vs);
     }
 
     return ret;
@@ -555,7 +555,7 @@ void start_auth_sasl(VncState *vs)
 
     memset (&secprops, 0, sizeof secprops);
     /* Inform SASL that we've got an external SSF layer from TLS */
-    if (strncmp(vs->vd->display, "unix:", 5) == 0
+    if (vs->vd->is_unix
 #ifdef CONFIG_VNC_TLS
         /* Disable SSF, if using TLS+x509+SASL only. TLS without x509
            is not sufficiently strong */

@@ -99,7 +99,13 @@
 
 #ifndef smp_wmb
 #ifdef __ATOMIC_RELEASE
-#define smp_wmb()   __atomic_thread_fence(__ATOMIC_RELEASE)
+/* __atomic_thread_fence does not include a compiler barrier; instead,
+ * the barrier is part of __atomic_load/__atomic_store's "volatile-like"
+ * semantics. If smp_wmb() is a no-op, absence of the barrier means that
+ * the compiler is free to reorder stores on each side of the barrier.
+ * Add one here, and similarly in smp_rmb() and smp_read_barrier_depends().
+ */
+#define smp_wmb()   ({ barrier(); __atomic_thread_fence(__ATOMIC_RELEASE); barrier(); })
 #else
 #define smp_wmb()   __sync_synchronize()
 #endif
@@ -107,7 +113,7 @@
 
 #ifndef smp_rmb
 #ifdef __ATOMIC_ACQUIRE
-#define smp_rmb()   __atomic_thread_fence(__ATOMIC_ACQUIRE)
+#define smp_rmb()   ({ barrier(); __atomic_thread_fence(__ATOMIC_ACQUIRE); barrier(); })
 #else
 #define smp_rmb()   __sync_synchronize()
 #endif
@@ -115,7 +121,7 @@
 
 #ifndef smp_read_barrier_depends
 #ifdef __ATOMIC_CONSUME
-#define smp_read_barrier_depends()   __atomic_thread_fence(__ATOMIC_CONSUME)
+#define smp_read_barrier_depends()   ({ barrier(); __atomic_thread_fence(__ATOMIC_CONSUME); barrier(); })
 #else
 #define smp_read_barrier_depends()   barrier()
 #endif
@@ -127,6 +133,67 @@
 
 #ifndef atomic_set
 #define atomic_set(ptr, i)     ((*(__typeof__(*ptr) volatile*) (ptr)) = (i))
+#endif
+
+/**
+ * atomic_rcu_read - reads a RCU-protected pointer to a local variable
+ * into a RCU read-side critical section. The pointer can later be safely
+ * dereferenced within the critical section.
+ *
+ * This ensures that the pointer copy is invariant thorough the whole critical
+ * section.
+ *
+ * Inserts memory barriers on architectures that require them (currently only
+ * Alpha) and documents which pointers are protected by RCU.
+ *
+ * Unless the __ATOMIC_CONSUME memory order is available, atomic_rcu_read also
+ * includes a compiler barrier to ensure that value-speculative optimizations
+ * (e.g. VSS: Value Speculation Scheduling) does not perform the data read
+ * before the pointer read by speculating the value of the pointer.  On new
+ * enough compilers, atomic_load takes care of such concern about
+ * dependency-breaking optimizations.
+ *
+ * Should match atomic_rcu_set(), atomic_xchg(), atomic_cmpxchg().
+ */
+#ifndef atomic_rcu_read
+#ifdef __ATOMIC_CONSUME
+#define atomic_rcu_read(ptr)    ({                \
+    typeof(*ptr) _val;                            \
+     __atomic_load(ptr, &_val, __ATOMIC_CONSUME); \
+    _val;                                         \
+})
+#else
+#define atomic_rcu_read(ptr)    ({                \
+    typeof(*ptr) _val = atomic_read(ptr);         \
+    smp_read_barrier_depends();                   \
+    _val;                                         \
+})
+#endif
+#endif
+
+/**
+ * atomic_rcu_set - assigns (publicizes) a pointer to a new data structure
+ * meant to be read by RCU read-side critical sections.
+ *
+ * Documents which pointers will be dereferenced by RCU read-side critical
+ * sections and adds the required memory barriers on architectures requiring
+ * them. It also makes sure the compiler does not reorder code initializing the
+ * data structure before its publication.
+ *
+ * Should match atomic_rcu_read().
+ */
+#ifndef atomic_rcu_set
+#ifdef __ATOMIC_RELEASE
+#define atomic_rcu_set(ptr, i)  do {              \
+    typeof(*ptr) _val = (i);                      \
+    __atomic_store(ptr, &_val, __ATOMIC_RELEASE); \
+} while(0)
+#else
+#define atomic_rcu_set(ptr, i)  do {              \
+    smp_wmb();                                    \
+    atomic_set(ptr, i);                           \
+} while (0)
+#endif
 #endif
 
 /* These have the same semantics as Java volatile variables.

@@ -1,0 +1,17 @@
+
+This is the GNU ARM Eclipse version of QEMU for Windows.
+
+If generally follows the official releases.
+
+The changes are currently small, but more Cortex-M support is planned.
+
+For more details and support, please read the GNU ARM Eclipse project pages from:
+
+  http://gnuarmeclipse.livius.net/blog/
+  http://gnuarmeclipse.livius.net/wiki/
+
+
+Thank you for using GNU ARM Eclipse,
+
+Liviu Ionescu
+

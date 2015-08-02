@@ -22,13 +22,9 @@
  * THE SOFTWARE.
  */
 
-#include "sysemu/sysemu.h"
-#include "monitor/monitor.h"
-#include "ui/console.h"
-
-#include "hw/hw.h"
-
+#include "qemu/main-loop.h"
 #include "qemu/timer.h"
+
 #ifdef CONFIG_POSIX
 #include <pthread.h>
 #endif
@@ -342,6 +338,12 @@ void timer_init_tl(QEMUTimer *ts,
     ts->expire_time = -1;
 }
 
+void timer_deinit(QEMUTimer *ts)
+{
+    assert(ts->expire_time == -1);
+    ts->timer_list = NULL;
+}
+
 void timer_free(QEMUTimer *ts)
 {
     g_free(ts);
@@ -398,9 +400,11 @@ void timer_del(QEMUTimer *ts)
 {
     QEMUTimerList *timer_list = ts->timer_list;
 
-    qemu_mutex_lock(&timer_list->active_timers_lock);
-    timer_del_locked(timer_list, ts);
-    qemu_mutex_unlock(&timer_list->active_timers_lock);
+    if (timer_list) {
+        qemu_mutex_lock(&timer_list->active_timers_lock);
+        timer_del_locked(timer_list, ts);
+        qemu_mutex_unlock(&timer_list->active_timers_lock);
+    }
 }
 
 /* modify the current timer so that it will be fired when current_time
@@ -569,7 +573,7 @@ int64_t qemu_clock_get_ns(QEMUClockType type)
         now = get_clock_realtime();
         last = clock->last;
         clock->last = now;
-        if (now < last) {
+        if (now < last || now > (last + get_max_clock_jump())) {
             notifier_list_notify(&clock->reset_notifiers, &now);
         }
         return now;

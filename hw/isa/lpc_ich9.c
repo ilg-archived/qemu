@@ -360,11 +360,8 @@ static void ich9_set_sci(void *opaque, int irq_num, int level)
 void ich9_lpc_pm_init(PCIDevice *lpc_pci)
 {
     ICH9LPCState *lpc = ICH9_LPC_DEVICE(lpc_pci);
-    qemu_irq *sci_irq;
 
-    sci_irq = qemu_allocate_irqs(ich9_set_sci, lpc, 1);
-    ich9_pm_init(lpc_pci, &lpc->pm, sci_irq[0]);
-
+    ich9_pm_init(lpc_pci, &lpc->pm, qemu_allocate_irq(ich9_set_sci, lpc, 0));
     ich9_lpc_reset(&lpc->d.qdev);
 }
 
@@ -410,12 +407,28 @@ static void ich9_lpc_rcba_update(ICH9LPCState *lpc, uint32_t rbca_old)
     }
 }
 
+/* config:GEN_PMCON* */
+static void
+ich9_lpc_pmcon_update(ICH9LPCState *lpc)
+{
+    uint16_t gen_pmcon_1 = pci_get_word(lpc->d.config + ICH9_LPC_GEN_PMCON_1);
+    uint16_t wmask;
+
+    if (gen_pmcon_1 & ICH9_LPC_GEN_PMCON_1_SMI_LOCK) {
+        wmask = pci_get_word(lpc->d.wmask + ICH9_LPC_GEN_PMCON_1);
+        wmask &= ~ICH9_LPC_GEN_PMCON_1_SMI_LOCK;
+        pci_set_word(lpc->d.wmask + ICH9_LPC_GEN_PMCON_1, wmask);
+        lpc->pm.smi_en_wmask &= ~1;
+    }
+}
+
 static int ich9_lpc_post_load(void *opaque, int version_id)
 {
     ICH9LPCState *lpc = opaque;
 
     ich9_lpc_pmbase_update(lpc);
     ich9_lpc_rcba_update(lpc, 0 /* disabled ICH9_LPC_RBCA_EN */);
+    ich9_lpc_pmcon_update(lpc);
     return 0;
 }
 
@@ -437,6 +450,9 @@ static void ich9_lpc_config_write(PCIDevice *d,
     }
     if (ranges_overlap(addr, len, ICH9_LPC_PIRQE_ROUT, 4)) {
         pci_bus_fire_intx_routing_notifier(lpc->d.bus);
+    }
+    if (ranges_overlap(addr, len, ICH9_LPC_GEN_PMCON_1, 8)) {
+        ich9_lpc_pmcon_update(lpc);
     }
 }
 
@@ -494,7 +510,7 @@ static void ich9_lpc_machine_ready(Notifier *n, void *opaque)
         /* lpt */
         pci_conf[0x82] |= 0x04;
     }
-    if (memory_region_present(io_as, 0x3f0)) {
+    if (memory_region_present(io_as, 0x3f2)) {
         /* floppy */
         pci_conf[0x82] |= 0x08;
     }
@@ -575,7 +591,7 @@ static int ich9_lpc_init(PCIDevice *d)
     ICH9LPCState *lpc = ICH9_LPC_DEVICE(d);
     ISABus *isa_bus;
 
-    isa_bus = isa_bus_new(&d->qdev, get_system_io());
+    isa_bus = isa_bus_new(DEVICE(d), get_system_memory(), get_system_io());
 
     pci_set_long(d->wmask + ICH9_LPC_PMBASE,
                  ICH9_LPC_PMBASE_BASE_ADDRESS_MASK);
@@ -610,8 +626,17 @@ static void ich9_device_plug_cb(HotplugHandler *hotplug_dev,
 static void ich9_device_unplug_request_cb(HotplugHandler *hotplug_dev,
                                           DeviceState *dev, Error **errp)
 {
-    error_setg(errp, "acpi: device unplug request for not supported device"
-               " type: %s", object_get_typename(OBJECT(dev)));
+    ICH9LPCState *lpc = ICH9_LPC_DEVICE(hotplug_dev);
+
+    ich9_pm_device_unplug_request_cb(&lpc->pm, dev, errp);
+}
+
+static void ich9_device_unplug_cb(HotplugHandler *hotplug_dev,
+                                  DeviceState *dev, Error **errp)
+{
+    ICH9LPCState *lpc = ICH9_LPC_DEVICE(hotplug_dev);
+
+    ich9_pm_device_unplug_cb(&lpc->pm, dev, errp);
 }
 
 static bool ich9_rst_cnt_needed(void *opaque)
@@ -625,6 +650,7 @@ static const VMStateDescription vmstate_ich9_rst_cnt = {
     .name = "ICH9LPC/rst_cnt",
     .version_id = 1,
     .minimum_version_id = 1,
+    .needed = ich9_rst_cnt_needed,
     .fields = (VMStateField[]) {
         VMSTATE_UINT8(rst_cnt, ICH9LPCState),
         VMSTATE_END_OF_LIST()
@@ -644,12 +670,9 @@ static const VMStateDescription vmstate_ich9_lpc = {
         VMSTATE_UINT32(sci_level, ICH9LPCState),
         VMSTATE_END_OF_LIST()
     },
-    .subsections = (VMStateSubsection[]) {
-        {
-            .vmsd = &vmstate_ich9_rst_cnt,
-            .needed = ich9_rst_cnt_needed
-        },
-        { 0 }
+    .subsections = (const VMStateDescription*[]) {
+        &vmstate_ich9_rst_cnt,
+        NULL
     }
 };
 
@@ -677,6 +700,7 @@ static void ich9_lpc_class_init(ObjectClass *klass, void *data)
     dc->cannot_instantiate_with_device_add_yet = true;
     hc->plug = ich9_device_plug_cb;
     hc->unplug_request = ich9_device_unplug_request_cb;
+    hc->unplug = ich9_device_unplug_cb;
     adevc->ospm_status = ich9_pm_ospm_status;
 }
 

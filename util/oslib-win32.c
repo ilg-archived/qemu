@@ -237,6 +237,13 @@ void qemu_init_exec_dir(const char *argv0)
     while (p != buf && *p != '\\') {
         p--;
     }
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    /* Eat-up \bin too */
+    --p;
+    while (p != buf && *p != '\\') {
+        p--;
+    }
+#endif
     *p = 0;
     if (access(buf, R_OK) == 0) {
         pstrcpy(exec_dir, sizeof(exec_dir), buf);
@@ -469,4 +476,28 @@ void os_mem_prealloc(int fd, char *area, size_t memory)
     for (i = 0; i < memory / pagesize; i++) {
         memset(area + pagesize * i, 0, 1);
     }
+}
+
+
+/* XXX: put correct support for win32 */
+int qemu_read_password(char *buf, int buf_size)
+{
+    int c, i;
+
+    printf("Password: ");
+    fflush(stdout);
+    i = 0;
+    for (;;) {
+        c = getchar();
+        if (c < 0) {
+            buf[i] = '\0';
+            return -1;
+        } else if (c == '\n') {
+            break;
+        } else if (i < (buf_size - 1)) {
+            buf[i++] = c;
+        }
+    }
+    buf[i] = '\0';
+    return 0;
 }

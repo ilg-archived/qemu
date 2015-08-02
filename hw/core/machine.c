@@ -31,18 +31,12 @@ static void machine_set_accel(Object *obj, const char *value, Error **errp)
     ms->accel = g_strdup(value);
 }
 
-static bool machine_get_kernel_irqchip(Object *obj, Error **errp)
-{
-    MachineState *ms = MACHINE(obj);
-
-    return ms->kernel_irqchip;
-}
-
 static void machine_set_kernel_irqchip(Object *obj, bool value, Error **errp)
 {
     MachineState *ms = MACHINE(obj);
 
-    ms->kernel_irqchip = value;
+    ms->kernel_irqchip_allowed = value;
+    ms->kernel_irqchip_required = value;
 }
 
 static void machine_get_kvm_shadow_mem(Object *obj, Visitor *v,
@@ -86,6 +80,25 @@ static void machine_set_kernel(Object *obj, const char *value, Error **errp)
     g_free(ms->kernel_filename);
     ms->kernel_filename = g_strdup(value);
 }
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+static char *machine_get_image(Object *obj, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    return g_strdup(ms->image_filename);
+}
+
+static void machine_set_image(Object *obj, const char *value, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    g_free((void*)ms->image_filename);
+    ms->image_filename = g_strdup(value);
+}
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 static char *machine_get_initrd(Object *obj, Error **errp)
 {
@@ -229,6 +242,7 @@ static void machine_set_usb(Object *obj, bool value, Error **errp)
     MachineState *ms = MACHINE(obj);
 
     ms->usb = value;
+    ms->usb_disabled = !value;
 }
 
 static char *machine_get_firmware(Object *obj, Error **errp)
@@ -260,6 +274,20 @@ static void machine_set_iommu(Object *obj, bool value, Error **errp)
     ms->iommu = value;
 }
 
+static void machine_set_suppress_vmdesc(Object *obj, bool value, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    ms->suppress_vmdesc = value;
+}
+
+static bool machine_get_suppress_vmdesc(Object *obj, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    return ms->suppress_vmdesc;
+}
+
 static int error_on_sysbus_device(SysBusDevice *sbdev, void *opaque)
 {
     error_report("Option '-device %s' cannot be handled by this machine",
@@ -285,9 +313,22 @@ static void machine_init_notify(Notifier *notifier, void *data)
     foreach_dynamic_sysbus_device(error_on_sysbus_device, NULL);
 }
 
+static void machine_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    /* Default 128 MB as guest ram size */
+    mc->default_ram_size = 128 * M_BYTE;
+}
+
 static void machine_initfn(Object *obj)
 {
     MachineState *ms = MACHINE(obj);
+
+    ms->kernel_irqchip_allowed = true;
+    ms->kvm_shadow_mem = -1;
+    ms->dump_guest_core = true;
+    ms->mem_merge = true;
 
     object_property_add_str(obj, "accel",
                             machine_get_accel, machine_set_accel, NULL);
@@ -295,7 +336,7 @@ static void machine_initfn(Object *obj)
                                     "Accelerator list",
                                     NULL);
     object_property_add_bool(obj, "kernel-irqchip",
-                             machine_get_kernel_irqchip,
+                             NULL,
                              machine_set_kernel_irqchip,
                              NULL);
     object_property_set_description(obj, "kernel-irqchip",
@@ -323,6 +364,13 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "append",
                                     "Linux kernel command line",
                                     NULL);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    object_property_add_str(obj, "image",
+                            machine_get_image, machine_set_image, NULL);
+    object_property_set_description(obj, "image",
+                                    "Bare-bone image file",
+                                    NULL);
+#endif
     object_property_add_str(obj, "dtb",
                             machine_get_dtb, machine_set_dtb, NULL);
     object_property_set_description(obj, "dtb",
@@ -378,6 +426,12 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "iommu",
                                     "Set on/off to enable/disable Intel IOMMU (VT-d)",
                                     NULL);
+    object_property_add_bool(obj, "suppress-vmdesc",
+                             machine_get_suppress_vmdesc,
+                             machine_set_suppress_vmdesc, NULL);
+    object_property_set_description(obj, "suppress-vmdesc",
+                                    "Set on to disable self-describing migration",
+                                    NULL);
 
     /* Register notifier when init is done for sysbus sanity checks */
     ms->sysbus_notifier.notify = machine_init_notify;
@@ -392,6 +446,9 @@ static void machine_finalize(Object *obj)
     g_free(ms->kernel_filename);
     g_free(ms->initrd_filename);
     g_free(ms->kernel_cmdline);
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    g_free((void*)ms->image_filename);
+#endif
     g_free(ms->dtb);
     g_free(ms->dumpdtb);
     g_free(ms->dt_compatible);
@@ -403,11 +460,47 @@ bool machine_usb(MachineState *machine)
     return machine->usb;
 }
 
+bool machine_iommu(MachineState *machine)
+{
+    return machine->iommu;
+}
+
+bool machine_kernel_irqchip_allowed(MachineState *machine)
+{
+    return machine->kernel_irqchip_allowed;
+}
+
+bool machine_kernel_irqchip_required(MachineState *machine)
+{
+    return machine->kernel_irqchip_required;
+}
+
+int machine_kvm_shadow_mem(MachineState *machine)
+{
+    return machine->kvm_shadow_mem;
+}
+
+int machine_phandle_start(MachineState *machine)
+{
+    return machine->phandle_start;
+}
+
+bool machine_dump_guest_core(MachineState *machine)
+{
+    return machine->dump_guest_core;
+}
+
+bool machine_mem_merge(MachineState *machine)
+{
+    return machine->mem_merge;
+}
+
 static const TypeInfo machine_info = {
     .name = TYPE_MACHINE,
     .parent = TYPE_OBJECT,
     .abstract = true,
     .class_size = sizeof(MachineClass),
+    .class_init    = machine_class_init,
     .instance_size = sizeof(MachineState),
     .instance_init = machine_initfn,
     .instance_finalize = machine_finalize,

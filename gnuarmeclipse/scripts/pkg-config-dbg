@@ -1,0 +1,14 @@
+#! /bin/bash
+# pkg-config wrapper for debug
+
+OUT=$(pkg-config $@)
+RET=$?
+echo -n ${OUT}
+if true
+then
+  echo "PATH: ${PKG_CONFIG_PATH}" >&2
+  echo "LIBDIR: ${PKG_CONFIG_LIBDIR}" >&2
+  echo "pkg-config $@ -> ${RET} [${OUT}]" >&2
+fi
+exit ${RET}
+

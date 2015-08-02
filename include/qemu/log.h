@@ -41,6 +41,10 @@ static inline bool qemu_log_enabled(void)
 #define LOG_UNIMP          (1 << 10)
 #define LOG_GUEST_ERROR    (1 << 11)
 #define CPU_LOG_MMU        (1 << 12)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define LOG_TRACE          (1 << 13)
+#define LOG_TRACE_MR       (1 << 14)
+#endif
 
 /* Returns true if a bit is set in the current loglevel mask
  */
@@ -104,10 +108,10 @@ static inline void log_cpu_state_mask(int mask, CPUState *cpu, int flags)
 
 #ifdef NEED_CPU_H
 /* disas() and target_disas() to qemu_logfile: */
-static inline void log_target_disas(CPUArchState *env, target_ulong start,
+static inline void log_target_disas(CPUState *cpu, target_ulong start,
                                     target_ulong len, int flags)
 {
-    target_disas(qemu_logfile, env, start, len, flags);
+    target_disas(qemu_logfile, cpu, start, len, flags);
 }
 
 static inline void log_disas(void *code, unsigned long size)
@@ -181,5 +185,10 @@ int qemu_str_to_log_mask(const char *str);
  * to the specified FILE*.
  */
 void qemu_print_log_usage(FILE *f);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define qemu_log_function_name() \
+    qemu_log_mask(LOG_TRACE, "%s()\n", __FUNCTION__)
+#endif
 
 #endif

@@ -6,7 +6,7 @@
  *
  * This code is licensed under the GPL.
  */
-#include "config.h"
+
 #include "hw/sysbus.h"
 #include "hw/ssi.h"
 #include "hw/arm/arm.h"
@@ -16,7 +16,6 @@
 #include "net/net.h"
 #include "hw/boards.h"
 #include "exec/address-spaces.h"
-#include "sysemu/sysemu.h"
 
 #define GPIO_A 0
 #define GPIO_B 1
@@ -29,6 +28,8 @@
 #define BP_OLED_I2C  0x01
 #define BP_OLED_SSI  0x02
 #define BP_GAMEPAD   0x04
+
+#define NUM_IRQ_LINES 64
 
 typedef const struct {
     const char *name;
@@ -307,7 +308,7 @@ static const VMStateDescription vmstate_stellaris_gptm = {
         VMSTATE_UINT32_ARRAY(match_prescale, gptm_state, 2),
         VMSTATE_UINT32(rtc, gptm_state),
         VMSTATE_INT64_ARRAY(tick, gptm_state, 2),
-        VMSTATE_TIMER_ARRAY(timer, gptm_state, 2),
+        VMSTATE_TIMER_PTR_ARRAY(timer, gptm_state, 2),
         VMSTATE_END_OF_LIST()
     }
 };
@@ -1199,7 +1200,7 @@ static stellaris_board_info stellaris_boards[] = {
   }
 };
 
-static void stellaris_init(MachineState *machine,
+static void stellaris_init(const char *kernel_filename, const char *cpu_model,
                            stellaris_board_info *board)
 {
     static const int uart_irq[] = {5, 6, 33, 34};
@@ -1221,16 +1222,27 @@ static void stellaris_init(MachineState *machine,
     int i;
     int j;
 
-    flash_size = ((board->dc0 & 0xffff) + 1) << 1;
-    sram_size = (board->dc0 >> 18) + 1;
+    MemoryRegion *sram = g_new(MemoryRegion, 1);
+    MemoryRegion *flash = g_new(MemoryRegion, 1);
+    MemoryRegion *system_memory = get_system_memory();
 
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level > 0) {
-        printf("Board/machine: '%s'.\n", board->name);
-    }
-#endif
+    flash_size = (((board->dc0 & 0xffff) + 1) << 1) * 1024;
+    sram_size = ((board->dc0 >> 18) + 1) * 1024;
 
-    pic = armv7m_init(get_system_memory(), flash_size, sram_size, machine);
+    /* Flash programming is done via the SCU, so pretend it is ROM.  */
+    memory_region_init_ram(flash, NULL, "stellaris.flash", flash_size,
+                           &error_abort);
+    vmstate_register_ram_global(flash);
+    memory_region_set_readonly(flash, true);
+    memory_region_add_subregion(system_memory, 0, flash);
+
+    memory_region_init_ram(sram, NULL, "stellaris.sram", sram_size,
+                           &error_abort);
+    vmstate_register_ram_global(sram);
+    memory_region_add_subregion(system_memory, 0x20000000, sram);
+
+    pic = armv7m_init(system_memory, flash_size, NUM_IRQ_LINES,
+                      kernel_filename, cpu_model);
 
     if (board->dc1 & (1 << 16)) {
         dev = sysbus_create_varargs(TYPE_STELLARIS_ADC, 0x40038000,
@@ -1342,12 +1354,16 @@ static void stellaris_init(MachineState *machine,
 /* FIXME: Figure out how to generate these from stellaris_boards.  */
 static void lm3s811evb_init(MachineState *machine)
 {
-    stellaris_init(machine, &stellaris_boards[0]);
+    const char *cpu_model = machine->cpu_model;
+    const char *kernel_filename = machine->kernel_filename;
+    stellaris_init(kernel_filename, cpu_model, &stellaris_boards[0]);
 }
 
 static void lm3s6965evb_init(MachineState *machine)
 {
-    stellaris_init(machine, &stellaris_boards[1]);
+    const char *cpu_model = machine->cpu_model;
+    const char *kernel_filename = machine->kernel_filename;
+    stellaris_init(kernel_filename, cpu_model, &stellaris_boards[1]);
 }
 
 static QEMUMachine lm3s811evb_machine = {

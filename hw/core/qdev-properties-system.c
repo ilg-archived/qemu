@@ -326,8 +326,8 @@ static void set_vlan(Object *obj, Visitor *v, void *opaque,
 
     hubport = net_hub_port_find(id);
     if (!hubport) {
-        error_set(errp, QERR_INVALID_PARAMETER_VALUE,
-                  name, prop->info->name);
+        error_setg(errp, QERR_INVALID_PARAMETER_VALUE,
+                   name, prop->info->name);
         return;
     }
     *ptr = hubport;
@@ -341,27 +341,25 @@ PropertyInfo qdev_prop_vlan = {
     .set   = set_vlan,
 };
 
-int qdev_prop_set_drive(DeviceState *dev, const char *name,
-                        BlockBackend *value)
+void qdev_prop_set_drive(DeviceState *dev, const char *name,
+                         BlockBackend *value, Error **errp)
 {
-    Error *err = NULL;
-    object_property_set_str(OBJECT(dev),
-                            value ? blk_name(value) : "", name, &err);
-    if (err) {
-        qerror_report_err(err);
-        error_free(err);
-        return -1;
-    }
-    return 0;
+    object_property_set_str(OBJECT(dev), value ? blk_name(value) : "",
+                            name, errp);
 }
 
 void qdev_prop_set_drive_nofail(DeviceState *dev, const char *name,
                                 BlockBackend *value)
 {
-    if (qdev_prop_set_drive(dev, name, value) < 0) {
+    Error *err = NULL;
+
+    qdev_prop_set_drive(dev, name, value, &err);
+    if (err) {
+        error_report_err(err);
         exit(1);
     }
 }
+
 void qdev_prop_set_chr(DeviceState *dev, const char *name,
                        CharDriverState *value)
 {
@@ -391,7 +389,7 @@ void qdev_set_nic_properties(DeviceState *dev, NICInfo *nd)
     nd->instantiated = 1;
 }
 
-static int qdev_add_one_global(QemuOpts *opts, void *opaque)
+static int qdev_add_one_global(void *opaque, QemuOpts *opts, Error **errp)
 {
     GlobalProperty *g;
 
@@ -406,5 +404,6 @@ static int qdev_add_one_global(QemuOpts *opts, void *opaque)
 
 void qemu_add_globals(void)
 {
-    qemu_opts_foreach(qemu_find_opts("global"), qdev_add_one_global, NULL, 0);
+    qemu_opts_foreach(qemu_find_opts("global"),
+                      qdev_add_one_global, NULL, NULL);
 }

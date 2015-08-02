@@ -14,6 +14,7 @@
 #include "trace.h"
 #include "block/blockjob.h"
 #include "block/block_int.h"
+#include "qapi/qmp/qerror.h"
 #include "qemu/ratelimit.h"
 #include "qemu/bitmap.h"
 
@@ -125,11 +126,9 @@ static void mirror_write_complete(void *opaque, int ret)
     MirrorOp *op = opaque;
     MirrorBlockJob *s = op->s;
     if (ret < 0) {
-        BlockDriverState *source = s->common.bs;
         BlockErrorAction action;
 
-        bdrv_set_dirty_bitmap(source, s->dirty_bitmap, op->sector_num,
-                              op->nb_sectors);
+        bdrv_set_dirty_bitmap(s->dirty_bitmap, op->sector_num, op->nb_sectors);
         action = mirror_error_action(s, false, -ret);
         if (action == BLOCK_ERROR_ACTION_REPORT && s->ret >= 0) {
             s->ret = ret;
@@ -143,11 +142,9 @@ static void mirror_read_complete(void *opaque, int ret)
     MirrorOp *op = opaque;
     MirrorBlockJob *s = op->s;
     if (ret < 0) {
-        BlockDriverState *source = s->common.bs;
         BlockErrorAction action;
 
-        bdrv_set_dirty_bitmap(source, s->dirty_bitmap, op->sector_num,
-                              op->nb_sectors);
+        bdrv_set_dirty_bitmap(s->dirty_bitmap, op->sector_num, op->nb_sectors);
         action = mirror_error_action(s, true, -ret);
         if (action == BLOCK_ERROR_ACTION_REPORT && s->ret >= 0) {
             s->ret = ret;
@@ -170,10 +167,9 @@ static uint64_t coroutine_fn mirror_iteration(MirrorBlockJob *s)
 
     s->sector_num = hbitmap_iter_next(&s->hbi);
     if (s->sector_num < 0) {
-        bdrv_dirty_iter_init(source, s->dirty_bitmap, &s->hbi);
+        bdrv_dirty_iter_init(s->dirty_bitmap, &s->hbi);
         s->sector_num = hbitmap_iter_next(&s->hbi);
-        trace_mirror_restart_iter(s,
-                                  bdrv_get_dirty_count(source, s->dirty_bitmap));
+        trace_mirror_restart_iter(s, bdrv_get_dirty_count(s->dirty_bitmap));
         assert(s->sector_num >= 0);
     }
 
@@ -288,8 +284,7 @@ static uint64_t coroutine_fn mirror_iteration(MirrorBlockJob *s)
         next_sector += sectors_per_chunk;
     }
 
-    bdrv_reset_dirty_bitmap(source, s->dirty_bitmap, sector_num,
-                            nb_sectors);
+    bdrv_reset_dirty_bitmap(s->dirty_bitmap, sector_num, nb_sectors);
 
     /* Copy the dirty cluster.  */
     s->in_flight++;
@@ -378,7 +373,8 @@ static void coroutine_fn mirror_run(void *opaque)
     int64_t sector_num, end, sectors_per_chunk, length;
     uint64_t last_pause_ns;
     BlockDriverInfo bdi;
-    char backing_filename[1024];
+    char backing_filename[2]; /* we only need 2 characters because we are only
+                                 checking for a NULL string */
     int ret = 0;
     int n;
 
@@ -445,7 +441,7 @@ static void coroutine_fn mirror_run(void *opaque)
 
             assert(n > 0);
             if (ret == 1) {
-                bdrv_set_dirty_bitmap(bs, s->dirty_bitmap, sector_num, n);
+                bdrv_set_dirty_bitmap(s->dirty_bitmap, sector_num, n);
                 sector_num = next;
             } else {
                 sector_num += n;
@@ -453,7 +449,7 @@ static void coroutine_fn mirror_run(void *opaque)
         }
     }
 
-    bdrv_dirty_iter_init(bs, s->dirty_bitmap, &s->hbi);
+    bdrv_dirty_iter_init(s->dirty_bitmap, &s->hbi);
     last_pause_ns = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
     for (;;) {
         uint64_t delay_ns = 0;
@@ -465,7 +461,7 @@ static void coroutine_fn mirror_run(void *opaque)
             goto immediate_exit;
         }
 
-        cnt = bdrv_get_dirty_count(bs, s->dirty_bitmap);
+        cnt = bdrv_get_dirty_count(s->dirty_bitmap);
         /* s->common.offset contains the number of bytes already processed so
          * far, cnt is the number of dirty sectors remaining and
          * s->sectors_in_flight is the number of sectors currently being
@@ -474,7 +470,7 @@ static void coroutine_fn mirror_run(void *opaque)
                         (cnt + s->sectors_in_flight) * BDRV_SECTOR_SIZE;
 
         /* Note that even when no rate limit is applied we need to yield
-         * periodically with no pending I/O so that qemu_aio_flush() returns.
+         * periodically with no pending I/O so that bdrv_drain_all() returns.
          * We do so every SLICE_TIME nanoseconds, or when there is an error,
          * or when the source is clean, whichever comes first.
          */
@@ -487,9 +483,6 @@ static void coroutine_fn mirror_run(void *opaque)
                 continue;
             } else if (cnt != 0) {
                 delay_ns = mirror_iteration(s);
-                if (delay_ns == 0) {
-                    continue;
-                }
             }
         }
 
@@ -515,7 +508,7 @@ static void coroutine_fn mirror_run(void *opaque)
 
                 should_complete = s->should_complete ||
                     block_job_is_cancelled(&s->common);
-                cnt = bdrv_get_dirty_count(bs, s->dirty_bitmap);
+                cnt = bdrv_get_dirty_count(s->dirty_bitmap);
             }
         }
 
@@ -530,7 +523,7 @@ static void coroutine_fn mirror_run(void *opaque)
              */
             trace_mirror_before_drain(s, cnt);
             bdrv_drain(bs);
-            cnt = bdrv_get_dirty_count(bs, s->dirty_bitmap);
+            cnt = bdrv_get_dirty_count(s->dirty_bitmap);
         }
 
         ret = 0;
@@ -581,7 +574,7 @@ static void mirror_set_speed(BlockJob *job, int64_t speed, Error **errp)
     MirrorBlockJob *s = container_of(job, MirrorBlockJob, common);
 
     if (speed < 0) {
-        error_set(errp, QERR_INVALID_PARAMETER, "speed");
+        error_setg(errp, QERR_INVALID_PARAMETER, "speed");
         return;
     }
     ratelimit_set_speed(&s->limit, speed / BDRV_SECTOR_SIZE, SLICE_TIME);
@@ -606,8 +599,8 @@ static void mirror_complete(BlockJob *job, Error **errp)
         return;
     }
     if (!s->synced) {
-        error_set(errp, QERR_BLOCK_JOB_NOT_READY,
-                  bdrv_get_device_name(job->bs));
+        error_setg(errp, QERR_BLOCK_JOB_NOT_READY,
+                   bdrv_get_device_name(job->bs));
         return;
     }
 
@@ -633,7 +626,7 @@ static void mirror_complete(BlockJob *job, Error **errp)
     }
 
     s->should_complete = true;
-    block_job_resume(job);
+    block_job_enter(&s->common);
 }
 
 static const BlockJobDriver mirror_job_driver = {
@@ -655,7 +648,7 @@ static const BlockJobDriver commit_active_job_driver = {
 
 static void mirror_start_job(BlockDriverState *bs, BlockDriverState *target,
                              const char *replaces,
-                             int64_t speed, int64_t granularity,
+                             int64_t speed, uint32_t granularity,
                              int64_t buf_size,
                              BlockdevOnError on_source_error,
                              BlockdevOnError on_target_error,
@@ -667,15 +660,7 @@ static void mirror_start_job(BlockDriverState *bs, BlockDriverState *target,
     MirrorBlockJob *s;
 
     if (granularity == 0) {
-        /* Choose the default granularity based on the target file's cluster
-         * size, clamped between 4k and 64k.  */
-        BlockDriverInfo bdi;
-        if (bdrv_get_info(target, &bdi) >= 0 && bdi.cluster_size != 0) {
-            granularity = MAX(4096, bdi.cluster_size);
-            granularity = MIN(65536, granularity);
-        } else {
-            granularity = 65536;
-        }
+        granularity = bdrv_get_default_bitmap_granularity(target);
     }
 
     assert ((granularity & (granularity - 1)) == 0);
@@ -683,7 +668,7 @@ static void mirror_start_job(BlockDriverState *bs, BlockDriverState *target,
     if ((on_source_error == BLOCKDEV_ON_ERROR_STOP ||
          on_source_error == BLOCKDEV_ON_ERROR_ENOSPC) &&
         !bdrv_iostatus_is_enabled(bs)) {
-        error_set(errp, QERR_INVALID_PARAMETER, "on-source-error");
+        error_setg(errp, QERR_INVALID_PARAMETER, "on-source-error");
         return;
     }
 
@@ -702,7 +687,7 @@ static void mirror_start_job(BlockDriverState *bs, BlockDriverState *target,
     s->granularity = granularity;
     s->buf_size = MAX(buf_size, granularity);
 
-    s->dirty_bitmap = bdrv_create_dirty_bitmap(bs, granularity, errp);
+    s->dirty_bitmap = bdrv_create_dirty_bitmap(bs, granularity, NULL, errp);
     if (!s->dirty_bitmap) {
         return;
     }
@@ -716,7 +701,7 @@ static void mirror_start_job(BlockDriverState *bs, BlockDriverState *target,
 
 void mirror_start(BlockDriverState *bs, BlockDriverState *target,
                   const char *replaces,
-                  int64_t speed, int64_t granularity, int64_t buf_size,
+                  int64_t speed, uint32_t granularity, int64_t buf_size,
                   MirrorSyncMode mode, BlockdevOnError on_source_error,
                   BlockdevOnError on_target_error,
                   BlockCompletionFunc *cb,
@@ -725,6 +710,10 @@ void mirror_start(BlockDriverState *bs, BlockDriverState *target,
     bool is_none_mode;
     BlockDriverState *base;
 
+    if (mode == MIRROR_SYNC_MODE_DIRTY_BITMAP) {
+        error_setg(errp, "Sync mode 'dirty-bitmap' not supported");
+        return;
+    }
     is_none_mode = mode == MIRROR_SYNC_MODE_NONE;
     base = mode == MIRROR_SYNC_MODE_TOP ? bs->backing_hd : NULL;
     mirror_start_job(bs, target, replaces,

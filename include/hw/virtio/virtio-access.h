@@ -19,10 +19,27 @@
 
 static inline bool virtio_access_is_big_endian(VirtIODevice *vdev)
 {
+    if (virtio_has_feature(vdev, VIRTIO_F_VERSION_1)) {
+        /* Devices conforming to VIRTIO 1.0 or later are always LE. */
+        return false;
+    }
 #if defined(TARGET_IS_BIENDIAN)
     return virtio_is_big_endian(vdev);
 #elif defined(TARGET_WORDS_BIGENDIAN)
     return true;
+#else
+    return false;
+#endif
+}
+
+static inline bool virtio_legacy_is_cross_endian(VirtIODevice *vdev)
+{
+#ifdef TARGET_IS_BIENDIAN
+#ifdef HOST_WORDS_BIGENDIAN
+    return !virtio_is_big_endian(vdev);
+#else
+    return virtio_is_big_endian(vdev);
+#endif
 #else
     return false;
 #endif

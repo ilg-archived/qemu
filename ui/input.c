@@ -1,6 +1,7 @@
 #include "hw/qdev.h"
 #include "sysemu/sysemu.h"
 #include "qapi-types.h"
+#include "qemu/error-report.h"
 #include "qmp-commands.h"
 #include "trace.h"
 #include "ui/input.h"
@@ -84,7 +85,8 @@ void qemu_input_handler_bind(QemuInputHandlerState *s,
 
     dev = qdev_find_recursive(sysbus_get_default(), device_id);
     if (dev == NULL) {
-        error_set(errp, QERR_DEVICE_NOT_FOUND, device_id);
+        error_set(errp, ERROR_CLASS_DEVICE_NOT_FOUND,
+                  "Device '%s' not found", device_id);
         return;
     }
 
@@ -526,7 +528,7 @@ MouseInfoList *qmp_query_mice(Error **errp)
     return mice_list;
 }
 
-void do_mouse_set(Monitor *mon, const QDict *qdict)
+void hmp_mouse_set(Monitor *mon, const QDict *qdict)
 {
     QemuInputHandlerState *s;
     int index = qdict_get_int(qdict, "index");

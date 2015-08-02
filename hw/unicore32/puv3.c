@@ -40,15 +40,15 @@ static void puv3_intc_cpu_handler(void *opaque, int irq, int level)
 
 static void puv3_soc_init(CPUUniCore32State *env)
 {
-    qemu_irq *cpu_intc, irqs[PUV3_IRQS_NR];
+    qemu_irq cpu_intc, irqs[PUV3_IRQS_NR];
     DeviceState *dev;
     MemoryRegion *i8042 = g_new(MemoryRegion, 1);
     int i;
 
     /* Initialize interrupt controller */
-    cpu_intc = qemu_allocate_irqs(puv3_intc_cpu_handler,
-                                  uc32_env_get_cpu(env), 1);
-    dev = sysbus_create_simple("puv3_intc", PUV3_INTC_BASE, *cpu_intc);
+    cpu_intc = qemu_allocate_irq(puv3_intc_cpu_handler,
+                                 uc32_env_get_cpu(env), 0);
+    dev = sysbus_create_simple("puv3_intc", PUV3_INTC_BASE, cpu_intc);
     for (i = 0; i < PUV3_IRQS_NR; i++) {
         irqs[i] = qdev_get_gpio_in(dev, i);
     }
@@ -109,6 +109,7 @@ static void puv3_init(MachineState *machine)
     const char *kernel_filename = machine->kernel_filename;
     const char *initrd_filename = machine->initrd_filename;
     CPUUniCore32State *env;
+    UniCore32CPU *cpu;
 
     if (initrd_filename) {
         hw_error("Please use kernel built-in initramdisk.\n");
@@ -118,10 +119,11 @@ static void puv3_init(MachineState *machine)
         cpu_model = "UniCore-II";
     }
 
-    env = cpu_init(cpu_model);
-    if (!env) {
+    cpu = uc32_cpu_init(cpu_model);
+    if (!cpu) {
         hw_error("Unable to find CPU definition\n");
     }
+    env = &cpu->env;
 
     puv3_soc_init(env);
     puv3_board_init(env, ram_size);

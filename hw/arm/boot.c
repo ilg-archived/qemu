@@ -170,7 +170,8 @@ static void default_reset_secondary(ARMCPU *cpu,
 {
     CPUARMState *env = &cpu->env;
 
-    stl_phys_notdirty(&address_space_memory, info->smp_bootreg_addr, 0);
+    address_space_stl_notdirty(&address_space_memory, info->smp_bootreg_addr,
+                               0, MEMTXATTRS_UNSPECIFIED, NULL);
     env->regs[15] = info->smp_loader_start;
 }
 
@@ -180,7 +181,8 @@ static inline bool have_dtb(const struct arm_boot_info *info)
 }
 
 #define WRITE_WORD(p, value) do { \
-    stl_phys_notdirty(&address_space_memory, p, value);  \
+    address_space_stl_notdirty(&address_space_memory, p, value, \
+                               MEMTXATTRS_UNSPECIFIED, NULL);  \
     p += 4;                       \
 } while (0)
 
@@ -463,8 +465,26 @@ static void do_cpu_reset(void *opaque)
              * (SCR.NS = 0), we change that here if non-secure boot has been
              * requested.
              */
-            if (arm_feature(env, ARM_FEATURE_EL3) && !info->secure_boot) {
-                env->cp15.scr_el3 |= SCR_NS;
+            if (arm_feature(env, ARM_FEATURE_EL3)) {
+                /* AArch64 is defined to come out of reset into EL3 if enabled.
+                 * If we are booting Linux then we need to adjust our EL as
+                 * Linux expects us to be in EL2 or EL1.  AArch32 resets into
+                 * SVC, which Linux expects, so no privilege/exception level to
+                 * adjust.
+                 */
+                if (env->aarch64) {
+                    if (arm_feature(env, ARM_FEATURE_EL2)) {
+                        env->pstate = PSTATE_MODE_EL2h;
+                    } else {
+                        env->pstate = PSTATE_MODE_EL1h;
+                    }
+                }
+
+                /* Set to non-secure if not a secure boot */
+                if (!info->secure_boot) {
+                    /* Linux expects non-secure state */
+                    env->cp15.scr_el3 |= SCR_NS;
+                }
             }
 
             if (CPU(cpu) == first_cpu) {
@@ -537,7 +557,7 @@ static void load_image_to_fw_cfg(FWCfgState *fw_cfg, uint16_t size_key,
     fw_cfg_add_bytes(fw_cfg, data_key, data, size);
 }
 
-void arm_load_kernel(ARMCPU *cpu, struct arm_boot_info *info)
+static void arm_load_kernel_notify(Notifier *notifier, void *data)
 {
     CPUState *cs;
     int kernel_size;
@@ -548,15 +568,11 @@ void arm_load_kernel(ARMCPU *cpu, struct arm_boot_info *info)
     hwaddr entry, kernel_load_offset;
     int big_endian;
     static const ARMInsnFixup *primary_loader;
-
-    /* CPU objects (unlike devices) are not automatically reset on system
-     * reset, so we must always register a handler to do so. If we're
-     * actually loading a kernel, the handler is also responsible for
-     * arranging that we start it correctly.
-     */
-    for (cs = CPU(cpu); cs; cs = CPU_NEXT(cs)) {
-        qemu_register_reset(do_cpu_reset, ARM_CPU(cs));
-    }
+    ArmLoadKernelNotifier *n = DO_UPCAST(ArmLoadKernelNotifier,
+                                         notifier, notifier);
+    ARMCPU *cpu = n->cpu;
+    struct arm_boot_info *info =
+        container_of(n, struct arm_boot_info, load_kernel_notifier);
 
     /* Load the kernel.  */
     if (!info->kernel_filename || info->firmware_loaded) {
@@ -753,5 +769,23 @@ void arm_load_kernel(ARMCPU *cpu, struct arm_boot_info *info)
 
     for (cs = CPU(cpu); cs; cs = CPU_NEXT(cs)) {
         ARM_CPU(cs)->env.boot_info = info;
+    }
+}
+
+void arm_load_kernel(ARMCPU *cpu, struct arm_boot_info *info)
+{
+    CPUState *cs;
+
+    info->load_kernel_notifier.cpu = cpu;
+    info->load_kernel_notifier.notifier.notify = arm_load_kernel_notify;
+    qemu_add_machine_init_done_notifier(&info->load_kernel_notifier.notifier);
+
+    /* CPU objects (unlike devices) are not automatically reset on system
+     * reset, so we must always register a handler to do so. If we're
+     * actually loading a kernel, the handler is also responsible for
+     * arranging that we start it correctly.
+     */
+    for (cs = CPU(cpu); cs; cs = CPU_NEXT(cs)) {
+        qemu_register_reset(do_cpu_reset, ARM_CPU(cs));
     }
 }

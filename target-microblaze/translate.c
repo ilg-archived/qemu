@@ -313,7 +313,7 @@ static void dec_sub(DisasContext *dc)
 static void dec_pattern(DisasContext *dc)
 {
     unsigned int mode;
-    int l1;
+    TCGLabel *l1;
 
     if ((dc->tb_flags & MSR_EE_FLAG)
           && (dc->cpu->env.pvr.regs[2] & PVR2_ILL_OPCODE_EXC_MASK)
@@ -862,7 +862,7 @@ static inline TCGv *compute_ldst_addr(DisasContext *dc, TCGv *t)
     int stackprot = 0;
 
     /* All load/stores use ra.  */
-    if (dc->ra == 1) {
+    if (dc->ra == 1 && dc->cpu->cfg.stackprot) {
         stackprot = 1;
     }
 
@@ -875,7 +875,7 @@ static inline TCGv *compute_ldst_addr(DisasContext *dc, TCGv *t)
             return &cpu_R[dc->ra];
         }
 
-        if (dc->rb == 1) {
+        if (dc->rb == 1 && dc->cpu->cfg.stackprot) {
             stackprot = 1;
         }
 
@@ -1038,7 +1038,7 @@ static void dec_load(DisasContext *dc)
 static void dec_store(DisasContext *dc)
 {
     TCGv t, *addr, swx_addr;
-    int swx_skip = 0;
+    TCGLabel *swx_skip = NULL;
     unsigned int size, rev = 0, ex = 0;
     TCGMemOp mop;
 
@@ -1192,9 +1192,7 @@ static inline void eval_cc(DisasContext *dc, unsigned int cc,
 
 static void eval_cond_jmp(DisasContext *dc, TCGv pc_true, TCGv pc_false)
 {
-    int l1;
-
-    l1 = gen_new_label();
+    TCGLabel *l1 = gen_new_label();
     /* Conditional jmp.  */
     tcg_gen_mov_tl(cpu_SR[SR_PC], pc_false);
     tcg_gen_brcondi_tl(TCG_COND_EQ, env_btaken, 0, l1);
@@ -1413,15 +1411,11 @@ static void dec_rts(DisasContext *dc)
 
 static int dec_check_fpuv2(DisasContext *dc)
 {
-    int r;
-
-    r = dc->cpu->env.pvr.regs[2] & PVR2_USE_FPU2_MASK;
-
-    if (!r && (dc->tb_flags & MSR_EE_FLAG)) {
+    if ((dc->cpu->cfg.use_fpu != 2) && (dc->tb_flags & MSR_EE_FLAG)) {
         tcg_gen_movi_tl(cpu_SR[SR_ESR], ESR_EC_FPU);
         t_gen_raise_exception(dc, EXCP_HW_EXCP);
     }
-    return r;
+    return (dc->cpu->cfg.use_fpu == 2) ? 0 : PVR2_USE_FPU2_MASK;
 }
 
 static void dec_fpu(DisasContext *dc)
@@ -1430,7 +1424,7 @@ static void dec_fpu(DisasContext *dc)
 
     if ((dc->tb_flags & MSR_EE_FLAG)
           && (dc->cpu->env.pvr.regs[2] & PVR2_ILL_OPCODE_EXC_MASK)
-          && !((dc->cpu->env.pvr.regs[2] & PVR2_USE_FPU_MASK))) {
+          && (dc->cpu->cfg.use_fpu != 1)) {
         tcg_gen_movi_tl(cpu_SR[SR_ESR], ESR_EC_ILLEGAL_OP);
         t_gen_raise_exception(dc, EXCP_HW_EXCP);
         return;
@@ -1673,7 +1667,6 @@ gen_intermediate_code_internal(MicroBlazeCPU *cpu, TranslationBlock *tb,
 {
     CPUState *cs = CPU(cpu);
     CPUMBState *env = &cpu->env;
-    uint16_t *gen_opc_end;
     uint32_t pc_start;
     int j, lj;
     struct DisasContext ctx;
@@ -1687,8 +1680,6 @@ gen_intermediate_code_internal(MicroBlazeCPU *cpu, TranslationBlock *tb,
     dc->cpu = cpu;
     dc->tb = tb;
     org_flags = dc->synced_flags = dc->tb_flags = tb->flags;
-
-    gen_opc_end = tcg_ctx.gen_opc_buf + OPC_MAX_SIZE;
 
     dc->is_jmp = DISAS_NEXT;
     dc->jmp = 0;
@@ -1732,7 +1723,7 @@ gen_intermediate_code_internal(MicroBlazeCPU *cpu, TranslationBlock *tb,
         check_breakpoint(env, dc);
 
         if (search_pc) {
-            j = tcg_ctx.gen_opc_ptr - tcg_ctx.gen_opc_buf;
+            j = tcg_op_buf_count();
             if (lj < j) {
                 lj++;
                 while (lj < j)
@@ -1776,10 +1767,8 @@ gen_intermediate_code_internal(MicroBlazeCPU *cpu, TranslationBlock *tb,
                     gen_goto_tb(dc, 0, dc->jmp_pc);
                     dc->is_jmp = DISAS_TB_JUMP;
                 } else if (dc->jmp == JMP_DIRECT_CC) {
-                    int l1;
-
+                    TCGLabel *l1 = gen_new_label();
                     t_sync_flags(dc);
-                    l1 = gen_new_label();
                     /* Conditional jmp.  */
                     tcg_gen_brcondi_tl(TCG_COND_NE, env_btaken, 0, l1);
                     gen_goto_tb(dc, 1, dc->pc);
@@ -1795,10 +1784,10 @@ gen_intermediate_code_internal(MicroBlazeCPU *cpu, TranslationBlock *tb,
             break;
         }
     } while (!dc->is_jmp && !dc->cpustate_changed
-         && tcg_ctx.gen_opc_ptr < gen_opc_end
-                 && !singlestep
-         && (dc->pc < next_page_start)
-                 && num_insns < max_insns);
+             && !tcg_op_buf_full()
+             && !singlestep
+             && (dc->pc < next_page_start)
+             && num_insns < max_insns);
 
     npc = dc->pc;
     if (dc->jmp == JMP_DIRECT || dc->jmp == JMP_DIRECT_CC) {
@@ -1846,9 +1835,9 @@ gen_intermediate_code_internal(MicroBlazeCPU *cpu, TranslationBlock *tb,
         }
     }
     gen_tb_end(tb, num_insns);
-    *tcg_ctx.gen_opc_ptr = INDEX_op_end;
+
     if (search_pc) {
-        j = tcg_ctx.gen_opc_ptr - tcg_ctx.gen_opc_buf;
+        j = tcg_op_buf_count();
         lj++;
         while (lj <= j)
             tcg_ctx.gen_opc_instr_start[lj++] = 0;
@@ -1862,11 +1851,10 @@ gen_intermediate_code_internal(MicroBlazeCPU *cpu, TranslationBlock *tb,
     if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)) {
         qemu_log("\n");
 #if DISAS_GNU
-        log_target_disas(env, pc_start, dc->pc - pc_start, 0);
+        log_target_disas(cs, pc_start, dc->pc - pc_start, 0);
 #endif
-        qemu_log("\nisize=%d osize=%td\n",
-            dc->pc - pc_start, tcg_ctx.gen_opc_ptr -
-            tcg_ctx.gen_opc_buf);
+        qemu_log("\nisize=%d osize=%d\n",
+                 dc->pc - pc_start, tcg_op_buf_count());
     }
 #endif
 #endif

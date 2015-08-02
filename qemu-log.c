@@ -111,7 +111,7 @@ const QEMULogItem qemu_log_items[] = {
     { CPU_LOG_PCALL, "pcall",
       "x86 only: show protected mode far calls/returns/exceptions" },
     { CPU_LOG_RESET, "cpu_reset",
-      "x86 only: show CPU state before CPU resets" },
+      "show CPU state before CPU resets" },
     { CPU_LOG_IOPORT, "ioport",
       "show all i/o ports accesses" },
     { LOG_UNIMP, "unimp",
@@ -119,6 +119,12 @@ const QEMULogItem qemu_log_items[] = {
     { LOG_GUEST_ERROR, "guest_errors",
       "log when the guest OS does something invalid (eg accessing a\n"
       "non-existent register)" },
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+	{ LOG_TRACE, "trace",
+	  "log trace messages, when execution passed specific places" },
+	{ LOG_TRACE_MR, "trace_mr",
+	  "log trace messages for memory regions read/writes" },
+#endif
     { 0, NULL, NULL },
 };
 

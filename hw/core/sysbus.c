@@ -91,6 +91,8 @@ bool sysbus_has_irq(SysBusDevice *dev, int n)
     ObjectProperty *r;
 
     r = object_property_find(OBJECT(dev), prop, NULL);
+    g_free(prop);
+
     return (r != NULL);
 }
 
@@ -120,6 +122,10 @@ static void sysbus_mmio_map_common(SysBusDevice *dev, int n, hwaddr addr,
                                    bool may_overlap, int priority)
 {
     assert(n >= 0 && n < dev->num_mmio);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    qemu_log_mask(LOG_TRACE, "%s(0x%08llX)\n", __FUNCTION__, addr);
+#endif
 
     if (dev->mmio[n].addr == addr) {
         /* ??? region already mapped here.  */
@@ -279,19 +285,15 @@ static void sysbus_dev_print(Monitor *mon, DeviceState *dev, int indent)
 static char *sysbus_get_fw_dev_path(DeviceState *dev)
 {
     SysBusDevice *s = SYS_BUS_DEVICE(dev);
-    char path[40];
-    int off;
-
-    off = snprintf(path, sizeof(path), "%s", qdev_fw_name(dev));
 
     if (s->num_mmio) {
-        snprintf(path + off, sizeof(path) - off, "@"TARGET_FMT_plx,
-                 s->mmio[0].addr);
-    } else if (s->num_pio) {
-        snprintf(path + off, sizeof(path) - off, "@i%04x", s->pio[0]);
+        return g_strdup_printf("%s@" TARGET_FMT_plx, qdev_fw_name(dev),
+                               s->mmio[0].addr);
     }
-
-    return g_strdup(path);
+    if (s->num_pio) {
+        return g_strdup_printf("%s@i%04x", qdev_fw_name(dev), s->pio[0]);
+    }
+    return g_strdup(qdev_fw_name(dev));
 }
 
 void sysbus_add_io(SysBusDevice *dev, hwaddr addr,

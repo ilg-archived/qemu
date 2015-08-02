@@ -1,0 +1,30 @@
+
+This package was build on a pair of Debian 7 32/64-bits Docker containers,  
+running on an OS X machine, using the script provided in the GNU ARM Eclipse 
+Second Edition git. 
+
+To build the latest version of the package please use the script from:
+
+  curl -L https://sourceforge.net/p/gnuarmeclipse/se/ci/develop/tree/scripts/build-qemu.sh?format=raw \
+    -o ~/Downloads/build-qemu.sh
+
+To run it, first be sure that the packages required in the Prerequisites 
+section are installed, then download the script and execute it with bash:
+
+  bash ~/Downloads/build-qemu.sh --debian32 --debian64
+
+The output of the build script are two .tgz files in the 
+${WORK_FOLDER}/output folder.
+
+The script was developed on OS X 10.10.3 with MacPorts 2.3.3, but also runs
+on most GNU/Linux distributions supporting Docker.
+
+Up-to-date build information is available in the GNU ARM Eclipse project wiki:
+
+  http://gnuarmeclipse.livius.net/wiki/
+
+Many thanks to my friend Dan Maiorescu for his major contributions 
+to this project.
+
+
+Liviu Ionescu

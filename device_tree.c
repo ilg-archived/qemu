@@ -18,13 +18,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "config.h"
 #include "qemu-common.h"
 #include "qemu/error-report.h"
 #include "sysemu/device_tree.h"
 #include "sysemu/sysemu.h"
 #include "hw/loader.h"
-#include "qemu/option.h"
+#include "hw/boards.h"
 #include "qemu/config-file.h"
 
 #include <libfdt.h>
@@ -245,8 +244,7 @@ uint32_t qemu_fdt_alloc_phandle(void *fdt)
      * which phandle id to start allocting phandles.
      */
     if (!phandle) {
-        phandle = qemu_opt_get_number(qemu_get_machine_opts(),
-                                      "phandle_start", 0);
+        phandle = machine_phandle_start(current_machine);
     }
 
     if (!phandle) {

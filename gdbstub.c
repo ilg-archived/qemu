@@ -40,6 +40,17 @@
 #include "cpu.h"
 #include "qemu/sockets.h"
 #include "sysemu/kvm.h"
+#include "exec/semihost.h"
+
+#ifdef CONFIG_USER_ONLY
+#define GDB_ATTACHED "0"
+#else
+#define GDB_ATTACHED "1"
+#endif
+
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
 
 static inline int target_memory_rw_debug(CPUState *cpu, target_ulong addr,
                                          uint8_t *buf, int len, bool is_write)
@@ -317,8 +328,6 @@ static GDBState *gdbserver_state;
 
 bool gdb_has_xml;
 
-int semihosting_target = SEMIHOSTING_TARGET_AUTO;
-
 #ifdef CONFIG_USER_ONLY
 /* XXX: This is not thread safe.  Do we care?  */
 static int gdbserver_fd = -1;
@@ -356,14 +365,14 @@ static enum {
 /* Decide if either remote gdb syscalls or native file IO should be used. */
 int use_gdb_syscalls(void)
 {
-    if (semihosting_target == SEMIHOSTING_TARGET_NATIVE) {
+    SemihostingTarget target = semihosting_get_target();
+    if (target == SEMIHOSTING_TARGET_NATIVE) {
         /* -semihosting-config target=native */
         return false;
-    } else if (semihosting_target == SEMIHOSTING_TARGET_GDB) {
+    } else if (target == SEMIHOSTING_TARGET_GDB) {
         /* -semihosting-config target=gdb */
         return true;
     }
-
     /* -semihosting-config target=auto */
     /* On the first call check if gdb is connected and remember. */
     if (gdb_syscall_mode == GDB_SYS_UNKNOWN) {
@@ -769,6 +778,14 @@ static CPUState *find_cpu(uint32_t thread_id)
     return NULL;
 }
 
+static int is_query_packet(const char *p, const char *query, char separator)
+{
+    unsigned int query_len = strlen(query);
+
+    return strncmp(p, query, query_len) == 0 &&
+        (p[query_len] == '\0' || p[query_len] == separator);
+}
+
 static int gdb_handle_packet(GDBState *s, const char *line_buf)
 {
     CPUState *cpu;
@@ -874,11 +891,9 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
             goto unknown_command;
         }
     case 'k':
-#ifdef CONFIG_USER_ONLY
         /* Kill the target */
         fprintf(stderr, "\nQEMU: Terminated via GDBstub\n");
         exit(0);
-#endif
     case 'D':
         /* Detach packet */
         gdb_breakpoint_remove_all();
@@ -964,7 +979,7 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
         hextomem(mem_buf, p, len);
 
 #if defined(CONFIG_VERBOSE)
-        if (verbosity_level > 1) {
+        if (verbosity_level >= VERBOSITY_DETAILED) {
             printf("Write %4d bytes at 0x%08X-0x%08X.\n", len, addr, addr+len-1);
         }
 #endif
@@ -1069,7 +1084,7 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
                      SSTEP_NOTIMER);
             put_packet(s, buf);
             break;
-        } else if (strncmp(p,"qemu.sstep",10) == 0) {
+        } else if (is_query_packet(p, "qemu.sstep", '=')) {
             /* Display or change the sstep_flags */
             p += 10;
             if (*p != '=') {
@@ -1114,7 +1129,7 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
             break;
         }
 #ifdef CONFIG_USER_ONLY
-        else if (strncmp(p, "Offsets", 7) == 0) {
+        else if (strcmp(p, "Offsets") == 0) {
             TaskState *ts = s->c_cpu->opaque;
 
             snprintf(buf, sizeof(buf),
@@ -1142,7 +1157,7 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
             break;
         }
 #endif /* !CONFIG_USER_ONLY */
-        if (strncmp(p, "Supported", 9) == 0) {
+        if (is_query_packet(p, "Supported", ':')) {
             snprintf(buf, sizeof(buf), "PacketSize=%x", MAX_PACKET_LENGTH);
             cc = CPU_GET_CLASS(first_cpu);
             if (cc->gdb_core_xml_file != NULL) {
@@ -1192,6 +1207,10 @@ static int gdb_handle_packet(GDBState *s, const char *line_buf)
                 len = memtox(buf + 1, xml + addr, total_len - addr);
             }
             put_packet_binary(s, buf, len + 1);
+            break;
+        }
+        if (is_query_packet(p, "Attached", ':')) {
+            put_packet(s, GDB_ATTACHED);
             break;
         }
         /* Unrecognised 'q' command.  */
@@ -1450,15 +1469,17 @@ void gdb_exit(CPUArchState *env, int code)
   if (gdbserver_fd < 0 || s->fd < 0) {
       return;
   }
+#else
+  if (!s->chr) {
+      return;
+  }
 #endif
 
   snprintf(buf, sizeof(buf), "W%02x", (uint8_t)code);
   put_packet(s, buf);
 
 #ifndef CONFIG_USER_ONLY
-  if (s->chr) {
-      qemu_chr_delete(s->chr);
-  }
+  qemu_chr_delete(s->chr);
 #endif
 }
 
@@ -1711,7 +1732,7 @@ int gdbserver_start(const char *device)
         return -1;
 
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level > 0) {
+    if (verbosity_level >= VERBOSITY_COMMON) {
         printf("GDB Server listening on: '%s'...\n", device);
     }
 #endif

@@ -186,6 +186,12 @@ int64_t strtosz(const char *nptr, char **end);
 int64_t strtosz_suffix(const char *nptr, char **end, const char default_suffix);
 int64_t strtosz_suffix_unit(const char *nptr, char **end,
                             const char default_suffix, int64_t unit);
+#define K_BYTE     (1ULL << 10)
+#define M_BYTE     (1ULL << 20)
+#define G_BYTE     (1ULL << 30)
+#define T_BYTE     (1ULL << 40)
+#define P_BYTE     (1ULL << 50)
+#define E_BYTE     (1ULL << 60)
 
 /* used to print char* safely */
 #define STR_OR_NULL(str) ((str) ? (str) : "null")
@@ -216,10 +222,6 @@ const char *path(const char *pathname);
 void *qemu_oom_check(void *ptr);
 
 ssize_t qemu_write_full(int fd, const void *buf, size_t count)
-    QEMU_WARN_UNUSED_RESULT;
-ssize_t qemu_send_full(int fd, const void *buf, size_t count, int flags)
-    QEMU_WARN_UNUSED_RESULT;
-ssize_t qemu_recv_full(int fd, void *buf, size_t count, int flags)
     QEMU_WARN_UNUSED_RESULT;
 
 #ifndef _WIN32
@@ -351,6 +353,10 @@ const char *qemu_get_vm_name(void);
 
 #define QEMU_FILE_TYPE_BIOS   0
 #define QEMU_FILE_TYPE_KEYMAP 1
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define QEMU_FILE_TYPE_IMAGES 2
+#endif
+
 char *qemu_find_file(int type, const char *name);
 
 /* OS specific functions */
@@ -417,6 +423,9 @@ static inline bool is_power_of_2(uint64_t value)
 
 /* round down to the nearest power of 2*/
 int64_t pow2floor(int64_t value);
+
+/* round up to the nearest power of 2 (0 if overflow) */
+uint64_t pow2ceil(uint64_t value);
 
 #include "qemu/module.h"
 

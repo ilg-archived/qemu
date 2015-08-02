@@ -3,10 +3,13 @@
 
 #include "sysemu/dma.h"
 #include "hw/ppc/xics.h"
+#include "hw/ppc/spapr_drc.h"
 
 struct VIOsPAPRBus;
 struct sPAPRPHBState;
 struct sPAPRNVRAM;
+typedef struct sPAPRConfigureConnectorState sPAPRConfigureConnectorState;
+typedef struct sPAPREventLogEntry sPAPREventLogEntry;
 
 #define HPTE64_V_HPTE_DIRTY     0x0000000000000040ULL
 
@@ -15,6 +18,7 @@ typedef struct sPAPREnvironment {
     QLIST_HEAD(, sPAPRPHBState) phbs;
     struct sPAPRNVRAM *nvram;
     XICSState *icp;
+    DeviceState *rtc;
 
     hwaddr ram_limit;
     void *htab;
@@ -26,18 +30,22 @@ typedef struct sPAPREnvironment {
     void *rtas_blob;
     void *fdt_skel;
     target_ulong entry_point;
-    uint64_t rtc_offset;
+    uint64_t rtc_offset; /* Now used only during incoming migration */
     struct PPCTimebase tb;
     bool has_graphics;
 
-    uint32_t epow_irq;
+    uint32_t check_exception_irq;
     Notifier epow_notifier;
+    QTAILQ_HEAD(, sPAPREventLogEntry) pending_events;
 
     /* Migration state */
     int htab_save_index;
     bool htab_first_pass;
     int htab_fd;
     bool htab_fd_stale;
+
+    /* RTAS state */
+    QTAILQ_HEAD(, sPAPRConfigureConnectorState) ccs_list;
 } sPAPREnvironment;
 
 #define H_SUCCESS         0
@@ -338,6 +346,39 @@ target_ulong spapr_hypercall(PowerPCCPU *cpu, target_ulong opcode,
 int spapr_allocate_irq(int hint, bool lsi);
 int spapr_allocate_irq_block(int num, bool lsi, bool msi);
 
+/* ibm,set-eeh-option */
+#define RTAS_EEH_DISABLE                 0
+#define RTAS_EEH_ENABLE                  1
+#define RTAS_EEH_THAW_IO                 2
+#define RTAS_EEH_THAW_DMA                3
+
+/* ibm,get-config-addr-info2 */
+#define RTAS_GET_PE_ADDR                 0
+#define RTAS_GET_PE_MODE                 1
+#define RTAS_PE_MODE_NONE                0
+#define RTAS_PE_MODE_NOT_SHARED          1
+#define RTAS_PE_MODE_SHARED              2
+
+/* ibm,read-slot-reset-state2 */
+#define RTAS_EEH_PE_STATE_NORMAL         0
+#define RTAS_EEH_PE_STATE_RESET          1
+#define RTAS_EEH_PE_STATE_STOPPED_IO_DMA 2
+#define RTAS_EEH_PE_STATE_STOPPED_DMA    4
+#define RTAS_EEH_PE_STATE_UNAVAIL        5
+#define RTAS_EEH_NOT_SUPPORT             0
+#define RTAS_EEH_SUPPORT                 1
+#define RTAS_EEH_PE_UNAVAIL_INFO         1000
+#define RTAS_EEH_PE_RECOVER_INFO         0
+
+/* ibm,set-slot-reset */
+#define RTAS_SLOT_RESET_DEACTIVATE       0
+#define RTAS_SLOT_RESET_HOT              1
+#define RTAS_SLOT_RESET_FUNDAMENTAL      3
+
+/* ibm,slot-error-detail */
+#define RTAS_SLOT_TEMP_ERR_LOG           1
+#define RTAS_SLOT_PERM_ERR_LOG           2
+
 /* RTAS return codes */
 #define RTAS_OUT_SUCCESS            0
 #define RTAS_OUT_NO_ERRORS_FOUND    1
@@ -382,13 +423,30 @@ int spapr_allocate_irq_block(int num, bool lsi, bool msi);
 #define RTAS_GET_SENSOR_STATE                   (RTAS_TOKEN_BASE + 0x1D)
 #define RTAS_IBM_CONFIGURE_CONNECTOR            (RTAS_TOKEN_BASE + 0x1E)
 #define RTAS_IBM_OS_TERM                        (RTAS_TOKEN_BASE + 0x1F)
+#define RTAS_IBM_SET_EEH_OPTION                 (RTAS_TOKEN_BASE + 0x20)
+#define RTAS_IBM_GET_CONFIG_ADDR_INFO2          (RTAS_TOKEN_BASE + 0x21)
+#define RTAS_IBM_READ_SLOT_RESET_STATE2         (RTAS_TOKEN_BASE + 0x22)
+#define RTAS_IBM_SET_SLOT_RESET                 (RTAS_TOKEN_BASE + 0x23)
+#define RTAS_IBM_CONFIGURE_PE                   (RTAS_TOKEN_BASE + 0x24)
+#define RTAS_IBM_SLOT_ERROR_DETAIL              (RTAS_TOKEN_BASE + 0x25)
 
-#define RTAS_TOKEN_MAX                          (RTAS_TOKEN_BASE + 0x20)
+#define RTAS_TOKEN_MAX                          (RTAS_TOKEN_BASE + 0x26)
 
 /* RTAS ibm,get-system-parameter token values */
 #define RTAS_SYSPARM_SPLPAR_CHARACTERISTICS      20
 #define RTAS_SYSPARM_DIAGNOSTICS_RUN_MODE        42
 #define RTAS_SYSPARM_UUID                        48
+
+/* RTAS indicator/sensor types
+ *
+ * as defined by PAPR+ 2.7 7.3.5.4, Table 41
+ *
+ * NOTE: currently only DR-related sensors are implemented here
+ */
+#define RTAS_SENSOR_TYPE_ISOLATION_STATE        9001
+#define RTAS_SENSOR_TYPE_DR                     9002
+#define RTAS_SENSOR_TYPE_ALLOCATION_STATE       9003
+#define RTAS_SENSOR_TYPE_ENTITY_SENSE RTAS_SENSOR_TYPE_ALLOCATION_STATE
 
 /* Possible values for the platform-processor-diagnostics-run-mode parameter
  * of the RTAS ibm,get-system-parameter call.
@@ -413,6 +471,13 @@ static inline void rtas_st(target_ulong phys, int n, uint32_t val)
     stl_be_phys(&address_space_memory, ppc64_phys_to_real(phys + 4*n), val);
 }
 
+static inline void rtas_st_buffer_direct(target_ulong phys,
+                                         target_ulong phys_len,
+                                         uint8_t *buffer, uint16_t buffer_len)
+{
+    cpu_physical_memory_write(ppc64_phys_to_real(phys), buffer,
+                              MIN(buffer_len, phys_len));
+}
 
 static inline void rtas_st_buffer(target_ulong phys, target_ulong phys_len,
                                   uint8_t *buffer, uint16_t buffer_len)
@@ -422,8 +487,7 @@ static inline void rtas_st_buffer(target_ulong phys, target_ulong phys_len,
     }
     stw_be_phys(&address_space_memory,
                 ppc64_phys_to_real(phys), buffer_len);
-    cpu_physical_memory_write(ppc64_phys_to_real(phys + 2),
-                              buffer, MIN(buffer_len, phys_len - 2));
+    rtas_st_buffer_direct(phys + 2, phys_len - 2, buffer, buffer_len);
 }
 
 typedef void (*spapr_rtas_fn)(PowerPCCPU *cpu, sPAPREnvironment *spapr,
@@ -442,9 +506,15 @@ int spapr_rtas_device_tree_setup(void *fdt, hwaddr rtas_addr,
 #define SPAPR_TCE_PAGE_MASK    (SPAPR_TCE_PAGE_SIZE - 1)
 
 #define SPAPR_VIO_BASE_LIOBN    0x00000000
-#define SPAPR_PCI_BASE_LIOBN    0x80000000
+#define SPAPR_VIO_LIOBN(reg)    (0x00000000 | (reg))
+#define SPAPR_PCI_LIOBN(phb_index, window_num) \
+    (0x80000000 | ((phb_index) << 8) | (window_num))
+#define SPAPR_IS_PCI_LIOBN(liobn)   (!!((liobn) & 0x80000000))
+#define SPAPR_PCI_DMA_WINDOW_NUM(liobn) ((liobn) & 0xff)
 
 #define RTAS_ERROR_LOG_MAX      2048
+
+#define RTAS_EVENT_SCAN_RATE    1
 
 typedef struct sPAPRTCETable sPAPRTCETable;
 
@@ -463,7 +533,17 @@ struct sPAPRTCETable {
     bool vfio_accel;
     int fd;
     MemoryRegion iommu;
+    struct VIOsPAPRDevice *vdev; /* for @bypass migration compatibility only */
     QLIST_ENTRY(sPAPRTCETable) list;
+};
+
+sPAPRTCETable *spapr_tce_find_by_liobn(target_ulong liobn);
+
+struct sPAPREventLogEntry {
+    int log_type;
+    bool exception;
+    void *data;
+    QTAILQ_ENTRY(sPAPREventLogEntry) next;
 };
 
 void spapr_events_init(sPAPREnvironment *spapr);
@@ -475,10 +555,27 @@ sPAPRTCETable *spapr_tce_new_table(DeviceState *owner, uint32_t liobn,
                                    uint32_t nb_table,
                                    bool vfio_accel);
 MemoryRegion *spapr_tce_get_iommu(sPAPRTCETable *tcet);
-void spapr_tce_set_bypass(sPAPRTCETable *tcet, bool bypass);
 int spapr_dma_dt(void *fdt, int node_off, const char *propname,
                  uint32_t liobn, uint64_t window, uint32_t size);
 int spapr_tcet_dma_dt(void *fdt, int node_off, const char *propname,
                       sPAPRTCETable *tcet);
+void spapr_pci_switch_vga(bool big_endian);
+void spapr_hotplug_req_add_event(sPAPRDRConnector *drc);
+void spapr_hotplug_req_remove_event(sPAPRDRConnector *drc);
+
+/* rtas-configure-connector state */
+struct sPAPRConfigureConnectorState {
+    uint32_t drc_index;
+    int fdt_offset;
+    int fdt_depth;
+    QTAILQ_ENTRY(sPAPRConfigureConnectorState) next;
+};
+
+void spapr_ccs_reset_hook(void *opaque);
+
+#define TYPE_SPAPR_RTC "spapr-rtc"
+
+void spapr_rtc_read(DeviceState *dev, struct tm *tm, uint32_t *ns);
+int spapr_rtc_import_offset(DeviceState *dev, int64_t legacy_offset);
 
 #endif /* !defined (__HW_SPAPR_H__) */

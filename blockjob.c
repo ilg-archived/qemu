@@ -29,6 +29,7 @@
 #include "block/block.h"
 #include "block/blockjob.h"
 #include "block/block_int.h"
+#include "qapi/qmp/qerror.h"
 #include "qapi/qmp/qjson.h"
 #include "block/coroutine.h"
 #include "qmp-commands.h"
@@ -42,7 +43,7 @@ void *block_job_create(const BlockJobDriver *driver, BlockDriverState *bs,
     BlockJob *job;
 
     if (bs->job) {
-        error_set(errp, QERR_DEVICE_IN_USE, bdrv_get_device_name(bs));
+        error_setg(errp, QERR_DEVICE_IN_USE, bdrv_get_device_name(bs));
         return NULL;
     }
     bdrv_ref(bs);
@@ -93,7 +94,7 @@ void block_job_set_speed(BlockJob *job, int64_t speed, Error **errp)
     Error *local_err = NULL;
 
     if (!job->driver->set_speed) {
-        error_set(errp, QERR_UNSUPPORTED);
+        error_setg(errp, QERR_UNSUPPORTED);
         return;
     }
     job->driver->set_speed(job, speed, &local_err);
@@ -107,9 +108,9 @@ void block_job_set_speed(BlockJob *job, int64_t speed, Error **errp)
 
 void block_job_complete(BlockJob *job, Error **errp)
 {
-    if (job->paused || job->cancelled || !job->driver->complete) {
-        error_set(errp, QERR_BLOCK_JOB_NOT_READY,
-                  bdrv_get_device_name(job->bs));
+    if (job->pause_count || job->cancelled || !job->driver->complete) {
+        error_setg(errp, QERR_BLOCK_JOB_NOT_READY,
+                   bdrv_get_device_name(job->bs));
         return;
     }
 
@@ -118,17 +119,26 @@ void block_job_complete(BlockJob *job, Error **errp)
 
 void block_job_pause(BlockJob *job)
 {
-    job->paused = true;
+    job->pause_count++;
 }
 
 bool block_job_is_paused(BlockJob *job)
 {
-    return job->paused;
+    return job->pause_count > 0;
 }
 
 void block_job_resume(BlockJob *job)
 {
-    job->paused = false;
+    assert(job->pause_count > 0);
+    job->pause_count--;
+    if (job->pause_count) {
+        return;
+    }
+    block_job_enter(job);
+}
+
+void block_job_enter(BlockJob *job)
+{
     block_job_iostatus_reset(job);
     if (job->co && !job->busy) {
         qemu_coroutine_enter(job->co, NULL);
@@ -138,7 +148,7 @@ void block_job_resume(BlockJob *job)
 void block_job_cancel(BlockJob *job)
 {
     job->cancelled = true;
-    block_job_resume(job);
+    block_job_enter(job);
 }
 
 bool block_job_is_cancelled(BlockJob *job)
@@ -258,7 +268,7 @@ BlockJobInfo *block_job_query(BlockJob *job)
     info->device    = g_strdup(bdrv_get_device_name(job->bs));
     info->len       = job->len;
     info->busy      = job->busy;
-    info->paused    = job->paused;
+    info->paused    = job->pause_count > 0;
     info->offset    = job->offset;
     info->speed     = job->speed;
     info->io_status = job->iostatus;
@@ -335,6 +345,8 @@ BlockErrorAction block_job_error_action(BlockJob *job, BlockDriverState *bs,
                                     IO_OPERATION_TYPE_WRITE,
                                     action, &error_abort);
     if (action == BLOCK_ERROR_ACTION_STOP) {
+        /* make the pause user visible, which will be resumed from QMP. */
+        job->user_paused = true;
         block_job_pause(job);
         block_job_iostatus_set_err(job, error);
         if (bs != job->bs) {

@@ -31,8 +31,6 @@
 #include "block/coroutine.h"
 #include "qemu/timer.h"
 #include "qapi-types.h"
-#include "qapi/qmp/qerror.h"
-#include "monitor/monitor.h"
 #include "qemu/hbitmap.h"
 #include "block/snapshot.h"
 #include "qemu/main-loop.h"
@@ -56,6 +54,8 @@
 #define BLOCK_OPT_ADAPTER_TYPE      "adapter_type"
 #define BLOCK_OPT_REDUNDANCY        "redundancy"
 #define BLOCK_OPT_NOCOW             "nocow"
+#define BLOCK_OPT_OBJECT_SIZE       "object_size"
+#define BLOCK_OPT_REFCOUNT_BITS     "refcount_bits"
 
 #define BLOCK_PROBE_BUF_SIZE        512
 
@@ -273,6 +273,21 @@ struct BlockDriver {
     void (*bdrv_io_unplug)(BlockDriverState *bs);
     void (*bdrv_flush_io_queue)(BlockDriverState *bs);
 
+    /**
+     * Try to get @bs's logical and physical block size.
+     * On success, store them in @bsz and return zero.
+     * On failure, return negative errno.
+     */
+    int (*bdrv_probe_blocksizes)(BlockDriverState *bs, BlockSizes *bsz);
+    /**
+     * Try to get @bs's geometry (cyls, heads, sectors)
+     * On success, store them in @geo and return 0.
+     * On failure return -errno.
+     * Only drivers that want to override guest geometry implement this
+     * callback; see hd_geometry_guess().
+     */
+    int (*bdrv_probe_geometry)(BlockDriverState *bs, HDGeometry *geo);
+
     QLIST_ENTRY(BlockDriver) list;
 };
 
@@ -296,6 +311,9 @@ typedef struct BlockLimits {
     int max_transfer_length;
 
     /* memory alignment so that no bounce buffer is needed */
+    size_t min_mem_alignment;
+
+    /* memory alignment for bounce buffer */
     size_t opt_mem_alignment;
 } BlockLimits;
 
@@ -309,6 +327,19 @@ typedef struct BdrvAioNotifier {
 
     QLIST_ENTRY(BdrvAioNotifier) list;
 } BdrvAioNotifier;
+
+struct BdrvChildRole {
+    int (*inherit_flags)(int parent_flags);
+};
+
+extern const BdrvChildRole child_file;
+extern const BdrvChildRole child_format;
+
+typedef struct BdrvChild {
+    BlockDriverState *bs;
+    const BdrvChildRole *role;
+    QLIST_ENTRY(BdrvChild) next;
+} BdrvChild;
 
 /*
  * Note: the function bdrv_append() copies and swaps contents of
@@ -339,13 +370,13 @@ struct BlockDriverState {
      * regarding this BDS's context */
     QLIST_HEAD(, BdrvAioNotifier) aio_notifiers;
 
-    char filename[1024];
-    char backing_file[1024]; /* if non zero, the image is a diff of
-                                this file image */
+    char filename[PATH_MAX];
+    char backing_file[PATH_MAX]; /* if non zero, the image is a diff of
+                                    this file image */
     char backing_format[16]; /* if non-zero and backing_file exists */
 
     QDict *full_open_options;
-    char exact_filename[1024];
+    char exact_filename[PATH_MAX];
 
     BlockDriverState *backing_hd;
     BlockDriverState *file;
@@ -359,18 +390,20 @@ struct BlockDriverState {
     unsigned int serialising_in_flight;
 
     /* I/O throttling */
-    ThrottleState throttle_state;
     CoQueue      throttled_reqs[2];
     bool         io_limits_enabled;
+    /* The following fields are protected by the ThrottleGroup lock.
+     * See the ThrottleGroup documentation for details. */
+    ThrottleState *throttle_state;
+    ThrottleTimers throttle_timers;
+    unsigned       pending_reqs[2];
+    QLIST_ENTRY(BlockDriverState) round_robin;
 
     /* I/O stats (display with "info blockstats"). */
     BlockAcctStats stats;
 
     /* I/O Limits */
     BlockLimits bl;
-
-    /* Whether the disk can expand beyond total_sectors */
-    int growable;
 
     /* Whether produces zeros when read beyond eof */
     bool zero_beyond_eof;
@@ -407,11 +440,21 @@ struct BlockDriverState {
     /* long-running background operation */
     BlockJob *job;
 
+    /* The node that this node inherited default options from (and a reopen on
+     * which can affect this node by changing these defaults). This is always a
+     * parent node of this node. */
+    BlockDriverState *inherits_from;
+    QLIST_HEAD(, BdrvChild) children;
+
     QDict *options;
     BlockdevDetectZeroesOptions detect_zeroes;
 
     /* The error object in use for blocking operations on backing_hd */
     Error *backing_blocker;
+
+    /* threshold limit for writes, in bytes. "High water mark". */
+    uint64_t write_threshold_offset;
+    NotifierWithReturn write_threshold_notifier;
 };
 
 
@@ -421,6 +464,14 @@ extern BlockDriver bdrv_file;
 extern BlockDriver bdrv_raw;
 extern BlockDriver bdrv_qcow2;
 
+/**
+ * bdrv_setup_io_funcs:
+ *
+ * Prepare a #BlockDriver for I/O request processing by populating
+ * unimplemented coroutine and AIO interfaces with generic wrapper functions
+ * that fall back to implemented interfaces.
+ */
+void bdrv_setup_io_funcs(BlockDriver *bdrv);
 
 int get_tmp_filename(char *filename, int size);
 BlockDriver *bdrv_probe_all(const uint8_t *buf, int buf_size,
@@ -572,7 +623,7 @@ void commit_active_start(BlockDriverState *bs, BlockDriverState *base,
  */
 void mirror_start(BlockDriverState *bs, BlockDriverState *target,
                   const char *replaces,
-                  int64_t speed, int64_t granularity, int64_t buf_size,
+                  int64_t speed, uint32_t granularity, int64_t buf_size,
                   MirrorSyncMode mode, BlockdevOnError on_source_error,
                   BlockdevOnError on_target_error,
                   BlockCompletionFunc *cb,
@@ -584,6 +635,7 @@ void mirror_start(BlockDriverState *bs, BlockDriverState *target,
  * @target: Block device to write to.
  * @speed: The maximum speed, in bytes per second, or 0 for unlimited.
  * @sync_mode: What parts of the disk image should be copied to the destination.
+ * @sync_bitmap: The dirty bitmap if sync_mode is MIRROR_SYNC_MODE_DIRTY_BITMAP.
  * @on_source_error: The action to take upon error reading from the source.
  * @on_target_error: The action to take upon error writing to the target.
  * @cb: Completion function for the job.
@@ -594,6 +646,7 @@ void mirror_start(BlockDriverState *bs, BlockDriverState *target,
  */
 void backup_start(BlockDriverState *bs, BlockDriverState *target,
                   int64_t speed, MirrorSyncMode sync_mode,
+                  BdrvDirtyBitmap *sync_bitmap,
                   BlockdevOnError on_source_error,
                   BlockdevOnError on_target_error,
                   BlockCompletionFunc *cb, void *opaque,
@@ -605,5 +658,9 @@ void blk_dev_eject_request(BlockBackend *blk, bool force);
 bool blk_dev_is_tray_open(BlockBackend *blk);
 bool blk_dev_is_medium_locked(BlockBackend *blk);
 void blk_dev_resize_cb(BlockBackend *blk);
+
+void bdrv_set_dirty(BlockDriverState *bs, int64_t cur_sector, int nr_sectors);
+void bdrv_reset_dirty(BlockDriverState *bs, int64_t cur_sector,
+                      int nr_sectors);
 
 #endif /* BLOCK_INT_H */

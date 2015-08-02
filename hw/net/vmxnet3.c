@@ -2125,7 +2125,7 @@ static const MemoryRegionOps b1_ops = {
     },
 };
 
-static int vmxnet3_pci_init(PCIDevice *pci_dev)
+static void vmxnet3_pci_realize(PCIDevice *pci_dev, Error **errp)
 {
     DeviceState *dev = DEVICE(pci_dev);
     VMXNET3State *s = VMXNET3(pci_dev);
@@ -2164,8 +2164,6 @@ static int vmxnet3_pci_init(PCIDevice *pci_dev)
 
     register_savevm(dev, "vmxnet3-msix", -1, 1,
                     vmxnet3_msix_save, vmxnet3_msix_load, s);
-
-    return 0;
 }
 
 static void vmxnet3_instance_init(Object *obj)
@@ -2228,6 +2226,7 @@ static const VMStateDescription vmxstate_vmxnet3_mcast_list = {
     .version_id = 1,
     .minimum_version_id = 1,
     .pre_load = vmxnet3_mcast_list_pre_load,
+    .needed = vmxnet3_mc_list_needed,
     .fields = (VMStateField[]) {
         VMSTATE_VBUFFER_UINT32(mcast_list, VMXNET3State, 0, NULL, 0,
             mcast_list_buff_size),
@@ -2472,24 +2471,11 @@ static const VMStateDescription vmstate_vmxnet3 = {
 
             VMSTATE_END_OF_LIST()
     },
-    .subsections = (VMStateSubsection[]) {
-        {
-            .vmsd = &vmxstate_vmxnet3_mcast_list,
-            .needed = vmxnet3_mc_list_needed
-        },
-        {
-            /* empty element. */
-        }
+    .subsections = (const VMStateDescription*[]) {
+        &vmxstate_vmxnet3_mcast_list,
+        NULL
     }
 };
-
-static void
-vmxnet3_write_config(PCIDevice *pci_dev, uint32_t addr, uint32_t val, int len)
-{
-    pci_default_write_config(pci_dev, addr, val, len);
-    msix_write_config(pci_dev, addr, val, len);
-    msi_write_config(pci_dev, addr, val, len);
-}
 
 static Property vmxnet3_properties[] = {
     DEFINE_NIC_PROPERTIES(VMXNET3State, conf),
@@ -2501,7 +2487,7 @@ static void vmxnet3_class_init(ObjectClass *class, void *data)
     DeviceClass *dc = DEVICE_CLASS(class);
     PCIDeviceClass *c = PCI_DEVICE_CLASS(class);
 
-    c->init = vmxnet3_pci_init;
+    c->realize = vmxnet3_pci_realize;
     c->exit = vmxnet3_pci_uninit;
     c->vendor_id = PCI_VENDOR_ID_VMWARE;
     c->device_id = PCI_DEVICE_ID_VMWARE_VMXNET3;
@@ -2509,7 +2495,6 @@ static void vmxnet3_class_init(ObjectClass *class, void *data)
     c->class_id = PCI_CLASS_NETWORK_ETHERNET;
     c->subsystem_vendor_id = PCI_VENDOR_ID_VMWARE;
     c->subsystem_id = PCI_DEVICE_ID_VMWARE_VMXNET3;
-    c->config_write = vmxnet3_write_config,
     dc->desc = "VMWare Paravirtualized Ethernet v3";
     dc->reset = vmxnet3_qdev_reset;
     dc->vmsd = &vmstate_vmxnet3;

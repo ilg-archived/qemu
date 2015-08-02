@@ -29,6 +29,7 @@
 #include "vnc.h"
 #include "vnc-jobs.h"
 #include "qemu/sockets.h"
+#include "block/aio.h"
 
 /*
  * Locking:
@@ -341,17 +342,4 @@ void vnc_start_worker_thread(void)
     qemu_thread_create(&q->thread, "vnc_worker", vnc_worker_thread, q,
                        QEMU_THREAD_DETACHED);
     queue = q; /* Set global queue */
-}
-
-void vnc_stop_worker_thread(void)
-{
-    if (!vnc_worker_thread_running())
-        return ;
-
-    /* Remove all jobs and wake up the thread */
-    vnc_lock_queue(queue);
-    queue->exit = true;
-    vnc_unlock_queue(queue);
-    vnc_jobs_clear(NULL);
-    qemu_cond_broadcast(&queue->cond);
 }

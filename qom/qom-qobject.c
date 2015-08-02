@@ -16,10 +16,43 @@
 #include "qapi/qmp-input-visitor.h"
 #include "qapi/qmp-output-visitor.h"
 
-void object_property_set_qobject(Object *obj, QObject *value,
-                                 const char *name, Error **errp)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "qapi/qmp/types.h"
+#include "qemu/log.h"
+#endif
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+static char *dump_value(QObject *value, char *buf, size_t siz)
+{
+    if (value->type->code == QTYPE_QINT) {
+        QInt *p = (QInt *) value;
+        snprintf(buf, siz, "%lld", p->value);
+        return buf;
+    } else if (value->type->code == QTYPE_QSTRING) {
+        QString *p = (QString *) value;
+        return p->string;
+    } else if (value->type->code == QTYPE_QBOOL) {
+        QBool *p = (QBool *) value;
+        return (char*) (p->value ? "true" : "false");
+    }
+    return (char*) "?";
+}
+#endif
+
+void object_property_set_qobject(Object *obj, QObject *value, const char *name,
+        Error **errp)
 {
     QmpInputVisitor *mi;
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    if (qemu_loglevel & LOG_TRACE) {
+        char buf[100];
+        qemu_log_mask(LOG_TRACE, "%s(%s, %s, '%s')\n", __FUNCTION__,
+                object_get_typename(obj), name,
+                dump_value(value, buf, sizeof(buf)));
+    }
+#endif
+
     mi = qmp_input_visitor_new(value);
     object_property_set(obj, qmp_input_get_visitor(mi), name, errp);
 
@@ -27,7 +60,7 @@ void object_property_set_qobject(Object *obj, QObject *value,
 }
 
 QObject *object_property_get_qobject(Object *obj, const char *name,
-                                     Error **errp)
+        Error **errp)
 {
     QObject *ret = NULL;
     Error *local_err = NULL;

@@ -60,13 +60,18 @@ static void main_cpu_reset(void *opaque)
 
 static uint64_t rtc_read(void *opaque, hwaddr addr, unsigned size)
 {
-    return cpu_inw(0x71);
+    uint8_t val;
+    address_space_read(&address_space_memory, 0x90000071,
+                       MEMTXATTRS_UNSPECIFIED, &val, 1);
+    return val;
 }
 
 static void rtc_write(void *opaque, hwaddr addr,
                       uint64_t val, unsigned size)
 {
-    cpu_outw(0x71, val & 0xff);
+    uint8_t buf = val & 0xff;
+    address_space_write(&address_space_memory, 0x90000071,
+                        MEMTXATTRS_UNSPECIFIED, &buf, 1);
 }
 
 static const MemoryRegionOps rtc_ops = {
@@ -120,26 +125,26 @@ static void mips_jazz_do_unassigned_access(CPUState *cpu, hwaddr addr,
     (*real_do_unassigned_access)(cpu, addr, is_write, is_exec, opaque, size);
 }
 
-static void mips_jazz_init(MemoryRegion *address_space,
-                           MemoryRegion *address_space_io,
-                           ram_addr_t ram_size,
-                           const char *cpu_model,
+static void mips_jazz_init(MachineState *machine,
                            enum jazz_model_e jazz_model)
 {
+    MemoryRegion *address_space = get_system_memory();
+    const char *cpu_model = machine->cpu_model;
     char *filename;
     int bios_size, n;
     MIPSCPU *cpu;
     CPUClass *cc;
     CPUMIPSState *env;
-    qemu_irq *rc4030, *i8259;
+    qemu_irq *i8259;
     rc4030_dma *dmas;
-    void* rc4030_opaque;
-    MemoryRegion *isa = g_new(MemoryRegion, 1);
+    MemoryRegion *rc4030_dma_mr;
+    MemoryRegion *isa_mem = g_new(MemoryRegion, 1);
+    MemoryRegion *isa_io = g_new(MemoryRegion, 1);
     MemoryRegion *rtc = g_new(MemoryRegion, 1);
     MemoryRegion *i8042 = g_new(MemoryRegion, 1);
     MemoryRegion *dma_dummy = g_new(MemoryRegion, 1);
     NICInfo *nd;
-    DeviceState *dev;
+    DeviceState *dev, *rc4030;
     SysBusDevice *sysbus;
     ISABus *isa_bus;
     ISADevice *pit;
@@ -152,12 +157,7 @@ static void mips_jazz_init(MemoryRegion *address_space,
 
     /* init CPUs */
     if (cpu_model == NULL) {
-#ifdef TARGET_MIPS64
         cpu_model = "R4000";
-#else
-        /* FIXME: All wrong, this maybe should be R3000 for the older JAZZs. */
-        cpu_model = "24Kf";
-#endif
     }
     cpu = cpu_mips_init(cpu_model);
     if (cpu == NULL) {
@@ -179,8 +179,8 @@ static void mips_jazz_init(MemoryRegion *address_space,
     cc->do_unassigned_access = mips_jazz_do_unassigned_access;
 
     /* allocate RAM */
-    memory_region_init_ram(ram, NULL, "mips_jazz.ram", ram_size, &error_abort);
-    vmstate_register_ram_global(ram);
+    memory_region_allocate_system_memory(ram, NULL, "mips_jazz.ram",
+                                         machine->ram_size);
     memory_region_add_subregion(address_space, 0, ram);
 
     memory_region_init_ram(bios, NULL, "mips_jazz.bios", MAGNUM_BIOS_SIZE,
@@ -213,25 +213,31 @@ static void mips_jazz_init(MemoryRegion *address_space,
     cpu_mips_clock_init(env);
 
     /* Chipset */
-    rc4030_opaque = rc4030_init(env->irq[6], env->irq[3], &rc4030, &dmas,
-                                address_space);
+    rc4030 = rc4030_init(&dmas, &rc4030_dma_mr);
+    sysbus = SYS_BUS_DEVICE(rc4030);
+    sysbus_connect_irq(sysbus, 0, env->irq[6]);
+    sysbus_connect_irq(sysbus, 1, env->irq[3]);
+    memory_region_add_subregion(address_space, 0x80000000,
+                                sysbus_mmio_get_region(sysbus, 0));
+    memory_region_add_subregion(address_space, 0xf0000000,
+                                sysbus_mmio_get_region(sysbus, 1));
     memory_region_init_io(dma_dummy, NULL, &dma_dummy_ops, NULL, "dummy_dma", 0x1000);
     memory_region_add_subregion(address_space, 0x8000d000, dma_dummy);
 
+    /* ISA bus: IO space at 0x90000000, mem space at 0x91000000 */
+    memory_region_init(isa_io, NULL, "isa-io", 0x00010000);
+    memory_region_init(isa_mem, NULL, "isa-mem", 0x01000000);
+    memory_region_add_subregion(address_space, 0x90000000, isa_io);
+    memory_region_add_subregion(address_space, 0x91000000, isa_mem);
+    isa_bus = isa_bus_new(NULL, isa_mem, isa_io);
+
     /* ISA devices */
-    isa_bus = isa_bus_new(NULL, address_space_io);
     i8259 = i8259_init(isa_bus, env->irq[4]);
     isa_bus_irqs(isa_bus, i8259);
     cpu_exit_irq = qemu_allocate_irqs(cpu_request_exit, NULL, 1);
     DMA_init(0, cpu_exit_irq);
     pit = pit_init(isa_bus, 0x40, 0, NULL);
     pcspk_init(isa_bus, pit);
-
-    /* ISA IO space at 0x90000000 */
-    memory_region_init_alias(isa, NULL, "isa_mmio",
-                             get_system_io(), 0, 0x01000000);
-    memory_region_add_subregion(address_space, 0x90000000, isa);
-    isa_mem_base = 0x11000000;
 
     /* Video card */
     switch (jazz_model) {
@@ -241,7 +247,7 @@ static void mips_jazz_init(MemoryRegion *address_space,
         sysbus = SYS_BUS_DEVICE(dev);
         sysbus_mmio_map(sysbus, 0, 0x60080000);
         sysbus_mmio_map(sysbus, 1, 0x40000000);
-        sysbus_connect_irq(sysbus, 0, rc4030[3]);
+        sysbus_connect_irq(sysbus, 0, qdev_get_gpio_in(rc4030, 3));
         {
             /* Simple ROM, so user doesn't have to provide one */
             MemoryRegion *rom_mr = g_new(MemoryRegion, 1);
@@ -267,8 +273,17 @@ static void mips_jazz_init(MemoryRegion *address_space,
         if (!nd->model)
             nd->model = g_strdup("dp83932");
         if (strcmp(nd->model, "dp83932") == 0) {
-            dp83932_init(nd, 0x80001000, 2, get_system_memory(), rc4030[4],
-                         rc4030_opaque, rc4030_dma_memory_rw);
+            qemu_check_nic_model(nd, "dp83932");
+
+            dev = qdev_create(NULL, "dp8393x");
+            qdev_set_nic_properties(dev, nd);
+            qdev_prop_set_uint8(dev, "it_shift", 2);
+            qdev_prop_set_ptr(dev, "dma_mr", rc4030_dma_mr);
+            qdev_init_nofail(dev);
+            sysbus = SYS_BUS_DEVICE(dev);
+            sysbus_mmio_map(sysbus, 0, 0x80001000);
+            sysbus_mmio_map(sysbus, 1, 0x8000b000);
+            sysbus_connect_irq(sysbus, 0, qdev_get_gpio_in(rc4030, 4));
             break;
         } else if (is_help_option(nd->model)) {
             fprintf(stderr, "qemu: Supported NICs: dp83932\n");
@@ -282,7 +297,7 @@ static void mips_jazz_init(MemoryRegion *address_space,
     /* SCSI adapter */
     esp_init(0x80002000, 0,
              rc4030_dma_read, rc4030_dma_write, dmas[0],
-             rc4030[5], &esp_reset, &dma_enable);
+             qdev_get_gpio_in(rc4030, 5), &esp_reset, &dma_enable);
 
     /* Floppy */
     if (drive_get_max_bus(IF_FLOPPY) >= MAX_FD) {
@@ -292,7 +307,7 @@ static void mips_jazz_init(MemoryRegion *address_space,
     for (n = 0; n < MAX_FD; n++) {
         fds[n] = drive_get(IF_FLOPPY, 0, n);
     }
-    fdctrl_init_sysbus(rc4030[1], 0, 0x80003000, fds);
+    fdctrl_init_sysbus(qdev_get_gpio_in(rc4030, 1), 0, 0x80003000, fds);
 
     /* Real time clock */
     rtc_init(isa_bus, 1980, NULL);
@@ -300,23 +315,26 @@ static void mips_jazz_init(MemoryRegion *address_space,
     memory_region_add_subregion(address_space, 0x80004000, rtc);
 
     /* Keyboard (i8042) */
-    i8042_mm_init(rc4030[6], rc4030[7], i8042, 0x1000, 0x1);
+    i8042_mm_init(qdev_get_gpio_in(rc4030, 6), qdev_get_gpio_in(rc4030, 7),
+                  i8042, 0x1000, 0x1);
     memory_region_add_subregion(address_space, 0x80005000, i8042);
 
     /* Serial ports */
     if (serial_hds[0]) {
-        serial_mm_init(address_space, 0x80006000, 0, rc4030[8], 8000000/16,
+        serial_mm_init(address_space, 0x80006000, 0,
+                       qdev_get_gpio_in(rc4030, 8), 8000000/16,
                        serial_hds[0], DEVICE_NATIVE_ENDIAN);
     }
     if (serial_hds[1]) {
-        serial_mm_init(address_space, 0x80007000, 0, rc4030[9], 8000000/16,
+        serial_mm_init(address_space, 0x80007000, 0,
+                       qdev_get_gpio_in(rc4030, 9), 8000000/16,
                        serial_hds[1], DEVICE_NATIVE_ENDIAN);
     }
 
     /* Parallel port */
     if (parallel_hds[0])
-        parallel_mm_init(address_space, 0x80008000, 0, rc4030[0],
-                         parallel_hds[0]);
+        parallel_mm_init(address_space, 0x80008000, 0,
+                         qdev_get_gpio_in(rc4030, 0), parallel_hds[0]);
 
     /* FIXME: missing Jazz sound at 0x8000c000, rc4030[2] */
 
@@ -333,19 +351,13 @@ static void mips_jazz_init(MemoryRegion *address_space,
 static
 void mips_magnum_init(MachineState *machine)
 {
-    ram_addr_t ram_size = machine->ram_size;
-    const char *cpu_model = machine->cpu_model;
-        mips_jazz_init(get_system_memory(), get_system_io(),
-                       ram_size, cpu_model, JAZZ_MAGNUM);
+    mips_jazz_init(machine, JAZZ_MAGNUM);
 }
 
 static
 void mips_pica61_init(MachineState *machine)
 {
-    ram_addr_t ram_size = machine->ram_size;
-    const char *cpu_model = machine->cpu_model;
-    mips_jazz_init(get_system_memory(), get_system_io(),
-                   ram_size, cpu_model, JAZZ_PICA61);
+    mips_jazz_init(machine, JAZZ_PICA61);
 }
 
 static QEMUMachine mips_magnum_machine = {

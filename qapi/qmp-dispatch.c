@@ -27,8 +27,8 @@ static QDict *qmp_dispatch_check_obj(const QObject *request, Error **errp)
     QDict *dict = NULL;
 
     if (qobject_type(request) != QTYPE_QDICT) {
-        error_set(errp, QERR_QMP_BAD_INPUT_OBJECT,
-                  "request is not a dictionary");
+        error_setg(errp, QERR_QMP_BAD_INPUT_OBJECT,
+                   "request is not a dictionary");
         return NULL;
     }
 
@@ -41,19 +41,19 @@ static QDict *qmp_dispatch_check_obj(const QObject *request, Error **errp)
 
         if (!strcmp(arg_name, "execute")) {
             if (qobject_type(arg_obj) != QTYPE_QSTRING) {
-                error_set(errp, QERR_QMP_BAD_INPUT_OBJECT_MEMBER, "execute",
-                          "string");
+                error_setg(errp, QERR_QMP_BAD_INPUT_OBJECT_MEMBER, "execute",
+                           "string");
                 return NULL;
             }
             has_exec_key = true;
         } else if (strcmp(arg_name, "arguments")) {
-            error_set(errp, QERR_QMP_EXTRA_MEMBER, arg_name);
+            error_setg(errp, QERR_QMP_EXTRA_MEMBER, arg_name);
             return NULL;
         }
     }
 
     if (!has_exec_key) {
-        error_set(errp, QERR_QMP_BAD_INPUT_OBJECT, "execute");
+        error_setg(errp, QERR_QMP_BAD_INPUT_OBJECT, "execute");
         return NULL;
     }
 
@@ -76,7 +76,8 @@ static QObject *do_qmp_dispatch(QObject *request, Error **errp)
     command = qdict_get_str(dict, "execute");
     cmd = qmp_find_command(command);
     if (cmd == NULL) {
-        error_set(errp, QERR_COMMAND_NOT_FOUND, command);
+        error_set(errp, ERROR_CLASS_COMMAND_NOT_FOUND,
+                  "The command %s has not been found", command);
         return NULL;
     }
     if (!cmd->enabled) {

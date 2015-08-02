@@ -15,6 +15,9 @@
 #include "hw/arm/arm.h"
 #include "exec/address-spaces.h"
 #include "gic_internal.h"
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "cpu.h"
+#endif
 
 typedef struct {
     GICState gic;
@@ -77,6 +80,15 @@ static inline int64_t systick_scale(nvic_state *s)
 
 static void systick_reload(nvic_state *s, int reset)
 {
+    /* The Cortex-M3 Devices Generic User Guide says that "When the
+     * ENABLE bit is set to 1, the counter loads the RELOAD value from the
+     * SYST RVR register and then counts down". So, we need to check the
+     * ENABLE bit before reloading the value.
+     */
+    if ((s->systick.control & SYSTICK_ENABLE) == 0) {
+        return;
+    }
+
     if (reset)
         s->systick.tick = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
     s->systick.tick += (s->systick.reload + 1) * systick_scale(s);
@@ -122,7 +134,7 @@ int armv7m_nvic_acknowledge_irq(void *opaque)
     nvic_state *s = (nvic_state *)opaque;
     uint32_t irq;
 
-    irq = gic_acknowledge_irq(&s->gic, 0);
+    irq = gic_acknowledge_irq(&s->gic, 0, MEMTXATTRS_UNSPECIFIED);
     if (irq == 1023)
         hw_error("Interrupt but no vector\n");
     if (irq >= 32)
@@ -135,7 +147,7 @@ void armv7m_nvic_complete_irq(void *opaque, int irq)
     nvic_state *s = (nvic_state *)opaque;
     if (irq >= 16)
         irq += 16;
-    gic_complete_irq(&s->gic, 0, irq);
+    gic_complete_irq(&s->gic, 0, irq, MEMTXATTRS_UNSPECIFIED);
 }
 
 static uint32_t nvic_readl(nvic_state *s, uint32_t offset)
@@ -273,7 +285,16 @@ static uint32_t nvic_readl(nvic_state *s, uint32_t offset)
         return 0x01111110;
     case 0xd70: /* ISAR4.  */
         return 0x01310102;
-    /* TODO: Implement debug registers.  */
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    case 0xDF0: /* DHCSR.  */
+    case 0xDF4: /* DCRSR.  */
+    case 0xDF8: /* DCRDR.  */
+    case 0xDFC: /* DEMCR.  */
+        /* TODO: Implement debug registers.  */
+        qemu_log_mask(LOG_UNIMP,
+                      "NVIC: debug register %08X unimplemented\n", offset);
+    	return 0;
+#endif
     default:
         qemu_log_mask(LOG_GUEST_ERROR, "NVIC: Bad read offset 0x%x\n", offset);
         return 0;
@@ -372,6 +393,16 @@ static void nvic_writel(nvic_state *s, uint32_t offset, uint32_t value)
         qemu_log_mask(LOG_UNIMP,
                       "NVIC: fault status registers unimplemented\n");
         break;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    case 0xDF0: /* DHCSR.  */
+    case 0xDF4: /* DCRSR.  */
+    case 0xDF8: /* DCRDR.  */
+    case 0xDFC: /* DEMCR.  */
+        /* TODO: Implement debug registers.  */
+        qemu_log_mask(LOG_UNIMP,
+                      "NVIC: debug register %08X unimplemented\n", offset);
+    	break;
+#endif
     case 0xf00: /* Software Triggered Interrupt Register */
         if ((value & 0x1ff) < s->num_irq) {
             gic_set_pending_private(&s->gic, 0, value & 0x1ff);
@@ -450,13 +481,16 @@ static const VMStateDescription vmstate_nvic = {
         VMSTATE_UINT32(systick.control, nvic_state),
         VMSTATE_UINT32(systick.reload, nvic_state),
         VMSTATE_INT64(systick.tick, nvic_state),
-        VMSTATE_TIMER(systick.timer, nvic_state),
+        VMSTATE_TIMER_PTR(systick.timer, nvic_state),
         VMSTATE_END_OF_LIST()
     }
 };
 
 static void armv7m_nvic_reset(DeviceState *dev)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+	qemu_log_function_name();
+#endif
     nvic_state *s = NVIC(dev);
     NVICClass *nc = NVIC_GET_CLASS(s);
     nc->parent_reset(dev);
@@ -465,15 +499,18 @@ static void armv7m_nvic_reset(DeviceState *dev)
      * as enabled by default, and with a priority mask which allows
      * all interrupts through.
      */
-    s->gic.cpu_enabled[0] = true;
+    s->gic.cpu_ctlr[0] = GICC_CTLR_EN_GRP0;
     s->gic.priority_mask[0] = 0x100;
     /* The NVIC as a whole is always enabled. */
-    s->gic.enabled = true;
+    s->gic.ctlr = 1;
     systick_reset(s);
 }
 
 static void armv7m_nvic_realize(DeviceState *dev, Error **errp)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+	qemu_log_function_name();
+#endif
     nvic_state *s = NVIC(dev);
     NVICClass *nc = NVIC_GET_CLASS(s);
     Error *local_err = NULL;
@@ -483,6 +520,9 @@ static void armv7m_nvic_realize(DeviceState *dev, Error **errp)
     /* Tell the common code we're an NVIC */
     s->gic.revision = 0xffffffff;
     s->num_irq = s->gic.num_irq;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    qemu_log_mask(LOG_TRACE, "NVIC: %d irqs\n", s->num_irq);
+#endif
     nc->parent_realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
@@ -520,6 +560,9 @@ static void armv7m_nvic_realize(DeviceState *dev, Error **errp)
 
 static void armv7m_nvic_instance_init(Object *obj)
 {
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+	qemu_log_function_name();
+#endif
     /* We have a different default value for the num-irq property
      * than our superclass. This function runs after qdev init
      * has set the defaults from the Property array and before
