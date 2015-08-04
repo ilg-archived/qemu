@@ -4,6 +4,7 @@ GNU ARM Eclipse 64-bits QEMU v2.3.50 (qemu-system-gnuarmeclipse).
 Supported boards:
   Mapple               LeafLab Arduino-style STM32 microcontroller board (r5)
   NUCLEO-F103RB        ST Nucleo Development Board for STM32 F1 series
+  NUCLEO-F411RE        ST Nucleo Development Board for STM32 F4 series
   NetduinoGo           Netduino GoBus Development Board with STM32F4
   NetduinoPlus2        Netduino Development Board with STM32F4
   OLIMEXINO-STM32      Olimex Mapple (Arduino-like) Development Board
@@ -22,12 +23,24 @@ Supported MCUs:
   STM32F405RG
   STM32F407VG
   STM32F407ZG
+  STM32F411RE
   STM32F429ZI
   STM32L152RE
 
 -------------------------------------------------------------------------------
 
 The following changes were applied to the QEMU master branch:
+
+[2015-08-04]
+
+- QEMU 2.3.50-20150804*-dev released
+- SDL event loop added (to fix responsivness & Windows bug)
+- stm32f411re added
+- nucleo-f411re board added
+
+[2015-08-01]
+
+- QEMU 2.3.50-20150801*-dev released
 
 [2015-07-23]
 
