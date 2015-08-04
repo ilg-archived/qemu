@@ -268,10 +268,8 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
 static Property stm32_mcu_properties[] = {
         DEFINE_PROP_STM32CAPABILITIES_PTR("stm32-capabilities",
                 STM32MCUState, param_capabilities),
-        DEFINE_PROP_UINT32("hse-freq-hz", STM32MCUState, hse_freq_hz,
-                DEFAULT_HSE_FREQ_HZ),
-        DEFINE_PROP_UINT32("lse-freq-hz", STM32MCUState, lse_freq_hz,
-                DEFAULT_RTC_FREQ_HZ),
+        DEFINE_PROP_UINT32("hse-freq-hz", STM32MCUState, hse_freq_hz, 0),
+        DEFINE_PROP_UINT32("lse-freq-hz", STM32MCUState, lse_freq_hz, 0),
     DEFINE_PROP_END_OF_LIST(), /**/
 };
 

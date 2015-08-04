@@ -25,18 +25,6 @@
 
 /* ------------------------------------------------------------------------- */
 
-/* The high speed internal clock frequency. */
-#define HSI_FREQ_HZ (8000000)
-/* The low speed internal clock frequency. */
-#define LSI_FREQ_HZ (40000)
-
-/* No external oscillator */
-#define DEFAULT_HSE_FREQ_HZ (0)
-/* No RTC */
-#define DEFAULT_RTC_FREQ_HZ (0)
-
-/* ------------------------------------------------------------------------- */
-
 #define TYPE_STM32_RCC TYPE_STM32_PREFIX "rcc" TYPE_PERIPHERAL_SUFFIX
 
 /* ------------------------------------------------------------------------- */

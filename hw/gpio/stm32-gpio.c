@@ -43,6 +43,9 @@
  * STM32F405xx/07xx, STM32F415xx/17xx, STM32F42xxx and STM32F43xxx
  * advanced ARM-based 32-bit MCUs"
  *
+ * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
+ * STM32F411xC/E advanced ARM-based 32-bit MCUs"
+ *
  * All STM32 reference manuals available from:
  * http://www.st.com/stonline/stappl/resourceSelector/\
  * app?page=fullResourceSelector&doctype=reference_manual&FamilyID=141
@@ -341,7 +344,7 @@ static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index)
 
 /* ===== F4 ================================================================ */
 
-/* STM32F4[01][57]xx, STM32F4[23]xxx */
+/* STM32F4[01][57]xx, STM32F4[23]xxx, STM32F411xx */
 
 uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit);
 static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state);

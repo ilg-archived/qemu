@@ -35,6 +35,9 @@
  * STM32F405xx/07xx, STM32F415xx/17xx, STM32F42xxx and STM32F43xxx
  * advanced ARM-based 32-bit MCUs"
  *
+ * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
+ * STM32F411xC/E advanced ARM-based 32-bit MCUs"
+ *
  * All STM32 reference manuals available from:
  * http://www.st.com/stonline/stappl/resourceSelector/\
  * app?page=fullResourceSelector&doctype=reference_manual&FamilyID=141
@@ -307,6 +310,71 @@ static void stm32f4_01_57_xx_flash_create_objects(Object *obj)
     peripheral_new_with_info(obj, NULL, &stm32f4_01_57_xx_flash_info);
 }
 
+static PeripheralInfo stm32f411xx_flash_info = {
+    .desc = "Reset and clock control (RCC)",
+
+    .registers = (PeripheralRegisterInfo[] ) {
+                {
+                    .desc = "Flash access control register (FLASH_ACR)",
+                    .name = "acr",
+                    .offset_bytes = 0x00,
+                    .reset_value = 0x00000030,
+                    .bitfields = (RegisterBitfieldInfo[] ) {
+                                {
+                                    .name = "latency",
+                                    .first_bit = 0,
+                                    .width_bits = 4, },
+                                {
+                                    .name = "prften",
+                                    .desc = "Prefetch enable",
+                                    .first_bit = 8, },
+                                {
+                                    .name = "icen",
+                                    .desc = "Prefetch enable",
+                                    .first_bit = 9, },
+                                {
+                                    .name = "dcen",
+                                    .desc = "Data cache enable",
+                                    .first_bit = 10, },
+                                {
+                                    .name = "icrst",
+                                    .desc = "Instruction cache reset",
+                                    .first_bit = 11,
+                                    .rw_mode = REGISTER_RW_MODE_READ, },
+                                {
+                                    .name = "dcrst",
+                                    .desc = "Data cache reset",
+                                    .first_bit = 12, },
+                                { }, /**/
+                            } , /**/
+                },
+                /* Very schematic, functional read after write only. */
+                {
+                    .name = "keyr",
+                    .offset_bytes = 0x04, },
+                {
+                    .name = "optkeyr",
+                    .offset_bytes = 0x08, },
+                {
+                    .name = "sr",
+                    .offset_bytes = 0x0C, },
+                {
+                    .name = "cr",
+                    .offset_bytes = 0x10, },
+                {
+                    .name = "optcr",
+                    .offset_bytes = 0x14, },
+                { }, /**/
+            } , /**/
+};
+
+static void stm32f411xx_flash_create_objects(Object *obj)
+{
+    //STM32FlashState *state = STM32_FLASH_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f411xx_flash_info);
+}
+
 static PeripheralInfo stm32f4_23_xxx_flash_info = {
     .desc = "Reset and clock control (RCC)",
 
@@ -473,6 +541,8 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
         if (capabilities->f4.is_01_57_xx) {
             stm32f4_01_57_xx_flash_create_objects(obj);
+        } else if (capabilities->f4.is11xx) {
+            stm32f411xx_flash_create_objects(obj);
         } else if (capabilities->f4.is_23_xxx) {
             stm32f4_23_xxx_flash_create_objects(obj);
         }
