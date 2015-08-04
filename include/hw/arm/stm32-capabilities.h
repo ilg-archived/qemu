@@ -134,6 +134,8 @@ typedef struct {
     unsigned int has_spi1 :1;
     unsigned int has_spi2 :1;
     unsigned int has_spi3 :1;
+    unsigned int has_spi4 :1;
+    unsigned int has_spi5 :1;
 
     /* I2S */
     unsigned int has_i2s1 :1;
@@ -210,6 +212,7 @@ typedef struct {
     struct {
         unsigned int is_01_57_xx :1;
         unsigned int is_23_xxx :1;
+        unsigned int is11xx :1;
     } f4;
     /* TODO: add other families that have sub-families. */
 

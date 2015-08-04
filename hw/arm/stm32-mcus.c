@@ -262,7 +262,7 @@ static const STM32Capabilities stm32f405xx = {
         .is_01_57_xx = true },
 
     .hsi_freq_hz = 16000000,
-    //.lsi_freq_hz = 40000,
+    .lsi_freq_hz = 32000,
     .has_rcc = true,
     .has_pwr = true,
     .has_rtc = true,
@@ -346,7 +346,7 @@ static const STM32Capabilities stm32f407xx = {
         .is_01_57_xx = true },
 
     .hsi_freq_hz = 16000000,
-    //.lsi_freq_hz = 40000,
+    .lsi_freq_hz = 32000,
     .has_rcc = true,
     .has_pwr = true,
     .has_rtc = true,
@@ -424,6 +424,71 @@ static const STM32Capabilities stm32f407xx = {
     .has_dac1 = true, /* 12-bits */
     .has_dac2 = true, };
 
+static const STM32Capabilities stm32f411xx = {
+
+    .family = STM32_FAMILY_F4,
+    .f4 = {
+        .is11xx = true },
+
+    .hsi_freq_hz = 16000000,
+    .lsi_freq_hz = 32000,
+    .has_rcc = true,
+    .has_pwr = true,
+    .has_rtc = true,
+    .num_back_bytes = 80,
+    .has_periph_bitband = true,
+
+    .has_crc = true,
+    .has_dma1 = true,
+    .num_dma1 = 8,
+    .has_dma2 = true,
+    .num_dma2 = 8,
+    //.has_fsmc = true,
+    .has_exti = true,
+    .num_exti = 21,
+
+    .has_ac_tim1 = true,
+    .has_gp_tim2 = true,
+    .has_gp_tim3 = true,
+    .has_gp_tim4 = true,
+    .has_gp_tim5 = true,
+    .has_gp_tim9 = true,
+    .has_gp_tim10 = true,
+    .has_gp_tim11 = true,
+
+    .has_iwdg = true,
+    .has_wwdg = true,
+    .has_i2c1 = true,
+    .has_i2c2 = true,
+    .has_i2c3 = true,
+    .has_usart1 = true,
+    .has_usart2 = true,
+    .has_usart6 = true,
+    .has_spi1 = true,
+    .has_spi2 = true,
+    .has_spi3 = true,
+    .has_spi4 = true,
+    .has_spi5 = true,
+    .has_i2s1 = true,
+    .has_i2s2 = true,
+    .has_plli2s = true,
+    .has_sdio = true,
+
+    .has_usb_otg_fs = true,
+
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpioe = true,
+
+    .has_gpioh = true, // TODO: only H0 & H1 are present
+
+    .has_adc1 = true, /* 12-bits, 16 channels */
+    .has_ts = true, /* ADC1_IN16 */
+
+};
+
 static const STM32Capabilities stm32f429xx = {
 
     .family = STM32_FAMILY_F4,
@@ -431,7 +496,7 @@ static const STM32Capabilities stm32f429xx = {
         .is_23_xxx = true },
 
     .hsi_freq_hz = 16000000,
-    //.lsi_freq_hz = 40000,
+    .lsi_freq_hz = 32000,
     .has_rcc = true,
     .has_pwr = true,
     .has_rtc = true,
@@ -592,6 +657,14 @@ static const CortexMCoreCapabilities stm32f4_23_xxx_core = {
     .nvic_bits = 4, /**/
 };
 
+static const CortexMCoreCapabilities stm32f411xx_core = {
+    .cpu_model = "cortex-m4", /* TODO: make 4f when possible */
+    .has_mpu = true,
+    .has_itm = true,
+    .num_irq = 62,
+    .nvic_bits = 4, /**/
+};
+
 /* ------------------------------------------------------------------------- */
 
 static const STM32PartInfo stm32_mcus[] = {
@@ -692,16 +765,14 @@ static const STM32PartInfo stm32_mcus[] = {
             .core = &stm32f4_01_57_xx_core, },
         .stm32 = &stm32f407xx /**/
     },
-#if 0
     {
         .name = TYPE_STM32F411RE,
         .cortexm = {
             .flash_size_kb = 512,
             .sram_size_kb = 128, /* No CCM */
-            .core = &stm32f4xx_core, /* TODO: Add .stm32 */
-        }, /**/
+            .core = &stm32f411xx_core, },
+        .stm32 = &stm32f411xx /**/
     },
-#endif
     {
         .name = TYPE_STM32F429ZI,
         .cortexm = {

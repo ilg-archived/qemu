@@ -87,24 +87,48 @@ static void nucleo_l152re_board_init_callback(MachineState *machine)
 }
 #endif
 
-#if 0
-// Disabled due to HAL clock init problems when no clock is defined.
 /* ----- ST NUCLEO-F411RE ----- */
-static void nucleo_f411re_board_init_callback(MachineState *machine);
-
-static QEMUMachine nucleo_f411re_machine = {
-    .name = "NUCLEO-F411RE",
-    .desc = "ST Nucleo Development Board for STM32 F4 series (Experimental)",
-    .init = nucleo_f411re_board_init_callback};
+static GPIOLEDInfo nucleo_f411re_leds_info[] = {
+    {
+        .name = "green-led",
+        .active_low = false,
+        .colour_message = "Green",
+        .x = 316,
+        .y = 307,
+        .w = 8,
+        .h = 6,
+        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .port_bit = 5, },
+    { }, /**/
+};
 
 static void nucleo_f411re_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F411RE);
 
-    /* TODO: Add board inits */
+    {
+        /* Create the MCU */
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F411RE);
+
+        /* The board has no oscillators. */
+        cm_object_property_set_int(mcu, 0, "hse-freq-hz"); /* N/A */
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+
+        cm_object_realize(mcu);
+    }
+
+    void *board_surface = cm_board_init_image("NUCLEO-F411RE.jpg",
+            cm_board_get_desc(machine));
+
+    Object *peripheral = cm_container_get_peripheral();
+    gpio_led_create_from_info(peripheral, nucleo_f411re_leds_info,
+            board_surface);
 }
-#endif
+
+static QEMUMachine nucleo_f411re_machine = {
+    .name = "NUCLEO-F411RE",
+    .desc = "ST Nucleo Development Board for STM32 F4 series",
+    .init = nucleo_f411re_board_init_callback };
 
 #if 0
 /* ----- ST NUCLEO-F334R8 ----- */
@@ -128,9 +152,9 @@ static void nucleo_f334r8_board_init_callback(MachineState *machine)
 static void stm32_machines_init(void)
 {
     qemu_register_machine(&nucleo_f103rb_machine);
+    qemu_register_machine(&nucleo_f411re_machine);
 #if 0
     qemu_register_machine(&nucleo_l152re_machine);
-    qemu_register_machine(&nucleo_f411re_machine);
     qemu_register_machine(&nucleo_f334r8_machine);
 #endif
 }

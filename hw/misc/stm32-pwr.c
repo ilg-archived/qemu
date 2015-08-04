@@ -34,6 +34,9 @@
  * STM32F405xx/07xx, STM32F415xx/17xx, STM32F42xxx and STM32F43xxx
  * advanced ARM-based 32-bit MCUs"
  *
+ * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
+ * STM32F411xC/E advanced ARM-based 32-bit MCUs"
+ *
  * All STM32 reference manuals available from:
  * http://www.st.com/stonline/stappl/resourceSelector/\
  * app?page=fullResourceSelector&doctype=reference_manual&FamilyID=141
@@ -344,6 +347,187 @@ static void stm32f4_01_57_xx_pwr_create_objects(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+/* STM32F411_xx */
+
+static PeripheralInfo stm32f411xx_pwr_info =
+        {
+            .desc = "Power controller (PWR)",
+
+            .registers =
+                    (PeripheralRegisterInfo[] ) {
+                                {
+                                    .desc =
+                                            "PWR power control register (PWR_CR)",
+                                    .name = "cr",
+                                    .offset_bytes = 0x00,
+                                    .reset_value = 0x00008000,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "lpds",
+                                                            .desc =
+                                                                    "Low-power deep sleep",
+                                                            .first_bit = 0, },
+                                                        {
+                                                            .name = "pdds",
+                                                            .desc =
+                                                                    "Power-down deepsleep",
+                                                            .first_bit = 1, },
+                                                        {
+                                                            .name = "cwuf",
+                                                            .desc =
+                                                                    "Clear wakeup flag",
+                                                            .first_bit = 2,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "csbf",
+                                                            .desc =
+                                                                    "Clear standby flag",
+                                                            .first_bit = 3,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_WRITE, },
+                                                        {
+                                                            .name = "pvde",
+                                                            .desc =
+                                                                    "Power voltage detector enable",
+                                                            .first_bit = 4, },
+                                                        {
+                                                            .name = "pls",
+                                                            .desc =
+                                                                    "PVD level selection",
+                                                            .first_bit = 5,
+                                                            .width_bits = 3, },
+                                                        {
+                                                            .name = "dbp",
+                                                            .desc =
+                                                                    "Disable backup domain write protection",
+                                                            .first_bit = 8, },
+                                                        {
+                                                            .name = "fpds",
+                                                            .desc =
+                                                                    "Flash power-down in Stop mode",
+                                                            .first_bit = 9, },
+                                                        {
+                                                            .name = "vos",
+                                                            .desc =
+                                                                    "Regulator voltages caling output selection",
+                                                            .first_bit = 14, },
+                                                        {
+                                                            .name = "fmssr",
+                                                            .desc =
+                                                                    "Flash Memory Sleep System Run",
+                                                            .first_bit = 20, },
+                                                        {
+                                                            .name = "fissr",
+                                                            .desc =
+                                                                    "Flash Interface Stop while System Run",
+                                                            .first_bit = 21, },
+                                                        { }, /**/
+                                                    } , /**/},
+                                {
+                                    .desc =
+                                            "PWR power control/status register (PWR_CSR)",
+                                    .name = "csr",
+                                    .offset_bytes = 0x04,
+                                    .reset_value = 0x00000000,
+                                    .bitfields =
+                                            (RegisterBitfieldInfo[] ) {
+                                                        {
+                                                            .name = "wuf",
+                                                            .desc =
+                                                                    "Wakeup flag",
+                                                            .first_bit = 0,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ, },
+                                                        {
+                                                            .name = "sbf",
+                                                            .desc =
+                                                                    "Standby flag",
+                                                            .first_bit = 1,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ, },
+                                                        {
+                                                            .name = "pvdo",
+                                                            .desc = "PVD output",
+                                                            .first_bit = 2,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ, },
+                                                        {
+                                                            .name = "brr",
+                                                            .desc =
+                                                                    "CBackup regulator ready",
+                                                            .first_bit = 3,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ, },
+                                                        {
+                                                            .name = "ewup",
+                                                            .desc =
+                                                                    "Enable WKUP pin",
+                                                            .first_bit = 8, },
+                                                        {
+                                                            .name = "bre",
+                                                            .desc =
+                                                                    "Backup regulator enable",
+                                                            .first_bit = 9, },
+                                                        {
+                                                            .name = "vosrdy",
+                                                            .desc =
+                                                                    "Regulator voltage scaling output selection ready bit",
+                                                            .first_bit = 14,
+                                                            .rw_mode =
+                                                                    REGISTER_RW_MODE_READ, },
+                                                        { }, /**/
+                                                    } , /**/},
+                                { }, /**/
+                            } , /**/
+        };
+
+static void stm32f411xx_pwr_create_objects(Object *obj)
+{
+    STM32PWRState *state = STM32_PWR_STATE(obj);
+
+    peripheral_new_with_info(obj, NULL, &stm32f411xx_pwr_info);
+
+    state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
+    state->f4.reg.csr = cm_object_get_child_by_name(obj, "csr");
+
+    /* CR bitfields. */
+    state->f4.fld.cr.lpds = cm_object_get_child_by_name(state->f4.reg.cr,
+            "lpds");
+    state->f4.fld.cr.pdds = cm_object_get_child_by_name(state->f4.reg.cr,
+            "pdds");
+    state->f4.fld.cr.cwuf = cm_object_get_child_by_name(state->f4.reg.cr,
+            "cwuf");
+    state->f4.fld.cr.csbf = cm_object_get_child_by_name(state->f4.reg.cr,
+            "csbf");
+    state->f4.fld.cr.pvde = cm_object_get_child_by_name(state->f4.reg.cr,
+            "pvde");
+    state->f4.fld.cr.pls = cm_object_get_child_by_name(state->f4.reg.cr, "pls");
+    state->f4.fld.cr.dbp = cm_object_get_child_by_name(state->f4.reg.cr, "dbp");
+    state->f4.fld.cr.fpds = cm_object_get_child_by_name(state->f4.reg.cr,
+            "fpds");
+    state->f4.fld.cr.vos = cm_object_get_child_by_name(state->f4.reg.cr, "vos");
+
+    /* CSR bitfields. */
+    state->f4.fld.csr.wuf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "wuf");
+    state->f4.fld.csr.sbf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "sbf");
+    state->f4.fld.csr.pvdo = cm_object_get_child_by_name(state->f4.reg.csr,
+            "pvdo");
+    state->f4.fld.csr.brr = cm_object_get_child_by_name(state->f4.reg.csr,
+            "brr");
+    state->f4.fld.csr.ewup = cm_object_get_child_by_name(state->f4.reg.csr,
+            "ewup");
+    state->f4.fld.csr.bre = cm_object_get_child_by_name(state->f4.reg.csr,
+            "bre");
+    state->f4.fld.csr.vosrdy = cm_object_get_child_by_name(state->f4.reg.csr,
+            "vosrdy");
+
+}
+/* ------------------------------------------------------------------------- */
+
 /* STM32F4_23_xxx */
 
 static PeripheralInfo stm32f4_23_xxx_pwr_info =
@@ -639,10 +823,15 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
 
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");
-        }
-        if (capabilities->f4.is_23_xxx) {
+        } else if (capabilities->f4.is_23_xxx) {
 
             stm32f4_23_xxx_pwr_create_objects(obj);
+
+            /* Auto bits. */
+            cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");
+        } else if (capabilities->f4.is11xx) {
+
+            stm32f411xx_pwr_create_objects(obj);
 
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");

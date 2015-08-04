@@ -53,6 +53,32 @@ void cm_board_greeting(MachineState *machine)
 #endif
 }
 
+/* ------------------------------------------------------------------------- */
+
+static QEMUTimer *timer;
+
+/**
+ * SDL event loop, called every 10 ms by the timer.
+ */
+static void sdl_event_loop(void *p)
+{
+    SDL_Event event;
+
+    while (SDL_PollEvent(&event)) {
+        //If the user has Xed out the window
+        if (event.type == SDL_QUIT) {
+            //Quit the program
+            fprintf(stderr, "Quit.\n");
+            exit(1);
+        }
+    }
+
+    timer_mod(timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME) + 10);
+}
+
+/**
+ * Initialise SDL and display the board image.
+ */
 void *cm_board_init_image(const char *file_name, const char *caption)
 {
     void *board_surface = NULL;
@@ -60,7 +86,7 @@ void *cm_board_init_image(const char *file_name, const char *caption)
     if (display_type != DT_NOGRAPHIC) {
         // Start SDL, if needed.
         if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
-            SDL_Init(SDL_INIT_EVERYTHING);
+            SDL_Init(SDL_INIT_VIDEO);
         }
 
         const char *fullname = qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name);
@@ -101,7 +127,12 @@ void *cm_board_init_image(const char *file_name, const char *caption)
         /* Update screen */
         SDL_Flip(screen);
         board_surface = screen;
+
+        /* The event loop will be processed from time to time. */
+        timer = timer_new_ms(QEMU_CLOCK_REALTIME, sdl_event_loop, &timer);
+        timer_mod(timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME));
     }
+
 #endif
     return board_surface;
 }
@@ -163,11 +194,13 @@ bool cm_board_help_func(const char *name)
     return true;
 }
 
-const char *cm_board_get_name(MachineState *machine) {
+const char *cm_board_get_name(MachineState *machine)
+{
     return object_class_get_name(OBJECT_CLASS(machine));
 }
 
-const char *cm_board_get_desc(MachineState *machine) {
+const char *cm_board_get_desc(MachineState *machine)
+{
     return MACHINE_GET_CLASS(machine)->desc;
 }
 
