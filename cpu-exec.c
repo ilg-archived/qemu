@@ -28,6 +28,15 @@
 #include "exec/memory-internal.h"
 #include "qemu/rcu.h"
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(_WIN64)
+#ifdef sigsetjmp
+#undef sigsetjmp
+#endif
+#define sigsetjmp(env, savesigs) _setjmp(env, NULL)
+#endif
+#endif
+
 /* -icount align implementation. */
 
 typedef struct SyncClocks {
