@@ -107,3 +107,4 @@ TAGS
 *~
 common.env
 .project
+*.orig
