@@ -395,7 +395,7 @@ struct CPUMIPSState {
 #define CP0C0_K23  28
 #define CP0C0_KU   25
 #define CP0C0_MDU  20
-#define CP0C0_MM   17
+#define CP0C0_MM   18
 #define CP0C0_BM   16
 #define CP0C0_BE   15
 #define CP0C0_AT   13
@@ -746,7 +746,7 @@ enum {
  */
 #define CPU_INTERRUPT_WAKE CPU_INTERRUPT_TGT_INT_0
 
-int cpu_mips_exec(CPUMIPSState *s);
+int cpu_mips_exec(CPUState *cpu);
 void mips_tcg_init(void);
 MIPSCPU *cpu_mips_init(const char *cpu_model);
 int cpu_mips_signal_handler(int host_signum, void *pinfo, void *puc);

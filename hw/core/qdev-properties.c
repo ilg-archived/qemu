@@ -130,8 +130,8 @@ PropertyInfo qdev_prop_bit = {
 
 static uint64_t qdev_get_prop_mask64(Property *prop)
 {
-    assert(prop->info == &qdev_prop_bit);
-    return 0x1 << prop->bitnr;
+    assert(prop->info == &qdev_prop_bit64);
+    return 0x1ull << prop->bitnr;
 }
 
 static void bit64_prop_set(DeviceState *dev, Property *props, bool val)

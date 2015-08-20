@@ -431,7 +431,7 @@ AlphaCPU *cpu_alpha_init(const char *cpu_model);
 #define cpu_init(cpu_model) CPU(cpu_alpha_init(cpu_model))
 
 void alpha_cpu_list(FILE *f, fprintf_function cpu_fprintf);
-int cpu_alpha_exec(CPUAlphaState *s);
+int cpu_alpha_exec(CPUState *cpu);
 /* you can call this signal handler from your SIGBUS and SIGSEGV
    signal handlers to inform the virtual CPU of exceptions. non zero
    is returned if the signal was handled by the virtual CPU.  */
@@ -445,8 +445,9 @@ void QEMU_NORETURN arith_excp(CPUAlphaState *, uintptr_t, int, uint64_t);
 
 uint64_t cpu_alpha_load_fpcr (CPUAlphaState *env);
 void cpu_alpha_store_fpcr (CPUAlphaState *env, uint64_t val);
+uint64_t cpu_alpha_load_gr(CPUAlphaState *env, unsigned reg);
+void cpu_alpha_store_gr(CPUAlphaState *env, unsigned reg, uint64_t val);
 #ifndef CONFIG_USER_ONLY
-void swap_shadow_regs(CPUAlphaState *env);
 QEMU_NORETURN void alpha_cpu_unassigned_access(CPUState *cpu, hwaddr addr,
                                                bool is_write, bool is_exec,
                                                int unused, unsigned size);

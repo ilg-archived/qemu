@@ -38,7 +38,8 @@ static inline void QEMU_NORETURN do_raise_exception_err(CPUMIPSState *env,
     CPUState *cs = CPU(mips_env_get_cpu(env));
 
     if (exception < EXCP_SC) {
-        qemu_log("%s: %d %d\n", __func__, exception, error_code);
+        qemu_log_mask(CPU_LOG_INT, "%s: %d %d\n",
+                      __func__, exception, error_code);
     }
     cs->exception_index = exception;
     env->error_code = error_code;
@@ -661,7 +662,7 @@ static void sync_c0_tcstatus(CPUMIPSState *cpu, int tc,
 
     /* Sync the TASID with EntryHi.  */
     cpu->CP0_EntryHi &= ~0xff;
-    cpu->CP0_EntryHi = tasid;
+    cpu->CP0_EntryHi |= tasid;
 
     compute_hflags(cpu);
 }
@@ -1432,7 +1433,6 @@ void helper_mttc0_status(CPUMIPSState *env, target_ulong arg1)
 
 void helper_mtc0_intctl(CPUMIPSState *env, target_ulong arg1)
 {
-    /* vectored interrupts not implemented, no performance counters. */
     env->CP0_IntCtl = (env->CP0_IntCtl & ~0x000003e0) | (arg1 & 0x000003e0);
 }
 
@@ -1473,7 +1473,6 @@ target_ulong helper_mftc0_ebase(CPUMIPSState *env)
 
 void helper_mtc0_ebase(CPUMIPSState *env, target_ulong arg1)
 {
-    /* vectored interrupts not implemented */
     env->CP0_EBase = (env->CP0_EBase & ~0x3FFFF000) | (arg1 & 0x3FFFF000);
 }
 
@@ -2154,10 +2153,9 @@ void helper_deret(CPUMIPSState *env)
     debug_pre_eret(env);
     set_pc(env, env->CP0_DEPC);
 
-    env->hflags &= MIPS_HFLAG_DM;
+    env->hflags &= ~MIPS_HFLAG_DM;
     compute_hflags(env);
     debug_post_eret(env);
-    env->lladdr = 1;
 }
 #endif /* !CONFIG_USER_ONLY */
 

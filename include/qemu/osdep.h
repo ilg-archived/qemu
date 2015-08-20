@@ -1,12 +1,53 @@
+/*
+ * OS includes and handling of OS dependencies
+ *
+ * This header exists to pull in some common system headers that
+ * most code in QEMU will want, and to fix up some possible issues with
+ * it (missing defines, Windows weirdness, and so on).
+ *
+ * To avoid getting into possible circular include dependencies, this
+ * file should not include any other QEMU headers, with the exceptions
+ * of config-host.h, compiler.h, os-posix.h and os-win32.h, all of which
+ * are doing a similar job to this file and are under similar constraints.
+ *
+ * This header also contains prototypes for functions defined in
+ * os-*.c and util/oslib-*.c; those would probably be better split
+ * out into separate header files.
+ *
+ * In an ideal world this header would contain only:
+ *  (1) things which everybody needs
+ *  (2) things without which code would work on most platforms but
+ *      fail to compile or misbehave on a minority of host OSes
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ */
 #ifndef QEMU_OSDEP_H
 #define QEMU_OSDEP_H
 
 #include "config-host.h"
+#include "qemu/compiler.h"
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <strings.h>
+#include <inttypes.h>
+#include <limits.h>
+#include <time.h>
+#include <ctype.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <assert.h>
+#include <signal.h>
+
 #ifdef __OpenBSD__
 #include <sys/signal.h>
 #endif
@@ -18,7 +59,13 @@
 #define WEXITSTATUS(x) (x)
 #endif
 
-#include <sys/time.h>
+#ifdef _WIN32
+#include "sysemu/os-win32.h"
+#endif
+
+#ifdef CONFIG_POSIX
+#include "sysemu/os-posix.h"
+#endif
 
 #if defined(CONFIG_SOLARIS) && CONFIG_SOLARIS_VERSION < 10
 /* [u]int_fast*_t not in <sys/int_types.h> */
@@ -27,40 +74,30 @@ typedef unsigned int            uint_fast16_t;
 typedef signed int              int_fast16_t;
 #endif
 
-#ifndef glue
-#define xglue(x, y) x ## y
-#define glue(x, y) xglue(x, y)
-#define stringify(s)	tostring(s)
-#define tostring(s)	#s
+#ifndef O_LARGEFILE
+#define O_LARGEFILE 0
 #endif
-
-#ifndef likely
-#if __GNUC__ < 3
-#define __builtin_expect(x, n) (x)
+#ifndef O_BINARY
+#define O_BINARY 0
 #endif
-
-#define likely(x)   __builtin_expect(!!(x), 1)
-#define unlikely(x)   __builtin_expect(!!(x), 0)
+#ifndef MAP_ANONYMOUS
+#define MAP_ANONYMOUS MAP_ANON
 #endif
-
-#ifndef container_of
-#define container_of(ptr, type, member) ({                      \
-        const typeof(((type *) 0)->member) *__mptr = (ptr);     \
-        (type *) ((char *) __mptr - offsetof(type, member));})
+#ifndef ENOMEDIUM
+#define ENOMEDIUM ENODEV
 #endif
-
-/* Convert from a base type to a parent type, with compile time checking.  */
-#ifdef __GNUC__
-#define DO_UPCAST(type, field, dev) ( __extension__ ( { \
-    char __attribute__((unused)) offset_must_be_zero[ \
-        -offsetof(type, field)]; \
-    container_of(dev, type, field);}))
-#else
-#define DO_UPCAST(type, field, dev) container_of(dev, type, field)
+#if !defined(ENOTSUP)
+#define ENOTSUP 4096
 #endif
-
-#define typeof_field(type, field) typeof(((type *)0)->field)
-#define type_check(t1,t2) ((t1*)0 - (t2*)0)
+#if !defined(ECANCELED)
+#define ECANCELED 4097
+#endif
+#if !defined(EMEDIUMTYPE)
+#define EMEDIUMTYPE 4098
+#endif
+#ifndef TIME_MAX
+#define TIME_MAX LONG_MAX
+#endif
 
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -86,20 +123,6 @@ typedef signed int              int_fast16_t;
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
 #endif
-
-#ifndef always_inline
-#if !((__GNUC__ < 3) || defined(__APPLE__))
-#ifdef __OPTIMIZE__
-#undef inline
-#define inline __attribute__ (( always_inline )) __inline__
-#endif
-#endif
-#else
-#undef inline
-#define inline always_inline
-#endif
-
-#define qemu_printf printf
 
 int qemu_daemon(int nochdir, int noclose);
 void *qemu_try_memalign(size_t alignment, size_t size);

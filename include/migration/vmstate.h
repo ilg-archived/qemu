@@ -75,9 +75,6 @@ int register_savevm_live(DeviceState *dev,
                          void *opaque);
 
 void unregister_savevm(DeviceState *dev, const char *idstr, void *opaque);
-void register_device_unmigratable(DeviceState *dev, const char *idstr,
-                                                                void *opaque);
-
 
 typedef struct VMStateInfo VMStateInfo;
 typedef struct VMStateDescription VMStateDescription;
@@ -500,9 +497,10 @@ extern const VMStateInfo vmstate_info_bitmap;
     .start        = (_start),                                        \
 }
 
-#define VMSTATE_BUFFER_UNSAFE_INFO(_field, _state, _version, _info, _size) { \
+#define VMSTATE_BUFFER_UNSAFE_INFO_TEST(_field, _state, _test, _version, _info, _size) { \
     .name       = (stringify(_field)),                               \
     .version_id = (_version),                                        \
+    .field_exists = (_test),                                         \
     .size       = (_size),                                           \
     .info       = &(_info),                                          \
     .flags      = VMS_BUFFER,                                        \
@@ -561,6 +559,10 @@ extern const VMStateInfo vmstate_info_bitmap;
 #define VMSTATE_STRUCT_ARRAY(_field, _state, _num, _version, _vmsd, _type) \
     VMSTATE_STRUCT_ARRAY_TEST(_field, _state, _num, NULL, _version,   \
             _vmsd, _type)
+
+#define VMSTATE_BUFFER_UNSAFE_INFO(_field, _state, _version, _info, _size) \
+    VMSTATE_BUFFER_UNSAFE_INFO_TEST(_field, _state, NULL, _version, _info, \
+            _size)
 
 #define VMSTATE_BOOL_V(_f, _s, _v)                                    \
     VMSTATE_SINGLE(_f, _s, _v, vmstate_info_bool, bool)
@@ -814,6 +816,8 @@ int vmstate_load_state(QEMUFile *f, const VMStateDescription *vmsd,
                        void *opaque, int version_id);
 void vmstate_save_state(QEMUFile *f, const VMStateDescription *vmsd,
                         void *opaque, QJSON *vmdesc);
+
+bool vmstate_save_needed(const VMStateDescription *vmsd, void *opaque);
 
 int vmstate_register_with_alias_id(DeviceState *dev, int instance_id,
                                    const VMStateDescription *vmsd,

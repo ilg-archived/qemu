@@ -31,10 +31,14 @@ void xen_pt_log(const PCIDevice *d, const char *f, ...) GCC_FMT_ATTR(2, 3);
 /* Helper */
 #define XEN_PFN(x) ((x) >> XC_PAGE_SHIFT)
 
-typedef struct XenPTRegInfo XenPTRegInfo;
+typedef const struct XenPTRegInfo XenPTRegInfo;
 typedef struct XenPTReg XenPTReg;
 
 typedef struct XenPCIPassthroughState XenPCIPassthroughState;
+
+#define TYPE_XEN_PT_DEVICE "xen-pci-passthrough"
+#define XEN_PT_DEVICE(obj) \
+    OBJECT_CHECK(XenPCIPassthroughState, (obj), TYPE_XEN_PT_DEVICE)
 
 /* function type for config reg */
 typedef int (*xen_pt_conf_reg_init)
@@ -133,11 +137,11 @@ struct XenPTReg {
     uint32_t data; /* emulated value */
 };
 
-typedef struct XenPTRegGroupInfo XenPTRegGroupInfo;
+typedef const struct XenPTRegGroupInfo XenPTRegGroupInfo;
 
 /* emul reg group size initialize method */
 typedef int (*xen_pt_reg_size_init_fn)
-    (XenPCIPassthroughState *, const XenPTRegGroupInfo *,
+    (XenPCIPassthroughState *, XenPTRegGroupInfo *,
      uint32_t base_offset, uint8_t *size);
 
 /* emulated register group information */
@@ -152,7 +156,7 @@ struct XenPTRegGroupInfo {
 /* emul register group management table */
 typedef struct XenPTRegGroup {
     QLIST_ENTRY(XenPTRegGroup) entries;
-    const XenPTRegGroupInfo *reg_grp;
+    XenPTRegGroupInfo *reg_grp;
     uint32_t base_offset;
     uint8_t size;
     QLIST_HEAD(, XenPTReg) reg_tbl_list;

@@ -286,6 +286,17 @@ static const char *cpuid_xsave_feature_name[] = {
     NULL, NULL, NULL, NULL,
 };
 
+static const char *cpuid_6_feature_name[] = {
+    NULL, NULL, "arat", NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+};
+
 #define I486_FEATURES (CPUID_FP87 | CPUID_VME | CPUID_PSE)
 #define PENTIUM_FEATURES (I486_FEATURES | CPUID_DE | CPUID_TSC | \
           CPUID_MSR | CPUID_MCE | CPUID_CX8 | CPUID_MMX | CPUID_APIC)
@@ -341,6 +352,7 @@ static const char *cpuid_xsave_feature_name[] = {
           CPUID_7_0_EBX_ERMS, CPUID_7_0_EBX_INVPCID, CPUID_7_0_EBX_RTM,
           CPUID_7_0_EBX_RDSEED */
 #define TCG_APM_FEATURES 0
+#define TCG_6_EAX_FEATURES CPUID_6_EAX_ARAT
 
 
 typedef struct FeatureWordInfo {
@@ -409,6 +421,11 @@ static FeatureWordInfo feature_word_info[FEATURE_WORDS] = {
         .cpuid_needs_ecx = true, .cpuid_ecx = 1,
         .cpuid_reg = R_EAX,
         .tcg_features = 0,
+    },
+    [FEAT_6_EAX] = {
+        .feat_names = cpuid_6_feature_name,
+        .cpuid_eax = 6, .cpuid_reg = R_EAX,
+        .tcg_features = TCG_6_EAX_FEATURES,
     },
 };
 
@@ -678,7 +695,7 @@ struct X86CPUDefinition {
 static X86CPUDefinition builtin_x86_defs[] = {
     {
         .name = "qemu64",
-        .level = 4,
+        .level = 0xd,
         .vendor = CPUID_VENDOR_AMD,
         .family = 6,
         .model = 6,
@@ -754,7 +771,7 @@ static X86CPUDefinition builtin_x86_defs[] = {
     },
     {
         .name = "kvm64",
-        .level = 5,
+        .level = 0xd,
         .vendor = CPUID_VENDOR_INTEL,
         .family = 15,
         .model = 6,
@@ -865,7 +882,7 @@ static X86CPUDefinition builtin_x86_defs[] = {
     },
     {
         .name = "pentium3",
-        .level = 2,
+        .level = 3,
         .vendor = CPUID_VENDOR_INTEL,
         .family = 6,
         .model = 7,
@@ -890,8 +907,7 @@ static X86CPUDefinition builtin_x86_defs[] = {
     },
     {
         .name = "n270",
-        /* original is on level 10 */
-        .level = 5,
+        .level = 10,
         .vendor = CPUID_VENDOR_INTEL,
         .family = 6,
         .model = 28,
@@ -911,12 +927,12 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT2_NX,
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM,
-        .xlevel = 0x8000000A,
+        .xlevel = 0x80000008,
         .model_id = "Intel(R) Atom(TM) CPU N270   @ 1.60GHz",
     },
     {
         .name = "Conroe",
-        .level = 4,
+        .level = 10,
         .vendor = CPUID_VENDOR_INTEL,
         .family = 6,
         .model = 15,
@@ -933,12 +949,12 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT2_LM | CPUID_EXT2_NX | CPUID_EXT2_SYSCALL,
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM,
-        .xlevel = 0x8000000A,
+        .xlevel = 0x80000008,
         .model_id = "Intel Celeron_4x0 (Conroe/Merom Class Core 2)",
     },
     {
         .name = "Penryn",
-        .level = 4,
+        .level = 10,
         .vendor = CPUID_VENDOR_INTEL,
         .family = 6,
         .model = 23,
@@ -956,12 +972,12 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT2_LM | CPUID_EXT2_NX | CPUID_EXT2_SYSCALL,
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM,
-        .xlevel = 0x8000000A,
+        .xlevel = 0x80000008,
         .model_id = "Intel Core 2 Duo P9xxx (Penryn Class Core 2)",
     },
     {
         .name = "Nehalem",
-        .level = 4,
+        .level = 11,
         .vendor = CPUID_VENDOR_INTEL,
         .family = 6,
         .model = 26,
@@ -979,7 +995,7 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT2_LM | CPUID_EXT2_SYSCALL | CPUID_EXT2_NX,
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM,
-        .xlevel = 0x8000000A,
+        .xlevel = 0x80000008,
         .model_id = "Intel Core i7 9xx (Nehalem Class Core i7)",
     },
     {
@@ -1003,7 +1019,9 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT2_LM | CPUID_EXT2_SYSCALL | CPUID_EXT2_NX,
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM,
-        .xlevel = 0x8000000A,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
         .model_id = "Westmere E56xx/L56xx/X56xx (Nehalem-C)",
     },
     {
@@ -1032,7 +1050,9 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT3_LAHF_LM,
         .features[FEAT_XSAVE] =
             CPUID_XSAVE_XSAVEOPT,
-        .xlevel = 0x8000000A,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
         .model_id = "Intel Xeon E312xx (Sandy Bridge)",
     },
     {
@@ -1064,7 +1084,9 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_EXT3_LAHF_LM,
         .features[FEAT_XSAVE] =
             CPUID_XSAVE_XSAVEOPT,
-        .xlevel = 0x8000000A,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
         .model_id = "Intel Xeon E3-12xx v2 (Ivy Bridge)",
     },
     {
@@ -1098,7 +1120,9 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_7_0_EBX_BMI2 | CPUID_7_0_EBX_ERMS | CPUID_7_0_EBX_INVPCID,
         .features[FEAT_XSAVE] =
             CPUID_XSAVE_XSAVEOPT,
-        .xlevel = 0x8000000A,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
         .model_id = "Intel Core Processor (Haswell, no TSX)",
     },    {
         .name = "Haswell",
@@ -1132,7 +1156,9 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_7_0_EBX_RTM,
         .features[FEAT_XSAVE] =
             CPUID_XSAVE_XSAVEOPT,
-        .xlevel = 0x8000000A,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
         .model_id = "Intel Core Processor (Haswell)",
     },
     {
@@ -1168,7 +1194,9 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_7_0_EBX_SMAP,
         .features[FEAT_XSAVE] =
             CPUID_XSAVE_XSAVEOPT,
-        .xlevel = 0x8000000A,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
         .model_id = "Intel Core Processor (Broadwell, no TSX)",
     },
     {
@@ -1204,7 +1232,9 @@ static X86CPUDefinition builtin_x86_defs[] = {
             CPUID_7_0_EBX_SMAP,
         .features[FEAT_XSAVE] =
             CPUID_XSAVE_XSAVEOPT,
-        .xlevel = 0x8000000A,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
         .model_id = "Intel Core Processor (Broadwell)",
     },
     {
@@ -1361,32 +1391,6 @@ static X86CPUDefinition builtin_x86_defs[] = {
         .model_id = "AMD Opteron 63xx class CPU",
     },
 };
-
-/**
- * x86_cpu_compat_set_features:
- * @cpu_model: CPU model name to be changed. If NULL, all CPU models are changed
- * @w: Identifies the feature word to be changed.
- * @feat_add: Feature bits to be added to feature word
- * @feat_remove: Feature bits to be removed from feature word
- *
- * Change CPU model feature bits for compatibility.
- *
- * This function may be used by machine-type compatibility functions
- * to enable or disable feature bits on specific CPU models.
- */
-void x86_cpu_compat_set_features(const char *cpu_model, FeatureWord w,
-                                 uint32_t feat_add, uint32_t feat_remove)
-{
-    X86CPUDefinition *def;
-    int i;
-    for (i = 0; i < ARRAY_SIZE(builtin_x86_defs); i++) {
-        def = &builtin_x86_defs[i];
-        if (!cpu_model || !strcmp(cpu_model, def->name)) {
-            def->features[w] |= feat_add;
-            def->features[w] &= ~feat_remove;
-        }
-    }
-}
 
 static uint32_t x86_cpu_get_supported_feature_word(FeatureWord w,
                                                    bool migratable_only);
@@ -2359,7 +2363,7 @@ void cpu_x86_cpuid(CPUX86State *env, uint32_t index, uint32_t count,
         break;
     case 6:
         /* Thermal and Power Leaf */
-        *eax = 0;
+        *eax = env->features[FEAT_6_EAX];
         *ebx = 0;
         *ecx = 0;
         *edx = 0;
@@ -2990,7 +2994,7 @@ static void x86_cpu_register_feature_bit_props(X86CPU *cpu,
 
     for (i = 1; names[i]; i++) {
         feat2prop(names[i]);
-        object_property_add_alias(obj, names[i], obj, g_strdup(names[0]),
+        object_property_add_alias(obj, names[i], obj, names[0],
                                   &error_abort);
     }
 
@@ -3007,7 +3011,7 @@ static void x86_cpu_initfn(Object *obj)
     static int inited;
 
     cs->env_ptr = env;
-    cpu_exec_init(env);
+    cpu_exec_init(cs, &error_abort);
 
     object_property_add(obj, "family", "int",
                         x86_cpuid_version_get_family,

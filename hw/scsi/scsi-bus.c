@@ -136,7 +136,8 @@ static void scsi_dma_restart_cb(void *opaque, int running, RunState state)
         return;
     }
     if (!s->bh) {
-        s->bh = qemu_bh_new(scsi_dma_restart_bh, s);
+        AioContext *ctx = blk_get_aio_context(s->conf.blk);
+        s->bh = aio_bh_new(ctx, scsi_dma_restart_bh, s);
         qemu_bh_schedule(s->bh);
     }
 }
@@ -1239,10 +1240,15 @@ int scsi_cdb_length(uint8_t *buf) {
 int scsi_req_parse_cdb(SCSIDevice *dev, SCSICommand *cmd, uint8_t *buf)
 {
     int rc;
+    int len;
 
     cmd->lba = -1;
-    cmd->len = scsi_cdb_length(buf);
+    len = scsi_cdb_length(buf);
+    if (len < 0) {
+        return -1;
+    }
 
+    cmd->len = len;
     switch (dev->type) {
     case TYPE_TAPE:
         rc = scsi_req_stream_xfer(cmd, dev, buf);

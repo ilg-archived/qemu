@@ -337,6 +337,12 @@ static bool check_throttle_config(ThrottleConfig *cfg, Error **errp)
         return false;
     }
 
+    if (throttle_max_is_missing_limit(cfg)) {
+        error_setg(errp, "bps_max/iops_max require corresponding"
+                         " bps/iops values");
+        return false;
+    }
+
     return true;
 }
 
@@ -2167,9 +2173,6 @@ void hmp_drive_del(Monitor *mon, const QDict *qdict)
         return;
     }
 
-    /* quiesce block driver; prevent further io */
-    bdrv_drain_all();
-    bdrv_flush(bs);
     bdrv_close(bs);
 
     /* if we have a device attached to this BlockDriverState
@@ -2382,9 +2385,6 @@ void qmp_block_commit(const char *device,
 
     aio_context = bdrv_get_aio_context(bs);
     aio_context_acquire(aio_context);
-
-    /* drain all i/o before commits */
-    bdrv_drain_all();
 
     if (bdrv_op_is_blocked(bs, BLOCK_OP_TYPE_COMMIT_SOURCE, errp)) {
         goto out;
@@ -2645,8 +2645,6 @@ out:
     aio_context_release(aio_context);
 }
 
-#define DEFAULT_MIRROR_BUF_SIZE   (10 << 20)
-
 void qmp_drive_mirror(const char *device, const char *target,
                       bool has_format, const char *format,
                       bool has_node_name, const char *node_name,
@@ -2658,6 +2656,7 @@ void qmp_drive_mirror(const char *device, const char *target,
                       bool has_buf_size, int64_t buf_size,
                       bool has_on_source_error, BlockdevOnError on_source_error,
                       bool has_on_target_error, BlockdevOnError on_target_error,
+                      bool has_unmap, bool unmap,
                       Error **errp)
 {
     BlockBackend *blk;
@@ -2687,7 +2686,10 @@ void qmp_drive_mirror(const char *device, const char *target,
         granularity = 0;
     }
     if (!has_buf_size) {
-        buf_size = DEFAULT_MIRROR_BUF_SIZE;
+        buf_size = 0;
+    }
+    if (!has_unmap) {
+        unmap = true;
     }
 
     if (granularity != 0 && (granularity < 512 || granularity > 1048576 * 64)) {
@@ -2830,6 +2832,7 @@ void qmp_drive_mirror(const char *device, const char *target,
                  has_replaces ? replaces : NULL,
                  speed, granularity, buf_size, sync,
                  on_source_error, on_target_error,
+                 unmap,
                  block_job_cb, bs, &local_err);
     if (local_err != NULL) {
         bdrv_unref(target_bs);

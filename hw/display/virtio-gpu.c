@@ -89,7 +89,8 @@ static void virtio_gpu_set_config(VirtIODevice *vdev, const uint8_t *config)
     }
 }
 
-static uint64_t virtio_gpu_get_features(VirtIODevice *vdev, uint64_t features)
+static uint64_t virtio_gpu_get_features(VirtIODevice *vdev, uint64_t features,
+                                        Error **errp)
 {
     return features;
 }
@@ -871,7 +872,7 @@ static void virtio_gpu_reset(VirtIODevice *vdev)
 }
 
 static Property virtio_gpu_properties[] = {
-    DEFINE_VIRTIO_GPU_PROPERTIES(VirtIOGPU, conf),
+    DEFINE_PROP_UINT32("max_outputs", VirtIOGPU, conf.max_outputs, 1),
     DEFINE_PROP_END_OF_LIST(),
 };
 

@@ -88,7 +88,7 @@ void QEMU_NORETURN cpu_io_recompile(CPUState *cpu, uintptr_t retaddr);
 TranslationBlock *tb_gen_code(CPUState *cpu,
                               target_ulong pc, target_ulong cs_base, int flags,
                               int cflags);
-void cpu_exec_init(CPUArchState *env);
+void cpu_exec_init(CPUState *cpu, Error **errp);
 void QEMU_NORETURN cpu_loop_exit(CPUState *cpu);
 
 #if !defined(CONFIG_USER_ONLY)
@@ -155,6 +155,8 @@ struct TranslationBlock {
     void *tc_ptr;    /* pointer to the translated code */
     /* next matching tb for physical address. */
     struct TranslationBlock *phys_hash_next;
+    /* original tb when cflags has CF_NOCACHE */
+    struct TranslationBlock *orig_tb;
     /* first and second physical page containing code. The lower bit
        of the pointer tells the index in page_next[] */
     struct TranslationBlock *page_next[2];
@@ -195,28 +197,8 @@ struct TBContext {
     int tb_invalidated_flag;
 };
 
-static inline unsigned int tb_jmp_cache_hash_page(target_ulong pc)
-{
-    target_ulong tmp;
-    tmp = pc ^ (pc >> (TARGET_PAGE_BITS - TB_JMP_PAGE_BITS));
-    return (tmp >> (TARGET_PAGE_BITS - TB_JMP_PAGE_BITS)) & TB_JMP_PAGE_MASK;
-}
-
-static inline unsigned int tb_jmp_cache_hash_func(target_ulong pc)
-{
-    target_ulong tmp;
-    tmp = pc ^ (pc >> (TARGET_PAGE_BITS - TB_JMP_PAGE_BITS));
-    return (((tmp >> (TARGET_PAGE_BITS - TB_JMP_PAGE_BITS)) & TB_JMP_PAGE_MASK)
-	    | (tmp & TB_JMP_ADDR_MASK));
-}
-
-static inline unsigned int tb_phys_hash_func(tb_page_addr_t pc)
-{
-    return (pc >> 2) & (CODE_GEN_PHYS_HASH_SIZE - 1);
-}
-
 void tb_free(TranslationBlock *tb);
-void tb_flush(CPUArchState *env);
+void tb_flush(CPUState *cpu);
 void tb_phys_invalidate(TranslationBlock *tb, tb_page_addr_t page_addr);
 
 #if defined(USE_DIRECT_JUMP)
@@ -364,25 +346,7 @@ extern int singlestep;
 /* cpu-exec.c */
 extern volatile sig_atomic_t exit_request;
 
-/**
- * cpu_can_do_io:
- * @cpu: The CPU for which to check IO.
- *
- * Deterministic execution requires that IO only be performed on the last
- * instruction of a TB so that interrupts take effect immediately.
- *
- * Returns: %true if memory-mapped IO is safe, %false otherwise.
- */
-static inline bool cpu_can_do_io(CPUState *cpu)
-{
-    if (!use_icount) {
-        return true;
-    }
-    /* If not executing code then assume we are ok.  */
-    if (cpu->current_tb == NULL) {
-        return true;
-    }
-    return cpu->can_do_io != 0;
-}
-
+#if !defined(CONFIG_USER_ONLY)
+void migration_bitmap_extend(ram_addr_t old, ram_addr_t new);
+#endif
 #endif

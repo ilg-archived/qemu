@@ -12,6 +12,7 @@
 /* block.c */
 typedef struct BlockDriver BlockDriver;
 typedef struct BlockJob BlockJob;
+typedef struct BdrvChild BdrvChild;
 typedef struct BdrvChildRole BdrvChildRole;
 
 typedef struct BlockDriverInfo {
@@ -208,6 +209,11 @@ int bdrv_open_image(BlockDriverState **pbs, const char *filename,
                     QDict *options, const char *bdref_key,
                     BlockDriverState* parent, const BdrvChildRole *child_role,
                     bool allow_none, Error **errp);
+BdrvChild *bdrv_open_child(const char *filename,
+                           QDict *options, const char *bdref_key,
+                           BlockDriverState* parent,
+                           const BdrvChildRole *child_role,
+                           bool allow_none, Error **errp);
 void bdrv_set_backing_hd(BlockDriverState *bs, BlockDriverState *backing_hd);
 int bdrv_open_backing_file(BlockDriverState *bs, QDict *options, Error **errp);
 int bdrv_append_temp_snapshot(BlockDriverState *bs, int flags, Error **errp);
@@ -372,6 +378,10 @@ bool bdrv_unallocated_blocks_are_zero(BlockDriverState *bs);
 bool bdrv_can_write_zeroes_with_unmap(BlockDriverState *bs);
 int64_t bdrv_get_block_status(BlockDriverState *bs, int64_t sector_num,
                               int nb_sectors, int *pnum);
+int64_t bdrv_get_block_status_above(BlockDriverState *bs,
+                                    BlockDriverState *base,
+                                    int64_t sector_num,
+                                    int nb_sectors, int *pnum);
 int bdrv_is_allocated(BlockDriverState *bs, int64_t sector_num, int nb_sectors,
                       int *pnum);
 int bdrv_is_allocated_above(BlockDriverState *top, BlockDriverState *base,
@@ -503,6 +513,7 @@ void bdrv_disable_copy_on_read(BlockDriverState *bs);
 
 void bdrv_ref(BlockDriverState *bs);
 void bdrv_unref(BlockDriverState *bs);
+void bdrv_unref_child(BlockDriverState *parent, BdrvChild *child);
 
 bool bdrv_op_is_blocked(BlockDriverState *bs, BlockOpType op, Error **errp);
 void bdrv_op_block(BlockDriverState *bs, BlockOpType op, Error *reason);

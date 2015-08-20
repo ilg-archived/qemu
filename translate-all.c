@@ -58,6 +58,7 @@
 #endif
 
 #include "exec/cputlb.h"
+#include "exec/tb-hash.h"
 #include "translate-all.h"
 #include "qemu/bitmap.h"
 #include "qemu/timer.h"
@@ -117,6 +118,7 @@ typedef struct PageDesc {
 #define V_L1_SHIFT (L1_MAP_ADDR_SPACE_BITS - TARGET_PAGE_BITS - V_L1_BITS)
 
 uintptr_t qemu_real_host_page_size;
+uintptr_t qemu_real_host_page_mask;
 uintptr_t qemu_host_page_size;
 uintptr_t qemu_host_page_mask;
 
@@ -220,6 +222,7 @@ static int cpu_restore_state_from_tb(CPUState *cpu, TranslationBlock *tb,
     gen_intermediate_code_pc(env, tb);
 
     if (tb->cflags & CF_USE_ICOUNT) {
+        assert(use_icount);
         /* Reset the cycle counter to the start of the block.  */
         cpu->icount_decr.u16.low += tb->icount;
         /* Clear the IO flag.  */
@@ -306,6 +309,7 @@ void page_size_init(void)
     /* NOTE: we can always suppose that qemu_host_page_size >=
        TARGET_PAGE_SIZE */
     qemu_real_host_page_size = getpagesize();
+    qemu_real_host_page_mask = ~(qemu_real_host_page_size - 1);
     if (qemu_host_page_size == 0) {
         qemu_host_page_size = qemu_real_host_page_size;
     }
@@ -769,10 +773,8 @@ static void page_flush_tb(void)
 
 /* flush all the translation blocks */
 /* XXX: tb_flush is currently not thread safe */
-void tb_flush(CPUArchState *env1)
+void tb_flush(CPUState *cpu)
 {
-    CPUState *cpu = ENV_GET_CPU(env1);
-
 #if defined(DEBUG_FLUSH)
     printf("qemu: flush code_size=%ld nb_tbs=%d avg_tb_size=%ld\n",
            (unsigned long)(tcg_ctx.code_gen_ptr - tcg_ctx.code_gen_buffer),
@@ -1011,7 +1013,7 @@ TranslationBlock *tb_gen_code(CPUState *cpu,
     tb = tb_alloc(pc);
     if (!tb) {
         /* flush must be done */
-        tb_flush(env);
+        tb_flush(cpu);
         /* cannot fail at this point */
         tb = tb_alloc(pc);
         /* Don't forget to invalidate previous TB info.  */
@@ -1469,7 +1471,7 @@ static void tcg_handle_interrupt(CPUState *cpu, int mask)
 
     if (use_icount) {
         cpu->icount_decr.u16.high = 0xffff;
-        if (!cpu_can_do_io(cpu)
+        if (!cpu->can_do_io
             && (mask & ~old_mask) != 0) {
             cpu_abort(cpu, "Raised interrupt while not in I/O function");
         }
@@ -1532,6 +1534,14 @@ void cpu_io_recompile(CPUState *cpu, uintptr_t retaddr)
     cs_base = tb->cs_base;
     flags = tb->flags;
     tb_phys_invalidate(tb, -1);
+    if (tb->cflags & CF_NOCACHE) {
+        if (tb->orig_tb) {
+            /* Invalidate original TB if this TB was generated in
+             * cpu_exec_nocache() */
+            tb_phys_invalidate(tb->orig_tb, -1);
+        }
+        tb_free(tb);
+    }
     /* FIXME: In theory this could raise an exception.  In practice
        we have already translated the block once so it's probably ok.  */
     tb_gen_code(cpu, pc, cs_base, flags, cflags);

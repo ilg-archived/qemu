@@ -80,6 +80,27 @@ static void cp_reg_reset(gpointer key, gpointer value, gpointer opaque)
     }
 }
 
+static void cp_reg_check_reset(gpointer key, gpointer value,  gpointer opaque)
+{
+    /* Purely an assertion check: we've already done reset once,
+     * so now check that running the reset for the cpreg doesn't
+     * change its value. This traps bugs where two different cpregs
+     * both try to reset the same state field but to different values.
+     */
+    ARMCPRegInfo *ri = value;
+    ARMCPU *cpu = opaque;
+    uint64_t oldvalue, newvalue;
+
+    if (ri->type & (ARM_CP_SPECIAL | ARM_CP_ALIAS | ARM_CP_NO_RAW)) {
+        return;
+    }
+
+    oldvalue = read_raw_cp_reg(&cpu->env, ri);
+    cp_reg_reset(key, value, opaque);
+    newvalue = read_raw_cp_reg(&cpu->env, ri);
+    assert(oldvalue == newvalue);
+}
+
 /* CPUClass::reset() */
 static void arm_cpu_reset(CPUState *s)
 {
@@ -91,6 +112,8 @@ static void arm_cpu_reset(CPUState *s)
 
     memset(env, 0, offsetof(CPUARMState, features));
     g_hash_table_foreach(cpu->cp_regs, cp_reg_reset, cpu);
+    g_hash_table_foreach(cpu->cp_regs, cp_reg_check_reset, cpu);
+
     env->vfp.xregs[ARM_VFP_FPSID] = cpu->reset_fpsid;
     env->vfp.xregs[ARM_VFP_MVFR0] = cpu->mvfr0;
     env->vfp.xregs[ARM_VFP_MVFR1] = cpu->mvfr1;
@@ -397,6 +420,39 @@ static inline void unset_feature(CPUARMState *env, int feature)
     env->features &= ~(1ULL << feature);
 }
 
+static int
+print_insn_thumb1(bfd_vma pc, disassemble_info *info)
+{
+  return print_insn_arm(pc | 1, info);
+}
+
+static void arm_disas_set_info(CPUState *cpu, disassemble_info *info)
+{
+    ARMCPU *ac = ARM_CPU(cpu);
+    CPUARMState *env = &ac->env;
+
+    if (is_a64(env)) {
+        /* We might not be compiled with the A64 disassembler
+         * because it needs a C++ compiler. Leave print_insn
+         * unset in this case to use the caller default behaviour.
+         */
+#if defined(CONFIG_ARM_A64_DIS)
+        info->print_insn = print_insn_arm_a64;
+#endif
+    } else if (env->thumb) {
+        info->print_insn = print_insn_thumb1;
+    } else {
+        info->print_insn = print_insn_arm;
+    }
+    if (env->bswap_code) {
+#ifdef TARGET_WORDS_BIGENDIAN
+        info->endian = BFD_ENDIAN_LITTLE;
+#else
+        info->endian = BFD_ENDIAN_BIG;
+#endif
+    }
+}
+
 #define ARM_CPUS_PER_CLUSTER 8
 
 static void arm_cpu_initfn(Object *obj)
@@ -407,7 +463,7 @@ static void arm_cpu_initfn(Object *obj)
     uint32_t Aff1, Aff0;
 
     cs->env_ptr = &cpu->env;
-    cpu_exec_init(&cpu->env);
+    cpu_exec_init(cs, &error_abort);
     cpu->cp_regs = g_hash_table_new_full(g_int_hash, g_int_equal,
                                          g_free, g_free);
 
@@ -435,6 +491,10 @@ static void arm_cpu_initfn(Object *obj)
                                                 arm_gt_ptimer_cb, cpu);
     cpu->gt_timer[GTIMER_VIRT] = timer_new(QEMU_CLOCK_VIRTUAL, GTIMER_SCALE,
                                                 arm_gt_vtimer_cb, cpu);
+    cpu->gt_timer[GTIMER_HYP] = timer_new(QEMU_CLOCK_VIRTUAL, GTIMER_SCALE,
+                                                arm_gt_htimer_cb, cpu);
+    cpu->gt_timer[GTIMER_SEC] = timer_new(QEMU_CLOCK_VIRTUAL, GTIMER_SCALE,
+                                                arm_gt_stimer_cb, cpu);
     qdev_init_gpio_out(DEVICE(cpu), cpu->gt_timer_outputs,
                        ARRAY_SIZE(cpu->gt_timer_outputs));
 #endif
@@ -1458,6 +1518,8 @@ static void arm_cpu_class_init(ObjectClass *oc, void *data)
     cc->gdb_core_xml_file = "arm-core.xml";
     cc->gdb_stop_before_watchpoint = true;
     cc->debug_excp_handler = arm_debug_excp_handler;
+
+    cc->disas_set_info = arm_disas_set_info;
 }
 
 static void cpu_register(const ARMCPUInfo *info)

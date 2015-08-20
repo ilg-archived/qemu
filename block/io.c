@@ -233,31 +233,25 @@ static bool bdrv_requests_pending(BlockDriverState *bs)
     return false;
 }
 
-static bool bdrv_drain_one(BlockDriverState *bs)
-{
-    bool bs_busy;
-
-    bdrv_flush_io_queue(bs);
-    bdrv_start_throttled_reqs(bs);
-    bs_busy = bdrv_requests_pending(bs);
-    bs_busy |= aio_poll(bdrv_get_aio_context(bs), bs_busy);
-    return bs_busy;
-}
-
 /*
  * Wait for pending requests to complete on a single BlockDriverState subtree
  *
- * See the warning in bdrv_drain_all().  This function can only be called if
- * you are sure nothing can generate I/O because you have op blockers
- * installed.
- *
  * Note that unlike bdrv_drain_all(), the caller must hold the BlockDriverState
  * AioContext.
+ *
+ * Only this BlockDriverState's AioContext is run, so in-flight requests must
+ * not depend on events in other AioContexts.  In that case, use
+ * bdrv_drain_all() instead.
  */
 void bdrv_drain(BlockDriverState *bs)
 {
-    while (bdrv_drain_one(bs)) {
+    bool busy = true;
+
+    while (busy) {
         /* Keep iterating */
+         bdrv_flush_io_queue(bs);
+         busy = bdrv_requests_pending(bs);
+         busy |= aio_poll(bdrv_get_aio_context(bs), busy);
     }
 }
 
@@ -266,18 +260,13 @@ void bdrv_drain(BlockDriverState *bs)
  *
  * This function does not flush data to disk, use bdrv_flush_all() for that
  * after calling this function.
- *
- * Note that completion of an asynchronous I/O operation can trigger any
- * number of other I/O operations on other devices---for example a coroutine
- * can be arbitrarily complex and a constant flow of I/O can come until the
- * coroutine is complete.  Because of this, it is not possible to have a
- * function to drain a single device's I/O queue.
  */
 void bdrv_drain_all(void)
 {
     /* Always run first iteration so any pending completion BHs run */
     bool busy = true;
     BlockDriverState *bs = NULL;
+    GSList *aio_ctxs = NULL, *ctx;
 
     while ((bs = bdrv_next(bs))) {
         AioContext *aio_context = bdrv_get_aio_context(bs);
@@ -287,17 +276,36 @@ void bdrv_drain_all(void)
             block_job_pause(bs->job);
         }
         aio_context_release(aio_context);
+
+        if (!g_slist_find(aio_ctxs, aio_context)) {
+            aio_ctxs = g_slist_prepend(aio_ctxs, aio_context);
+        }
     }
 
+    /* Note that completion of an asynchronous I/O operation can trigger any
+     * number of other I/O operations on other devices---for example a
+     * coroutine can submit an I/O request to another device in response to
+     * request completion.  Therefore we must keep looping until there was no
+     * more activity rather than simply draining each device independently.
+     */
     while (busy) {
         busy = false;
-        bs = NULL;
 
-        while ((bs = bdrv_next(bs))) {
-            AioContext *aio_context = bdrv_get_aio_context(bs);
+        for (ctx = aio_ctxs; ctx != NULL; ctx = ctx->next) {
+            AioContext *aio_context = ctx->data;
+            bs = NULL;
 
             aio_context_acquire(aio_context);
-            busy |= bdrv_drain_one(bs);
+            while ((bs = bdrv_next(bs))) {
+                if (aio_context == bdrv_get_aio_context(bs)) {
+                    bdrv_flush_io_queue(bs);
+                    if (bdrv_requests_pending(bs)) {
+                        busy = true;
+                        aio_poll(aio_context, busy);
+                    }
+                }
+            }
+            busy |= aio_poll(aio_context, false);
             aio_context_release(aio_context);
         }
     }
@@ -312,6 +320,7 @@ void bdrv_drain_all(void)
         }
         aio_context_release(aio_context);
     }
+    g_slist_free(aio_ctxs);
 }
 
 /**
@@ -1522,28 +1531,54 @@ static int64_t coroutine_fn bdrv_co_get_block_status(BlockDriverState *bs,
     return ret;
 }
 
-/* Coroutine wrapper for bdrv_get_block_status() */
-static void coroutine_fn bdrv_get_block_status_co_entry(void *opaque)
+static int64_t coroutine_fn bdrv_co_get_block_status_above(BlockDriverState *bs,
+        BlockDriverState *base,
+        int64_t sector_num,
+        int nb_sectors,
+        int *pnum)
+{
+    BlockDriverState *p;
+    int64_t ret = 0;
+
+    assert(bs != base);
+    for (p = bs; p != base; p = p->backing_hd) {
+        ret = bdrv_co_get_block_status(p, sector_num, nb_sectors, pnum);
+        if (ret < 0 || ret & BDRV_BLOCK_ALLOCATED) {
+            break;
+        }
+        /* [sector_num, pnum] unallocated on this layer, which could be only
+         * the first part of [sector_num, nb_sectors].  */
+        nb_sectors = MIN(nb_sectors, *pnum);
+    }
+    return ret;
+}
+
+/* Coroutine wrapper for bdrv_get_block_status_above() */
+static void coroutine_fn bdrv_get_block_status_above_co_entry(void *opaque)
 {
     BdrvCoGetBlockStatusData *data = opaque;
-    BlockDriverState *bs = data->bs;
 
-    data->ret = bdrv_co_get_block_status(bs, data->sector_num, data->nb_sectors,
-                                         data->pnum);
+    data->ret = bdrv_co_get_block_status_above(data->bs, data->base,
+                                               data->sector_num,
+                                               data->nb_sectors,
+                                               data->pnum);
     data->done = true;
 }
 
 /*
- * Synchronous wrapper around bdrv_co_get_block_status().
+ * Synchronous wrapper around bdrv_co_get_block_status_above().
  *
- * See bdrv_co_get_block_status() for details.
+ * See bdrv_co_get_block_status_above() for details.
  */
-int64_t bdrv_get_block_status(BlockDriverState *bs, int64_t sector_num,
-                              int nb_sectors, int *pnum)
+int64_t bdrv_get_block_status_above(BlockDriverState *bs,
+                                    BlockDriverState *base,
+                                    int64_t sector_num,
+                                    int nb_sectors, int *pnum)
 {
     Coroutine *co;
     BdrvCoGetBlockStatusData data = {
         .bs = bs,
+        .base = base,
         .sector_num = sector_num,
         .nb_sectors = nb_sectors,
         .pnum = pnum,
@@ -1552,17 +1587,25 @@ int64_t bdrv_get_block_status(BlockDriverState *bs, int64_t sector_num,
 
     if (qemu_in_coroutine()) {
         /* Fast-path if already in coroutine context */
-        bdrv_get_block_status_co_entry(&data);
+        bdrv_get_block_status_above_co_entry(&data);
     } else {
         AioContext *aio_context = bdrv_get_aio_context(bs);
 
-        co = qemu_coroutine_create(bdrv_get_block_status_co_entry);
+        co = qemu_coroutine_create(bdrv_get_block_status_above_co_entry);
         qemu_coroutine_enter(co, &data);
         while (!data.done) {
             aio_poll(aio_context, true);
         }
     }
     return data.ret;
+}
+
+int64_t bdrv_get_block_status(BlockDriverState *bs,
+                              int64_t sector_num,
+                              int nb_sectors, int *pnum)
+{
+    return bdrv_get_block_status_above(bs, bs->backing_hd,
+                                       sector_num, nb_sectors, pnum);
 }
 
 int coroutine_fn bdrv_is_allocated(BlockDriverState *bs, int64_t sector_num,
@@ -2256,7 +2299,8 @@ int coroutine_fn bdrv_co_flush(BlockDriverState *bs)
 {
     int ret;
 
-    if (!bs || !bdrv_is_inserted(bs) || bdrv_is_read_only(bs)) {
+    if (!bs || !bdrv_is_inserted(bs) || bdrv_is_read_only(bs) ||
+        bdrv_is_sg(bs)) {
         return 0;
     }
 
@@ -2368,8 +2412,6 @@ int coroutine_fn bdrv_co_discard(BlockDriverState *bs, int64_t sector_num,
         return -EPERM;
     }
 
-    bdrv_reset_dirty(bs, sector_num, nb_sectors);
-
     /* Do nothing if disabled.  */
     if (!(bs->open_flags & BDRV_O_UNMAP)) {
         return 0;
@@ -2378,6 +2420,8 @@ int coroutine_fn bdrv_co_discard(BlockDriverState *bs, int64_t sector_num,
     if (!bs->drv->bdrv_co_discard && !bs->drv->bdrv_aio_discard) {
         return 0;
     }
+
+    bdrv_set_dirty(bs, sector_num, nb_sectors);
 
     max_discard = MIN_NON_ZERO(bs->bl.max_discard, BDRV_REQUEST_MAX_SECTORS);
     while (nb_sectors > 0) {
@@ -2562,4 +2606,5 @@ void bdrv_flush_io_queue(BlockDriverState *bs)
     } else if (bs->file) {
         bdrv_flush_io_queue(bs->file);
     }
+    bdrv_start_throttled_reqs(bs);
 }

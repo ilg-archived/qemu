@@ -644,7 +644,21 @@ M: Michael S. Tsirkin <mst@redhat.com>
 S: Supported
 F: include/hw/pci/*
 F: hw/pci/*
+
+ACPI/SMBIOS
+M: Michael S. Tsirkin <mst@redhat.com>
+M: Igor Mammedov <imammedo@redhat.com>
+S: Supported
+F: include/hw/acpi/*
+F: include/hw/smbios/*
+F: hw/mem/*
 F: hw/acpi/*
+F: hw/smbios/*
+F: hw/i386/acpi-build.[hc]
+F: hw/i386/*dsl
+F: hw/arm/virt-acpi-build.c
+F: include/hw/arm/virt-acpi-build.h
+F: scripts/acpi*py
 
 ppc4xx
 M: Alexander Graf <agraf@suse.de>
@@ -727,6 +741,12 @@ M: Christian Borntraeger <borntraeger@de.ibm.com>
 S: Supported
 F: hw/s390x/virtio-ccw.[hc]
 T: git git://github.com/cohuck/qemu virtio-ccw-upstr
+
+virtio-input
+M: Gerd Hoffmann <kraxel@redhat.com>
+S: Maintained
+F: hw/input/virtio-input*.c
+F: include/hw/virtio/virtio-input.h
 
 virtio-serial
 M: Amit Shah <amit.shah@redhat.com>
@@ -1034,6 +1054,13 @@ S: Supported
 F: qemu-seccomp.c
 F: include/sysemu/seccomp.h
 
+Cryptography
+M: Daniel P. Berrange <berrange@redhat.com>
+S: Maintained
+F: crypto/
+F: include/crypto/
+F: tests/test-crypto-*
+
 Usermode Emulation
 ------------------
 Overall
@@ -1144,7 +1171,7 @@ S: Supported
 F: block/vmdk.c
 
 RBD
-M: Josh Durgin <josh.durgin@inktank.com>
+M: Josh Durgin <jdurgin@redhat.com>
 M: Jeff Cody <jcody@redhat.com>
 L: qemu-block@nongnu.org
 S: Supported

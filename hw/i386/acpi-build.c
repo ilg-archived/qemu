@@ -169,6 +169,7 @@ static void acpi_get_pm_info(AcpiPmInfo *pm)
     Object *obj = NULL;
     QObject *o;
 
+    pm->cpu_hp_io_base = 0;
     pm->pcihp_io_base = 0;
     pm->pcihp_io_len = 0;
     if (piix) {
@@ -432,9 +433,6 @@ build_madt(GArray *table_data, GArray *linker, AcpiCpuInfo *cpu,
                  (void *)(table_data->data + madt_start), "APIC",
                  table_data->len - madt_start, 1);
 }
-
-#include "hw/i386/ssdt-tpm.hex"
-#include "hw/i386/ssdt-tpm2.hex"
 
 /* Assign BSEL property to all buses.  In the future, this can be changed
  * to only assign to buses that support hotplug.
@@ -1111,8 +1109,8 @@ build_ssdt(GArray *table_data, GArray *linker,
         aml_append(field, aml_named_field("PEPT", 8));
         aml_append(dev, field);
 
-        /* device present, functioning, decoding, not shown in UI */
-        aml_append(dev, aml_name_decl("_STA", aml_int(0xB)));
+        /* device present, functioning, decoding, shown in UI */
+        aml_append(dev, aml_name_decl("_STA", aml_int(0xF)));
 
         method = aml_method("RDPT", 0);
         aml_append(method, aml_store(aml_name("PEPT"), aml_local(0)));
@@ -1328,6 +1326,19 @@ build_ssdt(GArray *table_data, GArray *linker,
                 Aml *scope = aml_scope("PCI0");
                 /* Scan all PCI buses. Generate tables to support hotplug. */
                 build_append_pci_bus_devices(scope, bus, pm->pcihp_bridge_en);
+
+                if (misc->tpm_version != TPM_VERSION_UNSPEC) {
+                    dev = aml_device("ISA.TPM");
+                    aml_append(dev, aml_name_decl("_HID", aml_eisaid("PNP0C31")));
+                    aml_append(dev, aml_name_decl("_STA", aml_int(0xF)));
+                    crs = aml_resource_template();
+                    aml_append(crs, aml_memory32_fixed(TPM_TIS_ADDR_BASE,
+                               TPM_TIS_ADDR_SIZE, AML_READ_WRITE));
+                    aml_append(crs, aml_irq_no_flags(TPM_TIS_IRQ));
+                    aml_append(dev, aml_name_decl("_CRS", crs));
+                    aml_append(scope, dev);
+                }
+
                 aml_append(sb_scope, scope);
             }
         }
@@ -1383,22 +1394,9 @@ build_tpm_tcpa(GArray *table_data, GArray *linker, GArray *tcpalog)
 }
 
 static void
-build_tpm_ssdt(GArray *table_data, GArray *linker)
-{
-    void *tpm_ptr;
-
-    tpm_ptr = acpi_data_push(table_data, sizeof(ssdt_tpm_aml));
-    memcpy(tpm_ptr, ssdt_tpm_aml, sizeof(ssdt_tpm_aml));
-}
-
-static void
 build_tpm2(GArray *table_data, GArray *linker)
 {
     Acpi20TPM2 *tpm2_ptr;
-    void *tpm_ptr;
-
-    tpm_ptr = acpi_data_push(table_data, sizeof(ssdt_tpm2_aml));
-    memcpy(tpm_ptr, ssdt_tpm2_aml, sizeof(ssdt_tpm2_aml));
 
     tpm2_ptr = acpi_data_push(table_data, sizeof *tpm2_ptr);
 
@@ -1512,7 +1510,7 @@ build_srat(GArray *table_data, GArray *linker, PcGuestInfo *guest_info)
      */
     if (hotplugabble_address_space_size) {
         numamem = acpi_data_push(table_data, sizeof *numamem);
-        acpi_build_srat_memory(numamem, pcms->hotplug_memory_base,
+        acpi_build_srat_memory(numamem, pcms->hotplug_memory.base,
                                hotplugabble_address_space_size, 0,
                                MEM_AFFINITY_HOTPLUGGABLE |
                                MEM_AFFINITY_ENABLED);
@@ -1726,16 +1724,9 @@ void acpi_build(PcGuestInfo *guest_info, AcpiBuildTables *tables)
         acpi_add_table(table_offsets, tables_blob);
         build_tpm_tcpa(tables_blob, tables->linker, tables->tcpalog);
 
-        acpi_add_table(table_offsets, tables_blob);
-        switch (misc.tpm_version) {
-        case TPM_VERSION_1_2:
-            build_tpm_ssdt(tables_blob, tables->linker);
-            break;
-        case TPM_VERSION_2_0:
+        if (misc.tpm_version == TPM_VERSION_2_0) {
+            acpi_add_table(table_offsets, tables_blob);
             build_tpm2(tables_blob, tables->linker);
-            break;
-        default:
-            assert(false);
         }
     }
     if (guest_info->numa_nodes) {
