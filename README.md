@@ -1,12 +1,17 @@
 # GNU ARM Eclipse QEMU
 
-[QEMU](http://wiki.qemu.org/Main_Page) is an open source machine emulator. The [GNU ARM Eclipse QEMU](https://github.com/gnuarmeclipse/qemu/wiki) subproject is a fork of QEMU, intended to provide support for Cortex-M emulation in GNU ARM Eclipse. The source code is part of the GNU ARM Eclipse project, and is available from [GitHub](https://github.com/gnuarmeclipse/qemu).
+The [GNU ARM Eclipse QEMU](http://gnuarmeclipse.github.io/qemu) subproject is a fork of [QEMU](http://wiki.qemu.org/Main_Page) (an open source machine emulator), intended to provide support for Cortex-M emulation in GNU ARM Eclipse. The source code is part of the **GNU ARM Eclipse** project, and is available from [GitHub](https://github.com/gnuarmeclipse/qemu). Binary packages are available from [GitHub Releases](https://github.com/gnuarmeclipse/qemu/releases). 
 
-## User
-* [Overview](https://github.com/gnuarmeclipse/qemu/wiki/The-GNU-ARM-Eclipse-QEMU)
-* [Install](https://github.com/gnuarmeclipse/qemu/wiki/QEMU-Install)
-* [The QEMU plug-in](http://gnuarmeclipse.livius.net/blog/qemu-debugging/)
+## How to use
 
-## Developer
-* [How to build QEMU](http://gnuarmeclipse.livius.net/wiki/How_to_build_QEMU) (using Docker containers)
-* [QEMU change log](http://gnuarmeclipse.livius.net/wiki/QEMU_change_log)
+* [Overview](http://gnuarmeclipse.github.io/qemu/overview) (read me first!)
+* [QEMU Install](http://gnuarmeclipse.github.io/qemu/install)
+* Eclipse plug-in
+* [Support](https://github.com/gnuarmeclipse/qemu/issues/1) (using the GitHub Issues)
+
+## How to build
+
+* [How to build](http://gnuarmeclipse.github.io/qemu/how-to-build) (using Docker containers)
+* [Change log](http://gnuarmeclipse.github.io/qemu/change-log) ([2014](http://gnuarmeclipse.github.io/qemu/change-log/2014))
+
+## [Releases](http://gnuarmeclipse.github.io/qemu/releases)
