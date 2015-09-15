@@ -4,7 +4,7 @@ The [GNU ARM Eclipse QEMU](http://gnuarmeclipse.github.io/qemu) subproject is a 
 
 ## How to use
 
-* [Overview](http://gnuarmeclipse.github.io/qemu/overview) (read me first!)
+* [Overview](http://gnuarmeclipse.github.io/qemu/) (read me first!)
 * [QEMU Install](http://gnuarmeclipse.github.io/qemu/install)
 * Eclipse plug-in
 * [Support](https://github.com/gnuarmeclipse/qemu/issues/1) (using the GitHub Issues)
