@@ -14,4 +14,7 @@ The [GNU ARM Eclipse QEMU](http://gnuarmeclipse.github.io/qemu) subproject is a 
 * [How to build](http://gnuarmeclipse.github.io/qemu/how-to-build) (using Docker containers)
 * [Change log](http://gnuarmeclipse.github.io/qemu/change-log) ([2014](http://gnuarmeclipse.github.io/qemu/change-log/2014))
 
-## [Releases](http://gnuarmeclipse.github.io/qemu/releases)
+## Releases & binaries
+
+See the [releases](http://gnuarmeclipse.github.io/qemu/releases) page.
+Binaries for most platforms can be downloaded from [GitHub Releases](https://github.com/gnuarmeclipse/qemu/releases).
