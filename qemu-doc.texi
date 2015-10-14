@@ -2492,7 +2492,7 @@ STM32F405RG (Cortex-M4 CPU core, FP not emulated).
 8 LEDs, active high (White PB4-PB9, PC4-PC9).
 @end itemize
 
-The LeafLab Mapple board:
+The LeafLab Maple board:
 
 @itemize @minus
 @item

@@ -218,7 +218,7 @@ static QEMUMachine netduinogo_machine = {
 
 /* ----- Mapple r5 ----- */
 
-static GPIOLEDInfo mapple_leds_info[] = {
+static GPIOLEDInfo maple_leds_info[] = {
     {
         .name = "blue-led",
         .active_low = false,
@@ -232,7 +232,7 @@ static GPIOLEDInfo mapple_leds_info[] = {
     { }, /**/
 };
 
-static void mapple_board_init_callback(MachineState *machine)
+static void maple_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
 
@@ -247,17 +247,17 @@ static void mapple_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("Mapple.jpg",
+    void *board_surface = cm_board_init_image("Maple.jpg",
             cm_board_get_desc(machine));
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, mapple_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, maple_leds_info, board_surface);
 }
 
-static QEMUMachine mapple_machine = {
-    .name = "Mapple",
+static QEMUMachine maple_machine = {
+    .name = "Maple",
     .desc = "LeafLab Arduino-style STM32 microcontroller board (r5)",
-    .init = mapple_board_init_callback };
+    .init = maple_board_init_callback };
 
 /* ----- Boards inits ----- */
 static void stm32_duino_machines_init(void)
@@ -267,7 +267,7 @@ static void stm32_duino_machines_init(void)
 #endif
     qemu_register_machine(&netduinoplus2_machine);
     qemu_register_machine(&netduinogo_machine);
-    qemu_register_machine(&mapple_machine);
+    qemu_register_machine(&maple_machine);
 }
 
 machine_init(stm32_duino_machines_init);

@@ -162,7 +162,7 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
 
 static QEMUMachine olimexino_stm32_machine = {
     .name = "OLIMEXINO-STM32",
-    .desc = "Olimex Mapple (Arduino-like) Development Board",
+    .desc = "Olimex Maple (Arduino-like) Development Board",
     .init = olimexino_stm32_board_init_callback };
 
 /* ----- Olimex STM32-P107 ----- */
