@@ -216,7 +216,7 @@ static QEMUMachine netduinogo_machine = {
     .desc = "Netduino GoBus Development Board with STM32F4",
     .init = netduinogo_board_init_callback };
 
-/* ----- Mapple r5 ----- */
+/* ----- Maple r5 ----- */
 
 static GPIOLEDInfo maple_leds_info[] = {
     {
