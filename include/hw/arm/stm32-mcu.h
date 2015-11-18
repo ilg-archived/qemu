@@ -26,6 +26,7 @@
 #include "hw/misc/stm32-flash.h"
 #include "hw/misc/stm32-pwr.h"
 #include "hw/gpio/stm32-gpio.h"
+#include "hw/char/stm32-usart.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -82,6 +83,7 @@ typedef struct STM32MCUState {
     DeviceState *flash;
     DeviceState *pwr;
     DeviceState *gpio[STM32_MAX_GPIO];
+    DeviceState *usart[STM32_MAX_USART];
 } STM32MCUState;
 
 /* ------ Public ----------------------------------------------------------- */

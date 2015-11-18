@@ -47,6 +47,7 @@ typedef enum {
 } stm32_family_t;
 
 #define STM32_MAX_GPIO  (8)
+#define STM32_MAX_USART (6)
 
 typedef struct {
 
