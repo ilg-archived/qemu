@@ -176,7 +176,7 @@ milkymist_init(MachineState *machine)
 
         /* Boots a kernel elf binary.  */
         kernel_size = load_elf(kernel_filename, NULL, NULL, &entry, NULL, NULL,
-                               1, ELF_MACHINE, 0);
+                               1, EM_LATTICEMICO32, 0);
         reset_info->bootstrap_pc = entry;
 
         if (kernel_size < 0) {
@@ -209,16 +209,11 @@ milkymist_init(MachineState *machine)
     qemu_register_reset(main_cpu_reset, reset_info);
 }
 
-static QEMUMachine milkymist_machine = {
-    .name = "milkymist",
-    .desc = "Milkymist One",
-    .init = milkymist_init,
-    .is_default = 0,
-};
-
-static void milkymist_machine_init(void)
+static void milkymist_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&milkymist_machine);
+    mc->desc = "Milkymist One";
+    mc->init = milkymist_init;
+    mc->is_default = 0;
 }
 
-machine_init(milkymist_machine_init);
+DEFINE_MACHINE("milkymist", milkymist_machine_init)

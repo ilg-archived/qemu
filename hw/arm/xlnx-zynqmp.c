@@ -28,6 +28,10 @@
 #define GIC_DIST_ADDR       0xf9010000
 #define GIC_CPU_ADDR        0xf9020000
 
+#define SATA_INTR           133
+#define SATA_ADDR           0xFD0C0000
+#define SATA_NUM_PORTS      2
+
 static const uint64_t gem_addr[XLNX_ZYNQMP_NUM_GEMS] = {
     0xFF0B0000, 0xFF0C0000, 0xFF0D0000, 0xFF0E0000,
 };
@@ -42,6 +46,14 @@ static const uint64_t uart_addr[XLNX_ZYNQMP_NUM_UARTS] = {
 
 static const int uart_intr[XLNX_ZYNQMP_NUM_UARTS] = {
     21, 22,
+};
+
+static const uint64_t sdhci_addr[XLNX_ZYNQMP_NUM_SDHCI] = {
+    0xFF160000, 0xFF170000,
+};
+
+static const int sdhci_intr[XLNX_ZYNQMP_NUM_SDHCI] = {
+    48, 49,
 };
 
 typedef struct XlnxZynqMPGICRegion {
@@ -90,6 +102,16 @@ static void xlnx_zynqmp_init(Object *obj)
         object_initialize(&s->uart[i], sizeof(s->uart[i]), TYPE_CADENCE_UART);
         qdev_set_parent_bus(DEVICE(&s->uart[i]), sysbus_get_default());
     }
+
+    object_initialize(&s->sata, sizeof(s->sata), TYPE_SYSBUS_AHCI);
+    qdev_set_parent_bus(DEVICE(&s->sata), sysbus_get_default());
+
+    for (i = 0; i < XLNX_ZYNQMP_NUM_SDHCI; i++) {
+        object_initialize(&s->sdhci[i], sizeof(s->sdhci[i]),
+                          TYPE_SYSBUS_SDHCI);
+        qdev_set_parent_bus(DEVICE(&s->sdhci[i]),
+                            sysbus_get_default());
+    }
 }
 
 static void xlnx_zynqmp_realize(DeviceState *dev, Error **errp)
@@ -101,12 +123,27 @@ static void xlnx_zynqmp_realize(DeviceState *dev, Error **errp)
     qemu_irq gic_spi[GIC_NUM_SPI_INTR];
     Error *err = NULL;
 
+    /* Create the four OCM banks */
+    for (i = 0; i < XLNX_ZYNQMP_NUM_OCM_BANKS; i++) {
+        char *ocm_name = g_strdup_printf("zynqmp.ocm_ram_bank_%d", i);
+
+        memory_region_init_ram(&s->ocm_ram[i], NULL, ocm_name,
+                               XLNX_ZYNQMP_OCM_RAM_SIZE, &error_fatal);
+        vmstate_register_ram_global(&s->ocm_ram[i]);
+        memory_region_add_subregion(get_system_memory(),
+                                    XLNX_ZYNQMP_OCM_RAM_0_ADDRESS +
+                                        i * XLNX_ZYNQMP_OCM_RAM_SIZE,
+                                    &s->ocm_ram[i]);
+
+        g_free(ocm_name);
+    }
+
     qdev_prop_set_uint32(DEVICE(&s->gic), "num-irq", GIC_NUM_SPI_INTR + 32);
     qdev_prop_set_uint32(DEVICE(&s->gic), "revision", 2);
     qdev_prop_set_uint32(DEVICE(&s->gic), "num-cpu", XLNX_ZYNQMP_NUM_APU_CPUS);
     object_property_set_bool(OBJECT(&s->gic), true, "realized", &err);
     if (err) {
-        error_propagate((errp), (err));
+        error_propagate(errp, err);
         return;
     }
     assert(ARRAY_SIZE(xlnx_zynqmp_gic_regions) == XLNX_ZYNQMP_GIC_REGIONS);
@@ -147,16 +184,11 @@ static void xlnx_zynqmp_realize(DeviceState *dev, Error **errp)
         g_free(name);
 
         object_property_set_int(OBJECT(&s->apu_cpu[i]), GIC_BASE_ADDR,
-                                "reset-cbar", &err);
-        if (err) {
-            error_propagate((errp), (err));
-            return;
-        }
-
+                                "reset-cbar", &error_abort);
         object_property_set_bool(OBJECT(&s->apu_cpu[i]), true, "realized",
                                  &err);
         if (err) {
-            error_propagate((errp), (err));
+            error_propagate(errp, err);
             return;
         }
 
@@ -185,16 +217,11 @@ static void xlnx_zynqmp_realize(DeviceState *dev, Error **errp)
         g_free(name);
 
         object_property_set_bool(OBJECT(&s->rpu_cpu[i]), true, "reset-hivecs",
-                                 &err);
-        if (err != NULL) {
-            error_propagate(errp, err);
-            return;
-        }
-
+                                 &error_abort);
         object_property_set_bool(OBJECT(&s->rpu_cpu[i]), true, "realized",
                                  &err);
         if (err) {
-            error_propagate((errp), (err));
+            error_propagate(errp, err);
             return;
         }
     }
@@ -217,7 +244,7 @@ static void xlnx_zynqmp_realize(DeviceState *dev, Error **errp)
         }
         object_property_set_bool(OBJECT(&s->gem[i]), true, "realized", &err);
         if (err) {
-            error_propagate((errp), (err));
+            error_propagate(errp, err);
             return;
         }
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->gem[i]), 0, gem_addr[i]);
@@ -228,12 +255,36 @@ static void xlnx_zynqmp_realize(DeviceState *dev, Error **errp)
     for (i = 0; i < XLNX_ZYNQMP_NUM_UARTS; i++) {
         object_property_set_bool(OBJECT(&s->uart[i]), true, "realized", &err);
         if (err) {
-            error_propagate((errp), (err));
+            error_propagate(errp, err);
             return;
         }
         sysbus_mmio_map(SYS_BUS_DEVICE(&s->uart[i]), 0, uart_addr[i]);
         sysbus_connect_irq(SYS_BUS_DEVICE(&s->uart[i]), 0,
                            gic_spi[uart_intr[i]]);
+    }
+
+    object_property_set_int(OBJECT(&s->sata), SATA_NUM_PORTS, "num-ports",
+                            &error_abort);
+    object_property_set_bool(OBJECT(&s->sata), true, "realized", &err);
+    if (err) {
+        error_propagate(errp, err);
+        return;
+    }
+
+    sysbus_mmio_map(SYS_BUS_DEVICE(&s->sata), 0, SATA_ADDR);
+    sysbus_connect_irq(SYS_BUS_DEVICE(&s->sata), 0, gic_spi[SATA_INTR]);
+
+    for (i = 0; i < XLNX_ZYNQMP_NUM_SDHCI; i++) {
+        object_property_set_bool(OBJECT(&s->sdhci[i]), true,
+                                 "realized", &err);
+        if (err) {
+            error_propagate(errp, err);
+            return;
+        }
+        sysbus_mmio_map(SYS_BUS_DEVICE(&s->sdhci[i]), 0,
+                        sdhci_addr[i]);
+        sysbus_connect_irq(SYS_BUS_DEVICE(&s->sdhci[i]), 0,
+                           gic_spi[sdhci_intr[i]]);
     }
 }
 
@@ -248,6 +299,12 @@ static void xlnx_zynqmp_class_init(ObjectClass *oc, void *data)
 
     dc->props = xlnx_zynqmp_props;
     dc->realize = xlnx_zynqmp_realize;
+
+    /*
+     * Reason: creates an ARM CPU, thus use after free(), see
+     * arm_cpu_class_init()
+     */
+    dc->cannot_destroy_with_object_finalize_yet = true;
 }
 
 static const TypeInfo xlnx_zynqmp_type_info = {

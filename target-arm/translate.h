@@ -23,7 +23,8 @@ typedef struct DisasContext {
     ARMMMUIdx mmu_idx; /* MMU index to use for normal loads/stores */
     bool ns;        /* Use non-secure CPREG bank on access */
     int fp_excp_el; /* FP exception EL or 0 if enabled */
-    bool el3_is_aa64;  /* Flag indicating whether EL3 is AArch64 or not */
+    /* Flag indicating that exceptions from secure mode are routed to EL3. */
+    bool secure_routed_to_el3;
     bool vfp_enabled; /* FP enabled via FPSCR.EN */
     int vec_len;
     int vec_stride;
@@ -62,7 +63,21 @@ typedef struct DisasContext {
     TCGv_i64 tmp_a64[TMP_A64_MAX];
 } DisasContext;
 
+typedef struct DisasCompare {
+    TCGCond cond;
+    TCGv_i32 value;
+    bool value_global;
+} DisasCompare;
+
+/* Share the TCG temporaries common between 32 and 64 bit modes.  */
 extern TCGv_ptr cpu_env;
+extern TCGv_i32 cpu_NF, cpu_ZF, cpu_CF, cpu_VF;
+extern TCGv_i64 cpu_exclusive_addr;
+extern TCGv_i64 cpu_exclusive_val;
+#ifdef CONFIG_USER_ONLY
+extern TCGv_i64 cpu_exclusive_test;
+extern TCGv_i32 cpu_exclusive_info;
+#endif
 
 static inline int arm_dc_feature(DisasContext *dc, int feature)
 {
@@ -84,7 +99,7 @@ static inline int default_exception_el(DisasContext *s)
      * exceptions can only be routed to ELs above 1, so we target the higher of
      * 1 or the current EL.
      */
-    return (s->mmu_idx == ARMMMUIdx_S1SE0 && !s->el3_is_aa64)
+    return (s->mmu_idx == ARMMMUIdx_S1SE0 && s->secure_routed_to_el3)
             ? 3 : MAX(1, s->current_el);
 }
 
@@ -107,9 +122,7 @@ static inline int default_exception_el(DisasContext *s)
 
 #ifdef TARGET_AARCH64
 void a64_translate_init(void);
-void gen_intermediate_code_internal_a64(ARMCPU *cpu,
-                                        TranslationBlock *tb,
-                                        bool search_pc);
+void gen_intermediate_code_a64(ARMCPU *cpu, TranslationBlock *tb);
 void gen_a64_set_pc_im(uint64_t val);
 void aarch64_cpu_dump_state(CPUState *cs, FILE *f,
                             fprintf_function cpu_fprintf, int flags);
@@ -118,9 +131,7 @@ static inline void a64_translate_init(void)
 {
 }
 
-static inline void gen_intermediate_code_internal_a64(ARMCPU *cpu,
-                                                      TranslationBlock *tb,
-                                                      bool search_pc)
+static inline void gen_intermediate_code_a64(ARMCPU *cpu, TranslationBlock *tb)
 {
 }
 
@@ -135,6 +146,9 @@ static inline void aarch64_cpu_dump_state(CPUState *cs, FILE *f,
 }
 #endif
 
+void arm_test_cc(DisasCompare *cmp, int cc);
+void arm_free_cc(DisasCompare *cmp);
+void arm_jump_cc(DisasCompare *cmp, TCGLabel *label);
 void arm_gen_test_cc(int cc, TCGLabel *label);
 
 #endif /* TARGET_ARM_TRANSLATE_H */

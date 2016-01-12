@@ -847,6 +847,9 @@ static PCIDevice *do_pci_register_device(PCIDevice *pci_dev, PCIBus *bus,
     PCIConfigWriteFunc *config_write = pc->config_write;
     Error *local_err = NULL;
     AddressSpace *dma_as;
+    DeviceState *dev = DEVICE(pci_dev);
+
+    pci_dev->bus = bus;
 
     if (devfn < 0) {
         for(devfn = bus->devfn_min ; devfn < ARRAY_SIZE(bus->devices);
@@ -864,9 +867,17 @@ static PCIDevice *do_pci_register_device(PCIDevice *pci_dev, PCIBus *bus,
                    PCI_SLOT(devfn), PCI_FUNC(devfn), name,
                    bus->devices[devfn]->name);
         return NULL;
+    } else if (dev->hotplugged &&
+               pci_get_function_0(pci_dev)) {
+        error_setg(errp, "PCI: slot %d function 0 already ocuppied by %s,"
+                   " new func %s cannot be exposed to guest.",
+                   PCI_SLOT(devfn),
+                   bus->devices[PCI_DEVFN(PCI_SLOT(devfn), 0)]->name,
+                   name);
+
+       return NULL;
     }
 
-    pci_dev->bus = bus;
     pci_dev->devfn = devfn;
     dma_as = pci_device_iommu_address_space(pci_dev);
 
@@ -1154,16 +1165,16 @@ static void pci_update_mappings(PCIDevice *d)
         /* now do the real mapping */
         if (r->addr != PCI_BAR_UNMAPPED) {
             trace_pci_update_mappings_del(d, pci_bus_num(d->bus),
-                                          PCI_FUNC(d->devfn),
                                           PCI_SLOT(d->devfn),
+                                          PCI_FUNC(d->devfn),
                                           i, r->addr, r->size);
             memory_region_del_subregion(r->address_space, r->memory);
         }
         r->addr = new_addr;
         if (r->addr != PCI_BAR_UNMAPPED) {
             trace_pci_update_mappings_add(d, pci_bus_num(d->bus),
-                                          PCI_FUNC(d->devfn),
                                           PCI_SLOT(d->devfn),
+                                          PCI_FUNC(d->devfn),
                                           i, r->addr, r->size);
             memory_region_add_subregion_overlap(r->address_space,
                                                 r->addr, r->memory, 1);
@@ -2071,9 +2082,7 @@ static void pci_add_option_rom(PCIDevice *pdev, bool is_default_rom,
         g_free(path);
         return;
     }
-    if (size & (size - 1)) {
-        size = 1 << qemu_fls(size);
-    }
+    size = pow2ceil(size);
 
     vmsd = qdev_get_vmsd(DEVICE(pdev));
 
@@ -2083,7 +2092,7 @@ static void pci_add_option_rom(PCIDevice *pdev, bool is_default_rom,
         snprintf(name, sizeof(name), "%s.rom", object_get_typename(OBJECT(pdev)));
     }
     pdev->has_rom = true;
-    memory_region_init_ram(&pdev->rom, OBJECT(pdev), name, size, &error_abort);
+    memory_region_init_ram(&pdev->rom, OBJECT(pdev), name, size, &error_fatal);
     vmstate_register_ram(&pdev->rom, &pdev->qdev);
     ptr = memory_region_get_ram_ptr(&pdev->rom);
     load_image(path, ptr);
@@ -2385,17 +2394,14 @@ static void pci_device_class_init(ObjectClass *klass, void *data)
 AddressSpace *pci_device_iommu_address_space(PCIDevice *dev)
 {
     PCIBus *bus = PCI_BUS(dev->bus);
+    PCIBus *iommu_bus = bus;
 
-    if (bus->iommu_fn) {
-        return bus->iommu_fn(bus, bus->iommu_opaque, dev->devfn);
+    while(iommu_bus && !iommu_bus->iommu_fn && iommu_bus->parent_dev) {
+        iommu_bus = PCI_BUS(iommu_bus->parent_dev->bus);
     }
-
-    if (bus->parent_dev) {
-        /** We are ignoring the bus master DMA bit of the bridge
-         *  as it would complicate things such as VFIO for no good reason */
-        return pci_device_iommu_address_space(bus->parent_dev);
+    if (iommu_bus && iommu_bus->iommu_fn) {
+        return iommu_bus->iommu_fn(bus, iommu_bus->iommu_opaque, dev->devfn);
     }
-
     return &address_space_memory;
 }
 
@@ -2457,6 +2463,33 @@ void pci_bus_get_w64_range(PCIBus *bus, Range *range)
 {
     range->begin = range->end = 0;
     pci_for_each_device_under_bus(bus, pci_dev_get_w64, range);
+}
+
+static bool pcie_has_upstream_port(PCIDevice *dev)
+{
+    PCIDevice *parent_dev = pci_bridge_get_device(dev->bus);
+
+    /* Device associated with an upstream port.
+     * As there are several types of these, it's easier to check the
+     * parent device: upstream ports are always connected to
+     * root or downstream ports.
+     */
+    return parent_dev &&
+        pci_is_express(parent_dev) &&
+        parent_dev->exp.exp_cap &&
+        (pcie_cap_get_type(parent_dev) == PCI_EXP_TYPE_ROOT_PORT ||
+         pcie_cap_get_type(parent_dev) == PCI_EXP_TYPE_DOWNSTREAM);
+}
+
+PCIDevice *pci_get_function_0(PCIDevice *pci_dev)
+{
+    if(pcie_has_upstream_port(pci_dev)) {
+        /* With an upstream PCIe port, we only support 1 device at slot 0 */
+        return pci_dev->bus->devices[0];
+    } else {
+        /* Other bus types might support multiple devices at slots 0-31 */
+        return pci_dev->bus->devices[PCI_DEVFN(PCI_SLOT(pci_dev->devfn), 0)];
+    }
 }
 
 static const TypeInfo pci_device_type_info = {

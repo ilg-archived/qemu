@@ -31,15 +31,15 @@
  * The pos argument can be ignored if the file is only being used for
  * streaming.  The handler should try to write all of the data it can.
  */
-typedef int (QEMUFilePutBufferFunc)(void *opaque, const uint8_t *buf,
-                                    int64_t pos, int size);
+typedef ssize_t (QEMUFilePutBufferFunc)(void *opaque, const uint8_t *buf,
+                                        int64_t pos, size_t size);
 
 /* Read a chunk of data from a file at the given position.  The pos argument
  * can be ignored if the file is only be used for streaming.  The number of
  * bytes actually read should be returned.
  */
-typedef int (QEMUFileGetBufferFunc)(void *opaque, uint8_t *buf,
-                                    int64_t pos, int size);
+typedef ssize_t (QEMUFileGetBufferFunc)(void *opaque, uint8_t *buf,
+                                        int64_t pos, size_t size);
 
 /* Close a file
  *
@@ -89,6 +89,11 @@ typedef size_t (QEMURamSaveFunc)(QEMUFile *f, void *opaque,
                                uint64_t *bytes_sent);
 
 /*
+ * Return a QEMUFile for comms in the opposite direction
+ */
+typedef QEMUFile *(QEMURetPathFunc)(void *opaque);
+
+/*
  * Stop any read or write (depending on flags) on the underlying
  * transport on the QEMUFile.
  * Existing blocking reads/writes must be woken
@@ -106,6 +111,7 @@ typedef struct QEMUFileOps {
     QEMURamHookFunc *after_ram_iterate;
     QEMURamHookFunc *hook_ram_load;
     QEMURamSaveFunc *save_page;
+    QEMURetPathFunc *get_return_path;
     QEMUFileShutdownFunc *shut_down;
 } QEMUFileOps;
 
@@ -126,13 +132,13 @@ int qemu_get_fd(QEMUFile *f);
 int qemu_fclose(QEMUFile *f);
 int64_t qemu_ftell(QEMUFile *f);
 int64_t qemu_ftell_fast(QEMUFile *f);
-void qemu_put_buffer(QEMUFile *f, const uint8_t *buf, int size);
+void qemu_put_buffer(QEMUFile *f, const uint8_t *buf, size_t size);
 void qemu_put_byte(QEMUFile *f, int v);
 /*
  * put_buffer without copying the buffer.
  * The buffer should be available till it is sent asynchronously.
  */
-void qemu_put_buffer_async(QEMUFile *f, const uint8_t *buf, int size);
+void qemu_put_buffer_async(QEMUFile *f, const uint8_t *buf, size_t size);
 bool qemu_file_mode_is_not_valid(const char *mode);
 bool qemu_file_is_writable(QEMUFile *f);
 
@@ -161,11 +167,13 @@ static inline void qemu_put_ubyte(QEMUFile *f, unsigned int v)
 void qemu_put_be16(QEMUFile *f, unsigned int v);
 void qemu_put_be32(QEMUFile *f, unsigned int v);
 void qemu_put_be64(QEMUFile *f, uint64_t v);
-int qemu_peek_buffer(QEMUFile *f, uint8_t **buf, int size, size_t offset);
-int qemu_get_buffer(QEMUFile *f, uint8_t *buf, int size);
+size_t qemu_peek_buffer(QEMUFile *f, uint8_t **buf, size_t size, size_t offset);
+size_t qemu_get_buffer(QEMUFile *f, uint8_t *buf, size_t size);
+size_t qemu_get_buffer_in_place(QEMUFile *f, uint8_t **buf, size_t size);
 ssize_t qemu_put_compression_data(QEMUFile *f, const uint8_t *p, size_t size,
                                   int level);
 int qemu_put_qemu_file(QEMUFile *f_des, QEMUFile *f_src);
+
 /*
  * Note that you can only peek continuous bytes from where the current pointer
  * is; you aren't guaranteed to be able to peak to +n bytes unless you've
@@ -194,7 +202,9 @@ int64_t qemu_file_get_rate_limit(QEMUFile *f);
 int qemu_file_get_error(QEMUFile *f);
 void qemu_file_set_error(QEMUFile *f, int ret);
 int qemu_file_shutdown(QEMUFile *f);
+QEMUFile *qemu_file_get_return_path(QEMUFile *f);
 void qemu_fflush(QEMUFile *f);
+void qemu_file_set_blocking(QEMUFile *f, bool block);
 
 static inline void qemu_put_be64s(QEMUFile *f, const uint64_t *pv)
 {
@@ -237,7 +247,7 @@ static inline void qemu_get_8s(QEMUFile *f, uint8_t *pv)
 }
 
 // Signed versions for type safety
-static inline void qemu_put_sbuffer(QEMUFile *f, const int8_t *buf, int size)
+static inline void qemu_put_sbuffer(QEMUFile *f, const int8_t *buf, size_t size)
 {
     qemu_put_buffer(f, (const uint8_t *)buf, size);
 }

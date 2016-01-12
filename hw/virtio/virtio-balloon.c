@@ -37,9 +37,11 @@
 static void balloon_page(void *addr, int deflate)
 {
 #if defined(__linux__)
-    if (!kvm_enabled() || kvm_has_sync_mmu())
+    if (!qemu_balloon_is_inhibited() && (!kvm_enabled() ||
+                                         kvm_has_sync_mmu())) {
         qemu_madvise(addr, TARGET_PAGE_SIZE,
                 deflate ? QEMU_MADV_WILLNEED : QEMU_MADV_DONTNEED);
+    }
 #endif
 }
 
@@ -70,7 +72,7 @@ static inline void reset_stats(VirtIOBalloon *dev)
 static bool balloon_stats_supported(const VirtIOBalloon *s)
 {
     VirtIODevice *vdev = VIRTIO_DEVICE(s);
-    return virtio_has_feature(vdev, VIRTIO_BALLOON_F_STATS_VQ);
+    return virtio_vdev_has_feature(vdev, VIRTIO_BALLOON_F_STATS_VQ);
 }
 
 static bool balloon_stats_enabled(const VirtIOBalloon *s)

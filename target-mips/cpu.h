@@ -5,8 +5,6 @@
 
 #define ALIGNED_ONLY
 
-#define ELF_MACHINE	EM_MIPS
-
 #define CPUArchState struct CPUMIPSState
 
 #include "config.h"
@@ -132,6 +130,7 @@ struct CPUMIPSFPUContext {
 };
 
 #define NB_MMU_MODES 3
+#define TARGET_INSN_START_EXTRA_WORDS 2
 
 typedef struct CPUMIPSMVPContext CPUMIPSMVPContext;
 struct CPUMIPSMVPContext {
@@ -470,6 +469,7 @@ struct CPUMIPSState {
 #define CP0C5_CV         29
 #define CP0C5_EVA        28
 #define CP0C5_MSAEn      27
+#define CP0C5_XNP        13
 #define CP0C5_UFE        9
 #define CP0C5_FRE        8
 #define CP0C5_SBRI       6
@@ -621,7 +621,6 @@ void mips_cpu_unassigned_access(CPUState *cpu, hwaddr addr,
 void mips_cpu_list (FILE *f, fprintf_function cpu_fprintf);
 
 #define cpu_exec cpu_mips_exec
-#define cpu_gen_code cpu_mips_gen_code
 #define cpu_signal_handler cpu_mips_signal_handler
 #define cpu_list mips_cpu_list
 
@@ -634,28 +633,29 @@ extern uint32_t cpu_rddsp(uint32_t mask_num, CPUMIPSState *env);
 #define MMU_MODE1_SUFFIX _super
 #define MMU_MODE2_SUFFIX _user
 #define MMU_USER_IDX 2
-static inline int cpu_mmu_index (CPUMIPSState *env)
+static inline int cpu_mmu_index (CPUMIPSState *env, bool ifetch)
 {
     return env->hflags & MIPS_HFLAG_KSU;
 }
 
-static inline int cpu_mips_hw_interrupts_pending(CPUMIPSState *env)
+static inline bool cpu_mips_hw_interrupts_enabled(CPUMIPSState *env)
 {
-    int32_t pending;
-    int32_t status;
-    int r;
-
-    if (!(env->CP0_Status & (1 << CP0St_IE)) ||
-        (env->CP0_Status & (1 << CP0St_EXL)) ||
-        (env->CP0_Status & (1 << CP0St_ERL)) ||
+    return (env->CP0_Status & (1 << CP0St_IE)) &&
+        !(env->CP0_Status & (1 << CP0St_EXL)) &&
+        !(env->CP0_Status & (1 << CP0St_ERL)) &&
+        !(env->hflags & MIPS_HFLAG_DM) &&
         /* Note that the TCStatus IXMT field is initialized to zero,
            and only MT capable cores can set it to one. So we don't
            need to check for MT capabilities here.  */
-        (env->active_tc.CP0_TCStatus & (1 << CP0TCSt_IXMT)) ||
-        (env->hflags & MIPS_HFLAG_DM)) {
-        /* Interrupts are disabled */
-        return 0;
-    }
+        !(env->active_tc.CP0_TCStatus & (1 << CP0TCSt_IXMT));
+}
+
+/* Check if there is pending and not masked out interrupt */
+static inline bool cpu_mips_hw_interrupts_pending(CPUMIPSState *env)
+{
+    int32_t pending;
+    int32_t status;
+    bool r;
 
     pending = env->CP0_Cause & CP0Ca_IP_mask;
     status = env->CP0_Status & CP0Ca_IP_mask;
@@ -669,7 +669,7 @@ static inline int cpu_mips_hw_interrupts_pending(CPUMIPSState *env)
         /* A MIPS configured with compatibility or VInt (Vectored Interrupts)
            treats the pending lines as individual interrupt lines, the status
            lines are individual masks.  */
-        r = pending & status;
+        r = (pending & status) != 0;
     }
     return r;
 }
@@ -961,6 +961,15 @@ static inline void compute_hflags(CPUMIPSState *env)
 }
 
 #ifndef CONFIG_USER_ONLY
+static inline void cpu_mips_tlb_flush(CPUMIPSState *env, int flush_global)
+{
+    MIPSCPU *cpu = mips_env_get_cpu(env);
+
+    /* Flush qemu's TLB and discard all shadowed entries.  */
+    tlb_flush(CPU(cpu), flush_global);
+    env->tlb->tlb_in_use = env->tlb->nb_tlb;
+}
+
 /* Called for updates to CP0_Status.  */
 static inline void sync_c0_status(CPUMIPSState *env, CPUMIPSState *cpu, int tc)
 {
@@ -999,17 +1008,29 @@ static inline void sync_c0_status(CPUMIPSState *env, CPUMIPSState *cpu, int tc)
 static inline void cpu_mips_store_status(CPUMIPSState *env, target_ulong val)
 {
     uint32_t mask = env->CP0_Status_rw_bitmask;
+    target_ulong old = env->CP0_Status;
 
     if (env->insn_flags & ISA_MIPS32R6) {
         bool has_supervisor = extract32(mask, CP0St_KSU, 2) == 0x3;
-
+#if defined(TARGET_MIPS64)
+        uint32_t ksux = (1 << CP0St_KX) & val;
+        ksux |= (ksux >> 1) & val; /* KX = 0 forces SX to be 0 */
+        ksux |= (ksux >> 1) & val; /* SX = 0 forces UX to be 0 */
+        val = (val & ~(7 << CP0St_UX)) | ksux;
+#endif
         if (has_supervisor && extract32(val, CP0St_KSU, 2) == 0x3) {
             mask &= ~(3 << CP0St_KSU);
         }
         mask &= ~(((1 << CP0St_SR) | (1 << CP0St_NMI)) & val);
     }
 
-    env->CP0_Status = (env->CP0_Status & ~mask) | (val & mask);
+    env->CP0_Status = (old & ~mask) | (val & mask);
+#if defined(TARGET_MIPS64)
+    if ((env->CP0_Status ^ old) & (old & (7 << CP0St_UX))) {
+        /* Access to at least one of the 64-bit segments has been disabled */
+        cpu_mips_tlb_flush(env, 1);
+    }
+#endif
     if (env->CP0_Config3 & (1 << CP0C3_MT)) {
         sync_c0_status(env, env, env->current_tc);
     } else {
@@ -1048,5 +1069,29 @@ static inline void cpu_mips_store_cause(CPUMIPSState *env, target_ulong val)
     }
 }
 #endif
+
+static inline void QEMU_NORETURN do_raise_exception_err(CPUMIPSState *env,
+                                                        uint32_t exception,
+                                                        int error_code,
+                                                        uintptr_t pc)
+{
+    CPUState *cs = CPU(mips_env_get_cpu(env));
+
+    if (exception < EXCP_SC) {
+        qemu_log_mask(CPU_LOG_INT, "%s: %d %d\n",
+                      __func__, exception, error_code);
+    }
+    cs->exception_index = exception;
+    env->error_code = error_code;
+
+    cpu_loop_exit_restore(cs, pc);
+}
+
+static inline void QEMU_NORETURN do_raise_exception(CPUMIPSState *env,
+                                                    uint32_t exception,
+                                                    uintptr_t pc)
+{
+    do_raise_exception_err(env, exception, 0, pc);
+}
 
 #endif /* !defined (__MIPS_CPU_H__) */

@@ -107,6 +107,8 @@ static void mb_cpu_reset(CPUState *s)
     /* Disable stack protector.  */
     env->shr = ~0;
 
+    env->sregs[SR_PC] = cpu->cfg.base_vectors;
+
 #if defined(CONFIG_USER_ONLY)
     /* start in user mode with interrupts enabled.  */
     env->sregs[SR_MSR] = MSR_EE | MSR_IE | MSR_VM | MSR_UM;
@@ -182,8 +184,6 @@ static void mb_cpu_realizefn(DeviceState *dev, Error **errp)
 
     env->pvr.regs[10] = 0x0c000000; /* Default to spartan 3a dsp family.  */
     env->pvr.regs[11] = PVR11_USE_MMU | (16 << 17);
-
-    env->sregs[SR_PC] = cpu->cfg.base_vectors;
 
     mcc->parent_realize(dev, errp);
 }
@@ -264,6 +264,12 @@ static void mb_cpu_class_init(ObjectClass *oc, void *data)
     cc->gdb_num_core_regs = 32 + 5;
 
     cc->disas_set_info = mb_disas_set_info;
+
+    /*
+     * Reason: mb_cpu_initfn() calls cpu_exec_init(), which saves the
+     * object in cpus -> dangling pointer after final object_unref().
+     */
+    dc->cannot_destroy_with_object_finalize_yet = true;
 }
 
 static const TypeInfo mb_cpu_type_info = {

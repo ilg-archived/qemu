@@ -157,6 +157,14 @@ void cursor_set_mono(QEMUCursor *c,
 void cursor_get_mono_image(QEMUCursor *c, int foreground, uint8_t *mask);
 void cursor_get_mono_mask(QEMUCursor *c, int transparent, uint8_t *mask);
 
+typedef void *QEMUGLContext;
+typedef struct QEMUGLParams QEMUGLParams;
+
+struct QEMUGLParams {
+    int major_ver;
+    int minor_ver;
+};
+
 typedef struct DisplayChangeListenerOps {
     const char *dpy_name;
 
@@ -183,6 +191,21 @@ typedef struct DisplayChangeListenerOps {
                           int x, int y, int on);
     void (*dpy_cursor_define)(DisplayChangeListener *dcl,
                               QEMUCursor *cursor);
+
+    QEMUGLContext (*dpy_gl_ctx_create)(DisplayChangeListener *dcl,
+                                       QEMUGLParams *params);
+    void (*dpy_gl_ctx_destroy)(DisplayChangeListener *dcl,
+                               QEMUGLContext ctx);
+    int (*dpy_gl_ctx_make_current)(DisplayChangeListener *dcl,
+                                   QEMUGLContext ctx);
+    QEMUGLContext (*dpy_gl_ctx_get_current)(DisplayChangeListener *dcl);
+
+    void (*dpy_gl_scanout)(DisplayChangeListener *dcl,
+                           uint32_t backing_id, bool backing_y_0_top,
+                           uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+    void (*dpy_gl_update)(DisplayChangeListener *dcl,
+                          uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+
 } DisplayChangeListenerOps;
 
 struct DisplayChangeListener {
@@ -244,6 +267,20 @@ bool dpy_cursor_define_supported(QemuConsole *con);
 bool dpy_gfx_check_format(QemuConsole *con,
                           pixman_format_code_t format);
 
+void dpy_gl_scanout(QemuConsole *con,
+                    uint32_t backing_id, bool backing_y_0_top,
+                    uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+void dpy_gl_update(QemuConsole *con,
+                   uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+
+QEMUGLContext dpy_gl_ctx_create(QemuConsole *con,
+                                QEMUGLParams *params);
+void dpy_gl_ctx_destroy(QemuConsole *con, QEMUGLContext ctx);
+int dpy_gl_ctx_make_current(QemuConsole *con, QEMUGLContext ctx);
+QEMUGLContext dpy_gl_ctx_get_current(QemuConsole *con);
+
+bool console_has_gl(QemuConsole *con);
+
 static inline int surface_stride(DisplaySurface *s)
 {
     return pixman_image_get_stride(s->image);
@@ -284,13 +321,23 @@ static inline pixman_format_code_t surface_format(DisplaySurface *s)
 #ifdef CONFIG_CURSES
 #include <curses.h>
 typedef chtype console_ch_t;
+extern chtype vga_to_curses[];
 #else
 typedef unsigned long console_ch_t;
 #endif
 static inline void console_write_ch(console_ch_t *dest, uint32_t ch)
 {
-    if (!(ch & 0xff))
+    uint8_t c = ch;
+#ifdef CONFIG_CURSES
+    if (vga_to_curses[c]) {
+        ch &= ~(console_ch_t)0xff;
+        ch |= vga_to_curses[c];
+    }
+#else
+    if (c == '\0') {
         ch |= ' ';
+    }
+#endif
     *dest = ch;
 }
 

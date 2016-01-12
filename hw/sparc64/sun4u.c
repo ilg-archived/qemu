@@ -112,9 +112,9 @@ int DMA_write_memory (int nchan, void *buf, int pos, int size)
 }
 void DMA_hold_DREQ (int nchan) {}
 void DMA_release_DREQ (int nchan) {}
-void DMA_schedule(int nchan) {}
+void DMA_schedule(void) {}
 
-void DMA_init(int high_page_enable, qemu_irq *cpu_request_exit)
+void DMA_init(int high_page_enable)
 {
 }
 
@@ -208,7 +208,7 @@ static uint64_t sun4u_load_kernel(const char *kernel_filename,
         bswap_needed = 0;
 #endif
         kernel_size = load_elf(kernel_filename, NULL, NULL, kernel_entry,
-                               kernel_addr, &kernel_top, 1, ELF_MACHINE, 0);
+                               kernel_addr, &kernel_top, 1, EM_SPARCV9, 0);
         if (kernel_size < 0) {
             *kernel_addr = KERNEL_LOAD_ADDR;
             *kernel_entry = KERNEL_LOAD_ADDR;
@@ -671,7 +671,7 @@ static void prom_init(hwaddr addr, const char *bios_name)
     filename = qemu_find_file(QEMU_FILE_TYPE_BIOS, bios_name);
     if (filename) {
         ret = load_elf(filename, translate_prom_address, &addr,
-                       NULL, NULL, NULL, 1, ELF_MACHINE, 0);
+                       NULL, NULL, NULL, 1, EM_SPARCV9, 0);
         if (ret < 0 || ret > PROM_SIZE_MAX) {
             ret = load_image_targphys(filename, addr, PROM_SIZE_MAX);
         }
@@ -690,7 +690,7 @@ static int prom_init1(SysBusDevice *dev)
     PROMState *s = OPENPROM(dev);
 
     memory_region_init_ram(&s->prom, OBJECT(s), "sun4u.prom", PROM_SIZE_MAX,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&s->prom);
     memory_region_set_readonly(&s->prom, true);
     sysbus_init_mmio(dev, &s->prom);
@@ -734,7 +734,7 @@ static int ram_init1(SysBusDevice *dev)
     RamDevice *d = SUN4U_RAM(dev);
 
     memory_region_init_ram(&d->ram, OBJECT(d), "sun4u.ram", d->size,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&d->ram);
     sysbus_init_mmio(dev, &d->ram);
     return 0;
@@ -965,29 +965,53 @@ static void niagara_init(MachineState *machine)
     sun4uv_init(get_system_memory(), machine, &hwdefs[2]);
 }
 
-static QEMUMachine sun4u_machine = {
-    .name = "sun4u",
-    .desc = "Sun4u platform",
-    .init = sun4u_init,
-    .max_cpus = 1, // XXX for now
-    .is_default = 1,
-    .default_boot_order = "c",
+static void sun4u_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4u platform";
+    mc->init = sun4u_init;
+    mc->max_cpus = 1; /* XXX for now */
+    mc->is_default = 1;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo sun4u_type = {
+    .name = MACHINE_TYPE_NAME("sun4u"),
+    .parent = TYPE_MACHINE,
+    .class_init = sun4u_class_init,
 };
 
-static QEMUMachine sun4v_machine = {
-    .name = "sun4v",
-    .desc = "Sun4v platform",
-    .init = sun4v_init,
-    .max_cpus = 1, // XXX for now
-    .default_boot_order = "c",
+static void sun4v_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4v platform";
+    mc->init = sun4v_init;
+    mc->max_cpus = 1; /* XXX for now */
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo sun4v_type = {
+    .name = MACHINE_TYPE_NAME("sun4v"),
+    .parent = TYPE_MACHINE,
+    .class_init = sun4v_class_init,
 };
 
-static QEMUMachine niagara_machine = {
-    .name = "Niagara",
-    .desc = "Sun4v platform, Niagara",
-    .init = niagara_init,
-    .max_cpus = 1, // XXX for now
-    .default_boot_order = "c",
+static void niagara_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4v platform, Niagara";
+    mc->init = niagara_init;
+    mc->max_cpus = 1; /* XXX for now */
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo niagara_type = {
+    .name = MACHINE_TYPE_NAME("Niagara"),
+    .parent = TYPE_MACHINE,
+    .class_init = niagara_class_init,
 };
 
 static void sun4u_register_types(void)
@@ -999,10 +1023,10 @@ static void sun4u_register_types(void)
 
 static void sun4u_machine_init(void)
 {
-    qemu_register_machine(&sun4u_machine);
-    qemu_register_machine(&sun4v_machine);
-    qemu_register_machine(&niagara_machine);
+    type_register_static(&sun4u_type);
+    type_register_static(&sun4v_type);
+    type_register_static(&niagara_type);
 }
 
 type_init(sun4u_register_types)
-machine_init(sun4u_machine_init);
+machine_init(sun4u_machine_init)

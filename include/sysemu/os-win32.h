@@ -80,10 +80,12 @@ int ffs(int i);
 #endif
 
 /* Missing POSIX functions. Don't use MinGW-w64 macros. */
+#ifndef CONFIG_LOCALTIME_R
 #undef gmtime_r
 struct tm *gmtime_r(const time_t *timep, struct tm *result);
 #undef localtime_r
 struct tm *localtime_r(const time_t *timep, struct tm *result);
+#endif /* CONFIG_LOCALTIME_R */
 
 
 static inline void os_setup_signal_handling(void) {}
@@ -92,7 +94,7 @@ static inline void os_setup_post(void) {}
 void os_set_line_buffering(void);
 static inline void os_set_proc_name(const char *dummy) {}
 
-size_t getpagesize(void);
+int getpagesize(void);
 
 #if !defined(EPROTONOSUPPORT)
 # define EPROTONOSUPPORT EINVAL

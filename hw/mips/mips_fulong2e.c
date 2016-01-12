@@ -116,7 +116,7 @@ static int64_t load_kernel (CPUMIPSState *env)
 
     if (load_elf(loaderparams.kernel_filename, cpu_mips_kseg0_to_phys, NULL,
                  (uint64_t *)&kernel_entry, (uint64_t *)&kernel_low,
-                 (uint64_t *)&kernel_high, 0, ELF_MACHINE, 1) < 0) {
+                 (uint64_t *)&kernel_high, 0, EM_MIPS, 1) < 0) {
         fprintf(stderr, "qemu: could not load kernel '%s'\n",
                 loaderparams.kernel_filename);
         exit(1);
@@ -251,15 +251,6 @@ static void network_init (PCIBus *pci_bus)
     }
 }
 
-static void cpu_request_exit(void *opaque, int irq, int level)
-{
-    CPUState *cpu = current_cpu;
-
-    if (cpu && level) {
-        cpu_exit(cpu);
-    }
-}
-
 static void mips_fulong2e_init(MachineState *machine)
 {
     ram_addr_t ram_size = machine->ram_size;
@@ -274,7 +265,6 @@ static void mips_fulong2e_init(MachineState *machine)
     long bios_size;
     int64_t kernel_entry;
     qemu_irq *i8259;
-    qemu_irq *cpu_exit_irq;
     PCIBus *pci_bus;
     ISABus *isa_bus;
     I2CBus *smbus;
@@ -304,7 +294,7 @@ static void mips_fulong2e_init(MachineState *machine)
     /* allocate RAM */
     memory_region_allocate_system_memory(ram, NULL, "fulong2e.ram", ram_size);
     memory_region_init_ram(bios, NULL, "fulong2e.bios", bios_size,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(bios);
     memory_region_set_readonly(bios, true);
 
@@ -375,8 +365,7 @@ static void mips_fulong2e_init(MachineState *machine)
 
     /* init other devices */
     pit = pit_init(isa_bus, 0x40, 0, NULL);
-    cpu_exit_irq = qemu_allocate_irqs(cpu_request_exit, NULL, 1);
-    DMA_init(0, cpu_exit_irq);
+    DMA_init(0);
 
     /* Super I/O */
     isa_create_simple(isa_bus, "i8042");
@@ -392,15 +381,10 @@ static void mips_fulong2e_init(MachineState *machine)
     network_init(pci_bus);
 }
 
-static QEMUMachine mips_fulong2e_machine = {
-    .name = "fulong2e",
-    .desc = "Fulong 2e mini pc",
-    .init = mips_fulong2e_init,
-};
-
-static void mips_fulong2e_machine_init(void)
+static void mips_fulong2e_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&mips_fulong2e_machine);
+    mc->desc = "Fulong 2e mini pc";
+    mc->init = mips_fulong2e_init;
 }
 
-machine_init(mips_fulong2e_machine_init);
+DEFINE_MACHINE("fulong2e", mips_fulong2e_machine_init)

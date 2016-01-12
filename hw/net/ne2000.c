@@ -165,15 +165,6 @@ static int ne2000_buffer_full(NE2000State *s)
     return 0;
 }
 
-int ne2000_can_receive(NetClientState *nc)
-{
-    NE2000State *s = qemu_get_nic_opaque(nc);
-
-    if (s->cmd & E8390_STOP)
-        return 1;
-    return !ne2000_buffer_full(s);
-}
-
 #define MIN_BUF_SIZE 60
 
 ssize_t ne2000_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
@@ -230,6 +221,9 @@ ssize_t ne2000_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
     }
 
     index = s->curpag << 8;
+    if (index >= NE2000_PMEM_END) {
+        index = s->start;
+    }
     /* 4 bytes for header */
     total_len = size + 4;
     /* address for next packet (4 bytes for CRC) */
@@ -253,7 +247,7 @@ ssize_t ne2000_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
         if (index <= s->stop)
             avail = s->stop - index;
         else
-            avail = 0;
+            break;
         len = size;
         if (len > avail)
             len = avail;
@@ -315,13 +309,19 @@ static void ne2000_ioport_write(void *opaque, uint32_t addr, uint32_t val)
         offset = addr | (page << 4);
         switch(offset) {
         case EN0_STARTPG:
-            s->start = val << 8;
+            if (val << 8 <= NE2000_PMEM_END) {
+                s->start = val << 8;
+            }
             break;
         case EN0_STOPPG:
-            s->stop = val << 8;
+            if (val << 8 <= NE2000_PMEM_END) {
+                s->stop = val << 8;
+            }
             break;
         case EN0_BOUNDARY:
-            s->boundary = val;
+            if (val << 8 < NE2000_PMEM_END) {
+                s->boundary = val;
+            }
             break;
         case EN0_IMR:
             s->imr = val;
@@ -362,7 +362,9 @@ static void ne2000_ioport_write(void *opaque, uint32_t addr, uint32_t val)
             s->phys[offset - EN1_PHYS] = val;
             break;
         case EN1_CURPAG:
-            s->curpag = val;
+            if (val << 8 < NE2000_PMEM_END) {
+                s->curpag = val;
+            }
             break;
         case EN1_MULT ... EN1_MULT + 7:
             s->mult[offset - EN1_MULT] = val;
@@ -705,7 +707,6 @@ void ne2000_setup_io(NE2000State *s, DeviceState *dev, unsigned size)
 static NetClientInfo net_ne2000_info = {
     .type = NET_CLIENT_OPTIONS_KIND_NIC,
     .size = sizeof(NICState),
-    .can_receive = ne2000_can_receive,
     .receive = ne2000_receive,
 };
 

@@ -46,7 +46,6 @@ extern int daemon(int, int);
 #else
 #  define QEMU_VMALLOC_ALIGN getpagesize()
 #endif
-#define HUGETLBFS_MAGIC       0x958458f6
 
 #include <termios.h>
 #include <unistd.h>
@@ -65,12 +64,13 @@ extern int daemon(int, int);
 
 #ifdef CONFIG_LINUX
 #include <sys/syscall.h>
-#include <sys/vfs.h>
 #endif
 
 #ifdef __FreeBSD__
 #include <sys/sysctl.h>
 #endif
+
+#include <qemu/mmap-alloc.h>
 
 int qemu_get_thread_id(void)
 {
@@ -128,10 +128,7 @@ void *qemu_memalign(size_t alignment, size_t size)
 void *qemu_anon_ram_alloc(size_t size, uint64_t *alignment)
 {
     size_t align = QEMU_VMALLOC_ALIGN;
-    size_t total = size + align - getpagesize();
-    void *ptr = mmap(0, total, PROT_READ | PROT_WRITE,
-                     MAP_ANONYMOUS | MAP_PRIVATE, -1, 0);
-    size_t offset = QEMU_ALIGN_UP((uintptr_t)ptr, align) - (uintptr_t)ptr;
+    void *ptr = qemu_ram_mmap(-1, size, align, false);
 
     if (ptr == MAP_FAILED) {
         return NULL;
@@ -139,15 +136,6 @@ void *qemu_anon_ram_alloc(size_t size, uint64_t *alignment)
 
     if (alignment) {
         *alignment = align;
-    }
-    ptr += offset;
-    total -= offset;
-
-    if (offset > 0) {
-        munmap(ptr - offset, offset);
-    }
-    if (total > size) {
-        munmap(ptr + size, total - size);
     }
 
     trace_qemu_anon_ram_alloc(size, ptr);
@@ -163,9 +151,7 @@ void qemu_vfree(void *ptr)
 void qemu_anon_ram_free(void *ptr, size_t size)
 {
     trace_qemu_anon_ram_free(ptr, size);
-    if (ptr) {
-        munmap(ptr, size);
-    }
+    qemu_ram_munmap(ptr, size);
 }
 
 void qemu_set_block(int fd)
@@ -352,26 +338,6 @@ static void sigbus_handler(int signal)
     siglongjmp(sigjump, 1);
 }
 
-static size_t fd_getpagesize(int fd)
-{
-#ifdef CONFIG_LINUX
-    struct statfs fs;
-    int ret;
-
-    if (fd != -1) {
-        do {
-            ret = fstatfs(fd, &fs);
-        } while (ret != 0 && errno == EINTR);
-
-        if (ret == 0 && fs.f_type == HUGETLBFS_MAGIC) {
-            return fs.f_bsize;
-        }
-    }
-#endif
-
-    return getpagesize();
-}
-
 void os_mem_prealloc(int fd, char *area, size_t memory)
 {
     int ret;
@@ -399,7 +365,7 @@ void os_mem_prealloc(int fd, char *area, size_t memory)
         exit(1);
     } else {
         int i;
-        size_t hpagesize = fd_getpagesize(fd);
+        size_t hpagesize = qemu_fd_getpagesize(fd);
         size_t numpages = DIV_ROUND_UP(memory, hpagesize);
 
         /* MAP_POPULATE silently ignores failures */
@@ -481,4 +447,75 @@ int qemu_read_password(char *buf, int buf_size)
     buf[i] = '\0';
     printf("\n");
     return ret;
+}
+
+
+pid_t qemu_fork(Error **errp)
+{
+    sigset_t oldmask, newmask;
+    struct sigaction sig_action;
+    int saved_errno;
+    pid_t pid;
+
+    /*
+     * Need to block signals now, so that child process can safely
+     * kill off caller's signal handlers without a race.
+     */
+    sigfillset(&newmask);
+    if (pthread_sigmask(SIG_SETMASK, &newmask, &oldmask) != 0) {
+        error_setg_errno(errp, errno,
+                         "cannot block signals");
+        return -1;
+    }
+
+    pid = fork();
+    saved_errno = errno;
+
+    if (pid < 0) {
+        /* attempt to restore signal mask, but ignore failure, to
+         * avoid obscuring the fork failure */
+        (void)pthread_sigmask(SIG_SETMASK, &oldmask, NULL);
+        error_setg_errno(errp, saved_errno,
+                         "cannot fork child process");
+        errno = saved_errno;
+        return -1;
+    } else if (pid) {
+        /* parent process */
+
+        /* Restore our original signal mask now that the child is
+         * safely running. Only documented failures are EFAULT (not
+         * possible, since we are using just-grabbed mask) or EINVAL
+         * (not possible, since we are using correct arguments).  */
+        (void)pthread_sigmask(SIG_SETMASK, &oldmask, NULL);
+    } else {
+        /* child process */
+        size_t i;
+
+        /* Clear out all signal handlers from parent so nothing
+         * unexpected can happen in our child once we unblock
+         * signals */
+        sig_action.sa_handler = SIG_DFL;
+        sig_action.sa_flags = 0;
+        sigemptyset(&sig_action.sa_mask);
+
+        for (i = 1; i < NSIG; i++) {
+            /* Only possible errors are EFAULT or EINVAL The former
+             * won't happen, the latter we expect, so no need to check
+             * return value */
+            (void)sigaction(i, &sig_action, NULL);
+        }
+
+        /* Unmask all signals in child, since we've no idea what the
+         * caller's done with their signal mask and don't want to
+         * propagate that to children */
+        sigemptyset(&newmask);
+        if (pthread_sigmask(SIG_SETMASK, &newmask, NULL) != 0) {
+            Error *local_err = NULL;
+            error_setg_errno(&local_err, errno,
+                             "cannot unblock signals");
+            error_report_err(local_err);
+            _exit(1);
+        }
+    }
+    return pid;
 }

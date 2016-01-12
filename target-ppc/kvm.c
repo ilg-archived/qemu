@@ -259,7 +259,8 @@ static void kvm_get_fallback_smmu_info(PowerPCCPU *cpu,
             info->flags |= KVM_PPC_1T_SEGMENTS;
         }
 
-        if (env->mmu_model == POWERPC_MMU_2_06) {
+        if (env->mmu_model == POWERPC_MMU_2_06 ||
+            env->mmu_model == POWERPC_MMU_2_07) {
             info->slb_size = 32;
         } else {
             info->slb_size = 64;
@@ -272,8 +273,9 @@ static void kvm_get_fallback_smmu_info(PowerPCCPU *cpu,
         info->sps[i].enc[0].pte_enc = 0;
         i++;
 
-        /* 64K on MMU 2.06 */
-        if (env->mmu_model == POWERPC_MMU_2_06) {
+        /* 64K on MMU 2.06 and later */
+        if (env->mmu_model == POWERPC_MMU_2_06 ||
+            env->mmu_model == POWERPC_MMU_2_07) {
             info->sps[i].page_shift = 16;
             info->sps[i].slb_enc = 0x110;
             info->sps[i].enc[0].page_shift = 16;
@@ -411,6 +413,13 @@ static void kvm_fixup_page_sizes(PowerPCCPU *cpu)
 
     /* Convert to QEMU form */
     memset(&env->sps, 0, sizeof(env->sps));
+
+    /* If we have HV KVM, we need to forbid CI large pages if our
+     * host page size is smaller than 64K.
+     */
+    if (smmu_info.flags & KVM_PPC_PAGE_SIZES_REAL) {
+        env->ci_large_pages = getpagesize() >= 0x10000;
+    }
 
     /*
      * XXX This loop should be an entry wide AND of the capabilities that
@@ -1782,8 +1791,7 @@ uint32_t kvmppc_get_tbfreq(void)
 
     ns++;
 
-    retval = atoi(ns);
-    return retval;
+    return atoi(ns);
 }
 
 bool kvmppc_get_host_serial(char **value)
@@ -1953,6 +1961,11 @@ void kvmppc_enable_logical_ci_hcalls(void)
     kvmppc_enable_hcall(kvm_state, H_LOGICAL_CI_STORE);
 }
 
+void kvmppc_enable_set_mode_hcall(void)
+{
+    kvmppc_enable_hcall(kvm_state, H_SET_MODE);
+}
+
 void kvmppc_set_papr(PowerPCCPU *cpu)
 {
     CPUState *cs = CPU(cpu);
@@ -2066,7 +2079,7 @@ bool kvmppc_spapr_use_multitce(void)
 }
 
 void *kvmppc_create_spapr_tce(uint32_t liobn, uint32_t window_size, int *pfd,
-                              bool vfio_accel)
+                              bool need_vfio)
 {
     struct kvm_create_spapr_tce args = {
         .liobn = liobn,
@@ -2080,7 +2093,7 @@ void *kvmppc_create_spapr_tce(uint32_t liobn, uint32_t window_size, int *pfd,
      * destroying the table, which the upper layers -will- do
      */
     *pfd = -1;
-    if (!cap_spapr_tce || (vfio_accel && !cap_spapr_vfio)) {
+    if (!cap_spapr_tce || (need_vfio && !cap_spapr_vfio)) {
         return NULL;
     }
 
@@ -2188,6 +2201,7 @@ static void kvmppc_host_cpu_initfn(Object *obj)
 
 static void kvmppc_host_cpu_class_init(ObjectClass *oc, void *data)
 {
+    DeviceClass *dc = DEVICE_CLASS(oc);
     PowerPCCPUClass *pcc = POWERPC_CPU_CLASS(oc);
     uint32_t vmx = kvmppc_get_vmx();
     uint32_t dfp = kvmppc_get_dfp();
@@ -2214,6 +2228,9 @@ static void kvmppc_host_cpu_class_init(ObjectClass *oc, void *data)
     if (icache_size != -1) {
         pcc->l1_icache_size = icache_size;
     }
+
+    /* Reason: kvmppc_host_cpu_initfn() dies when !kvm_enabled() */
+    dc->cannot_destroy_with_object_finalize_yet = true;
 }
 
 bool kvmppc_has_cap_epr(void)
@@ -2475,7 +2492,7 @@ error_out:
 }
 
 int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
-                             uint64_t address, uint32_t data)
+                             uint64_t address, uint32_t data, PCIDevice *dev)
 {
     return 0;
 }
@@ -2483,4 +2500,13 @@ int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
 int kvm_arch_msi_data_to_gsi(uint32_t data)
 {
     return data & 0xffff;
+}
+
+int kvmppc_enable_hwrng(void)
+{
+    if (!kvm_enabled() || !kvm_check_extension(kvm_state, KVM_CAP_PPC_HWRNG)) {
+        return -1;
+    }
+
+    return kvmppc_enable_hcall(kvm_state, H_RANDOM);
 }

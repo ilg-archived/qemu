@@ -31,6 +31,7 @@ typedef struct {
     MemoryRegion gic_iomem_alias;
     MemoryRegion container;
     uint32_t num_irq;
+    qemu_irq sysresetreq;
 } nvic_state;
 
 #define TYPE_NVIC "armv7m_nvic"
@@ -188,25 +189,24 @@ static uint32_t nvic_readl(nvic_state *s, uint32_t offset)
         return cpu->midr;
     case 0xd04: /* Interrupt Control State.  */
         /* VECTACTIVE */
-        val = s->gic.running_irq[0];
+        cpu = ARM_CPU(current_cpu);
+        val = cpu->env.v7m.exception;
         if (val == 1023) {
             val = 0;
         } else if (val >= 32) {
             val -= 16;
         }
-        /* RETTOBASE */
-        if (s->gic.running_irq[0] == 1023
-                || s->gic.last_active[s->gic.running_irq[0]][0] == 1023) {
-            val |= (1 << 11);
-        }
         /* VECTPENDING */
         if (s->gic.current_pending[0] != 1023)
             val |= (s->gic.current_pending[0] << 12);
-        /* ISRPENDING */
+        /* ISRPENDING and RETTOBASE */
         for (irq = 32; irq < s->num_irq; irq++) {
             if (s->gic.irq_state[irq].pending) {
                 val |= (1 << 22);
                 break;
+            }
+            if (irq != cpu->env.v7m.exception && s->gic.irq_state[irq].active) {
+                val |= (1 << 11);
             }
         }
         /* PENDSTSET */
@@ -361,10 +361,13 @@ static void nvic_writel(nvic_state *s, uint32_t offset, uint32_t value)
         break;
     case 0xd0c: /* Application Interrupt/Reset Control.  */
         if ((value >> 16) == 0x05fa) {
+            if (value & 4) {
+                qemu_irq_pulse(s->sysresetreq);
+            }
             if (value & 2) {
                 qemu_log_mask(LOG_UNIMP, "VECTCLRACTIVE unimplemented\n");
             }
-            if (value & 5) {
+            if (value & 1) {
                 qemu_log_mask(LOG_UNIMP, "AIRCR system reset unimplemented\n");
             }
             if (value & 0x700) {
@@ -570,11 +573,14 @@ static void armv7m_nvic_instance_init(Object *obj)
      * value in the GICState struct.
      */
     GICState *s = ARM_GIC_COMMON(obj);
+    DeviceState *dev = DEVICE(obj);
+    nvic_state *nvic = NVIC(obj);
     /* The ARM v7m may have anything from 0 to 496 external interrupt
      * IRQ lines. We default to 64. Other boards may differ and should
      * set the num-irq property appropriately.
      */
     s->num_irq = 64;
+    qdev_init_gpio_out_named(dev, &nvic->sysresetreq, "SYSRESETREQ", 1);
 }
 
 static void armv7m_nvic_class_init(ObjectClass *klass, void *data)

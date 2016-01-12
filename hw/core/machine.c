@@ -245,6 +245,20 @@ static void machine_set_usb(Object *obj, bool value, Error **errp)
     ms->usb_disabled = !value;
 }
 
+static bool machine_get_igd_gfx_passthru(Object *obj, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    return ms->igd_gfx_passthru;
+}
+
+static void machine_set_igd_gfx_passthru(Object *obj, bool value, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    ms->igd_gfx_passthru = value;
+}
+
 static char *machine_get_firmware(Object *obj, Error **errp)
 {
     MachineState *ms = MACHINE(obj);
@@ -319,6 +333,17 @@ static void machine_class_init(ObjectClass *oc, void *data)
 
     /* Default 128 MB as guest ram size */
     mc->default_ram_size = 128 * M_BYTE;
+}
+
+static void machine_class_base_init(ObjectClass *oc, void *data)
+{
+    if (!object_class_is_abstract(oc)) {
+        MachineClass *mc = MACHINE_CLASS(oc);
+        const char *cname = object_class_get_name(oc);
+        assert(g_str_has_suffix(cname, TYPE_MACHINE_SUFFIX));
+        mc->name = g_strndup(cname,
+                            strlen(cname) - strlen(TYPE_MACHINE_SUFFIX));
+    }
 }
 
 static void machine_initfn(Object *obj)
@@ -414,6 +439,12 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "usb",
                                     "Set on/off to enable/disable usb",
                                     NULL);
+    object_property_add_bool(obj, "igd-passthru",
+                             machine_get_igd_gfx_passthru,
+                             machine_set_igd_gfx_passthru, NULL);
+    object_property_set_description(obj, "igd-passthru",
+                                    "Set on/off to enable/disable igd passthrou",
+                                    NULL);
     object_property_add_str(obj, "firmware",
                             machine_get_firmware,
                             machine_set_firmware, NULL);
@@ -460,11 +491,6 @@ bool machine_usb(MachineState *machine)
     return machine->usb;
 }
 
-bool machine_iommu(MachineState *machine)
-{
-    return machine->iommu;
-}
-
 bool machine_kernel_irqchip_allowed(MachineState *machine)
 {
     return machine->kernel_irqchip_allowed;
@@ -501,6 +527,7 @@ static const TypeInfo machine_info = {
     .abstract = true,
     .class_size = sizeof(MachineClass),
     .class_init    = machine_class_init,
+    .class_base_init = machine_class_base_init,
     .instance_size = sizeof(MachineState),
     .instance_init = machine_initfn,
     .instance_finalize = machine_finalize,

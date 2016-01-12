@@ -28,7 +28,6 @@
 #include "exec/memattrs.h"
 #include "qemu/queue.h"
 #include "qemu/thread.h"
-#include "qemu/tls.h"
 #include "qemu/typedefs.h"
 
 typedef int (*WriteCoreDumpFunction)(const void *buf, size_t size,
@@ -224,6 +223,7 @@ struct kvm_run;
  * @halted: Nonzero if the CPU is in suspended state.
  * @stop: Indicates a pending stop request.
  * @stopped: Indicates the CPU has been artificially stopped.
+ * @crash_occurred: Indicates the OS reported a crash (panic) for this CPU
  * @tcg_exit_req: Set to force TCG to stop executing linked TBs for this
  *           CPU and return to its top level loop.
  * @singlestep_enabled: Flags for single-stepping.
@@ -234,6 +234,10 @@ struct kvm_run;
  * @can_do_io: Nonzero if memory-mapped IO is safe. Deterministic execution
  * requires that IO only be performed on the last instruction of a TB
  * so that interrupts take effect immediately.
+ * @cpu_ases: Pointer to array of CPUAddressSpaces (which define the
+ *            AddressSpaces this CPU has)
+ * @as: Pointer to the first AddressSpace, for the convenience of targets which
+ *      only have a single AddressSpace
  * @env_ptr: Pointer to subclass-specific CPUArchState field.
  * @current_tb: Currently executing TB.
  * @gdb_regs: Additional GDB registers.
@@ -244,6 +248,8 @@ struct kvm_run;
  * @mem_io_pc: Host Program Counter at which the memory was accessed.
  * @mem_io_vaddr: Target virtual address at which the memory was accessed.
  * @kvm_fd: vCPU file descriptor for KVM.
+ * @work_mutex: Lock to prevent multiple access to queued_work_*.
+ * @queued_work_first: First asynchronous work pending.
  *
  * State of one CPU core or thread.
  */
@@ -264,20 +270,22 @@ struct CPUState {
     uint32_t host_tid;
     bool running;
     struct QemuCond *halt_cond;
-    struct qemu_work_item *queued_work_first, *queued_work_last;
     bool thread_kicked;
     bool created;
     bool stop;
     bool stopped;
-    volatile sig_atomic_t exit_request;
+    bool crash_occurred;
+    bool exit_request;
     uint32_t interrupt_request;
     int singlestep_enabled;
     int64_t icount_extra;
     sigjmp_buf jmp_env;
 
+    QemuMutex work_mutex;
+    struct qemu_work_item *queued_work_first, *queued_work_last;
+
+    CPUAddressSpace *cpu_ases;
     AddressSpace *as;
-    struct AddressSpaceDispatch *memory_dispatch;
-    MemoryListener *tcg_as_listener;
 
     void *env_ptr; /* CPUArchState */
     struct TranslationBlock *current_tb;
@@ -316,11 +324,16 @@ struct CPUState {
     uint32_t can_do_io;
     int32_t exception_index; /* used by m68k TCG */
 
+    /* Used to keep track of an outstanding cpu throttle thread for migration
+     * autoconverge
+     */
+    bool throttle_thread_scheduled;
+
     /* Note that this is accessed at the start of every TB via a negative
        offset from AREG0.  Leave this field at the end so as to make the
        (absolute value) offset as small as possible.  This reduces code
        size, especially for hosts without large memory offsets.  */
-    volatile sig_atomic_t tcg_exit_req;
+    uint32_t tcg_exit_req;
 };
 
 QTAILQ_HEAD(CPUTailQ, CPUState);
@@ -333,8 +346,7 @@ extern struct CPUTailQ cpus;
     QTAILQ_FOREACH_REVERSE(cpu, &cpus, CPUTailQ, node)
 #define first_cpu QTAILQ_FIRST(&cpus)
 
-DECLARE_TLS(CPUState *, current_cpu);
-#define current_cpu tls_var(current_cpu)
+extern __thread CPUState *current_cpu;
 
 /**
  * cpu_paging_enabled:
@@ -561,6 +573,43 @@ CPUState *qemu_get_cpu(int index);
  */
 bool cpu_exists(int64_t id);
 
+/**
+ * cpu_throttle_set:
+ * @new_throttle_pct: Percent of sleep time. Valid range is 1 to 99.
+ *
+ * Throttles all vcpus by forcing them to sleep for the given percentage of
+ * time. A throttle_percentage of 25 corresponds to a 75% duty cycle roughly.
+ * (example: 10ms sleep for every 30ms awake).
+ *
+ * cpu_throttle_set can be called as needed to adjust new_throttle_pct.
+ * Once the throttling starts, it will remain in effect until cpu_throttle_stop
+ * is called.
+ */
+void cpu_throttle_set(int new_throttle_pct);
+
+/**
+ * cpu_throttle_stop:
+ *
+ * Stops the vcpu throttling started by cpu_throttle_set.
+ */
+void cpu_throttle_stop(void);
+
+/**
+ * cpu_throttle_active:
+ *
+ * Returns: %true if the vcpus are currently being throttled, %false otherwise.
+ */
+bool cpu_throttle_active(void);
+
+/**
+ * cpu_throttle_get_percentage:
+ *
+ * Returns the vcpu throttle percentage. See cpu_throttle_set for details.
+ *
+ * Returns: The throttle percentage in range 1 to 99.
+ */
+int cpu_throttle_get_percentage(void);
+
 #ifndef CONFIG_USER_ONLY
 
 typedef void (*CPUInterruptHandler)(CPUState *, int);
@@ -675,6 +724,7 @@ void cpu_single_step(CPUState *cpu, int enabled);
 /* 0x08 currently unused */
 #define BP_GDB                0x10
 #define BP_CPU                0x20
+#define BP_ANY                (BP_GDB | BP_CPU)
 #define BP_WATCHPOINT_HIT_READ 0x40
 #define BP_WATCHPOINT_HIT_WRITE 0x80
 #define BP_WATCHPOINT_HIT (BP_WATCHPOINT_HIT_READ | BP_WATCHPOINT_HIT_WRITE)
@@ -684,6 +734,21 @@ int cpu_breakpoint_insert(CPUState *cpu, vaddr pc, int flags,
 int cpu_breakpoint_remove(CPUState *cpu, vaddr pc, int flags);
 void cpu_breakpoint_remove_by_ref(CPUState *cpu, CPUBreakpoint *breakpoint);
 void cpu_breakpoint_remove_all(CPUState *cpu, int mask);
+
+/* Return true if PC matches an installed breakpoint.  */
+static inline bool cpu_breakpoint_test(CPUState *cpu, vaddr pc, int mask)
+{
+    CPUBreakpoint *bp;
+
+    if (unlikely(!QTAILQ_EMPTY(&cpu->breakpoints))) {
+        QTAILQ_FOREACH(bp, &cpu->breakpoints, entry) {
+            if (bp->pc == pc && (bp->flags & mask)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 int cpu_watchpoint_insert(CPUState *cpu, vaddr addr, vaddr len,
                           int flags, CPUWatchpoint **watchpoint);

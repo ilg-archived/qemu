@@ -57,10 +57,10 @@ static VirtIOSCSIVring *virtio_scsi_vring_init(VirtIOSCSI *s,
         return NULL;
     }
 
-    r = g_slice_new(VirtIOSCSIVring);
+    r = g_new(VirtIOSCSIVring, 1);
     r->host_notifier = *virtio_queue_get_host_notifier(vq);
     r->guest_notifier = *virtio_queue_get_guest_notifier(vq);
-    aio_set_event_notifier(s->ctx, &r->host_notifier, handler);
+    aio_set_event_notifier(s->ctx, &r->host_notifier, true, handler);
 
     r->parent = s;
 
@@ -71,9 +71,9 @@ static VirtIOSCSIVring *virtio_scsi_vring_init(VirtIOSCSI *s,
     return r;
 
 fail_vring:
-    aio_set_event_notifier(s->ctx, &r->host_notifier, NULL);
+    aio_set_event_notifier(s->ctx, &r->host_notifier, true, NULL);
     k->set_host_notifier(qbus->parent, n, false);
-    g_slice_free(VirtIOSCSIVring, r);
+    g_free(r);
     return NULL;
 }
 
@@ -162,14 +162,17 @@ static void virtio_scsi_clear_aio(VirtIOSCSI *s)
     int i;
 
     if (s->ctrl_vring) {
-        aio_set_event_notifier(s->ctx, &s->ctrl_vring->host_notifier, NULL);
+        aio_set_event_notifier(s->ctx, &s->ctrl_vring->host_notifier,
+                               true, NULL);
     }
     if (s->event_vring) {
-        aio_set_event_notifier(s->ctx, &s->event_vring->host_notifier, NULL);
+        aio_set_event_notifier(s->ctx, &s->event_vring->host_notifier,
+                               true, NULL);
     }
     if (s->cmd_vrings) {
         for (i = 0; i < vs->conf.num_queues && s->cmd_vrings[i]; i++) {
-            aio_set_event_notifier(s->ctx, &s->cmd_vrings[i]->host_notifier, NULL);
+            aio_set_event_notifier(s->ctx, &s->cmd_vrings[i]->host_notifier,
+                                   true, NULL);
         }
     }
 }
@@ -182,18 +185,18 @@ static void virtio_scsi_vring_teardown(VirtIOSCSI *s)
 
     if (s->ctrl_vring) {
         vring_teardown(&s->ctrl_vring->vring, vdev, 0);
-        g_slice_free(VirtIOSCSIVring, s->ctrl_vring);
+        g_free(s->ctrl_vring);
         s->ctrl_vring = NULL;
     }
     if (s->event_vring) {
         vring_teardown(&s->event_vring->vring, vdev, 1);
-        g_slice_free(VirtIOSCSIVring, s->event_vring);
+        g_free(s->event_vring);
         s->event_vring = NULL;
     }
     if (s->cmd_vrings) {
         for (i = 0; i < vs->conf.num_queues && s->cmd_vrings[i]; i++) {
             vring_teardown(&s->cmd_vrings[i]->vring, vdev, 2 + i);
-            g_slice_free(VirtIOSCSIVring, s->cmd_vrings[i]);
+            g_free(s->cmd_vrings[i]);
             s->cmd_vrings[i] = NULL;
         }
         free(s->cmd_vrings);
@@ -290,10 +293,13 @@ void virtio_scsi_dataplane_stop(VirtIOSCSI *s)
 
     aio_context_acquire(s->ctx);
 
-    aio_set_event_notifier(s->ctx, &s->ctrl_vring->host_notifier, NULL);
-    aio_set_event_notifier(s->ctx, &s->event_vring->host_notifier, NULL);
+    aio_set_event_notifier(s->ctx, &s->ctrl_vring->host_notifier,
+                           true, NULL);
+    aio_set_event_notifier(s->ctx, &s->event_vring->host_notifier,
+                           true, NULL);
     for (i = 0; i < vs->conf.num_queues; i++) {
-        aio_set_event_notifier(s->ctx, &s->cmd_vrings[i]->host_notifier, NULL);
+        aio_set_event_notifier(s->ctx, &s->cmd_vrings[i]->host_notifier,
+                               true, NULL);
     }
 
     blk_drain_all(); /* ensure there are no in-flight requests */

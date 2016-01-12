@@ -180,6 +180,11 @@ void parse_option_size(const char *name, const char *value,
 
     if (value != NULL) {
         sizef = strtod(value, &postfix);
+        if (sizef < 0 || sizef > UINT64_MAX) {
+            error_setg(errp, QERR_INVALID_PARAMETER_VALUE, name,
+                             "a non-negative number below 2^64");
+            return;
+        }
         switch (*postfix) {
         case 'T':
             sizef *= 1024;
@@ -200,10 +205,8 @@ void parse_option_size(const char *name, const char *value,
             break;
         default:
             error_setg(errp, QERR_INVALID_PARAMETER_VALUE, name, "a size");
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-            error_printf_unless_qmp("You may use k, M, G or T suffixes for "
-                    "kilobytes, megabytes, gigabytes and terabytes.\n");
-#endif
+            error_append_hint(errp, "You may use k, M, G or T suffixes for "
+                    "kilobytes, megabytes, gigabytes and terabytes.");
             return;
         }
     } else {
@@ -643,9 +646,8 @@ QemuOpts *qemu_opts_create(QemuOptsList *list, const char *id,
         if (!id_wellformed(id)) {
             error_setg(errp, QERR_INVALID_PARAMETER_VALUE, "id",
                        "an identifier");
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-            error_printf_unless_qmp("Identifiers consist of letters, digits, '-', '.', '_', starting with a letter.\n");
-#endif
+            error_append_hint(errp, "Identifiers consist of letters, digits, "
+                              "'-', '.', '_', starting with a letter.");
             return NULL;
         }
         opts = qemu_opts_find(list, id);
@@ -730,14 +732,35 @@ void qemu_opts_del(QemuOpts *opts)
     g_free(opts);
 }
 
-void qemu_opts_print(QemuOpts *opts, const char *sep)
+/* print value, escaping any commas in value */
+static void escaped_print(const char *value)
+{
+    const char *ptr;
+
+    for (ptr = value; *ptr; ++ptr) {
+        if (*ptr == ',') {
+            putchar(',');
+        }
+        putchar(*ptr);
+    }
+}
+
+void qemu_opts_print(QemuOpts *opts, const char *separator)
 {
     QemuOpt *opt;
     QemuOptDesc *desc = opts->list->desc;
+    const char *sep = "";
+
+    if (opts->id) {
+        printf("id=%s", opts->id); /* passed id_wellformed -> no commas */
+        sep = separator;
+    }
 
     if (desc[0].name == NULL) {
         QTAILQ_FOREACH(opt, &opts->head, next) {
-            printf("%s%s=\"%s\"", sep, opt->name, opt->str);
+            printf("%s%s=", sep, opt->name);
+            escaped_print(opt->str);
+            sep = separator;
         }
         return;
     }
@@ -750,13 +773,15 @@ void qemu_opts_print(QemuOpts *opts, const char *sep)
             continue;
         }
         if (desc->type == QEMU_OPT_STRING) {
-            printf("%s%s='%s'", sep, desc->name, value);
+            printf("%s%s=", sep, desc->name);
+            escaped_print(value);
         } else if ((desc->type == QEMU_OPT_SIZE ||
                     desc->type == QEMU_OPT_NUMBER) && opt) {
             printf("%s%s=%" PRId64, sep, desc->name, opt->value.uint);
         } else {
             printf("%s%s=%s", sep, desc->name, value);
         }
+        sep = separator;
     }
 }
 

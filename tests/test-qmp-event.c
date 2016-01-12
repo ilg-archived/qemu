@@ -94,7 +94,7 @@ static bool qdict_cmp_simple(QDict *a, QDict *b)
 
 /* This function is hooked as final emit function, which can verify the
    correctness. */
-static void event_test_emit(TEST_QAPIEvent event, QDict *d, Error **errp)
+static void event_test_emit(test_QAPIEvent event, QDict *d, Error **errp)
 {
     QObject *obj;
     QDict *t;
@@ -179,9 +179,7 @@ static void test_event_c(TestEventData *data,
     QDict *d, *d_data, *d_b;
 
     UserDefOne b;
-    UserDefZero z;
-    z.integer = 2;
-    b.base = &z;
+    b.integer = 2;
     b.string = g_strdup("test1");
     b.has_enum1 = false;
 
@@ -209,11 +207,9 @@ static void test_event_d(TestEventData *data,
 {
     UserDefOne struct1;
     EventStructOne a;
-    UserDefZero z;
     QDict *d, *d_data, *d_a, *d_struct1;
 
-    z.integer = 2;
-    struct1.base = &z;
+    struct1.integer = 2;
     struct1.string = g_strdup("test1");
     struct1.has_enum1 = true;
     struct1.enum1 = ENUM_ONE_VALUE1;

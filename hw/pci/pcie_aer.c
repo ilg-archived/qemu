@@ -827,10 +827,6 @@ typedef struct PCIEAERErrorName {
  */
 static const struct PCIEAERErrorName pcie_aer_error_list[] = {
     {
-        .name = "TRAIN",
-        .val = PCI_ERR_UNC_TRAIN,
-        .correctable = false,
-    }, {
         .name = "DLP",
         .val = PCI_ERR_UNC_DLP,
         .correctable = false,
@@ -983,7 +979,7 @@ static int do_pcie_aer_inject_error(Monitor *mon,
         }
     }
     err.status = error_status;
-    err.source_id = (pci_bus_num(dev->bus) << 8) | dev->devfn;
+    err.source_id = pci_requester_id(dev);
 
     err.flags = 0;
     if (correctable) {

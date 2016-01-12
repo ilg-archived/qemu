@@ -12,13 +12,21 @@
  *
  */
 
-#include "hw/arm/imx.h"
 #include "hw/timer/imx_epit.h"
 #include "hw/misc/imx_ccm.h"
 #include "qemu/main-loop.h"
 
-#define DEBUG_TIMER 0
-#if DEBUG_TIMER
+#ifndef DEBUG_IMX_EPIT
+#define DEBUG_IMX_EPIT 0
+#endif
+
+#define DPRINTF(fmt, args...) \
+    do { \
+        if (DEBUG_IMX_EPIT) { \
+            fprintf(stderr, "[%s]%s: " fmt , TYPE_IMX_EPIT, \
+                                             __func__, ##args); \
+        } \
+    } while (0)
 
 static char const *imx_epit_reg_name(uint32_t reg)
 {
@@ -37,24 +45,6 @@ static char const *imx_epit_reg_name(uint32_t reg)
         return "[?]";
     }
 }
-
-#  define DPRINTF(fmt, args...) \
-    do { fprintf(stderr, "%s: " fmt , __func__, ##args); } while (0)
-#else
-#  define DPRINTF(fmt, args...) do {} while (0)
-#endif
-
-/*
- * Define to 1 for messages about attempts to
- * access unimplemented registers or similar.
- */
-#define DEBUG_IMPLEMENTATION 1
-#if DEBUG_IMPLEMENTATION
-#  define IPRINTF(fmt, args...) \
-          do { fprintf(stderr, "%s: " fmt, __func__, ##args); } while (0)
-#else
-#  define IPRINTF(fmt, args...) do {} while (0)
-#endif
 
 /*
  * Exact clock frequencies vary from board to board.
@@ -137,9 +127,8 @@ static uint64_t imx_epit_read(void *opaque, hwaddr offset, unsigned size)
 {
     IMXEPITState *s = IMX_EPIT(opaque);
     uint32_t reg_value = 0;
-    uint32_t reg = offset >> 2;
 
-    switch (reg) {
+    switch (offset >> 2) {
     case 0: /* Control Register */
         reg_value = s->cr;
         break;
@@ -162,11 +151,12 @@ static uint64_t imx_epit_read(void *opaque, hwaddr offset, unsigned size)
         break;
 
     default:
-        IPRINTF("Bad offset %x\n", reg);
+        qemu_log_mask(LOG_GUEST_ERROR, "[%s]%s: Bad register at offset 0x%"
+                      HWADDR_PRIx "\n", TYPE_IMX_EPIT, __func__, offset);
         break;
     }
 
-    DPRINTF("(%s) = 0x%08x\n", imx_epit_reg_name(reg), reg_value);
+    DPRINTF("(%s) = 0x%08x\n", imx_epit_reg_name(offset >> 2), reg_value);
 
     return reg_value;
 }
@@ -191,12 +181,12 @@ static void imx_epit_write(void *opaque, hwaddr offset, uint64_t value,
                            unsigned size)
 {
     IMXEPITState *s = IMX_EPIT(opaque);
-    uint32_t reg = offset >> 2;
     uint64_t oldcr;
 
-    DPRINTF("(%s, value = 0x%08x)\n", imx_epit_reg_name(reg), (uint32_t)value);
+    DPRINTF("(%s, value = 0x%08x)\n", imx_epit_reg_name(offset >> 2),
+            (uint32_t)value);
 
-    switch (reg) {
+    switch (offset >> 2) {
     case 0: /* CR */
 
         oldcr = s->cr;
@@ -272,7 +262,8 @@ static void imx_epit_write(void *opaque, hwaddr offset, uint64_t value,
         break;
 
     default:
-        IPRINTF("Bad offset %x\n", reg);
+        qemu_log_mask(LOG_GUEST_ERROR, "[%s]%s: Bad register at offset 0x%"
+                      HWADDR_PRIx "\n", TYPE_IMX_EPIT, __func__, offset);
 
         break;
     }
@@ -285,16 +276,6 @@ static void imx_epit_cmp(void *opaque)
 
     s->sr = 1;
     imx_epit_update_int(s);
-}
-
-void imx_timerp_create(const hwaddr addr, qemu_irq irq, DeviceState *ccm)
-{
-    IMXEPITState *pp;
-    DeviceState *dev;
-
-    dev = sysbus_create_simple(TYPE_IMX_EPIT, addr, irq);
-    pp = IMX_EPIT(dev);
-    pp->ccm = ccm;
 }
 
 static const MemoryRegionOps imx_epit_ops = {

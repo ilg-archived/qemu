@@ -28,7 +28,6 @@
 #define SD_OP_READ_OBJ       0x02
 #define SD_OP_WRITE_OBJ      0x03
 /* 0x04 is used internally by Sheepdog */
-#define SD_OP_DISCARD_OBJ    0x05
 
 #define SD_OP_NEW_VDI        0x11
 #define SD_OP_LOCK_VDI       0x12
@@ -318,7 +317,7 @@ enum AIOCBState {
     AIOCB_DISCARD_OBJ,
 };
 
-#define AIOCBOverwrapping(x, y)                                 \
+#define AIOCBOverlapping(x, y)                                 \
     (!(x->max_affect_data_idx < y->min_affect_data_idx          \
        || y->max_affect_data_idx < x->min_affect_data_idx))
 
@@ -342,6 +341,15 @@ struct SheepdogAIOCB {
     uint32_t min_affect_data_idx;
     uint32_t max_affect_data_idx;
 
+    /*
+     * The difference between affect_data_idx and dirty_data_idx:
+     * affect_data_idx represents range of index of all request types.
+     * dirty_data_idx represents range of index updated by COW requests.
+     * dirty_data_idx is used for updating an inode object.
+     */
+    uint32_t min_dirty_data_idx;
+    uint32_t max_dirty_data_idx;
+
     QLIST_ENTRY(SheepdogAIOCB) aiocb_siblings;
 };
 
@@ -350,9 +358,6 @@ typedef struct BDRVSheepdogState {
     AioContext *aio_context;
 
     SheepdogInode inode;
-
-    uint32_t min_dirty_data_idx;
-    uint32_t max_dirty_data_idx;
 
     char name[SD_MAX_VDI_LEN];
     bool is_snapshot;
@@ -373,9 +378,14 @@ typedef struct BDRVSheepdogState {
     QLIST_HEAD(inflight_aio_head, AIOReq) inflight_aio_head;
     QLIST_HEAD(failed_aio_head, AIOReq) failed_aio_head;
 
-    CoQueue overwrapping_queue;
+    CoQueue overlapping_queue;
     QLIST_HEAD(inflight_aiocb_head, SheepdogAIOCB) inflight_aiocb_head;
 } BDRVSheepdogState;
+
+typedef struct BDRVSheepdogReopenState {
+    int fd;
+    int cache_flags;
+} BDRVSheepdogReopenState;
 
 static const char * sd_strerror(int err)
 {
@@ -556,6 +566,9 @@ static SheepdogAIOCB *sd_aio_setup(BlockDriverState *bs, QEMUIOVector *qiov,
     acb->max_affect_data_idx = (acb->sector_num * BDRV_SECTOR_SIZE +
                               acb->nb_sectors * BDRV_SECTOR_SIZE) / object_size;
 
+    acb->min_dirty_data_idx = UINT32_MAX;
+    acb->max_dirty_data_idx = 0;
+
     return acb;
 }
 
@@ -638,14 +651,16 @@ static coroutine_fn void do_co_req(void *opaque)
     unsigned int *rlen = srco->rlen;
 
     co = qemu_coroutine_self();
-    aio_set_fd_handler(srco->aio_context, sockfd, NULL, restart_co_req, co);
+    aio_set_fd_handler(srco->aio_context, sockfd, false,
+                       NULL, restart_co_req, co);
 
     ret = send_co_req(sockfd, hdr, data, wlen);
     if (ret < 0) {
         goto out;
     }
 
-    aio_set_fd_handler(srco->aio_context, sockfd, restart_co_req, NULL, co);
+    aio_set_fd_handler(srco->aio_context, sockfd, false,
+                       restart_co_req, NULL, co);
 
     ret = qemu_co_recv(sockfd, hdr, sizeof(*hdr));
     if (ret != sizeof(*hdr)) {
@@ -670,7 +685,8 @@ static coroutine_fn void do_co_req(void *opaque)
 out:
     /* there is at most one request for this sockfd, so it is safe to
      * set each handler to NULL. */
-    aio_set_fd_handler(srco->aio_context, sockfd, NULL, NULL, NULL);
+    aio_set_fd_handler(srco->aio_context, sockfd, false,
+                       NULL, NULL, NULL);
 
     srco->ret = ret;
     srco->finished = true;
@@ -722,7 +738,8 @@ static coroutine_fn void reconnect_to_sdog(void *opaque)
     BDRVSheepdogState *s = opaque;
     AIOReq *aio_req, *next;
 
-    aio_set_fd_handler(s->aio_context, s->fd, NULL, NULL, NULL);
+    aio_set_fd_handler(s->aio_context, s->fd, false, NULL,
+                       NULL, NULL);
     close(s->fd);
     s->fd = -1;
 
@@ -819,8 +836,8 @@ static void coroutine_fn aio_read_response(void *opaque)
              */
             if (rsp.result == SD_RES_SUCCESS) {
                 s->inode.data_vdi_id[idx] = s->inode.vdi_id;
-                s->max_dirty_data_idx = MAX(idx, s->max_dirty_data_idx);
-                s->min_dirty_data_idx = MIN(idx, s->min_dirty_data_idx);
+                acb->max_dirty_data_idx = MAX(idx, acb->max_dirty_data_idx);
+                acb->min_dirty_data_idx = MIN(idx, acb->min_dirty_data_idx);
             }
         }
         break;
@@ -846,10 +863,6 @@ static void coroutine_fn aio_read_response(void *opaque)
                          s->host_spec);
             rsp.result = SD_RES_SUCCESS;
             s->discard_supported = false;
-            break;
-        case SD_RES_SUCCESS:
-            idx = data_oid_to_idx(aio_req->oid);
-            s->inode.data_vdi_id[idx] = 0;
             break;
         default:
             break;
@@ -929,7 +942,8 @@ static int get_sheep_fd(BDRVSheepdogState *s, Error **errp)
         return fd;
     }
 
-    aio_set_fd_handler(s->aio_context, fd, co_read_response, NULL, s);
+    aio_set_fd_handler(s->aio_context, fd, false,
+                       co_read_response, NULL, s);
     return fd;
 }
 
@@ -1165,7 +1179,13 @@ static void coroutine_fn add_aio_request(BDRVSheepdogState *s, AIOReq *aio_req,
         hdr.flags = SD_FLAG_CMD_WRITE | flags;
         break;
     case AIOCB_DISCARD_OBJ:
-        hdr.opcode = SD_OP_DISCARD_OBJ;
+        hdr.opcode = SD_OP_WRITE_OBJ;
+        hdr.flags = SD_FLAG_CMD_WRITE | flags;
+        s->inode.data_vdi_id[data_oid_to_idx(oid)] = 0;
+        offset = offsetof(SheepdogInode,
+                          data_vdi_id[data_oid_to_idx(oid)]);
+        oid = vid_to_vdi_oid(s->inode.vdi_id);
+        wlen = datalen = sizeof(uint32_t);
         break;
     }
 
@@ -1184,7 +1204,7 @@ static void coroutine_fn add_aio_request(BDRVSheepdogState *s, AIOReq *aio_req,
 
     qemu_co_mutex_lock(&s->lock);
     s->co_send = qemu_coroutine_self();
-    aio_set_fd_handler(s->aio_context, s->fd,
+    aio_set_fd_handler(s->aio_context, s->fd, false,
                        co_read_response, co_write_request, s);
     socket_set_cork(s->fd, 1);
 
@@ -1203,7 +1223,8 @@ static void coroutine_fn add_aio_request(BDRVSheepdogState *s, AIOReq *aio_req,
     }
 out:
     socket_set_cork(s->fd, 0);
-    aio_set_fd_handler(s->aio_context, s->fd, co_read_response, NULL, s);
+    aio_set_fd_handler(s->aio_context, s->fd, false,
+                       co_read_response, NULL, s);
     s->co_send = NULL;
     qemu_co_mutex_unlock(&s->lock);
 }
@@ -1353,7 +1374,8 @@ static void sd_detach_aio_context(BlockDriverState *bs)
 {
     BDRVSheepdogState *s = bs->opaque;
 
-    aio_set_fd_handler(s->aio_context, s->fd, NULL, NULL, NULL);
+    aio_set_fd_handler(s->aio_context, s->fd, false, NULL,
+                       NULL, NULL);
 }
 
 static void sd_attach_aio_context(BlockDriverState *bs,
@@ -1362,7 +1384,8 @@ static void sd_attach_aio_context(BlockDriverState *bs,
     BDRVSheepdogState *s = bs->opaque;
 
     s->aio_context = new_context;
-    aio_set_fd_handler(new_context, s->fd, co_read_response, NULL, s);
+    aio_set_fd_handler(new_context, s->fd, false,
+                       co_read_response, NULL, s);
 }
 
 /* TODO Convert to fine grained options */
@@ -1466,24 +1489,87 @@ static int sd_open(BlockDriverState *bs, QDict *options, int flags,
     }
 
     memcpy(&s->inode, buf, sizeof(s->inode));
-    s->min_dirty_data_idx = UINT32_MAX;
-    s->max_dirty_data_idx = 0;
 
     bs->total_sectors = s->inode.vdi_size / BDRV_SECTOR_SIZE;
     pstrcpy(s->name, sizeof(s->name), vdi);
     qemu_co_mutex_init(&s->lock);
-    qemu_co_queue_init(&s->overwrapping_queue);
+    qemu_co_queue_init(&s->overlapping_queue);
     qemu_opts_del(opts);
     g_free(buf);
     return 0;
 out:
-    aio_set_fd_handler(bdrv_get_aio_context(bs), s->fd, NULL, NULL, NULL);
+    aio_set_fd_handler(bdrv_get_aio_context(bs), s->fd,
+                       false, NULL, NULL, NULL);
     if (s->fd >= 0) {
         closesocket(s->fd);
     }
     qemu_opts_del(opts);
     g_free(buf);
     return ret;
+}
+
+static int sd_reopen_prepare(BDRVReopenState *state, BlockReopenQueue *queue,
+                             Error **errp)
+{
+    BDRVSheepdogState *s = state->bs->opaque;
+    BDRVSheepdogReopenState *re_s;
+    int ret = 0;
+
+    re_s = state->opaque = g_new0(BDRVSheepdogReopenState, 1);
+
+    re_s->cache_flags = SD_FLAG_CMD_CACHE;
+    if (state->flags & BDRV_O_NOCACHE) {
+        re_s->cache_flags = SD_FLAG_CMD_DIRECT;
+    }
+
+    re_s->fd = get_sheep_fd(s, errp);
+    if (re_s->fd < 0) {
+        ret = re_s->fd;
+        return ret;
+    }
+
+    return ret;
+}
+
+static void sd_reopen_commit(BDRVReopenState *state)
+{
+    BDRVSheepdogReopenState *re_s = state->opaque;
+    BDRVSheepdogState *s = state->bs->opaque;
+
+    if (s->fd) {
+        aio_set_fd_handler(s->aio_context, s->fd, false,
+                           NULL, NULL, NULL);
+        closesocket(s->fd);
+    }
+
+    s->fd = re_s->fd;
+    s->cache_flags = re_s->cache_flags;
+
+    g_free(state->opaque);
+    state->opaque = NULL;
+
+    return;
+}
+
+static void sd_reopen_abort(BDRVReopenState *state)
+{
+    BDRVSheepdogReopenState *re_s = state->opaque;
+    BDRVSheepdogState *s = state->bs->opaque;
+
+    if (re_s == NULL) {
+        return;
+    }
+
+    if (re_s->fd) {
+        aio_set_fd_handler(s->aio_context, re_s->fd, false,
+                           NULL, NULL, NULL);
+        closesocket(re_s->fd);
+    }
+
+    g_free(state->opaque);
+    state->opaque = NULL;
+
+    return;
 }
 
 static int do_sd_create(BDRVSheepdogState *s, uint32_t *vdi_id, int snapshot,
@@ -1554,7 +1640,7 @@ static int sd_prealloc(const char *filename, Error **errp)
     int ret;
 
     ret = bdrv_open(&bs, filename, NULL, NULL, BDRV_O_RDWR | BDRV_O_PROTOCOL,
-                    NULL, errp);
+                    errp);
     if (ret < 0) {
         goto out_with_err_set;
     }
@@ -1746,8 +1832,7 @@ static int sd_create(const char *filename, QemuOpts *opts,
         }
 
         bs = NULL;
-        ret = bdrv_open(&bs, backing_file, NULL, NULL, BDRV_O_PROTOCOL, NULL,
-                        errp);
+        ret = bdrv_open(&bs, backing_file, NULL, NULL, BDRV_O_PROTOCOL, errp);
         if (ret < 0) {
             goto out;
         }
@@ -1861,7 +1946,8 @@ static void sd_close(BlockDriverState *bs)
         error_report("%s, %s", sd_strerror(rsp->result), s->name);
     }
 
-    aio_set_fd_handler(bdrv_get_aio_context(bs), s->fd, NULL, NULL, NULL);
+    aio_set_fd_handler(bdrv_get_aio_context(bs), s->fd,
+                       false, NULL, NULL, NULL);
     closesocket(s->fd);
     g_free(s->host_spec);
 }
@@ -1923,16 +2009,16 @@ static void coroutine_fn sd_write_done(SheepdogAIOCB *acb)
     AIOReq *aio_req;
     uint32_t offset, data_len, mn, mx;
 
-    mn = s->min_dirty_data_idx;
-    mx = s->max_dirty_data_idx;
+    mn = acb->min_dirty_data_idx;
+    mx = acb->max_dirty_data_idx;
     if (mn <= mx) {
         /* we need to update the vdi object. */
         offset = sizeof(s->inode) - sizeof(s->inode.data_vdi_id) +
             mn * sizeof(s->inode.data_vdi_id[0]);
         data_len = (mx - mn + 1) * sizeof(s->inode.data_vdi_id[0]);
 
-        s->min_dirty_data_idx = UINT32_MAX;
-        s->max_dirty_data_idx = 0;
+        acb->min_dirty_data_idx = UINT32_MAX;
+        acb->max_dirty_data_idx = 0;
 
         iov.iov_base = &s->inode;
         iov.iov_len = sizeof(s->inode);
@@ -2141,7 +2227,9 @@ static int coroutine_fn sd_co_rw_vector(void *p)
         }
 
         aio_req = alloc_aio_req(s, acb, oid, len, offset, flags, create,
-                                old_oid, done);
+                                old_oid,
+                                acb->aiocb_type == AIOCB_DISCARD_OBJ ?
+                                0 : done);
         QLIST_INSERT_HEAD(&s->inflight_aio_head, aio_req, aio_siblings);
 
         add_aio_request(s, aio_req, acb->qiov->iov, acb->qiov->niov,
@@ -2158,12 +2246,12 @@ out:
     return 1;
 }
 
-static bool check_overwrapping_aiocb(BDRVSheepdogState *s, SheepdogAIOCB *aiocb)
+static bool check_overlapping_aiocb(BDRVSheepdogState *s, SheepdogAIOCB *aiocb)
 {
     SheepdogAIOCB *cb;
 
     QLIST_FOREACH(cb, &s->inflight_aiocb_head, aiocb_siblings) {
-        if (AIOCBOverwrapping(aiocb, cb)) {
+        if (AIOCBOverlapping(aiocb, cb)) {
             return true;
         }
     }
@@ -2192,15 +2280,15 @@ static coroutine_fn int sd_co_writev(BlockDriverState *bs, int64_t sector_num,
     acb->aiocb_type = AIOCB_WRITE_UDATA;
 
 retry:
-    if (check_overwrapping_aiocb(s, acb)) {
-        qemu_co_queue_wait(&s->overwrapping_queue);
+    if (check_overlapping_aiocb(s, acb)) {
+        qemu_co_queue_wait(&s->overlapping_queue);
         goto retry;
     }
 
     ret = sd_co_rw_vector(acb);
     if (ret <= 0) {
         QLIST_REMOVE(acb, aiocb_siblings);
-        qemu_co_queue_restart_all(&s->overwrapping_queue);
+        qemu_co_queue_restart_all(&s->overlapping_queue);
         qemu_aio_unref(acb);
         return ret;
     }
@@ -2208,7 +2296,7 @@ retry:
     qemu_coroutine_yield();
 
     QLIST_REMOVE(acb, aiocb_siblings);
-    qemu_co_queue_restart_all(&s->overwrapping_queue);
+    qemu_co_queue_restart_all(&s->overlapping_queue);
 
     return acb->ret;
 }
@@ -2225,15 +2313,15 @@ static coroutine_fn int sd_co_readv(BlockDriverState *bs, int64_t sector_num,
     acb->aio_done_func = sd_finish_aiocb;
 
 retry:
-    if (check_overwrapping_aiocb(s, acb)) {
-        qemu_co_queue_wait(&s->overwrapping_queue);
+    if (check_overlapping_aiocb(s, acb)) {
+        qemu_co_queue_wait(&s->overlapping_queue);
         goto retry;
     }
 
     ret = sd_co_rw_vector(acb);
     if (ret <= 0) {
         QLIST_REMOVE(acb, aiocb_siblings);
-        qemu_co_queue_restart_all(&s->overwrapping_queue);
+        qemu_co_queue_restart_all(&s->overlapping_queue);
         qemu_aio_unref(acb);
         return ret;
     }
@@ -2241,7 +2329,7 @@ retry:
     qemu_coroutine_yield();
 
     QLIST_REMOVE(acb, aiocb_siblings);
-    qemu_co_queue_restart_all(&s->overwrapping_queue);
+    qemu_co_queue_restart_all(&s->overlapping_queue);
     return acb->ret;
 }
 
@@ -2577,28 +2665,36 @@ static coroutine_fn int sd_co_discard(BlockDriverState *bs, int64_t sector_num,
                                       int nb_sectors)
 {
     SheepdogAIOCB *acb;
-    QEMUIOVector dummy;
     BDRVSheepdogState *s = bs->opaque;
     int ret;
+    QEMUIOVector discard_iov;
+    struct iovec iov;
+    uint32_t zero = 0;
 
     if (!s->discard_supported) {
             return 0;
     }
 
-    acb = sd_aio_setup(bs, &dummy, sector_num, nb_sectors);
+    memset(&discard_iov, 0, sizeof(discard_iov));
+    memset(&iov, 0, sizeof(iov));
+    iov.iov_base = &zero;
+    iov.iov_len = sizeof(zero);
+    discard_iov.iov = &iov;
+    discard_iov.niov = 1;
+    acb = sd_aio_setup(bs, &discard_iov, sector_num, nb_sectors);
     acb->aiocb_type = AIOCB_DISCARD_OBJ;
     acb->aio_done_func = sd_finish_aiocb;
 
 retry:
-    if (check_overwrapping_aiocb(s, acb)) {
-        qemu_co_queue_wait(&s->overwrapping_queue);
+    if (check_overlapping_aiocb(s, acb)) {
+        qemu_co_queue_wait(&s->overlapping_queue);
         goto retry;
     }
 
     ret = sd_co_rw_vector(acb);
     if (ret <= 0) {
         QLIST_REMOVE(acb, aiocb_siblings);
-        qemu_co_queue_restart_all(&s->overwrapping_queue);
+        qemu_co_queue_restart_all(&s->overlapping_queue);
         qemu_aio_unref(acb);
         return ret;
     }
@@ -2606,7 +2702,7 @@ retry:
     qemu_coroutine_yield();
 
     QLIST_REMOVE(acb, aiocb_siblings);
-    qemu_co_queue_restart_all(&s->overwrapping_queue);
+    qemu_co_queue_restart_all(&s->overlapping_queue);
 
     return acb->ret;
 }
@@ -2703,6 +2799,9 @@ static BlockDriver bdrv_sheepdog = {
     .instance_size  = sizeof(BDRVSheepdogState),
     .bdrv_needs_filename = true,
     .bdrv_file_open = sd_open,
+    .bdrv_reopen_prepare    = sd_reopen_prepare,
+    .bdrv_reopen_commit     = sd_reopen_commit,
+    .bdrv_reopen_abort      = sd_reopen_abort,
     .bdrv_close     = sd_close,
     .bdrv_create    = sd_create,
     .bdrv_has_zero_init = bdrv_has_zero_init_1,
@@ -2736,6 +2835,9 @@ static BlockDriver bdrv_sheepdog_tcp = {
     .instance_size  = sizeof(BDRVSheepdogState),
     .bdrv_needs_filename = true,
     .bdrv_file_open = sd_open,
+    .bdrv_reopen_prepare    = sd_reopen_prepare,
+    .bdrv_reopen_commit     = sd_reopen_commit,
+    .bdrv_reopen_abort      = sd_reopen_abort,
     .bdrv_close     = sd_close,
     .bdrv_create    = sd_create,
     .bdrv_has_zero_init = bdrv_has_zero_init_1,
@@ -2769,6 +2871,9 @@ static BlockDriver bdrv_sheepdog_unix = {
     .instance_size  = sizeof(BDRVSheepdogState),
     .bdrv_needs_filename = true,
     .bdrv_file_open = sd_open,
+    .bdrv_reopen_prepare    = sd_reopen_prepare,
+    .bdrv_reopen_commit     = sd_reopen_commit,
+    .bdrv_reopen_abort      = sd_reopen_abort,
     .bdrv_close     = sd_close,
     .bdrv_create    = sd_create,
     .bdrv_has_zero_init = bdrv_has_zero_init_1,

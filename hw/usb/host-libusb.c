@@ -451,6 +451,7 @@ static void usb_host_req_complete_iso(struct libusb_transfer *transfer)
     }
     if (xfer->ring->ep->pid == USB_TOKEN_IN) {
         QTAILQ_INSERT_TAIL(&xfer->ring->copy, xfer, next);
+        usb_wakeup(xfer->ring->ep, 0);
     } else {
         QTAILQ_INSERT_TAIL(&xfer->ring->unused, xfer, next);
     }
@@ -1239,7 +1240,7 @@ static void usb_host_handle_control(USBDevice *udev, USBPacket *p,
 
     /* Fix up USB-3 ep0 maxpacket size to allow superspeed connected devices
      * to work redirected to a not superspeed capable hcd */
-    if (udev->speed == USB_SPEED_SUPER &&
+    if ((udev->speedmask & USB_SPEED_MASK_SUPER) &&
         !(udev->port->speedmask & USB_SPEED_MASK_SUPER) &&
         request == 0x8006 && value == 0x100 && index == 0) {
         r->usb3ep0quirk = true;
@@ -1429,7 +1430,7 @@ static void usb_host_free_streams(USBDevice *udev, USBEndpoint **eps,
  * still present in the first place.  Attemping to contine where we
  * left off is impossible.
  *
- * What we are going to to to here is emulate a surprise removal of
+ * What we are going to do here is emulate a surprise removal of
  * the usb device passed through, then kick host scan so the device
  * will get re-attached (and re-initialized by the guest) in case it
  * is still present.

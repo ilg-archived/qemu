@@ -102,6 +102,7 @@
 093 auto
 094 rw auto quick
 095 rw auto quick
+096 rw auto quick
 097 rw auto backing
 098 rw auto backing quick
 099 rw auto quick
@@ -121,6 +122,7 @@
 114 rw auto quick
 115 rw auto
 116 rw auto quick
+118 rw auto
 119 rw auto quick
 120 rw auto quick
 121 rw auto
@@ -134,3 +136,7 @@
 132 rw auto quick
 134 rw auto quick
 135 rw auto
+136 rw auto
+137 rw auto
+138 rw auto quick
+139 rw auto quick

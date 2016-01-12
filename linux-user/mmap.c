@@ -206,7 +206,6 @@ abi_ulong mmap_next_start = TASK_UNMAPPED_BASE;
 
 unsigned long last_brk;
 
-#ifdef CONFIG_USE_GUEST_BASE
 /* Subroutine of mmap_find_vma, used when we have pre-allocated a chunk
    of guest address space.  */
 static abi_ulong mmap_find_vma_reserved(abi_ulong start, abi_ulong size)
@@ -216,14 +215,14 @@ static abi_ulong mmap_find_vma_reserved(abi_ulong start, abi_ulong size)
     int prot;
     int looped = 0;
 
-    if (size > RESERVED_VA) {
+    if (size > reserved_va) {
         return (abi_ulong)-1;
     }
 
     size = HOST_PAGE_ALIGN(size);
     end_addr = start + size;
-    if (end_addr > RESERVED_VA) {
-        end_addr = RESERVED_VA;
+    if (end_addr > reserved_va) {
+        end_addr = reserved_va;
     }
     addr = end_addr - qemu_host_page_size;
 
@@ -232,7 +231,7 @@ static abi_ulong mmap_find_vma_reserved(abi_ulong start, abi_ulong size)
             if (looped) {
                 return (abi_ulong)-1;
             }
-            end_addr = RESERVED_VA;
+            end_addr = reserved_va;
             addr = end_addr - qemu_host_page_size;
             looped = 1;
             continue;
@@ -253,7 +252,6 @@ static abi_ulong mmap_find_vma_reserved(abi_ulong start, abi_ulong size)
 
     return addr;
 }
-#endif
 
 /*
  * Find and reserve a free memory area of size 'size'. The search
@@ -276,11 +274,9 @@ abi_ulong mmap_find_vma(abi_ulong start, abi_ulong size)
 
     size = HOST_PAGE_ALIGN(size);
 
-#ifdef CONFIG_USE_GUEST_BASE
-    if (RESERVED_VA) {
+    if (reserved_va) {
         return mmap_find_vma_reserved(start, size);
     }
-#endif
 
     addr = start;
     wrapped = repeat = 0;
@@ -448,9 +444,7 @@ abi_long target_mmap(abi_ulong start, abi_ulong len, int prot,
            /* If so, truncate the file map at eof aligned with 
               the hosts real pagesize. Additional anonymous maps
               will be created beyond EOF.  */
-           len = (sb.st_size - offset);
-           len += qemu_real_host_page_size - 1;
-           len &= ~(qemu_real_host_page_size - 1);
+           len = REAL_HOST_PAGE_ALIGN(sb.st_size - offset);
        }
     }
 
@@ -518,10 +512,7 @@ abi_long target_mmap(abi_ulong start, abi_ulong len, int prot,
                 goto fail;
             if (!(prot & PROT_WRITE)) {
                 ret = target_mprotect(start, len, prot);
-                if (ret != 0) {
-                    start = ret;
-                    goto the_end;
-                }
+                assert(ret == 0);
             }
             goto the_end;
         }
@@ -671,7 +662,7 @@ int target_munmap(abi_ulong start, abi_ulong len)
     ret = 0;
     /* unmap what we can */
     if (real_start < real_end) {
-        if (RESERVED_VA) {
+        if (reserved_va) {
             mmap_reserve(real_start, real_end - real_start);
         } else {
             ret = munmap(g2h(real_start), real_end - real_start);
@@ -701,7 +692,7 @@ abi_long target_mremap(abi_ulong old_addr, abi_ulong old_size,
                                      flags,
                                      g2h(new_addr));
 
-        if (RESERVED_VA && host_addr != MAP_FAILED) {
+        if (reserved_va && host_addr != MAP_FAILED) {
             /* If new and old addresses overlap then the above mremap will
                already have failed with EINVAL.  */
             mmap_reserve(old_addr, old_size);
@@ -719,13 +710,13 @@ abi_long target_mremap(abi_ulong old_addr, abi_ulong old_size,
                                          old_size, new_size,
                                          flags | MREMAP_FIXED,
                                          g2h(mmap_start));
-            if ( RESERVED_VA ) {
+            if (reserved_va) {
                 mmap_reserve(old_addr, old_size);
             }
         }
     } else {
         int prot = 0;
-        if (RESERVED_VA && old_size < new_size) {
+        if (reserved_va && old_size < new_size) {
             abi_ulong addr;
             for (addr = old_addr + old_size;
                  addr < old_addr + new_size;
@@ -735,7 +726,7 @@ abi_long target_mremap(abi_ulong old_addr, abi_ulong old_size,
         }
         if (prot == 0) {
             host_addr = mremap(g2h(old_addr), old_size, new_size, flags);
-            if (host_addr != MAP_FAILED && RESERVED_VA && old_size > new_size) {
+            if (host_addr != MAP_FAILED && reserved_va && old_size > new_size) {
                 mmap_reserve(old_addr + old_size, new_size - old_size);
             }
         } else {

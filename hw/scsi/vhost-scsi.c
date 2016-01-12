@@ -26,6 +26,7 @@
 #include "hw/virtio/virtio-bus.h"
 #include "hw/virtio/virtio-access.h"
 #include "hw/fw-path-provider.h"
+#include "linux/vhost.h"
 
 /* Features supported by host kernel. */
 static const int kernel_feature_bits[] = {
@@ -45,7 +46,7 @@ static int vhost_scsi_set_endpoint(VHostSCSI *s)
 
     memset(&backend, 0, sizeof(backend));
     pstrcpy(backend.vhost_wwpn, sizeof(backend.vhost_wwpn), vs->conf.wwpn);
-    ret = vhost_ops->vhost_call(&s->dev, VHOST_SCSI_SET_ENDPOINT, &backend);
+    ret = vhost_ops->vhost_scsi_set_endpoint(&s->dev, &backend);
     if (ret < 0) {
         return -errno;
     }
@@ -60,7 +61,7 @@ static void vhost_scsi_clear_endpoint(VHostSCSI *s)
 
     memset(&backend, 0, sizeof(backend));
     pstrcpy(backend.vhost_wwpn, sizeof(backend.vhost_wwpn), vs->conf.wwpn);
-    vhost_ops->vhost_call(&s->dev, VHOST_SCSI_CLEAR_ENDPOINT, &backend);
+    vhost_ops->vhost_scsi_clear_endpoint(&s->dev, &backend);
 }
 
 static int vhost_scsi_start(VHostSCSI *s)
@@ -76,8 +77,7 @@ static int vhost_scsi_start(VHostSCSI *s)
         return -ENOSYS;
     }
 
-    ret = vhost_ops->vhost_call(&s->dev,
-                                VHOST_SCSI_GET_ABI_VERSION, &abi_version);
+    ret = vhost_ops->vhost_scsi_get_abi_version(&s->dev, &abi_version);
     if (ret < 0) {
         return -errno;
     }
@@ -292,7 +292,7 @@ static char *vhost_scsi_get_fw_dev_path(FWPathProvider *p, BusState *bus,
 {
     VHostSCSI *s = VHOST_SCSI(dev);
     /* format: channel@channel/vhost-scsi@target,lun */
-    return g_strdup_printf("channel@%x/%s@%x,%x", s->channel,
+    return g_strdup_printf("/channel@%x/%s@%x,%x", s->channel,
                            qdev_fw_name(dev), s->target, s->lun);
 }
 

@@ -298,7 +298,16 @@ static inline void futex_wake(QemuEvent *ev, int n)
 
 static inline void futex_wait(QemuEvent *ev, unsigned val)
 {
-    futex(ev, FUTEX_WAIT, (int) val, NULL, NULL, 0);
+    while (futex(ev, FUTEX_WAIT, (int) val, NULL, NULL, 0)) {
+        switch (errno) {
+        case EWOULDBLOCK:
+            return;
+        case EINTR:
+            break; /* get out of switch and retry */
+        default:
+            abort();
+        }
+    }
 }
 #else
 static inline void futex_wake(QemuEvent *ev, int n)
@@ -389,7 +398,7 @@ void qemu_event_wait(QemuEvent *ev)
             /*
              * Leave the event reset and tell qemu_event_set that there
              * are waiters.  No need to retry, because there cannot be
-             * a concurent busy->free transition.  After the CAS, the
+             * a concurrent busy->free transition.  After the CAS, the
              * event will be either set or busy.
              */
             if (atomic_cmpxchg(&ev->value, EV_FREE, EV_BUSY) == EV_SET) {

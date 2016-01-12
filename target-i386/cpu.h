@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "qemu-common.h"
+#include "standard-headers/asm-x86/hyperv.h"
 
 #ifdef TARGET_X86_64
 #define TARGET_LONG_BITS 64
@@ -36,10 +37,10 @@
 #define TARGET_HAS_PRECISE_SMC
 
 #ifdef TARGET_X86_64
-#define ELF_MACHINE     EM_X86_64
+#define I386_ELF_MACHINE  EM_X86_64
 #define ELF_MACHINE_UNAME "x86_64"
 #else
-#define ELF_MACHINE     EM_386
+#define I386_ELF_MACHINE  EM_386
 #define ELF_MACHINE_UNAME "i686"
 #endif
 
@@ -154,6 +155,7 @@
 #define HF_SVMI_SHIFT       21 /* SVM intercepts are active */
 #define HF_OSFXSR_SHIFT     22 /* CR4.OSFXSR */
 #define HF_SMAP_SHIFT       23 /* CR4.SMAP */
+#define HF_IOBPT_SHIFT      24 /* an io breakpoint enabled */
 
 #define HF_CPL_MASK          (3 << HF_CPL_SHIFT)
 #define HF_SOFTMMU_MASK      (1 << HF_SOFTMMU_SHIFT)
@@ -177,6 +179,7 @@
 #define HF_SVMI_MASK         (1 << HF_SVMI_SHIFT)
 #define HF_OSFXSR_MASK       (1 << HF_OSFXSR_SHIFT)
 #define HF_SMAP_MASK         (1 << HF_SMAP_SHIFT)
+#define HF_IOBPT_MASK        (1 << HF_IOBPT_SHIFT)
 
 /* hflags2 */
 
@@ -234,6 +237,7 @@
 #define DR7_TYPE_SHIFT  16
 #define DR7_LEN_SHIFT   18
 #define DR7_FIXED_1     0x00000400
+#define DR7_GLOBAL_BP_MASK   0xaa
 #define DR7_LOCAL_BP_MASK    0x55
 #define DR7_MAX_BP           4
 #define DR7_TYPE_BP_INST     0x0
@@ -281,6 +285,8 @@
 
 #define MCE_CAP_DEF     (MCG_CTL_P|MCG_SER_P)
 #define MCE_BANKS_DEF   10
+
+#define MCG_CAP_BANKS_MASK 0xff
 
 #define MCG_STATUS_RIPV (1ULL<<0)   /* restart ip valid */
 #define MCG_STATUS_EIPV (1ULL<<1)   /* ip points to correct instruction */
@@ -572,6 +578,9 @@ typedef uint32_t FeatureWordArray[FEATURE_WORDS];
 #define CPUID_7_0_EBX_RDSEED   (1U << 18)
 #define CPUID_7_0_EBX_ADX      (1U << 19)
 #define CPUID_7_0_EBX_SMAP     (1U << 20)
+#define CPUID_7_0_EBX_PCOMMIT  (1U << 22) /* Persistent Commit */
+#define CPUID_7_0_EBX_CLFLUSHOPT (1U << 23) /* Flush a Cache Line Optimized */
+#define CPUID_7_0_EBX_CLWB     (1U << 24) /* Cache Line Write Back */
 #define CPUID_7_0_EBX_AVX512PF (1U << 26) /* AVX-512 Prefetch */
 #define CPUID_7_0_EBX_AVX512ER (1U << 27) /* AVX-512 Exponential and Reciprocal */
 #define CPUID_7_0_EBX_AVX512CD (1U << 28) /* AVX-512 Conflict Detection */
@@ -793,6 +802,7 @@ typedef struct {
 #define MAX_GP_COUNTERS    (MSR_IA32_PERF_STATUS - MSR_P6_EVNTSEL0)
 
 #define NB_MMU_MODES 3
+#define TARGET_INSN_START_EXTRA_WORDS 1
 
 #define NB_OPMASK_REGS 8
 
@@ -832,6 +842,7 @@ typedef struct CPUX86State {
     BNDReg bnd_regs[4];
     BNDCSReg bndcs_regs;
     uint64_t msr_bndcfgs;
+    uint64_t efer;
 
     /* Beginning of state preserved by INIT (dummy marker).  */
     struct {} start_init_save;
@@ -864,7 +875,6 @@ typedef struct CPUX86State {
     uint32_t sysenter_cs;
     target_ulong sysenter_esp;
     target_ulong sysenter_eip;
-    uint64_t efer;
     uint64_t star;
 
     uint64_t vm_hsave;
@@ -908,12 +918,14 @@ typedef struct CPUX86State {
     uint64_t msr_hv_guest_os_id;
     uint64_t msr_hv_vapic;
     uint64_t msr_hv_tsc;
+    uint64_t msr_hv_crash_params[HV_X64_MSR_CRASH_PARAMS];
+    uint64_t msr_hv_runtime;
 
     /* exception/interrupt handling */
     int error_code;
     int exception_is_int;
     target_ulong exception_next_eip;
-    target_ulong dr[8]; /* debug registers */
+    target_ulong dr[8]; /* debug registers; note dr4 and dr5 are unused */
     union {
         struct CPUBreakpoint *cpu_breakpoint[4];
         struct CPUWatchpoint *cpu_watchpoint[4];
@@ -1123,42 +1135,13 @@ void x86_stl_phys(CPUState *cs, hwaddr addr, uint32_t val);
 void x86_stq_phys(CPUState *cs, hwaddr addr, uint64_t val);
 #endif
 
-static inline bool hw_local_breakpoint_enabled(unsigned long dr7, int index)
-{
-    return (dr7 >> (index * 2)) & 1;
-}
-
-static inline bool hw_global_breakpoint_enabled(unsigned long dr7, int index)
-{
-    return (dr7 >> (index * 2)) & 2;
-
-}
-static inline bool hw_breakpoint_enabled(unsigned long dr7, int index)
-{
-    return hw_global_breakpoint_enabled(dr7, index) ||
-           hw_local_breakpoint_enabled(dr7, index);
-}
-
-static inline int hw_breakpoint_type(unsigned long dr7, int index)
-{
-    return (dr7 >> (DR7_TYPE_SHIFT + (index * 4))) & 3;
-}
-
-static inline int hw_breakpoint_len(unsigned long dr7, int index)
-{
-    int len = ((dr7 >> (DR7_LEN_SHIFT + (index * 4))) & 3);
-    return (len == 2) ? 8 : len + 1;
-}
-
-void hw_breakpoint_insert(CPUX86State *env, int index);
-void hw_breakpoint_remove(CPUX86State *env, int index);
-bool check_hw_breakpoints(CPUX86State *env, bool force_dr6_update);
 void breakpoint_handler(CPUState *cs);
 
 /* will be suppressed */
 void cpu_x86_update_cr0(CPUX86State *env, uint32_t new_cr0);
 void cpu_x86_update_cr3(CPUX86State *env, target_ulong new_cr3);
 void cpu_x86_update_cr4(CPUX86State *env, uint32_t new_cr4);
+void cpu_x86_update_dr7(CPUX86State *env, uint32_t new_dr7);
 
 /* hw/pc.c */
 uint64_t cpu_get_tsc(CPUX86State *env);
@@ -1187,7 +1170,6 @@ uint64_t cpu_get_tsc(CPUX86State *env);
 #define cpu_init(cpu_model) CPU(cpu_x86_init(cpu_model))
 
 #define cpu_exec cpu_x86_exec
-#define cpu_gen_code cpu_x86_gen_code
 #define cpu_signal_handler cpu_x86_signal_handler
 #define cpu_list x86_cpu_list
 #define cpudef_setup x86_cpudef_setup
@@ -1199,7 +1181,7 @@ uint64_t cpu_get_tsc(CPUX86State *env);
 #define MMU_KSMAP_IDX   0
 #define MMU_USER_IDX    1
 #define MMU_KNOSMAP_IDX 2
-static inline int cpu_mmu_index(CPUX86State *env)
+static inline int cpu_mmu_index(CPUX86State *env, bool ifetch)
 {
     return (env->hflags & HF_CPL_MASK) == 3 ? MMU_USER_IDX :
         (!(env->hflags & HF_SMAP_MASK) || (env->eflags & AC_MASK))
@@ -1267,8 +1249,12 @@ void cpu_x86_inject_mce(Monitor *mon, X86CPU *cpu, int bank,
 
 /* excp_helper.c */
 void QEMU_NORETURN raise_exception(CPUX86State *env, int exception_index);
+void QEMU_NORETURN raise_exception_ra(CPUX86State *env, int exception_index,
+                                      uintptr_t retaddr);
 void QEMU_NORETURN raise_exception_err(CPUX86State *env, int exception_index,
                                        int error_code);
+void QEMU_NORETURN raise_exception_err_ra(CPUX86State *env, int exception_index,
+                                          int error_code, uintptr_t retaddr);
 void QEMU_NORETURN raise_interrupt(CPUX86State *nenv, int intno, int is_int,
                                    int error_code, int next_eip_addend);
 
@@ -1318,6 +1304,9 @@ static inline MemTxAttrs cpu_get_mem_attrs(CPUX86State *env)
 void cpu_set_mxcsr(CPUX86State *env, uint32_t val);
 void cpu_set_fpuc(CPUX86State *env, uint16_t val);
 
+/* mem_helper.c */
+void helper_lock_init(void);
+
 /* svm_helper.c */
 void cpu_svm_check_intercept_param(CPUX86State *env1, uint32_t type,
                                    uint64_t param);
@@ -1332,8 +1321,15 @@ void cpu_smm_update(X86CPU *cpu);
 
 void cpu_report_tpr_access(CPUX86State *env, TPRAccess access);
 
-void x86_cpu_compat_kvm_no_autoenable(FeatureWord w, uint32_t features);
-void x86_cpu_compat_kvm_no_autodisable(FeatureWord w, uint32_t features);
+/* Change the value of a KVM-specific default
+ *
+ * If value is NULL, no default will be set and the original
+ * value from the CPU model table will be kept.
+ *
+ * It is valid to call this funciton only for properties that
+ * are already present in the kvm_default_props table.
+ */
+void x86_cpu_change_kvm_default(const char *prop, const char *value);
 
 
 /* Return name of 32-bit register, from a R_* constant */
@@ -1343,5 +1339,8 @@ void enable_compat_apic_id_mode(void);
 
 #define APIC_DEFAULT_ADDRESS 0xfee00000
 #define APIC_SPACE_SIZE      0x100000
+
+void x86_cpu_dump_local_apic_state(CPUState *cs, FILE *f,
+                                   fprintf_function cpu_fprintf, int flags);
 
 #endif /* CPU_I386_H */

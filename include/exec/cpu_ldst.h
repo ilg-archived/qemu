@@ -49,20 +49,20 @@
 
 #if defined(CONFIG_USER_ONLY)
 /* All direct uses of g2h and h2g need to go away for usermode softmmu.  */
-#define g2h(x) ((void *)((unsigned long)(target_ulong)(x) + GUEST_BASE))
+#define g2h(x) ((void *)((unsigned long)(target_ulong)(x) + guest_base))
 
 #if HOST_LONG_BITS <= TARGET_VIRT_ADDR_SPACE_BITS
 #define h2g_valid(x) 1
 #else
 #define h2g_valid(x) ({ \
-    unsigned long __guest = (unsigned long)(x) - GUEST_BASE; \
+    unsigned long __guest = (unsigned long)(x) - guest_base; \
     (__guest < (1ul << TARGET_VIRT_ADDR_SPACE_BITS)) && \
-    (!RESERVED_VA || (__guest < RESERVED_VA)); \
+    (!reserved_va || (__guest < reserved_va)); \
 })
 #endif
 
 #define h2g_nocheck(x) ({ \
-    unsigned long __ret = (unsigned long)(x) - GUEST_BASE; \
+    unsigned long __ret = (unsigned long)(x) - guest_base; \
     (abi_ulong)__ret; \
 })
 
@@ -112,25 +112,6 @@
 
 /* The memory helpers for tcg-generated code need tcg_target_long etc.  */
 #include "tcg.h"
-
-uint8_t helper_ldb_mmu(CPUArchState *env, target_ulong addr, int mmu_idx);
-uint16_t helper_ldw_mmu(CPUArchState *env, target_ulong addr, int mmu_idx);
-uint32_t helper_ldl_mmu(CPUArchState *env, target_ulong addr, int mmu_idx);
-uint64_t helper_ldq_mmu(CPUArchState *env, target_ulong addr, int mmu_idx);
-
-void helper_stb_mmu(CPUArchState *env, target_ulong addr,
-                    uint8_t val, int mmu_idx);
-void helper_stw_mmu(CPUArchState *env, target_ulong addr,
-                    uint16_t val, int mmu_idx);
-void helper_stl_mmu(CPUArchState *env, target_ulong addr,
-                    uint32_t val, int mmu_idx);
-void helper_stq_mmu(CPUArchState *env, target_ulong addr,
-                    uint64_t val, int mmu_idx);
-
-uint8_t helper_ldb_cmmu(CPUArchState *env, target_ulong addr, int mmu_idx);
-uint16_t helper_ldw_cmmu(CPUArchState *env, target_ulong addr, int mmu_idx);
-uint32_t helper_ldl_cmmu(CPUArchState *env, target_ulong addr, int mmu_idx);
-uint64_t helper_ldq_cmmu(CPUArchState *env, target_ulong addr, int mmu_idx);
 
 #ifdef MMU_MODE0_SUFFIX
 #define CPU_MMU_INDEX 0
@@ -363,7 +344,7 @@ uint64_t helper_ldq_cmmu(CPUArchState *env, target_ulong addr, int mmu_idx);
 #endif /* (NB_MMU_MODES > 12) */
 
 /* these access are slower, they must be as rare as possible */
-#define CPU_MMU_INDEX (cpu_mmu_index(env))
+#define CPU_MMU_INDEX (cpu_mmu_index(env, false))
 #define MEMSUFFIX _data
 #define DATA_SIZE 1
 #include "exec/cpu_ldst_template.h"
@@ -379,7 +360,7 @@ uint64_t helper_ldq_cmmu(CPUArchState *env, target_ulong addr, int mmu_idx);
 #undef CPU_MMU_INDEX
 #undef MEMSUFFIX
 
-#define CPU_MMU_INDEX (cpu_mmu_index(env))
+#define CPU_MMU_INDEX (cpu_mmu_index(env, true))
 #define MEMSUFFIX _code
 #define SOFTMMU_CODE_ACCESS
 

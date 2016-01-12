@@ -457,7 +457,7 @@ BlockAIOCB *ide_issue_trim(BlockBackend *blk,
     return &iocb->common;
 }
 
-static inline void ide_abort_command(IDEState *s)
+void ide_abort_command(IDEState *s)
 {
     ide_transfer_stop(s);
     s->status = READY_STAT | ERR_STAT;
@@ -561,6 +561,53 @@ static bool ide_sect_range_ok(IDEState *s,
     return true;
 }
 
+static void ide_buffered_readv_cb(void *opaque, int ret)
+{
+    IDEBufferedRequest *req = opaque;
+    if (!req->orphaned) {
+        if (!ret) {
+            qemu_iovec_from_buf(req->original_qiov, 0, req->iov.iov_base,
+                                req->original_qiov->size);
+        }
+        req->original_cb(req->original_opaque, ret);
+    }
+    QLIST_REMOVE(req, list);
+    qemu_vfree(req->iov.iov_base);
+    g_free(req);
+}
+
+#define MAX_BUFFERED_REQS 16
+
+BlockAIOCB *ide_buffered_readv(IDEState *s, int64_t sector_num,
+                               QEMUIOVector *iov, int nb_sectors,
+                               BlockCompletionFunc *cb, void *opaque)
+{
+    BlockAIOCB *aioreq;
+    IDEBufferedRequest *req;
+    int c = 0;
+
+    QLIST_FOREACH(req, &s->buffered_requests, list) {
+        c++;
+    }
+    if (c > MAX_BUFFERED_REQS) {
+        return blk_abort_aio_request(s->blk, cb, opaque, -EIO);
+    }
+
+    req = g_new0(IDEBufferedRequest, 1);
+    req->original_qiov = iov;
+    req->original_cb = cb;
+    req->original_opaque = opaque;
+    req->iov.iov_base = qemu_blockalign(blk_bs(s->blk), iov->size);
+    req->iov.iov_len = iov->size;
+    qemu_iovec_init_external(&req->qiov, &req->iov, 1);
+
+    aioreq = blk_aio_readv(s->blk, sector_num, &req->qiov, nb_sectors,
+                           ide_buffered_readv_cb, req);
+
+    QLIST_INSERT_HEAD(&s->buffered_requests, req, list);
+    return aioreq;
+}
+
 static void ide_sector_read(IDEState *s);
 
 static void ide_sector_read_cb(void *opaque, int ret)
@@ -574,13 +621,14 @@ static void ide_sector_read_cb(void *opaque, int ret)
     if (ret == -ECANCELED) {
         return;
     }
-    block_acct_done(blk_get_stats(s->blk), &s->acct);
     if (ret != 0) {
         if (ide_handle_rw_error(s, -ret, IDE_RETRY_PIO |
                                 IDE_RETRY_READ)) {
             return;
         }
     }
+
+    block_acct_done(blk_get_stats(s->blk), &s->acct);
 
     n = s->nsector;
     if (n > s->req_nb_sectors) {
@@ -591,7 +639,6 @@ static void ide_sector_read_cb(void *opaque, int ret)
     s->nsector -= n;
     /* Allow the guest to read the io_buffer */
     ide_transfer_start(s, s->io_buffer, n * BDRV_SECTOR_SIZE, ide_sector_read);
-    s->io_buffer_offset += 512 * n;
     ide_set_irq(s->bus);
 }
 
@@ -622,6 +669,7 @@ static void ide_sector_read(IDEState *s)
 
     if (!ide_sect_range_ok(s, sector_num, n)) {
         ide_rw_error(s);
+        block_acct_invalid(blk_get_stats(s->blk), BLOCK_ACCT_READ);
         return;
     }
 
@@ -631,15 +679,16 @@ static void ide_sector_read(IDEState *s)
 
     block_acct_start(blk_get_stats(s->blk), &s->acct,
                      n * BDRV_SECTOR_SIZE, BLOCK_ACCT_READ);
-    s->pio_aiocb = blk_aio_readv(s->blk, sector_num, &s->qiov, n,
-                                 ide_sector_read_cb, s);
+    s->pio_aiocb = ide_buffered_readv(s, sector_num, &s->qiov, n,
+                                      ide_sector_read_cb, s);
 }
 
-static void dma_buf_commit(IDEState *s, uint32_t tx_bytes)
+void dma_buf_commit(IDEState *s, uint32_t tx_bytes)
 {
     if (s->bus->dma->ops->commit_buf) {
         s->bus->dma->ops->commit_buf(s->bus->dma, tx_bytes);
     }
+    s->io_buffer_offset += tx_bytes;
     qemu_sglist_destroy(&s->sg);
 }
 
@@ -672,6 +721,7 @@ static int ide_handle_rw_error(IDEState *s, int error, int op)
         assert(s->bus->retry_unit == s->unit);
         s->bus->error_status = op;
     } else if (action == BLOCK_ERROR_ACTION_REPORT) {
+        block_acct_failed(blk_get_stats(s->blk), &s->acct);
         if (op & IDE_RETRY_DMA) {
             ide_dma_error(s);
         } else {
@@ -750,6 +800,7 @@ static void ide_dma_cb(void *opaque, int ret)
     if ((s->dma_cmd == IDE_DMA_READ || s->dma_cmd == IDE_DMA_WRITE) &&
         !ide_sect_range_ok(s, sector_num, n)) {
         ide_dma_error(s);
+        block_acct_invalid(blk_get_stats(s->blk), s->acct.type);
         return;
     }
 
@@ -826,7 +877,6 @@ static void ide_sector_write_cb(void *opaque, int ret)
     if (ret == -ECANCELED) {
         return;
     }
-    block_acct_done(blk_get_stats(s->blk), &s->acct);
 
     s->pio_aiocb = NULL;
     s->status &= ~BUSY_STAT;
@@ -837,12 +887,13 @@ static void ide_sector_write_cb(void *opaque, int ret)
         }
     }
 
+    block_acct_done(blk_get_stats(s->blk), &s->acct);
+
     n = s->nsector;
     if (n > s->req_nb_sectors) {
         n = s->req_nb_sectors;
     }
     s->nsector -= n;
-    s->io_buffer_offset += 512 * n;
 
     ide_set_sector(s, ide_get_sector(s) + n);
     if (s->nsector == 0) {
@@ -888,6 +939,7 @@ static void ide_sector_write(IDEState *s)
 
     if (!ide_sect_range_ok(s, sector_num, n)) {
         ide_rw_error(s);
+        block_acct_invalid(blk_get_stats(s->blk), BLOCK_ACCT_WRITE);
         return;
     }
 
@@ -896,7 +948,7 @@ static void ide_sector_write(IDEState *s)
     qemu_iovec_init_external(&s->qiov, &s->iov, 1);
 
     block_acct_start(blk_get_stats(s->blk), &s->acct,
-                     n * BDRV_SECTOR_SIZE, BLOCK_ACCT_READ);
+                     n * BDRV_SECTOR_SIZE, BLOCK_ACCT_WRITE);
     s->pio_aiocb = blk_aio_writev(s->blk, sector_num, &s->qiov, n,
                                   ide_sector_write_cb, s);
 }
@@ -1747,11 +1799,11 @@ static const struct {
 } ide_cmd_table[0x100] = {
     /* NOP not implemented, mandatory for CD */
     [CFA_REQ_EXT_ERROR_CODE]      = { cmd_cfa_req_ext_error_code, CFA_OK },
-    [WIN_DSM]                     = { cmd_data_set_management, ALL_OK },
+    [WIN_DSM]                     = { cmd_data_set_management, HD_CFA_OK },
     [WIN_DEVICE_RESET]            = { cmd_device_reset, CD_OK },
     [WIN_RECAL]                   = { cmd_nop, HD_CFA_OK | SET_DSC},
     [WIN_READ]                    = { cmd_read_pio, ALL_OK },
-    [WIN_READ_ONCE]               = { cmd_read_pio, ALL_OK },
+    [WIN_READ_ONCE]               = { cmd_read_pio, HD_CFA_OK },
     [WIN_READ_EXT]                = { cmd_read_pio, HD_CFA_OK },
     [WIN_READDMA_EXT]             = { cmd_read_dma, HD_CFA_OK },
     [WIN_READ_NATIVE_MAX_EXT]     = { cmd_read_native_max, HD_CFA_OK | SET_DSC },
@@ -1770,12 +1822,12 @@ static const struct {
     [CFA_TRANSLATE_SECTOR]        = { cmd_cfa_translate_sector, CFA_OK },
     [WIN_DIAGNOSE]                = { cmd_exec_dev_diagnostic, ALL_OK },
     [WIN_SPECIFY]                 = { cmd_nop, HD_CFA_OK | SET_DSC },
-    [WIN_STANDBYNOW2]             = { cmd_nop, ALL_OK },
-    [WIN_IDLEIMMEDIATE2]          = { cmd_nop, ALL_OK },
-    [WIN_STANDBY2]                = { cmd_nop, ALL_OK },
-    [WIN_SETIDLE2]                = { cmd_nop, ALL_OK },
-    [WIN_CHECKPOWERMODE2]         = { cmd_check_power_mode, ALL_OK | SET_DSC },
-    [WIN_SLEEPNOW2]               = { cmd_nop, ALL_OK },
+    [WIN_STANDBYNOW2]             = { cmd_nop, HD_CFA_OK },
+    [WIN_IDLEIMMEDIATE2]          = { cmd_nop, HD_CFA_OK },
+    [WIN_STANDBY2]                = { cmd_nop, HD_CFA_OK },
+    [WIN_SETIDLE2]                = { cmd_nop, HD_CFA_OK },
+    [WIN_CHECKPOWERMODE2]         = { cmd_check_power_mode, HD_CFA_OK | SET_DSC },
+    [WIN_SLEEPNOW2]               = { cmd_nop, HD_CFA_OK },
     [WIN_PACKETCMD]               = { cmd_packet, CD_OK },
     [WIN_PIDENTIFY]               = { cmd_identify_packet, CD_OK },
     [WIN_SMART]                   = { cmd_smart, HD_CFA_OK | SET_DSC },
@@ -1789,19 +1841,19 @@ static const struct {
     [WIN_WRITEDMA]                = { cmd_write_dma, HD_CFA_OK },
     [WIN_WRITEDMA_ONCE]           = { cmd_write_dma, HD_CFA_OK },
     [CFA_WRITE_MULTI_WO_ERASE]    = { cmd_write_multiple, CFA_OK },
-    [WIN_STANDBYNOW1]             = { cmd_nop, ALL_OK },
-    [WIN_IDLEIMMEDIATE]           = { cmd_nop, ALL_OK },
-    [WIN_STANDBY]                 = { cmd_nop, ALL_OK },
-    [WIN_SETIDLE1]                = { cmd_nop, ALL_OK },
-    [WIN_CHECKPOWERMODE1]         = { cmd_check_power_mode, ALL_OK | SET_DSC },
-    [WIN_SLEEPNOW1]               = { cmd_nop, ALL_OK },
+    [WIN_STANDBYNOW1]             = { cmd_nop, HD_CFA_OK },
+    [WIN_IDLEIMMEDIATE]           = { cmd_nop, HD_CFA_OK },
+    [WIN_STANDBY]                 = { cmd_nop, HD_CFA_OK },
+    [WIN_SETIDLE1]                = { cmd_nop, HD_CFA_OK },
+    [WIN_CHECKPOWERMODE1]         = { cmd_check_power_mode, HD_CFA_OK | SET_DSC },
+    [WIN_SLEEPNOW1]               = { cmd_nop, HD_CFA_OK },
     [WIN_FLUSH_CACHE]             = { cmd_flush_cache, ALL_OK },
     [WIN_FLUSH_CACHE_EXT]         = { cmd_flush_cache, HD_CFA_OK },
     [WIN_IDENTIFY]                = { cmd_identify, ALL_OK },
     [WIN_SETFEATURES]             = { cmd_set_features, ALL_OK | SET_DSC },
     [IBM_SENSE_CONDITION]         = { cmd_ibm_sense_condition, CFA_OK | SET_DSC },
     [CFA_WEAR_LEVEL]              = { cmd_cfa_erase_sectors, HD_CFA_OK | SET_DSC },
-    [WIN_READ_NATIVE_MAX]         = { cmd_read_native_max, ALL_OK | SET_DSC },
+    [WIN_READ_NATIVE_MAX]         = { cmd_read_native_max, HD_CFA_OK | SET_DSC },
 };
 
 static bool ide_cmd_permitted(IDEState *s, uint32_t cmd)
@@ -2313,7 +2365,7 @@ int ide_init_drive(IDEState *s, BlockBackend *blk, IDEDriveKind kind,
     if (version) {
         pstrcpy(s->version, sizeof(s->version), version);
     } else {
-        pstrcpy(s->version, sizeof(s->version), qemu_get_version());
+        pstrcpy(s->version, sizeof(s->version), qemu_hw_version());
     }
 
     ide_reset(s);

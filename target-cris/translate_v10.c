@@ -96,7 +96,7 @@ static void gen_store_v10_conditional(DisasContext *dc, TCGv addr, TCGv val,
 static void gen_store_v10(DisasContext *dc, TCGv addr, TCGv val,
                        unsigned int size)
 {
-    int mem_index = cpu_mmu_index(&dc->cpu->env);
+    int mem_index = cpu_mmu_index(&dc->cpu->env, false);
 
     /* If we get a fault on a delayslot we must keep the jmp state in
        the cpu-state to be able to re-execute the jmp.  */
@@ -535,16 +535,8 @@ static void dec10_reg_scc(DisasContext *dc)
 
     LOG_DIS("s%s $r%u\n", cc_name(cond), dc->src);
 
-    if (cond != CC_A)
-    {
-        TCGLabel *l1 = gen_new_label();
-        gen_tst_cc (dc, cpu_R[dc->src], cond);
-        tcg_gen_brcondi_tl(TCG_COND_EQ, cpu_R[dc->src], 0, l1);
-        tcg_gen_movi_tl(cpu_R[dc->src], 1);
-        gen_set_label(l1);
-    } else {
-        tcg_gen_movi_tl(cpu_R[dc->src], 1);
-    }
+    gen_tst_cc(dc, cpu_R[dc->src], cond);
+    tcg_gen_setcondi_tl(TCG_COND_NE, cpu_R[dc->src], cpu_R[dc->src], 0);
 
     cris_cc_mask(dc, 0);
 }
@@ -1206,9 +1198,6 @@ static unsigned int dec10_ind(CPUCRISState *env, DisasContext *dc)
 static unsigned int crisv10_decoder(CPUCRISState *env, DisasContext *dc)
 {
     unsigned int insn_len = 2;
-
-    if (unlikely(qemu_loglevel_mask(CPU_LOG_TB_OP)))
-        tcg_gen_debug_insn_start(dc->pc);
 
     /* Load a halfword onto the instruction register.  */
     dc->ir = cpu_lduw_code(env, dc->pc);

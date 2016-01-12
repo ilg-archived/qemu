@@ -67,6 +67,10 @@ struct TypeImpl
     InterfaceImpl interfaces[MAX_INTERFACES];
 };
 
+struct ObjectPropertyIterator {
+    GHashTableIter iter;
+};
+
 static Type type_interface;
 
 static GHashTable *type_table_get(void)
@@ -204,7 +208,7 @@ static bool type_is_ancestor(TypeImpl *type, TypeImpl *target_type)
 {
     assert(target_type);
 
-    /* Check if typename is a direct ancestor of type */
+    /* Check if target_type is a direct ancestor of type */
     while (type) {
         if (type == target_type) {
             return true;
@@ -261,7 +265,7 @@ static void type_initialize(TypeImpl *ti)
         GSList *e;
         int i;
 
-        g_assert(parent->class_size <= ti->class_size);
+        g_assert_cmpint(parent->class_size, <=, ti->class_size);
         memcpy(ti->class, parent->class, parent->class_size);
         ti->class->interfaces = NULL;
 
@@ -326,6 +330,16 @@ static void object_post_init_with_type(Object *obj, TypeImpl *ti)
     }
 }
 
+static void object_property_free(gpointer data)
+{
+    ObjectProperty *prop = data;
+
+    g_free(prop->name);
+    g_free(prop->type);
+    g_free(prop->description);
+    g_free(prop);
+}
+
 void object_initialize_with_type(void *data, size_t size, TypeImpl *type)
 {
     Object *obj = data;
@@ -333,14 +347,15 @@ void object_initialize_with_type(void *data, size_t size, TypeImpl *type)
     g_assert(type != NULL);
     type_initialize(type);
 
-    g_assert(type->instance_size >= sizeof(Object));
+    g_assert_cmpint(type->instance_size, >=, sizeof(Object));
     g_assert(type->abstract == false);
-    g_assert(size >= type->instance_size);
+    g_assert_cmpint(size, >=, type->instance_size);
 
     memset(obj, 0, type->instance_size);
     obj->class = type->class;
     object_ref(obj);
-    QTAILQ_INIT(&obj->properties);
+    obj->properties = g_hash_table_new_full(g_str_hash, g_str_equal,
+                                            NULL, object_property_free);
     object_init_with_type(obj, type);
     object_post_init_with_type(obj, type);
 }
@@ -359,29 +374,51 @@ static inline bool object_property_is_child(ObjectProperty *prop)
 
 static void object_property_del_all(Object *obj)
 {
-    while (!QTAILQ_EMPTY(&obj->properties)) {
-        ObjectProperty *prop = QTAILQ_FIRST(&obj->properties);
+    ObjectProperty *prop;
+    GHashTableIter iter;
+    gpointer key, value;
+    bool released;
 
-        QTAILQ_REMOVE(&obj->properties, prop, node);
-
-        if (prop->release) {
-            prop->release(obj, prop->name, prop->opaque);
+    do {
+        released = false;
+        g_hash_table_iter_init(&iter, obj->properties);
+        while (g_hash_table_iter_next(&iter, &key, &value)) {
+            prop = value;
+            if (prop->release) {
+                prop->release(obj, prop->name, prop->opaque);
+                prop->release = NULL;
+                released = true;
+                break;
+            }
+            g_hash_table_iter_remove(&iter);
         }
+    } while (released);
 
-        g_free(prop->name);
-        g_free(prop->type);
-        g_free(prop->description);
-        g_free(prop);
-    }
+    g_hash_table_unref(obj->properties);
 }
 
 static void object_property_del_child(Object *obj, Object *child, Error **errp)
 {
     ObjectProperty *prop;
+    GHashTableIter iter;
+    gpointer key, value;
 
-    QTAILQ_FOREACH(prop, &obj->properties, node) {
+    g_hash_table_iter_init(&iter, obj->properties);
+    while (g_hash_table_iter_next(&iter, &key, &value)) {
+        prop = value;
         if (object_property_is_child(prop) && prop->opaque == child) {
-            object_property_del(obj, prop->name, errp);
+            if (prop->release) {
+                prop->release(obj, prop->name, prop->opaque);
+                prop->release = NULL;
+            }
+            break;
+        }
+    }
+    g_hash_table_iter_init(&iter, obj->properties);
+    while (g_hash_table_iter_next(&iter, &key, &value)) {
+        prop = value;
+        if (object_property_is_child(prop) && prop->opaque == child) {
+            g_hash_table_iter_remove(&iter);
             break;
         }
     }
@@ -413,7 +450,7 @@ static void object_finalize(void *data)
     object_property_del_all(obj);
     object_deinit(obj, ti);
 
-    g_assert(obj->ref == 0);
+    g_assert_cmpint(obj->ref, ==, 0);
     if (obj->free) {
         obj->free(obj);
     }
@@ -775,21 +812,42 @@ void object_class_foreach(void (*fn)(ObjectClass *klass, void *opaque),
     enumerating_types = false;
 }
 
-int object_child_foreach(Object *obj, int (*fn)(Object *child, void *opaque),
-                         void *opaque)
+static int do_object_child_foreach(Object *obj,
+                                   int (*fn)(Object *child, void *opaque),
+                                   void *opaque, bool recurse)
 {
-    ObjectProperty *prop, *next;
+    GHashTableIter iter;
+    ObjectProperty *prop;
     int ret = 0;
 
-    QTAILQ_FOREACH_SAFE(prop, &obj->properties, node, next) {
+    g_hash_table_iter_init(&iter, obj->properties);
+    while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&prop)) {
         if (object_property_is_child(prop)) {
-            ret = fn(prop->opaque, opaque);
+            Object *child = prop->opaque;
+
+            ret = fn(child, opaque);
             if (ret != 0) {
                 break;
+            }
+            if (recurse) {
+                do_object_child_foreach(child, fn, opaque, true);
             }
         }
     }
     return ret;
+}
+
+int object_child_foreach(Object *obj, int (*fn)(Object *child, void *opaque),
+                         void *opaque)
+{
+    return do_object_child_foreach(obj, fn, opaque, false);
+}
+
+int object_child_foreach_recursive(Object *obj,
+                                   int (*fn)(Object *child, void *opaque),
+                                   void *opaque)
+{
+    return do_object_child_foreach(obj, fn, opaque, true);
 }
 
 static void object_class_get_list_tramp(ObjectClass *klass, void *opaque)
@@ -814,7 +872,7 @@ void object_ref(Object *obj)
     if (!obj) {
         return;
     }
-     atomic_inc(&obj->ref);
+    atomic_inc(&obj->ref);
 }
 
 void object_unref(Object *obj)
@@ -822,7 +880,7 @@ void object_unref(Object *obj)
     if (!obj) {
         return;
     }
-    g_assert(obj->ref > 0);
+    g_assert_cmpint(obj->ref, >, 0);
 
     /* parent always holds a reference to its children */
     if (atomic_fetch_dec(&obj->ref) == 1) {
@@ -860,13 +918,11 @@ object_property_add(Object *obj, const char *name, const char *type,
         return ret;
     }
 
-    QTAILQ_FOREACH(prop, &obj->properties, node) {
-        if (strcmp(prop->name, name) == 0) {
-            error_setg(errp, "attempt to add duplicate property '%s'"
+    if (g_hash_table_lookup(obj->properties, name) != NULL) {
+        error_setg(errp, "attempt to add duplicate property '%s'"
                        " to object (type '%s')", name,
                        object_get_typename(obj));
-            return NULL;
-        }
+        return NULL;
     }
 
     prop = g_malloc0(sizeof(*prop));
@@ -879,7 +935,7 @@ object_property_add(Object *obj, const char *name, const char *type,
     prop->release = release;
     prop->opaque = opaque;
 
-    QTAILQ_INSERT_TAIL(&obj->properties, prop, node);
+    g_hash_table_insert(obj->properties, prop->name, prop);
     return prop;
 }
 
@@ -888,33 +944,52 @@ ObjectProperty *object_property_find(Object *obj, const char *name,
 {
     ObjectProperty *prop;
 
-    QTAILQ_FOREACH(prop, &obj->properties, node) {
-        if (strcmp(prop->name, name) == 0) {
-            return prop;
-        }
+    prop = g_hash_table_lookup(obj->properties, name);
+    if (prop) {
+        return prop;
     }
 
     error_setg(errp, "Property '.%s' not found", name);
     return NULL;
 }
 
+ObjectPropertyIterator *object_property_iter_init(Object *obj)
+{
+    ObjectPropertyIterator *ret = g_new0(ObjectPropertyIterator, 1);
+    g_hash_table_iter_init(&ret->iter, obj->properties);
+    return ret;
+}
+
+void object_property_iter_free(ObjectPropertyIterator *iter)
+{
+    if (!iter) {
+        return;
+    }
+    g_free(iter);
+}
+
+ObjectProperty *object_property_iter_next(ObjectPropertyIterator *iter)
+{
+    gpointer key, val;
+    if (!g_hash_table_iter_next(&iter->iter, &key, &val)) {
+        return NULL;
+    }
+    return val;
+}
+
 void object_property_del(Object *obj, const char *name, Error **errp)
 {
-    ObjectProperty *prop = object_property_find(obj, name, errp);
-    if (prop == NULL) {
+    ObjectProperty *prop = g_hash_table_lookup(obj->properties, name);
+
+    if (!prop) {
+        error_setg(errp, "Property '.%s' not found", name);
         return;
     }
 
     if (prop->release) {
         prop->release(obj, name, prop->opaque);
     }
-
-    QTAILQ_REMOVE(&obj->properties, prop, node);
-
-    g_free(prop->name);
-    g_free(prop->type);
-    g_free(prop->description);
-    g_free(prop);
+    g_hash_table_remove(obj->properties, name);
 }
 
 void object_property_get(Object *obj, Visitor *v, const char *name,
@@ -1079,6 +1154,7 @@ typedef struct EnumProperty {
 int object_property_get_enum(Object *obj, const char *name,
                              const char *typename, Error **errp)
 {
+    Error *err = NULL;
     StringOutputVisitor *sov;
     StringInputVisitor *siv;
     char *str;
@@ -1100,7 +1176,12 @@ int object_property_get_enum(Object *obj, const char *name,
     enumprop = prop->opaque;
 
     sov = string_output_visitor_new(false);
-    object_property_get(obj, string_output_get_visitor(sov), name, errp);
+    object_property_get(obj, string_output_get_visitor(sov), name, &err);
+    if (err) {
+        error_propagate(errp, err);
+        string_output_visitor_cleanup(sov);
+        return 0;
+    }
     str = string_output_get_string(sov);
     siv = string_input_visitor_new(str);
     string_output_visitor_cleanup(sov);
@@ -1116,51 +1197,57 @@ int object_property_get_enum(Object *obj, const char *name,
 void object_property_get_uint16List(Object *obj, const char *name,
                                     uint16List **list, Error **errp)
 {
+    Error *err = NULL;
     StringOutputVisitor *ov;
     StringInputVisitor *iv;
     char *str;
 
     ov = string_output_visitor_new(false);
     object_property_get(obj, string_output_get_visitor(ov),
-                        name, errp);
+                        name, &err);
+    if (err) {
+        error_propagate(errp, err);
+        goto out;
+    }
     str = string_output_get_string(ov);
     iv = string_input_visitor_new(str);
     visit_type_uint16List(string_input_get_visitor(iv),
                           list, NULL, errp);
 
     g_free(str);
-    string_output_visitor_cleanup(ov);
     string_input_visitor_cleanup(iv);
+out:
+    string_output_visitor_cleanup(ov);
 }
 
 void object_property_parse(Object *obj, const char *string,
                            const char *name, Error **errp)
 {
-    StringInputVisitor *mi;
-    mi = string_input_visitor_new(string);
-    object_property_set(obj, string_input_get_visitor(mi), name, errp);
+    StringInputVisitor *siv;
+    siv = string_input_visitor_new(string);
+    object_property_set(obj, string_input_get_visitor(siv), name, errp);
 
-    string_input_visitor_cleanup(mi);
+    string_input_visitor_cleanup(siv);
 }
 
 char *object_property_print(Object *obj, const char *name, bool human,
                             Error **errp)
 {
-    StringOutputVisitor *mo;
+    StringOutputVisitor *sov;
     char *string = NULL;
     Error *local_err = NULL;
 
-    mo = string_output_visitor_new(human);
-    object_property_get(obj, string_output_get_visitor(mo), name, &local_err);
+    sov = string_output_visitor_new(human);
+    object_property_get(obj, string_output_get_visitor(sov), name, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         goto out;
     }
 
-    string = string_output_get_string(mo);
+    string = string_output_get_string(sov);
 
 out:
-    string_output_visitor_cleanup(mo);
+    string_output_visitor_cleanup(sov);
     return string;
 }
 
@@ -1299,8 +1386,8 @@ static Object *object_resolve_link(Object *obj, const char *name,
     target = object_resolve_path_type(path, target_type, &ambiguous);
 
     if (ambiguous) {
-        error_set(errp, ERROR_CLASS_GENERIC_ERROR,
-                  "Path '%s' does not uniquely identify an object", path);
+        error_setg(errp, "Path '%s' does not uniquely identify an object",
+                   path);
     } else if (!target) {
         target = object_resolve_path(path, &ambiguous);
         if (target || ambiguous) {
@@ -1422,11 +1509,13 @@ void object_property_add_const_link(Object *obj, const char *name,
 gchar *object_get_canonical_path_component(Object *obj)
 {
     ObjectProperty *prop = NULL;
+    GHashTableIter iter;
 
     g_assert(obj);
     g_assert(obj->parent != NULL);
 
-    QTAILQ_FOREACH(prop, &obj->parent->properties, node) {
+    g_hash_table_iter_init(&iter, obj->parent->properties);
+    while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&prop)) {
         if (!object_property_is_child(prop)) {
             continue;
         }
@@ -1510,11 +1599,13 @@ static Object *object_resolve_partial_path(Object *parent,
                                               bool *ambiguous)
 {
     Object *obj;
+    GHashTableIter iter;
     ObjectProperty *prop;
 
     obj = object_resolve_abs_path(parent, parts, typename, 0);
 
-    QTAILQ_FOREACH(prop, &parent->properties, node) {
+    g_hash_table_iter_init(&iter, parent->properties);
+    while (g_hash_table_iter_next(&iter, NULL, (gpointer *)&prop)) {
         Object *found;
 
         if (!object_property_is_child(prop)) {
@@ -1581,12 +1672,16 @@ static void property_get_str(Object *obj, Visitor *v, void *opaque,
 {
     StringProperty *prop = opaque;
     char *value;
+    Error *err = NULL;
 
-    value = prop->get(obj, errp);
-    if (value) {
-        visit_type_str(v, &value, name, errp);
-        g_free(value);
+    value = prop->get(obj, &err);
+    if (err) {
+        error_propagate(errp, err);
+        return;
     }
+
+    visit_type_str(v, &value, name, errp);
+    g_free(value);
 }
 
 static void property_set_str(Object *obj, Visitor *v, void *opaque,
@@ -1646,8 +1741,14 @@ static void property_get_bool(Object *obj, Visitor *v, void *opaque,
 {
     BoolProperty *prop = opaque;
     bool value;
+    Error *err = NULL;
 
-    value = prop->get(obj, errp);
+    value = prop->get(obj, &err);
+    if (err) {
+        error_propagate(errp, err);
+        return;
+    }
+
     visit_type_bool(v, &value, name, errp);
 }
 
@@ -1701,8 +1802,14 @@ static void property_get_enum(Object *obj, Visitor *v, void *opaque,
 {
     EnumProperty *prop = opaque;
     int value;
+    Error *err = NULL;
 
-    value = prop->get(obj, errp);
+    value = prop->get(obj, &err);
+    if (err) {
+        error_propagate(errp, err);
+        return;
+    }
+
     visit_type_enum(v, &value, prop->strings, NULL, name, errp);
 }
 
@@ -1711,8 +1818,13 @@ static void property_set_enum(Object *obj, Visitor *v, void *opaque,
 {
     EnumProperty *prop = opaque;
     int value;
+    Error *err = NULL;
 
-    visit_type_enum(v, &value, prop->strings, NULL, name, errp);
+    visit_type_enum(v, &value, prop->strings, NULL, name, &err);
+    if (err) {
+        error_propagate(errp, err);
+        return;
+    }
     prop->set(obj, value, errp);
 }
 

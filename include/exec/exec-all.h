@@ -62,26 +62,16 @@ typedef struct TranslationBlock TranslationBlock;
 #define OPC_BUF_SIZE 640
 #define OPC_MAX_SIZE (OPC_BUF_SIZE - MAX_OP_PER_INSTR)
 
-/* Maximum size a TCG op can expand to.  This is complicated because a
-   single op may require several host instructions and register reloads.
-   For now take a wild guess at 192 bytes, which should allow at least
-   a couple of fixup instructions per argument.  */
-#define TCG_MAX_OP_SIZE 192
-
 #define OPPARAM_BUF_SIZE (OPC_BUF_SIZE * MAX_OPC_PARAM)
 
 #include "qemu/log.h"
 
 void gen_intermediate_code(CPUArchState *env, struct TranslationBlock *tb);
-void gen_intermediate_code_pc(CPUArchState *env, struct TranslationBlock *tb);
 void restore_state_to_opc(CPUArchState *env, struct TranslationBlock *tb,
-                          int pc_pos);
+                          target_ulong *data);
 
 void cpu_gen_init(void);
-int cpu_gen_code(CPUArchState *env, struct TranslationBlock *tb,
-                 int *gen_code_size_ptr);
 bool cpu_restore_state(CPUState *cpu, uintptr_t searched_pc);
-void page_size_init(void);
 
 void QEMU_NORETURN cpu_resume_from_signal(CPUState *cpu, void *puc);
 void QEMU_NORETURN cpu_io_recompile(CPUState *cpu, uintptr_t retaddr);
@@ -90,14 +80,52 @@ TranslationBlock *tb_gen_code(CPUState *cpu,
                               int cflags);
 void cpu_exec_init(CPUState *cpu, Error **errp);
 void QEMU_NORETURN cpu_loop_exit(CPUState *cpu);
+void QEMU_NORETURN cpu_loop_exit_restore(CPUState *cpu, uintptr_t pc);
 
 #if !defined(CONFIG_USER_ONLY)
-bool qemu_in_vcpu_thread(void);
-void cpu_reload_memory_map(CPUState *cpu);
+void cpu_reloading_memory_map(void);
 void tcg_cpu_address_space_init(CPUState *cpu, AddressSpace *as);
 /* cputlb.c */
+/**
+ * tlb_flush_page:
+ * @cpu: CPU whose TLB should be flushed
+ * @addr: virtual address of page to be flushed
+ *
+ * Flush one page from the TLB of the specified CPU, for all
+ * MMU indexes.
+ */
 void tlb_flush_page(CPUState *cpu, target_ulong addr);
+/**
+ * tlb_flush:
+ * @cpu: CPU whose TLB should be flushed
+ * @flush_global: ignored
+ *
+ * Flush the entire TLB for the specified CPU.
+ * The flush_global flag is in theory an indicator of whether the whole
+ * TLB should be flushed, or only those entries not marked global.
+ * In practice QEMU does not implement any global/not global flag for
+ * TLB entries, and the argument is ignored.
+ */
 void tlb_flush(CPUState *cpu, int flush_global);
+/**
+ * tlb_flush_page_by_mmuidx:
+ * @cpu: CPU whose TLB should be flushed
+ * @addr: virtual address of page to be flushed
+ * @...: list of MMU indexes to flush, terminated by a negative value
+ *
+ * Flush one page from the TLB of the specified CPU, for the specified
+ * MMU indexes.
+ */
+void tlb_flush_page_by_mmuidx(CPUState *cpu, target_ulong addr, ...);
+/**
+ * tlb_flush_by_mmuidx:
+ * @cpu: CPU whose TLB should be flushed
+ * @...: list of MMU indexes to flush, terminated by a negative value
+ *
+ * Flush all entries from the TLB of the specified CPU, for the specified
+ * MMU indexes.
+ */
+void tlb_flush_by_mmuidx(CPUState *cpu, ...);
 void tlb_set_page(CPUState *cpu, target_ulong vaddr,
                   hwaddr paddr, int prot,
                   int mmu_idx, target_ulong size);
@@ -115,6 +143,15 @@ static inline void tlb_flush_page(CPUState *cpu, target_ulong addr)
 static inline void tlb_flush(CPUState *cpu, int flush_global)
 {
 }
+
+static inline void tlb_flush_page_by_mmuidx(CPUState *cpu,
+                                            target_ulong addr, ...)
+{
+}
+
+static inline void tlb_flush_by_mmuidx(CPUState *cpu, ...)
+{
+}
 #endif
 
 #define CODE_GEN_ALIGN           16 /* must be >= of the size of a icache line */
@@ -122,13 +159,14 @@ static inline void tlb_flush(CPUState *cpu, int flush_global)
 #define CODE_GEN_PHYS_HASH_BITS     15
 #define CODE_GEN_PHYS_HASH_SIZE     (1 << CODE_GEN_PHYS_HASH_BITS)
 
-/* estimated block size for TB allocation */
-/* XXX: use a per code average code fragment size and modulate it
-   according to the host CPU */
+/* Estimated block size for TB allocation.  */
+/* ??? The following is based on a 2015 survey of x86_64 host output.
+   Better would seem to be some sort of dynamically sized TB array,
+   adapting to the block sizes actually being produced.  */
 #if defined(CONFIG_SOFTMMU)
-#define CODE_GEN_AVG_BLOCK_SIZE 128
+#define CODE_GEN_AVG_BLOCK_SIZE 400
 #else
-#define CODE_GEN_AVG_BLOCK_SIZE 64
+#define CODE_GEN_AVG_BLOCK_SIZE 150
 #endif
 
 #if defined(__arm__) || defined(_ARCH_PPC) \
@@ -151,8 +189,10 @@ struct TranslationBlock {
 #define CF_LAST_IO     0x8000 /* Last insn may be an IO access.  */
 #define CF_NOCACHE     0x10000 /* To be freed after execution */
 #define CF_USE_ICOUNT  0x20000
+#define CF_IGNORE_ICOUNT 0x40000 /* Do not generate icount code */
 
     void *tc_ptr;    /* pointer to the translated code */
+    uint8_t *tc_search;  /* pointer to search data */
     /* next matching tb for physical address. */
     struct TranslationBlock *phys_hash_next;
     /* original tb when cflags has CF_NOCACHE */
@@ -178,7 +218,7 @@ struct TranslationBlock {
     struct TranslationBlock *jmp_first;
 };
 
-#include "exec/spinlock.h"
+#include "qemu/thread.h"
 
 typedef struct TBContext TBContext;
 
@@ -188,7 +228,7 @@ struct TBContext {
     TranslationBlock *tb_phys_hash[CODE_GEN_PHYS_HASH_SIZE];
     int nb_tbs;
     /* any access to the tbs or the page table must use this lock */
-    spinlock_t tb_lock;
+    QemuMutex tb_lock;
 
     /* statistics */
     int tb_flush_count;
@@ -310,17 +350,11 @@ extern uintptr_t tci_tb_ptr;
    to indicate the compressed mode; subtracting two works around that.  It
    is also the case that there are no host isas that contain a call insn
    smaller than 4 bytes, so we don't worry about special-casing this.  */
-#if defined(CONFIG_TCG_INTERPRETER)
-# define GETPC_ADJ   0
-#else
-# define GETPC_ADJ   2
-#endif
+#define GETPC_ADJ   2
 
 #define GETPC()  (GETRA() - GETPC_ADJ)
 
 #if !defined(CONFIG_USER_ONLY)
-
-void phys_mem_set_alloc(void *(*alloc)(size_t, uint64_t *align));
 
 struct MemoryRegion *iotlb_to_region(CPUState *cpu,
                                      hwaddr index);
@@ -331,22 +365,44 @@ void tlb_fill(CPUState *cpu, target_ulong addr, int is_write, int mmu_idx,
 #endif
 
 #if defined(CONFIG_USER_ONLY)
+void mmap_lock(void);
+void mmap_unlock(void);
+
 static inline tb_page_addr_t get_page_addr_code(CPUArchState *env1, target_ulong addr)
 {
     return addr;
 }
 #else
+static inline void mmap_lock(void) {}
+static inline void mmap_unlock(void) {}
+
 /* cputlb.c */
 tb_page_addr_t get_page_addr_code(CPUArchState *env1, target_ulong addr);
+
+void tlb_reset_dirty(CPUState *cpu, ram_addr_t start1, ram_addr_t length);
+void tlb_set_dirty(CPUState *cpu, target_ulong vaddr);
+
+/* exec.c */
+void tb_flush_jmp_cache(CPUState *cpu, target_ulong addr);
+
+MemoryRegionSection *
+address_space_translate_for_iotlb(CPUState *cpu, hwaddr addr, hwaddr *xlat,
+                                  hwaddr *plen);
+hwaddr memory_region_section_get_iotlb(CPUState *cpu,
+                                       MemoryRegionSection *section,
+                                       target_ulong vaddr,
+                                       hwaddr paddr, hwaddr xlat,
+                                       int prot,
+                                       target_ulong *address);
+bool memory_region_is_unassigned(MemoryRegion *mr);
+
 #endif
 
 /* vl.c */
 extern int singlestep;
 
-/* cpu-exec.c */
-extern volatile sig_atomic_t exit_request;
+/* cpu-exec.c, accessed with atomic_mb_read/atomic_mb_set */
+extern CPUState *tcg_current_cpu;
+extern bool exit_request;
 
-#if !defined(CONFIG_USER_ONLY)
-void migration_bitmap_extend(ram_addr_t old, ram_addr_t new);
-#endif
 #endif

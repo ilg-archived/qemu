@@ -397,6 +397,7 @@ void pci_for_each_bus_depth_first(PCIBus *bus,
                                   void *(*begin)(PCIBus *bus, void *parent_state),
                                   void (*end)(PCIBus *bus, void *state),
                                   void *parent_state);
+PCIDevice *pci_get_function_0(PCIDevice *pci_dev);
 
 /* Use this wrapper when specific scan order is not required. */
 static inline
@@ -675,6 +676,11 @@ static inline int pci_is_express(const PCIDevice *d)
 static inline uint32_t pci_config_size(const PCIDevice *d)
 {
     return pci_is_express(d) ? PCIE_CONFIG_SPACE_SIZE : PCI_CONFIG_SPACE_SIZE;
+}
+
+static inline uint16_t pci_requester_id(PCIDevice *dev)
+{
+    return (pci_bus_num(dev->bus) << 8) | dev->devfn;
 }
 
 /* DMA access functions */

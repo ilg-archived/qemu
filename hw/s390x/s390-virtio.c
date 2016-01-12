@@ -23,6 +23,7 @@
 
 #include "hw/hw.h"
 #include "qapi/qmp/qerror.h"
+#include "qemu/error-report.h"
 #include "sysemu/block-backend.h"
 #include "sysemu/blockdev.h"
 #include "sysemu/sysemu.h"
@@ -30,14 +31,16 @@
 #include "hw/boards.h"
 #include "hw/loader.h"
 #include "hw/virtio/virtio.h"
-#include "hw/sysbus.h"
 #include "sysemu/kvm.h"
 #include "exec/address-spaces.h"
+#include "sysemu/qtest.h"
 
 #include "hw/s390x/s390-virtio-bus.h"
 #include "hw/s390x/sclp.h"
 #include "hw/s390x/s390_flic.h"
 #include "hw/s390x/s390-virtio.h"
+#include "hw/s390x/storage-keys.h"
+#include "hw/s390x/ipl.h"
 #include "cpu.h"
 
 //#define DEBUG_S390
@@ -52,7 +55,8 @@
 
 #define MAX_BLK_DEVS                    10
 #define ZIPL_FILENAME                   "s390-zipl.rom"
-#define TYPE_S390_MACHINE               "s390-machine"
+#define S390_MACHINE                    "s390-virtio"
+#define TYPE_S390_MACHINE               MACHINE_TYPE_NAME(S390_MACHINE)
 
 #define S390_TOD_CLOCK_VALUE_MISSING    0x00
 #define S390_TOD_CLOCK_VALUE_PRESENT    0x01
@@ -147,9 +151,9 @@ void s390_init_ipl_dev(const char *kernel_filename,
                        const char *firmware,
                        bool enforce_bios)
 {
-    DeviceState *dev;
+    Object *new = object_new(TYPE_S390_IPL);
+    DeviceState *dev = DEVICE(new);
 
-    dev  = qdev_create(NULL, "s390-ipl");
     if (kernel_filename) {
         qdev_prop_set_string(dev, "kernel", kernel_filename);
     }
@@ -159,12 +163,13 @@ void s390_init_ipl_dev(const char *kernel_filename,
     qdev_prop_set_string(dev, "cmdline", kernel_cmdline);
     qdev_prop_set_string(dev, "firmware", firmware);
     qdev_prop_set_bit(dev, "enforce_bios", enforce_bios);
-    object_property_add_child(qdev_get_machine(), "s390-ipl",
-                              OBJECT(dev), NULL);
+    object_property_add_child(qdev_get_machine(), TYPE_S390_IPL,
+                              new, NULL);
+    object_unref(new);
     qdev_init_nofail(dev);
 }
 
-void s390_init_cpus(const char *cpu_model, uint8_t *storage_keys)
+void s390_init_cpus(const char *cpu_model)
 {
     int i;
 
@@ -184,7 +189,6 @@ void s390_init_cpus(const char *cpu_model, uint8_t *storage_keys)
         ipi_states[i] = cpu;
         cs->halted = 1;
         cs->exception_index = EXCP_HLT;
-        cpu->env.storage_keys = storage_keys;
     }
 }
 
@@ -260,31 +264,26 @@ int gtod_load(QEMUFile *f, void *opaque, int version_id)
 /* PC hardware initialisation */
 static void s390_init(MachineState *machine)
 {
-    ram_addr_t my_ram_size = machine->ram_size;
-    MemoryRegion *sysmem = get_system_memory();
-    MemoryRegion *ram = g_new(MemoryRegion, 1);
-    int increment_size = 20;
-    uint8_t *storage_keys;
+    ram_addr_t my_ram_size;
     void *virtio_region;
     hwaddr virtio_region_len;
     hwaddr virtio_region_start;
 
-    /*
-     * The storage increment size is a multiple of 1M and is a power of 2.
-     * The number of storage increments must be MAX_STORAGE_INCREMENTS or
-     * fewer.
-     */
-    while ((my_ram_size >> increment_size) > MAX_STORAGE_INCREMENTS) {
-        increment_size++;
+    if (!qtest_enabled()) {
+        error_printf("WARNING\n"
+                     "The s390-virtio machine (non-ccw) is deprecated.\n"
+                     "It will be removed in 2.6. Please use s390-ccw-virtio\n");
     }
-    my_ram_size = my_ram_size >> increment_size << increment_size;
 
-    /* let's propagate the changed ram size into the global variable. */
-    ram_size = my_ram_size;
+    if (machine->ram_slots) {
+        error_report("Memory hotplug not supported by the selected machine.");
+        exit(EXIT_FAILURE);
+    }
+    s390_sclp_init();
+    my_ram_size = machine->ram_size;
 
     /* get a BUS */
     s390_bus = s390_virtio_bus_init(&my_ram_size);
-    s390_sclp_init();
     s390_init_ipl_dev(machine->kernel_filename, machine->kernel_cmdline,
                       machine->initrd_filename, ZIPL_FILENAME, false);
     s390_flic_init();
@@ -293,9 +292,7 @@ static void s390_init(MachineState *machine)
     s390_virtio_register_hcalls();
 
     /* allocate RAM */
-    memory_region_init_ram(ram, NULL, "s390.ram", my_ram_size, &error_abort);
-    vmstate_register_ram_global(ram);
-    memory_region_add_subregion(sysmem, 0, ram);
+    s390_memory_init(my_ram_size);
 
     /* clear virtio region */
     virtio_region_len = my_ram_size - ram_size;
@@ -306,11 +303,8 @@ static void s390_init(MachineState *machine)
     cpu_physical_memory_unmap(virtio_region, virtio_region_len, 1,
                               virtio_region_len);
 
-    /* allocate storage keys */
-    storage_keys = g_malloc0(my_ram_size / TARGET_PAGE_SIZE);
-
     /* init CPUs */
-    s390_init_cpus(machine->cpu_model, storage_keys);
+    s390_init_cpus(machine->cpu_model);
 
     /* Create VirtIO network adapters */
     s390_create_virtio_net((BusState *)s390_bus, "virtio-net-s390");
@@ -328,15 +322,28 @@ void s390_nmi(NMIState *n, int cpu_index, Error **errp)
     }
 }
 
+void s390_machine_reset(void)
+{
+    S390CPU *ipl_cpu = S390_CPU(qemu_get_cpu(0));
+
+    qemu_devices_reset();
+    s390_cmma_reset();
+    s390_crypto_reset();
+
+    /* all cpus are stopped - configure and start the ipl cpu only */
+    s390_ipl_prepare_cpu(ipl_cpu);
+    s390_cpu_set_state(CPU_STATE_OPERATING, ipl_cpu);
+}
+
 static void s390_machine_class_init(ObjectClass *oc, void *data)
 {
     MachineClass *mc = MACHINE_CLASS(oc);
     NMIClass *nc = NMI_CLASS(oc);
 
-    mc->name = "s390-virtio";
     mc->alias = "s390";
-    mc->desc = "VirtIO based S390 machine";
+    mc->desc = "VirtIO based S390 machine (deprecated)";
     mc->init = s390_init;
+    mc->reset = s390_machine_reset;
     mc->block_default_type = IF_VIRTIO;
     mc->max_cpus = 255;
     mc->no_serial = 1;

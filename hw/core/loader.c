@@ -597,8 +597,7 @@ static int load_uboot_image(const char *filename, hwaddr *ep, hwaddr *loadaddr,
     ret = hdr->ih_size;
 
 out:
-    if (data)
-        g_free(data);
+    g_free(data);
     close(fd);
     return ret;
 }
@@ -744,7 +743,7 @@ static void *rom_set_mr(Rom *rom, Object *owner, const char *name)
     memory_region_init_resizeable_ram(rom->mr, owner, name,
                                       rom->datasize, rom->romsize,
                                       fw_cfg_resized,
-                                      &error_abort);
+                                      &error_fatal);
     memory_region_set_readonly(rom->mr, true);
     vmstate_register_ram_global(rom->mr);
 

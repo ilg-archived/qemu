@@ -15,6 +15,7 @@
 #include "hw/qdev.h"
 #include "qapi/visitor.h"
 #include "qemu/error-report.h"
+#include "hw/ppc/spapr.h" /* for RTAS return codes */
 
 /* #define DEBUG_SPAPR_DRC */
 
@@ -32,7 +33,7 @@
 
 #define DRC_CONTAINER_PATH "/dr-connector"
 #define DRC_INDEX_TYPE_SHIFT 28
-#define DRC_INDEX_ID_MASK (~(~0 << DRC_INDEX_TYPE_SHIFT))
+#define DRC_INDEX_ID_MASK ((1ULL << DRC_INDEX_TYPE_SHIFT) - 1)
 
 static sPAPRDRConnectorTypeShift get_type_shift(sPAPRDRConnectorType type)
 {
@@ -59,12 +60,22 @@ static uint32_t get_index(sPAPRDRConnector *drc)
             (drc->id & DRC_INDEX_ID_MASK);
 }
 
-static int set_isolation_state(sPAPRDRConnector *drc,
-                               sPAPRDRIsolationState state)
+static uint32_t set_isolation_state(sPAPRDRConnector *drc,
+                                    sPAPRDRIsolationState state)
 {
     sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
 
     DPRINTFN("drc: %x, set_isolation_state: %x", get_index(drc), state);
+
+    if (state == SPAPR_DR_ISOLATION_STATE_UNISOLATED) {
+        /* cannot unisolate a non-existant resource, and, or resources
+         * which are in an 'UNUSABLE' allocation state. (PAPR 2.7, 13.5.3.5)
+         */
+        if (!drc->dev ||
+            drc->allocation_state == SPAPR_DR_ALLOCATION_STATE_UNUSABLE) {
+            return RTAS_OUT_NO_SUCH_INDICATOR;
+        }
+    }
 
     drc->isolation_state = state;
 
@@ -89,23 +100,34 @@ static int set_isolation_state(sPAPRDRConnector *drc,
         drc->configured = false;
     }
 
-    return 0;
+    return RTAS_OUT_SUCCESS;
 }
 
-static int set_indicator_state(sPAPRDRConnector *drc,
-                               sPAPRDRIndicatorState state)
+static uint32_t set_indicator_state(sPAPRDRConnector *drc,
+                                    sPAPRDRIndicatorState state)
 {
     DPRINTFN("drc: %x, set_indicator_state: %x", get_index(drc), state);
     drc->indicator_state = state;
-    return 0;
+    return RTAS_OUT_SUCCESS;
 }
 
-static int set_allocation_state(sPAPRDRConnector *drc,
-                                sPAPRDRAllocationState state)
+static uint32_t set_allocation_state(sPAPRDRConnector *drc,
+                                     sPAPRDRAllocationState state)
 {
     sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
 
     DPRINTFN("drc: %x, set_allocation_state: %x", get_index(drc), state);
+
+    if (state == SPAPR_DR_ALLOCATION_STATE_USABLE) {
+        /* if there's no resource/device associated with the DRC, there's
+         * no way for us to put it in an allocation state consistent with
+         * being 'USABLE'. PAPR 2.7, 13.5.3.4 documents that this should
+         * result in an RTAS return code of -3 / "no such indicator"
+         */
+        if (!drc->dev) {
+            return RTAS_OUT_NO_SUCH_INDICATOR;
+        }
+    }
 
     if (drc->type != SPAPR_DR_CONNECTOR_TYPE_PCI) {
         drc->allocation_state = state;
@@ -116,7 +138,7 @@ static int set_allocation_state(sPAPRDRConnector *drc,
                          drc->detach_cb_opaque, NULL);
         }
     }
-    return 0;
+    return RTAS_OUT_SUCCESS;
 }
 
 static uint32_t get_type(sPAPRDRConnector *drc)
@@ -157,10 +179,8 @@ static void set_configured(sPAPRDRConnector *drc)
  * based on the current allocation/indicator/power states
  * for the DR connector.
  */
-static sPAPRDREntitySense entity_sense(sPAPRDRConnector *drc)
+static uint32_t entity_sense(sPAPRDRConnector *drc, sPAPRDREntitySense *state)
 {
-    sPAPRDREntitySense state;
-
     if (drc->dev) {
         if (drc->type != SPAPR_DR_CONNECTOR_TYPE_PCI &&
             drc->allocation_state == SPAPR_DR_ALLOCATION_STATE_UNUSABLE) {
@@ -169,7 +189,7 @@ static sPAPRDREntitySense entity_sense(sPAPRDRConnector *drc)
              * Otherwise, report the state as USABLE/PRESENT,
              * as we would for PCI.
              */
-            state = SPAPR_DR_ENTITY_SENSE_UNUSABLE;
+            *state = SPAPR_DR_ENTITY_SENSE_UNUSABLE;
         } else {
             /* this assumes all PCI devices are assigned to
              * a 'live insertion' power domain, where QEMU
@@ -177,21 +197,21 @@ static sPAPRDREntitySense entity_sense(sPAPRDRConnector *drc)
              * to the guest. present, non-PCI resources are
              * unaffected by power state.
              */
-            state = SPAPR_DR_ENTITY_SENSE_PRESENT;
+            *state = SPAPR_DR_ENTITY_SENSE_PRESENT;
         }
     } else {
         if (drc->type == SPAPR_DR_CONNECTOR_TYPE_PCI) {
             /* PCI devices, and only PCI devices, use EMPTY
              * in cases where we'd otherwise use UNUSABLE
              */
-            state = SPAPR_DR_ENTITY_SENSE_EMPTY;
+            *state = SPAPR_DR_ENTITY_SENSE_EMPTY;
         } else {
-            state = SPAPR_DR_ENTITY_SENSE_UNUSABLE;
+            *state = SPAPR_DR_ENTITY_SENSE_UNUSABLE;
         }
     }
 
     DPRINTFN("drc: %x, entity_sense: %x", get_index(drc), state);
-    return state;
+    return RTAS_OUT_SUCCESS;
 }
 
 static void prop_get_index(Object *obj, Visitor *v, void *opaque,
@@ -224,7 +244,9 @@ static void prop_get_entity_sense(Object *obj, Visitor *v, void *opaque,
 {
     sPAPRDRConnector *drc = SPAPR_DR_CONNECTOR(obj);
     sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
-    uint32_t value = (uint32_t)drck->entity_sense(drc);
+    uint32_t value;
+
+    drck->entity_sense(drc, &value);
     visit_type_uint32(v, &value, name, errp);
 }
 
@@ -232,10 +254,16 @@ static void prop_get_fdt(Object *obj, Visitor *v, void *opaque,
                         const char *name, Error **errp)
 {
     sPAPRDRConnector *drc = SPAPR_DR_CONNECTOR(obj);
+    Error *err = NULL;
     int fdt_offset_next, fdt_offset, fdt_depth;
     void *fdt;
 
     if (!drc->fdt) {
+        visit_start_struct(v, NULL, NULL, name, 0, &err);
+        if (!err) {
+            visit_end_struct(v, &err);
+        }
+        error_propagate(errp, err);
         return;
     }
 
@@ -254,24 +282,43 @@ static void prop_get_fdt(Object *obj, Visitor *v, void *opaque,
         case FDT_BEGIN_NODE:
             fdt_depth++;
             name = fdt_get_name(fdt, fdt_offset, &name_len);
-            visit_start_struct(v, NULL, NULL, name, 0, NULL);
+            visit_start_struct(v, NULL, NULL, name, 0, &err);
+            if (err) {
+                error_propagate(errp, err);
+                return;
+            }
             break;
         case FDT_END_NODE:
             /* shouldn't ever see an FDT_END_NODE before FDT_BEGIN_NODE */
             g_assert(fdt_depth > 0);
-            visit_end_struct(v, NULL);
+            visit_end_struct(v, &err);
+            if (err) {
+                error_propagate(errp, err);
+                return;
+            }
             fdt_depth--;
             break;
         case FDT_PROP: {
             int i;
             prop = fdt_get_property_by_offset(fdt, fdt_offset, &prop_len);
             name = fdt_string(fdt, fdt32_to_cpu(prop->nameoff));
-            visit_start_list(v, name, NULL);
-            for (i = 0; i < prop_len; i++) {
-                visit_type_uint8(v, (uint8_t *)&prop->data[i], NULL, NULL);
-
+            visit_start_list(v, name, &err);
+            if (err) {
+                error_propagate(errp, err);
+                return;
             }
-            visit_end_list(v, NULL);
+            for (i = 0; i < prop_len; i++) {
+                visit_type_uint8(v, (uint8_t *)&prop->data[i], NULL, &err);
+                if (err) {
+                    error_propagate(errp, err);
+                    return;
+                }
+            }
+            visit_end_list(v, &err);
+            if (err) {
+                error_propagate(errp, err);
+                return;
+            }
             break;
         }
         default:
@@ -310,7 +357,7 @@ static void attach(sPAPRDRConnector *drc, DeviceState *d, void *fdt,
     drc->dev = d;
     drc->fdt = fdt;
     drc->fdt_start_offset = fdt_start_offset;
-    drc->configured = false;
+    drc->configured = coldplug;
 
     object_property_add_link(OBJECT(drc), "device",
                              object_get_typename(OBJECT(drc->dev)),
@@ -451,14 +498,17 @@ sPAPRDRConnector *spapr_dr_connector_new(Object *owner,
 {
     sPAPRDRConnector *drc =
         SPAPR_DR_CONNECTOR(object_new(TYPE_SPAPR_DR_CONNECTOR));
+    char *prop_name;
 
     g_assert(type);
 
     drc->type = type;
     drc->id = id;
     drc->owner = owner;
-    object_property_add_child(owner, "dr-connector[*]", OBJECT(drc), NULL);
+    prop_name = g_strdup_printf("dr-connector[%"PRIu32"]", get_index(drc));
+    object_property_add_child(owner, prop_name, OBJECT(drc), NULL);
     object_property_set_bool(OBJECT(drc), true, "realized", NULL);
+    g_free(prop_name);
 
     /* human-readable name for a DRC to encode into the DT
      * description. this is mainly only used within a guest in place
@@ -549,6 +599,10 @@ static void spapr_dr_connector_class_init(ObjectClass *k, void *data)
     drck->attach = attach;
     drck->detach = detach;
     drck->release_pending = release_pending;
+    /*
+     * Reason: it crashes FIXME find and document the real reason
+     */
+    dk->cannot_instantiate_with_device_add_yet = true;
 }
 
 static const TypeInfo spapr_dr_connector_info = {
@@ -632,6 +686,7 @@ int spapr_drc_populate_dt(void *fdt, int fdt_offset, Object *owner,
 {
     Object *root_container;
     ObjectProperty *prop;
+    ObjectPropertyIterator *iter;
     uint32_t drc_count = 0;
     GArray *drc_indexes, *drc_power_domains;
     GString *drc_names, *drc_types;
@@ -655,7 +710,8 @@ int spapr_drc_populate_dt(void *fdt, int fdt_offset, Object *owner,
      */
     root_container = container_get(object_get_root(), DRC_CONTAINER_PATH);
 
-    QTAILQ_FOREACH(prop, &root_container->properties, node) {
+    iter = object_property_iter_init(root_container);
+    while ((prop = object_property_iter_next(iter))) {
         Object *obj;
         sPAPRDRConnector *drc;
         sPAPRDRConnectorClass *drck;
@@ -696,6 +752,7 @@ int spapr_drc_populate_dt(void *fdt, int fdt_offset, Object *owner,
                                     spapr_drc_get_type_str(drc->type));
         drc_types = g_string_insert_len(drc_types, -1, "\0", 1);
     }
+    object_property_iter_free(iter);
 
     /* now write the drc count into the space we reserved at the
      * beginning of the arrays previously

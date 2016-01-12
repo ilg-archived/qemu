@@ -49,7 +49,7 @@
 static NBDExport *exp;
 static int verbose;
 static char *srcpath;
-static char *sockpath;
+static SocketAddress *saddr;
 static int persistent = 0;
 static enum { RUNNING, TERMINATE, TERMINATING, TERMINATED } state;
 static int shared = 1;
@@ -98,11 +98,9 @@ static void usage(const char *name)
 "                            '[ID_OR_NAME]'\n"
 "  -n, --nocache             disable host cache\n"
 "      --cache=MODE          set cache mode (none, writeback, ...)\n"
-#ifdef CONFIG_LINUX_AIO
 "      --aio=MODE            set AIO mode (native or threads)\n"
-#endif
 "      --discard=MODE        set discard mode (ignore, unmap)\n"
-"      --detect-zeroes=MODE  set detect-zeroes mode (off, on, discard)\n"
+"      --detect-zeroes=MODE  set detect-zeroes mode (off, on, unmap)\n"
 "\n"
 "Report bugs to <qemu-devel@nongnu.org>\n"
     , name, NBD_DEFAULT_PORT, "DEVICE");
@@ -213,52 +211,6 @@ static void termsig_handler(int signum)
     qemu_notify_event();
 }
 
-static void combine_addr(char *buf, size_t len, const char* address,
-                         uint16_t port)
-{
-    /* If the address-part contains a colon, it's an IPv6 IP so needs [] */
-    if (strstr(address, ":")) {
-        snprintf(buf, len, "[%s]:%u", address, port);
-    } else {
-        snprintf(buf, len, "%s:%u", address, port);
-    }
-}
-
-static int tcp_socket_incoming(const char *address, uint16_t port)
-{
-    char address_and_port[128];
-    Error *local_err = NULL;
-
-    combine_addr(address_and_port, 128, address, port);
-    int fd = inet_listen(address_and_port, NULL, 0, SOCK_STREAM, 0, &local_err);
-
-    if (local_err != NULL) {
-        error_report_err(local_err);
-    }
-    return fd;
-}
-
-static int unix_socket_incoming(const char *path)
-{
-    Error *local_err = NULL;
-    int fd = unix_listen(path, NULL, 0, &local_err);
-
-    if (local_err != NULL) {
-        error_report_err(local_err);
-    }
-    return fd;
-}
-
-static int unix_socket_outgoing(const char *path)
-{
-    Error *local_err = NULL;
-    int fd = unix_connect(path, &local_err);
-
-    if (local_err != NULL) {
-        error_report_err(local_err);
-    }
-    return fd;
-}
 
 static void *show_parts(void *arg)
 {
@@ -287,8 +239,10 @@ static void *nbd_client_thread(void *arg)
     pthread_t show_parts_thread;
     Error *local_error = NULL;
 
-    sock = unix_socket_outgoing(sockpath);
+
+    sock = socket_connect(saddr, &local_error, NULL, NULL);
     if (sock < 0) {
+        error_report_err(local_error);
         goto out;
     }
 
@@ -399,6 +353,33 @@ static void nbd_update_server_fd_handler(int fd)
     }
 }
 
+
+static SocketAddress *nbd_build_socket_address(const char *sockpath,
+                                               const char *bindto,
+                                               const char *port)
+{
+    SocketAddress *saddr;
+
+    saddr = g_new0(SocketAddress, 1);
+    if (sockpath) {
+        saddr->type = SOCKET_ADDRESS_KIND_UNIX;
+        saddr->u.q_unix = g_new0(UnixSocketAddress, 1);
+        saddr->u.q_unix->path = g_strdup(sockpath);
+    } else {
+        saddr->type = SOCKET_ADDRESS_KIND_INET;
+        saddr->u.inet = g_new0(InetSocketAddress, 1);
+        saddr->u.inet->host = g_strdup(bindto);
+        if (port) {
+            saddr->u.inet->port = g_strdup(port);
+        } else  {
+            saddr->u.inet->port = g_strdup_printf("%d", NBD_DEFAULT_PORT);
+        }
+    }
+
+    return saddr;
+}
+
+
 int main(int argc, char **argv)
 {
     BlockBackend *blk;
@@ -407,8 +388,9 @@ int main(int argc, char **argv)
     uint32_t nbdflags = 0;
     bool disconnect = false;
     const char *bindto = "0.0.0.0";
+    const char *port = NULL;
+    char *sockpath = NULL;
     char *device = NULL;
-    int port = NBD_DEFAULT_PORT;
     off_t fd_size;
     QemuOpts *sn_opts = NULL;
     const char *sn_id_or_name = NULL;
@@ -428,9 +410,7 @@ int main(int argc, char **argv)
         { "load-snapshot", 1, NULL, 'l' },
         { "nocache", 0, NULL, 'n' },
         { "cache", 1, NULL, QEMU_NBD_OPT_CACHE },
-#ifdef CONFIG_LINUX_AIO
         { "aio", 1, NULL, QEMU_NBD_OPT_AIO },
-#endif
         { "discard", 1, NULL, QEMU_NBD_OPT_DISCARD },
         { "detect-zeroes", 1, NULL, QEMU_NBD_OPT_DETECT_ZEROES },
         { "shared", 1, NULL, 'e' },
@@ -441,7 +421,6 @@ int main(int argc, char **argv)
     };
     int ch;
     int opt_ind = 0;
-    int li;
     char *end;
     int flags = BDRV_O_RDWR;
     int partition = -1;
@@ -449,9 +428,7 @@ int main(int argc, char **argv)
     int fd;
     bool seen_cache = false;
     bool seen_discard = false;
-#ifdef CONFIG_LINUX_AIO
     bool seen_aio = false;
-#endif
     pthread_t client_thread;
     const char *fmt = NULL;
     Error *local_err = NULL;
@@ -484,7 +461,6 @@ int main(int argc, char **argv)
                 errx(EXIT_FAILURE, "Invalid cache mode `%s'", optarg);
             }
             break;
-#ifdef CONFIG_LINUX_AIO
         case QEMU_NBD_OPT_AIO:
             if (seen_aio) {
                 errx(EXIT_FAILURE, "--aio can only be specified once");
@@ -498,7 +474,6 @@ int main(int argc, char **argv)
                errx(EXIT_FAILURE, "invalid aio mode `%s'", optarg);
             }
             break;
-#endif
         case QEMU_NBD_OPT_DISCARD:
             if (seen_discard) {
                 errx(EXIT_FAILURE, "--discard can only be specified once");
@@ -529,14 +504,7 @@ int main(int argc, char **argv)
             bindto = optarg;
             break;
         case 'p':
-            li = strtol(optarg, &end, 0);
-            if (*end) {
-                errx(EXIT_FAILURE, "Invalid port `%s'", optarg);
-            }
-            if (li < 1 || li > 65535) {
-                errx(EXIT_FAILURE, "Port out of range `%s'", optarg);
-            }
-            port = (uint16_t)li;
+            port = optarg;
             break;
         case 'o':
                 dev_offset = strtoll (optarg, &end, 0);
@@ -695,6 +663,8 @@ int main(int argc, char **argv)
         snprintf(sockpath, 128, SOCKET_PATH, basename(device));
     }
 
+    saddr = nbd_build_socket_address(sockpath, bindto, port);
+
     if (qemu_init_main_loop(&local_err)) {
         error_report_err(local_err);
         exit(EXIT_FAILURE);
@@ -752,13 +722,9 @@ int main(int argc, char **argv)
         errx(EXIT_FAILURE, "%s", error_get_pretty(local_err));
     }
 
-    if (sockpath) {
-        fd = unix_socket_incoming(sockpath);
-    } else {
-        fd = tcp_socket_incoming(bindto, port);
-    }
-
+    fd = socket_listen(saddr, &local_err);
     if (fd < 0) {
+        error_report_err(local_err);
         return 1;
     }
 

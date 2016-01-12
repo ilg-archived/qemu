@@ -34,8 +34,6 @@ typedef struct CPUMBState CPUMBState;
 #include "mmu.h"
 #endif
 
-#define ELF_MACHINE	EM_MICROBLAZE
-
 #define EXCP_MMU        1
 #define EXCP_IRQ        2
 #define EXCP_BREAK      3
@@ -297,7 +295,6 @@ int cpu_mb_signal_handler(int host_signum, void *pinfo,
 #define cpu_init(cpu_model) CPU(cpu_mb_init(cpu_model))
 
 #define cpu_exec cpu_mb_exec
-#define cpu_gen_code cpu_mb_gen_code
 #define cpu_signal_handler cpu_mb_signal_handler
 
 /* MMU modes definitions */
@@ -309,7 +306,7 @@ int cpu_mb_signal_handler(int host_signum, void *pinfo,
 #define MMU_USER_IDX    2
 /* See NB_MMU_MODES further up the file.  */
 
-static inline int cpu_mmu_index (CPUMBState *env)
+static inline int cpu_mmu_index (CPUMBState *env, bool ifetch)
 {
         /* Are we in nommu mode?.  */
         if (!(env->sregs[SR_MSR] & MSR_VM))

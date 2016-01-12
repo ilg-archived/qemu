@@ -14,6 +14,8 @@
 #include "sysemu/char.h"
 #include "qemu/config-file.h"
 #include "qemu/error-report.h"
+#include "qmp-commands.h"
+#include "trace.h"
 
 typedef struct VhostUserState {
     NetClientState nc;
@@ -39,37 +41,106 @@ static int vhost_user_running(VhostUserState *s)
     return (s->vhost_net) ? 1 : 0;
 }
 
-static int vhost_user_start(VhostUserState *s)
+static void vhost_user_stop(int queues, NetClientState *ncs[])
 {
-    VhostNetOptions options;
+    VhostUserState *s;
+    int i;
 
-    if (vhost_user_running(s)) {
-        return 0;
+    for (i = 0; i < queues; i++) {
+        assert (ncs[i]->info->type == NET_CLIENT_OPTIONS_KIND_VHOST_USER);
+
+        s = DO_UPCAST(VhostUserState, nc, ncs[i]);
+        if (!vhost_user_running(s)) {
+            continue;
+        }
+
+        if (s->vhost_net) {
+            vhost_net_cleanup(s->vhost_net);
+            s->vhost_net = NULL;
+        }
     }
-
-    options.backend_type = VHOST_BACKEND_TYPE_USER;
-    options.net_backend = &s->nc;
-    options.opaque = s->chr;
-
-    s->vhost_net = vhost_net_init(&options);
-
-    return vhost_user_running(s) ? 0 : -1;
 }
 
-static void vhost_user_stop(VhostUserState *s)
+static int vhost_user_start(int queues, NetClientState *ncs[])
 {
-    if (vhost_user_running(s)) {
-        vhost_net_cleanup(s->vhost_net);
+    VhostNetOptions options;
+    VhostUserState *s;
+    int max_queues;
+    int i;
+
+    options.backend_type = VHOST_BACKEND_TYPE_USER;
+
+    for (i = 0; i < queues; i++) {
+        assert (ncs[i]->info->type == NET_CLIENT_OPTIONS_KIND_VHOST_USER);
+
+        s = DO_UPCAST(VhostUserState, nc, ncs[i]);
+        if (vhost_user_running(s)) {
+            continue;
+        }
+
+        options.net_backend = ncs[i];
+        options.opaque      = s->chr;
+        s->vhost_net = vhost_net_init(&options);
+        if (!s->vhost_net) {
+            error_report("failed to init vhost_net for queue %d\n", i);
+            goto err;
+        }
+
+        if (i == 0) {
+            max_queues = vhost_net_get_max_queues(s->vhost_net);
+            if (queues > max_queues) {
+                error_report("you are asking more queues than "
+                             "supported: %d\n", max_queues);
+                goto err;
+            }
+        }
     }
 
-    s->vhost_net = 0;
+    return 0;
+
+err:
+    vhost_user_stop(i + 1, ncs);
+    return -1;
+}
+
+static ssize_t vhost_user_receive(NetClientState *nc, const uint8_t *buf,
+                                  size_t size)
+{
+    /* In case of RARP (message size is 60) notify backup to send a fake RARP.
+       This fake RARP will be sent by backend only for guest
+       without GUEST_ANNOUNCE capability.
+     */
+    if (size == 60) {
+        VhostUserState *s = DO_UPCAST(VhostUserState, nc, nc);
+        int r;
+        static int display_rarp_failure = 1;
+        char mac_addr[6];
+
+        /* extract guest mac address from the RARP message */
+        memcpy(mac_addr, &buf[6], 6);
+
+        r = vhost_net_notify_migration_done(s->vhost_net, mac_addr);
+
+        if ((r != 0) && (display_rarp_failure)) {
+            fprintf(stderr,
+                    "Vhost user backend fails to broadcast fake RARP\n");
+            fflush(stderr);
+            display_rarp_failure = 0;
+        }
+    }
+
+    return size;
 }
 
 static void vhost_user_cleanup(NetClientState *nc)
 {
     VhostUserState *s = DO_UPCAST(VhostUserState, nc, nc);
 
-    vhost_user_stop(s);
+    if (s->vhost_net) {
+        vhost_net_cleanup(s->vhost_net);
+        s->vhost_net = NULL;
+    }
+
     qemu_purge_queued_packets(nc);
 }
 
@@ -90,64 +161,64 @@ static bool vhost_user_has_ufo(NetClientState *nc)
 static NetClientInfo net_vhost_user_info = {
         .type = NET_CLIENT_OPTIONS_KIND_VHOST_USER,
         .size = sizeof(VhostUserState),
+        .receive = vhost_user_receive,
         .cleanup = vhost_user_cleanup,
         .has_vnet_hdr = vhost_user_has_vnet_hdr,
         .has_ufo = vhost_user_has_ufo,
 };
 
-static void net_vhost_link_down(VhostUserState *s, bool link_down)
-{
-    s->nc.link_down = link_down;
-
-    if (s->nc.peer) {
-        s->nc.peer->link_down = link_down;
-    }
-
-    if (s->nc.info->link_status_changed) {
-        s->nc.info->link_status_changed(&s->nc);
-    }
-
-    if (s->nc.peer && s->nc.peer->info->link_status_changed) {
-        s->nc.peer->info->link_status_changed(s->nc.peer);
-    }
-}
-
 static void net_vhost_user_event(void *opaque, int event)
 {
-    VhostUserState *s = opaque;
+    const char *name = opaque;
+    NetClientState *ncs[MAX_QUEUE_NUM];
+    VhostUserState *s;
+    Error *err = NULL;
+    int queues;
 
+    queues = qemu_find_net_clients_except(name, ncs,
+                                          NET_CLIENT_OPTIONS_KIND_NIC,
+                                          MAX_QUEUE_NUM);
+    s = DO_UPCAST(VhostUserState, nc, ncs[0]);
+    trace_vhost_user_event(s->chr->label, event);
     switch (event) {
     case CHR_EVENT_OPENED:
-        vhost_user_start(s);
-        net_vhost_link_down(s, false);
-        error_report("chardev \"%s\" went up", s->chr->label);
+        if (vhost_user_start(queues, ncs) < 0) {
+            exit(1);
+        }
+        qmp_set_link(name, true, &err);
         break;
     case CHR_EVENT_CLOSED:
-        net_vhost_link_down(s, true);
-        vhost_user_stop(s);
-        error_report("chardev \"%s\" went down", s->chr->label);
+        qmp_set_link(name, false, &err);
+        vhost_user_stop(queues, ncs);
         break;
+    }
+
+    if (err) {
+        error_report_err(err);
     }
 }
 
 static int net_vhost_user_init(NetClientState *peer, const char *device,
-                               const char *name, CharDriverState *chr)
+                               const char *name, CharDriverState *chr,
+                               int queues)
 {
     NetClientState *nc;
     VhostUserState *s;
+    int i;
 
-    nc = qemu_new_net_client(&net_vhost_user_info, peer, device, name);
+    for (i = 0; i < queues; i++) {
+        nc = qemu_new_net_client(&net_vhost_user_info, peer, device, name);
 
-    snprintf(nc->info_str, sizeof(nc->info_str), "vhost-user to %s",
-             chr->label);
+        snprintf(nc->info_str, sizeof(nc->info_str), "vhost-user%d to %s",
+                 i, chr->label);
 
-    s = DO_UPCAST(VhostUserState, nc, nc);
+        nc->queue_index = i;
 
-    /* We don't provide a receive callback */
-    s->nc.receive_disabled = 1;
-    s->chr = chr;
+        s = DO_UPCAST(VhostUserState, nc, nc);
+        s->chr = chr;
+    }
 
-    qemu_chr_add_handlers(s->chr, NULL, NULL, net_vhost_user_event, s);
+    qemu_chr_add_handlers(chr, NULL, NULL, net_vhost_user_event, (void*)name);
 
     return 0;
 }
@@ -226,11 +297,12 @@ static int net_vhost_check_net(void *opaque, QemuOpts *opts, Error **errp)
 int net_init_vhost_user(const NetClientOptions *opts, const char *name,
                         NetClientState *peer, Error **errp)
 {
+    int queues;
     const NetdevVhostUserOptions *vhost_user_opts;
     CharDriverState *chr;
 
-    assert(opts->kind == NET_CLIENT_OPTIONS_KIND_VHOST_USER);
-    vhost_user_opts = opts->vhost_user;
+    assert(opts->type == NET_CLIENT_OPTIONS_KIND_VHOST_USER);
+    vhost_user_opts = opts->u.vhost_user;
 
     chr = net_vhost_parse_chardev(vhost_user_opts, errp);
     if (!chr) {
@@ -243,6 +315,12 @@ int net_init_vhost_user(const NetClientOptions *opts, const char *name,
         return -1;
     }
 
+    queues = vhost_user_opts->has_queues ? vhost_user_opts->queues : 1;
+    if (queues < 1) {
+        error_setg(errp,
+                   "vhost-user number of queues must be bigger than zero");
+        return -1;
+    }
 
-    return net_vhost_user_init(peer, "vhost_user", name, chr);
+    return net_vhost_user_init(peer, "vhost_user", name, chr, queues);
 }

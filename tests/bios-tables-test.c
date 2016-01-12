@@ -50,7 +50,7 @@ typedef struct {
     int rsdt_tables_nr;
     GArray *tables;
     uint32_t smbios_ep_addr;
-    struct smbios_entry_point smbios_ep_table;
+    struct smbios_21_entry_point smbios_ep_table;
 } test_data;
 
 #define LOW(x) ((x) & 0xff)
@@ -161,31 +161,23 @@ static void free_test_data(test_data *data)
     AcpiSdtTable *temp;
     int i;
 
-    if (data->rsdt_tables_addr) {
-        g_free(data->rsdt_tables_addr);
-    }
+    g_free(data->rsdt_tables_addr);
 
     for (i = 0; i < data->tables->len; ++i) {
         temp = &g_array_index(data->tables, AcpiSdtTable, i);
-        if (temp->aml) {
-            g_free(temp->aml);
+        g_free(temp->aml);
+        if (temp->aml_file &&
+            !temp->tmp_files_retain &&
+            g_strstr_len(temp->aml_file, -1, "aml-")) {
+            unlink(temp->aml_file);
         }
-        if (temp->aml_file) {
-            if (!temp->tmp_files_retain &&
-                g_strstr_len(temp->aml_file, -1, "aml-")) {
-                unlink(temp->aml_file);
-            }
-            g_free(temp->aml_file);
+        g_free(temp->aml_file);
+        g_free(temp->asl);
+        if (temp->asl_file &&
+            !temp->tmp_files_retain) {
+            unlink(temp->asl_file);
         }
-        if (temp->asl) {
-            g_free(temp->asl);
-        }
-        if (temp->asl_file) {
-            if (!temp->tmp_files_retain) {
-                unlink(temp->asl_file);
-            }
-            g_free(temp->asl_file);
-        }
+        g_free(temp->asl_file);
     }
 
     g_array_free(data->tables, false);
@@ -420,9 +412,7 @@ static void dump_aml_files(test_data *data, bool rebuild)
 
         close(fd);
 
-        if (aml_file) {
-            g_free(aml_file);
-        }
+        g_free(aml_file);
     }
 }
 
@@ -601,7 +591,7 @@ static void test_acpi_asl(test_data *data)
 
 static bool smbios_ep_table_ok(test_data *data)
 {
-    struct smbios_entry_point *ep_table = &data->smbios_ep_table;
+    struct smbios_21_entry_point *ep_table = &data->smbios_ep_table;
     uint32_t addr = data->smbios_ep_addr;
 
     ACPI_READ_ARRAY(ep_table->anchor_string, addr);
@@ -681,7 +671,7 @@ static inline bool smbios_single_instance(uint8_t type)
 static void test_smbios_structs(test_data *data)
 {
     DECLARE_BITMAP(struct_bitmap, SMBIOS_MAX_TYPE+1) = { 0 };
-    struct smbios_entry_point *ep_table = &data->smbios_ep_table;
+    struct smbios_21_entry_point *ep_table = &data->smbios_ep_table;
     uint32_t addr = ep_table->structure_table_address;
     int i, len, max_len = 0;
     uint8_t type, prv, crt;

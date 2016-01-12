@@ -25,6 +25,16 @@
 #ifndef TARGET_ARM_INTERNALS_H
 #define TARGET_ARM_INTERNALS_H
 
+/* register banks for CPU modes */
+#define BANK_USRSYS 0
+#define BANK_SVC    1
+#define BANK_ABT    2
+#define BANK_UND    3
+#define BANK_IRQ    4
+#define BANK_FIQ    5
+#define BANK_HYP    6
+#define BANK_MON    7
+
 static inline bool excp_is_internal(int excp)
 {
     /* Return true if this exception number represents a QEMU-internal
@@ -36,6 +46,7 @@ static inline bool excp_is_internal(int excp)
         || excp == EXCP_HALTED
         || excp == EXCP_EXCEPTION_EXIT
         || excp == EXCP_KERNEL_TRAP
+        || excp == EXCP_SEMIHOST
         || excp == EXCP_STREX;
 }
 
@@ -58,6 +69,7 @@ static const char * const excnames[] = {
     [EXCP_SMC] = "Secure Monitor Call",
     [EXCP_VIRQ] = "Virtual IRQ",
     [EXCP_VFIQ] = "Virtual FIQ",
+    [EXCP_SEMIHOST] = "Semihosting call",
 };
 
 static inline void arm_log_exception(int idx)
@@ -89,9 +101,9 @@ static inline void arm_log_exception(int idx)
 static inline unsigned int aarch64_banked_spsr_index(unsigned int el)
 {
     static const unsigned int map[4] = {
-        [1] = 1, /* EL1.  */
-        [2] = 6, /* EL2.  */
-        [3] = 7, /* EL3.  */
+        [1] = BANK_SVC, /* EL1.  */
+        [2] = BANK_HYP, /* EL2.  */
+        [3] = BANK_MON, /* EL3.  */
     };
     assert(el >= 1 && el <= 3);
     return map[el];
@@ -148,6 +160,31 @@ static inline void update_spsel(CPUARMState *env, uint32_t imm)
      */
     assert(cur_el >= 1 && cur_el <= 3);
     aarch64_restore_sp(env, cur_el);
+}
+
+/*
+ * arm_pamax
+ * @cpu: ARMCPU
+ *
+ * Returns the implementation defined bit-width of physical addresses.
+ * The ARMv8 reference manuals refer to this as PAMax().
+ */
+static inline unsigned int arm_pamax(ARMCPU *cpu)
+{
+    static const unsigned int pamax_map[] = {
+        [0] = 32,
+        [1] = 36,
+        [2] = 40,
+        [3] = 42,
+        [4] = 44,
+        [5] = 48,
+    };
+    unsigned int parange = extract32(cpu->id_aa64mmfr0, 0, 4);
+
+    /* id_aa64mmfr0 is a read-only register so values outside of the
+     * supported mappings can be considered an implementation error.  */
+    assert(parange < ARRAY_SIZE(pamax_map));
+    return pamax_map[parange];
 }
 
 /* Return true if extended addresses are enabled.
@@ -387,8 +424,21 @@ bool arm_is_psci_call(ARMCPU *cpu, int excp_type);
 void arm_handle_psci_call(ARMCPU *cpu);
 #endif
 
+/**
+ * ARMMMUFaultInfo: Information describing an ARM MMU Fault
+ * @s2addr: Address that caused a fault at stage 2
+ * @stage2: True if we faulted at stage 2
+ * @s1ptw: True if we faulted at stage 2 while doing a stage 1 page-table walk
+ */
+typedef struct ARMMMUFaultInfo ARMMMUFaultInfo;
+struct ARMMMUFaultInfo {
+    target_ulong s2addr;
+    bool stage2;
+    bool s1ptw;
+};
+
 /* Do a page table walk and add page to TLB if possible */
 bool arm_tlb_fill(CPUState *cpu, vaddr address, int rw, int mmu_idx,
-                  uint32_t *fsr);
+                  uint32_t *fsr, ARMMMUFaultInfo *fi);
 
 #endif

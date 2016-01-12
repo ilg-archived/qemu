@@ -215,10 +215,11 @@
 # @drv: the name of the block format used to open the backing device. As of
 #       0.14.0 this can be: 'blkdebug', 'bochs', 'cloop', 'cow', 'dmg',
 #       'file', 'file', 'ftp', 'ftps', 'host_cdrom', 'host_device',
-#       'host_floppy', 'http', 'https', 'nbd', 'parallels', 'qcow',
+#       'http', 'https', 'nbd', 'parallels', 'qcow',
 #       'qcow2', 'raw', 'tftp', 'vdi', 'vmdk', 'vpc', 'vvfat'
 #       2.2: 'archipelago' added, 'cow' dropped
 #       2.3: 'host_floppy' deprecated
+#       2.5: 'host_floppy' dropped
 #
 # @backing_file: #optional the name of the backing file (for copy-on-write)
 #
@@ -413,6 +414,59 @@
 ##
 { 'command': 'query-block', 'returns': ['BlockInfo'] }
 
+
+##
+# @BlockDeviceTimedStats:
+#
+# Statistics of a block device during a given interval of time.
+#
+# @interval_length: Interval used for calculating the statistics,
+#                   in seconds.
+#
+# @min_rd_latency_ns: Minimum latency of read operations in the
+#                     defined interval, in nanoseconds.
+#
+# @min_wr_latency_ns: Minimum latency of write operations in the
+#                     defined interval, in nanoseconds.
+#
+# @min_flush_latency_ns: Minimum latency of flush operations in the
+#                        defined interval, in nanoseconds.
+#
+# @max_rd_latency_ns: Maximum latency of read operations in the
+#                     defined interval, in nanoseconds.
+#
+# @max_wr_latency_ns: Maximum latency of write operations in the
+#                     defined interval, in nanoseconds.
+#
+# @max_flush_latency_ns: Maximum latency of flush operations in the
+#                        defined interval, in nanoseconds.
+#
+# @avg_rd_latency_ns: Average latency of read operations in the
+#                     defined interval, in nanoseconds.
+#
+# @avg_wr_latency_ns: Average latency of write operations in the
+#                     defined interval, in nanoseconds.
+#
+# @avg_flush_latency_ns: Average latency of flush operations in the
+#                        defined interval, in nanoseconds.
+#
+# @avg_rd_queue_depth: Average number of pending read operations
+#                      in the defined interval.
+#
+# @avg_wr_queue_depth: Average number of pending write operations
+#                      in the defined interval.
+#
+# Since: 2.5
+##
+
+{ 'struct': 'BlockDeviceTimedStats',
+  'data': { 'interval_length': 'int', 'min_rd_latency_ns': 'int',
+            'max_rd_latency_ns': 'int', 'avg_rd_latency_ns': 'int',
+            'min_wr_latency_ns': 'int', 'max_wr_latency_ns': 'int',
+            'avg_wr_latency_ns': 'int', 'min_flush_latency_ns': 'int',
+            'max_flush_latency_ns': 'int', 'avg_flush_latency_ns': 'int',
+            'avg_rd_queue_depth': 'number', 'avg_wr_queue_depth': 'number' } }
+
 ##
 # @BlockDeviceStats:
 #
@@ -447,6 +501,37 @@
 # @wr_merged: Number of write requests that have been merged into another
 #             request (Since 2.3).
 #
+# @idle_time_ns: #optional Time since the last I/O operation, in
+#                nanoseconds. If the field is absent it means that
+#                there haven't been any operations yet (Since 2.5).
+#
+# @failed_rd_operations: The number of failed read operations
+#                        performed by the device (Since 2.5)
+#
+# @failed_wr_operations: The number of failed write operations
+#                        performed by the device (Since 2.5)
+#
+# @failed_flush_operations: The number of failed flush operations
+#                           performed by the device (Since 2.5)
+#
+# @invalid_rd_operations: The number of invalid read operations
+#                          performed by the device (Since 2.5)
+#
+# @invalid_wr_operations: The number of invalid write operations
+#                         performed by the device (Since 2.5)
+#
+# @invalid_flush_operations: The number of invalid flush operations
+#                            performed by the device (Since 2.5)
+#
+# @account_invalid: Whether invalid operations are included in the
+#                   last access statistics (Since 2.5)
+#
+# @account_failed: Whether failed operations are included in the
+#                  latency and last access statistics (Since 2.5)
+#
+# @timed_stats: Statistics specific to the set of previously defined
+#               intervals of time (Since 2.5)
+#
 # Since: 0.14.0
 ##
 { 'struct': 'BlockDeviceStats',
@@ -454,7 +539,12 @@
            'wr_operations': 'int', 'flush_operations': 'int',
            'flush_total_time_ns': 'int', 'wr_total_time_ns': 'int',
            'rd_total_time_ns': 'int', 'wr_highest_offset': 'int',
-           'rd_merged': 'int', 'wr_merged': 'int' } }
+           'rd_merged': 'int', 'wr_merged': 'int', '*idle_time_ns': 'int',
+           'failed_rd_operations': 'int', 'failed_wr_operations': 'int',
+           'failed_flush_operations': 'int', 'invalid_rd_operations': 'int',
+           'invalid_wr_operations': 'int', 'invalid_flush_operations': 'int',
+           'account_invalid': 'bool', 'account_failed': 'bool',
+           'timed_stats': ['BlockDeviceTimedStats'] } }
 
 ##
 # @BlockStats:
@@ -681,7 +771,7 @@
   'data': [ 'existing', 'absolute-paths' ] }
 
 ##
-# @BlockdevSnapshot
+# @BlockdevSnapshotSync
 #
 # Either @device or @node-name must be set but not both.
 #
@@ -698,10 +788,25 @@
 # @mode: #optional whether and how QEMU should create a new image, default is
 #        'absolute-paths'.
 ##
-{ 'struct': 'BlockdevSnapshot',
+{ 'struct': 'BlockdevSnapshotSync',
   'data': { '*device': 'str', '*node-name': 'str',
             'snapshot-file': 'str', '*snapshot-node-name': 'str',
             '*format': 'str', '*mode': 'NewImageMode' } }
+
+##
+# @BlockdevSnapshot
+#
+# @node: device or node name that will have a snapshot created.
+#
+# @overlay: reference to the existing block device that will become
+#           the overlay of @node, as part of creating the snapshot.
+#           It must not have a current backing file (this can be
+#           achieved by passing "backing": "" to blockdev-add).
+#
+# Since 2.5
+##
+{ 'struct': 'BlockdevSnapshot',
+  'data': { 'node': 'str', 'overlay': 'str' } }
 
 ##
 # @DriveBackup
@@ -789,7 +894,7 @@
 #
 # Generates a synchronous snapshot of a block device.
 #
-# For the arguments, see the documentation of BlockdevSnapshot.
+# For the arguments, see the documentation of BlockdevSnapshotSync.
 #
 # Returns: nothing on success
 #          If @device is not a valid block device, DeviceNotFound
@@ -797,6 +902,19 @@
 # Since 0.14.0
 ##
 { 'command': 'blockdev-snapshot-sync',
+  'data': 'BlockdevSnapshotSync' }
+
+
+##
+# @blockdev-snapshot
+#
+# Generates a snapshot of a block device.
+#
+# For the arguments, see the documentation of BlockdevSnapshot.
+#
+# Since 2.5
+##
+{ 'command': 'blockdev-snapshot',
   'data': 'BlockdevSnapshot' }
 
 ##
@@ -1373,15 +1491,14 @@
 #
 # Drivers that are supported in block device operations.
 #
-# @host_device, @host_cdrom, @host_floppy: Since 2.1
-# @host_floppy: deprecated since 2.3
+# @host_device, @host_cdrom: Since 2.1
 #
 # Since: 2.0
 ##
 { 'enum': 'BlockdevDriver',
   'data': [ 'archipelago', 'blkdebug', 'blkverify', 'bochs', 'cloop',
             'dmg', 'file', 'ftp', 'ftps', 'host_cdrom', 'host_device',
-            'host_floppy', 'http', 'https', 'null-aio', 'null-co', 'parallels',
+            'http', 'https', 'null-aio', 'null-co', 'parallels',
             'qcow', 'qcow2', 'qed', 'quorum', 'raw', 'tftp', 'vdi', 'vhdx',
             'vmdk', 'vpc', 'vvfat' ] }
 
@@ -1393,9 +1510,12 @@
 #
 # @driver:        block driver name
 # @id:            #optional id by which the new block device can be referred to.
-#                 This is a required option on the top level of blockdev-add, and
-#                 currently not allowed on any other level.
-# @node-name:     #optional the name of a block driver state node (Since 2.0)
+#                 This option is only allowed on the top level of blockdev-add.
+#                 A BlockBackend will be created by blockdev-add if and only if
+#                 this option is given.
+# @node-name:     #optional the name of a block driver state node (Since 2.0).
+#                 This option is required on the top level of blockdev-add if
+#                 the @id option is not given there.
 # @discard:       #optional discard-related options (default: ignore)
 # @cache:         #optional cache-related options
 # @aio:           #optional AIO backend (default: threads)
@@ -1405,6 +1525,14 @@
 #                 (default: enospc)
 # @read-only:     #optional whether the block device should be read-only
 #                 (default: false)
+# @stats-account-invalid: #optional whether to include invalid
+#                         operations when computing last access statistics
+#                         (default: true) (Since 2.5)
+# @stats-account-failed: #optional whether to include failed
+#                         operations when computing latency and last
+#                         access statistics (default: true) (Since 2.5)
+# @stats-intervals: #optional list of intervals for collecting I/O
+#                   statistics, in seconds (default: none) (Since 2.5)
 # @detect-zeroes: #optional detect and optimize zero writes (Since 2.1)
 #                 (default: off)
 #
@@ -1420,6 +1548,9 @@
             '*rerror': 'BlockdevOnError',
             '*werror': 'BlockdevOnError',
             '*read-only': 'bool',
+            '*stats-account-invalid': 'bool',
+            '*stats-account-failed': 'bool',
+            '*stats-intervals': ['int'],
             '*detect-zeroes': 'BlockdevDetectZeroesOptions' } }
 
 ##
@@ -1592,6 +1723,10 @@
 # @refcount-cache-size:   #optional the maximum size of the refcount block cache
 #                         in bytes (since 2.2)
 #
+# @cache-clean-interval:  #optional clean unused entries in the L2 and refcount
+#                         caches. The interval is in seconds. The default value
+#                         is 0 and it disables this feature (since 2.5)
+#
 # Since: 1.7
 ##
 { 'struct': 'BlockdevOptionsQcow2',
@@ -1603,7 +1738,8 @@
             '*overlap-check': 'Qcow2OverlapChecks',
             '*cache-size': 'int',
             '*l2-cache-size': 'int',
-            '*refcount-cache-size': 'int' } }
+            '*refcount-cache-size': 'int',
+            '*cache-clean-interval': 'int' } }
 
 
 ##
@@ -1811,7 +1947,6 @@
 # TODO gluster: Wait for structured options
       'host_cdrom': 'BlockdevOptionsFile',
       'host_device':'BlockdevOptionsFile',
-      'host_floppy':'BlockdevOptionsFile',
       'http':       'BlockdevOptionsFile',
       'https':      'BlockdevOptionsFile',
 # TODO iscsi: Wait for structured options
@@ -1855,17 +1990,179 @@
 ##
 # @blockdev-add:
 #
-# Creates a new block device.
+# Creates a new block device. If the @id option is given at the top level, a
+# BlockBackend will be created; otherwise, @node-name is mandatory at the top
+# level and no BlockBackend will be created.
 #
 # This command is still a work in progress.  It doesn't support all
-# block drivers, it lacks a matching blockdev-del, and more.  Stay
-# away from it unless you want to help with its development.
+# block drivers among other things.  Stay away from it unless you want
+# to help with its development.
 #
 # @options: block device options for the new device
 #
 # Since: 1.7
 ##
 { 'command': 'blockdev-add', 'data': { 'options': 'BlockdevOptions' } }
+
+##
+# @x-blockdev-del:
+#
+# Deletes a block device that has been added using blockdev-add.
+# The selected device can be either a block backend or a graph node.
+#
+# In the former case the backend will be destroyed, along with its
+# inserted medium if there's any. The command will fail if the backend
+# or its medium are in use.
+#
+# In the latter case the node will be destroyed. The command will fail
+# if the node is attached to a block backend or is otherwise being
+# used.
+#
+# One of @id or @node-name must be specified, but not both.
+#
+# This command is still a work in progress and is considered
+# experimental. Stay away from it unless you want to help with its
+# development.
+#
+# @id: #optional Name of the block backend device to delete.
+#
+# @node-name: #optional Name of the graph node to delete.
+#
+# Since: 2.5
+##
+{ 'command': 'x-blockdev-del', 'data': { '*id': 'str', '*node-name': 'str' } }
+
+##
+# @blockdev-open-tray:
+#
+# Opens a block device's tray. If there is a block driver state tree inserted as
+# a medium, it will become inaccessible to the guest (but it will remain
+# associated to the block device, so closing the tray will make it accessible
+# again).
+#
+# If the tray was already open before, this will be a no-op.
+#
+# Once the tray opens, a DEVICE_TRAY_MOVED event is emitted. There are cases in
+# which no such event will be generated, these include:
+# - if the guest has locked the tray, @force is false and the guest does not
+#   respond to the eject request
+# - if the BlockBackend denoted by @device does not have a guest device attached
+#   to it
+# - if the guest device does not have an actual tray and is empty, for instance
+#   for floppy disk drives
+#
+# @device: block device name
+#
+# @force:  #optional if false (the default), an eject request will be sent to
+#          the guest if it has locked the tray (and the tray will not be opened
+#          immediately); if true, the tray will be opened regardless of whether
+#          it is locked
+#
+# Since: 2.5
+##
+{ 'command': 'blockdev-open-tray',
+  'data': { 'device': 'str',
+            '*force': 'bool' } }
+
+##
+# @blockdev-close-tray:
+#
+# Closes a block device's tray. If there is a block driver state tree associated
+# with the block device (which is currently ejected), that tree will be loaded
+# as the medium.
+#
+# If the tray was already closed before, this will be a no-op.
+#
+# @device: block device name
+#
+# Since: 2.5
+##
+{ 'command': 'blockdev-close-tray',
+  'data': { 'device': 'str' } }
+
+##
+# @x-blockdev-remove-medium:
+#
+# Removes a medium (a block driver state tree) from a block device. That block
+# device's tray must currently be open (unless there is no attached guest
+# device).
+#
+# If the tray is open and there is no medium inserted, this will be a no-op.
+#
+# This command is still a work in progress and is considered experimental.
+# Stay away from it unless you want to help with its development.
+#
+# @device: block device name
+#
+# Since: 2.5
+##
+{ 'command': 'x-blockdev-remove-medium',
+  'data': { 'device': 'str' } }
+
+##
+# @x-blockdev-insert-medium:
+#
+# Inserts a medium (a block driver state tree) into a block device. That block
+# device's tray must currently be open (unless there is no attached guest
+# device) and there must be no medium inserted already.
+#
+# This command is still a work in progress and is considered experimental.
+# Stay away from it unless you want to help with its development.
+#
+# @device:    block device name
+#
+# @node-name: name of a node in the block driver state graph
+#
+# Since: 2.5
+##
+{ 'command': 'x-blockdev-insert-medium',
+  'data': { 'device': 'str',
+            'node-name': 'str'} }
+
+
+##
+# @BlockdevChangeReadOnlyMode:
+#
+# Specifies the new read-only mode of a block device subject to the
+# @blockdev-change-medium command.
+#
+# @retain:      Retains the current read-only mode
+#
+# @read-only:   Makes the device read-only
+#
+# @read-write:  Makes the device writable
+#
+# Since: 2.3
+##
+{ 'enum': 'BlockdevChangeReadOnlyMode',
+  'data': ['retain', 'read-only', 'read-write'] }
+
+
+##
+# @blockdev-change-medium:
+#
+# Changes the medium inserted into a block device by ejecting the current medium
+# and loading a new image file which is inserted as the new medium (this command
+# combines blockdev-open-tray, x-blockdev-remove-medium,
+# x-blockdev-insert-medium and blockdev-close-tray).
+#
+# @device:          block device name
+#
+# @filename:        filename of the new image to be loaded
+#
+# @format:          #optional, format to open the new image with (defaults to
+#                   the probed format)
+#
+# @read-only-mode:  #optional, change the read-only mode of the device; defaults
+#                   to 'retain'
+#
+# Since: 2.5
+##
+{ 'command': 'blockdev-change-medium',
+  'data': { 'device': 'str',
+            'filename': 'str',
+            '*format': 'str',
+            '*read-only-mode': 'BlockdevChangeReadOnlyMode' } }
 
 
 ##

@@ -453,7 +453,7 @@ static bool scsi_target_emulate_inquiry(SCSITargetReq *r)
         r->buf[7] = 0x10 | (r->req.bus->info->tcq ? 0x02 : 0); /* Sync, TCQ.  */
         memcpy(&r->buf[8], "QEMU    ", 8);
         memcpy(&r->buf[16], "QEMU TARGET     ", 16);
-        pstrcpy((char *) &r->buf[32], 4, qemu_get_version());
+        pstrcpy((char *) &r->buf[32], 4, qemu_hw_version());
     }
     return true;
 }
@@ -558,7 +558,7 @@ SCSIRequest *scsi_req_alloc(const SCSIReqOps *reqops, SCSIDevice *d,
     const int memset_off = offsetof(SCSIRequest, sense)
                            + sizeof(req->sense);
 
-    req = g_slice_alloc(reqops->size);
+    req = g_malloc(reqops->size);
     memset((uint8_t *)req + memset_off, 0, reqops->size - memset_off);
     req->refcount = 1;
     req->bus = bus;
@@ -1622,7 +1622,7 @@ void scsi_req_unref(SCSIRequest *req)
         }
         object_unref(OBJECT(req->dev));
         object_unref(OBJECT(qbus->parent));
-        g_slice_free1(req->ops->size, req);
+        g_free(req);
     }
 }
 

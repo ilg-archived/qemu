@@ -305,7 +305,7 @@ static void spr_read_ibat (DisasContext *ctx, int gprn, int sprn)
 
 static void spr_read_ibat_h (DisasContext *ctx, int gprn, int sprn)
 {
-    tcg_gen_ld_tl(cpu_gpr[gprn], cpu_env, offsetof(CPUPPCState, IBAT[sprn & 1][(sprn - SPR_IBAT4U) / 2]));
+    tcg_gen_ld_tl(cpu_gpr[gprn], cpu_env, offsetof(CPUPPCState, IBAT[sprn & 1][((sprn - SPR_IBAT4U) / 2) + 4]));
 }
 
 static void spr_write_ibatu (DisasContext *ctx, int sprn, int gprn)
@@ -7864,6 +7864,7 @@ static void init_proc_book3s_64(CPUPPCState *env, int version)
         gen_spr_book3s_ids(env);
         gen_spr_amr(env);
         gen_spr_book3s_purr(env);
+        env->ci_large_pages = true;
         break;
     default:
         g_assert_not_reached();
@@ -8019,7 +8020,7 @@ POWERPC_FAMILY(POWER5P)(ObjectClass *oc, void *data)
                     (1ull << MSR_DR) |
                     (1ull << MSR_PMM) |
                     (1ull << MSR_RI);
-    pcc->mmu_model = POWERPC_MMU_64B;
+    pcc->mmu_model = POWERPC_MMU_2_03;
 #if defined(CONFIG_SOFTMMU)
     pcc->handle_mmu_fault = ppc_hash64_handle_mmu_fault;
 #endif
@@ -8243,7 +8244,7 @@ POWERPC_FAMILY(POWER8)(ObjectClass *oc, void *data)
                     (1ull << MSR_PMM) |
                     (1ull << MSR_RI) |
                     (1ull << MSR_LE);
-    pcc->mmu_model = POWERPC_MMU_2_06;
+    pcc->mmu_model = POWERPC_MMU_2_07;
 #if defined(CONFIG_SOFTMMU)
     pcc->handle_mmu_fault = ppc_hash64_handle_mmu_fault;
 #endif
@@ -8577,11 +8578,7 @@ static int register_ind_insn (opc_handler_t **ppc_opcodes,
                               unsigned char idx1, unsigned char idx2,
                               opc_handler_t *handler)
 {
-    int ret;
-
-    ret = register_ind_in_table(ppc_opcodes, idx1, idx2, handler);
-
-    return ret;
+    return register_ind_in_table(ppc_opcodes, idx1, idx2, handler);
 }
 
 static int register_dblind_insn (opc_handler_t **ppc_opcodes,
@@ -9350,8 +9347,7 @@ static ObjectClass *ppc_cpu_class_by_name(const char *name)
                 break;
         }
         if (i == 8) {
-            ret = OBJECT_CLASS(ppc_cpu_class_by_pvr(strtoul(name, NULL, 16)));
-            return ret;
+            return OBJECT_CLASS(ppc_cpu_class_by_pvr(strtoul(name, NULL, 16)));
         }
     }
 

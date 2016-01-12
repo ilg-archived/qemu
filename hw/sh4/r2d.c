@@ -255,7 +255,7 @@ static void r2d_init(MachineState *machine)
     qemu_register_reset(main_cpu_reset, reset_info);
 
     /* Allocate memory space */
-    memory_region_init_ram(sdram, NULL, "r2d.sdram", SDRAM_SIZE, &error_abort);
+    memory_region_init_ram(sdram, NULL, "r2d.sdram", SDRAM_SIZE, &error_fatal);
     vmstate_register_ram_global(sdram);
     memory_region_add_subregion(address_space_mem, SDRAM_BASE, sdram);
     /* Register peripherals */
@@ -338,9 +338,9 @@ static void r2d_init(MachineState *machine)
         }
 
         /* initialization which should be done by firmware */
-        boot_params.loader_type = 1;
-        boot_params.initrd_start = INITRD_LOAD_OFFSET;
-        boot_params.initrd_size = initrd_size;
+        boot_params.loader_type = tswap32(1);
+        boot_params.initrd_start = tswap32(INITRD_LOAD_OFFSET);
+        boot_params.initrd_size = tswap32(initrd_size);
     }
 
     if (kernel_cmdline) {
@@ -354,15 +354,10 @@ static void r2d_init(MachineState *machine)
                        SDRAM_BASE + BOOT_PARAMS_OFFSET);
 }
 
-static QEMUMachine r2d_machine = {
-    .name = "r2d",
-    .desc = "r2d-plus board",
-    .init = r2d_init,
-};
-
-static void r2d_machine_init(void)
+static void r2d_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&r2d_machine);
+    mc->desc = "r2d-plus board";
+    mc->init = r2d_init;
 }
 
-machine_init(r2d_machine_init);
+DEFINE_MACHINE("r2d", r2d_machine_init)

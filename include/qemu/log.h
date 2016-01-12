@@ -41,9 +41,10 @@ static inline bool qemu_log_enabled(void)
 #define LOG_UNIMP          (1 << 10)
 #define LOG_GUEST_ERROR    (1 << 11)
 #define CPU_LOG_MMU        (1 << 12)
+#define CPU_LOG_TB_NOCHAIN (1 << 13)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-#define LOG_TRACE          (1 << 13)
-#define LOG_TRACE_MR       (1 << 14)
+#define LOG_TRACE          (1 << 14)
+#define LOG_TRACE_MR       (1 << 15)
 #endif
 
 /* Returns true if a bit is set in the current loglevel mask

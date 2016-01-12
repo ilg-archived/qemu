@@ -31,12 +31,6 @@
 
 #include "fpu/softfloat.h"
 
-#if !defined(TARGET_SPARC64)
-#define ELF_MACHINE     EM_SPARC
-#else
-#define ELF_MACHINE     EM_SPARCV9
-#endif
-
 /*#define EXCP_INTERRUPT 0x100*/
 
 /* trap definitions */
@@ -236,6 +230,7 @@ typedef struct trap_state {
     uint32_t tt;
 } trap_state;
 #endif
+#define TARGET_INSN_START_EXTRA_WORDS 1
 
 typedef struct sparc_def_t {
     const char *name;
@@ -598,7 +593,6 @@ int cpu_sparc_signal_handler(int host_signum, void *pinfo, void *puc);
 #endif
 
 #define cpu_exec cpu_sparc_exec
-#define cpu_gen_code cpu_sparc_gen_code
 #define cpu_signal_handler cpu_sparc_signal_handler
 #define cpu_list sparc_cpu_list
 
@@ -642,7 +636,7 @@ static inline int cpu_supervisor_mode(CPUSPARCState *env1)
 }
 #endif
 
-static inline int cpu_mmu_index(CPUSPARCState *env1)
+static inline int cpu_mmu_index(CPUSPARCState *env1, bool ifetch)
 {
 #if defined(CONFIG_USER_ONLY)
     return MMU_USER_IDX;

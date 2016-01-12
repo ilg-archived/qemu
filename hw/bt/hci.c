@@ -23,6 +23,8 @@
 #include "hw/usb.h"
 #include "sysemu/bt.h"
 #include "hw/bt.h"
+#include "qapi/qmp/qerror.h"
+#include "sysemu/replay.h"
 
 struct bt_hci_s {
     uint8_t *(*evt_packet)(void *opaque);
@@ -72,6 +74,8 @@ struct bt_hci_s {
 
     struct HCIInfo info;
     struct bt_device_s device;
+
+    Error *replay_blocker;
 };
 
 #define DEFAULT_RSSI_DBM	20
@@ -595,7 +599,7 @@ static void bt_hci_inquiry_result(struct bt_hci_s *hci,
 static void bt_hci_mod_timer_1280ms(QEMUTimer *timer, int period)
 {
     timer_mod(timer, qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                   muldiv64(period << 7, get_ticks_per_sec(), 100));
+                     (uint64_t)(period << 7) * 10000000);
 }
 
 static void bt_hci_inquiry_start(struct bt_hci_s *hci, int length)
@@ -1099,7 +1103,7 @@ static int bt_hci_mode_change(struct bt_hci_s *hci, uint16_t handle,
     bt_hci_event_status(hci, HCI_SUCCESS);
 
     timer_mod(link->acl_mode_timer, qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                   muldiv64(interval * 625, get_ticks_per_sec(), 1000000));
+                                    ((uint64_t)interval * 625) * 1000);
     bt_hci_lmp_mode_change_master(hci, link->link, mode, interval);
 
     return 0;
@@ -1151,8 +1155,7 @@ static void bt_hci_reset(struct bt_hci_s *hci)
     hci->event_mask[7] = 0x00;
     hci->device.inquiry_scan = 0;
     hci->device.page_scan = 0;
-    if (hci->device.lmp_name)
-        g_free((void *) hci->device.lmp_name);
+    g_free((void *) hci->device.lmp_name);
     hci->device.lmp_name = NULL;
     hci->device.class[0] = 0x00;
     hci->device.class[1] = 0x00;
@@ -1829,8 +1832,7 @@ static void bt_submit_hci(struct HCIInfo *info,
     case cmd_opcode_pack(OGF_HOST_CTL, OCF_CHANGE_LOCAL_NAME):
         LENGTH_CHECK(change_local_name);
 
-        if (hci->device.lmp_name)
-            g_free((void *) hci->device.lmp_name);
+        g_free((void *) hci->device.lmp_name);
         hci->device.lmp_name = g_strndup(PARAM(change_local_name, name),
                         sizeof(PARAM(change_local_name, name)));
         bt_hci_event_complete_status(hci, HCI_SUCCESS);
@@ -2191,6 +2193,9 @@ struct HCIInfo *bt_new_hci(struct bt_scatternet_s *net)
 
     s->device.handle_destroy = bt_hci_destroy;
 
+    error_setg(&s->replay_blocker, QERR_REPLAY_NOT_SUPPORTED, "-bt hci");
+    replay_add_blocker(s->replay_blocker);
+
     return &s->info;
 }
 
@@ -2231,8 +2236,7 @@ static void bt_hci_done(struct HCIInfo *info)
 
     bt_device_done(&hci->device);
 
-    if (hci->device.lmp_name)
-        g_free((void *) hci->device.lmp_name);
+    g_free((void *) hci->device.lmp_name);
 
     /* Be gentle and send DISCONNECT to all connected peers and those
      * currently waiting for us to accept or reject a connection request.

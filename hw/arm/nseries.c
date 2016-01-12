@@ -1275,7 +1275,7 @@ static int n8x0_atag_setup(void *p, int model)
     strcpy((void *) w, "hw-build");		/* char component[12] */
     w += 6;
     strcpy((void *) w, "QEMU ");
-    pstrcat((void *) w, 12, qemu_get_version()); /* char version[12] */
+    pstrcat((void *) w, 12, qemu_hw_version()); /* char version[12] */
     w += 6;
 
     tag = (model == 810) ? "1.1.10-qemu" : "1.1.6-qemu";
@@ -1413,24 +1413,40 @@ static void n810_init(MachineState *machine)
     n8x0_init(machine, &n810_binfo, 810);
 }
 
-static QEMUMachine n800_machine = {
-    .name = "n800",
-    .desc = "Nokia N800 tablet aka. RX-34 (OMAP2420)",
-    .init = n800_init,
-    .default_boot_order = "",
+static void n800_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Nokia N800 tablet aka. RX-34 (OMAP2420)";
+    mc->init = n800_init;
+    mc->default_boot_order = "";
+}
+
+static const TypeInfo n800_type = {
+    .name = MACHINE_TYPE_NAME("n800"),
+    .parent = TYPE_MACHINE,
+    .class_init = n800_class_init,
 };
 
-static QEMUMachine n810_machine = {
-    .name = "n810",
-    .desc = "Nokia N810 tablet aka. RX-44 (OMAP2420)",
-    .init = n810_init,
-    .default_boot_order = "",
+static void n810_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Nokia N810 tablet aka. RX-44 (OMAP2420)";
+    mc->init = n810_init;
+    mc->default_boot_order = "";
+}
+
+static const TypeInfo n810_type = {
+    .name = MACHINE_TYPE_NAME("n810"),
+    .parent = TYPE_MACHINE,
+    .class_init = n810_class_init,
 };
 
 static void nseries_machine_init(void)
 {
-    qemu_register_machine(&n800_machine);
-    qemu_register_machine(&n810_machine);
+    type_register_static(&n800_type);
+    type_register_static(&n810_type);
 }
 
-machine_init(nseries_machine_init);
+machine_init(nseries_machine_init)

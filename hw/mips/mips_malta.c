@@ -795,7 +795,7 @@ static int64_t load_kernel (void)
 
     if (load_elf(loaderparams.kernel_filename, cpu_mips_kseg0_to_phys, NULL,
                  (uint64_t *)&kernel_entry, NULL, (uint64_t *)&kernel_high,
-                 big_endian, ELF_MACHINE, 1) < 0) {
+                 big_endian, EM_MIPS, 1) < 0) {
         fprintf(stderr, "qemu: could not load kernel '%s'\n",
                 loaderparams.kernel_filename);
         exit(1);
@@ -901,16 +901,7 @@ static void main_cpu_reset(void *opaque)
 
     if (kvm_enabled()) {
         /* Start running from the bootloader we wrote to end of RAM */
-        env->active_tc.PC = 0x40000000 + loaderparams.ram_size;
-    }
-}
-
-static void cpu_request_exit(void *opaque, int irq, int level)
-{
-    CPUState *cpu = current_cpu;
-
-    if (cpu && level) {
-        cpu_exit(cpu);
+        env->active_tc.PC = 0x40000000 + loaderparams.ram_low_size;
     }
 }
 
@@ -939,7 +930,6 @@ void mips_malta_init(MachineState *machine)
     MIPSCPU *cpu;
     CPUMIPSState *env;
     qemu_irq *isa_irq;
-    qemu_irq *cpu_exit_irq;
     int piix4_devfn;
     I2CBus *smbus;
     int i;
@@ -1130,7 +1120,7 @@ void mips_malta_init(MachineState *machine)
      * regions are not executable.
      */
     memory_region_init_ram(bios_copy, NULL, "bios.1fc", BIOS_SIZE,
-                           &error_abort);
+                           &error_fatal);
     if (!rom_copy(memory_region_get_ram_ptr(bios_copy),
                   FLASH_ADDRESS, BIOS_SIZE)) {
         memcpy(memory_region_get_ram_ptr(bios_copy),
@@ -1175,8 +1165,7 @@ void mips_malta_init(MachineState *machine)
     smbus_eeprom_init(smbus, 8, smbus_eeprom_buf, smbus_eeprom_size);
     g_free(smbus_eeprom_buf);
     pit = pit_init(isa_bus, 0x40, 0, NULL);
-    cpu_exit_irq = qemu_allocate_irqs(cpu_request_exit, NULL, 1);
-    DMA_init(0, cpu_exit_irq);
+    DMA_init(0);
 
     /* Super I/O */
     isa_create_simple(isa_bus, "i8042");
@@ -1216,23 +1205,19 @@ static const TypeInfo mips_malta_device = {
     .class_init    = mips_malta_class_init,
 };
 
-static QEMUMachine mips_malta_machine = {
-    .name = "malta",
-    .desc = "MIPS Malta Core LV",
-    .init = mips_malta_init,
-    .max_cpus = 16,
-    .is_default = 1,
-};
+static void mips_malta_machine_init(MachineClass *mc)
+{
+    mc->desc = "MIPS Malta Core LV";
+    mc->init = mips_malta_init;
+    mc->max_cpus = 16;
+    mc->is_default = 1;
+}
+
+DEFINE_MACHINE("malta", mips_malta_machine_init)
 
 static void mips_malta_register_types(void)
 {
     type_register_static(&mips_malta_device);
 }
 
-static void mips_malta_machine_init(void)
-{
-    qemu_register_machine(&mips_malta_machine);
-}
-
 type_init(mips_malta_register_types)
-machine_init(mips_malta_machine_init);

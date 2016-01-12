@@ -21,6 +21,7 @@
 #include "cpu.h"
 #include "exec/helper-proto.h"
 #include "exec/cpu_ldst.h"
+#include "hw/s390x/storage-keys.h"
 
 /*****************************************************************************/
 /* Softmmu support */
@@ -68,7 +69,7 @@ static inline uint64_t adj_len_to_page(uint64_t len, uint64_t addr)
 static void fast_memset(CPUS390XState *env, uint64_t dest, uint8_t byte,
                         uint32_t l)
 {
-    int mmu_idx = cpu_mmu_index(env);
+    int mmu_idx = cpu_mmu_index(env, false);
 
     while (l > 0) {
         void *p = tlb_vaddr_to_host(env, dest, MMU_DATA_STORE, mmu_idx);
@@ -91,7 +92,7 @@ static void fast_memset(CPUS390XState *env, uint64_t dest, uint8_t byte,
 static void fast_memmove(CPUS390XState *env, uint64_t dest, uint64_t src,
                          uint32_t l)
 {
-    int mmu_idx = cpu_mmu_index(env);
+    int mmu_idx = cpu_mmu_index(env, false);
 
     while (l > 0) {
         void *src_p = tlb_vaddr_to_host(env, src, MMU_DATA_LOAD, mmu_idx);
@@ -937,40 +938,73 @@ uint32_t HELPER(tprot)(uint64_t a1, uint64_t a2)
 /* insert storage key extended */
 uint64_t HELPER(iske)(CPUS390XState *env, uint64_t r2)
 {
+    static S390SKeysState *ss;
+    static S390SKeysClass *skeyclass;
     uint64_t addr = get_address(env, 0, 0, r2);
+    uint8_t key;
 
     if (addr > ram_size) {
         return 0;
     }
 
-    return env->storage_keys[addr / TARGET_PAGE_SIZE];
+    if (unlikely(!ss)) {
+        ss = s390_get_skeys_device();
+        skeyclass = S390_SKEYS_GET_CLASS(ss);
+    }
+
+    if (skeyclass->get_skeys(ss, addr / TARGET_PAGE_SIZE, 1, &key)) {
+        return 0;
+    }
+    return key;
 }
 
 /* set storage key extended */
 void HELPER(sske)(CPUS390XState *env, uint64_t r1, uint64_t r2)
 {
+    static S390SKeysState *ss;
+    static S390SKeysClass *skeyclass;
     uint64_t addr = get_address(env, 0, 0, r2);
+    uint8_t key;
 
     if (addr > ram_size) {
         return;
     }
 
-    env->storage_keys[addr / TARGET_PAGE_SIZE] = r1;
+    if (unlikely(!ss)) {
+        ss = s390_get_skeys_device();
+        skeyclass = S390_SKEYS_GET_CLASS(ss);
+    }
+
+    key = (uint8_t) r1;
+    skeyclass->set_skeys(ss, addr / TARGET_PAGE_SIZE, 1, &key);
 }
 
 /* reset reference bit extended */
 uint32_t HELPER(rrbe)(CPUS390XState *env, uint64_t r2)
 {
-    uint8_t re;
-    uint8_t key;
+    static S390SKeysState *ss;
+    static S390SKeysClass *skeyclass;
+    uint8_t re, key;
 
     if (r2 > ram_size) {
         return 0;
     }
 
-    key = env->storage_keys[r2 / TARGET_PAGE_SIZE];
+    if (unlikely(!ss)) {
+        ss = s390_get_skeys_device();
+        skeyclass = S390_SKEYS_GET_CLASS(ss);
+    }
+
+    if (skeyclass->get_skeys(ss, r2 / TARGET_PAGE_SIZE, 1, &key)) {
+        return 0;
+    }
+
     re = key & (SK_R | SK_C);
-    env->storage_keys[r2 / TARGET_PAGE_SIZE] = (key & ~SK_R);
+    key &= ~SK_R;
+
+    if (skeyclass->set_skeys(ss, r2 / TARGET_PAGE_SIZE, 1, &key)) {
+        return 0;
+    }
 
     /*
      * cc

@@ -26,8 +26,6 @@
 
 #define CPUArchState struct CPUMoxieState
 
-#define ELF_MACHINE     0xFEED /* EM_MOXIE */
-
 #define MOXIE_EX_DIV0        0
 #define MOXIE_EX_BAD         1
 #define MOXIE_EX_IRQ         2
@@ -124,10 +122,9 @@ int cpu_moxie_signal_handler(int host_signum, void *pinfo,
 #define cpu_init(cpu_model) CPU(cpu_moxie_init(cpu_model))
 
 #define cpu_exec cpu_moxie_exec
-#define cpu_gen_code cpu_moxie_gen_code
 #define cpu_signal_handler cpu_moxie_signal_handler
 
-static inline int cpu_mmu_index(CPUMoxieState *env)
+static inline int cpu_mmu_index(CPUMoxieState *env, bool ifetch)
 {
     return 0;
 }

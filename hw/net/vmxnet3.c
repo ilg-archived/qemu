@@ -729,9 +729,7 @@ static void vmxnet3_process_tx_queue(VMXNET3State *s, int qidx)
         }
 
         if (txd.eop) {
-            if (!s->skip_current_tx_pkt) {
-                vmxnet_tx_pkt_parse(s->tx_pkt);
-
+            if (!s->skip_current_tx_pkt && vmxnet_tx_pkt_parse(s->tx_pkt)) {
                 if (s->needs_vlan) {
                     vmxnet_tx_pkt_setup_vlan_header(s->tx_pkt, s->tci);
                 }
@@ -1165,9 +1163,13 @@ vmxnet3_io_bar0_write(void *opaque, hwaddr addr,
 static uint64_t
 vmxnet3_io_bar0_read(void *opaque, hwaddr addr, unsigned size)
 {
+    VMXNET3State *s = opaque;
+
     if (VMW_IS_MULTIREG_ADDR(addr, VMXNET3_REG_IMR,
                         VMXNET3_MAX_INTRS, VMXNET3_REG_ALIGN)) {
-        g_assert_not_reached();
+        int l = VMW_MULTIREG_IDX_BY_ADDR(addr, VMXNET3_REG_IMR,
+                                         VMXNET3_REG_ALIGN);
+        return s->interrupt_states[l].is_masked;
     }
 
     VMW_CBPRN("BAR0 unknown read [%" PRIx64 "], size %d", addr, size);
@@ -1287,6 +1289,10 @@ static uint32_t vmxnet3_get_interrupt_config(VMXNET3State *s)
 static void vmxnet3_fill_stats(VMXNET3State *s)
 {
     int i;
+
+    if (!s->device_active)
+        return;
+
     for (i = 0; i < s->txq_num; i++) {
         cpu_physical_memory_write(s->txq_descr[i].tx_stats_pa,
                                   &s->txq_descr[i].txq_stats,
@@ -1629,6 +1635,11 @@ static void vmxnet3_handle_command(VMXNET3State *s, uint64_t cmd)
         VMW_CBPRN("Set: VMXNET3_CMD_GET_CONF_INTR - interrupt configuration");
         break;
 
+    case VMXNET3_CMD_GET_ADAPTIVE_RING_INFO:
+        VMW_CBPRN("Set: VMXNET3_CMD_GET_ADAPTIVE_RING_INFO - "
+                  "adaptive ring info flags");
+        break;
+
     default:
         VMW_CBPRN("Received unknown command: %" PRIx64, cmd);
         break;
@@ -1666,6 +1677,10 @@ static uint64_t vmxnet3_get_command_status(VMXNET3State *s)
 
     case VMXNET3_CMD_GET_CONF_INTR:
         ret = vmxnet3_get_interrupt_config(s);
+        break;
+
+    case VMXNET3_CMD_GET_ADAPTIVE_RING_INFO:
+        ret = VMXNET3_DISABLE_ADAPTIVE_RING;
         break;
 
     default:
@@ -1988,7 +2003,6 @@ static void vmxnet3_set_link_status(NetClientState *nc)
 static NetClientInfo net_vmxnet3_info = {
         .type = NET_CLIENT_OPTIONS_KIND_NIC,
         .size = sizeof(NICState),
-        .can_receive = vmxnet3_can_receive,
         .receive = vmxnet3_receive,
         .link_status_changed = vmxnet3_set_link_status,
 };
@@ -2001,7 +2015,6 @@ static bool vmxnet3_peer_has_vnet_hdr(VMXNET3State *s)
         return true;
     }
 
-    VMW_WRPRN("Peer has no virtio extension. Task offloads will be emulated.");
     return false;
 }
 

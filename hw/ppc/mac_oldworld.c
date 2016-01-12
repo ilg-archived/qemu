@@ -135,7 +135,7 @@ static void ppc_heathrow_init(MachineState *machine)
 
     /* allocate and load BIOS */
     memory_region_init_ram(bios, NULL, "ppc_heathrow.bios", BIOS_SIZE,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(bios);
 
     if (bios_name == NULL)
@@ -147,7 +147,7 @@ static void ppc_heathrow_init(MachineState *machine)
     /* Load OpenBIOS (ELF) */
     if (filename) {
         bios_size = load_elf(filename, 0, NULL, NULL, NULL, NULL,
-                             1, ELF_MACHINE, 0);
+                             1, PPC_ELF_MACHINE, 0);
         g_free(filename);
     } else {
         bios_size = -1;
@@ -168,7 +168,7 @@ static void ppc_heathrow_init(MachineState *machine)
 #endif
         kernel_base = KERNEL_LOAD_ADDR;
         kernel_size = load_elf(kernel_filename, translate_kernel_address, NULL,
-                               NULL, &lowaddr, NULL, 1, ELF_MACHINE, 0);
+                               NULL, &lowaddr, NULL, 1, PPC_ELF_MACHINE, 0);
         if (kernel_size < 0)
             kernel_size = load_aout(kernel_filename, kernel_base,
                                     ram_size - kernel_base, bswap_needed,
@@ -357,21 +357,17 @@ static int heathrow_kvm_type(const char *arg)
     return 2;
 }
 
-static QEMUMachine heathrow_machine = {
-    .name = "g3beige",
-    .desc = "Heathrow based PowerMAC",
-    .init = ppc_heathrow_init,
-    .max_cpus = MAX_CPUS,
-#ifndef TARGET_PPC64
-    .is_default = 1,
-#endif
-    .default_boot_order = "cd", /* TOFIX "cad" when Mac floppy is implemented */
-    .kvm_type = heathrow_kvm_type,
-};
-
-static void heathrow_machine_init(void)
+static void heathrow_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&heathrow_machine);
+    mc->desc = "Heathrow based PowerMAC";
+    mc->init = ppc_heathrow_init;
+    mc->max_cpus = MAX_CPUS;
+#ifndef TARGET_PPC64
+    mc->is_default = 1;
+#endif
+    /* TOFIX "cad" when Mac floppy is implemented */
+    mc->default_boot_order = "cd";
+    mc->kvm_type = heathrow_kvm_type;
 }
 
-machine_init(heathrow_machine_init);
+DEFINE_MACHINE("g3beige", heathrow_machine_init)

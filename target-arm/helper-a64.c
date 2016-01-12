@@ -70,20 +70,7 @@ uint32_t HELPER(clz32)(uint32_t x)
 
 uint64_t HELPER(rbit64)(uint64_t x)
 {
-    /* assign the correct byte position */
-    x = bswap64(x);
-
-    /* assign the correct nibble position */
-    x = ((x & 0xf0f0f0f0f0f0f0f0ULL) >> 4)
-        | ((x & 0x0f0f0f0f0f0f0f0fULL) << 4);
-
-    /* assign the correct bit position */
-    x = ((x & 0x8888888888888888ULL) >> 3)
-        | ((x & 0x4444444444444444ULL) >> 1)
-        | ((x & 0x2222222222222222ULL) << 1)
-        | ((x & 0x1111111111111111ULL) << 3);
-
-    return x;
+    return revbit64(x);
 }
 
 /* Convert a softfloat float_relation_ (as returned by
@@ -478,7 +465,8 @@ void aarch64_cpu_do_interrupt(CPUState *cs)
     }
 
     arm_log_exception(cs->exception_index);
-    qemu_log_mask(CPU_LOG_INT, "...from EL%d\n", arm_current_el(env));
+    qemu_log_mask(CPU_LOG_INT, "...from EL%d to EL%d\n", arm_current_el(env),
+                  new_el);
     if (qemu_loglevel_mask(CPU_LOG_INT)
         && !excp_is_internal(cs->exception_index)) {
         qemu_log_mask(CPU_LOG_INT, "...with ESR 0x%" PRIx32 "\n",
@@ -514,6 +502,12 @@ void aarch64_cpu_do_interrupt(CPUState *cs)
     case EXCP_VFIQ:
         addr += 0x100;
         break;
+    case EXCP_SEMIHOST:
+        qemu_log_mask(CPU_LOG_INT,
+                      "...handling as semihosting call 0x%" PRIx64 "\n",
+                      env->xregs[0]);
+        env->xregs[0] = do_arm_semihosting(env);
+        return;
     default:
         cpu_abort(cs, "Unhandled exception 0x%x\n", cs->exception_index);
     }

@@ -119,9 +119,9 @@ static int aio_worker(void *arg)
     case QEMU_AIO_WRITE:
         count = handle_aiocb_rw(aiocb);
         if (count == aiocb->aio_nbytes) {
-            count = 0;
+            ret = 0;
         } else {
-            count = -EINVAL;
+            ret = -EINVAL;
         }
         break;
     case QEMU_AIO_FLUSH:
@@ -135,7 +135,7 @@ static int aio_worker(void *arg)
         break;
     }
 
-    g_slice_free(RawWin32AIOData, aiocb);
+    g_free(aiocb);
     return ret;
 }
 
@@ -143,7 +143,7 @@ static BlockAIOCB *paio_submit(BlockDriverState *bs, HANDLE hfile,
         int64_t sector_num, QEMUIOVector *qiov, int nb_sectors,
         BlockCompletionFunc *cb, void *opaque, int type)
 {
-    RawWin32AIOData *acb = g_slice_new(RawWin32AIOData);
+    RawWin32AIOData *acb = g_new(RawWin32AIOData, 1);
     ThreadPool *pool;
 
     acb->bs = bs;

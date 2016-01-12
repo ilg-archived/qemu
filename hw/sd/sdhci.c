@@ -22,38 +22,38 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <inttypes.h>
 #include "hw/hw.h"
 #include "sysemu/block-backend.h"
 #include "sysemu/blockdev.h"
 #include "sysemu/dma.h"
 #include "qemu/timer.h"
 #include "qemu/bitops.h"
-
-#include "sdhci.h"
+#include "sdhci-internal.h"
 
 /* host controller debug messages */
 #ifndef SDHC_DEBUG
 #define SDHC_DEBUG                        0
 #endif
 
-#if SDHC_DEBUG == 0
-    #define DPRINT_L1(fmt, args...)       do { } while (0)
-    #define DPRINT_L2(fmt, args...)       do { } while (0)
-    #define ERRPRINT(fmt, args...)        do { } while (0)
-#elif SDHC_DEBUG == 1
-    #define DPRINT_L1(fmt, args...)       \
-        do {fprintf(stderr, "QEMU SDHC: "fmt, ## args); } while (0)
-    #define DPRINT_L2(fmt, args...)       do { } while (0)
-    #define ERRPRINT(fmt, args...)        \
-        do {fprintf(stderr, "QEMU SDHC ERROR: "fmt, ## args); } while (0)
-#else
-    #define DPRINT_L1(fmt, args...)       \
-        do {fprintf(stderr, "QEMU SDHC: "fmt, ## args); } while (0)
-    #define DPRINT_L2(fmt, args...)       \
-        do {fprintf(stderr, "QEMU SDHC: "fmt, ## args); } while (0)
-    #define ERRPRINT(fmt, args...)        \
-        do {fprintf(stderr, "QEMU SDHC ERROR: "fmt, ## args); } while (0)
-#endif
+#define DPRINT_L1(fmt, args...) \
+    do { \
+        if (SDHC_DEBUG) { \
+            fprintf(stderr, "QEMU SDHC: " fmt, ## args); \
+        } \
+    } while (0)
+#define DPRINT_L2(fmt, args...) \
+    do { \
+        if (SDHC_DEBUG > 1) { \
+            fprintf(stderr, "QEMU SDHC: " fmt, ## args); \
+        } \
+    } while (0)
+#define ERRPRINT(fmt, args...) \
+    do { \
+        if (SDHC_DEBUG) { \
+            fprintf(stderr, "QEMU SDHC ERROR: " fmt, ## args); \
+        } \
+    } while (0)
 
 /* Default SD/MMC host controller features information, which will be
  * presented in CAPABILITIES register of generic SD host controller at reset.
@@ -719,7 +719,8 @@ static void sdhci_do_adma(SDHCIState *s)
             break;
         case SDHC_ADMA_ATTR_ACT_LINK:   /* link to next descriptor table */
             s->admasysaddr = dscr.addr;
-            DPRINT_L1("ADMA link: admasysaddr=0x%lx\n", s->admasysaddr);
+            DPRINT_L1("ADMA link: admasysaddr=0x%" PRIx64 "\n",
+                      s->admasysaddr);
             break;
         default:
             s->admasysaddr += dscr.incr;
@@ -727,7 +728,8 @@ static void sdhci_do_adma(SDHCIState *s)
         }
 
         if (dscr.attr & SDHC_ADMA_ATTR_INT) {
-            DPRINT_L1("ADMA interrupt: admasysaddr=0x%lx\n", s->admasysaddr);
+            DPRINT_L1("ADMA interrupt: admasysaddr=0x%" PRIx64 "\n",
+                      s->admasysaddr);
             if (s->norintstsen & SDHC_NISEN_DMA) {
                 s->norintsts |= SDHC_NIS_DMA;
             }
@@ -1006,6 +1008,16 @@ sdhci_write(void *opaque, hwaddr offset, uint64_t val, unsigned size)
             MASKED_WRITE(s->blksize, mask, value);
             MASKED_WRITE(s->blkcnt, mask >> 16, value >> 16);
         }
+
+        /* Limit block size to the maximum buffer size */
+        if (extract32(s->blksize, 0, 12) > s->buf_maxsz) {
+            qemu_log_mask(LOG_GUEST_ERROR, "%s: Size 0x%x is larger than " \
+                          "the maximum buffer 0x%x", __func__, s->blksize,
+                          s->buf_maxsz);
+
+            s->blksize = deposit32(s->blksize, 0, 12, s->buf_maxsz);
+        }
+
         break;
     case SDHC_ARGUMENT:
         MASKED_WRITE(s->argument, mask, value);
@@ -1142,13 +1154,9 @@ static inline unsigned int sdhci_get_fifolen(SDHCIState *s)
     }
 }
 
-static void sdhci_initfn(SDHCIState *s)
+static void sdhci_initfn(SDHCIState *s, BlockBackend *blk)
 {
-    DriveInfo *di;
-
-    /* FIXME use a qdev drive property instead of drive_get_next() */
-    di = drive_get_next(IF_SD);
-    s->card = sd_init(di ? blk_by_legacy_dinfo(di) : NULL, false);
+    s->card = sd_init(blk, false);
     if (s->card == NULL) {
         exit(1);
     }
@@ -1169,10 +1177,8 @@ static void sdhci_uninitfn(SDHCIState *s)
     qemu_free_irq(s->eject_cb);
     qemu_free_irq(s->ro_cb);
 
-    if (s->fifo_buffer) {
-        g_free(s->fifo_buffer);
-        s->fifo_buffer = NULL;
-    }
+    g_free(s->fifo_buffer);
+    s->fifo_buffer = NULL;
 }
 
 const VMStateDescription sdhci_vmstate = {
@@ -1214,7 +1220,13 @@ const VMStateDescription sdhci_vmstate = {
 
 /* Capabilities registers provide information on supported features of this
  * specific host controller implementation */
-static Property sdhci_properties[] = {
+static Property sdhci_pci_properties[] = {
+    /*
+     * We currently fuse controller and card into a single device
+     * model, but we intend to separate them.  For that purpose, the
+     * properties that belong to the card are marked as experimental.
+     */
+    DEFINE_PROP_DRIVE("x-drive", SDHCIState, blk),
     DEFINE_PROP_UINT32("capareg", SDHCIState, capareg,
             SDHC_CAPAB_REG_DEFAULT),
     DEFINE_PROP_UINT32("maxcurr", SDHCIState, maxcurr, 0),
@@ -1226,7 +1238,7 @@ static void sdhci_pci_realize(PCIDevice *dev, Error **errp)
     SDHCIState *s = PCI_SDHCI(dev);
     dev->config[PCI_CLASS_PROG] = 0x01; /* Standard Host supported DMA */
     dev->config[PCI_INTERRUPT_PIN] = 0x01; /* interrupt pin A */
-    sdhci_initfn(s);
+    sdhci_initfn(s, s->blk);
     s->buf_maxsz = sdhci_get_fifolen(s);
     s->fifo_buffer = g_malloc0(s->buf_maxsz);
     s->irq = pci_allocate_irq(dev);
@@ -1253,9 +1265,7 @@ static void sdhci_pci_class_init(ObjectClass *klass, void *data)
     k->class_id = PCI_CLASS_SYSTEM_SDHCI;
     set_bit(DEVICE_CATEGORY_STORAGE, dc->categories);
     dc->vmsd = &sdhci_vmstate;
-    dc->props = sdhci_properties;
-    /* Reason: realize() method uses drive_get_next() */
-    dc->cannot_instantiate_with_device_add_yet = true;
+    dc->props = sdhci_pci_properties;
 }
 
 static const TypeInfo sdhci_pci_info = {
@@ -1265,10 +1275,21 @@ static const TypeInfo sdhci_pci_info = {
     .class_init = sdhci_pci_class_init,
 };
 
+static Property sdhci_sysbus_properties[] = {
+    DEFINE_PROP_UINT32("capareg", SDHCIState, capareg,
+            SDHC_CAPAB_REG_DEFAULT),
+    DEFINE_PROP_UINT32("maxcurr", SDHCIState, maxcurr, 0),
+    DEFINE_PROP_END_OF_LIST(),
+};
+
 static void sdhci_sysbus_init(Object *obj)
 {
     SDHCIState *s = SYSBUS_SDHCI(obj);
-    sdhci_initfn(s);
+    DriveInfo *di;
+
+    /* FIXME use a qdev drive property instead of drive_get_next() */
+    di = drive_get_next(IF_SD);
+    sdhci_initfn(s, di ? blk_by_legacy_dinfo(di) : NULL);
 }
 
 static void sdhci_sysbus_finalize(Object *obj)
@@ -1295,7 +1316,7 @@ static void sdhci_sysbus_class_init(ObjectClass *klass, void *data)
     DeviceClass *dc = DEVICE_CLASS(klass);
 
     dc->vmsd = &sdhci_vmstate;
-    dc->props = sdhci_properties;
+    dc->props = sdhci_sysbus_properties;
     dc->realize = sdhci_sysbus_realize;
     /* Reason: instance_init() method uses drive_get_next() */
     dc->cannot_instantiate_with_device_add_yet = true;

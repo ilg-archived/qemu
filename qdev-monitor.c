@@ -50,6 +50,7 @@ static const QDevAlias qdev_alias_table[] = {
     { "lsi53c895a", "lsi" },
     { "ich9-ahci", "ahci" },
     { "kvm-pci-assign", "pci-assign" },
+    { "e1000", "e1000-82540em" },
     { }
 };
 
@@ -237,9 +238,12 @@ int qdev_device_help(QemuOpts *opts)
         return 0;
     }
 
-    qdev_get_device_class(&driver, &local_err);
-    if (local_err) {
-        goto error;
+    if (!object_class_by_name(driver)) {
+        const char *typename = find_typename_by_alias(driver);
+
+        if (typename) {
+            driver = typename;
+        }
     }
 
     prop_list = qmp_device_list_properties(driver, &local_err);
@@ -289,37 +293,35 @@ static Object *qdev_get_peripheral_anon(void)
     return dev;
 }
 
-#if 0 /* conversion from qerror_report() to error_set() broke their use */
-static void qbus_list_bus(DeviceState *dev)
+static void qbus_list_bus(DeviceState *dev, Error **errp)
 {
     BusState *child;
     const char *sep = " ";
 
-    error_printf("child buses at \"%s\":",
-                 dev->id ? dev->id : object_get_typename(OBJECT(dev)));
+    error_append_hint(errp, "child buses at \"%s\":",
+                      dev->id ? dev->id : object_get_typename(OBJECT(dev)));
     QLIST_FOREACH(child, &dev->child_bus, sibling) {
-        error_printf("%s\"%s\"", sep, child->name);
+        error_append_hint(errp, "%s\"%s\"", sep, child->name);
         sep = ", ";
     }
-    error_printf("\n");
 }
 
-static void qbus_list_dev(BusState *bus)
+static void qbus_list_dev(BusState *bus, Error **errp)
 {
     BusChild *kid;
     const char *sep = " ";
 
-    error_printf("devices at \"%s\":", bus->name);
+    error_append_hint(errp, "devices at \"%s\":", bus->name);
     QTAILQ_FOREACH(kid, &bus->children, sibling) {
         DeviceState *dev = kid->child;
-        error_printf("%s\"%s\"", sep, object_get_typename(OBJECT(dev)));
-        if (dev->id)
-            error_printf("/\"%s\"", dev->id);
+        error_append_hint(errp, "%s\"%s\"", sep,
+                          object_get_typename(OBJECT(dev)));
+        if (dev->id) {
+            error_append_hint(errp, "/\"%s\"", dev->id);
+        }
         sep = ", ";
     }
-    error_printf("\n");
 }
-#endif
 
 static BusState *qbus_find_bus(DeviceState *dev, char *elem)
 {
@@ -461,11 +463,7 @@ static BusState *qbus_find(const char *path, Error **errp)
         if (!dev) {
             error_set(errp, ERROR_CLASS_DEVICE_NOT_FOUND,
                       "Device '%s' not found", elem);
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-            if (!monitor_cur_is_qmp()) {
-                qbus_list_dev(bus);
-            }
-#endif
+            qbus_list_dev(bus, errp);
             return NULL;
         }
 
@@ -483,11 +481,7 @@ static BusState *qbus_find(const char *path, Error **errp)
             if (dev->num_child_bus) {
                 error_setg(errp, "Device '%s' has multiple child buses",
                            elem);
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-                if (!monitor_cur_is_qmp()) {
-                    qbus_list_bus(dev);
-                }
-#endif
+                qbus_list_bus(dev, errp);
             } else {
                 error_setg(errp, "Device '%s' has no child bus", elem);
             }
@@ -503,11 +497,7 @@ static BusState *qbus_find(const char *path, Error **errp)
         bus = qbus_find_bus(dev, elem);
         if (!bus) {
             error_setg(errp, "Bus '%s' not found", elem);
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-            if (!monitor_cur_is_qmp()) {
-                qbus_list_bus(dev);
-            }
-#endif
+            qbus_list_bus(dev, errp);
             return NULL;
         }
     }
@@ -785,16 +775,26 @@ void qmp_device_add(QDict *qdict, QObject **ret_data, Error **errp)
 void qmp_device_del(const char *id, Error **errp)
 {
     Object *obj;
-    char *root_path = object_get_canonical_path(qdev_get_peripheral());
-    char *path = g_strdup_printf("%s/%s", root_path, id);
 
-    g_free(root_path);
-    obj = object_resolve_path_type(path, TYPE_DEVICE, NULL);
-    g_free(path);
+    if (id[0] == '/') {
+        obj = object_resolve_path(id, NULL);
+    } else {
+        char *root_path = object_get_canonical_path(qdev_get_peripheral());
+        char *path = g_strdup_printf("%s/%s", root_path, id);
+
+        g_free(root_path);
+        obj = object_resolve_path_type(path, TYPE_DEVICE, NULL);
+        g_free(path);
+    }
 
     if (!obj) {
         error_set(errp, ERROR_CLASS_DEVICE_NOT_FOUND,
                   "Device '%s' not found", id);
+        return;
+    }
+
+    if (!object_dynamic_cast(obj, TYPE_DEVICE)) {
+        error_setg(errp, "%s is not a hotpluggable device", id);
         return;
     }
 

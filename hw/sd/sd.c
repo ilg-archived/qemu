@@ -31,7 +31,7 @@
 
 #include "hw/hw.h"
 #include "sysemu/block-backend.h"
-#include "hw/sd.h"
+#include "hw/sd/sd.h"
 #include "qemu/bitmap.h"
 
 //#define DEBUG_SD 1
@@ -412,8 +412,7 @@ static void sd_reset(SDState *sd)
     sd_set_cardstatus(sd);
     sd_set_sdstatus(sd);
 
-    if (sd->wp_groups)
-        g_free(sd->wp_groups);
+    g_free(sd->wp_groups);
     sd->wp_switch = sd->blk ? blk_is_read_only(sd->blk) : false;
     sd->wpgrps_size = sect;
     sd->wp_groups = bitmap_new(sd->wpgrps_size);
@@ -493,7 +492,10 @@ SDState *sd_init(BlockBackend *blk, bool is_spi)
     sd->blk = blk;
     sd_reset(sd);
     if (sd->blk) {
-        blk_attach_dev_nofail(sd->blk, sd);
+        /* Attach dev if not already attached.  (This call ignores an
+         * error return code if sd->blk is already attached.) */
+        /* FIXME ignoring blk_attach_dev() failure is dangerously brittle */
+        blk_attach_dev(sd->blk, sd);
         blk_set_dev_ops(sd->blk, &sd_block_ops, sd);
     }
     vmstate_register(NULL, -1, &sd_vmstate, sd);

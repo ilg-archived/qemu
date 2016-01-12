@@ -20,7 +20,7 @@ void blockdev_auto_del(BlockBackend *blk);
 typedef enum {
     IF_DEFAULT = -1,            /* for use with drive_add() only */
     /*
-     * IF_IDE must be zero, because we want QEMUMachine member
+     * IF_IDE must be zero, because we want MachineClass member
      * block_default_type to default-initialize to IF_IDE
      */
     IF_IDE = 0,
@@ -63,8 +63,6 @@ DriveInfo *drive_new(QemuOpts *arg, BlockInterfaceType block_default_type);
 
 /* device-hotplug */
 
-void qmp_change_blockdev(const char *device, const char *filename,
-                         const char *format, Error **errp);
 void hmp_commit(Monitor *mon, const QDict *qdict);
 void hmp_drive_del(Monitor *mon, const QDict *qdict);
 #endif

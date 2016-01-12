@@ -127,11 +127,6 @@ do { \
 
 #define FTYPE_FILE   0
 #define FTYPE_CD     1
-#define FTYPE_FD     2
-
-/* if the FD is not accessed during that time (in ns), we try to
-   reopen it to see if the disk has been changed */
-#define FD_OPEN_TIMEOUT (1000000000)
 
 #define MAX_BLOCKSIZE	4096
 
@@ -141,13 +136,6 @@ typedef struct BDRVRawState {
     int open_flags;
     size_t buf_align;
 
-#if defined(__linux__)
-    /* linux floppy specific */
-    int64_t fd_open_time;
-    int64_t fd_error_time;
-    int fd_got_error;
-    int fd_media_changed;
-#endif
 #ifdef CONFIG_LINUX_AIO
     int use_aio;
     void *aio_ctx;
@@ -519,7 +507,16 @@ static int raw_open_common(BlockDriverState *bs, QDict *options,
                      "future QEMU versions.\n",
                      bs->filename);
     }
-#endif
+#else
+    if (bdrv_flags & BDRV_O_NATIVE_AIO) {
+        error_printf("WARNING: aio=native was specified for '%s', but "
+                     "is not supported in this build. Falling back to "
+                     "aio=threads.\n"
+                     "         This will become an error condition in "
+                     "future QEMU versions.\n",
+                     bs->filename);
+    }
+#endif /* !defined(CONFIG_LINUX_AIO) */
 
     s->has_discard = true;
     s->has_write_zeroes = true;
@@ -626,7 +623,7 @@ static int raw_reopen_prepare(BDRVReopenState *state,
     }
 #endif
 
-    if (s->type == FTYPE_FD || s->type == FTYPE_CD) {
+    if (s->type == FTYPE_CD) {
         raw_s->open_flags |= O_NONBLOCK;
     }
 
@@ -670,11 +667,17 @@ static int raw_reopen_prepare(BDRVReopenState *state,
 
     /* If we cannot use fcntl, or fcntl failed, fall back to qemu_open() */
     if (raw_s->fd == -1) {
-        assert(!(raw_s->open_flags & O_CREAT));
-        raw_s->fd = qemu_open(state->bs->filename, raw_s->open_flags);
-        if (raw_s->fd == -1) {
-            error_setg_errno(errp, errno, "Could not reopen file");
-            ret = -1;
+        const char *normalized_filename = state->bs->filename;
+        ret = raw_normalize_devicepath(&normalized_filename);
+        if (ret < 0) {
+            error_setg_errno(errp, -ret, "Could not normalize device path");
+        } else {
+            assert(!(raw_s->open_flags & O_CREAT));
+            raw_s->fd = qemu_open(normalized_filename, raw_s->open_flags);
+            if (raw_s->fd == -1) {
+                error_setg_errno(errp, errno, "Could not reopen file");
+                ret = -1;
+            }
         }
     }
 
@@ -1253,7 +1256,7 @@ static int aio_worker(void *arg)
         break;
     }
 
-    g_slice_free(RawPosixAIOData, aiocb);
+    g_free(aiocb);
     return ret;
 }
 
@@ -1261,7 +1264,7 @@ static int paio_submit_co(BlockDriverState *bs, int fd,
         int64_t sector_num, QEMUIOVector *qiov, int nb_sectors,
         int type)
 {
-    RawPosixAIOData *acb = g_slice_new(RawPosixAIOData);
+    RawPosixAIOData *acb = g_new(RawPosixAIOData, 1);
     ThreadPool *pool;
 
     acb->bs = bs;
@@ -1286,7 +1289,7 @@ static BlockAIOCB *paio_submit(BlockDriverState *bs, int fd,
         int64_t sector_num, QEMUIOVector *qiov, int nb_sectors,
         BlockCompletionFunc *cb, void *opaque, int type)
 {
-    RawPosixAIOData *acb = g_slice_new(RawPosixAIOData);
+    RawPosixAIOData *acb = g_new(RawPosixAIOData, 1);
     ThreadPool *pool;
 
     acb->bs = bs;
@@ -1642,7 +1645,7 @@ static int raw_create(const char *filename, QemuOpts *opts, Error **errp)
         goto out;
     }
 
-    fd = qemu_open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_BINARY,
+    fd = qemu_open(filename, O_RDWR | O_CREAT | O_TRUNC | O_BINARY,
                    0644);
     if (fd < 0) {
         result = -errno;
@@ -1973,8 +1976,8 @@ BlockDriver bdrv_file = {
 
 #if defined(__APPLE__) && defined(__MACH__)
 static kern_return_t FindEjectableCDMedia( io_iterator_t *mediaIterator );
-static kern_return_t GetBSDPath( io_iterator_t mediaIterator, char *bsdPath, CFIndex maxPathSize );
-
+static kern_return_t GetBSDPath(io_iterator_t mediaIterator, char *bsdPath,
+                                CFIndex maxPathSize, int flags);
 kern_return_t FindEjectableCDMedia( io_iterator_t *mediaIterator )
 {
     kern_return_t       kernResult;
@@ -2001,7 +2004,8 @@ kern_return_t FindEjectableCDMedia( io_iterator_t *mediaIterator )
     return kernResult;
 }
 
-kern_return_t GetBSDPath( io_iterator_t mediaIterator, char *bsdPath, CFIndex maxPathSize )
+kern_return_t GetBSDPath(io_iterator_t mediaIterator, char *bsdPath,
+                         CFIndex maxPathSize, int flags)
 {
     io_object_t     nextMedia;
     kern_return_t   kernResult = KERN_FAILURE;
@@ -2014,7 +2018,9 @@ kern_return_t GetBSDPath( io_iterator_t mediaIterator, char *bsdPath, CFIndex ma
         if ( bsdPathAsCFString ) {
             size_t devPathLength;
             strcpy( bsdPath, _PATH_DEV );
-            strcat( bsdPath, "r" );
+            if (flags & BDRV_O_NOCACHE) {
+                strcat(bsdPath, "r");
+            }
             devPathLength = strlen( bsdPath );
             if ( CFStringGetCString( bsdPathAsCFString, bsdPath + devPathLength, maxPathSize - devPathLength, kCFStringEncodingASCII ) ) {
                 kernResult = KERN_SUCCESS;
@@ -2126,8 +2132,8 @@ static int hdev_open(BlockDriverState *bs, QDict *options, int flags,
         int fd;
 
         kernResult = FindEjectableCDMedia( &mediaIterator );
-        kernResult = GetBSDPath( mediaIterator, bsdPath, sizeof( bsdPath ) );
-
+        kernResult = GetBSDPath(mediaIterator, bsdPath, sizeof(bsdPath),
+                                flags);
         if ( bsdPath[ 0 ] != '\0' ) {
             strcat(bsdPath,"s0");
             /* some CDs don't have a partition 0 */
@@ -2172,53 +2178,6 @@ static int hdev_open(BlockDriverState *bs, QDict *options, int flags,
 }
 
 #if defined(__linux__)
-/* Note: we do not have a reliable method to detect if the floppy is
-   present. The current method is to try to open the floppy at every
-   I/O and to keep it opened during a few hundreds of ms. */
-static int fd_open(BlockDriverState *bs)
-{
-    BDRVRawState *s = bs->opaque;
-    int last_media_present;
-
-    if (s->type != FTYPE_FD)
-        return 0;
-    last_media_present = (s->fd >= 0);
-    if (s->fd >= 0 &&
-        (qemu_clock_get_ns(QEMU_CLOCK_REALTIME) - s->fd_open_time) >= FD_OPEN_TIMEOUT) {
-        qemu_close(s->fd);
-        s->fd = -1;
-        DPRINTF("Floppy closed\n");
-    }
-    if (s->fd < 0) {
-        if (s->fd_got_error &&
-            (qemu_clock_get_ns(QEMU_CLOCK_REALTIME) - s->fd_error_time) < FD_OPEN_TIMEOUT) {
-            DPRINTF("No floppy (open delayed)\n");
-            return -EIO;
-        }
-        s->fd = qemu_open(bs->filename, s->open_flags & ~O_NONBLOCK);
-        if (s->fd < 0) {
-            s->fd_error_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
-            s->fd_got_error = 1;
-            if (last_media_present)
-                s->fd_media_changed = 1;
-            DPRINTF("No floppy\n");
-            return -EIO;
-        }
-        DPRINTF("Floppy opened\n");
-    }
-    if (!last_media_present)
-        s->fd_media_changed = 1;
-    s->fd_open_time = qemu_clock_get_ns(QEMU_CLOCK_REALTIME);
-    s->fd_got_error = 0;
-    return 0;
-}
-
-static int hdev_ioctl(BlockDriverState *bs, unsigned long int req, void *buf)
-{
-    BDRVRawState *s = bs->opaque;
-
-    return ioctl(s->fd, req, buf);
-}
 
 static BlockAIOCB *hdev_aio_ioctl(BlockDriverState *bs,
         unsigned long int req, void *buf,
@@ -2231,7 +2190,7 @@ static BlockAIOCB *hdev_aio_ioctl(BlockDriverState *bs,
     if (fd_open(bs) < 0)
         return NULL;
 
-    acb = g_slice_new(RawPosixAIOData);
+    acb = g_new(RawPosixAIOData, 1);
     acb->bs = bs;
     acb->aio_type = QEMU_AIO_IOCTL;
     acb->aio_fildes = s->fd;
@@ -2241,8 +2200,8 @@ static BlockAIOCB *hdev_aio_ioctl(BlockDriverState *bs,
     pool = aio_get_thread_pool(bdrv_get_aio_context(bs));
     return thread_pool_submit_aio(pool, aio_worker, acb, cb, opaque);
 }
+#endif /* linux */
 
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 static int fd_open(BlockDriverState *bs)
 {
     BDRVRawState *s = bs->opaque;
@@ -2252,14 +2211,6 @@ static int fd_open(BlockDriverState *bs)
         return 0;
     return -EIO;
 }
-#else /* !linux && !FreeBSD */
-
-static int fd_open(BlockDriverState *bs)
-{
-    return 0;
-}
-
-#endif /* !linux && !FreeBSD */
 
 static coroutine_fn BlockAIOCB *hdev_aio_discard(BlockDriverState *bs,
     int64_t sector_num, int nb_sectors,
@@ -2303,16 +2254,21 @@ static int hdev_create(const char *filename, QemuOpts *opts,
     int64_t total_size = 0;
     bool has_prefix;
 
-    /* This function is used by all three protocol block drivers and therefore
-     * any of these three prefixes may be given.
+    /* This function is used by both protocol block drivers and therefore either
+     * of these prefixes may be given.
      * The return value has to be stored somewhere, otherwise this is an error
      * due to -Werror=unused-value. */
     has_prefix =
         strstart(filename, "host_device:", &filename) ||
-        strstart(filename, "host_cdrom:" , &filename) ||
-        strstart(filename, "host_floppy:", &filename);
+        strstart(filename, "host_cdrom:" , &filename);
 
     (void)has_prefix;
+
+    ret = raw_normalize_devicepath(&filename);
+    if (ret < 0) {
+        error_setg_errno(errp, -ret, "Could not normalize device path");
+        return ret;
+    }
 
     /* Read out options */
     total_size = ROUND_UP(qemu_opt_get_size_del(opts, BLOCK_OPT_SIZE, 0),
@@ -2379,159 +2335,9 @@ static BlockDriver bdrv_host_device = {
 
     /* generic scsi device */
 #ifdef __linux__
-    .bdrv_ioctl         = hdev_ioctl,
     .bdrv_aio_ioctl     = hdev_aio_ioctl,
 #endif
 };
-
-#ifdef __linux__
-static void floppy_parse_filename(const char *filename, QDict *options,
-                                  Error **errp)
-{
-    /* The prefix is optional, just as for "file". */
-    strstart(filename, "host_floppy:", &filename);
-
-    qdict_put_obj(options, "filename", QOBJECT(qstring_from_str(filename)));
-}
-
-static int floppy_open(BlockDriverState *bs, QDict *options, int flags,
-                       Error **errp)
-{
-    BDRVRawState *s = bs->opaque;
-    Error *local_err = NULL;
-    int ret;
-
-    s->type = FTYPE_FD;
-
-    /* open will not fail even if no floppy is inserted, so add O_NONBLOCK */
-    ret = raw_open_common(bs, options, flags, O_NONBLOCK, &local_err);
-    if (ret) {
-        if (local_err) {
-            error_propagate(errp, local_err);
-        }
-        return ret;
-    }
-
-    /* close fd so that we can reopen it as needed */
-    qemu_close(s->fd);
-    s->fd = -1;
-    s->fd_media_changed = 1;
-
-    error_report("Host floppy pass-through is deprecated");
-    error_printf("Support for it will be removed in a future release.\n");
-    return 0;
-}
-
-static int floppy_probe_device(const char *filename)
-{
-    int fd, ret;
-    int prio = 0;
-    struct floppy_struct fdparam;
-    struct stat st;
-
-    if (strstart(filename, "/dev/fd", NULL) &&
-        !strstart(filename, "/dev/fdset/", NULL) &&
-        !strstart(filename, "/dev/fd/", NULL)) {
-        prio = 50;
-    }
-
-    fd = qemu_open(filename, O_RDONLY | O_NONBLOCK);
-    if (fd < 0) {
-        goto out;
-    }
-    ret = fstat(fd, &st);
-    if (ret == -1 || !S_ISBLK(st.st_mode)) {
-        goto outc;
-    }
-
-    /* Attempt to detect via a floppy specific ioctl */
-    ret = ioctl(fd, FDGETPRM, &fdparam);
-    if (ret >= 0)
-        prio = 100;
-
-outc:
-    qemu_close(fd);
-out:
-    return prio;
-}
-
-
-static int floppy_is_inserted(BlockDriverState *bs)
-{
-    return fd_open(bs) >= 0;
-}
-
-static int floppy_media_changed(BlockDriverState *bs)
-{
-    BDRVRawState *s = bs->opaque;
-    int ret;
-
-    /*
-     * XXX: we do not have a true media changed indication.
-     * It does not work if the floppy is changed without trying to read it.
-     */
-    fd_open(bs);
-    ret = s->fd_media_changed;
-    s->fd_media_changed = 0;
-    DPRINTF("Floppy changed=%d\n", ret);
-    return ret;
-}
-
-static void floppy_eject(BlockDriverState *bs, bool eject_flag)
-{
-    BDRVRawState *s = bs->opaque;
-    int fd;
-
-    if (s->fd >= 0) {
-        qemu_close(s->fd);
-        s->fd = -1;
-    }
-    fd = qemu_open(bs->filename, s->open_flags | O_NONBLOCK);
-    if (fd >= 0) {
-        if (ioctl(fd, FDEJECT, 0) < 0)
-            perror("FDEJECT");
-        qemu_close(fd);
-    }
-}
-
-static BlockDriver bdrv_host_floppy = {
-    .format_name        = "host_floppy",
-    .protocol_name      = "host_floppy",
-    .instance_size      = sizeof(BDRVRawState),
-    .bdrv_needs_filename = true,
-    .bdrv_probe_device	= floppy_probe_device,
-    .bdrv_parse_filename = floppy_parse_filename,
-    .bdrv_file_open     = floppy_open,
-    .bdrv_close         = raw_close,
-    .bdrv_reopen_prepare = raw_reopen_prepare,
-    .bdrv_reopen_commit  = raw_reopen_commit,
-    .bdrv_reopen_abort   = raw_reopen_abort,
-    .bdrv_create         = hdev_create,
-    .create_opts         = &raw_create_opts,
-
-    .bdrv_aio_readv     = raw_aio_readv,
-    .bdrv_aio_writev    = raw_aio_writev,
-    .bdrv_aio_flush	= raw_aio_flush,
-    .bdrv_refresh_limits = raw_refresh_limits,
-    .bdrv_io_plug = raw_aio_plug,
-    .bdrv_io_unplug = raw_aio_unplug,
-    .bdrv_flush_io_queue = raw_aio_flush_io_queue,
-
-    .bdrv_truncate      = raw_truncate,
-    .bdrv_getlength      = raw_getlength,
-    .has_variable_length = true,
-    .bdrv_get_allocated_file_size
-                        = raw_get_allocated_file_size,
-
-    .bdrv_detach_aio_context = raw_detach_aio_context,
-    .bdrv_attach_aio_context = raw_attach_aio_context,
-
-    /* removable device support */
-    .bdrv_is_inserted   = floppy_is_inserted,
-    .bdrv_media_changed = floppy_media_changed,
-    .bdrv_eject         = floppy_eject,
-};
-#endif
 
 #if defined(__linux__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
 static void cdrom_parse_filename(const char *filename, QDict *options,
@@ -2588,15 +2394,13 @@ out:
     return prio;
 }
 
-static int cdrom_is_inserted(BlockDriverState *bs)
+static bool cdrom_is_inserted(BlockDriverState *bs)
 {
     BDRVRawState *s = bs->opaque;
     int ret;
 
     ret = ioctl(s->fd, CDROM_DRIVE_STATUS, CDSL_CURRENT);
-    if (ret == CDS_DISC_OK)
-        return 1;
-    return 0;
+    return ret == CDS_DISC_OK;
 }
 
 static void cdrom_eject(BlockDriverState *bs, bool eject_flag)
@@ -2663,7 +2467,6 @@ static BlockDriver bdrv_host_cdrom = {
     .bdrv_lock_medium   = cdrom_lock_medium,
 
     /* generic scsi device */
-    .bdrv_ioctl         = hdev_ioctl,
     .bdrv_aio_ioctl     = hdev_aio_ioctl,
 };
 #endif /* __linux__ */
@@ -2722,7 +2525,7 @@ static int cdrom_reopen(BlockDriverState *bs)
     return 0;
 }
 
-static int cdrom_is_inserted(BlockDriverState *bs)
+static bool cdrom_is_inserted(BlockDriverState *bs)
 {
     return raw_getlength(bs) > 0;
 }
@@ -2810,7 +2613,6 @@ static void bdrv_file_init(void)
     bdrv_register(&bdrv_file);
     bdrv_register(&bdrv_host_device);
 #ifdef __linux__
-    bdrv_register(&bdrv_host_floppy);
     bdrv_register(&bdrv_host_cdrom);
 #endif
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__)

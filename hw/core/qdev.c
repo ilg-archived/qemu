@@ -325,6 +325,11 @@ void qdev_reset_all(DeviceState *dev)
     qdev_walk_children(dev, NULL, NULL, qdev_reset_one, qbus_reset_one, NULL);
 }
 
+void qdev_reset_all_fn(void *opaque)
+{
+    qdev_reset_all(DEVICE(opaque));
+}
+
 void qbus_reset_all(BusState *bus)
 {
     qbus_walk_children(bus, NULL, NULL, qdev_reset_one, qbus_reset_one, NULL);
@@ -417,17 +422,21 @@ void qdev_init_gpio_in_named(DeviceState *dev, qemu_irq_handler handler,
 {
     int i;
     NamedGPIOList *gpio_list = qdev_get_named_gpio_list(dev, name);
-    char *propname = g_strdup_printf("%s[*]", name ? name : "unnamed-gpio-in");
 
     assert(gpio_list->num_out == 0 || !name);
     gpio_list->in = qemu_extend_irqs(gpio_list->in, gpio_list->num_in, handler,
                                      dev, n);
 
+    if (!name) {
+        name = "unnamed-gpio-in";
+    }
     for (i = gpio_list->num_in; i < gpio_list->num_in + n; i++) {
+        gchar *propname = g_strdup_printf("%s[%u]", name, i);
+
         object_property_add_child(OBJECT(dev), propname,
                                   OBJECT(gpio_list->in[i]), &error_abort);
+        g_free(propname);
     }
-    g_free(propname);
 
     gpio_list->num_in += n;
 }
@@ -442,20 +451,25 @@ void qdev_init_gpio_out_named(DeviceState *dev, qemu_irq *pins,
 {
     int i;
     NamedGPIOList *gpio_list = qdev_get_named_gpio_list(dev, name);
-    char *propname = g_strdup_printf("%s[*]", name ? name : "unnamed-gpio-out");
 
     assert(gpio_list->num_in == 0 || !name);
-    gpio_list->num_out += n;
 
+    if (!name) {
+        name = "unnamed-gpio-out";
+    }
+    memset(pins, 0, sizeof(*pins) * n);
     for (i = 0; i < n; ++i) {
-        memset(&pins[i], 0, sizeof(*pins));
+        gchar *propname = g_strdup_printf("%s[%u]", name,
+                                          gpio_list->num_out + i);
+
         object_property_add_link(OBJECT(dev), propname, TYPE_IRQ,
                                  (Object **)&pins[i],
                                  object_property_allow_set_link,
                                  OBJ_PROP_LINK_UNREF_ON_RELEASE,
                                  &error_abort);
+        g_free(propname);
     }
-    g_free(propname);
+    gpio_list->num_out += n;
 }
 
 void qdev_init_gpio_out(DeviceState *dev, qemu_irq *pins, int n)
@@ -506,7 +520,7 @@ qemu_irq qdev_get_gpio_out_connector(DeviceState *dev, const char *name, int n)
     return ret;
 }
 
-/* disconnect a GPIO ouput, returning the disconnected input (if any) */
+/* disconnect a GPIO output, returning the disconnected input (if any) */
 
 static qemu_irq qdev_disconnect_gpio_out_named(DeviceState *dev,
                                                const char *name, int n)

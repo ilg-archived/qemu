@@ -391,6 +391,8 @@ The following commands are available:
 
 @include qemu-monitor.texi
 
+@include qemu-monitor-info.texi
+
 @subsection Integer expressions
 
 The monitor understands integers expressions for every integer
@@ -412,6 +414,7 @@ snapshots.
 * vm_snapshots::              VM snapshots
 * qemu_img_invocation::       qemu-img Invocation
 * qemu_nbd_invocation::       qemu-nbd Invocation
+* qemu_ga_invocation::        qemu-ga Invocation
 * disk_images_formats::       Disk image file formats
 * host_drives::               Using host drives
 * disk_images_fat_images::    Virtual FAT disk images
@@ -504,6 +507,11 @@ state is not saved or restored properly (in particular USB).
 @subsection @code{qemu-nbd} Invocation
 
 @include qemu-nbd.texi
+
+@node qemu_ga_invocation
+@subsection @code{qemu-ga} Invocation
+
+@include qemu-ga.texi
 
 @node disk_images_formats
 @subsection Disk image file formats
@@ -1248,7 +1256,7 @@ zero-copy communication to the application level of the guests.  The basic
 syntax is:
 
 @example
-qemu-system-i386 -device ivshmem,size=<size in format accepted by -m>[,shm=<shm name>]
+qemu-system-i386 -device ivshmem,size=@var{size},shm=@var{shm-name}
 @end example
 
 If desired, interrupts can be sent between guest VMs accessing the same shared
@@ -1258,9 +1266,13 @@ is qemu.git/contrib/ivshmem-server.  An example syntax when using the shared
 memory server is:
 
 @example
-qemu-system-i386 -device ivshmem,size=<size in format accepted by -m>[,chardev=<id>]
-                 [,msi=on][,ioeventfd=on][,vectors=n][,role=peer|master]
-qemu-system-i386 -chardev socket,path=<path>,id=<id>
+# First start the ivshmem server once and for all
+ivshmem-server -p @var{pidfile} -S @var{path} -m @var{shm-name} -l @var{shm-size} -n @var{vectors}
+
+# Then start your qemu instances with matching arguments
+qemu-system-i386 -device ivshmem,size=@var{shm-size},vectors=@var{vectors},chardev=@var{id}
+                 [,msi=on][,ioeventfd=on][,role=peer|master]
+                 -chardev socket,path=@var{path},id=@var{id}
 @end example
 
 When using the server, the guest will be assigned a VM ID (>=0) that allows guests
@@ -1280,6 +1292,19 @@ copy the shared memory on migration to the destination host.  With
 @option{role=peer}, the guest will not be able to migrate with the device attached.
 With the @option{peer} case, the device should be detached and then reattached
 after migration using the PCI hotplug support.
+
+@subsubsection ivshmem and hugepages
+
+Instead of specifying the <shm size> using POSIX shm, you may specify
+a memory backend that has hugepage support:
+
+@example
+qemu-system-i386 -object memory-backend-file,size=1G,mem-path=/mnt/hugepages/my-shmem-file,id=mb1
+                 -device ivshmem,x-memdev=mb1
+@end example
+
+ivshmem-server also supports hugepages mount points with the
+@option{-m} memory path argument.
 
 @node direct_linux_boot
 @section Direct Linux Boot
@@ -1766,7 +1791,7 @@ Use @code{set architecture i8086} to dump 16 bit code. Then use
 
 Advanced debugging options:
 
-The default single stepping behavior is step with the IRQs and timer service routines off.  It is set this way because when gdb executes a single step it expects to advance beyond the current instruction.  With the IRQs and and timer service routines on, a single step might jump into the one of the interrupt or exception vectors instead of executing the current instruction. This means you may hit the same breakpoint a number of times before executing the instruction gdb wants to have executed.  Because there are rare circumstances where you want to single step into an interrupt vector the behavior can be controlled from GDB.  There are three commands you can query and set the single step behavior:
+The default single stepping behavior is step with the IRQs and timer service routines off.  It is set this way because when gdb executes a single step it expects to advance beyond the current instruction.  With the IRQs and timer service routines on, a single step might jump into the one of the interrupt or exception vectors instead of executing the current instruction. This means you may hit the same breakpoint a number of times before executing the instruction gdb wants to have executed.  Because there are rare circumstances where you want to single step into an interrupt vector the behavior can be controlled from GDB.  There are three commands you can query and set the single step behavior:
 @table @code
 @item maintenance packet qqemu.sstepbits
 
@@ -3142,9 +3167,63 @@ and all other qemu-system-@var{target}.exe compiled for Win32.
 @node Mac OS X
 @section Mac OS X
 
-The Mac OS X patches are not fully merged in QEMU, so you should look
-at the QEMU mailing list archive to have all the necessary
-information.
+System Requirements:
+@itemize
+@item Mac OS 10.5 or higher
+@item The clang compiler shipped with Xcode 4.2 or higher,
+or GCC 4.3 or higher
+@end itemize
+
+Additional Requirements (install in order):
+@enumerate
+@item libffi: @uref{https://sourceware.org/libffi/}
+@item gettext: @uref{http://www.gnu.org/software/gettext/}
+@item glib: @uref{http://ftp.gnome.org/pub/GNOME/sources/glib/}
+@item pkg-config: @uref{http://www.freedesktop.org/wiki/Software/pkg-config/}
+@item autoconf: @uref{http://www.gnu.org/software/autoconf/autoconf.html}
+@item automake: @uref{http://www.gnu.org/software/automake/}
+@item libtool: @uref{http://www.gnu.org/software/libtool/}
+@item pixman: @uref{http://www.pixman.org/}
+@end enumerate
+
+* You may find it easiest to get these from a third-party packager
+such as Homebrew, Macports, or Fink.
+
+After downloading the QEMU source code, double-click it to expand it.
+
+Then configure and make QEMU:
+@example
+./configure
+make
+@end example
+
+If you have a recent version of Mac OS X (OSX 10.7 or better
+with Xcode 4.2 or better) we recommend building QEMU with the
+default compiler provided by Apple, for your version of Mac OS X
+(which will be 'clang'). The configure script will
+automatically pick this.
+
+Note: If after the configure step you see a message like this:
+@example
+ERROR: Your compiler does not support the __thread specifier for
+       Thread-Local Storage (TLS). Please upgrade to a version that does.
+@end example
+you may have to build your own version of gcc from source. Expect that to take
+several hours. More information can be found here:
+@uref{https://gcc.gnu.org/install/} @*
+
+These are some of the third party binaries of gcc available for download:
+@itemize
+@item Homebrew: @uref{http://brew.sh/}
+@item @uref{https://www.litebeam.net/gcc/gcc_472.pkg}
+@item @uref{http://www.macports.org/ports.php?by=name&substr=gcc}
+@end itemize
+
+You can have several versions of GCC on your system. To specify a certain version,
+use the --cc and --cxx options.
+@example
+./configure --cxx=<path of your c++ compiler> --cc=<path of your c compiler> <other options>
+@end example
 
 @node Make targets
 @section Make targets

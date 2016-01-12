@@ -1,6 +1,25 @@
 #ifndef HW_COMPAT_H
 #define HW_COMPAT_H
 
+#define HW_COMPAT_2_4 \
+        {\
+            .driver   = "virtio-blk-device",\
+            .property = "scsi",\
+            .value    = "true",\
+        },{\
+            .driver   = "e1000",\
+            .property = "extra_mac_registers",\
+            .value    = "off",\
+        },{\
+            .driver   = "virtio-pci",\
+            .property = "x-disable-pcie",\
+            .value    = "on",\
+        },{\
+            .driver   = "virtio-pci",\
+            .property = "migrate-extra",\
+            .value    = "off",\
+        },
+
 #define HW_COMPAT_2_3 \
         {\
             .driver   = "virtio-blk-pci",\

@@ -52,6 +52,8 @@ extern bool kvm_msi_via_irqfd_allowed;
 extern bool kvm_gsi_routing_allowed;
 extern bool kvm_gsi_direct_mapping;
 extern bool kvm_readonly_mem_allowed;
+extern bool kvm_direct_msi_allowed;
+extern bool kvm_ioeventfd_any_length_allowed;
 
 #if defined CONFIG_KVM || !defined NEED_CPU_H
 #define kvm_enabled()           (kvm_allowed)
@@ -145,6 +147,19 @@ extern bool kvm_readonly_mem_allowed;
  */
 #define kvm_readonly_mem_enabled() (kvm_readonly_mem_allowed)
 
+/**
+ * kvm_direct_msi_enabled:
+ *
+ * Returns: true if KVM allows direct MSI injection.
+ */
+#define kvm_direct_msi_enabled() (kvm_direct_msi_allowed)
+
+/**
+ * kvm_ioeventfd_any_length_enabled:
+ * Returns: true if KVM allows any length io eventfd.
+ */
+#define kvm_ioeventfd_any_length_enabled() (kvm_ioeventfd_any_length_allowed)
+
 #else
 #define kvm_enabled()           (0)
 #define kvm_irqchip_in_kernel() (false)
@@ -157,6 +172,8 @@ extern bool kvm_readonly_mem_allowed;
 #define kvm_gsi_routing_allowed() (false)
 #define kvm_gsi_direct_mapping() (false)
 #define kvm_readonly_mem_enabled() (false)
+#define kvm_direct_msi_enabled() (false)
+#define kvm_ioeventfd_any_length_enabled() (false)
 #endif
 
 struct kvm_run;
@@ -182,8 +199,6 @@ int kvm_has_sync_mmu(void);
 int kvm_has_vcpu_events(void);
 int kvm_has_robust_singlestep(void);
 int kvm_has_debugregs(void);
-int kvm_has_xsave(void);
-int kvm_has_xcrs(void);
 int kvm_has_pit_state2(void);
 int kvm_has_many_ioeventfds(void);
 int kvm_has_gsi_routing(void);
@@ -209,6 +224,10 @@ int kvm_set_signal_mask(CPUState *cpu, const sigset_t *sigset);
 
 int kvm_on_sigbus_vcpu(CPUState *cpu, int code, void *addr);
 int kvm_on_sigbus(int code, void *addr);
+
+/* interface with exec.c */
+
+void phys_mem_set_alloc(void *(*alloc)(size_t, uint64_t *align));
 
 /* internal API */
 
@@ -238,6 +257,32 @@ int kvm_device_ioctl(int fd, int type, ...);
  *            interface is unavailable
  */
 int kvm_vm_check_attr(KVMState *s, uint32_t group, uint64_t attr);
+
+/**
+ * kvm_device_check_attr - check for existence of a specific device attribute
+ * @fd: The device file descriptor
+ * @group: the group
+ * @attr: the attribute of that group to query for
+ *
+ * Returns: 1 if the attribute exists
+ *          0 if the attribute either does not exist or if the vm device
+ *            interface is unavailable
+ */
+int kvm_device_check_attr(int fd, uint32_t group, uint64_t attr);
+
+/**
+ * kvm_device_access - set or get value of a specific vm attribute
+ * @fd: The device file descriptor
+ * @group: the group
+ * @attr: the attribute of that group to set or get
+ * @val: pointer to a storage area for the value
+ * @write: true for set and false for get operation
+ *
+ * This function is not allowed to fail. Use kvm_device_check_attr()
+ * in order to check for the availability of optional attributes.
+ */
+void kvm_device_access(int fd, int group, uint64_t attr,
+                       void *val, bool write);
 
 /**
  * kvm_create_device - create a KVM device for the device control API
@@ -287,7 +332,7 @@ int kvm_arch_on_sigbus(int code, void *addr);
 void kvm_arch_init_irq_routing(KVMState *s);
 
 int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
-                             uint64_t address, uint32_t data);
+                             uint64_t address, uint32_t data, PCIDevice *dev);
 
 int kvm_arch_msi_data_to_gsi(uint32_t data);
 
@@ -380,7 +425,6 @@ int kvm_physical_memory_addr_from_host(KVMState *s, void *ram_addr,
 void kvm_cpu_synchronize_state(CPUState *cpu);
 void kvm_cpu_synchronize_post_reset(CPUState *cpu);
 void kvm_cpu_synchronize_post_init(CPUState *cpu);
-void kvm_cpu_clean_state(CPUState *cpu);
 
 /* generic hooks - to be moved/refactored once there are more users */
 
@@ -405,15 +449,9 @@ static inline void cpu_synchronize_post_init(CPUState *cpu)
     }
 }
 
-static inline void cpu_clean_state(CPUState *cpu)
-{
-    if (kvm_enabled()) {
-        kvm_cpu_clean_state(cpu);
-    }
-}
-
-int kvm_irqchip_add_msi_route(KVMState *s, MSIMessage msg);
-int kvm_irqchip_update_msi_route(KVMState *s, int virq, MSIMessage msg);
+int kvm_irqchip_add_msi_route(KVMState *s, MSIMessage msg, PCIDevice *dev);
+int kvm_irqchip_update_msi_route(KVMState *s, int virq, MSIMessage msg,
+                                 PCIDevice *dev);
 void kvm_irqchip_release_virq(KVMState *s, int virq);
 
 int kvm_irqchip_add_adapter_route(KVMState *s, AdapterInfo *adapter);

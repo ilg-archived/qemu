@@ -41,6 +41,7 @@ DEF("machine", HAS_ARG, QEMU_OPTION_machine, \
     "                dump-guest-core=on|off include guest memory in a core dump (default=on)\n"
     "                mem-merge=on|off controls memory merge support (default: on)\n"
     "                iommu=on|off controls emulated Intel IOMMU (VT-d) support (default=off)\n"
+    "                igd-passthru=on|off controls IGD GFX passthrough support (default=off)\n"
     "                aes-key-wrap=on|off controls support for AES key wrapping (default=on)\n"
     "                dea-key-wrap=on|off controls support for DEA key wrapping (default=on)\n"
     "                suppress-vmdesc=on|off disables self-describing migration (default=off)\n",
@@ -58,6 +59,8 @@ than one accelerator specified, the next one is used if the previous one fails
 to initialize.
 @item kernel_irqchip=on|off
 Enables in-kernel irqchip support for the chosen accelerator when available.
+@item gfx_passthru=on|off
+Enables IGD GFX passthrough support for the chosen machine when available.
 @item vmport=on|off|auto
 Enables emulation of VMWare IO port, for vmmouse etc. auto says to select the
 value based on accel. For accel=xen the default is off otherwise the default
@@ -1217,8 +1220,9 @@ By definition the Websocket port is 5700+@var{display}. If @var{host} is
 specified connections will only be allowed from this host.
 As an alternative the Websocket port could be specified by using
 @code{websocket}=@var{port}.
-TLS encryption for the Websocket connection is supported if the required
-certificates are specified with the VNC option @option{x509}.
+If no TLS credentials are provided, the websocket connection runs in
+unencrypted mode. If TLS credentials are provided, the websocket connection
+requires encrypted client connections.
 
 @item password
 
@@ -1239,12 +1243,29 @@ date and time).
 You can also use keywords "now" or "never" for the expiration time to
 allow <protocol> password to expire immediately or never expire.
 
+@item tls-creds=@var{ID}
+
+Provides the ID of a set of TLS credentials to use to secure the
+VNC server. They will apply to both the normal VNC server socket
+and the websocket socket (if enabled). Setting TLS credentials
+will cause the VNC server socket to enable the VeNCrypt auth
+mechanism.  The credentials should have been previously created
+using the @option{-object tls-creds} argument.
+
+The @option{tls-creds} parameter obsoletes the @option{tls},
+@option{x509}, and @option{x509verify} options, and as such
+it is not permitted to set both new and old type options at
+the same time.
+
 @item tls
 
 Require that client use TLS when communicating with the VNC server. This
 uses anonymous TLS credentials so is susceptible to a man-in-the-middle
 attack. It is recommended that this option be combined with either the
 @option{x509} or @option{x509verify} options.
+
+This option is now deprecated in favor of using the @option{tls-creds}
+argument.
 
 @item x509=@var{/path/to/certificate/dir}
 
@@ -1254,6 +1275,9 @@ to the client. It is recommended that a password be set on the VNC server
 to provide authentication of the client when this is used. The path following
 this option specifies where the x509 certificates are to be loaded from.
 See the @ref{vnc_security} section for details on generating certificates.
+
+This option is now deprecated in favour of using the @option{tls-creds}
+argument.
 
 @item x509verify=@var{/path/to/certificate/dir}
 
@@ -1267,6 +1291,9 @@ to set a password on the VNC server as a second authentication layer. The
 path following this option specifies where the x509 certificates are to
 be loaded from. See the @ref{vnc_security} section for details on generating
 certificates.
+
+This option is now deprecated in favour of using the @option{tls-creds}
+argument.
 
 @item sasl
 
@@ -1415,7 +1442,7 @@ DEF("smbios", HAS_ARG, QEMU_OPTION_smbios,
     "-smbios type=17[,loc_pfx=str][,bank=str][,manufacturer=str][,serial=str]\n"
     "               [,asset=str][,part=str][,speed=%d]\n"
     "                specify SMBIOS type 17 fields\n",
-    QEMU_ARCH_I386)
+    QEMU_ARCH_I386 | QEMU_ARCH_ARM)
 STEXI
 @item -smbios file=@var{binary}
 @findex -smbios
@@ -1966,13 +1993,14 @@ The hubport netdev lets you connect a NIC to a QEMU "vlan" instead of a single
 netdev.  @code{-net} and @code{-device} with parameter @option{vlan} create the
 required hub automatically.
 
-@item -netdev vhost-user,chardev=@var{id}[,vhostforce=on|off]
+@item -netdev vhost-user,chardev=@var{id}[,vhostforce=on|off][,queues=n]
 
 Establish a vhost-user netdev, backed by a chardev @var{id}. The chardev should
 be a unix domain socket backed one. The vhost-user uses a specifically defined
 protocol to pass vhost ioctl replacement messages to an application on the other
 end of the socket. On non-MSIX guests, the feature can be forced with
-@var{vhostforce}.
+@var{vhostforce}. Use 'queues=@var{n}' to specify the number of queues to
+be created for multiqueue vhost-user.
 
 Example:
 @example
@@ -1987,6 +2015,7 @@ qemu -m 512 -object memory-backend-file,id=mem,size=512M,mem-path=/hugetlbfs,sha
 Dump network traffic on VLAN @var{n} to file @var{file} (@file{qemu-vlan0.pcap} by default).
 At most @var{len} bytes (64k by default) per packet are stored. The file format is
 libpcap, so it can be analyzed with tools such as tcpdump or Wireshark.
+Note: For devices created with '-netdev', use '-object filter-dump,...' instead.
 
 @item -net none
 Indicate that no network devices should be configured. It is used to
@@ -2750,13 +2779,18 @@ ETEXI
 
 DEF("fw_cfg", HAS_ARG, QEMU_OPTION_fwcfg,
     "-fw_cfg [name=]<name>,file=<file>\n"
-    "                add named fw_cfg entry from file\n",
+    "                add named fw_cfg entry from file\n"
+    "-fw_cfg [name=]<name>,string=<str>\n"
+    "                add named fw_cfg entry from string\n",
     QEMU_ARCH_ALL)
 STEXI
 @item -fw_cfg [name=]@var{name},file=@var{file}
 @findex -fw_cfg
 Add named fw_cfg entry from file. @var{name} determines the name of
 the entry in the fw_cfg file directory exposed to the guest.
+
+@item -fw_cfg [name=]@var{name},string=@var{str}
+Add named fw_cfg entry from string.
 ETEXI
 
 DEF("serial", HAS_ARG, QEMU_OPTION_serial, \
@@ -3177,12 +3211,12 @@ re-inject them.
 ETEXI
 
 DEF("icount", HAS_ARG, QEMU_OPTION_icount, \
-    "-icount [shift=N|auto][,align=on|off][,sleep=no]\n" \
+    "-icount [shift=N|auto][,align=on|off][,sleep=no,rr=record|replay,rrfile=<filename>]\n" \
     "                enable virtual instruction counter with 2^N clock ticks per\n" \
     "                instruction, enable aligning the host and virtual clocks\n" \
     "                or disable real time cpu sleeping\n", QEMU_ARCH_ALL)
 STEXI
-@item -icount [shift=@var{N}|auto]
+@item -icount [shift=@var{N}|auto][,rr=record|replay,rrfile=@var{filename}]
 @findex -icount
 Enable virtual instruction counter.  The virtual cpu will execute one
 instruction every 2^@var{N} ns of virtual time.  If @code{auto} is specified
@@ -3201,7 +3235,7 @@ provide cycle accurate emulation.  Modern CPUs contain superscalar out of
 order cores with complex cache hierarchies.  The number of instructions
 executed often has little or no correlation with actual performance.
 
-@option{align=on} will activate the delay algorithm which will try to
+@option{align=on} will activate the delay algorithm which will try
 to synchronise the host clock and the virtual clock. The goal is to
 have a guest running at the real frequency imposed by the shift option.
 Whenever the guest clock is behind the host clock and if
@@ -3211,6 +3245,10 @@ Currently this option does not work when @option{shift} is @code{auto}.
 Note: The sync algorithm will work for those shift values for which
 the guest clock runs ahead of the host clock. Typically this happens
 when the shift value is high (how high depends on the host machine).
+
+When @option{rr} option is specified deterministic record/replay is enabled.
+Replay log is written into @var{filename} file in record mode and
+read from this file in replay mode.
 ETEXI
 
 DEF("watchdog", HAS_ARG, QEMU_OPTION_watchdog, \
@@ -3577,7 +3615,7 @@ DEF("dump-vmstate", HAS_ARG, QEMU_OPTION_dump_vmstate,
     "                Output vmstate information in JSON format to file.\n"
     "                Use the scripts/vmstate-static-checker.py file to\n"
     "                check for possible regressions in migration code\n"
-    "                by comparing two such vmstate dumps.",
+    "                by comparing two such vmstate dumps.\n",
     QEMU_ARCH_ALL)
 STEXI
 @item -dump-vmstate @var{file}
@@ -3634,6 +3672,77 @@ a unique ID that will be used to reference this entropy backend from
 the @option{virtio-rng} device. The @option{chardev} parameter is
 the unique ID of a character device backend that provides the connection
 to the RNG daemon.
+
+@item -object tls-creds-anon,id=@var{id},endpoint=@var{endpoint},dir=@var{/path/to/cred/dir},verify-peer=@var{on|off}
+
+Creates a TLS anonymous credentials object, which can be used to provide
+TLS support on network backends. The @option{id} parameter is a unique
+ID which network backends will use to access the credentials. The
+@option{endpoint} is either @option{server} or @option{client} depending
+on whether the QEMU network backend that uses the credentials will be
+acting as a client or as a server. If @option{verify-peer} is enabled
+(the default) then once the handshake is completed, the peer credentials
+will be verified, though this is a no-op for anonymous credentials.
+
+The @var{dir} parameter tells QEMU where to find the credential
+files. For server endpoints, this directory may contain a file
+@var{dh-params.pem} providing diffie-hellman parameters to use
+for the TLS server. If the file is missing, QEMU will generate
+a set of DH parameters at startup. This is a computationally
+expensive operation that consumes random pool entropy, so it is
+recommended that a persistent set of parameters be generated
+upfront and saved.
+
+@item -object tls-creds-x509,id=@var{id},endpoint=@var{endpoint},dir=@var{/path/to/cred/dir},verify-peer=@var{on|off}
+
+Creates a TLS anonymous credentials object, which can be used to provide
+TLS support on network backends. The @option{id} parameter is a unique
+ID which network backends will use to access the credentials. The
+@option{endpoint} is either @option{server} or @option{client} depending
+on whether the QEMU network backend that uses the credentials will be
+acting as a client or as a server. If @option{verify-peer} is enabled
+(the default) then once the handshake is completed, the peer credentials
+will be verified. With x509 certificates, this implies that the clients
+must be provided with valid client certificates too.
+
+The @var{dir} parameter tells QEMU where to find the credential
+files. For server endpoints, this directory may contain a file
+@var{dh-params.pem} providing diffie-hellman parameters to use
+for the TLS server. If the file is missing, QEMU will generate
+a set of DH parameters at startup. This is a computationally
+expensive operation that consumes random pool entropy, so it is
+recommended that a persistent set of parameters be generated
+upfront and saved.
+
+For x509 certificate credentials the directory will contain further files
+providing the x509 certificates. The certificates must be stored
+in PEM format, in filenames @var{ca-cert.pem}, @var{ca-crl.pem} (optional),
+@var{server-cert.pem} (only servers), @var{server-key.pem} (only servers),
+@var{client-cert.pem} (only clients), and @var{client-key.pem} (only clients).
+
+@item -object filter-buffer,id=@var{id},netdev=@var{netdevid},interval=@var{t}[,queue=@var{all|rx|tx}]
+
+Interval @var{t} can't be 0, this filter batches the packet delivery: all
+packets arriving in a given interval on netdev @var{netdevid} are delayed
+until the end of the interval. Interval is in microseconds.
+
+queue @var{all|rx|tx} is an option that can be applied to any netfilter.
+
+@option{all}: the filter is attached both to the receive and the transmit
+              queue of the netdev (default).
+
+@option{rx}: the filter is attached to the receive queue of the netdev,
+             where it will receive packets sent to the netdev.
+
+@option{tx}: the filter is attached to the transmit queue of the netdev,
+             where it will receive packets sent by the netdev.
+
+@item -object filter-dump,id=@var{id},netdev=@var{dev},file=@var{filename}][,maxlen=@var{len}]
+
+Dump the network traffic on netdev @var{dev} to the file specified by
+@var{filename}. At most @var{len} bytes (64k by default) per packet are stored.
+The file format is libpcap, so it can be analyzed with tools such as tcpdump
+or Wireshark.
 
 @end table
 

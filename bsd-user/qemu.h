@@ -101,9 +101,7 @@ typedef struct TaskState {
 
 void init_task_state(TaskState *ts);
 extern const char *qemu_uname_release;
-#if defined(CONFIG_USE_GUEST_BASE)
 extern unsigned long mmap_min_addr;
-#endif
 
 /* ??? See if we can avoid exposing so much of the loader internals.  */
 /*
@@ -213,8 +211,6 @@ abi_long target_mremap(abi_ulong old_addr, abi_ulong old_size,
                        abi_ulong new_addr);
 int target_msync(abi_ulong start, abi_ulong len, int flags);
 extern unsigned long last_brk;
-void mmap_lock(void);
-void mmap_unlock(void);
 void cpu_list_lock(void);
 void cpu_list_unlock(void);
 #if defined(CONFIG_USE_NPTL)

@@ -457,11 +457,11 @@ gen_add64_d(TCGv_i64 ret, TCGv_i64 r1, TCGv_i64 r2)
     tcg_gen_xor_i64(t1, result, r1);
     tcg_gen_xor_i64(t0, r1, r2);
     tcg_gen_andc_i64(t1, t1, t0);
-    tcg_gen_trunc_shr_i64_i32(cpu_PSW_V, t1, 32);
+    tcg_gen_extrh_i64_i32(cpu_PSW_V, t1);
     /* calc SV bit */
     tcg_gen_or_tl(cpu_PSW_SV, cpu_PSW_SV, cpu_PSW_V);
     /* calc AV/SAV bits */
-    tcg_gen_trunc_shr_i64_i32(temp, result, 32);
+    tcg_gen_extrh_i64_i32(temp, result);
     tcg_gen_add_tl(cpu_PSW_AV, temp, temp);
     tcg_gen_xor_tl(cpu_PSW_AV, temp, cpu_PSW_AV);
     /* calc SAV */
@@ -540,14 +540,14 @@ static inline void gen_madd32_d(TCGv ret, TCGv r1, TCGv r2, TCGv r3)
     tcg_gen_mul_i64(t1, t1, t3);
     tcg_gen_add_i64(t1, t2, t1);
 
-    tcg_gen_trunc_i64_i32(ret, t1);
+    tcg_gen_extrl_i64_i32(ret, t1);
     /* calc V
        t1 > 0x7fffffff */
     tcg_gen_setcondi_i64(TCG_COND_GT, t3, t1, 0x7fffffffLL);
     /* t1 < -0x80000000 */
     tcg_gen_setcondi_i64(TCG_COND_LT, t2, t1, -0x80000000LL);
     tcg_gen_or_i64(t2, t2, t3);
-    tcg_gen_trunc_i64_i32(cpu_PSW_V, t2);
+    tcg_gen_extrl_i64_i32(cpu_PSW_V, t2);
     tcg_gen_shli_tl(cpu_PSW_V, cpu_PSW_V, 31);
     /* Calc SV bit */
     tcg_gen_or_tl(cpu_PSW_SV, cpu_PSW_SV, cpu_PSW_V);
@@ -621,7 +621,7 @@ gen_maddu64_d(TCGv ret_low, TCGv ret_high, TCGv r1, TCGv r2_low, TCGv r2_high,
     /* only the add overflows, if t2 < t1
        calc V bit */
     tcg_gen_setcond_i64(TCG_COND_LTU, t2, t2, t1);
-    tcg_gen_trunc_i64_i32(cpu_PSW_V, t2);
+    tcg_gen_extrl_i64_i32(cpu_PSW_V, t2);
     tcg_gen_shli_tl(cpu_PSW_V, cpu_PSW_V, 31);
     /* Calc SV bit */
     tcg_gen_or_tl(cpu_PSW_SV, cpu_PSW_SV, cpu_PSW_V);
@@ -1110,12 +1110,12 @@ gen_madd32_q(TCGv ret, TCGv arg1, TCGv arg2, TCGv arg3, uint32_t n,
     tcg_gen_sari_i64(t2, t2, up_shift);
 
     tcg_gen_add_i64(t3, t1, t2);
-    tcg_gen_trunc_i64_i32(temp3, t3);
+    tcg_gen_extrl_i64_i32(temp3, t3);
     /* calc v bit */
     tcg_gen_setcondi_i64(TCG_COND_GT, t1, t3, 0x7fffffffLL);
     tcg_gen_setcondi_i64(TCG_COND_LT, t2, t3, -0x80000000LL);
     tcg_gen_or_i64(t1, t1, t2);
-    tcg_gen_trunc_i64_i32(cpu_PSW_V, t1);
+    tcg_gen_extrl_i64_i32(cpu_PSW_V, t1);
     tcg_gen_shli_tl(cpu_PSW_V, cpu_PSW_V, 31);
     /* We produce an overflow on the host if the mul before was
        (0x80000000 * 0x80000000) << 1). If this is the
@@ -1273,7 +1273,7 @@ gen_madd64_q(TCGv rl, TCGv rh, TCGv arg1_low, TCGv arg1_high, TCGv arg2,
     tcg_gen_xor_i64(t3, t4, t1);
     tcg_gen_xor_i64(t2, t1, t2);
     tcg_gen_andc_i64(t3, t3, t2);
-    tcg_gen_trunc_shr_i64_i32(cpu_PSW_V, t3, 32);
+    tcg_gen_extrh_i64_i32(cpu_PSW_V, t3);
     /* We produce an overflow on the host if the mul before was
        (0x80000000 * 0x80000000) << 1). If this is the
        case, we negate the ovf. */
@@ -1356,14 +1356,14 @@ static inline void gen_msub32_d(TCGv ret, TCGv r1, TCGv r2, TCGv r3)
     tcg_gen_mul_i64(t1, t1, t3);
     tcg_gen_sub_i64(t1, t2, t1);
 
-    tcg_gen_trunc_i64_i32(ret, t1);
+    tcg_gen_extrl_i64_i32(ret, t1);
     /* calc V
        t2 > 0x7fffffff */
     tcg_gen_setcondi_i64(TCG_COND_GT, t3, t1, 0x7fffffffLL);
     /* result < -0x80000000 */
     tcg_gen_setcondi_i64(TCG_COND_LT, t2, t1, -0x80000000LL);
     tcg_gen_or_i64(t2, t2, t3);
-    tcg_gen_trunc_i64_i32(cpu_PSW_V, t2);
+    tcg_gen_extrl_i64_i32(cpu_PSW_V, t2);
     tcg_gen_shli_tl(cpu_PSW_V, cpu_PSW_V, 31);
 
     /* Calc SV bit */
@@ -1445,7 +1445,7 @@ gen_msubu64_d(TCGv ret_low, TCGv ret_high, TCGv r1, TCGv r2_low, TCGv r2_high,
     tcg_gen_extr_i64_i32(ret_low, ret_high, t3);
     /* calc V bit, only the sub can overflow, if t1 > t2 */
     tcg_gen_setcond_i64(TCG_COND_GTU, t1, t1, t2);
-    tcg_gen_trunc_i64_i32(cpu_PSW_V, t1);
+    tcg_gen_extrl_i64_i32(cpu_PSW_V, t1);
     tcg_gen_shli_tl(cpu_PSW_V, cpu_PSW_V, 31);
     /* Calc SV bit */
     tcg_gen_or_tl(cpu_PSW_SV, cpu_PSW_SV, cpu_PSW_V);
@@ -1630,11 +1630,11 @@ gen_sub64_d(TCGv_i64 ret, TCGv_i64 r1, TCGv_i64 r2)
     tcg_gen_xor_i64(t1, result, r1);
     tcg_gen_xor_i64(t0, r1, r2);
     tcg_gen_and_i64(t1, t1, t0);
-    tcg_gen_trunc_shr_i64_i32(cpu_PSW_V, t1, 32);
+    tcg_gen_extrh_i64_i32(cpu_PSW_V, t1);
     /* calc SV bit */
     tcg_gen_or_tl(cpu_PSW_SV, cpu_PSW_SV, cpu_PSW_V);
     /* calc AV/SAV bits */
-    tcg_gen_trunc_shr_i64_i32(temp, result, 32);
+    tcg_gen_extrh_i64_i32(temp, result);
     tcg_gen_add_tl(cpu_PSW_AV, temp, temp);
     tcg_gen_xor_tl(cpu_PSW_AV, temp, cpu_PSW_AV);
     /* calc SAV */
@@ -1973,12 +1973,12 @@ gen_msub32_q(TCGv ret, TCGv arg1, TCGv arg2, TCGv arg3, uint32_t n,
     tcg_gen_add_i64(t2, t2, t4);
 
     tcg_gen_sub_i64(t3, t1, t2);
-    tcg_gen_trunc_i64_i32(temp3, t3);
+    tcg_gen_extrl_i64_i32(temp3, t3);
     /* calc v bit */
     tcg_gen_setcondi_i64(TCG_COND_GT, t1, t3, 0x7fffffffLL);
     tcg_gen_setcondi_i64(TCG_COND_LT, t2, t3, -0x80000000LL);
     tcg_gen_or_i64(t1, t1, t2);
-    tcg_gen_trunc_i64_i32(cpu_PSW_V, t1);
+    tcg_gen_extrl_i64_i32(cpu_PSW_V, t1);
     tcg_gen_shli_tl(cpu_PSW_V, cpu_PSW_V, 31);
     /* Calc SV bit */
     tcg_gen_or_tl(cpu_PSW_SV, cpu_PSW_SV, cpu_PSW_V);
@@ -2126,7 +2126,7 @@ gen_msub64_q(TCGv rl, TCGv rh, TCGv arg1_low, TCGv arg1_high, TCGv arg2,
     tcg_gen_xor_i64(t3, t4, t1);
     tcg_gen_xor_i64(t2, t1, t2);
     tcg_gen_and_i64(t3, t3, t2);
-    tcg_gen_trunc_shr_i64_i32(cpu_PSW_V, t3, 32);
+    tcg_gen_extrh_i64_i32(cpu_PSW_V, t3);
     /* We produce an overflow on the host if the mul before was
        (0x80000000 * 0x80000000) << 1). If this is the
        case, we negate the ovf. */
@@ -8266,43 +8266,44 @@ static void decode_opc(CPUTriCoreState *env, DisasContext *ctx, int *is_branch)
     }
 }
 
-static inline void
-gen_intermediate_code_internal(TriCoreCPU *cpu, struct TranslationBlock *tb,
-                              int search_pc)
+void gen_intermediate_code(CPUTriCoreState *env, struct TranslationBlock *tb)
 {
+    TriCoreCPU *cpu = tricore_env_get_cpu(env);
     CPUState *cs = CPU(cpu);
-    CPUTriCoreState *env = &cpu->env;
     DisasContext ctx;
     target_ulong pc_start;
-    int num_insns;
-
-    if (search_pc) {
-        qemu_log("search pc %d\n", search_pc);
-    }
+    int num_insns, max_insns;
 
     num_insns = 0;
+    max_insns = tb->cflags & CF_COUNT_MASK;
+    if (max_insns == 0) {
+        max_insns = CF_COUNT_MASK;
+    }
+    if (singlestep) {
+        max_insns = 1;
+    }
+    if (max_insns > TCG_MAX_INSNS) {
+        max_insns = TCG_MAX_INSNS;
+    }
+
     pc_start = tb->pc;
     ctx.pc = pc_start;
     ctx.saved_pc = -1;
     ctx.tb = tb;
     ctx.singlestep_enabled = cs->singlestep_enabled;
     ctx.bstate = BS_NONE;
-    ctx.mem_idx = cpu_mmu_index(env);
+    ctx.mem_idx = cpu_mmu_index(env, false);
 
     tcg_clear_temp_count();
     gen_tb_start(tb);
     while (ctx.bstate == BS_NONE) {
+        tcg_gen_insn_start(ctx.pc);
+        num_insns++;
+
         ctx.opcode = cpu_ldl_code(env, ctx.pc);
         decode_opc(env, &ctx, 0);
 
-        num_insns++;
-
-        if (tcg_op_buf_full()) {
-            gen_save_pc(ctx.next_pc);
-            tcg_gen_exit_tb(0);
-            break;
-        }
-        if (singlestep) {
+        if (num_insns >= max_insns || tcg_op_buf_full()) {
             gen_save_pc(ctx.next_pc);
             tcg_gen_exit_tb(0);
             break;
@@ -8311,12 +8312,9 @@ gen_intermediate_code_internal(TriCoreCPU *cpu, struct TranslationBlock *tb,
     }
 
     gen_tb_end(tb, num_insns);
-    if (search_pc) {
-        printf("done_generating search pc\n");
-    } else {
-        tb->size = ctx.pc - pc_start;
-        tb->icount = num_insns;
-    }
+    tb->size = ctx.pc - pc_start;
+    tb->icount = num_insns;
+
     if (tcg_check_temp_count()) {
         printf("LEAK at %08x\n", env->PC);
     }
@@ -8331,21 +8329,10 @@ gen_intermediate_code_internal(TriCoreCPU *cpu, struct TranslationBlock *tb,
 }
 
 void
-gen_intermediate_code(CPUTriCoreState *env, struct TranslationBlock *tb)
+restore_state_to_opc(CPUTriCoreState *env, TranslationBlock *tb,
+                     target_ulong *data)
 {
-    gen_intermediate_code_internal(tricore_env_get_cpu(env), tb, false);
-}
-
-void
-gen_intermediate_code_pc(CPUTriCoreState *env, struct TranslationBlock *tb)
-{
-    gen_intermediate_code_internal(tricore_env_get_cpu(env), tb, true);
-}
-
-void
-restore_state_to_opc(CPUTriCoreState *env, TranslationBlock *tb, int pc_pos)
-{
-    env->PC = tcg_ctx.gen_opc_pc[pc_pos];
+    env->PC = data[0];
 }
 /*
  *

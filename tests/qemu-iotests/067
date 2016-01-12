@@ -48,7 +48,8 @@ function do_run_qemu()
 function run_qemu()
 {
     do_run_qemu "$@" 2>&1 | _filter_testdir | _filter_qmp | _filter_qemu \
-                          | sed -e 's/\("actual-size":\s*\)[0-9]\+/\1SIZE/g'
+                          | sed -e 's/\("actual-size":\s*\)[0-9]\+/\1SIZE/g' \
+                          | _filter_generated_node_ids
 }
 
 size=128M
@@ -59,7 +60,7 @@ echo
 echo === -drive/-device and device_del ===
 echo
 
-run_qemu -drive file=$TEST_IMG,format=$IMGFMT,if=none,id=disk -device virtio-blk-pci,drive=disk,id=virtio0 <<EOF
+run_qemu -drive file=$TEST_IMG,format=$IMGFMT,if=none,id=disk -device virtio-blk,drive=disk,id=virtio0 <<EOF
 { "execute": "qmp_capabilities" }
 { "execute": "query-block" }
 { "execute": "device_del", "arguments": { "id": "virtio0" } }
@@ -76,7 +77,7 @@ run_qemu -drive file=$TEST_IMG,format=$IMGFMT,if=none,id=disk <<EOF
 { "execute": "qmp_capabilities" }
 { "execute": "query-block" }
 { "execute": "device_add",
-   "arguments": { "driver": "virtio-blk-pci", "drive": "disk",
+   "arguments": { "driver": "virtio-blk", "drive": "disk",
                   "id": "virtio0" } }
 { "execute": "device_del", "arguments": { "id": "virtio0" } }
 { "execute": "system_reset" }
@@ -94,7 +95,7 @@ run_qemu <<EOF
   "arguments": { "command-line": "drive_add 0 file=$TEST_IMG,format=$IMGFMT,if=none,id=disk" } }
 { "execute": "query-block" }
 { "execute": "device_add",
-   "arguments": { "driver": "virtio-blk-pci", "drive": "disk",
+   "arguments": { "driver": "virtio-blk", "drive": "disk",
                   "id": "virtio0" } }
 { "execute": "device_del", "arguments": { "id": "virtio0" } }
 { "execute": "system_reset" }
@@ -122,7 +123,7 @@ run_qemu <<EOF
   }
 { "execute": "query-block" }
 { "execute": "device_add",
-   "arguments": { "driver": "virtio-blk-pci", "drive": "disk",
+   "arguments": { "driver": "virtio-blk", "drive": "disk",
                   "id": "virtio0" } }
 { "execute": "device_del", "arguments": { "id": "virtio0" } }
 { "execute": "system_reset" }

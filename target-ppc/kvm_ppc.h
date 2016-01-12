@@ -11,8 +11,6 @@
 
 #define TYPE_HOST_POWERPC_CPU "host-" TYPE_POWERPC_CPU
 
-void kvmppc_init(void);
-
 #ifdef CONFIG_KVM
 
 uint32_t kvmppc_get_tbfreq(void);
@@ -25,6 +23,7 @@ int kvmppc_get_hasidle(CPUPPCState *env);
 int kvmppc_get_hypercall(CPUPPCState *env, uint8_t *buf, int buf_len);
 int kvmppc_set_interrupt(PowerPCCPU *cpu, int irq, int level);
 void kvmppc_enable_logical_ci_hcalls(void);
+void kvmppc_enable_set_mode_hcall(void);
 void kvmppc_set_papr(PowerPCCPU *cpu);
 int kvmppc_set_compat(PowerPCCPU *cpu, uint32_t cpu_version);
 void kvmppc_set_mpic_proxy(PowerPCCPU *cpu, int mpic_proxy);
@@ -37,7 +36,7 @@ int kvmppc_booke_watchdog_enable(PowerPCCPU *cpu);
 off_t kvmppc_alloc_rma(void **rma);
 bool kvmppc_spapr_use_multitce(void);
 void *kvmppc_create_spapr_tce(uint32_t liobn, uint32_t window_size, int *pfd,
-                              bool vfio_accel);
+                              bool need_vfio);
 int kvmppc_remove_spapr_tce(void *table, int pfd, uint32_t window_size);
 int kvmppc_reset_htab(int shift_hint);
 uint64_t kvmppc_rma_size(uint64_t current_size, unsigned int hash_shift);
@@ -55,6 +54,7 @@ void kvmppc_hash64_free_pteg(uint64_t token);
 void kvmppc_hash64_write_pte(CPUPPCState *env, target_ulong pte_index,
                              target_ulong pte0, target_ulong pte1);
 bool kvmppc_has_cap_fixup_hcalls(void);
+int kvmppc_enable_hwrng(void);
 
 #else
 
@@ -109,6 +109,10 @@ static inline int kvmppc_set_interrupt(PowerPCCPU *cpu, int irq, int level)
 }
 
 static inline void kvmppc_enable_logical_ci_hcalls(void)
+{
+}
+
+static inline void kvmppc_enable_set_mode_hcall(void)
 {
 }
 
@@ -176,7 +180,7 @@ static inline int kvmppc_remove_spapr_tce(void *table, int pfd,
 
 static inline int kvmppc_reset_htab(int shift_hint)
 {
-    return -1;
+    return 0;
 }
 
 static inline uint64_t kvmppc_rma_size(uint64_t current_size,
@@ -248,6 +252,10 @@ static inline bool kvmppc_has_cap_fixup_hcalls(void)
     abort();
 }
 
+static inline int kvmppc_enable_hwrng(void)
+{
+    return -1;
+}
 #endif
 
 #ifndef CONFIG_KVM

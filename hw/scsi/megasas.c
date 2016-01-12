@@ -431,7 +431,7 @@ static uint64_t megasas_fw_time(void)
 static uint64_t megasas_get_sata_addr(uint16_t id)
 {
     uint64_t addr = (0x1221ULL << 48);
-    return addr & (id << 24);
+    return addr | ((uint64_t)id << 24);
 }
 
 /*
@@ -757,7 +757,7 @@ static int megasas_ctrl_get_info(MegasasState *s, MegasasCmd *cmd)
 
     memcpy(info.product_name, base_class->product_name, 24);
     snprintf(info.serial_number, 32, "%s", s->hba_serial);
-    snprintf(info.package_version, 0x60, "%s-QEMU", QEMU_VERSION);
+    snprintf(info.package_version, 0x60, "%s-QEMU", qemu_hw_version());
     memcpy(info.image_component[0].name, "APP", 3);
     snprintf(info.image_component[0].version, 10, "%s-QEMU",
              base_class->product_version);

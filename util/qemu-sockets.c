@@ -26,6 +26,9 @@
 #include "monitor/monitor.h"
 #include "qemu/sockets.h"
 #include "qemu/main-loop.h"
+#include "qapi/qmp-input-visitor.h"
+#include "qapi/qmp-output-visitor.h"
+#include "qapi-visit.h"
 
 #ifndef AI_ADDRCONFIG
 # define AI_ADDRCONFIG 0
@@ -126,12 +129,15 @@ int inet_listen_opts(QemuOpts *opts, int port_offset, Error **errp)
     ai.ai_family = PF_UNSPEC;
     ai.ai_socktype = SOCK_STREAM;
 
-    if ((qemu_opt_get(opts, "host") == NULL) ||
-        (qemu_opt_get(opts, "port") == NULL)) {
-        error_setg(errp, "host and/or port not specified");
+    if ((qemu_opt_get(opts, "host") == NULL)) {
+        error_setg(errp, "host not specified");
         return -1;
     }
-    pstrcpy(port, sizeof(port), qemu_opt_get(opts, "port"));
+    if (qemu_opt_get(opts, "port") != NULL) {
+        pstrcpy(port, sizeof(port), qemu_opt_get(opts, "port"));
+    } else {
+        port[0] = '\0';
+    }
     addr = qemu_opt_get(opts, "host");
 
     to = qemu_opt_get_number(opts, "to", 0);
@@ -143,6 +149,10 @@ int inet_listen_opts(QemuOpts *opts, int port_offset, Error **errp)
     /* lookup */
     if (port_offset) {
         unsigned long long baseport;
+        if (strlen(port) == 0) {
+            error_setg(errp, "port not specified");
+            return -1;
+        }
         if (parse_uint_full(port, &baseport, 10) < 0) {
             error_setg(errp, "can't convert to a number: %s", port);
             return -1;
@@ -154,7 +164,8 @@ int inet_listen_opts(QemuOpts *opts, int port_offset, Error **errp)
         }
         snprintf(port, sizeof(port), "%d", (int)baseport + port_offset);
     }
-    rc = getaddrinfo(strlen(addr) ? addr : NULL, port, &ai, &res);
+    rc = getaddrinfo(strlen(addr) ? addr : NULL,
+                     strlen(port) ? port : NULL, &ai, &res);
     if (rc != 0) {
         error_setg(errp, "address resolution failed for %s:%s: %s", addr, port,
                    gai_strerror(rc));
@@ -616,9 +627,12 @@ static void inet_addr_to_opts(QemuOpts *opts, const InetSocketAddress *addr)
     bool ipv4 = addr->ipv4 || !addr->has_ipv4;
     bool ipv6 = addr->ipv6 || !addr->has_ipv6;
 
-    if (!ipv4 || !ipv6) {
+    if (ipv4 || ipv6) {
         qemu_opt_set_bool(opts, "ipv4", ipv4, &error_abort);
         qemu_opt_set_bool(opts, "ipv6", ipv6, &error_abort);
+    } else if (addr->has_ipv4 || addr->has_ipv6) {
+        qemu_opt_set_bool(opts, "ipv4", !addr->has_ipv4, &error_abort);
+        qemu_opt_set_bool(opts, "ipv6", !addr->has_ipv6, &error_abort);
     }
     if (addr->has_to) {
         qemu_opt_set_number(opts, "to", addr->to, &error_abort);
@@ -766,8 +780,7 @@ int unix_listen_opts(QemuOpts *opts, Error **errp)
         qemu_opt_set(opts, "path", un.sun_path, &error_abort);
     }
 
-    if ((access(un.sun_path, F_OK) == 0) &&
-        unlink(un.sun_path) < 0) {
+    if (unlink(un.sun_path) < 0 && errno != ENOENT) {
         error_setg_errno(errp, errno,
                          "Failed to unlink socket %s", un.sun_path);
         goto err;
@@ -933,23 +946,23 @@ SocketAddress *socket_parse(const char *str, Error **errp)
             error_setg(errp, "invalid Unix socket address");
             goto fail;
         } else {
-            addr->kind = SOCKET_ADDRESS_KIND_UNIX;
-            addr->q_unix = g_new(UnixSocketAddress, 1);
-            addr->q_unix->path = g_strdup(str + 5);
+            addr->type = SOCKET_ADDRESS_KIND_UNIX;
+            addr->u.q_unix = g_new(UnixSocketAddress, 1);
+            addr->u.q_unix->path = g_strdup(str + 5);
         }
     } else if (strstart(str, "fd:", NULL)) {
         if (str[3] == '\0') {
             error_setg(errp, "invalid file descriptor address");
             goto fail;
         } else {
-            addr->kind = SOCKET_ADDRESS_KIND_FD;
-            addr->fd = g_new(String, 1);
-            addr->fd->str = g_strdup(str + 3);
+            addr->type = SOCKET_ADDRESS_KIND_FD;
+            addr->u.fd = g_new(String, 1);
+            addr->u.fd->str = g_strdup(str + 3);
         }
     } else {
-        addr->kind = SOCKET_ADDRESS_KIND_INET;
-        addr->inet = inet_parse(str, errp);
-        if (addr->inet == NULL) {
+        addr->type = SOCKET_ADDRESS_KIND_INET;
+        addr->u.inet = inet_parse(str, errp);
+        if (addr->u.inet == NULL) {
             goto fail;
         }
     }
@@ -967,19 +980,19 @@ int socket_connect(SocketAddress *addr, Error **errp,
     int fd;
 
     opts = qemu_opts_create(&socket_optslist, NULL, 0, &error_abort);
-    switch (addr->kind) {
+    switch (addr->type) {
     case SOCKET_ADDRESS_KIND_INET:
-        inet_addr_to_opts(opts, addr->inet);
+        inet_addr_to_opts(opts, addr->u.inet);
         fd = inet_connect_opts(opts, errp, callback, opaque);
         break;
 
     case SOCKET_ADDRESS_KIND_UNIX:
-        qemu_opt_set(opts, "path", addr->q_unix->path, &error_abort);
+        qemu_opt_set(opts, "path", addr->u.q_unix->path, &error_abort);
         fd = unix_connect_opts(opts, errp, callback, opaque);
         break;
 
     case SOCKET_ADDRESS_KIND_FD:
-        fd = monitor_get_fd(cur_mon, addr->fd->str, errp);
+        fd = monitor_get_fd(cur_mon, addr->u.fd->str, errp);
         if (fd >= 0 && callback) {
             qemu_set_nonblock(fd);
             callback(fd, NULL, opaque);
@@ -999,19 +1012,19 @@ int socket_listen(SocketAddress *addr, Error **errp)
     int fd;
 
     opts = qemu_opts_create(&socket_optslist, NULL, 0, &error_abort);
-    switch (addr->kind) {
+    switch (addr->type) {
     case SOCKET_ADDRESS_KIND_INET:
-        inet_addr_to_opts(opts, addr->inet);
+        inet_addr_to_opts(opts, addr->u.inet);
         fd = inet_listen_opts(opts, 0, errp);
         break;
 
     case SOCKET_ADDRESS_KIND_UNIX:
-        qemu_opt_set(opts, "path", addr->q_unix->path, &error_abort);
+        qemu_opt_set(opts, "path", addr->u.q_unix->path, &error_abort);
         fd = unix_listen_opts(opts, errp);
         break;
 
     case SOCKET_ADDRESS_KIND_FD:
-        fd = monitor_get_fd(cur_mon, addr->fd->str, errp);
+        fd = monitor_get_fd(cur_mon, addr->u.fd->str, errp);
         break;
 
     default:
@@ -1027,12 +1040,12 @@ int socket_dgram(SocketAddress *remote, SocketAddress *local, Error **errp)
     int fd;
 
     opts = qemu_opts_create(&socket_optslist, NULL, 0, &error_abort);
-    switch (remote->kind) {
+    switch (remote->type) {
     case SOCKET_ADDRESS_KIND_INET:
-        inet_addr_to_opts(opts, remote->inet);
+        inet_addr_to_opts(opts, remote->u.inet);
         if (local) {
-            qemu_opt_set(opts, "localaddr", local->inet->host, &error_abort);
-            qemu_opt_set(opts, "localport", local->inet->port, &error_abort);
+            qemu_opt_set(opts, "localaddr", local->u.inet->host, &error_abort);
+            qemu_opt_set(opts, "localport", local->u.inet->port, &error_abort);
         }
         fd = inet_dgram_opts(opts, errp);
         break;
@@ -1043,4 +1056,141 @@ int socket_dgram(SocketAddress *remote, SocketAddress *local, Error **errp)
     }
     qemu_opts_del(opts);
     return fd;
+}
+
+
+static SocketAddress *
+socket_sockaddr_to_address_inet(struct sockaddr_storage *sa,
+                                socklen_t salen,
+                                Error **errp)
+{
+    char host[NI_MAXHOST];
+    char serv[NI_MAXSERV];
+    SocketAddress *addr;
+    int ret;
+
+    ret = getnameinfo((struct sockaddr *)sa, salen,
+                      host, sizeof(host),
+                      serv, sizeof(serv),
+                      NI_NUMERICHOST | NI_NUMERICSERV);
+    if (ret != 0) {
+        error_setg(errp, "Cannot format numeric socket address: %s",
+                   gai_strerror(ret));
+        return NULL;
+    }
+
+    addr = g_new0(SocketAddress, 1);
+    addr->type = SOCKET_ADDRESS_KIND_INET;
+    addr->u.inet = g_new0(InetSocketAddress, 1);
+    addr->u.inet->host = g_strdup(host);
+    addr->u.inet->port = g_strdup(serv);
+    if (sa->ss_family == AF_INET) {
+        addr->u.inet->has_ipv4 = addr->u.inet->ipv4 = true;
+    } else {
+        addr->u.inet->has_ipv6 = addr->u.inet->ipv6 = true;
+    }
+
+    return addr;
+}
+
+
+#ifndef WIN32
+static SocketAddress *
+socket_sockaddr_to_address_unix(struct sockaddr_storage *sa,
+                                socklen_t salen,
+                                Error **errp)
+{
+    SocketAddress *addr;
+    struct sockaddr_un *su = (struct sockaddr_un *)sa;
+
+    addr = g_new0(SocketAddress, 1);
+    addr->type = SOCKET_ADDRESS_KIND_UNIX;
+    addr->u.q_unix = g_new0(UnixSocketAddress, 1);
+    if (su->sun_path[0]) {
+        addr->u.q_unix->path = g_strndup(su->sun_path,
+                                         sizeof(su->sun_path));
+    }
+
+    return addr;
+}
+#endif /* WIN32 */
+
+static SocketAddress *
+socket_sockaddr_to_address(struct sockaddr_storage *sa,
+                           socklen_t salen,
+                           Error **errp)
+{
+    switch (sa->ss_family) {
+    case AF_INET:
+    case AF_INET6:
+        return socket_sockaddr_to_address_inet(sa, salen, errp);
+
+#ifndef WIN32
+    case AF_UNIX:
+        return socket_sockaddr_to_address_unix(sa, salen, errp);
+#endif /* WIN32 */
+
+    default:
+        error_setg(errp, "socket family %d unsupported",
+                   sa->ss_family);
+        return NULL;
+    }
+    return 0;
+}
+
+
+SocketAddress *socket_local_address(int fd, Error **errp)
+{
+    struct sockaddr_storage ss;
+    socklen_t sslen = sizeof(ss);
+
+    if (getsockname(fd, (struct sockaddr *)&ss, &sslen) < 0) {
+        error_setg_errno(errp, socket_error(), "%s",
+                         "Unable to query local socket address");
+        return NULL;
+    }
+
+    return socket_sockaddr_to_address(&ss, sslen, errp);
+}
+
+
+SocketAddress *socket_remote_address(int fd, Error **errp)
+{
+    struct sockaddr_storage ss;
+    socklen_t sslen = sizeof(ss);
+
+    if (getpeername(fd, (struct sockaddr *)&ss, &sslen) < 0) {
+        error_setg_errno(errp, socket_error(), "%s",
+                         "Unable to query remote socket address");
+        return NULL;
+    }
+
+    return socket_sockaddr_to_address(&ss, sslen, errp);
+}
+
+
+void qapi_copy_SocketAddress(SocketAddress **p_dest,
+                             SocketAddress *src)
+{
+    QmpOutputVisitor *qov;
+    QmpInputVisitor *qiv;
+    Visitor *ov, *iv;
+    QObject *obj;
+
+    *p_dest = NULL;
+
+    qov = qmp_output_visitor_new();
+    ov = qmp_output_get_visitor(qov);
+    visit_type_SocketAddress(ov, &src, NULL, &error_abort);
+    obj = qmp_output_get_qobject(qov);
+    qmp_output_visitor_cleanup(qov);
+    if (!obj) {
+        return;
+    }
+
+    qiv = qmp_input_visitor_new(obj);
+    iv = qmp_input_get_visitor(qiv);
+    visit_type_SocketAddress(iv, p_dest, NULL, &error_abort);
+    qmp_input_visitor_cleanup(qiv);
+    qobject_decref(obj);
 }

@@ -10,6 +10,8 @@
 #include "config.h"
 #include "hw/hw.h"
 #include "hw/arm/arm.h"
+#include "hw/arm/linux-boot-if.h"
+#include "sysemu/kvm.h"
 #include "sysemu/sysemu.h"
 #include "hw/boards.h"
 #include "hw/loader.h"
@@ -27,14 +29,15 @@
 #define KERNEL64_LOAD_ADDR 0x00080000
 
 typedef enum {
-    FIXUP_NONE = 0,   /* do nothing */
-    FIXUP_TERMINATOR, /* end of insns */
-    FIXUP_BOARDID,    /* overwrite with board ID number */
-    FIXUP_ARGPTR,     /* overwrite with pointer to kernel args */
-    FIXUP_ENTRYPOINT, /* overwrite with kernel entry point */
-    FIXUP_GIC_CPU_IF, /* overwrite with GIC CPU interface address */
-    FIXUP_BOOTREG,    /* overwrite with boot register address */
-    FIXUP_DSB,        /* overwrite with correct DSB insn for cpu */
+    FIXUP_NONE = 0,     /* do nothing */
+    FIXUP_TERMINATOR,   /* end of insns */
+    FIXUP_BOARDID,      /* overwrite with board ID number */
+    FIXUP_BOARD_SETUP,  /* overwrite with board specific setup code address */
+    FIXUP_ARGPTR,       /* overwrite with pointer to kernel args */
+    FIXUP_ENTRYPOINT,   /* overwrite with kernel entry point */
+    FIXUP_GIC_CPU_IF,   /* overwrite with GIC CPU interface address */
+    FIXUP_BOOTREG,      /* overwrite with boot register address */
+    FIXUP_DSB,          /* overwrite with correct DSB insn for cpu */
     FIXUP_MAX,
 } FixupType;
 
@@ -57,8 +60,17 @@ static const ARMInsnFixup bootloader_aarch64[] = {
     { 0, FIXUP_TERMINATOR }
 };
 
-/* The worlds second smallest bootloader.  Set r0-r2, then jump to kernel.  */
+/* A very small bootloader: call the board-setup code (if needed),
+ * set r0-r2, then jump to the kernel.
+ * If we're not calling boot setup code then we don't copy across
+ * the first BOOTLOADER_NO_BOARD_SETUP_OFFSET insns in this array.
+ */
+
 static const ARMInsnFixup bootloader[] = {
+    { 0xe28fe008 }, /* add     lr, pc, #8 */
+    { 0xe51ff004 }, /* ldr     pc, [pc, #-4] */
+    { 0, FIXUP_BOARD_SETUP },
+#define BOOTLOADER_NO_BOARD_SETUP_OFFSET 3
     { 0xe3a00000 }, /* mov     r0, #0 */
     { 0xe59f1004 }, /* ldr     r1, [pc, #4] */
     { 0xe59f2004 }, /* ldr     r2, [pc, #4] */
@@ -130,6 +142,7 @@ static void write_bootloader(const char *name, hwaddr addr,
         case FIXUP_NONE:
             break;
         case FIXUP_BOARDID:
+        case FIXUP_BOARD_SETUP:
         case FIXUP_ARGPTR:
         case FIXUP_ENTRYPOINT:
         case FIXUP_GIC_CPU_IF:
@@ -483,7 +496,8 @@ static void do_cpu_reset(void *opaque)
                 }
 
                 /* Set to non-secure if not a secure boot */
-                if (!info->secure_boot) {
+                if (!info->secure_boot &&
+                    (cs != first_cpu || !info->secure_board_setup)) {
                     /* Linux expects non-secure state */
                     env->cp15.scr_el3 |= SCR_NS;
                 }
@@ -555,6 +569,20 @@ static void load_image_to_fw_cfg(FWCfgState *fw_cfg, uint16_t size_key,
     fw_cfg_add_bytes(fw_cfg, data_key, data, size);
 }
 
+static int do_arm_linux_init(Object *obj, void *opaque)
+{
+    if (object_dynamic_cast(obj, TYPE_ARM_LINUX_BOOT_IF)) {
+        ARMLinuxBootIf *albif = ARM_LINUX_BOOT_IF(obj);
+        ARMLinuxBootIfClass *albifc = ARM_LINUX_BOOT_IF_GET_CLASS(obj);
+        struct arm_boot_info *info = opaque;
+
+        if (albifc->arm_linux_init) {
+            albifc->arm_linux_init(albif, info->secure_boot);
+        }
+    }
+    return 0;
+}
+
 static void arm_load_kernel_notify(Notifier *notifier, void *data)
 {
     CPUState *cs;
@@ -571,6 +599,12 @@ static void arm_load_kernel_notify(Notifier *notifier, void *data)
     ARMCPU *cpu = n->cpu;
     struct arm_boot_info *info =
         container_of(n, struct arm_boot_info, load_kernel_notifier);
+
+    /* The board code is not supposed to set secure_board_setup unless
+     * running its code in secure mode is actually possible, and KVM
+     * doesn't support secure.
+     */
+    assert(!(info->secure_board_setup && kvm_enabled()));
 
     /* Load the kernel.  */
     if (!info->kernel_filename || info->firmware_loaded) {
@@ -625,6 +659,9 @@ static void arm_load_kernel_notify(Notifier *notifier, void *data)
         elf_machine = EM_AARCH64;
     } else {
         primary_loader = bootloader;
+        if (!info->write_board_setup) {
+            primary_loader += BOOTLOADER_NO_BOARD_SETUP_OFFSET;
+        }
         kernel_load_offset = KERNEL_LOAD_ADDR;
         elf_machine = EM_ARM;
     }
@@ -730,6 +767,7 @@ static void arm_load_kernel_notify(Notifier *notifier, void *data)
         info->initrd_size = initrd_size;
 
         fixupcontext[FIXUP_BOARDID] = info->board_id;
+        fixupcontext[FIXUP_BOARD_SETUP] = info->board_setup_addr;
 
         /* for device tree boot, we pass the DTB directly in r2. Otherwise
          * we point to the kernel args.
@@ -778,6 +816,15 @@ static void arm_load_kernel_notify(Notifier *notifier, void *data)
         if (info->nb_cpus > 1) {
             info->write_secondary_boot(cpu, info);
         }
+        if (info->write_board_setup) {
+            info->write_board_setup(cpu, info);
+        }
+
+        /* Notify devices which need to fake up firmware initialization
+         * that we're doing a direct kernel boot.
+         */
+        object_child_foreach_recursive(object_get_root(),
+                                       do_arm_linux_init, info);
     }
     info->is_linux = is_linux;
 
@@ -803,3 +850,16 @@ void arm_load_kernel(ARMCPU *cpu, struct arm_boot_info *info)
         qemu_register_reset(do_cpu_reset, ARM_CPU(cs));
     }
 }
+
+static const TypeInfo arm_linux_boot_if_info = {
+    .name = TYPE_ARM_LINUX_BOOT_IF,
+    .parent = TYPE_INTERFACE,
+    .class_size = sizeof(ARMLinuxBootIfClass),
+};
+
+static void arm_linux_boot_register_types(void)
+{
+    type_register_static(&arm_linux_boot_if_info);
+}
+
+type_init(arm_linux_boot_register_types)

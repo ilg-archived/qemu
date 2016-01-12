@@ -28,12 +28,13 @@
 #include "exec/gdbstub.h"
 #include "qemu/host-utils.h"
 #include "qemu/config-file.h"
+#include "qemu/error-report.h"
 #include "hw/i386/pc.h"
 #include "hw/i386/apic.h"
 #include "hw/i386/apic_internal.h"
 #include "hw/i386/apic-msidef.h"
 #include "exec/ioport.h"
-#include <asm/hyperv.h>
+#include "standard-headers/asm-x86/hyperv.h"
 #include "hw/pci/pci.h"
 #include "migration/migration.h"
 #include "exec/memattrs.h"
@@ -67,6 +68,7 @@ const KVMCapabilityInfo kvm_arch_required_capabilities[] = {
 
 static bool has_msr_star;
 static bool has_msr_hsave_pa;
+static bool has_msr_tsc_aux;
 static bool has_msr_tsc_adjust;
 static bool has_msr_tsc_deadline;
 static bool has_msr_feature_control;
@@ -80,11 +82,24 @@ static int lm_capable_kernel;
 static bool has_msr_hv_hypercall;
 static bool has_msr_hv_vapic;
 static bool has_msr_hv_tsc;
+static bool has_msr_hv_crash;
+static bool has_msr_hv_reset;
+static bool has_msr_hv_vpindex;
+static bool has_msr_hv_runtime;
 static bool has_msr_mtrr;
 static bool has_msr_xss;
 
 static bool has_msr_architectural_pmu;
 static uint32_t num_architectural_pmu_counters;
+
+static int has_xsave;
+static int has_xcrs;
+static int has_pit_state2;
+
+int kvm_has_pit_state2(void)
+{
+    return has_pit_state2;
+}
 
 bool kvm_has_smm(void)
 {
@@ -94,6 +109,51 @@ bool kvm_has_smm(void)
 bool kvm_allows_irq0_override(void)
 {
     return !kvm_irqchip_in_kernel() || kvm_has_gsi_routing();
+}
+
+static int kvm_get_tsc(CPUState *cs)
+{
+    X86CPU *cpu = X86_CPU(cs);
+    CPUX86State *env = &cpu->env;
+    struct {
+        struct kvm_msrs info;
+        struct kvm_msr_entry entries[1];
+    } msr_data;
+    int ret;
+
+    if (env->tsc_valid) {
+        return 0;
+    }
+
+    msr_data.info.nmsrs = 1;
+    msr_data.entries[0].index = MSR_IA32_TSC;
+    env->tsc_valid = !runstate_is_running();
+
+    ret = kvm_vcpu_ioctl(CPU(cpu), KVM_GET_MSRS, &msr_data);
+    if (ret < 0) {
+        return ret;
+    }
+
+    env->tsc = msr_data.entries[0].data;
+    return 0;
+}
+
+static inline void do_kvm_synchronize_tsc(void *arg)
+{
+    CPUState *cpu = arg;
+
+    kvm_get_tsc(cpu);
+}
+
+void kvm_synchronize_all_tsc(void)
+{
+    CPUState *cpu;
+
+    if (kvm_enabled()) {
+        CPU_FOREACH(cpu) {
+            run_on_cpu(cpu, do_kvm_synchronize_tsc, cpu);
+        }
+    }
 }
 
 static struct kvm_cpuid2 *try_get_cpuid(KVMState *s, int max)
@@ -457,7 +517,11 @@ static bool hyperv_enabled(X86CPU *cpu)
     return kvm_check_extension(cs->kvm_state, KVM_CAP_HYPERV) > 0 &&
            (hyperv_hypercall_available(cpu) ||
             cpu->hyperv_time  ||
-            cpu->hyperv_relaxed_timing);
+            cpu->hyperv_relaxed_timing ||
+            cpu->hyperv_crash ||
+            cpu->hyperv_reset ||
+            cpu->hyperv_vpindex ||
+            cpu->hyperv_runtime);
 }
 
 static Error *invtsc_mig_blocker;
@@ -487,7 +551,18 @@ int kvm_arch_init_vcpu(CPUState *cs)
     if (hyperv_enabled(cpu)) {
         c = &cpuid_data.entries[cpuid_i++];
         c->function = HYPERV_CPUID_VENDOR_AND_MAX_FUNCTIONS;
-        memcpy(signature, "Microsoft Hv", 12);
+        if (!cpu->hyperv_vendor_id) {
+            memcpy(signature, "Microsoft Hv", 12);
+        } else {
+            size_t len = strlen(cpu->hyperv_vendor_id);
+
+            if (len > 12) {
+                error_report("hv-vendor-id truncated to 12 characters");
+                len = 12;
+            }
+            memset(signature, 0, 12);
+            memcpy(signature, cpu->hyperv_vendor_id, len);
+        }
         c->eax = HYPERV_CPUID_MIN;
         c->ebx = signature[0];
         c->ecx = signature[1];
@@ -522,6 +597,18 @@ int kvm_arch_init_vcpu(CPUState *cs)
             c->eax |= HV_X64_MSR_TIME_REF_COUNT_AVAILABLE;
             c->eax |= 0x200;
             has_msr_hv_tsc = true;
+        }
+        if (cpu->hyperv_crash && has_msr_hv_crash) {
+            c->edx |= HV_X64_GUEST_CRASH_MSR_AVAILABLE;
+        }
+        if (cpu->hyperv_reset && has_msr_hv_reset) {
+            c->eax |= HV_X64_MSR_RESET_AVAILABLE;
+        }
+        if (cpu->hyperv_vpindex && has_msr_hv_vpindex) {
+            c->eax |= HV_X64_MSR_VP_INDEX_AVAILABLE;
+        }
+        if (cpu->hyperv_runtime && has_msr_hv_runtime) {
+            c->eax |= HV_X64_MSR_VP_RUNTIME_AVAILABLE;
         }
         c = &cpuid_data.entries[cpuid_i++];
         c->function = HYPERV_CPUID_ENLIGHTMENT_INFO;
@@ -687,7 +774,7 @@ int kvm_arch_init_vcpu(CPUState *cs)
         && (env->features[FEAT_1_EDX] & (CPUID_MCE | CPUID_MCA)) ==
            (CPUID_MCE | CPUID_MCA)
         && kvm_check_extension(cs->kvm_state, KVM_CAP_MCE) > 0) {
-        uint64_t mcg_cap;
+        uint64_t mcg_cap, unsupported_caps;
         int banks;
         int ret;
 
@@ -697,18 +784,24 @@ int kvm_arch_init_vcpu(CPUState *cs)
             return ret;
         }
 
-        if (banks > MCE_BANKS_DEF) {
-            banks = MCE_BANKS_DEF;
+        if (banks < (env->mcg_cap & MCG_CAP_BANKS_MASK)) {
+            error_report("kvm: Unsupported MCE bank count (QEMU = %d, KVM = %d)",
+                         (int)(env->mcg_cap & MCG_CAP_BANKS_MASK), banks);
+            return -ENOTSUP;
         }
-        mcg_cap &= MCE_CAP_DEF;
-        mcg_cap |= banks;
-        ret = kvm_vcpu_ioctl(cs, KVM_X86_SETUP_MCE, &mcg_cap);
+
+        unsupported_caps = env->mcg_cap & ~(mcg_cap | MCG_CAP_BANKS_MASK);
+        if (unsupported_caps) {
+            error_report("warning: Unsupported MCG_CAP bits: 0x%" PRIx64,
+                         unsupported_caps);
+        }
+
+        env->mcg_cap &= mcg_cap | MCG_CAP_BANKS_MASK;
+        ret = kvm_vcpu_ioctl(cs, KVM_X86_SETUP_MCE, &env->mcg_cap);
         if (ret < 0) {
             fprintf(stderr, "KVM_X86_SETUP_MCE: %s", strerror(-ret));
             return ret;
         }
-
-        env->mcg_cap = mcg_cap;
     }
 
     qemu_add_vm_change_state_handler(cpu_update_state, env);
@@ -745,7 +838,7 @@ int kvm_arch_init_vcpu(CPUState *cs)
         }
     }
 
-    if (kvm_has_xsave()) {
+    if (has_xsave) {
         env->kvm_xsave_buf = qemu_memalign(4096, sizeof(struct kvm_xsave));
     }
 
@@ -819,6 +912,10 @@ static int kvm_get_supported_msrs(KVMState *s)
                     has_msr_hsave_pa = true;
                     continue;
                 }
+                if (kvm_msr_list->indices[i] == MSR_TSC_AUX) {
+                    has_msr_tsc_aux = true;
+                    continue;
+                }
                 if (kvm_msr_list->indices[i] == MSR_TSC_ADJUST) {
                     has_msr_tsc_adjust = true;
                     continue;
@@ -841,6 +938,22 @@ static int kvm_get_supported_msrs(KVMState *s)
                 }
                 if (kvm_msr_list->indices[i] == MSR_IA32_XSS) {
                     has_msr_xss = true;
+                    continue;
+                }
+                if (kvm_msr_list->indices[i] == HV_X64_MSR_CRASH_CTL) {
+                    has_msr_hv_crash = true;
+                    continue;
+                }
+                if (kvm_msr_list->indices[i] == HV_X64_MSR_RESET) {
+                    has_msr_hv_reset = true;
+                    continue;
+                }
+                if (kvm_msr_list->indices[i] == HV_X64_MSR_VP_INDEX) {
+                    has_msr_hv_vpindex = true;
+                    continue;
+                }
+                if (kvm_msr_list->indices[i] == HV_X64_MSR_VP_RUNTIME) {
+                    has_msr_hv_runtime = true;
                     continue;
                 }
             }
@@ -892,6 +1005,18 @@ int kvm_arch_init(MachineState *ms, KVMState *s)
     uint64_t shadow_mem;
     int ret;
     struct utsname utsname;
+
+#ifdef KVM_CAP_XSAVE
+    has_xsave = kvm_check_extension(s, KVM_CAP_XSAVE);
+#endif
+
+#ifdef KVM_CAP_XCRS
+    has_xcrs = kvm_check_extension(s, KVM_CAP_XCRS);
+#endif
+
+#ifdef KVM_CAP_PIT_STATE2
+    has_pit_state2 = kvm_check_extension(s, KVM_CAP_PIT_STATE2);
+#endif
 
     ret = kvm_get_supported_msrs(s);
     if (ret < 0) {
@@ -1101,7 +1226,7 @@ static int kvm_put_xsave(X86CPU *cpu)
     uint8_t *xmm, *ymmh, *zmmh;
     int i, r;
 
-    if (!kvm_has_xsave()) {
+    if (!has_xsave) {
         return kvm_put_fpu(cpu);
     }
 
@@ -1155,7 +1280,7 @@ static int kvm_put_xcrs(X86CPU *cpu)
     CPUX86State *env = &cpu->env;
     struct kvm_xcrs xcrs = {};
 
-    if (!kvm_has_xcrs()) {
+    if (!has_xcrs) {
         return 0;
     }
 
@@ -1289,6 +1414,9 @@ static int kvm_put_msrs(X86CPU *cpu, int level)
     if (has_msr_hsave_pa) {
         kvm_msr_entry_set(&msrs[n++], MSR_VM_HSAVE_PA, env->vm_hsave);
     }
+    if (has_msr_tsc_aux) {
+        kvm_msr_entry_set(&msrs[n++], MSR_TSC_AUX, env->tsc_aux);
+    }
     if (has_msr_tsc_adjust) {
         kvm_msr_entry_set(&msrs[n++], MSR_TSC_ADJUST, env->tsc_adjust);
     }
@@ -1374,6 +1502,20 @@ static int kvm_put_msrs(X86CPU *cpu, int level)
         if (has_msr_hv_tsc) {
             kvm_msr_entry_set(&msrs[n++], HV_X64_MSR_REFERENCE_TSC,
                               env->msr_hv_tsc);
+        }
+        if (has_msr_hv_crash) {
+            int j;
+
+            for (j = 0; j < HV_X64_MSR_CRASH_PARAMS; j++)
+                kvm_msr_entry_set(&msrs[n++], HV_X64_MSR_CRASH_P0 + j,
+                                  env->msr_hv_crash_params[j]);
+
+            kvm_msr_entry_set(&msrs[n++], HV_X64_MSR_CRASH_CTL,
+                              HV_X64_MSR_CRASH_CTL_NOTIFY);
+        }
+        if (has_msr_hv_runtime) {
+            kvm_msr_entry_set(&msrs[n++], HV_X64_MSR_VP_RUNTIME,
+                              env->msr_hv_runtime);
         }
         if (has_msr_mtrr) {
             kvm_msr_entry_set(&msrs[n++], MSR_MTRRdefType, env->mtrr_deftype);
@@ -1467,7 +1609,7 @@ static int kvm_get_xsave(X86CPU *cpu)
     const uint8_t *xmm, *ymmh, *zmmh;
     uint16_t cwd, swd, twd;
 
-    if (!kvm_has_xsave()) {
+    if (!has_xsave) {
         return kvm_get_fpu(cpu);
     }
 
@@ -1526,7 +1668,7 @@ static int kvm_get_xcrs(X86CPU *cpu)
     int i, ret;
     struct kvm_xcrs xcrs;
 
-    if (!kvm_has_xcrs()) {
+    if (!has_xcrs) {
         return 0;
     }
 
@@ -1651,6 +1793,9 @@ static int kvm_get_msrs(X86CPU *cpu)
     if (has_msr_hsave_pa) {
         msrs[n++].index = MSR_VM_HSAVE_PA;
     }
+    if (has_msr_tsc_aux) {
+        msrs[n++].index = MSR_TSC_AUX;
+    }
     if (has_msr_tsc_adjust) {
         msrs[n++].index = MSR_TSC_ADJUST;
     }
@@ -1730,6 +1875,16 @@ static int kvm_get_msrs(X86CPU *cpu)
     if (has_msr_hv_tsc) {
         msrs[n++].index = HV_X64_MSR_REFERENCE_TSC;
     }
+    if (has_msr_hv_crash) {
+        int j;
+
+        for (j = 0; j < HV_X64_MSR_CRASH_PARAMS; j++) {
+            msrs[n++].index = HV_X64_MSR_CRASH_P0 + j;
+        }
+    }
+    if (has_msr_hv_runtime) {
+        msrs[n++].index = HV_X64_MSR_VP_RUNTIME;
+    }
     if (has_msr_mtrr) {
         msrs[n++].index = MSR_MTRRdefType;
         msrs[n++].index = MSR_MTRRfix64K_00000;
@@ -1792,6 +1947,9 @@ static int kvm_get_msrs(X86CPU *cpu)
 #endif
         case MSR_IA32_TSC:
             env->tsc = msrs[i].data;
+            break;
+        case MSR_TSC_AUX:
+            env->tsc_aux = msrs[i].data;
             break;
         case MSR_TSC_ADJUST:
             env->tsc_adjust = msrs[i].data;
@@ -1876,6 +2034,12 @@ static int kvm_get_msrs(X86CPU *cpu)
             break;
         case HV_X64_MSR_REFERENCE_TSC:
             env->msr_hv_tsc = msrs[i].data;
+            break;
+        case HV_X64_MSR_CRASH_P0 ... HV_X64_MSR_CRASH_P4:
+            env->msr_hv_crash_params[index - HV_X64_MSR_CRASH_P0] = msrs[i].data;
+            break;
+        case HV_X64_MSR_VP_RUNTIME:
+            env->msr_hv_runtime = msrs[i].data;
             break;
         case MSR_MTRRdefType:
             env->mtrr_deftype = msrs[i].data;
@@ -2912,7 +3076,7 @@ int kvm_device_msix_deassign(KVMState *s, uint32_t dev_id)
 }
 
 int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
-                             uint64_t address, uint32_t data)
+                             uint64_t address, uint32_t data, PCIDevice *dev)
 {
     return 0;
 }

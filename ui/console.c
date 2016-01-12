@@ -121,6 +121,7 @@ struct QemuConsole {
     DisplayState *ds;
     DisplaySurface *surface;
     int dcls;
+    DisplayChangeListener *gl;
 
     /* Graphic console state.  */
     Object *device;
@@ -449,7 +450,7 @@ static void text_console_resize(QemuConsole *s)
     if (s->width < w1)
         w1 = s->width;
 
-    cells = g_malloc(s->width * s->total_height * sizeof(TextCell));
+    cells = g_new(TextCell, s->width * s->total_height);
     for(y = 0; y < s->total_height; y++) {
         c = &cells[y * s->width];
         if (w1 > 0) {
@@ -1332,12 +1333,28 @@ void qemu_free_displaysurface(DisplaySurface *surface)
     g_free(surface);
 }
 
+bool console_has_gl(QemuConsole *con)
+{
+    return con->gl != NULL;
+}
+
 void register_displaychangelistener(DisplayChangeListener *dcl)
 {
     static const char nodev[] =
         "This VM has no graphic display device.";
     static DisplaySurface *dummy;
     QemuConsole *con;
+
+    if (dcl->ops->dpy_gl_ctx_create) {
+        /* display has opengl support */
+        assert(dcl->con);
+        if (dcl->con->gl) {
+            fprintf(stderr, "can't register two opengl displays (%s, %s)\n",
+                    dcl->ops->dpy_name, dcl->con->gl->ops->dpy_name);
+            exit(1);
+        }
+        dcl->con->gl = dcl;
+    }
 
     trace_displaychangelistener_register(dcl, dcl->ops->dpy_name);
     dcl->ds = get_alloc_displaystate();
@@ -1417,9 +1434,13 @@ void dpy_gfx_update(QemuConsole *con, int x, int y, int w, int h)
 {
     DisplayState *s = con->ds;
     DisplayChangeListener *dcl;
-    int width = surface_width(con->surface);
-    int height = surface_height(con->surface);
+    int width = w;
+    int height = h;
 
+    if (con->surface) {
+        width = surface_width(con->surface);
+        height = surface_height(con->surface);
+    }
     x = MAX(x, 0);
     y = MAX(y, 0);
     x = MIN(x, width);
@@ -1617,6 +1638,48 @@ bool dpy_cursor_define_supported(QemuConsole *con)
         }
     }
     return false;
+}
+
+QEMUGLContext dpy_gl_ctx_create(QemuConsole *con,
+                                struct QEMUGLParams *qparams)
+{
+    assert(con->gl);
+    return con->gl->ops->dpy_gl_ctx_create(con->gl, qparams);
+}
+
+void dpy_gl_ctx_destroy(QemuConsole *con, QEMUGLContext ctx)
+{
+    assert(con->gl);
+    con->gl->ops->dpy_gl_ctx_destroy(con->gl, ctx);
+}
+
+int dpy_gl_ctx_make_current(QemuConsole *con, QEMUGLContext ctx)
+{
+    assert(con->gl);
+    return con->gl->ops->dpy_gl_ctx_make_current(con->gl, ctx);
+}
+
+QEMUGLContext dpy_gl_ctx_get_current(QemuConsole *con)
+{
+    assert(con->gl);
+    return con->gl->ops->dpy_gl_ctx_get_current(con->gl);
+}
+
+void dpy_gl_scanout(QemuConsole *con,
+                    uint32_t backing_id, bool backing_y_0_top,
+                    uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+{
+    assert(con->gl);
+    con->gl->ops->dpy_gl_scanout(con->gl, backing_id,
+                                 backing_y_0_top,
+                                 x, y, width, height);
+}
+
+void dpy_gl_update(QemuConsole *con,
+                   uint32_t x, uint32_t y, uint32_t w, uint32_t h)
+{
+    assert(con->gl);
+    con->gl->ops->dpy_gl_update(con->gl, x, y, w, h);
 }
 
 /***********************************************************/
@@ -1899,7 +1962,7 @@ static void text_console_do_init(CharDriverState *chr, DisplayState *ds)
         chr->init(chr);
 }
 
-static CharDriverState *text_console_init(ChardevVC *vc)
+static CharDriverState *text_console_init(ChardevVC *vc, Error **errp)
 {
     CharDriverState *chr;
     QemuConsole *s;
@@ -1930,6 +1993,7 @@ static CharDriverState *text_console_init(ChardevVC *vc)
 
     if (!s) {
         g_free(chr);
+        error_setg(errp, "cannot create text console");
         return NULL;
     }
 
@@ -1949,9 +2013,10 @@ static CharDriverState *text_console_init(ChardevVC *vc)
 
 static VcHandler *vc_handler = text_console_init;
 
-CharDriverState *vc_init(ChardevVC *vc)
+static CharDriverState *vc_init(const char *id, ChardevBackend *backend,
+                                ChardevReturn *ret, Error **errp)
 {
-    return vc_handler(vc);
+    return vc_handler(backend->u.vc, errp);
 }
 
 void register_vc_handler(VcHandler *handler)
@@ -1992,30 +2057,30 @@ static void qemu_chr_parse_vc(QemuOpts *opts, ChardevBackend *backend,
 {
     int val;
 
-    backend->vc = g_new0(ChardevVC, 1);
+    backend->u.vc = g_new0(ChardevVC, 1);
 
     val = qemu_opt_get_number(opts, "width", 0);
     if (val != 0) {
-        backend->vc->has_width = true;
-        backend->vc->width = val;
+        backend->u.vc->has_width = true;
+        backend->u.vc->width = val;
     }
 
     val = qemu_opt_get_number(opts, "height", 0);
     if (val != 0) {
-        backend->vc->has_height = true;
-        backend->vc->height = val;
+        backend->u.vc->has_height = true;
+        backend->u.vc->height = val;
     }
 
     val = qemu_opt_get_number(opts, "cols", 0);
     if (val != 0) {
-        backend->vc->has_cols = true;
-        backend->vc->cols = val;
+        backend->u.vc->has_cols = true;
+        backend->u.vc->cols = val;
     }
 
     val = qemu_opt_get_number(opts, "rows", 0);
     if (val != 0) {
-        backend->vc->has_rows = true;
-        backend->vc->rows = val;
+        backend->u.vc->has_rows = true;
+        backend->u.vc->rows = val;
     }
 }
 
@@ -2030,7 +2095,8 @@ static const TypeInfo qemu_console_info = {
 static void register_types(void)
 {
     type_register_static(&qemu_console_info);
-    register_char_driver("vc", CHARDEV_BACKEND_KIND_VC, qemu_chr_parse_vc);
+    register_char_driver("vc", CHARDEV_BACKEND_KIND_VC, qemu_chr_parse_vc,
+                         vc_init);
 }
 
 type_init(register_types);

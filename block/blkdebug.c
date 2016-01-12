@@ -30,6 +30,7 @@
 #include "qapi/qmp/qdict.h"
 #include "qapi/qmp/qint.h"
 #include "qapi/qmp/qstring.h"
+#include "sysemu/qtest.h"
 
 typedef struct BDRVBlkdebugState {
     int state;
@@ -426,11 +427,11 @@ static int blkdebug_open(BlockDriverState *bs, QDict *options, int flags,
     /* Set initial state */
     s->state = 1;
 
-    /* Open the backing file */
-    assert(bs->file == NULL);
-    ret = bdrv_open_image(&bs->file, qemu_opt_get(opts, "x-image"), options, "image",
-                          bs, &child_file, false, &local_err);
-    if (ret < 0) {
+    /* Open the image file */
+    bs->file = bdrv_open_child(qemu_opt_get(opts, "x-image"), options, "image",
+                               bs, &child_file, false, &local_err);
+    if (local_err) {
+        ret = -EINVAL;
         error_propagate(errp, local_err);
         goto out;
     }
@@ -449,7 +450,7 @@ static int blkdebug_open(BlockDriverState *bs, QDict *options, int flags,
     goto out;
 
 fail_unref:
-    bdrv_unref(bs->file);
+    bdrv_unref_child(bs, bs->file);
 out:
     qemu_opts_del(opts);
     return ret;
@@ -510,7 +511,8 @@ static BlockAIOCB *blkdebug_aio_readv(BlockDriverState *bs,
         return inject_error(bs, cb, opaque, rule);
     }
 
-    return bdrv_aio_readv(bs->file, sector_num, qiov, nb_sectors, cb, opaque);
+    return bdrv_aio_readv(bs->file->bs, sector_num, qiov, nb_sectors,
+                          cb, opaque);
 }
 
 static BlockAIOCB *blkdebug_aio_writev(BlockDriverState *bs,
@@ -532,7 +534,8 @@ static BlockAIOCB *blkdebug_aio_writev(BlockDriverState *bs,
         return inject_error(bs, cb, opaque, rule);
     }
 
-    return bdrv_aio_writev(bs->file, sector_num, qiov, nb_sectors, cb, opaque);
+    return bdrv_aio_writev(bs->file->bs, sector_num, qiov, nb_sectors,
+                           cb, opaque);
 }
 
 static BlockAIOCB *blkdebug_aio_flush(BlockDriverState *bs,
@@ -551,7 +554,7 @@ static BlockAIOCB *blkdebug_aio_flush(BlockDriverState *bs,
         return inject_error(bs, cb, opaque, rule);
     }
 
-    return bdrv_aio_flush(bs->file, cb, opaque);
+    return bdrv_aio_flush(bs->file->bs, cb, opaque);
 }
 
 
@@ -581,9 +584,13 @@ static void suspend_request(BlockDriverState *bs, BlkdebugRule *rule)
     remove_rule(rule);
     QLIST_INSERT_HEAD(&s->suspended_reqs, &r, next);
 
-    printf("blkdebug: Suspended request '%s'\n", r.tag);
+    if (!qtest_enabled()) {
+        printf("blkdebug: Suspended request '%s'\n", r.tag);
+    }
     qemu_coroutine_yield();
-    printf("blkdebug: Resuming request '%s'\n", r.tag);
+    if (!qtest_enabled()) {
+        printf("blkdebug: Resuming request '%s'\n", r.tag);
+    }
 
     QLIST_REMOVE(&r, next);
     g_free(r.tag);
@@ -716,12 +723,12 @@ static bool blkdebug_debug_is_suspended(BlockDriverState *bs, const char *tag)
 
 static int64_t blkdebug_getlength(BlockDriverState *bs)
 {
-    return bdrv_getlength(bs->file);
+    return bdrv_getlength(bs->file->bs);
 }
 
 static int blkdebug_truncate(BlockDriverState *bs, int64_t offset)
 {
-    return bdrv_truncate(bs->file, offset);
+    return bdrv_truncate(bs->file->bs, offset);
 }
 
 static void blkdebug_refresh_filename(BlockDriverState *bs)
@@ -741,24 +748,24 @@ static void blkdebug_refresh_filename(BlockDriverState *bs)
         }
     }
 
-    if (force_json && !bs->file->full_open_options) {
+    if (force_json && !bs->file->bs->full_open_options) {
         /* The config file cannot be recreated, so creating a plain filename
          * is impossible */
         return;
     }
 
-    if (!force_json && bs->file->exact_filename[0]) {
+    if (!force_json && bs->file->bs->exact_filename[0]) {
         snprintf(bs->exact_filename, sizeof(bs->exact_filename),
                  "blkdebug:%s:%s",
                  qdict_get_try_str(bs->options, "config") ?: "",
-                 bs->file->exact_filename);
+                 bs->file->bs->exact_filename);
     }
 
     opts = qdict_new();
     qdict_put_obj(opts, "driver", QOBJECT(qstring_from_str("blkdebug")));
 
-    QINCREF(bs->file->full_open_options);
-    qdict_put_obj(opts, "image", QOBJECT(bs->file->full_open_options));
+    QINCREF(bs->file->bs->full_open_options);
+    qdict_put_obj(opts, "image", QOBJECT(bs->file->bs->full_open_options));
 
     for (e = qdict_first(bs->options); e; e = qdict_next(bs->options, e)) {
         if (strcmp(qdict_entry_key(e), "x-image") &&

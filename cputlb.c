@@ -69,6 +69,47 @@ void tlb_flush(CPUState *cpu, int flush_global)
     tlb_flush_count++;
 }
 
+static inline void v_tlb_flush_by_mmuidx(CPUState *cpu, va_list argp)
+{
+    CPUArchState *env = cpu->env_ptr;
+
+#if defined(DEBUG_TLB)
+    printf("tlb_flush_by_mmuidx:");
+#endif
+    /* must reset current TB so that interrupts cannot modify the
+       links while we are modifying them */
+    cpu->current_tb = NULL;
+
+    for (;;) {
+        int mmu_idx = va_arg(argp, int);
+
+        if (mmu_idx < 0) {
+            break;
+        }
+
+#if defined(DEBUG_TLB)
+        printf(" %d", mmu_idx);
+#endif
+
+        memset(env->tlb_table[mmu_idx], -1, sizeof(env->tlb_table[0]));
+        memset(env->tlb_v_table[mmu_idx], -1, sizeof(env->tlb_v_table[0]));
+    }
+
+#if defined(DEBUG_TLB)
+    printf("\n");
+#endif
+
+    memset(cpu->tb_jmp_cache, 0, sizeof(cpu->tb_jmp_cache));
+}
+
+void tlb_flush_by_mmuidx(CPUState *cpu, ...)
+{
+    va_list argp;
+    va_start(argp, cpu);
+    v_tlb_flush_by_mmuidx(cpu, argp);
+    va_end(argp);
+}
+
 static inline void tlb_flush_entry(CPUTLBEntry *tlb_entry, target_ulong addr)
 {
     if (addr == (tlb_entry->addr_read &
@@ -121,6 +162,62 @@ void tlb_flush_page(CPUState *cpu, target_ulong addr)
     tb_flush_jmp_cache(cpu, addr);
 }
 
+void tlb_flush_page_by_mmuidx(CPUState *cpu, target_ulong addr, ...)
+{
+    CPUArchState *env = cpu->env_ptr;
+    int i, k;
+    va_list argp;
+
+    va_start(argp, addr);
+
+#if defined(DEBUG_TLB)
+    printf("tlb_flush_page_by_mmu_idx: " TARGET_FMT_lx, addr);
+#endif
+    /* Check if we need to flush due to large pages.  */
+    if ((addr & env->tlb_flush_mask) == env->tlb_flush_addr) {
+#if defined(DEBUG_TLB)
+        printf(" forced full flush ("
+               TARGET_FMT_lx "/" TARGET_FMT_lx ")\n",
+               env->tlb_flush_addr, env->tlb_flush_mask);
+#endif
+        v_tlb_flush_by_mmuidx(cpu, argp);
+        va_end(argp);
+        return;
+    }
+    /* must reset current TB so that interrupts cannot modify the
+       links while we are modifying them */
+    cpu->current_tb = NULL;
+
+    addr &= TARGET_PAGE_MASK;
+    i = (addr >> TARGET_PAGE_BITS) & (CPU_TLB_SIZE - 1);
+
+    for (;;) {
+        int mmu_idx = va_arg(argp, int);
+
+        if (mmu_idx < 0) {
+            break;
+        }
+
+#if defined(DEBUG_TLB)
+        printf(" %d", mmu_idx);
+#endif
+
+        tlb_flush_entry(&env->tlb_table[mmu_idx][i], addr);
+
+        /* check whether there are vltb entries that need to be flushed */
+        for (k = 0; k < CPU_VTLB_SIZE; k++) {
+            tlb_flush_entry(&env->tlb_v_table[mmu_idx][k], addr);
+        }
+    }
+    va_end(argp);
+
+#if defined(DEBUG_TLB)
+    printf("\n");
+#endif
+
+    tb_flush_jmp_cache(cpu, addr);
+}
+
 /* update the TLBs so that writes to code in the virtual page 'addr'
    can be detected */
 void tlb_protect_code(ram_addr_t ram_addr)
@@ -165,27 +262,24 @@ static inline ram_addr_t qemu_ram_addr_from_host_nofail(void *ptr)
     return ram_addr;
 }
 
-void cpu_tlb_reset_dirty_all(ram_addr_t start1, ram_addr_t length)
+void tlb_reset_dirty(CPUState *cpu, ram_addr_t start1, ram_addr_t length)
 {
-    CPUState *cpu;
     CPUArchState *env;
 
-    CPU_FOREACH(cpu) {
-        int mmu_idx;
+    int mmu_idx;
 
-        env = cpu->env_ptr;
-        for (mmu_idx = 0; mmu_idx < NB_MMU_MODES; mmu_idx++) {
-            unsigned int i;
+    env = cpu->env_ptr;
+    for (mmu_idx = 0; mmu_idx < NB_MMU_MODES; mmu_idx++) {
+        unsigned int i;
 
-            for (i = 0; i < CPU_TLB_SIZE; i++) {
-                tlb_reset_dirty_range(&env->tlb_table[mmu_idx][i],
-                                      start1, length);
-            }
+        for (i = 0; i < CPU_TLB_SIZE; i++) {
+            tlb_reset_dirty_range(&env->tlb_table[mmu_idx][i],
+                                  start1, length);
+        }
 
-            for (i = 0; i < CPU_VTLB_SIZE; i++) {
-                tlb_reset_dirty_range(&env->tlb_v_table[mmu_idx][i],
-                                      start1, length);
-            }
+        for (i = 0; i < CPU_VTLB_SIZE; i++) {
+            tlb_reset_dirty_range(&env->tlb_v_table[mmu_idx][i],
+                                  start1, length);
         }
     }
 }
@@ -199,8 +293,9 @@ static inline void tlb_set_dirty1(CPUTLBEntry *tlb_entry, target_ulong vaddr)
 
 /* update the TLB corresponding to virtual page vaddr
    so that it is no longer dirty */
-void tlb_set_dirty(CPUArchState *env, target_ulong vaddr)
+void tlb_set_dirty(CPUState *cpu, target_ulong vaddr)
 {
+    CPUArchState *env = cpu->env_ptr;
     int i;
     int mmu_idx;
 
@@ -355,7 +450,7 @@ tb_page_addr_t get_page_addr_code(CPUArchState *env1, target_ulong addr)
     CPUState *cpu = ENV_GET_CPU(env1);
 
     page_index = (addr >> TARGET_PAGE_BITS) & (CPU_TLB_SIZE - 1);
-    mmu_idx = cpu_mmu_index(env1);
+    mmu_idx = cpu_mmu_index(env1, true);
     if (unlikely(env1->tlb_table[mmu_idx][page_index].addr_code !=
                  (addr & TARGET_PAGE_MASK))) {
         cpu_ldub_code(env1, addr);

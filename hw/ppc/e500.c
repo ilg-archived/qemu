@@ -1017,7 +1017,7 @@ void ppce500_init(MachineState *machine, PPCE500Params *params)
     filename = qemu_find_file(QEMU_FILE_TYPE_BIOS, bios_name);
 
     bios_size = load_elf(filename, NULL, NULL, &bios_entry, &loadaddr, NULL,
-                         1, ELF_MACHINE, 0);
+                         1, PPC_ELF_MACHINE, 0);
     if (bios_size < 0) {
         /*
          * Hrm. No ELF image? Try a uImage, maybe someone is giving us an
@@ -1048,10 +1048,6 @@ void ppce500_init(MachineState *machine, PPCE500Params *params)
     boot_info->entry = bios_entry;
     boot_info->dt_base = dt_base;
     boot_info->dt_size = dt_size;
-
-    if (kvm_enabled()) {
-        kvmppc_init();
-    }
 }
 
 static int e500_ccsr_initfn(SysBusDevice *dev)

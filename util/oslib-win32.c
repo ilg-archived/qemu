@@ -95,6 +95,7 @@ void qemu_anon_ram_free(void *ptr, size_t size)
     }
 }
 
+#ifndef CONFIG_LOCALTIME_R
 /* FIXME: add proper locking */
 struct tm *gmtime_r(const time_t *timep, struct tm *result)
 {
@@ -118,6 +119,7 @@ struct tm *localtime_r(const time_t *timep, struct tm *result)
     }
     return p;
 }
+#endif /* CONFIG_LOCALTIME_R */
 
 void qemu_set_block(int fd)
 {
@@ -459,7 +461,7 @@ gint g_poll(GPollFD *fds, guint nfds, gint timeout)
     return retval;
 }
 
-size_t getpagesize(void)
+int getpagesize(void)
 {
     SYSTEM_INFO system_info;
 
@@ -500,4 +502,13 @@ int qemu_read_password(char *buf, int buf_size)
     }
     buf[i] = '\0';
     return 0;
+}
+
+
+pid_t qemu_fork(Error **errp)
+{
+    errno = ENOSYS;
+    error_setg_errno(errp, errno,
+                     "cannot fork child process");
+    return -1;
 }

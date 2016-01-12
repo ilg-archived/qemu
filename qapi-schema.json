@@ -5,6 +5,9 @@
 # QAPI common definitions
 { 'include': 'qapi/common.json' }
 
+# QAPI crypto definitions
+{ 'include': 'qapi/crypto.json' }
+
 # QAPI block definitions
 { 'include': 'qapi/block.json' }
 
@@ -13,6 +16,9 @@
 
 # Tracing commands
 { 'include': 'qapi/trace.json' }
+
+# QAPI introspection
+{ 'include': 'qapi/introspect.json' }
 
 ##
 # @LostTickPolicy:
@@ -424,6 +430,8 @@
 #
 # @active: in the process of doing migration.
 #
+# @postcopy-active: like active, but now in postcopy mode. (since 2.5)
+#
 # @completed: migration is finished.
 #
 # @failed: some error occurred during migration process.
@@ -433,7 +441,7 @@
 ##
 { 'enum': 'MigrationStatus',
   'data': [ 'none', 'setup', 'cancelling', 'cancelled',
-            'active', 'completed', 'failed' ] }
+            'active', 'postcopy-active', 'completed', 'failed' ] }
 
 ##
 # @MigrationInfo
@@ -474,6 +482,10 @@
 #        may be expensive, but do not actually occur during the iterative
 #        migration rounds themselves. (since 1.6)
 #
+# @x-cpu-throttle-percentage: #optional percentage of time guest cpus are being
+#       throttled during auto-converge. This is only present when auto-converge
+#       has started throttling guest cpus. (Since 2.5)
+#
 # Since: 0.14.0
 ##
 { 'struct': 'MigrationInfo',
@@ -483,7 +495,8 @@
            '*total-time': 'int',
            '*expected-downtime': 'int',
            '*downtime': 'int',
-           '*setup-time': 'int'} }
+           '*setup-time': 'int',
+           '*x-cpu-throttle-percentage': 'int'} }
 
 ##
 # @query-migrate
@@ -529,11 +542,15 @@
 # @auto-converge: If enabled, QEMU will automatically throttle down the guest
 #          to speed up convergence of RAM migration. (since 1.6)
 #
+# @x-postcopy-ram: Start executing on the migration target before all of RAM has
+#          been migrated, pulling the remaining pages along as needed. NOTE: If
+#          the migration fails during postcopy the VM will fail.  (since 2.5)
+#
 # Since: 1.2
 ##
 { 'enum': 'MigrationCapability',
   'data': ['xbzrle', 'rdma-pin-all', 'auto-converge', 'zero-blocks',
-           'compress', 'events'] }
+           'compress', 'events', 'x-postcopy-ram'] }
 
 ##
 # @MigrationCapabilityStatus
@@ -590,10 +607,18 @@
 #          compression, so set the decompress-threads to the number about 1/4
 #          of compress-threads is adequate.
 #
+# @x-cpu-throttle-initial: Initial percentage of time guest cpus are throttled
+#                          when migration auto-converge is activated. The
+#                          default value is 20. (Since 2.5)
+#
+# @x-cpu-throttle-increment: throttle percentage increase each time
+#                            auto-converge detects that migration is not making
+#                            progress. The default value is 10. (Since 2.5)
 # Since: 2.4
 ##
 { 'enum': 'MigrationParameter',
-  'data': ['compress-level', 'compress-threads', 'decompress-threads'] }
+  'data': ['compress-level', 'compress-threads', 'decompress-threads',
+           'x-cpu-throttle-initial', 'x-cpu-throttle-increment'] }
 
 #
 # @migrate-set-parameters
@@ -606,12 +631,21 @@
 #
 # @decompress-threads: decompression thread count
 #
+# @x-cpu-throttle-initial: Initial percentage of time guest cpus are throttled
+#                          when migration auto-converge is activated. The
+#                          default value is 20. (Since 2.5)
+#
+# @x-cpu-throttle-increment: throttle percentage increase each time
+#                            auto-converge detects that migration is not making
+#                            progress. The default value is 10. (Since 2.5)
 # Since: 2.4
 ##
 { 'command': 'migrate-set-parameters',
   'data': { '*compress-level': 'int',
             '*compress-threads': 'int',
-            '*decompress-threads': 'int'} }
+            '*decompress-threads': 'int',
+            '*x-cpu-throttle-initial': 'int',
+            '*x-cpu-throttle-increment': 'int'} }
 
 #
 # @MigrationParameters
@@ -622,12 +656,22 @@
 #
 # @decompress-threads: decompression thread count
 #
+# @x-cpu-throttle-initial: Initial percentage of time guest cpus are throttled
+#                          when migration auto-converge is activated. The
+#                          default value is 20. (Since 2.5)
+#
+# @x-cpu-throttle-increment: throttle percentage increase each time
+#                            auto-converge detects that migration is not making
+#                            progress. The default value is 10. (Since 2.5)
+#
 # Since: 2.4
 ##
 { 'struct': 'MigrationParameters',
   'data': { 'compress-level': 'int',
             'compress-threads': 'int',
-            'decompress-threads': 'int'} }
+            'decompress-threads': 'int',
+            'x-cpu-throttle-initial': 'int',
+            'x-cpu-throttle-increment': 'int'} }
 ##
 # @query-migrate-parameters
 #
@@ -658,6 +702,16 @@
 { 'command': 'client_migrate_info',
   'data': { 'protocol': 'str', 'hostname': 'str', '*port': 'int',
             '*tls-port': 'int', '*cert-subject': 'str' } }
+
+##
+# @migrate-start-postcopy
+#
+# Followup to a migration command to switch the migration to postcopy mode.
+# The x-postcopy-ram capability must be set before the original migration
+# command.
+#
+# Since: 2.5
+{ 'command': 'migrate-start-postcopy' }
 
 ##
 # @MouseInfo:
@@ -1482,6 +1536,26 @@
   'data': { } }
 
 ##
+# @ActionCompletionMode
+#
+# An enumeration of Transactional completion modes.
+#
+# @individual: Do not attempt to cancel any other Actions if any Actions fail
+#              after the Transaction request succeeds. All Actions that
+#              can complete successfully will do so without waiting on others.
+#              This is the default.
+#
+# @grouped: If any Action fails after the Transaction succeeds, cancel all
+#           Actions. Actions do not complete until all Actions are ready to
+#           complete. May be rejected by Actions that do not support this
+#           completion mode.
+#
+# Since: 2.5
+##
+{ 'enum': 'ActionCompletionMode',
+  'data': [ 'individual', 'grouped' ] }
+
+##
 # @TransactionAction
 #
 # A discriminated record of operations that can be performed with
@@ -1493,15 +1567,38 @@
 # abort since 1.6
 # blockdev-snapshot-internal-sync since 1.7
 # blockdev-backup since 2.3
+# blockdev-snapshot since 2.5
+# block-dirty-bitmap-add since 2.5
+# block-dirty-bitmap-clear since 2.5
 ##
 { 'union': 'TransactionAction',
   'data': {
-       'blockdev-snapshot-sync': 'BlockdevSnapshot',
+       'blockdev-snapshot': 'BlockdevSnapshot',
+       'blockdev-snapshot-sync': 'BlockdevSnapshotSync',
        'drive-backup': 'DriveBackup',
        'blockdev-backup': 'BlockdevBackup',
        'abort': 'Abort',
-       'blockdev-snapshot-internal-sync': 'BlockdevSnapshotInternal'
+       'blockdev-snapshot-internal-sync': 'BlockdevSnapshotInternal',
+       'block-dirty-bitmap-add': 'BlockDirtyBitmapAdd',
+       'block-dirty-bitmap-clear': 'BlockDirtyBitmap'
    } }
+
+##
+# @TransactionProperties
+#
+# Optional arguments to modify the behavior of a Transaction.
+#
+# @completion-mode: #optional Controls how jobs launched asynchronously by
+#                   Actions will complete or fail as a group.
+#                   See @ActionCompletionMode for details.
+#
+# Since: 2.5
+##
+{ 'struct': 'TransactionProperties',
+  'data': {
+       '*completion-mode': 'ActionCompletionMode'
+  }
+}
 
 ##
 # @transaction
@@ -1510,8 +1607,12 @@
 # operation fails, then the entire set of actions will be abandoned and the
 # appropriate error returned.
 #
-#  List of:
-#  @TransactionAction: information needed for the respective operation
+# @actions: List of @TransactionAction;
+#           information needed for the respective operations.
+#
+# @properties: #optional structure of additional options to control the
+#              execution of the transaction. See @TransactionProperties
+#              for additional detail.
 #
 # Returns: nothing on success
 #          Errors depend on the operations of the transaction
@@ -1523,7 +1624,10 @@
 # Since 1.1
 ##
 { 'command': 'transaction',
-  'data': { 'actions': [ 'TransactionAction' ] } }
+  'data': { 'actions': [ 'TransactionAction' ],
+            '*properties': 'TransactionProperties'
+          }
+}
 
 ##
 # @human-monitor-command:
@@ -1632,13 +1736,10 @@
 #        1) A primitive type such as 'u8', 'u16', 'bool', 'str', or 'double'.
 #           These types are mapped to the appropriate JSON type.
 #
-#        2) A legacy type in the form 'legacy<subtype>' where subtype is the
-#           legacy qdev typename.  These types are always treated as strings.
-#
-#        3) A child type in the form 'child<subtype>' where subtype is a qdev
+#        2) A child type in the form 'child<subtype>' where subtype is a qdev
 #           device type name.  Child properties create the composition tree.
 #
-#        4) A link type in the form 'link<subtype>' where subtype is a qdev
+#        3) A link type in the form 'link<subtype>' where subtype is a qdev
 #           device type name.  Link properties form the device model graph.
 #
 # Since: 1.2
@@ -1689,17 +1790,16 @@
 #
 # @property: The property name to read
 #
-# Returns: The property value.  The type depends on the property type.  legacy<>
-#          properties are returned as #str.  child<> and link<> properties are
-#          returns as #str pathnames.  All integer property types (u8, u16, etc)
-#          are returned as #int.
+# Returns: The property value.  The type depends on the property
+#          type. child<> and link<> properties are returned as #str
+#          pathnames.  All integer property types (u8, u16, etc) are
+#          returned as #int.
 #
 # Since: 1.2
 ##
 { 'command': 'qom-get',
   'data': { 'path': 'str', 'property': 'str' },
-  'returns': '**',
-  'gen': false }
+  'returns': 'any' }
 
 ##
 # @qom-set:
@@ -1716,8 +1816,7 @@
 # Since: 1.2
 ##
 { 'command': 'qom-set',
-  'data': { 'path': 'str', 'property': 'str', 'value': '**' },
-  'gen': false }
+  'data': { 'path': 'str', 'property': 'str', 'value': 'any' } }
 
 ##
 # @set_password:
@@ -1809,8 +1908,10 @@
 #          device's password.  The behavior of reads and writes to the block
 #          device between when these calls are executed is undefined.
 #
-# Notes:  It is strongly recommended that this interface is not used especially
-#         for changing block devices.
+# Notes:  This interface is deprecated, and it is strongly recommended that you
+#         avoid using it.  For changing block devices, use
+#         blockdev-change-medium; for changing VNC parameters, use
+#         change-vnc-password.
 #
 # Since: 0.14.0
 ##
@@ -1950,7 +2051,7 @@
 #
 # Remove a device from a guest
 #
-# @id: the name of the device
+# @id: the name or QOM path of the device
 #
 # Returns: Nothing on success
 #          If @id is not a valid device, DeviceNotFound
@@ -2058,6 +2159,20 @@
   'returns': 'DumpGuestMemoryCapability' }
 
 ##
+# @dump-skeys
+#
+# Dump guest's storage keys
+#
+# @filename: the path to the file to dump to
+#
+# This command is only supported on s390 architecture.
+#
+# Since: 2.5
+##
+{ 'command': 'dump-skeys',
+  'data': { 'filename': 'str' } }
+
+##
 # @netdev_add:
 #
 # Add a network backend.
@@ -2067,11 +2182,12 @@
 #
 # @id: the name of the new network backend
 #
-# @props: #optional a list of properties to be passed to the backend in
-#         the format 'name=value', like 'ifname=tap0,script=no'
+# Additional arguments depend on the type.
 #
-# Notes: The semantics of @props is not well defined.  Future commands will be
-#        introduced that provide stronger typing for backend creation.
+# TODO This command effectively bypasses QAPI completely due to its
+# "additional arguments" business.  It shouldn't have been added to
+# the schema in this form.  It should be qapified properly, or
+# replaced by a properly qapified command.
 #
 # Since: 0.14.0
 #
@@ -2079,8 +2195,8 @@
 #          If @type is not a valid network backend, DeviceNotFound
 ##
 { 'command': 'netdev_add',
-  'data': {'type': 'str', 'id': 'str', '*props': '**'},
-  'gen': false }
+  'data': {'type': 'str', 'id': 'str'},
+  'gen': false }                # so we can get the additional arguments
 
 ##
 # @netdev_del:
@@ -2113,8 +2229,7 @@
 # Since: 2.0
 ##
 { 'command': 'object-add',
-  'data': {'qom-type': 'str', 'id': 'str', '*props': '**'},
-  'gen': false }
+  'data': {'qom-type': 'str', 'id': 'str', '*props': 'any'} }
 
 ##
 # @object-del:
@@ -2466,12 +2581,16 @@
 #
 # @vhostforce: #optional vhost on for non-MSIX virtio guests (default: false).
 #
+# @queues: #optional number of queues to be created for multiqueue vhost-user
+#          (default: 1) (Since 2.5)
+#
 # Since 2.1
 ##
 { 'struct': 'NetdevVhostUserOptions',
   'data': {
     'chardev':        'str',
-    '*vhostforce':    'bool' } }
+    '*vhostforce':    'bool',
+    '*queues':        'int' } }
 
 ##
 # @NetClientOptions
@@ -2535,6 +2654,26 @@
   'data': {
     'id':   'str',
     'opts': 'NetClientOptions' } }
+
+##
+# @NetFilterDirection
+#
+# Indicates whether a netfilter is attached to a netdev's transmit queue or
+# receive queue or both.
+#
+# @all: the filter is attached both to the receive and the transmit
+#       queue of the netdev (default).
+#
+# @rx: the filter is attached to the receive queue of the netdev,
+#      where it will receive packets sent to the netdev.
+#
+# @tx: the filter is attached to the transmit queue of the netdev,
+#      where it will receive packets sent by the netdev.
+#
+# Since 2.5
+##
+{ 'enum': 'NetFilterDirection',
+  'data': [ 'all', 'rx', 'tx' ] }
 
 ##
 # @InetSocketAddress
@@ -3345,6 +3484,17 @@
             'features': 'int' } }
 
 ##
+# @DummyForceArrays
+#
+# Not used by QMP; hack to let us use X86CPUFeatureWordInfoList internally
+#
+# Since 2.5
+##
+{ 'struct': 'DummyForceArrays',
+  'data': { 'unused': ['X86CPUFeatureWordInfo'] } }
+
+
+##
 # @RxState:
 #
 # Packets receiving state
@@ -3429,16 +3579,22 @@
 # Button of a pointer input device (mouse, tablet).
 #
 # Since: 2.0
+#
+# Note that the spelling of these values may change when the
+# x-input-send-event is promoted out of experimental status.
 ##
 { 'enum'  : 'InputButton',
   'data'  : [ 'Left', 'Middle', 'Right', 'WheelUp', 'WheelDown' ] }
 
 ##
-# @InputButton
+# @InputAxis
 #
 # Position axis of a pointer input device (mouse, tablet).
 #
 # Since: 2.0
+#
+# Note that the spelling of these values may change when the
+# x-input-send-event is promoted out of experimental status.
 ##
 { 'enum'  : 'InputAxis',
   'data'  : [ 'X', 'Y' ] }
@@ -3529,7 +3685,10 @@
 #
 # Since: 2.2
 #
-# Note: this command is experimental, and not a stable API.
+# Note: this command is experimental, and not a stable API.  Things that
+# might change before it becomes stable include the spelling of enum
+# values for InputButton and InputAxis, and the notion of how to designate
+# which console will receive the event.
 #
 ##
 { 'command': 'x-input-send-event',
@@ -3794,3 +3953,21 @@
 
 # Rocker ethernet network switch
 { 'include': 'qapi/rocker.json' }
+
+##
+# ReplayMode:
+#
+# Mode of the replay subsystem.
+#
+# @none: normal execution mode. Replay or record are not enabled.
+#
+# @record: record mode. All non-deterministic data is written into the
+#          replay log.
+#
+# @play: replay mode. Non-deterministic data required for system execution
+#        is read from the log.
+#
+# Since: 2.5
+##
+{ 'enum': 'ReplayMode',
+  'data': [ 'none', 'record', 'play' ] }

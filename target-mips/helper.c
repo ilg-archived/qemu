@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
-#include <signal.h>
 
 #include "cpu.h"
 #include "sysemu/kvm.h"
@@ -294,9 +293,10 @@ static void raise_mmu_exception(CPUMIPSState *env, target_ulong address,
         (env->CP0_EntryHi & 0xFF) | (address & (TARGET_PAGE_MASK << 1));
 #if defined(TARGET_MIPS64)
     env->CP0_EntryHi &= env->SEGMask;
-    env->CP0_XContext = (env->CP0_XContext & ((~0ULL) << (env->SEGBITS - 7))) |
-                        ((address & 0xC00000000000ULL) >> (55 - env->SEGBITS)) |
-                        ((address & ((1ULL << env->SEGBITS) - 1) & 0xFFFFFFFFFFFFE000ULL) >> 9);
+    env->CP0_XContext =
+        /* PTEBase */   (env->CP0_XContext & ((~0ULL) << (env->SEGBITS - 7))) |
+        /* R */         (extract64(address, 62, 2) << (env->SEGBITS - 9)) |
+        /* BadVPN2 */   (extract64(address, 13, env->SEGBITS - 13) << 4);
 #endif
     cs->exception_index = exception;
     env->error_code = error_code;
@@ -524,6 +524,10 @@ void mips_cpu_do_interrupt(CPUState *cs)
  enter_debug_mode:
         if (env->insn_flags & ISA_MIPS3) {
             env->hflags |= MIPS_HFLAG_64;
+            if (!(env->insn_flags & ISA_MIPS64R6) ||
+                env->CP0_Status & (1 << CP0St_KX)) {
+                env->hflags &= ~MIPS_HFLAG_AWRAP;
+            }
         }
         env->hflags |= MIPS_HFLAG_DM | MIPS_HFLAG_CP0;
         env->hflags &= ~(MIPS_HFLAG_KSU);
@@ -548,6 +552,10 @@ void mips_cpu_do_interrupt(CPUState *cs)
         env->CP0_Status |= (1 << CP0St_ERL) | (1 << CP0St_BEV);
         if (env->insn_flags & ISA_MIPS3) {
             env->hflags |= MIPS_HFLAG_64;
+            if (!(env->insn_flags & ISA_MIPS64R6) ||
+                env->CP0_Status & (1 << CP0St_KX)) {
+                env->hflags &= ~MIPS_HFLAG_AWRAP;
+            }
         }
         env->hflags |= MIPS_HFLAG_CP0;
         env->hflags &= ~(MIPS_HFLAG_KSU);
@@ -693,7 +701,7 @@ void mips_cpu_do_interrupt(CPUState *cs)
         goto set_EPC;
     case EXCP_DWATCH:
         cause = 23;
-        /* XXX: TODO: manage defered watch exceptions */
+        /* XXX: TODO: manage deferred watch exceptions */
         goto set_EPC;
     case EXCP_MCHECK:
         cause = 24;
@@ -725,6 +733,10 @@ void mips_cpu_do_interrupt(CPUState *cs)
             env->CP0_Status |= (1 << CP0St_EXL);
             if (env->insn_flags & ISA_MIPS3) {
                 env->hflags |= MIPS_HFLAG_64;
+                if (!(env->insn_flags & ISA_MIPS64R6) ||
+                    env->CP0_Status & (1 << CP0St_KX)) {
+                    env->hflags &= ~MIPS_HFLAG_AWRAP;
+                }
             }
             env->hflags |= MIPS_HFLAG_CP0;
             env->hflags &= ~(MIPS_HFLAG_KSU);
@@ -760,7 +772,8 @@ bool mips_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
         MIPSCPU *cpu = MIPS_CPU(cs);
         CPUMIPSState *env = &cpu->env;
 
-        if (cpu_mips_hw_interrupts_pending(env)) {
+        if (cpu_mips_hw_interrupts_enabled(env) &&
+            cpu_mips_hw_interrupts_pending(env)) {
             /* Raise it */
             cs->exception_index = EXCP_EXT_INTERRUPT;
             env->error_code = 0;

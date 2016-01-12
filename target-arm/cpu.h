@@ -26,10 +26,8 @@
 #if defined(TARGET_AARCH64)
   /* AArch64 definitions */
 #  define TARGET_LONG_BITS 64
-#  define ELF_MACHINE EM_AARCH64
 #else
 #  define TARGET_LONG_BITS 32
-#  define ELF_MACHINE EM_ARM
 #endif
 
 #define TARGET_IS_BIENDIAN 1
@@ -56,6 +54,7 @@
 #define EXCP_SMC            13   /* Secure Monitor Call */
 #define EXCP_VIRQ           14
 #define EXCP_VFIQ           15
+#define EXCP_SEMIHOST       16   /* semihosting call (A64 only) */
 
 #define ARMV7M_EXCP_RESET   1
 #define ARMV7M_EXCP_NMI     2
@@ -96,6 +95,7 @@
 struct arm_boot_info;
 
 #define NB_MMU_MODES 7
+#define TARGET_INSN_START_EXTRA_WORDS 1
 
 /* We currently assume float and double are IEEE single and double
    precision respectively.
@@ -172,7 +172,7 @@ typedef struct CPUARMState {
     uint32_t GE; /* cpsr[19:16] */
     uint32_t thumb; /* cpsr[5]. 0 = arm mode, 1 = thumb mode. */
     uint32_t condexec_bits; /* IT bits.  cpsr[15:10,26:25].  */
-    uint64_t daif; /* exception masks, in the bits they are in in PSTATE */
+    uint64_t daif; /* exception masks, in the bits they are in PSTATE */
 
     uint64_t elr_el[4]; /* AArch64 exception link regs  */
     uint64_t sp_el[4]; /* AArch64 banked stack pointers */
@@ -221,10 +221,12 @@ typedef struct CPUARMState {
             };
             uint64_t ttbr1_el[4];
         };
+        uint64_t vttbr_el2; /* Virtualization Translation Table Base.  */
         /* MMU translation table base control. */
         TCR tcr_el[4];
-        uint32_t c2_data; /* MPU data cachable bits.  */
-        uint32_t c2_insn; /* MPU instruction cachable bits.  */
+        TCR vtcr_el2; /* Virtualization Translation Control.  */
+        uint32_t c2_data; /* MPU data cacheable bits.  */
+        uint32_t c2_insn; /* MPU instruction cacheable bits.  */
         union { /* MMU domain access control register
                  * MPU write buffer control.
                  */
@@ -277,6 +279,7 @@ typedef struct CPUARMState {
             };
             uint64_t far_el[4];
         };
+        uint64_t hpfar_el2;
         union { /* Translation result. */
             struct {
                 uint64_t _unused_par_0;
@@ -377,11 +380,15 @@ typedef struct CPUARMState {
         uint64_t dbgwvr[16]; /* watchpoint value registers */
         uint64_t dbgwcr[16]; /* watchpoint control registers */
         uint64_t mdscr_el1;
+        uint64_t oslsr_el1; /* OS Lock Status */
+        uint64_t mdcr_el2;
         /* If the counter is enabled, this stores the last time the counter
          * was reset. Otherwise it stores the counter value
          */
         uint64_t c15_ccnt;
         uint64_t pmccfiltr_el0; /* Performance Monitor Filter Register */
+        uint64_t vpidr_el2; /* Virtualization Processor ID Register */
+        uint64_t vmpidr_el2; /* Virtualization Multiprocessor ID Register */
     } cp15;
 
     struct {
@@ -504,7 +511,7 @@ typedef struct CPUARMState {
 
 ARMCPU *cpu_arm_init(const char *cpu_model);
 int cpu_arm_exec(CPUState *cpu);
-uint32_t do_arm_semihosting(CPUARMState *env);
+target_ulong do_arm_semihosting(CPUARMState *env);
 void aarch64_sync_32_to_64(CPUARMState *env);
 void aarch64_sync_64_to_32(CPUARMState *env);
 
@@ -1012,11 +1019,11 @@ static inline bool access_secure_reg(CPUARMState *env)
  */
 #define A32_BANKED_CURRENT_REG_GET(_env, _regname)        \
     A32_BANKED_REG_GET((_env), _regname,                \
-                       ((!arm_el_is_aa64((_env), 3) && arm_is_secure(_env))))
+                       (arm_is_secure(_env) && !arm_el_is_aa64((_env), 3)))
 
 #define A32_BANKED_CURRENT_REG_SET(_env, _regname, _val)                       \
     A32_BANKED_REG_SET((_env), _regname,                                    \
-                       ((!arm_el_is_aa64((_env), 3) && arm_is_secure(_env))),  \
+                       (arm_is_secure(_env) && !arm_el_is_aa64((_env), 3)), \
                        (_val))
 
 void arm_cpu_list(FILE *f, fprintf_function cpu_fprintf);
@@ -1284,6 +1291,9 @@ typedef enum CPAccessResult {
     /* As CP_ACCESS_TRAP, but for traps directly to EL2 or EL3 */
     CP_ACCESS_TRAP_EL2 = 3,
     CP_ACCESS_TRAP_EL3 = 4,
+    /* As CP_ACCESS_UNCATEGORIZED, but for traps directly to EL2 or EL3 */
+    CP_ACCESS_TRAP_UNCATEGORIZED_EL2 = 5,
+    CP_ACCESS_TRAP_UNCATEGORIZED_EL3 = 6,
 } CPAccessResult;
 
 /* Access functions for coprocessor registers. These cannot fail and
@@ -1484,7 +1494,7 @@ bool write_list_to_cpustate(ARMCPU *cpu);
  */
 bool write_cpustate_to_list(ARMCPU *cpu);
 
-/* Does the core conform to the the "MicroController" profile. e.g. Cortex-M3.
+/* Does the core conform to the "MicroController" profile. e.g. Cortex-M3.
    Note the M in older cores (eg. ARM7TDMI) stands for Multiply. These are
    conventional cores (ie. Application or Realtime profile).  */
 
@@ -1516,8 +1526,6 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
     CPUARMState *env = cs->env_ptr;
     unsigned int cur_el = arm_current_el(env);
     bool secure = arm_is_secure(env);
-    uint32_t scr;
-    uint32_t hcr;
     bool pstate_unmasked;
     int8_t unmasked = 0;
 
@@ -1531,31 +1539,10 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
 
     switch (excp_idx) {
     case EXCP_FIQ:
-        /* If FIQs are routed to EL3 or EL2 then there are cases where we
-         * override the CPSR.F in determining if the exception is masked or
-         * not.  If neither of these are set then we fall back to the CPSR.F
-         * setting otherwise we further assess the state below.
-         */
-        hcr = (env->cp15.hcr_el2 & HCR_FMO);
-        scr = (env->cp15.scr_el3 & SCR_FIQ);
-
-        /* When EL3 is 32-bit, the SCR.FW bit controls whether the CPSR.F bit
-         * masks FIQ interrupts when taken in non-secure state.  If SCR.FW is
-         * set then FIQs can be masked by CPSR.F when non-secure but only
-         * when FIQs are only routed to EL3.
-         */
-        scr &= !((env->cp15.scr_el3 & SCR_FW) && !hcr);
         pstate_unmasked = !(env->daif & PSTATE_F);
         break;
 
     case EXCP_IRQ:
-        /* When EL3 execution state is 32-bit, if HCR.IMO is set then we may
-         * override the CPSR.I masking when in non-secure state.  The SCR.IRQ
-         * setting has already been taken into consideration when setting the
-         * target EL, so it does not have a further affect here.
-         */
-        hcr = (env->cp15.hcr_el2 & HCR_IMO);
-        scr = false;
         pstate_unmasked = !(env->daif & PSTATE_I);
         break;
 
@@ -1580,8 +1567,58 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
      * interrupt.
      */
     if ((target_el > cur_el) && (target_el != 1)) {
-        if (arm_el_is_aa64(env, 3) || ((scr || hcr) && (!secure))) {
-            unmasked = 1;
+        /* Exceptions targeting a higher EL may not be maskable */
+        if (arm_feature(env, ARM_FEATURE_AARCH64)) {
+            /* 64-bit masking rules are simple: exceptions to EL3
+             * can't be masked, and exceptions to EL2 can only be
+             * masked from Secure state. The HCR and SCR settings
+             * don't affect the masking logic, only the interrupt routing.
+             */
+            if (target_el == 3 || !secure) {
+                unmasked = 1;
+            }
+        } else {
+            /* The old 32-bit-only environment has a more complicated
+             * masking setup. HCR and SCR bits not only affect interrupt
+             * routing but also change the behaviour of masking.
+             */
+            bool hcr, scr;
+
+            switch (excp_idx) {
+            case EXCP_FIQ:
+                /* If FIQs are routed to EL3 or EL2 then there are cases where
+                 * we override the CPSR.F in determining if the exception is
+                 * masked or not. If neither of these are set then we fall back
+                 * to the CPSR.F setting otherwise we further assess the state
+                 * below.
+                 */
+                hcr = (env->cp15.hcr_el2 & HCR_FMO);
+                scr = (env->cp15.scr_el3 & SCR_FIQ);
+
+                /* When EL3 is 32-bit, the SCR.FW bit controls whether the
+                 * CPSR.F bit masks FIQ interrupts when taken in non-secure
+                 * state. If SCR.FW is set then FIQs can be masked by CPSR.F
+                 * when non-secure but only when FIQs are only routed to EL3.
+                 */
+                scr = scr && !((env->cp15.scr_el3 & SCR_FW) && !hcr);
+                break;
+            case EXCP_IRQ:
+                /* When EL3 execution state is 32-bit, if HCR.IMO is set then
+                 * we may override the CPSR.I masking when in non-secure state.
+                 * The SCR.IRQ setting has already been taken into consideration
+                 * when setting the target EL, so it does not have a further
+                 * affect here.
+                 */
+                hcr = (env->cp15.hcr_el2 & HCR_IMO);
+                scr = false;
+                break;
+            default:
+                g_assert_not_reached();
+            }
+
+            if ((scr || hcr) && !secure) {
+                unmasked = 1;
+            }
         }
     }
 
@@ -1594,7 +1631,6 @@ static inline bool arm_excp_unmasked(CPUState *cs, unsigned int excp_idx,
 #define cpu_init(cpu_model) CPU(cpu_arm_init(cpu_model))
 
 #define cpu_exec cpu_arm_exec
-#define cpu_gen_code cpu_arm_gen_code
 #define cpu_signal_handler cpu_arm_signal_handler
 #define cpu_list arm_cpu_list
 
@@ -1674,7 +1710,7 @@ static inline int arm_mmu_idx_to_el(ARMMMUIdx mmu_idx)
 }
 
 /* Determine the current mmu_idx to use for normal loads/stores */
-static inline int cpu_mmu_index(CPUARMState *env)
+static inline int cpu_mmu_index(CPUARMState *env, bool ifetch)
 {
     int el = arm_current_el(env);
 
@@ -1689,7 +1725,22 @@ static inline int cpu_mmu_index(CPUARMState *env)
  */
 static inline int arm_debug_target_el(CPUARMState *env)
 {
-    return 1;
+    bool secure = arm_is_secure(env);
+    bool route_to_el2 = false;
+
+    if (arm_feature(env, ARM_FEATURE_EL2) && !secure) {
+        route_to_el2 = env->cp15.hcr_el2 & HCR_TGE ||
+                       env->cp15.mdcr_el2 & (1 << 8);
+    }
+
+    if (route_to_el2) {
+        return 2;
+    } else if (arm_feature(env, ARM_FEATURE_EL3) &&
+               !arm_el_is_aa64(env, 3) && secure) {
+        return 3;
+    } else {
+        return 1;
+    }
 }
 
 static inline bool aa64_generate_debug_exceptions(CPUARMState *env)
@@ -1907,7 +1958,7 @@ static inline void cpu_get_tb_cpu_state(CPUARMState *env, target_ulong *pc,
                    << ARM_TBFLAG_XSCALE_CPAR_SHIFT);
     }
 
-    *flags |= (cpu_mmu_index(env) << ARM_TBFLAG_MMUIDX_SHIFT);
+    *flags |= (cpu_mmu_index(env, false) << ARM_TBFLAG_MMUIDX_SHIFT);
     /* The SS_ACTIVE and PSTATE_SS bits correspond to the state machine
      * states defined in the ARM ARM for software singlestep:
      *  SS_ACTIVE   PSTATE.SS   State

@@ -36,6 +36,8 @@
 
 #define MAX_IS_ALLOCATED_SEARCH 65536
 
+#define MAX_INFLIGHT_IO 512
+
 //#define DEBUG_BLK_MIGRATION
 
 #ifdef DEBUG_BLK_MIGRATION
@@ -591,7 +593,7 @@ static int64_t get_remaining_dirty(void)
 
 /* Called with iothread lock taken.  */
 
-static void blk_mig_cleanup(void)
+static void block_migration_cleanup(void *opaque)
 {
     BlkMigDevState *bmds;
     BlkMigBlock *blk;
@@ -616,11 +618,6 @@ static void blk_mig_cleanup(void)
         g_free(blk);
     }
     blk_mig_unlock();
-}
-
-static void block_migration_cancel(void *opaque)
-{
-    blk_mig_cleanup();
 }
 
 static int block_save_setup(QEMUFile *f, void *opaque)
@@ -670,7 +667,10 @@ static int block_save_iterate(QEMUFile *f, void *opaque)
     blk_mig_lock();
     while ((block_mig_state.submitted +
             block_mig_state.read_done) * BLOCK_SIZE <
-           qemu_file_get_rate_limit(f)) {
+           qemu_file_get_rate_limit(f) &&
+           (block_mig_state.submitted +
+            block_mig_state.read_done) <
+           MAX_INFLIGHT_IO) {
         blk_mig_unlock();
         if (block_mig_state.bulk_completed == 0) {
             /* first finish the bulk phase */
@@ -750,11 +750,12 @@ static int block_save_complete(QEMUFile *f, void *opaque)
 
     qemu_put_be64(f, BLK_MIG_FLAG_EOS);
 
-    blk_mig_cleanup();
     return 0;
 }
 
-static uint64_t block_save_pending(QEMUFile *f, void *opaque, uint64_t max_size)
+static void block_save_pending(QEMUFile *f, void *opaque, uint64_t max_size,
+                               uint64_t *non_postcopiable_pending,
+                               uint64_t *postcopiable_pending)
 {
     /* Estimate pending number of bytes to send */
     uint64_t pending;
@@ -773,7 +774,8 @@ static uint64_t block_save_pending(QEMUFile *f, void *opaque, uint64_t max_size)
     qemu_mutex_unlock_iothread();
 
     DPRINTF("Enter save live pending  %" PRIu64 "\n", pending);
-    return pending;
+    /* We don't do postcopy */
+    *non_postcopiable_pending += pending;
 }
 
 static int block_load(QEMUFile *f, void *opaque, int version_id)
@@ -808,6 +810,11 @@ static int block_load(QEMUFile *f, void *opaque, int version_id)
                 return -EINVAL;
             }
             bs = blk_bs(blk);
+            if (!bs) {
+                fprintf(stderr, "Block device %s has no medium\n",
+                        device_name);
+                return -EINVAL;
+            }
 
             if (bs != bs_prev) {
                 bs_prev = bs;
@@ -877,10 +884,10 @@ static SaveVMHandlers savevm_block_handlers = {
     .set_params = block_set_params,
     .save_live_setup = block_save_setup,
     .save_live_iterate = block_save_iterate,
-    .save_live_complete = block_save_complete,
+    .save_live_complete_precopy = block_save_complete,
     .save_live_pending = block_save_pending,
     .load_state = block_load,
-    .cancel = block_migration_cancel,
+    .cleanup = block_migration_cleanup,
     .is_active = block_is_active,
 };
 

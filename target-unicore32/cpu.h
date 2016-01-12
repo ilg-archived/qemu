@@ -17,8 +17,6 @@
 #define TARGET_PHYS_ADDR_SPACE_BITS     32
 #define TARGET_VIRT_ADDR_SPACE_BITS     32
 
-#define ELF_MACHINE             EM_UNICORE32
-
 #define CPUArchState                struct CPUUniCore32State
 
 #include "config.h"
@@ -131,7 +129,7 @@ int uc32_cpu_signal_handler(int host_signum, void *pinfo, void *puc);
 #define MMU_MODE0_SUFFIX _kernel
 #define MMU_MODE1_SUFFIX _user
 #define MMU_USER_IDX 1
-static inline int cpu_mmu_index(CPUUniCore32State *env)
+static inline int cpu_mmu_index(CPUUniCore32State *env, bool ifetch)
 {
     return (env->uncached_asr & ASR_M) == ASR_MODE_USER ? 1 : 0;
 }

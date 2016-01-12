@@ -81,9 +81,9 @@
 #include "fpu/softfloat.h"
 
 #if defined (TARGET_PPC64)
-#define ELF_MACHINE     EM_PPC64
+#define PPC_ELF_MACHINE     EM_PPC64
 #else
-#define ELF_MACHINE     EM_PPC
+#define PPC_ELF_MACHINE     EM_PPC
 #endif
 
 /*****************************************************************************/
@@ -117,14 +117,20 @@ enum powerpc_mmu_t {
 #define POWERPC_MMU_AMR      0x00040000
     /* 64 bits PowerPC MMU                                     */
     POWERPC_MMU_64B        = POWERPC_MMU_64 | 0x00000001,
+    /* Architecture 2.03 and later (has LPCR) */
+    POWERPC_MMU_2_03       = POWERPC_MMU_64 | 0x00000002,
     /* Architecture 2.06 variant                               */
     POWERPC_MMU_2_06       = POWERPC_MMU_64 | POWERPC_MMU_1TSEG
                              | POWERPC_MMU_AMR | 0x00000003,
     /* Architecture 2.06 "degraded" (no 1T segments)           */
     POWERPC_MMU_2_06a      = POWERPC_MMU_64 | POWERPC_MMU_AMR
                              | 0x00000003,
-    /* Architecture 2.06 "degraded" (no 1T segments or AMR)    */
-    POWERPC_MMU_2_06d      = POWERPC_MMU_64 | 0x00000003,
+    /* Architecture 2.07 variant                               */
+    POWERPC_MMU_2_07       = POWERPC_MMU_64 | POWERPC_MMU_1TSEG
+                             | POWERPC_MMU_AMR | 0x00000004,
+    /* Architecture 2.07 "degraded" (no 1T segments)           */
+    POWERPC_MMU_2_07a      = POWERPC_MMU_64 | POWERPC_MMU_AMR
+                             | 0x00000004,
 #endif /* defined(TARGET_PPC64) */
 };
 
@@ -678,6 +684,27 @@ enum {
 #define fpscr_eex (((env->fpscr) >> FPSCR_XX) & ((env->fpscr) >> FPSCR_XE) &  \
                    0x1F)
 
+#define FP_FX		(1ull << FPSCR_FX)
+#define FP_FEX		(1ull << FPSCR_FEX)
+#define FP_OX		(1ull << FPSCR_OX)
+#define FP_OE		(1ull << FPSCR_OE)
+#define FP_UX		(1ull << FPSCR_UX)
+#define FP_UE		(1ull << FPSCR_UE)
+#define FP_XX		(1ull << FPSCR_XX)
+#define FP_XE		(1ull << FPSCR_XE)
+#define FP_ZX		(1ull << FPSCR_ZX)
+#define FP_ZE		(1ull << FPSCR_ZE)
+#define FP_VX		(1ull << FPSCR_VX)
+#define FP_VXSNAN	(1ull << FPSCR_VXSNAN)
+#define FP_VXISI	(1ull << FPSCR_VXISI)
+#define FP_VXIMZ	(1ull << FPSCR_VXIMZ)
+#define FP_VXZDZ	(1ull << FPSCR_VXZDZ)
+#define FP_VXIDI	(1ull << FPSCR_VXIDI)
+#define FP_VXVC		(1ull << FPSCR_VXVC)
+#define FP_VXCVI	(1ull << FPSCR_VXCVI)
+#define FP_VE		(1ull << FPSCR_VE)
+#define FP_FI		(1ull << FPSCR_FI)
+
 /*****************************************************************************/
 /* Vector status and control register */
 #define VSCR_NJ		16 /* Vector non-java */
@@ -1073,6 +1100,7 @@ struct CPUPPCState {
     uint64_t insns_flags2;
 #if defined(TARGET_PPC64)
     struct ppc_segment_page_sizes sps;
+    bool ci_large_pages;
 #endif
 
 #if defined(TARGET_PPC64) && !defined(CONFIG_USER_ONLY)
@@ -1241,7 +1269,6 @@ int ppc_dcr_write (ppc_dcr_t *dcr_env, int dcrn, uint32_t val);
 #define cpu_init(cpu_model) CPU(cpu_ppc_init(cpu_model))
 
 #define cpu_exec cpu_ppc_exec
-#define cpu_gen_code cpu_ppc_gen_code
 #define cpu_signal_handler cpu_ppc_signal_handler
 #define cpu_list ppc_cpu_list
 
@@ -1250,7 +1277,7 @@ int ppc_dcr_write (ppc_dcr_t *dcr_env, int dcrn, uint32_t val);
 #define MMU_MODE1_SUFFIX _kernel
 #define MMU_MODE2_SUFFIX _hypv
 #define MMU_USER_IDX 0
-static inline int cpu_mmu_index (CPUPPCState *env)
+static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 {
     return env->mmu_idx;
 }

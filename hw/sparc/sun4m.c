@@ -109,9 +109,9 @@ int DMA_write_memory (int nchan, void *buf, int pos, int size)
 }
 void DMA_hold_DREQ (int nchan) {}
 void DMA_release_DREQ (int nchan) {}
-void DMA_schedule(int nchan) {}
+void DMA_schedule(void) {}
 
-void DMA_init(int high_page_enable, qemu_irq *cpu_request_exit)
+void DMA_init(int high_page_enable)
 {
 }
 
@@ -300,7 +300,7 @@ static unsigned long sun4m_load_kernel(const char *kernel_filename,
         bswap_needed = 0;
 #endif
         kernel_size = load_elf(kernel_filename, translate_kernel_address, NULL,
-                               NULL, NULL, NULL, 1, ELF_MACHINE, 0);
+                               NULL, NULL, NULL, 1, EM_SPARC, 0);
         if (kernel_size < 0)
             kernel_size = load_aout(kernel_filename, KERNEL_LOAD_ADDR,
                                     RAM_size - KERNEL_LOAD_ADDR, bswap_needed,
@@ -641,7 +641,7 @@ static int idreg_init1(SysBusDevice *dev)
     IDRegState *s = MACIO_ID_REGISTER(dev);
 
     memory_region_init_ram(&s->mem, OBJECT(s),
-                           "sun4m.idreg", sizeof(idreg_data), &error_abort);
+                           "sun4m.idreg", sizeof(idreg_data), &error_fatal);
     vmstate_register_ram_global(&s->mem);
     memory_region_set_readonly(&s->mem, true);
     sysbus_init_mmio(dev, &s->mem);
@@ -688,7 +688,7 @@ static int afx_init1(SysBusDevice *dev)
 {
     AFXState *s = TCX_AFX(dev);
 
-    memory_region_init_ram(&s->mem, OBJECT(s), "sun4m.afx", 4, &error_abort);
+    memory_region_init_ram(&s->mem, OBJECT(s), "sun4m.afx", 4, &error_fatal);
     vmstate_register_ram_global(&s->mem);
     sysbus_init_mmio(dev, &s->mem);
     return 0;
@@ -744,7 +744,7 @@ static void prom_init(hwaddr addr, const char *bios_name)
     filename = qemu_find_file(QEMU_FILE_TYPE_BIOS, bios_name);
     if (filename) {
         ret = load_elf(filename, translate_prom_address, &addr, NULL,
-                       NULL, NULL, 1, ELF_MACHINE, 0);
+                       NULL, NULL, 1, EM_SPARC, 0);
         if (ret < 0 || ret > PROM_SIZE_MAX) {
             ret = load_image_targphys(filename, addr, PROM_SIZE_MAX);
         }
@@ -763,7 +763,7 @@ static int prom_init1(SysBusDevice *dev)
     PROMState *s = OPENPROM(dev);
 
     memory_region_init_ram(&s->prom, OBJECT(s), "sun4m.prom", PROM_SIZE_MAX,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&s->prom);
     memory_region_set_readonly(&s->prom, true);
     sysbus_init_mmio(dev, &s->prom);
@@ -1420,80 +1420,152 @@ static void sbook_init(MachineState *machine)
     sun4m_hw_init(&sun4m_hwdefs[8], machine);
 }
 
-static QEMUMachine ss5_machine = {
-    .name = "SS-5",
-    .desc = "Sun4m platform, SPARCstation 5",
-    .init = ss5_init,
-    .block_default_type = IF_SCSI,
-    .is_default = 1,
-    .default_boot_order = "c",
+static void ss5_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCstation 5";
+    mc->init = ss5_init;
+    mc->block_default_type = IF_SCSI;
+    mc->is_default = 1;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo ss5_type = {
+    .name = MACHINE_TYPE_NAME("SS-5"),
+    .parent = TYPE_MACHINE,
+    .class_init = ss5_class_init,
 };
 
-static QEMUMachine ss10_machine = {
-    .name = "SS-10",
-    .desc = "Sun4m platform, SPARCstation 10",
-    .init = ss10_init,
-    .block_default_type = IF_SCSI,
-    .max_cpus = 4,
-    .default_boot_order = "c",
+static void ss10_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCstation 10";
+    mc->init = ss10_init;
+    mc->block_default_type = IF_SCSI;
+    mc->max_cpus = 4;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo ss10_type = {
+    .name = MACHINE_TYPE_NAME("SS-10"),
+    .parent = TYPE_MACHINE,
+    .class_init = ss10_class_init,
 };
 
-static QEMUMachine ss600mp_machine = {
-    .name = "SS-600MP",
-    .desc = "Sun4m platform, SPARCserver 600MP",
-    .init = ss600mp_init,
-    .block_default_type = IF_SCSI,
-    .max_cpus = 4,
-    .default_boot_order = "c",
+static void ss600mp_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCserver 600MP";
+    mc->init = ss600mp_init;
+    mc->block_default_type = IF_SCSI;
+    mc->max_cpus = 4;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo ss600mp_type = {
+    .name = MACHINE_TYPE_NAME("SS-600MP"),
+    .parent = TYPE_MACHINE,
+    .class_init = ss600mp_class_init,
 };
 
-static QEMUMachine ss20_machine = {
-    .name = "SS-20",
-    .desc = "Sun4m platform, SPARCstation 20",
-    .init = ss20_init,
-    .block_default_type = IF_SCSI,
-    .max_cpus = 4,
-    .default_boot_order = "c",
+static void ss20_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCstation 20";
+    mc->init = ss20_init;
+    mc->block_default_type = IF_SCSI;
+    mc->max_cpus = 4;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo ss20_type = {
+    .name = MACHINE_TYPE_NAME("SS-20"),
+    .parent = TYPE_MACHINE,
+    .class_init = ss20_class_init,
 };
 
-static QEMUMachine voyager_machine = {
-    .name = "Voyager",
-    .desc = "Sun4m platform, SPARCstation Voyager",
-    .init = vger_init,
-    .block_default_type = IF_SCSI,
-    .default_boot_order = "c",
+static void voyager_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCstation Voyager";
+    mc->init = vger_init;
+    mc->block_default_type = IF_SCSI;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo voyager_type = {
+    .name = MACHINE_TYPE_NAME("Voyager"),
+    .parent = TYPE_MACHINE,
+    .class_init = voyager_class_init,
 };
 
-static QEMUMachine ss_lx_machine = {
-    .name = "LX",
-    .desc = "Sun4m platform, SPARCstation LX",
-    .init = ss_lx_init,
-    .block_default_type = IF_SCSI,
-    .default_boot_order = "c",
+static void ss_lx_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCstation LX";
+    mc->init = ss_lx_init;
+    mc->block_default_type = IF_SCSI;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo ss_lx_type = {
+    .name = MACHINE_TYPE_NAME("LX"),
+    .parent = TYPE_MACHINE,
+    .class_init = ss_lx_class_init,
 };
 
-static QEMUMachine ss4_machine = {
-    .name = "SS-4",
-    .desc = "Sun4m platform, SPARCstation 4",
-    .init = ss4_init,
-    .block_default_type = IF_SCSI,
-    .default_boot_order = "c",
+static void ss4_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCstation 4";
+    mc->init = ss4_init;
+    mc->block_default_type = IF_SCSI;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo ss4_type = {
+    .name = MACHINE_TYPE_NAME("SS-4"),
+    .parent = TYPE_MACHINE,
+    .class_init = ss4_class_init,
 };
 
-static QEMUMachine scls_machine = {
-    .name = "SPARCClassic",
-    .desc = "Sun4m platform, SPARCClassic",
-    .init = scls_init,
-    .block_default_type = IF_SCSI,
-    .default_boot_order = "c",
+static void scls_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCClassic";
+    mc->init = scls_init;
+    mc->block_default_type = IF_SCSI;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo scls_type = {
+    .name = MACHINE_TYPE_NAME("SPARCClassic"),
+    .parent = TYPE_MACHINE,
+    .class_init = scls_class_init,
 };
 
-static QEMUMachine sbook_machine = {
-    .name = "SPARCbook",
-    .desc = "Sun4m platform, SPARCbook",
-    .init = sbook_init,
-    .block_default_type = IF_SCSI,
-    .default_boot_order = "c",
+static void sbook_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Sun4m platform, SPARCbook";
+    mc->init = sbook_init;
+    mc->block_default_type = IF_SCSI;
+    mc->default_boot_order = "c";
+}
+
+static const TypeInfo sbook_type = {
+    .name = MACHINE_TYPE_NAME("SPARCbook"),
+    .parent = TYPE_MACHINE,
+    .class_init = sbook_class_init,
 };
 
 static void sun4m_register_types(void)
@@ -1506,16 +1578,16 @@ static void sun4m_register_types(void)
 
 static void sun4m_machine_init(void)
 {
-    qemu_register_machine(&ss5_machine);
-    qemu_register_machine(&ss10_machine);
-    qemu_register_machine(&ss600mp_machine);
-    qemu_register_machine(&ss20_machine);
-    qemu_register_machine(&voyager_machine);
-    qemu_register_machine(&ss_lx_machine);
-    qemu_register_machine(&ss4_machine);
-    qemu_register_machine(&scls_machine);
-    qemu_register_machine(&sbook_machine);
+    type_register_static(&ss5_type);
+    type_register_static(&ss10_type);
+    type_register_static(&ss600mp_type);
+    type_register_static(&ss20_type);
+    type_register_static(&voyager_type);
+    type_register_static(&ss_lx_type);
+    type_register_static(&ss4_type);
+    type_register_static(&scls_type);
+    type_register_static(&sbook_type);
 }
 
 type_init(sun4m_register_types)
-machine_init(sun4m_machine_init);
+machine_init(sun4m_machine_init)

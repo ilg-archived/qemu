@@ -25,7 +25,6 @@
 #include <hw/pci/msi.h>
 #include <hw/i386/pc.h>
 #include <hw/pci/pci.h>
-#include <hw/sysbus.h>
 
 #include "qemu/error-report.h"
 #include "sysemu/block-backend.h"
@@ -47,10 +46,9 @@ do { \
 static void check_cmd(AHCIState *s, int port);
 static int handle_cmd(AHCIState *s, int port, uint8_t slot);
 static void ahci_reset_port(AHCIState *s, int port);
-static void ahci_write_fis_d2h(AHCIDevice *ad, uint8_t *cmd_fis);
+static bool ahci_write_fis_d2h(AHCIDevice *ad);
 static void ahci_init_d2h(AHCIDevice *ad);
 static int ahci_dma_prepare_buf(IDEDMA *dma, int32_t limit);
-static void ahci_commit_buf(IDEDMA *dma, uint32_t tx_bytes);
 static bool ahci_map_clb_address(AHCIDevice *ad);
 static bool ahci_map_fis_address(AHCIDevice *ad);
 static void ahci_unmap_clb_address(AHCIDevice *ad);
@@ -122,9 +120,9 @@ static uint32_t  ahci_port_read(AHCIState *s, int port, int offset)
 
 static void ahci_irq_raise(AHCIState *s, AHCIDevice *dev)
 {
-    AHCIPCIState *d = container_of(s, AHCIPCIState, ahci);
-    PCIDevice *pci_dev =
-        (PCIDevice *)object_dynamic_cast(OBJECT(d), TYPE_PCI_DEVICE);
+    DeviceState *dev_state = s->container;
+    PCIDevice *pci_dev = (PCIDevice *) object_dynamic_cast(OBJECT(dev_state),
+                                                           TYPE_PCI_DEVICE);
 
     DPRINTF(0, "raise irq\n");
 
@@ -137,9 +135,9 @@ static void ahci_irq_raise(AHCIState *s, AHCIDevice *dev)
 
 static void ahci_irq_lower(AHCIState *s, AHCIDevice *dev)
 {
-    AHCIPCIState *d = container_of(s, AHCIPCIState, ahci);
-    PCIDevice *pci_dev =
-        (PCIDevice *)object_dynamic_cast(OBJECT(d), TYPE_PCI_DEVICE);
+    DeviceState *dev_state = s->container;
+    PCIDevice *pci_dev = (PCIDevice *) object_dynamic_cast(OBJECT(dev_state),
+                                                           TYPE_PCI_DEVICE);
 
     DPRINTF(0, "lower irq\n");
 
@@ -297,7 +295,6 @@ static void  ahci_port_write(AHCIState *s, int port, int offset, uint32_t val)
             if ((pr->cmd & PORT_CMD_FIS_ON) &&
                 !s->dev[port].init_d2h_sent) {
                 ahci_init_d2h(&s->dev[port]);
-                s->dev[port].init_d2h_sent = true;
             }
 
             check_cmd(s, port);
@@ -381,17 +378,23 @@ static uint64_t ahci_mem_read(void *opaque, hwaddr addr, unsigned size)
     int ofst = addr - aligned;
     uint64_t lo = ahci_mem_read_32(opaque, aligned);
     uint64_t hi;
+    uint64_t val;
 
     /* if < 8 byte read does not cross 4 byte boundary */
     if (ofst + size <= 4) {
-        return lo >> (ofst * 8);
-    }
-    g_assert_cmpint(size, >, 1);
+        val = lo >> (ofst * 8);
+    } else {
+        g_assert_cmpint(size, >, 1);
 
-    /* If the 64bit read is unaligned, we will produce undefined
-     * results. AHCI does not support unaligned 64bit reads. */
-    hi = ahci_mem_read_32(opaque, aligned + 4);
-    return (hi << 32 | lo) >> (ofst * 8);
+        /* If the 64bit read is unaligned, we will produce undefined
+         * results. AHCI does not support unaligned 64bit reads. */
+        hi = ahci_mem_read_32(opaque, aligned + 4);
+        val = (hi << 32 | lo) >> (ofst * 8);
+    }
+
+    DPRINTF(-1, "addr=0x%" HWADDR_PRIx " val=0x%" PRIx64 ", size=%d\n",
+            addr, val, size);
+    return val;
 }
 
 
@@ -399,6 +402,9 @@ static void ahci_mem_write(void *opaque, hwaddr addr,
                            uint64_t val, unsigned size)
 {
     AHCIState *s = opaque;
+
+    DPRINTF(-1, "addr=0x%" HWADDR_PRIx " val=0x%" PRIx64 ", size=%d\n",
+            addr, val, size);
 
     /* Only aligned reads are allowed on AHCI */
     if (addr & 3) {
@@ -540,20 +546,33 @@ static void ahci_check_cmd_bh(void *opaque)
 
 static void ahci_init_d2h(AHCIDevice *ad)
 {
-    uint8_t init_fis[20];
     IDEState *ide_state = &ad->port.ifs[0];
+    AHCIPortRegs *pr = &ad->port_regs;
 
-    memset(init_fis, 0, sizeof(init_fis));
-
-    init_fis[4] = 1;
-    init_fis[12] = 1;
-
-    if (ide_state->drive_kind == IDE_CD) {
-        init_fis[5] = ide_state->lcyl;
-        init_fis[6] = ide_state->hcyl;
+    if (ad->init_d2h_sent) {
+        return;
     }
 
-    ahci_write_fis_d2h(ad, init_fis);
+    if (ahci_write_fis_d2h(ad)) {
+        ad->init_d2h_sent = true;
+        /* We're emulating receiving the first Reg H2D Fis from the device;
+         * Update the SIG register, but otherwise proceed as normal. */
+        pr->sig = ((uint32_t)ide_state->hcyl << 24) |
+            (ide_state->lcyl << 16) |
+            (ide_state->sector << 8) |
+            (ide_state->nsector & 0xFF);
+    }
+}
+
+static void ahci_set_signature(AHCIDevice *ad, uint32_t sig)
+{
+    IDEState *s = &ad->port.ifs[0];
+    s->hcyl = sig >> 24 & 0xFF;
+    s->lcyl = sig >> 16 & 0xFF;
+    s->sector = sig >> 8 & 0xFF;
+    s->nsector = sig & 0xFF;
+
+    DPRINTF(ad->port_no, "set hcyl:lcyl:sect:nsect = 0x%08x\n", sig);
 }
 
 static void ahci_reset_port(AHCIState *s, int port)
@@ -604,17 +623,11 @@ static void ahci_reset_port(AHCIState *s, int port)
     }
 
     s->dev[port].port_state = STATE_RUN;
-    if (!ide_state->blk) {
-        pr->sig = 0;
-        ide_state->status = SEEK_STAT | WRERR_STAT;
-    } else if (ide_state->drive_kind == IDE_CD) {
-        pr->sig = SATA_SIGNATURE_CDROM;
-        ide_state->lcyl = 0x14;
-        ide_state->hcyl = 0xeb;
-        DPRINTF(port, "set lcyl = %d\n", ide_state->lcyl);
+    if (ide_state->drive_kind == IDE_CD) {
+        ahci_set_signature(d, SATA_SIGNATURE_CDROM);\
         ide_state->status = SEEK_STAT | WRERR_STAT | READY_STAT;
     } else {
-        pr->sig = SATA_SIGNATURE_DISK;
+        ahci_set_signature(d, SATA_SIGNATURE_DISK);
         ide_state->status = SEEK_STAT | WRERR_STAT;
     }
 
@@ -750,7 +763,7 @@ static void ahci_write_fis_pio(AHCIDevice *ad, uint16_t len)
     ahci_trigger_irq(ad->hba, ad, PORT_IRQ_PIOS_FIS);
 }
 
-static void ahci_write_fis_d2h(AHCIDevice *ad, uint8_t *cmd_fis)
+static bool ahci_write_fis_d2h(AHCIDevice *ad)
 {
     AHCIPortRegs *pr = &ad->port_regs;
     uint8_t *d2h_fis;
@@ -758,7 +771,7 @@ static void ahci_write_fis_d2h(AHCIDevice *ad, uint8_t *cmd_fis)
     IDEState *s = &ad->port.ifs[0];
 
     if (!ad->res_fis || !(pr->cmd & PORT_CMD_FIS_RX)) {
-        return;
+        return false;
     }
 
     d2h_fis = &ad->res_fis[RES_FIS_RFIS];
@@ -791,6 +804,7 @@ static void ahci_write_fis_d2h(AHCIDevice *ad, uint8_t *cmd_fis)
     }
 
     ahci_trigger_irq(ad->hba, ad, PORT_IRQ_D2H_REG_FIS);
+    return true;
 }
 
 static int prdt_tbl_entry_size(const AHCI_SG *tbl)
@@ -799,8 +813,21 @@ static int prdt_tbl_entry_size(const AHCI_SG *tbl)
     return (le32_to_cpu(tbl->flags_size) & AHCI_PRDT_SIZE_MASK) + 1;
 }
 
+/**
+ * Fetch entries in a guest-provided PRDT and convert it into a QEMU SGlist.
+ * @ad: The AHCIDevice for whom we are building the SGList.
+ * @sglist: The SGList target to add PRD entries to.
+ * @cmd: The AHCI Command Header that describes where the PRDT is.
+ * @limit: The remaining size of the S/ATA transaction, in bytes.
+ * @offset: The number of bytes already transferred, in bytes.
+ *
+ * The AHCI PRDT can describe up to 256GiB. S/ATA only support transactions of
+ * up to 32MiB as of ATA8-ACS3 rev 1b, assuming a 512 byte sector size. We stop
+ * building the sglist from the PRDT as soon as we hit @limit bytes,
+ * which is <= INT32_MAX/2GiB.
+ */
 static int ahci_populate_sglist(AHCIDevice *ad, QEMUSGList *sglist,
-                                AHCICmdHdr *cmd, int64_t limit, int32_t offset)
+                                AHCICmdHdr *cmd, int64_t limit, uint64_t offset)
 {
     uint16_t opts = le16_to_cpu(cmd->opts);
     uint16_t prdtl = le16_to_cpu(cmd->prdtl);
@@ -817,14 +844,6 @@ static int ahci_populate_sglist(AHCIDevice *ad, QEMUSGList *sglist,
     int tbl_entry_size;
     IDEBus *bus = &ad->port;
     BusState *qbus = BUS(bus);
-
-    /*
-     * Note: AHCI PRDT can describe up to 256GiB. SATA/ATA only support
-     * transactions of up to 32MiB as of ATA8-ACS3 rev 1b, assuming a
-     * 512 byte sector size. We limit the PRDT in this implementation to
-     * a reasonably large 2GiB, which can accommodate the maximum transfer
-     * request for sector sizes up to 32K.
-     */
 
     if (!prdtl) {
         DPRINTF(ad->port_no, "no sg list given by guest: 0x%08x\n", opts);
@@ -875,13 +894,6 @@ static int ahci_populate_sglist(AHCIDevice *ad, QEMUSGList *sglist,
             qemu_sglist_add(sglist, le64_to_cpu(tbl[i].addr),
                             MIN(prdt_tbl_entry_size(&tbl[i]),
                                 limit - sglist->size));
-            if (sglist->size > INT32_MAX) {
-                error_report("AHCI Physical Region Descriptor Table describes "
-                             "more than 2 GiB.\n");
-                qemu_sglist_destroy(sglist);
-                r = -1;
-                goto out;
-            }
         }
     }
 
@@ -1290,7 +1302,7 @@ out:
     s->data_ptr = s->data_end;
 
     /* Update number of transferred bytes, destroy sglist */
-    ahci_commit_buf(dma, size);
+    dma_buf_commit(s, size);
 
     s->end_transfer_func(s);
 
@@ -1332,9 +1344,8 @@ static void ahci_restart(IDEDMA *dma)
 }
 
 /**
- * Called in DMA R/W chains to read the PRDT, utilizing ahci_populate_sglist.
- * Not currently invoked by PIO R/W chains,
- * which invoke ahci_populate_sglist via ahci_start_transfer.
+ * Called in DMA and PIO R/W chains to read the PRDT.
+ * Not shared with NCQ pathways.
  */
 static int32_t ahci_dma_prepare_buf(IDEDMA *dma, int32_t limit)
 {
@@ -1353,21 +1364,16 @@ static int32_t ahci_dma_prepare_buf(IDEDMA *dma, int32_t limit)
 }
 
 /**
- * Destroys the scatter-gather list,
- * and updates the command header with a bytes-read value.
- * called explicitly via ahci_dma_rw_buf (ATAPI DMA),
- * and ahci_start_transfer (PIO R/W),
- * and called via callback from ide_dma_cb for DMA R/W paths.
+ * Updates the command header with a bytes-read value.
+ * Called via dma_buf_commit, for both DMA and PIO paths.
+ * sglist destruction is handled within dma_buf_commit.
  */
 static void ahci_commit_buf(IDEDMA *dma, uint32_t tx_bytes)
 {
     AHCIDevice *ad = DO_UPCAST(AHCIDevice, dma, dma);
-    IDEState *s = &ad->port.ifs[0];
 
     tx_bytes += le32_to_cpu(ad->cur_cmd->status);
     ad->cur_cmd->status = cpu_to_le32(tx_bytes);
-
-    qemu_sglist_destroy(&s->sg);
 }
 
 static int ahci_dma_rw_buf(IDEDMA *dma, int is_write)
@@ -1388,10 +1394,9 @@ static int ahci_dma_rw_buf(IDEDMA *dma, int is_write)
     }
 
     /* free sglist, update byte count */
-    ahci_commit_buf(dma, l);
+    dma_buf_commit(s, l);
 
     s->io_buffer_index += l;
-    s->io_buffer_offset += l;
 
     DPRINTF(ad->port_no, "len=%#x\n", l);
 
@@ -1405,7 +1410,7 @@ static void ahci_cmd_done(IDEDMA *dma)
     DPRINTF(ad->port_no, "cmd done\n");
 
     /* update d2h status */
-    ahci_write_fis_d2h(ad, NULL);
+    ahci_write_fis_d2h(ad);
 
     if (!ad->check_bh) {
         /* maybe we still have something to process, check later */
@@ -1429,7 +1434,17 @@ static const IDEDMAOps ahci_dma_ops = {
     .cmd_done = ahci_cmd_done,
 };
 
-void ahci_init(AHCIState *s, DeviceState *qdev, AddressSpace *as, int ports)
+void ahci_init(AHCIState *s, DeviceState *qdev)
+{
+    s->container = qdev;
+    /* XXX BAR size should be 1k, but that breaks, so bump it to 4k for now */
+    memory_region_init_io(&s->mem, OBJECT(qdev), &ahci_mem_ops, s,
+                          "ahci", AHCI_MEM_BAR_SIZE);
+    memory_region_init_io(&s->idp, OBJECT(qdev), &ahci_idp_ops, s,
+                          "ahci-idp", 32);
+}
+
+void ahci_realize(AHCIState *s, DeviceState *qdev, AddressSpace *as, int ports)
 {
     qemu_irq *irqs;
     int i;
@@ -1438,14 +1453,7 @@ void ahci_init(AHCIState *s, DeviceState *qdev, AddressSpace *as, int ports)
     s->ports = ports;
     s->dev = g_new0(AHCIDevice, ports);
     ahci_reg_init(s);
-    /* XXX BAR size should be 1k, but that breaks, so bump it to 4k for now */
-    memory_region_init_io(&s->mem, OBJECT(qdev), &ahci_mem_ops, s,
-                          "ahci", AHCI_MEM_BAR_SIZE);
-    memory_region_init_io(&s->idp, OBJECT(qdev), &ahci_idp_ops, s,
-                          "ahci-idp", 32);
-
     irqs = qemu_allocate_irqs(ahci_irq_set, s, s->ports);
-
     for (i = 0; i < s->ports; i++) {
         AHCIDevice *ad = &s->dev[i];
 
@@ -1625,18 +1633,6 @@ const VMStateDescription vmstate_ahci = {
     },
 };
 
-#define TYPE_SYSBUS_AHCI "sysbus-ahci"
-#define SYSBUS_AHCI(obj) OBJECT_CHECK(SysbusAHCIState, (obj), TYPE_SYSBUS_AHCI)
-
-typedef struct SysbusAHCIState {
-    /*< private >*/
-    SysBusDevice parent_obj;
-    /*< public >*/
-
-    AHCIState ahci;
-    uint32_t num_ports;
-} SysbusAHCIState;
-
 static const VMStateDescription vmstate_sysbus_ahci = {
     .name = "sysbus-ahci",
     .fields = (VMStateField[]) {
@@ -1652,15 +1648,22 @@ static void sysbus_ahci_reset(DeviceState *dev)
     ahci_reset(&s->ahci);
 }
 
-static void sysbus_ahci_realize(DeviceState *dev, Error **errp)
+static void sysbus_ahci_init(Object *obj)
 {
-    SysBusDevice *sbd = SYS_BUS_DEVICE(dev);
-    SysbusAHCIState *s = SYSBUS_AHCI(dev);
+    SysbusAHCIState *s = SYSBUS_AHCI(obj);
+    SysBusDevice *sbd = SYS_BUS_DEVICE(obj);
 
-    ahci_init(&s->ahci, dev, &address_space_memory, s->num_ports);
+    ahci_init(&s->ahci, DEVICE(obj));
 
     sysbus_init_mmio(sbd, &s->ahci.mem);
     sysbus_init_irq(sbd, &s->ahci.irq);
+}
+
+static void sysbus_ahci_realize(DeviceState *dev, Error **errp)
+{
+    SysbusAHCIState *s = SYSBUS_AHCI(dev);
+
+    ahci_realize(&s->ahci, dev, &address_space_memory, s->num_ports);
 }
 
 static Property sysbus_ahci_properties[] = {
@@ -1683,12 +1686,108 @@ static const TypeInfo sysbus_ahci_info = {
     .name          = TYPE_SYSBUS_AHCI,
     .parent        = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(SysbusAHCIState),
+    .instance_init = sysbus_ahci_init,
     .class_init    = sysbus_ahci_class_init,
+};
+
+#define ALLWINNER_AHCI_BISTAFR    ((0xa0 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_BISTCR     ((0xa4 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_BISTFCTR   ((0xa8 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_BISTSR     ((0xac - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_BISTDECR   ((0xb0 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_DIAGNR0    ((0xb4 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_DIAGNR1    ((0xb8 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_OOBR       ((0xbc - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_PHYCS0R    ((0xc0 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_PHYCS1R    ((0xc4 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_PHYCS2R    ((0xc8 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_TIMER1MS   ((0xe0 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_GPARAM1R   ((0xe8 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_GPARAM2R   ((0xec - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_PPARAMR    ((0xf0 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_TESTR      ((0xf4 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_VERSIONR   ((0xf8 - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_IDR        ((0xfc - ALLWINNER_AHCI_MMIO_OFF) / 4)
+#define ALLWINNER_AHCI_RWCR       ((0xfc - ALLWINNER_AHCI_MMIO_OFF) / 4)
+
+static uint64_t allwinner_ahci_mem_read(void *opaque, hwaddr addr,
+                                        unsigned size)
+{
+    AllwinnerAHCIState *a = opaque;
+    uint64_t val = a->regs[addr/4];
+
+    switch (addr / 4) {
+    case ALLWINNER_AHCI_PHYCS0R:
+        val |= 0x2 << 28;
+        break;
+    case ALLWINNER_AHCI_PHYCS2R:
+        val &= ~(0x1 << 24);
+        break;
+    }
+    DPRINTF(-1, "addr=0x%" HWADDR_PRIx " val=0x%" PRIx64 ", size=%d\n",
+            addr, val, size);
+    return  val;
+}
+
+static void allwinner_ahci_mem_write(void *opaque, hwaddr addr,
+                                     uint64_t val, unsigned size)
+{
+    AllwinnerAHCIState *a = opaque;
+
+    DPRINTF(-1, "addr=0x%" HWADDR_PRIx " val=0x%" PRIx64 ", size=%d\n",
+            addr, val, size);
+    a->regs[addr/4] = val;
+}
+
+static const MemoryRegionOps allwinner_ahci_mem_ops = {
+    .read = allwinner_ahci_mem_read,
+    .write = allwinner_ahci_mem_write,
+    .valid.min_access_size = 4,
+    .valid.max_access_size = 4,
+    .endianness = DEVICE_LITTLE_ENDIAN,
+};
+
+static void allwinner_ahci_init(Object *obj)
+{
+    SysbusAHCIState *s = SYSBUS_AHCI(obj);
+    AllwinnerAHCIState *a = ALLWINNER_AHCI(obj);
+
+    memory_region_init_io(&a->mmio, OBJECT(obj), &allwinner_ahci_mem_ops, a,
+                          "allwinner-ahci", ALLWINNER_AHCI_MMIO_SIZE);
+    memory_region_add_subregion(&s->ahci.mem, ALLWINNER_AHCI_MMIO_OFF,
+                                &a->mmio);
+}
+
+static const VMStateDescription vmstate_allwinner_ahci = {
+    .name = "allwinner-ahci",
+    .version_id = 1,
+    .minimum_version_id = 1,
+    .fields = (VMStateField[]) {
+        VMSTATE_UINT32_ARRAY(regs, AllwinnerAHCIState,
+                             ALLWINNER_AHCI_MMIO_SIZE/4),
+        VMSTATE_END_OF_LIST()
+    }
+};
+
+static void allwinner_ahci_class_init(ObjectClass *klass, void *data)
+{
+    DeviceClass *dc = DEVICE_CLASS(klass);
+
+    dc->vmsd = &vmstate_allwinner_ahci;
+}
+
+static const TypeInfo allwinner_ahci_info = {
+    .name          = TYPE_ALLWINNER_AHCI,
+    .parent        = TYPE_SYSBUS_AHCI,
+    .instance_size = sizeof(AllwinnerAHCIState),
+    .instance_init = allwinner_ahci_init,
+    .class_init    = allwinner_ahci_class_init,
 };
 
 static void sysbus_ahci_register_types(void)
 {
     type_register_static(&sysbus_ahci_info);
+    type_register_static(&allwinner_ahci_info);
 }
 
 type_init(sysbus_ahci_register_types)

@@ -324,7 +324,7 @@ void memory_region_unref(MemoryRegion *mr);
  * @owner: the object that tracks the region's reference count
  * @ops: a structure containing read and write callbacks to be used when
  *       I/O is performed on the region.
- * @opaque: passed to to the read and write callbacks of the @ops structure.
+ * @opaque: passed to the read and write callbacks of the @ops structure.
  * @name: used for debugging; not visible to the user or ABI
  * @size: size of the region.
  */
@@ -581,6 +581,19 @@ void memory_region_notify_iommu(MemoryRegion *mr,
  *     valid on exit from the notifier.
  */
 void memory_region_register_iommu_notifier(MemoryRegion *mr, Notifier *n);
+
+/**
+ * memory_region_iommu_replay: replay existing IOMMU translations to
+ * a notifier
+ *
+ * @mr: the memory region to observe
+ * @n: the notifier to which to replay iommu mappings
+ * @granularity: Minimum page granularity to replay notifications for
+ * @is_write: Whether to treat the replay as a translate "write"
+ *     through the iommu
+ */
+void memory_region_iommu_replay(MemoryRegion *mr, Notifier *n,
+                                hwaddr granularity, bool is_write);
 
 /**
  * memory_region_unregister_iommu_notifier: unregister a notifier for
@@ -1146,7 +1159,7 @@ MemTxResult memory_region_dispatch_write(MemoryRegion *mr,
  * address_space_init: initializes an address space
  *
  * @as: an uninitialized #AddressSpace
- * @root: a #MemoryRegion that routes addesses for the address space
+ * @root: a #MemoryRegion that routes addresses for the address space
  * @name: an address space name.  The name is only used for debugging
  *        output.
  */

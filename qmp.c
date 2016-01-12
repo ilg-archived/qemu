@@ -24,6 +24,7 @@
 #include "sysemu/arch_init.h"
 #include "hw/qdev.h"
 #include "sysemu/blockdev.h"
+#include "sysemu/block-backend.h"
 #include "qom/qom-qobject.h"
 #include "qapi/qmp/qerror.h"
 #include "qapi/qmp/qobject.h"
@@ -49,14 +50,20 @@ VersionInfo *qmp_query_version(Error **errp)
 {
     VersionInfo *info = g_new0(VersionInfo, 1);
     const char *version = QEMU_VERSION;
-    char *tmp;
+    const char *tmp;
+    int err;
 
     info->qemu = g_new0(VersionTriple, 1);
-    info->qemu->major = strtol(version, &tmp, 10);
+    err = qemu_strtoll(version, &tmp, 10, &info->qemu->major);
+    assert(err == 0);
     tmp++;
-    info->qemu->minor = strtol(tmp, &tmp, 10);
+
+    err = qemu_strtoll(tmp, &tmp, 10, &info->qemu->minor);
+    assert(err == 0);
     tmp++;
-    info->qemu->micro = strtol(tmp, &tmp, 10);
+
+    err = qemu_strtoll(tmp, &tmp, 10, &info->qemu->micro);
+    assert(err == 0);
     info->package = g_strdup(QEMU_PKGVERSION);
 
     return info;
@@ -151,9 +158,9 @@ VncInfo2List *qmp_query_vnc_servers(Error **errp)
  * #ifdef CONFIG_SPICE.  Necessary for an accurate query-commands
  * result.  However, the QAPI schema is blissfully unaware of that,
  * and the QAPI code generator happily generates a dead
- * qmp_marshal_input_query_spice() that calls qmp_query_spice().
- * Provide it one, or else linking fails.
- * FIXME Educate the QAPI schema on CONFIG_SPICE.
+ * qmp_marshal_query_spice() that calls qmp_query_spice().  Provide it
+ * one, or else linking fails.  FIXME Educate the QAPI schema on
+ * CONFIG_SPICE.
  */
 SpiceInfo *qmp_query_spice(Error **errp)
 {
@@ -164,6 +171,7 @@ SpiceInfo *qmp_query_spice(Error **errp)
 void qmp_cont(Error **errp)
 {
     Error *local_err = NULL;
+    BlockBackend *blk;
     BlockDriverState *bs;
 
     if (runstate_needs_reset()) {
@@ -173,8 +181,8 @@ void qmp_cont(Error **errp)
         return;
     }
 
-    for (bs = bdrv_next(NULL); bs; bs = bdrv_next(bs)) {
-        bdrv_iostatus_reset(bs);
+    for (blk = blk_next(NULL); blk; blk = blk_next(blk)) {
+        blk_iostatus_reset(blk);
     }
     for (bs = bdrv_next(NULL); bs; bs = bdrv_next(bs)) {
         bdrv_add_key(bs, NULL, &local_err);
@@ -202,6 +210,7 @@ ObjectPropertyInfoList *qmp_qom_list(const char *path, Error **errp)
     bool ambiguous = false;
     ObjectPropertyInfoList *props = NULL;
     ObjectProperty *prop;
+    ObjectPropertyIterator *iter;
 
     obj = object_resolve_path(path, &ambiguous);
     if (obj == NULL) {
@@ -214,7 +223,8 @@ ObjectPropertyInfoList *qmp_qom_list(const char *path, Error **errp)
         return NULL;
     }
 
-    QTAILQ_FOREACH(prop, &obj->properties, node) {
+    iter = object_property_iter_init(obj);
+    while ((prop = object_property_iter_next(iter))) {
         ObjectPropertyInfoList *entry = g_malloc0(sizeof(*entry));
 
         entry->value = g_malloc0(sizeof(ObjectPropertyInfo));
@@ -224,16 +234,14 @@ ObjectPropertyInfoList *qmp_qom_list(const char *path, Error **errp)
         entry->value->name = g_strdup(prop->name);
         entry->value->type = g_strdup(prop->type);
     }
+    object_property_iter_free(iter);
 
     return props;
 }
 
-/* FIXME: teach qapi about how to pass through Visitors */
-void qmp_qom_set(QDict *qdict, QObject **ret, Error **errp)
+void qmp_qom_set(const char *path, const char *property, QObject *value,
+                 Error **errp)
 {
-    const char *path = qdict_get_str(qdict, "path");
-    const char *property = qdict_get_str(qdict, "property");
-    QObject *value = qdict_get(qdict, "value");
     Object *obj;
 
     obj = object_resolve_path(path, NULL);
@@ -246,20 +254,18 @@ void qmp_qom_set(QDict *qdict, QObject **ret, Error **errp)
     object_property_set_qobject(obj, value, property, errp);
 }
 
-void qmp_qom_get(QDict *qdict, QObject **ret, Error **errp)
+QObject *qmp_qom_get(const char *path, const char *property, Error **errp)
 {
-    const char *path = qdict_get_str(qdict, "path");
-    const char *property = qdict_get_str(qdict, "property");
     Object *obj;
 
     obj = object_resolve_path(path, NULL);
     if (!obj) {
         error_set(errp, ERROR_CLASS_DEVICE_NOT_FOUND,
                   "Device '%s' not found", path);
-        return;
+        return NULL;
     }
 
-    *ret = object_property_get_qobject(obj, property, errp);
+    return object_property_get_qobject(obj, property, errp);
 }
 
 void qmp_set_password(const char *protocol, const char *password,
@@ -411,7 +417,8 @@ void qmp_change(const char *device, const char *target,
     if (strcmp(device, "vnc") == 0) {
         qmp_change_vnc(target, has_arg, arg, errp);
     } else {
-        qmp_change_blockdev(device, target, arg, errp);
+        qmp_blockdev_change_medium(device, target, has_arg, arg, false, 0,
+                                   errp);
     }
 }
 
@@ -499,6 +506,7 @@ DevicePropertyInfoList *qmp_device_list_properties(const char *typename,
     ObjectClass *klass;
     Object *obj;
     ObjectProperty *prop;
+    ObjectPropertyIterator *iter;
     DevicePropertyInfoList *prop_list = NULL;
 
     klass = object_class_by_name(typename);
@@ -514,9 +522,21 @@ DevicePropertyInfoList *qmp_device_list_properties(const char *typename,
         return NULL;
     }
 
+    if (object_class_is_abstract(klass)) {
+        error_setg(errp, QERR_INVALID_PARAMETER_VALUE, "name",
+                   "non-abstract device type");
+        return NULL;
+    }
+
+    if (DEVICE_CLASS(klass)->cannot_destroy_with_object_finalize_yet) {
+        error_setg(errp, "Can't list properties of device '%s'", typename);
+        return NULL;
+    }
+
     obj = object_new(typename);
 
-    QTAILQ_FOREACH(prop, &obj->properties, node) {
+    iter = object_property_iter_init(obj);
+    while ((prop = object_property_iter_next(iter))) {
         DevicePropertyInfo *info;
         DevicePropertyInfoList *entry;
 
@@ -547,6 +567,7 @@ DevicePropertyInfoList *qmp_device_list_properties(const char *typename,
         entry->next = prop_list;
         prop_list = entry;
     }
+    object_property_iter_free(iter);
 
     object_unref(obj);
 
@@ -655,11 +676,9 @@ out:
     object_unref(obj);
 }
 
-void qmp_object_add(QDict *qdict, QObject **ret, Error **errp)
+void qmp_object_add(const char *type, const char *id,
+                    bool has_props, QObject *props, Error **errp)
 {
-    const char *type = qdict_get_str(qdict, "qom-type");
-    const char *id = qdict_get_str(qdict, "id");
-    QObject *props = qdict_get(qdict, "props");
     const QDict *pdict = NULL;
     QmpInputVisitor *qiv;
 

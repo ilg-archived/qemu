@@ -25,15 +25,30 @@
 
 /* vring_map can be coupled with vring_unmap or (if you still have the
  * value returned in *mr) memory_region_unref.
+ * Returns NULL on failure.
+ * Callers that can handle a partial mapping must supply mapped_len pointer to
+ * get the actual length mapped.
+ * Passing mapped_len == NULL requires either a full mapping or a failure.
  */
-static void *vring_map(MemoryRegion **mr, hwaddr phys, hwaddr len,
+static void *vring_map(MemoryRegion **mr, hwaddr phys,
+                       hwaddr len, hwaddr *mapped_len,
                        bool is_write)
 {
     MemoryRegionSection section = memory_region_find(get_system_memory(), phys, len);
+    uint64_t size;
 
-    if (!section.mr || int128_get64(section.size) < len) {
+    if (!section.mr) {
         goto out;
     }
+
+    size = int128_get64(section.size);
+    assert(size);
+
+    /* Passing mapped_len == NULL requires either a full mapping or a failure. */
+    if (!mapped_len && size < len) {
+        goto out;
+    }
+
     if (is_write && section.readonly) {
         goto out;
     }
@@ -44,6 +59,10 @@ static void *vring_map(MemoryRegion **mr, hwaddr phys, hwaddr len,
     /* Ignore regions with dirty logging, we cannot mark them dirty */
     if (memory_region_get_dirty_log_mask(section.mr)) {
         goto out;
+    }
+
+    if (mapped_len) {
+        *mapped_len = MIN(size, len);
     }
 
     *mr = section.mr;
@@ -67,22 +86,53 @@ static void vring_unmap(void *buffer, bool is_write)
 /* Map the guest's vring to host memory */
 bool vring_setup(Vring *vring, VirtIODevice *vdev, int n)
 {
-    hwaddr vring_addr = virtio_queue_get_ring_addr(vdev, n);
-    hwaddr vring_size = virtio_queue_get_ring_size(vdev, n);
-    void *vring_ptr;
+    struct vring *vr = &vring->vr;
+    hwaddr addr;
+    hwaddr size;
+    void *ptr;
 
     vring->broken = false;
+    vr->num = virtio_queue_get_num(vdev, n);
 
-    vring_ptr = vring_map(&vring->mr, vring_addr, vring_size, true);
-    if (!vring_ptr) {
-        error_report("Failed to map vring "
-                     "addr %#" HWADDR_PRIx " size %" HWADDR_PRIu,
-                     vring_addr, vring_size);
-        vring->broken = true;
-        return false;
+    addr = virtio_queue_get_desc_addr(vdev, n);
+    size = virtio_queue_get_desc_size(vdev, n);
+    /* Map the descriptor area as read only */
+    ptr = vring_map(&vring->mr_desc, addr, size, NULL, false);
+    if (!ptr) {
+        error_report("Failed to map 0x%" HWADDR_PRIx " byte for vring desc "
+                     "at 0x%" HWADDR_PRIx,
+                      size, addr);
+        goto out_err_desc;
     }
+    vr->desc = ptr;
 
-    vring_init(&vring->vr, virtio_queue_get_num(vdev, n), vring_ptr, 4096);
+    addr = virtio_queue_get_avail_addr(vdev, n);
+    size = virtio_queue_get_avail_size(vdev, n);
+    /* Add the size of the used_event_idx */
+    size += sizeof(uint16_t);
+    /* Map the driver area as read only */
+    ptr = vring_map(&vring->mr_avail, addr, size, NULL, false);
+    if (!ptr) {
+        error_report("Failed to map 0x%" HWADDR_PRIx " byte for vring avail "
+                     "at 0x%" HWADDR_PRIx,
+                      size, addr);
+        goto out_err_avail;
+    }
+    vr->avail = ptr;
+
+    addr = virtio_queue_get_used_addr(vdev, n);
+    size = virtio_queue_get_used_size(vdev, n);
+    /* Add the size of the avail_event_idx */
+    size += sizeof(uint16_t);
+    /* Map the device area as read-write */
+    ptr = vring_map(&vring->mr_used, addr, size, NULL, true);
+    if (!ptr) {
+        error_report("Failed to map 0x%" HWADDR_PRIx " byte for vring used "
+                     "at 0x%" HWADDR_PRIx,
+                      size, addr);
+        goto out_err_used;
+    }
+    vr->used = ptr;
 
     vring->last_avail_idx = virtio_queue_get_last_avail_idx(vdev, n);
     vring->last_used_idx = vring_get_used_idx(vdev, vring);
@@ -92,6 +142,14 @@ bool vring_setup(Vring *vring, VirtIODevice *vdev, int n)
     trace_vring_setup(virtio_queue_get_ring_addr(vdev, n),
                       vring->vr.desc, vring->vr.avail, vring->vr.used);
     return true;
+
+out_err_used:
+    memory_region_unref(vring->mr_avail);
+out_err_avail:
+    memory_region_unref(vring->mr_desc);
+out_err_desc:
+    vring->broken = true;
+    return false;
 }
 
 void vring_teardown(Vring *vring, VirtIODevice *vdev, int n)
@@ -99,13 +157,15 @@ void vring_teardown(Vring *vring, VirtIODevice *vdev, int n)
     virtio_queue_set_last_avail_idx(vdev, n, vring->last_avail_idx);
     virtio_queue_invalidate_signalled_used(vdev, n);
 
-    memory_region_unref(vring->mr);
+    memory_region_unref(vring->mr_desc);
+    memory_region_unref(vring->mr_avail);
+    memory_region_unref(vring->mr_used);
 }
 
 /* Disable guest->host notifies */
 void vring_disable_notification(VirtIODevice *vdev, Vring *vring)
 {
-    if (!virtio_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
+    if (!virtio_vdev_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
         vring_set_used_flags(vdev, vring, VRING_USED_F_NO_NOTIFY);
     }
 }
@@ -116,7 +176,7 @@ void vring_disable_notification(VirtIODevice *vdev, Vring *vring)
  */
 bool vring_enable_notification(VirtIODevice *vdev, Vring *vring)
 {
-    if (virtio_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
+    if (virtio_vdev_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
         vring_avail_event(&vring->vr) = vring->vr.avail->idx;
     } else {
         vring_clear_used_flags(vdev, vring, VRING_USED_F_NO_NOTIFY);
@@ -135,12 +195,12 @@ bool vring_should_notify(VirtIODevice *vdev, Vring *vring)
      * interrupts. */
     smp_mb();
 
-    if (virtio_has_feature(vdev, VIRTIO_F_NOTIFY_ON_EMPTY) &&
+    if (virtio_vdev_has_feature(vdev, VIRTIO_F_NOTIFY_ON_EMPTY) &&
         unlikely(!vring_more_avail(vdev, vring))) {
         return true;
     }
 
-    if (!virtio_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
+    if (!virtio_vdev_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
         return !(vring_get_avail_flags(vdev, vring) &
                  VRING_AVAIL_F_NO_INTERRUPT);
     }
@@ -165,6 +225,7 @@ static int get_desc(Vring *vring, VirtQueueElement *elem,
     struct iovec *iov;
     hwaddr *addr;
     MemoryRegion *mr;
+    hwaddr len;
 
     if (desc->flags & VRING_DESC_F_WRITE) {
         num = &elem->in_num;
@@ -183,26 +244,30 @@ static int get_desc(Vring *vring, VirtQueueElement *elem,
         }
     }
 
-    /* Stop for now if there are not enough iovecs available. */
-    if (*num >= VIRTQUEUE_MAX_SIZE) {
-        error_report("Invalid SG num: %u", *num);
-        return -EFAULT;
+    while (desc->len) {
+        /* Stop for now if there are not enough iovecs available. */
+        if (*num >= VIRTQUEUE_MAX_SIZE) {
+            error_report("Invalid SG num: %u", *num);
+            return -EFAULT;
+        }
+
+        iov->iov_base = vring_map(&mr, desc->addr, desc->len, &len,
+                                  desc->flags & VRING_DESC_F_WRITE);
+        if (!iov->iov_base) {
+            error_report("Failed to map descriptor addr %#" PRIx64 " len %u",
+                         (uint64_t)desc->addr, desc->len);
+            return -EFAULT;
+        }
+
+        /* The MemoryRegion is looked up again and unref'ed later, leave the
+         * ref in place.  */
+        (iov++)->iov_len = len;
+        *addr++ = desc->addr;
+        desc->len -= len;
+        desc->addr += len;
+        *num += 1;
     }
 
-    /* TODO handle non-contiguous memory across region boundaries */
-    iov->iov_base = vring_map(&mr, desc->addr, desc->len,
-                              desc->flags & VRING_DESC_F_WRITE);
-    if (!iov->iov_base) {
-        error_report("Failed to map descriptor addr %#" PRIx64 " len %u",
-                     (uint64_t)desc->addr, desc->len);
-        return -EFAULT;
-    }
-
-    /* The MemoryRegion is looked up again and unref'ed later, leave the
-     * ref in place.  */
-    iov->iov_len = desc->len;
-    *addr = desc->addr;
-    *num += 1;
     return 0;
 }
 
@@ -214,6 +279,21 @@ static void copy_in_vring_desc(VirtIODevice *vdev,
     host->len = virtio_ldl_p(vdev, &guest->len);
     host->flags = virtio_lduw_p(vdev, &guest->flags);
     host->next = virtio_lduw_p(vdev, &guest->next);
+}
+
+static bool read_vring_desc(VirtIODevice *vdev,
+                            hwaddr guest,
+                            struct vring_desc *host)
+{
+    if (address_space_read(&address_space_memory, guest, MEMTXATTRS_UNSPECIFIED,
+                           (uint8_t *)host, sizeof *host)) {
+        return false;
+    }
+    host->addr = virtio_tswap64(vdev, host->addr);
+    host->len = virtio_tswap32(vdev, host->len);
+    host->flags = virtio_tswap16(vdev, host->flags);
+    host->next = virtio_tswap16(vdev, host->next);
+    return true;
 }
 
 /* This is stolen from linux/drivers/vhost/vhost.c. */
@@ -243,23 +323,16 @@ static int get_indirect(VirtIODevice *vdev, Vring *vring,
     }
 
     do {
-        struct vring_desc *desc_ptr;
-        MemoryRegion *mr;
-
         /* Translate indirect descriptor */
-        desc_ptr = vring_map(&mr,
-                             indirect->addr + found * sizeof(desc),
-                             sizeof(desc), false);
-        if (!desc_ptr) {
-            error_report("Failed to map indirect descriptor "
+        if (!read_vring_desc(vdev, indirect->addr + found * sizeof(desc),
+                             &desc)) {
+            error_report("Failed to read indirect descriptor "
                          "addr %#" PRIx64 " len %zu",
                          (uint64_t)indirect->addr + found * sizeof(desc),
                          sizeof(desc));
             vring->broken = true;
             return -EFAULT;
         }
-        copy_in_vring_desc(vdev, desc_ptr, &desc);
-        memory_region_unref(mr);
 
         /* Ensure descriptor has been loaded before accessing fields */
         barrier(); /* read_barrier_depends(); */
@@ -402,7 +475,7 @@ int vring_pop(VirtIODevice *vdev, Vring *vring,
 
     /* On success, increment avail index. */
     vring->last_avail_idx++;
-    if (virtio_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
+    if (virtio_vdev_has_feature(vdev, VIRTIO_RING_F_EVENT_IDX)) {
         vring_avail_event(&vring->vr) =
             virtio_tswap16(vdev, vring->last_avail_idx);
     }

@@ -26,7 +26,9 @@
 #define HOST_UTILS_H 1
 
 #include "qemu/compiler.h"   /* QEMU_GNUC_PREREQ */
+#include "qemu/bswap.h"
 #include <limits.h>
+#include <stdbool.h>
 
 #ifdef CONFIG_INT128
 static inline void mulu64(uint64_t *plow, uint64_t *phigh,
@@ -390,6 +392,80 @@ static inline int ctpop64(uint64_t val)
 #endif
 }
 
+/**
+ * revbit8 - reverse the bits in an 8-bit value.
+ * @x: The value to modify.
+ */
+static inline uint8_t revbit8(uint8_t x)
+{
+    /* Assign the correct nibble position.  */
+    x = ((x & 0xf0) >> 4)
+      | ((x & 0x0f) << 4);
+    /* Assign the correct bit position.  */
+    x = ((x & 0x88) >> 3)
+      | ((x & 0x44) >> 1)
+      | ((x & 0x22) << 1)
+      | ((x & 0x11) << 3);
+    return x;
+}
+
+/**
+ * revbit16 - reverse the bits in a 16-bit value.
+ * @x: The value to modify.
+ */
+static inline uint16_t revbit16(uint16_t x)
+{
+    /* Assign the correct byte position.  */
+    x = bswap16(x);
+    /* Assign the correct nibble position.  */
+    x = ((x & 0xf0f0) >> 4)
+      | ((x & 0x0f0f) << 4);
+    /* Assign the correct bit position.  */
+    x = ((x & 0x8888) >> 3)
+      | ((x & 0x4444) >> 1)
+      | ((x & 0x2222) << 1)
+      | ((x & 0x1111) << 3);
+    return x;
+}
+
+/**
+ * revbit32 - reverse the bits in a 32-bit value.
+ * @x: The value to modify.
+ */
+static inline uint32_t revbit32(uint32_t x)
+{
+    /* Assign the correct byte position.  */
+    x = bswap32(x);
+    /* Assign the correct nibble position.  */
+    x = ((x & 0xf0f0f0f0u) >> 4)
+      | ((x & 0x0f0f0f0fu) << 4);
+    /* Assign the correct bit position.  */
+    x = ((x & 0x88888888u) >> 3)
+      | ((x & 0x44444444u) >> 1)
+      | ((x & 0x22222222u) << 1)
+      | ((x & 0x11111111u) << 3);
+    return x;
+}
+
+/**
+ * revbit64 - reverse the bits in a 64-bit value.
+ * @x: The value to modify.
+ */
+static inline uint64_t revbit64(uint64_t x)
+{
+    /* Assign the correct byte position.  */
+    x = bswap64(x);
+    /* Assign the correct nibble position.  */
+    x = ((x & 0xf0f0f0f0f0f0f0f0ull) >> 4)
+      | ((x & 0x0f0f0f0f0f0f0f0full) << 4);
+    /* Assign the correct bit position.  */
+    x = ((x & 0x8888888888888888ull) >> 3)
+      | ((x & 0x4444444444444444ull) >> 1)
+      | ((x & 0x2222222222222222ull) << 1)
+      | ((x & 0x1111111111111111ull) << 3);
+    return x;
+}
+
 /* Host type specific sizes of these routines.  */
 
 #if ULONG_MAX == UINT32_MAX
@@ -398,14 +474,48 @@ static inline int ctpop64(uint64_t val)
 # define clol   clo32
 # define ctol   cto32
 # define ctpopl ctpop32
+# define revbitl revbit32
 #elif ULONG_MAX == UINT64_MAX
 # define clzl   clz64
 # define ctzl   ctz64
 # define clol   clo64
 # define ctol   cto64
 # define ctpopl ctpop64
+# define revbitl revbit64
 #else
 # error Unknown sizeof long
 #endif
+
+static inline bool is_power_of_2(uint64_t value)
+{
+    if (!value) {
+        return 0;
+    }
+
+    return !(value & (value - 1));
+}
+
+/* round down to the nearest power of 2*/
+static inline int64_t pow2floor(int64_t value)
+{
+    if (!is_power_of_2(value)) {
+        value = 0x8000000000000000ULL >> clz64(value);
+    }
+    return value;
+}
+
+/* round up to the nearest power of 2 (0 if overflow) */
+static inline uint64_t pow2ceil(uint64_t value)
+{
+    uint8_t nlz = clz64(value);
+
+    if (is_power_of_2(value)) {
+        return value;
+    }
+    if (!nlz) {
+        return 0;
+    }
+    return 1ULL << (64 - nlz);
+}
 
 #endif

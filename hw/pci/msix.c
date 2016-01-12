@@ -200,8 +200,14 @@ static uint64_t msix_pba_mmio_read(void *opaque, hwaddr addr,
     return pci_get_long(dev->msix_pba + addr);
 }
 
+static void msix_pba_mmio_write(void *opaque, hwaddr addr,
+                                uint64_t val, unsigned size)
+{
+}
+
 static const MemoryRegionOps msix_pba_mmio_ops = {
     .read = msix_pba_mmio_read,
+    .write = msix_pba_mmio_write,
     .endianness = DEVICE_LITTLE_ENDIAN,
     .valid = {
         .min_access_size = 4,
@@ -314,9 +320,7 @@ int msix_init_exclusive_bar(PCIDevice *dev, unsigned short nentries,
         bar_size = bar_pba_offset + bar_pba_size;
     }
 
-    if (bar_size & (bar_size - 1)) {
-        bar_size = 1 << qemu_fls(bar_size);
-    }
+    bar_size = pow2ceil(bar_size);
 
     name = g_strdup_printf("%s-msix", dev->name);
     memory_region_init(&dev->msix_exclusive_bar, OBJECT(dev), name, bar_size);

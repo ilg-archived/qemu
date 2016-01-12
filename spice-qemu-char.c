@@ -296,15 +296,14 @@ static CharDriverState *chr_open(const char *subtype,
     return chr;
 }
 
-CharDriverState *qemu_chr_open_spice_vmc(const char *type)
+static CharDriverState *qemu_chr_open_spice_vmc(const char *id,
+                                                ChardevBackend *backend,
+                                                ChardevReturn *ret,
+                                                Error **errp)
 {
+    const char *type = backend->u.spicevmc->type;
     const char **psubtype = spice_server_char_device_recognized_subtypes();
 
-    if (type == NULL) {
-        fprintf(stderr, "spice-qemu-char: missing name parameter\n");
-        print_allowed_subtypes();
-        return NULL;
-    }
     for (; *psubtype != NULL; ++psubtype) {
         if (strcmp(type, *psubtype) == 0) {
             break;
@@ -320,8 +319,12 @@ CharDriverState *qemu_chr_open_spice_vmc(const char *type)
 }
 
 #if SPICE_SERVER_VERSION >= 0x000c02
-CharDriverState *qemu_chr_open_spice_port(const char *name)
+static CharDriverState *qemu_chr_open_spice_port(const char *id,
+                                                 ChardevBackend *backend,
+                                                 ChardevReturn *ret,
+                                                 Error **errp)
 {
+    const char *name = backend->u.spiceport->fqdn;
     CharDriverState *chr;
     SpiceCharDriver *s;
 
@@ -359,8 +362,8 @@ static void qemu_chr_parse_spice_vmc(QemuOpts *opts, ChardevBackend *backend,
         error_setg(errp, "chardev: spice channel: no name given");
         return;
     }
-    backend->spicevmc = g_new0(ChardevSpiceChannel, 1);
-    backend->spicevmc->type = g_strdup(name);
+    backend->u.spicevmc = g_new0(ChardevSpiceChannel, 1);
+    backend->u.spicevmc->type = g_strdup(name);
 }
 
 static void qemu_chr_parse_spice_port(QemuOpts *opts, ChardevBackend *backend,
@@ -372,16 +375,16 @@ static void qemu_chr_parse_spice_port(QemuOpts *opts, ChardevBackend *backend,
         error_setg(errp, "chardev: spice port: no name given");
         return;
     }
-    backend->spiceport = g_new0(ChardevSpicePort, 1);
-    backend->spiceport->fqdn = g_strdup(name);
+    backend->u.spiceport = g_new0(ChardevSpicePort, 1);
+    backend->u.spiceport->fqdn = g_strdup(name);
 }
 
 static void register_types(void)
 {
     register_char_driver("spicevmc", CHARDEV_BACKEND_KIND_SPICEVMC,
-                         qemu_chr_parse_spice_vmc);
+                         qemu_chr_parse_spice_vmc, qemu_chr_open_spice_vmc);
     register_char_driver("spiceport", CHARDEV_BACKEND_KIND_SPICEPORT,
-                         qemu_chr_parse_spice_port);
+                         qemu_chr_parse_spice_port, qemu_chr_open_spice_port);
 }
 
 type_init(register_types);

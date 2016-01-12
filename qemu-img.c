@@ -338,7 +338,8 @@ static int img_create(int argc, char **argv)
     if (optind < argc) {
         int64_t sval;
         char *end;
-        sval = strtosz_suffix(argv[optind++], &end, STRTOSZ_DEFSUFFIX_B);
+        sval = qemu_strtosz_suffix(argv[optind++], &end,
+                                   QEMU_STRTOSZ_DEFSUFFIX_B);
         if (sval < 0 || *end) {
             if (sval == -ERANGE) {
                 error_report("Image size must be less than 8 EiB!");
@@ -644,9 +645,6 @@ static void common_block_job_cb(void *opaque, int ret)
     if (ret < 0) {
         error_setg_errno(cbi->errp, -ret, "Block job failed");
     }
-
-    /* Drop this block job's reference */
-    bdrv_unref(cbi->bs);
 }
 
 static void run_block_job(BlockJob *job, Error **errp)
@@ -655,7 +653,8 @@ static void run_block_job(BlockJob *job, Error **errp)
 
     do {
         aio_poll(aio_context, true);
-        qemu_progress_print((float)job->offset / job->len * 100.f, 0);
+        qemu_progress_print(job->len ?
+                            ((float)job->offset / job->len * 100.f) : 0.0f, 0);
     } while (!job->ready);
 
     block_job_complete_sync(job, errp);
@@ -747,7 +746,7 @@ static int img_commit(int argc, char **argv)
         /* This is different from QMP, which by default uses the deepest file in
          * the backing chain (i.e., the very base); however, the traditional
          * behavior of qemu-img commit is using the immediate backing file. */
-        base_bs = bs->backing_hd;
+        base_bs = backing_bs(bs);
         if (!base_bs) {
             error_setg(&local_err, "Image does not have a backing file");
             goto done;
@@ -765,12 +764,12 @@ static int img_commit(int argc, char **argv)
         goto done;
     }
 
-    /* The block job will swap base_bs and bs (which is not what we really want
-     * here, but okay) and unref base_bs (after the swap, i.e., the old top
-     * image). In order to still be able to empty that top image afterwards,
-     * increment the reference counter here preemptively. */
+    /* When the block job completes, the BlockBackend reference will point to
+     * the old backing file. In order to avoid that the top image is already
+     * deleted, so we can still empty it afterwards, increment the reference
+     * counter here preemptively. */
     if (!drop) {
-        bdrv_ref(base_bs);
+        bdrv_ref(bs);
     }
 
     run_block_job(bs->job, &local_err);
@@ -778,8 +777,8 @@ static int img_commit(int argc, char **argv)
         goto unref_backing;
     }
 
-    if (!drop && base_bs->drv->bdrv_make_empty) {
-        ret = base_bs->drv->bdrv_make_empty(base_bs);
+    if (!drop && bs->drv->bdrv_make_empty) {
+        ret = bs->drv->bdrv_make_empty(bs);
         if (ret) {
             error_setg_errno(&local_err, -ret, "Could not empty %s",
                              filename);
@@ -789,7 +788,7 @@ static int img_commit(int argc, char **argv)
 
 unref_backing:
     if (!drop) {
-        bdrv_unref(base_bs);
+        bdrv_unref(bs);
     }
 
 done:
@@ -1607,7 +1606,7 @@ static int img_convert(int argc, char **argv)
         {
             int64_t sval;
             char *end;
-            sval = strtosz_suffix(optarg, &end, STRTOSZ_DEFSUFFIX_B);
+            sval = qemu_strtosz_suffix(optarg, &end, QEMU_STRTOSZ_DEFSUFFIX_B);
             if (sval < 0 || *end) {
                 error_report("Invalid minimum zero buffer size for sparse output specified");
                 ret = -1;
@@ -2206,7 +2205,7 @@ static int get_block_status(BlockDriverState *bs, int64_t sector_num,
         if (ret & (BDRV_BLOCK_ZERO|BDRV_BLOCK_DATA)) {
             break;
         }
-        bs = bs->backing_hd;
+        bs = backing_bs(bs);
         if (bs == NULL) {
             ret = 0;
             break;
@@ -2931,7 +2930,7 @@ static int img_amend(int argc, char **argv)
                 if (!is_valid_option_list(optarg)) {
                     error_report("Invalid option list: %s", optarg);
                     ret = -1;
-                    goto out;
+                    goto out_no_progress;
                 }
                 if (!options) {
                     options = g_strdup(optarg);
@@ -3031,6 +3030,7 @@ static int img_amend(int argc, char **argv)
 out:
     qemu_progress_end();
 
+out_no_progress:
     blk_unref(blk);
     qemu_opts_del(opts);
     qemu_opts_free(create_opts);

@@ -257,7 +257,7 @@ static void virtex_init(MachineState *machine)
 
         /* Boots a kernel elf binary.  */
         kernel_size = load_elf(kernel_filename, NULL, NULL,
-                               &entry, &low, &high, 1, ELF_MACHINE, 0);
+                               &entry, &low, &high, 1, PPC_ELF_MACHINE, 0);
         boot_info.bootstrap_pc = entry & 0x00ffffff;
 
         if (kernel_size < 0) {
@@ -297,15 +297,10 @@ static void virtex_init(MachineState *machine)
     env->load_info = &boot_info;
 }
 
-static QEMUMachine virtex_machine = {
-    .name = "virtex-ml507",
-    .desc = "Xilinx Virtex ML507 reference design",
-    .init = virtex_init,
-};
-
-static void virtex_machine_init(void)
+static void virtex_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&virtex_machine);
+    mc->desc = "Xilinx Virtex ML507 reference design";
+    mc->init = virtex_init;
 }
 
-machine_init(virtex_machine_init);
+DEFINE_MACHINE("virtex-ml507", virtex_machine_init)

@@ -30,7 +30,6 @@
 
 #define ALIGNED_ONLY
 #define TARGET_LONG_BITS 32
-#define ELF_MACHINE EM_XTENSA
 
 #define CPUArchState struct CPUXtensaState
 
@@ -65,6 +64,7 @@ enum {
     XTENSA_OPTION_MP_SYNCHRO,
     XTENSA_OPTION_CONDITIONAL_STORE,
     XTENSA_OPTION_ATOMCTL,
+    XTENSA_OPTION_DEPBITS,
 
     /* Interrupts and exceptions */
     XTENSA_OPTION_EXCEPTION,
@@ -383,7 +383,6 @@ typedef struct CPUXtensaState {
 #include "cpu-qom.h"
 
 #define cpu_exec cpu_xtensa_exec
-#define cpu_gen_code cpu_xtensa_gen_code
 #define cpu_signal_handler cpu_xtensa_signal_handler
 #define cpu_list xtensa_cpu_list
 
@@ -492,7 +491,7 @@ static inline uint32_t xtensa_replicate_windowstart(CPUXtensaState *env)
 #define MMU_MODE2_SUFFIX _ring2
 #define MMU_MODE3_SUFFIX _ring3
 
-static inline int cpu_mmu_index(CPUXtensaState *env)
+static inline int cpu_mmu_index(CPUXtensaState *env, bool ifetch)
 {
     return xtensa_get_cring(env);
 }

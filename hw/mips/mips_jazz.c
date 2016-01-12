@@ -104,15 +104,6 @@ static const MemoryRegionOps dma_dummy_ops = {
 #define MAGNUM_BIOS_SIZE_MAX 0x7e000
 #define MAGNUM_BIOS_SIZE (BIOS_SIZE < MAGNUM_BIOS_SIZE_MAX ? BIOS_SIZE : MAGNUM_BIOS_SIZE_MAX)
 
-static void cpu_request_exit(void *opaque, int irq, int level)
-{
-    CPUState *cpu = current_cpu;
-
-    if (cpu && level) {
-        cpu_exit(cpu);
-    }
-}
-
 static CPUUnassignedAccess real_do_unassigned_access;
 static void mips_jazz_do_unassigned_access(CPUState *cpu, hwaddr addr,
                                            bool is_write, bool is_exec,
@@ -150,7 +141,6 @@ static void mips_jazz_init(MachineState *machine,
     ISADevice *pit;
     DriveInfo *fds[MAX_FD];
     qemu_irq esp_reset, dma_enable;
-    qemu_irq *cpu_exit_irq;
     MemoryRegion *ram = g_new(MemoryRegion, 1);
     MemoryRegion *bios = g_new(MemoryRegion, 1);
     MemoryRegion *bios2 = g_new(MemoryRegion, 1);
@@ -184,7 +174,7 @@ static void mips_jazz_init(MachineState *machine,
     memory_region_add_subregion(address_space, 0, ram);
 
     memory_region_init_ram(bios, NULL, "mips_jazz.bios", MAGNUM_BIOS_SIZE,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(bios);
     memory_region_set_readonly(bios, true);
     memory_region_init_alias(bios2, NULL, "mips_jazz.bios", bios,
@@ -234,8 +224,7 @@ static void mips_jazz_init(MachineState *machine,
     /* ISA devices */
     i8259 = i8259_init(isa_bus, env->irq[4]);
     isa_bus_irqs(isa_bus, i8259);
-    cpu_exit_irq = qemu_allocate_irqs(cpu_request_exit, NULL, 1);
-    DMA_init(0, cpu_exit_irq);
+    DMA_init(0);
     pit = pit_init(isa_bus, 0x40, 0, NULL);
     pcspk_init(isa_bus, pit);
 
@@ -252,7 +241,7 @@ static void mips_jazz_init(MachineState *machine,
             /* Simple ROM, so user doesn't have to provide one */
             MemoryRegion *rom_mr = g_new(MemoryRegion, 1);
             memory_region_init_ram(rom_mr, NULL, "g364fb.rom", 0x80000,
-                                   &error_abort);
+                                   &error_fatal);
             vmstate_register_ram_global(rom_mr);
             memory_region_set_readonly(rom_mr, true);
             uint8_t *rom = memory_region_get_ram_ptr(rom_mr);
@@ -360,24 +349,40 @@ void mips_pica61_init(MachineState *machine)
     mips_jazz_init(machine, JAZZ_PICA61);
 }
 
-static QEMUMachine mips_magnum_machine = {
-    .name = "magnum",
-    .desc = "MIPS Magnum",
-    .init = mips_magnum_init,
-    .block_default_type = IF_SCSI,
+static void mips_magnum_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "MIPS Magnum";
+    mc->init = mips_magnum_init;
+    mc->block_default_type = IF_SCSI;
+}
+
+static const TypeInfo mips_magnum_type = {
+    .name = MACHINE_TYPE_NAME("magnum"),
+    .parent = TYPE_MACHINE,
+    .class_init = mips_magnum_class_init,
 };
 
-static QEMUMachine mips_pica61_machine = {
-    .name = "pica61",
-    .desc = "Acer Pica 61",
-    .init = mips_pica61_init,
-    .block_default_type = IF_SCSI,
+static void mips_pica61_class_init(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Acer Pica 61";
+    mc->init = mips_pica61_init;
+    mc->block_default_type = IF_SCSI;
+}
+
+static const TypeInfo mips_pica61_type = {
+    .name = MACHINE_TYPE_NAME("pica61"),
+    .parent = TYPE_MACHINE,
+    .class_init = mips_pica61_class_init,
 };
 
 static void mips_jazz_machine_init(void)
 {
-    qemu_register_machine(&mips_magnum_machine);
-    qemu_register_machine(&mips_pica61_machine);
+    type_register_static(&mips_magnum_type);
+    type_register_static(&mips_pica61_type);
 }
 
-machine_init(mips_jazz_machine_init);
+machine_init(mips_jazz_machine_init)

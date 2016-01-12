@@ -1731,8 +1731,7 @@ static PXA2xxI2SState *pxa2xx_i2s_init(MemoryRegion *sysmem,
                 hwaddr base,
                 qemu_irq irq, qemu_irq rx_dma, qemu_irq tx_dma)
 {
-    PXA2xxI2SState *s = (PXA2xxI2SState *)
-            g_malloc0(sizeof(PXA2xxI2SState));
+    PXA2xxI2SState *s = g_new0(PXA2xxI2SState, 1);
 
     s->irq = irq;
     s->rx_dma = rx_dma;
@@ -1959,7 +1958,7 @@ static void pxa2xx_fir_instance_init(Object *obj)
     PXA2xxFIrState *s = PXA2XX_FIR(obj);
     SysBusDevice *sbd = SYS_BUS_DEVICE(obj);
 
-    memory_region_init_io(&s->iomem, NULL, &pxa2xx_fir_ops, s,
+    memory_region_init_io(&s->iomem, obj, &pxa2xx_fir_ops, s,
                           "pxa2xx-fir", 0x1000);
     sysbus_init_mmio(sbd, &s->iomem);
     sysbus_init_irq(sbd, &s->irq);
@@ -2061,7 +2060,7 @@ PXA2xxState *pxa270_init(MemoryRegion *address_space,
     PXA2xxState *s;
     int i;
     DriveInfo *dinfo;
-    s = (PXA2xxState *) g_malloc0(sizeof(PXA2xxState));
+    s = g_new0(PXA2xxState, 1);
 
     if (revision && strncmp(revision, "pxa27", 5)) {
         fprintf(stderr, "Machine requires a PXA27x processor.\n");
@@ -2079,11 +2078,11 @@ PXA2xxState *pxa270_init(MemoryRegion *address_space,
 
     /* SDRAM & Internal Memory Storage */
     memory_region_init_ram(&s->sdram, NULL, "pxa270.sdram", sdram_size,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&s->sdram);
     memory_region_add_subregion(address_space, PXA2XX_SDRAM_BASE, &s->sdram);
     memory_region_init_ram(&s->internal, NULL, "pxa270.internal", 0x40000,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&s->internal);
     memory_region_add_subregion(address_space, PXA2XX_INTERNAL_BASE,
                                 &s->internal);
@@ -2157,7 +2156,7 @@ PXA2xxState *pxa270_init(MemoryRegion *address_space,
     vmstate_register(NULL, 0, &vmstate_pxa2xx_pm, s);
 
     for (i = 0; pxa27x_ssp[i].io_base; i ++);
-    s->ssp = (SSIBus **)g_malloc0(sizeof(SSIBus *) * i);
+    s->ssp = g_new0(SSIBus *, i);
     for (i = 0; pxa27x_ssp[i].io_base; i ++) {
         DeviceState *dev;
         dev = sysbus_create_simple(TYPE_PXA2XX_SSP, pxa27x_ssp[i].io_base,
@@ -2202,7 +2201,7 @@ PXA2xxState *pxa255_init(MemoryRegion *address_space, unsigned int sdram_size)
     int i;
     DriveInfo *dinfo;
 
-    s = (PXA2xxState *) g_malloc0(sizeof(PXA2xxState));
+    s = g_new0(PXA2xxState, 1);
 
     s->cpu = cpu_arm_init("pxa255");
     if (s->cpu == NULL) {
@@ -2213,11 +2212,11 @@ PXA2xxState *pxa255_init(MemoryRegion *address_space, unsigned int sdram_size)
 
     /* SDRAM & Internal Memory Storage */
     memory_region_init_ram(&s->sdram, NULL, "pxa255.sdram", sdram_size,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&s->sdram);
     memory_region_add_subregion(address_space, PXA2XX_SDRAM_BASE, &s->sdram);
     memory_region_init_ram(&s->internal, NULL, "pxa255.internal",
-                           PXA2XX_INTERNAL_SIZE, &error_abort);
+                           PXA2XX_INTERNAL_SIZE, &error_fatal);
     vmstate_register_ram_global(&s->internal);
     memory_region_add_subregion(address_space, PXA2XX_INTERNAL_BASE,
                                 &s->internal);
@@ -2290,7 +2289,7 @@ PXA2xxState *pxa255_init(MemoryRegion *address_space, unsigned int sdram_size)
     vmstate_register(NULL, 0, &vmstate_pxa2xx_pm, s);
 
     for (i = 0; pxa255_ssp[i].io_base; i ++);
-    s->ssp = (SSIBus **)g_malloc0(sizeof(SSIBus *) * i);
+    s->ssp = g_new0(SSIBus *, i);
     for (i = 0; pxa255_ssp[i].io_base; i ++) {
         DeviceState *dev;
         dev = sysbus_create_simple(TYPE_PXA2XX_SSP, pxa255_ssp[i].io_base,

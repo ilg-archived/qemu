@@ -80,19 +80,13 @@
 
 static tcg_insn_unit *tb_ret_addr;
 
-#ifndef GUEST_BASE
-#define GUEST_BASE 0
-#endif
-
 #include "elf.h"
 static bool have_isa_2_06;
 #define HAVE_ISA_2_06  have_isa_2_06
 #define HAVE_ISEL      have_isa_2_06
 
-#ifdef CONFIG_USE_GUEST_BASE
+#ifndef CONFIG_SOFTMMU
 #define TCG_GUEST_BASE_REG 30
-#else
-#define TCG_GUEST_BASE_REG 0
 #endif
 
 #ifndef NDEBUG
@@ -706,14 +700,14 @@ static void tcg_out_andi32(TCGContext *s, TCGReg dst, TCGReg src, uint32_t c)
 {
     int mb, me;
 
-    if ((c & 0xffff) == c) {
+    if (mask_operand(c, &mb, &me)) {
+        tcg_out_rlw(s, RLWINM, dst, src, 0, mb, me);
+    } else if ((c & 0xffff) == c) {
         tcg_out32(s, ANDI | SAI(src, dst, c));
         return;
     } else if ((c & 0xffff0000) == c) {
         tcg_out32(s, ANDIS | SAI(src, dst, c >> 16));
         return;
-    } else if (mask_operand(c, &mb, &me)) {
-        tcg_out_rlw(s, RLWINM, dst, src, 0, mb, me);
     } else {
         tcg_out_movi(s, TCG_TYPE_I32, TCG_REG_R0, c);
         tcg_out32(s, AND | SAB(src, dst, TCG_REG_R0));
@@ -725,18 +719,18 @@ static void tcg_out_andi64(TCGContext *s, TCGReg dst, TCGReg src, uint64_t c)
     int mb, me;
 
     assert(TCG_TARGET_REG_BITS == 64);
-    if ((c & 0xffff) == c) {
-        tcg_out32(s, ANDI | SAI(src, dst, c));
-        return;
-    } else if ((c & 0xffff0000) == c) {
-        tcg_out32(s, ANDIS | SAI(src, dst, c >> 16));
-        return;
-    } else if (mask64_operand(c, &mb, &me)) {
+    if (mask64_operand(c, &mb, &me)) {
         if (mb == 0) {
             tcg_out_rld(s, RLDICR, dst, src, 0, me);
         } else {
             tcg_out_rld(s, RLDICL, dst, src, 0, mb);
         }
+    } else if ((c & 0xffff) == c) {
+        tcg_out32(s, ANDI | SAI(src, dst, c));
+        return;
+    } else if ((c & 0xffff0000) == c) {
+        tcg_out32(s, ANDIS | SAI(src, dst, c >> 16));
+        return;
     } else {
         tcg_out_movi(s, TCG_TYPE_I64, TCG_REG_R0, c);
         tcg_out32(s, AND | SAB(src, dst, TCG_REG_R0));
@@ -1245,11 +1239,36 @@ static void tcg_out_brcond2 (TCGContext *s, const TCGArg *args,
 
 void ppc_tb_set_jmp_target(uintptr_t jmp_addr, uintptr_t addr)
 {
-    TCGContext s;
+    tcg_insn_unit i1, i2;
+    uint64_t pair;
+    intptr_t diff = addr - jmp_addr;
 
-    s.code_buf = s.code_ptr = (tcg_insn_unit *)jmp_addr;
-    tcg_out_b(&s, 0, (tcg_insn_unit *)addr);
-    flush_icache_range(jmp_addr, jmp_addr + tcg_current_code_size(&s));
+    if (in_range_b(diff)) {
+        i1 = B | (diff & 0x3fffffc);
+        i2 = NOP;
+    } else if (USE_REG_RA) {
+        intptr_t lo, hi;
+        diff = addr - (uintptr_t)tb_ret_addr;
+        lo = (int16_t)diff;
+        hi = (int32_t)(diff - lo);
+        assert(diff == hi + lo);
+        i1 = ADDIS | TAI(TCG_REG_TMP1, TCG_REG_RA, hi >> 16);
+        i2 = ADDI | TAI(TCG_REG_TMP1, TCG_REG_TMP1, lo);
+    } else {
+        assert(TCG_TARGET_REG_BITS == 32 || addr == (int32_t)addr);
+        i1 = ADDIS | TAI(TCG_REG_TMP1, 0, addr >> 16);
+        i2 = ORI | SAI(TCG_REG_TMP1, TCG_REG_TMP1, addr);
+    }
+#ifdef HOST_WORDS_BIGENDIAN
+    pair = (uint64_t)i1 << 32 | i2;
+#else
+    pair = (uint64_t)i2 << 32 | i1;
+#endif
+
+    /* ??? __atomic_store_8, presuming there's some way to do that
+       for 32-bit, otherwise this is good enough for 64-bit.  */
+    *(uint64_t *)jmp_addr = pair;
+    flush_icache_range(jmp_addr, jmp_addr + 8);
 }
 
 static void tcg_out_call(TCGContext *s, tcg_insn_unit *target)
@@ -1361,7 +1380,7 @@ static void * const qemu_st_helpers[16] = {
    in CR7, loads the addend of the TLB into R3, and returns the register
    containing the guest address (zero-extended into R4).  Clobbers R0 and R2. */
 
-static TCGReg tcg_out_tlb_read(TCGContext *s, TCGMemOp s_bits,
+static TCGReg tcg_out_tlb_read(TCGContext *s, TCGMemOp opc,
                                TCGReg addrlo, TCGReg addrhi,
                                int mem_index, bool is_read)
 {
@@ -1371,6 +1390,7 @@ static TCGReg tcg_out_tlb_read(TCGContext *s, TCGMemOp s_bits,
            : offsetof(CPUArchState, tlb_table[mem_index][0].addr_write));
     int add_off = offsetof(CPUArchState, tlb_table[mem_index][0].addend);
     TCGReg base = TCG_AREG0;
+    TCGMemOp s_bits = opc & MO_SIZE;
 
     /* Extract the page index, shifted into place for tlb index.  */
     if (TCG_TARGET_REG_BITS == 64) {
@@ -1422,17 +1442,37 @@ static TCGReg tcg_out_tlb_read(TCGContext *s, TCGMemOp s_bits,
        to minimize any load use delay.  */
     tcg_out_ld(s, TCG_TYPE_PTR, TCG_REG_R3, TCG_REG_R3, add_off);
 
-    /* Clear the non-page, non-alignment bits from the address.  */
+    /* Clear the non-page, non-alignment bits from the address */
     if (TCG_TARGET_REG_BITS == 32 || TARGET_LONG_BITS == 32) {
+        /* We don't support unaligned accesses on 32-bits, preserve
+         * the bottom bits and thus trigger a comparison failure on
+         * unaligned accesses
+         */
         tcg_out_rlw(s, RLWINM, TCG_REG_R0, addrlo, 0,
                     (32 - s_bits) & 31, 31 - TARGET_PAGE_BITS);
-    } else if (!s_bits) {
-        tcg_out_rld(s, RLDICR, TCG_REG_R0, addrlo,
-                    0, 63 - TARGET_PAGE_BITS);
+    } else if (s_bits) {
+        /* > byte access, we need to handle alignment */
+        if ((opc & MO_AMASK) == MO_ALIGN) {
+            /* Alignment required by the front-end, same as 32-bits */
+            tcg_out_rld(s, RLDICL, TCG_REG_R0, addrlo,
+                        64 - TARGET_PAGE_BITS, TARGET_PAGE_BITS - s_bits);
+            tcg_out_rld(s, RLDICL, TCG_REG_R0, TCG_REG_R0, TARGET_PAGE_BITS, 0);
+       } else {
+           /* We support unaligned accesses, we need to make sure we fail
+            * if we cross a page boundary. The trick is to add the
+            * access_size-1 to the address before masking the low bits.
+            * That will make the address overflow to the next page if we
+            * cross a page boundary which will then force a mismatch of
+            * the TLB compare since the next page cannot possibly be in
+            * the same TLB index.
+            */
+            tcg_out32(s, ADDI | TAI(TCG_REG_R0, addrlo, (1 << s_bits) - 1));
+            tcg_out_rld(s, RLDICR, TCG_REG_R0, TCG_REG_R0,
+                        0, 63 - TARGET_PAGE_BITS);
+        }
     } else {
-        tcg_out_rld(s, RLDICL, TCG_REG_R0, addrlo,
-                    64 - TARGET_PAGE_BITS, TARGET_PAGE_BITS - s_bits);
-        tcg_out_rld(s, RLDICL, TCG_REG_R0, TCG_REG_R0, TARGET_PAGE_BITS, 0);
+        /* Byte access, just chop off the bits below the page index */
+        tcg_out_rld(s, RLDICR, TCG_REG_R0, addrlo, 0, 63 - TARGET_PAGE_BITS);
     }
 
     if (TCG_TARGET_REG_BITS < TARGET_LONG_BITS) {
@@ -1592,7 +1632,7 @@ static void tcg_out_qemu_ld(TCGContext *s, const TCGArg *args, bool is_64)
 
 #ifdef CONFIG_SOFTMMU
     mem_index = get_mmuidx(oi);
-    addrlo = tcg_out_tlb_read(s, s_bits, addrlo, addrhi, mem_index, true);
+    addrlo = tcg_out_tlb_read(s, opc, addrlo, addrhi, mem_index, true);
 
     /* Load a pointer into the current opcode w/conditional branch-link. */
     label_ptr = s->code_ptr;
@@ -1600,7 +1640,7 @@ static void tcg_out_qemu_ld(TCGContext *s, const TCGArg *args, bool is_64)
 
     rbase = TCG_REG_R3;
 #else  /* !CONFIG_SOFTMMU */
-    rbase = GUEST_BASE ? TCG_GUEST_BASE_REG : 0;
+    rbase = guest_base ? TCG_GUEST_BASE_REG : 0;
     if (TCG_TARGET_REG_BITS > TARGET_LONG_BITS) {
         tcg_out_ext32u(s, TCG_REG_TMP1, addrlo);
         addrlo = TCG_REG_TMP1;
@@ -1667,7 +1707,7 @@ static void tcg_out_qemu_st(TCGContext *s, const TCGArg *args, bool is_64)
 
 #ifdef CONFIG_SOFTMMU
     mem_index = get_mmuidx(oi);
-    addrlo = tcg_out_tlb_read(s, s_bits, addrlo, addrhi, mem_index, false);
+    addrlo = tcg_out_tlb_read(s, opc, addrlo, addrhi, mem_index, false);
 
     /* Load a pointer into the current opcode w/conditional branch-link. */
     label_ptr = s->code_ptr;
@@ -1675,7 +1715,7 @@ static void tcg_out_qemu_st(TCGContext *s, const TCGArg *args, bool is_64)
 
     rbase = TCG_REG_R3;
 #else  /* !CONFIG_SOFTMMU */
-    rbase = GUEST_BASE ? TCG_GUEST_BASE_REG : 0;
+    rbase = guest_base ? TCG_GUEST_BASE_REG : 0;
     if (TCG_TARGET_REG_BITS > TARGET_LONG_BITS) {
         tcg_out_ext32u(s, TCG_REG_TMP1, addrlo);
         addrlo = TCG_REG_TMP1;
@@ -1779,9 +1819,9 @@ static void tcg_target_qemu_prologue(TCGContext *s)
     }
     tcg_out_st(s, TCG_TYPE_PTR, TCG_REG_R0, TCG_REG_R1, FRAME_SIZE+LR_OFFSET);
 
-#ifdef CONFIG_USE_GUEST_BASE
-    if (GUEST_BASE) {
-        tcg_out_movi(s, TCG_TYPE_PTR, TCG_GUEST_BASE_REG, GUEST_BASE);
+#ifndef CONFIG_SOFTMMU
+    if (guest_base) {
+        tcg_out_movi(s, TCG_TYPE_PTR, TCG_GUEST_BASE_REG, guest_base);
         tcg_regset_set_reg(s->reserved_regs, TCG_GUEST_BASE_REG);
     }
 #endif
@@ -1840,12 +1880,10 @@ static void tcg_out_op(TCGContext *s, TCGOpcode opc, const TCGArg *args,
         if (USE_REG_RA) {
             ptrdiff_t disp = tcg_pcrel_diff(s, tb_ret_addr);
 
-            /* If we can use a direct branch, otherwise use the value in RA.
-               Note that the direct branch is always forward.  If it's in
-               range now, it'll still be in range after the movi.  Don't
-               bother about the 20 bytes where the test here fails but it
-               would succeed below.  */
-            if (!in_range_b(disp)) {
+            /* Use a direct branch if we can, otherwise use the value in RA.
+               Note that the direct branch is always backward, thus we need
+               to account for the possibility of 5 insns from the movi.  */
+            if (!in_range_b(disp - 20)) {
                 tcg_out32(s, MTSPR | RS(TCG_REG_RA) | CTR);
                 tcg_out_movi(s, TCG_TYPE_PTR, TCG_REG_R3, args[0]);
                 tcg_out32(s, BCCTR | BO_ALWAYS);
@@ -1856,14 +1894,16 @@ static void tcg_out_op(TCGContext *s, TCGOpcode opc, const TCGArg *args,
         tcg_out_b(s, 0, tb_ret_addr);
         break;
     case INDEX_op_goto_tb:
-        if (s->tb_jmp_offset) {
-            /* Direct jump method.  */
-            s->tb_jmp_offset[args[0]] = tcg_current_code_size(s);
-            s->code_ptr += 7;
-        } else {
-            /* Indirect jump method.  */
-            tcg_abort();
+        tcg_debug_assert(s->tb_jmp_offset);
+        /* Direct jump.  Ensure the next insns are 8-byte aligned. */
+        if ((uintptr_t)s->code_ptr & 7) {
+            tcg_out32(s, NOP);
         }
+        s->tb_jmp_offset[args[0]] = tcg_current_code_size(s);
+        /* To be replaced by either a branch+nop or a load into TMP1.  */
+        s->code_ptr += 2;
+        tcg_out32(s, MTSPR | RS(TCG_REG_TMP1) | CTR);
+        tcg_out32(s, BCCTR | BO_ALWAYS);
         s->tb_next_offset[args[0]] = tcg_current_code_size(s);
         break;
     case INDEX_op_br:
@@ -2200,11 +2240,15 @@ static void tcg_out_op(TCGContext *s, TCGOpcode opc, const TCGArg *args,
     case INDEX_op_ext16s_i64:
         c = EXTSH;
         goto gen_ext;
+    case INDEX_op_ext_i32_i64:
     case INDEX_op_ext32s_i64:
         c = EXTSW;
         goto gen_ext;
     gen_ext:
         tcg_out32(s, c | RS(args[1]) | RA(args[0]));
+        break;
+    case INDEX_op_extu_i32_i64:
+        tcg_out_ext32u(s, args[0], args[1]);
         break;
 
     case INDEX_op_setcond_i32:
@@ -2482,6 +2526,8 @@ static const TCGTargetOpDef ppc_op_defs[] = {
     { INDEX_op_ext8s_i64, { "r", "r" } },
     { INDEX_op_ext16s_i64, { "r", "r" } },
     { INDEX_op_ext32s_i64, { "r", "r" } },
+    { INDEX_op_ext_i32_i64, { "r", "r" } },
+    { INDEX_op_extu_i32_i64, { "r", "r" } },
     { INDEX_op_bswap16_i64, { "r", "r" } },
     { INDEX_op_bswap32_i64, { "r", "r" } },
     { INDEX_op_bswap64_i64, { "r", "r" } },
