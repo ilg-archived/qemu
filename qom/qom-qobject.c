@@ -26,7 +26,7 @@ static char *dump_value(QObject *value, char *buf, size_t siz)
 {
     if (value->type->code == QTYPE_QINT) {
         QInt *p = (QInt *) value;
-        snprintf(buf, siz, "%lld", p->value);
+        snprintf(buf, siz, "%" PRId64, p->value);
         return buf;
     } else if (value->type->code == QTYPE_QSTRING) {
         QString *p = (QString *) value;

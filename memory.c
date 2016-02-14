@@ -411,16 +411,16 @@ static MemTxResult  memory_region_read_accessor(MemoryRegion *mr,
             ; /* Skip ITM */
         } else {
             if (size == 1) {
-                qemu_log_mask(LOG_TRACE_MR, "rd8(0x%08llX) 0x%02X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd8(0x%08"PRIX64") 0x%02X)\n",
                         a, (uint8_t)tmp);
             } else if (size == 2){
-                qemu_log_mask(LOG_TRACE_MR, "rd16(0x%08llX) 0x%04X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd16(0x%08"PRIX64") 0x%04X)\n",
                         a, (uint16_t)tmp);
             } else if (size == 4){
-                qemu_log_mask(LOG_TRACE_MR, "rd32(0x%08llX) 0x%08X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd32(0x%08"PRIX64") 0x%08X)\n",
                         a, (uint32_t)tmp);
             } else {
-                qemu_log_mask(LOG_TRACE_MR, "rd(0x%08llX, %d) 0x%llX\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd(0x%08"PRIX64", %d) 0x%"PRIX64"\n",
                         a, size, tmp);
             }
         }
@@ -455,16 +455,16 @@ static MemTxResult memory_region_read_with_attrs_accessor(MemoryRegion *mr,
             ; /* Skip ITM */
         } else {
             if (size == 1) {
-                qemu_log_mask(LOG_TRACE_MR, "rd8(0x%08llX) 0x%02X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd8(0x%08"PRIX64") 0x%02X)\n",
                         a, (uint8_t)tmp);
             } else if (size == 2){
-                qemu_log_mask(LOG_TRACE_MR, "rd16(0x%08llX) 0x%04X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd16(0x%08"PRIX64") 0x%04X)\n",
                         a, (uint16_t)tmp);
             } else if (size == 4){
-                qemu_log_mask(LOG_TRACE_MR, "rd32(0x%08llX) 0x%08X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd32(0x%08"PRIX64") 0x%08X)\n",
                         a, (uint32_t)tmp);
             } else {
-                qemu_log_mask(LOG_TRACE_MR, "rd(0x%08llX, %d) 0x%llX\n",
+                qemu_log_mask(LOG_TRACE_MR, "rd(0x%08"PRIX64", %d) 0x%"PRIX64"\n",
                         a, size, tmp);
             }
         }
@@ -516,16 +516,16 @@ static MemTxResult memory_region_write_accessor(MemoryRegion *mr,
             ; /* Skip ITM */
         } else {
             if (size == 1) {
-                qemu_log_mask(LOG_TRACE_MR, "wr8(0x%08llX, 0x%02X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "wr8(0x%08"PRIX64", 0x%02X)\n",
                         a, (uint8_t)tmp);
             } else if (size == 2){
-                qemu_log_mask(LOG_TRACE_MR, "wr16(0x%08llX, 0x%04X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "wr16(0x%08"PRIX64", 0x%04X)\n",
                         a, (uint16_t)tmp);
             } else if (size == 4){
-                qemu_log_mask(LOG_TRACE_MR, "wr32(0x%08llX, 0x%08X)\n",
+                qemu_log_mask(LOG_TRACE_MR, "wr32(0x%08"PRIX64", 0x%08X)\n",
                         a, (uint32_t)tmp);
             } else {
-                qemu_log_mask(LOG_TRACE_MR, "wr(0x%08llX, 0x%llX, %d)\n",
+                qemu_log_mask(LOG_TRACE_MR, "wr(0x%08"PRIX64", 0x%"PRIX64", %d)\n",
                         a, tmp, size);
             }
         }
@@ -996,7 +996,7 @@ void memory_region_init(MemoryRegion *mr,
 {
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     if (name != NULL) {
-        qemu_log_mask(LOG_TRACE, "%s(\"%s\", 0x%llX)\n", __FUNCTION__, name, size);
+        qemu_log_mask(LOG_TRACE, "%s(\"%s\", 0x%"PRIX64")\n", __FUNCTION__, name, size);
     }
 #endif
     if (!owner) {
