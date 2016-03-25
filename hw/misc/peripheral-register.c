@@ -306,6 +306,14 @@ void peripheral_register_set_pre_read(Object* obj, register_read_callback_t ptr)
     state->pre_read = ptr;
 }
 
+void peripheral_register_set_post_read(Object* obj,
+        register_post_read_callback_t ptr)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->post_read = ptr;
+}
+
 /* ----- Private ----------------------------------------------------------- */
 
 /**
@@ -451,8 +459,14 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
         state->value |= (new_value & state->readable_bits);
     }
 
-    return peripheral_register_shorten(state->value & state->readable_bits,
+    peripheral_register_t ret = peripheral_register_shorten(state->value & state->readable_bits,
             offset, size, periph_state->is_little_endian);
+    
+    if (state->post_read) {
+        state->post_read(reg, periph, addr, offset, size);
+    }
+    
+    return ret;
 }
 
 static void peripheral_register_write_callback(Object *reg, Object *periph,
@@ -812,7 +826,9 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     qemu_log_mask(LOG_TRACE,
             "%s() '%s', readable: 0x%08llX, writable: 0x%08llX, "
                     "reset: 0x%08llX, mode: %s%s\n", __FUNCTION__, state->name,
-            state->readable_bits, state->writable_bits, state->reset_value,
+            (long long int)state->readable_bits,
+            (long long int)state->writable_bits,
+            (long long int)state->reset_value,
             state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 

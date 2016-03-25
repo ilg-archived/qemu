@@ -260,7 +260,8 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
     qemu_log_mask(LOG_TRACE,
             "%s() '%s[%d:%d]', mask: 0x%llX, shift: %d, mode: %s%s\n",
             __FUNCTION__, state->name, state->first_bit,
-            state->first_bit + state->width_bits + 1, state->mask, state->shift,
+            state->first_bit + state->width_bits + 1,
+            (long long int)state->mask, state->shift,
             state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 

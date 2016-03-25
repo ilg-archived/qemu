@@ -20,6 +20,7 @@
 
 #include "hw/arm/stm32-mcu.h"
 #include "hw/arm/cortexm-helper.h"
+#include "sysemu/sysemu.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -46,6 +47,46 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
     cm_object_realize(gpio);
 
     state->gpio[index] = DEVICE(gpio);
+}
+
+/**
+ * Create children USART/UART nodes.
+ * Public names are "/machine/stm32/usart[%c]".
+ */
+static void create_usart(STM32MCUState *state, stm32_usart_index_t index,
+        const STM32Capabilities *capabilities)
+{
+    char child_name[10];
+    char chardev_name[10];
+    CharDriverState *chr;
+
+    snprintf(child_name, sizeof(child_name), "usart[%c]", '1' + index);
+    Object *usart = cm_object_new(state->container, child_name,
+        TYPE_STM32_USART);
+
+    object_property_set_int(usart, index, "port-index", NULL);
+    // TODO: get rid of pointers
+    qdev_prop_set_ptr(DEVICE(usart), "capabilities", (void *) capabilities);
+    qdev_prop_set_ptr(DEVICE(usart), "rcc", state->rcc);
+    qdev_prop_set_ptr(DEVICE(usart), "nvic", state->parent_obj.nvic);
+
+    if (index >= MAX_SERIAL_PORTS) {
+        hw_error("Cannot assign usart %d: QEMU supports only %d ports\n",
+                 index, MAX_SERIAL_PORTS);
+    }
+    chr = serial_hds[index];
+    if (!chr) {
+        snprintf(chardev_name, ARRAY_SIZE(chardev_name), "serial%d", index);
+        chr = qemu_chr_new(chardev_name, "null", NULL);
+        if (!(chr)) {
+            hw_error("Can't assign serial port to %s.\n", child_name);
+        }
+    }
+    qdev_prop_set_chr(DEVICE(usart), "chardev", chr);
+
+    cm_object_realize(usart);
+
+    state->usart[index] = DEVICE(usart);
 }
 
 /**
@@ -218,6 +259,36 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     /* GPIOG */
     if (capabilities->has_gpiog) {
         create_gpio(state, STM32_GPIO_PORT_G, capabilities);
+    }
+
+    /* USART1 */
+    if (capabilities->has_usart1) {
+        create_usart(state, STM32_USART_1, capabilities);
+    }
+
+    /* USART2 */
+    if (capabilities->has_usart2) {
+        create_usart(state, STM32_USART_2, capabilities);
+    }
+
+    /* USART3 */
+    if (capabilities->has_usart3) {
+        create_usart(state, STM32_USART_3, capabilities);
+    }
+
+    /* UART4 */
+    if (capabilities->has_uart4) {
+        create_usart(state, STM32_UART_4, capabilities);
+    }
+
+    /* UART5 */
+    if (capabilities->has_uart5) {
+        create_usart(state, STM32_UART_5, capabilities);
+    }
+
+    /* USART6 */
+    if (capabilities->has_usart6) {
+        create_usart(state, STM32_USART_6, capabilities);
     }
 
     /* TODO: add more devices. */

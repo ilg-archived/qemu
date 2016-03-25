@@ -72,7 +72,7 @@ static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
 {
     qemu_log_mask(LOG_TRACE,
             "%s(addr=0x%08llX, size=%d, is_write=%s, is_exec=%s)\n",
-            __FUNCTION__, addr, size, is_write ? "true" : "false",
+            __FUNCTION__, (long long int)addr, size, is_write ? "true" : "false",
             is_exec ? "true" : "false");
 
     //CPUARMState *env;
