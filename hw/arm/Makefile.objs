@@ -1,8 +1,11 @@
 # [GNU ARM Eclipse]
 # Disable most.
 
+# [GNU ARM Eclipse] boot.o required for TYPE_ARM_LINUX_BOOT_IF,
+# refered as interface by TYPE_ARM_GIC_COMMON, parent of TYPE_CORTEXM_NVIC
+obj-y += boot.o
 ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
-obj-y += boot.o collie.o exynos4_boards.o gumstix.o highbank.o
+obj-y += collie.o exynos4_boards.o gumstix.o highbank.o
 obj-$(CONFIG_DIGIC) += digic_boards.o
 obj-y += integratorcp.o mainstone.o musicpal.o nseries.o
 obj-y += omap_sx1.o palm.o realview.o spitz.o stellaris.o
