@@ -570,6 +570,7 @@ static int vmdk_open_vmdk4(BlockDriverState *bs,
     VmdkExtent *extent;
     BDRVVmdkState *s = bs->opaque;
     int64_t l1_backup_offset = 0;
+    bool compressed;
 
     ret = bdrv_pread(file->bs, sizeof(magic), &header, sizeof(header));
     if (ret < 0) {
@@ -644,6 +645,8 @@ static int vmdk_open_vmdk4(BlockDriverState *bs,
         header = footer.header;
     }
 
+    compressed =
+        le16_to_cpu(header.compressAlgorithm) == VMDK4_COMPRESSION_DEFLATE;
     if (le32_to_cpu(header.version) > 3) {
         char buf[64];
         snprintf(buf, sizeof(buf), "VMDK version %" PRId32,
@@ -651,7 +654,8 @@ static int vmdk_open_vmdk4(BlockDriverState *bs,
         error_setg(errp, QERR_UNKNOWN_BLOCK_FORMAT_FEATURE,
                    bdrv_get_device_or_node_name(bs), "vmdk", buf);
         return -ENOTSUP;
-    } else if (le32_to_cpu(header.version) == 3 && (flags & BDRV_O_RDWR)) {
+    } else if (le32_to_cpu(header.version) == 3 && (flags & BDRV_O_RDWR) &&
+               !compressed) {
         /* VMware KB 2064959 explains that version 3 added support for
          * persistent changed block tracking (CBT), and backup software can
          * read it as version=1 if it doesn't care about the changed area
@@ -1654,7 +1658,13 @@ static int vmdk_create_extent(const char *filename, int64_t filesize,
     }
     magic = cpu_to_be32(VMDK4_MAGIC);
     memset(&header, 0, sizeof(header));
-    header.version = zeroed_grain ? 2 : 1;
+    if (compress) {
+        header.version = 3;
+    } else if (zeroed_grain) {
+        header.version = 2;
+    } else {
+        header.version = 1;
+    }
     header.flags = VMDK4_FLAG_RGD | VMDK4_FLAG_NL_DETECT
                    | (compress ? VMDK4_FLAG_COMPRESS | VMDK4_FLAG_MARKER : 0)
                    | (zeroed_grain ? VMDK4_FLAG_ZERO_GRAIN : 0);

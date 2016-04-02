@@ -270,7 +270,8 @@ static int fw_cfg_select(FWCfgState *s, uint16_t key)
 static uint8_t fw_cfg_read(FWCfgState *s)
 {
     int arch = !!(s->cur_entry & FW_CFG_ARCH_LOCAL);
-    FWCfgEntry *e = &s->entries[arch][s->cur_entry & FW_CFG_ENTRY_MASK];
+    FWCfgEntry *e = (s->cur_entry == FW_CFG_INVALID) ? NULL :
+                    &s->entries[arch][s->cur_entry & FW_CFG_ENTRY_MASK];
     uint8_t ret;
 
     if (s->cur_entry == FW_CFG_INVALID || !e->data || s->cur_offset >= e->len)
@@ -338,7 +339,8 @@ static void fw_cfg_dma_transfer(FWCfgState *s)
     }
 
     arch = !!(s->cur_entry & FW_CFG_ARCH_LOCAL);
-    e = &s->entries[arch][s->cur_entry & FW_CFG_ENTRY_MASK];
+    e = (s->cur_entry == FW_CFG_INVALID) ? NULL :
+        &s->entries[arch][s->cur_entry & FW_CFG_ENTRY_MASK];
 
     if (dma.control & FW_CFG_DMA_CTL_READ) {
         read = 1;
@@ -780,17 +782,19 @@ FWCfgState *fw_cfg_init_io_dma(uint32_t iobase, uint32_t dma_iobase,
     DeviceState *dev;
     FWCfgState *s;
     uint32_t version = FW_CFG_VERSION;
-    bool dma_enabled = dma_iobase && dma_as;
+    bool dma_requested = dma_iobase && dma_as;
 
     dev = qdev_create(NULL, TYPE_FW_CFG_IO);
     qdev_prop_set_uint32(dev, "iobase", iobase);
     qdev_prop_set_uint32(dev, "dma_iobase", dma_iobase);
-    qdev_prop_set_bit(dev, "dma_enabled", dma_enabled);
+    if (!dma_requested) {
+        qdev_prop_set_bit(dev, "dma_enabled", false);
+    }
 
     fw_cfg_init1(dev);
     s = FW_CFG(dev);
 
-    if (dma_enabled) {
+    if (s->dma_enabled) {
         /* 64 bits for the address field */
         s->dma_as = dma_as;
         s->dma_addr = 0;
@@ -816,11 +820,13 @@ FWCfgState *fw_cfg_init_mem_wide(hwaddr ctl_addr,
     SysBusDevice *sbd;
     FWCfgState *s;
     uint32_t version = FW_CFG_VERSION;
-    bool dma_enabled = dma_addr && dma_as;
+    bool dma_requested = dma_addr && dma_as;
 
     dev = qdev_create(NULL, TYPE_FW_CFG_MEM);
     qdev_prop_set_uint32(dev, "data_width", data_width);
-    qdev_prop_set_bit(dev, "dma_enabled", dma_enabled);
+    if (!dma_requested) {
+        qdev_prop_set_bit(dev, "dma_enabled", false);
+    }
 
     fw_cfg_init1(dev);
 
@@ -830,7 +836,7 @@ FWCfgState *fw_cfg_init_mem_wide(hwaddr ctl_addr,
 
     s = FW_CFG(dev);
 
-    if (dma_enabled) {
+    if (s->dma_enabled) {
         s->dma_as = dma_as;
         s->dma_addr = 0;
         sysbus_mmio_map(sbd, 2, dma_addr);
@@ -875,7 +881,7 @@ static Property fw_cfg_io_properties[] = {
     DEFINE_PROP_UINT32("iobase", FWCfgIoState, iobase, -1),
     DEFINE_PROP_UINT32("dma_iobase", FWCfgIoState, dma_iobase, -1),
     DEFINE_PROP_BOOL("dma_enabled", FWCfgIoState, parent_obj.dma_enabled,
-                     false),
+                     true),
     DEFINE_PROP_END_OF_LIST(),
 };
 
@@ -915,7 +921,7 @@ static const TypeInfo fw_cfg_io_info = {
 static Property fw_cfg_mem_properties[] = {
     DEFINE_PROP_UINT32("data_width", FWCfgMemState, data_width, -1),
     DEFINE_PROP_BOOL("dma_enabled", FWCfgMemState, parent_obj.dma_enabled,
-                     false),
+                     true),
     DEFINE_PROP_END_OF_LIST(),
 };
 
