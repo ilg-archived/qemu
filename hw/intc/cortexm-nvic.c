@@ -37,6 +37,11 @@
 
 /* TODO: use these instead of armv7m_nvic_*(). */
 
+/*
+ * Change log:
+ * 20160402: patches from armv7m_nvic.c 2.5.1
+ */
+
 /* The external routines use the hardware vector numbering, ie. the first
  IRQ is #16.  The internal GIC routines use #32 as the first IRQ.  */
 void cortexm_nvic_set_pending(void *opaque, int irq)

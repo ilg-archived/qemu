@@ -61,6 +61,7 @@ typedef struct {
 #define CORTEXM_NVIC_STATE(obj) \
     OBJECT_CHECK(CortexMNVICState, (obj), TYPE_CORTEXM_NVIC)
 
+/* Inspired by the nvic_state defined in hw/intc/armv7m_nvic.c */
 typedef struct {
     /*< private >*/
     CortexMNVICParentState gic;
