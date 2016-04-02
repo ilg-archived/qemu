@@ -82,10 +82,18 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, netduinoplus2_leds_info, board_surface);
 }
 
-static QEMUMachine netduinoplus2_machine = {
-    .name = "NetduinoPlus2",
-    .desc = "Netduino Development Board with STM32F4",
-    .init = netduinoplus2_board_init_callback };
+static void netduinoplus2_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Netduino Development Board with STM32F4";
+    mc->init = netduinoplus2_board_init_callback;
+}
+
+static const TypeInfo netduinoplus2_machine = {
+    .name = MACHINE_TYPE_NAME("NetduinoPlus2"),
+    .parent = TYPE_MACHINE,
+    .class_init = netduinoplus2_board_class_init_callback };
 
 /* ----- Netduino Go ----- */
 
@@ -211,10 +219,18 @@ static void netduinogo_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, netduinogo_leds_info, board_surface);
 }
 
-static QEMUMachine netduinogo_machine = {
-    .name = "NetduinoGo",
-    .desc = "Netduino GoBus Development Board with STM32F4",
-    .init = netduinogo_board_init_callback };
+static void netduinogo_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Netduino GoBus Development Board with STM32F4";
+    mc->init = netduinogo_board_init_callback;
+}
+
+static const TypeInfo netduinogo_machine = {
+    .name = MACHINE_TYPE_NAME("NetduinoGo"),
+    .parent = TYPE_MACHINE,
+    .class_init = netduinogo_board_class_init_callback };
 
 /* ----- Maple r5 ----- */
 
@@ -254,10 +270,18 @@ static void maple_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, maple_leds_info, board_surface);
 }
 
-static QEMUMachine maple_machine = {
-    .name = "Maple",
-    .desc = "LeafLab Arduino-style STM32 microcontroller board (r5)",
-    .init = maple_board_init_callback };
+static void maple_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "LeafLab Arduino-style STM32 microcontroller board (r5)";
+    mc->init = maple_board_init_callback;
+}
+
+static const TypeInfo maple_machine = {
+    .name = MACHINE_TYPE_NAME("Maple"),
+    .parent = TYPE_MACHINE,
+    .class_init = maple_board_class_init_callback };
 
 /* ----- Boards inits ----- */
 static void stm32_duino_machines_init(void)
@@ -265,9 +289,12 @@ static void stm32_duino_machines_init(void)
 #if 0
     qemu_register_machine(&netduino2_machine);
 #endif
-    qemu_register_machine(&netduinoplus2_machine);
-    qemu_register_machine(&netduinogo_machine);
-    qemu_register_machine(&maple_machine);
+    type_register_static(&netduinoplus2_machine);
+    type_register_static(&netduinogo_machine);
+    type_register_static(&maple_machine);
 }
 
+#if 1
 machine_init(stm32_duino_machines_init);
+#endif
+

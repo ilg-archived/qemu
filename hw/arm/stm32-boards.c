@@ -96,10 +96,19 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
             board_surface);
 }
 
-static QEMUMachine stm32f4_discovery_machine = {
-    .name = "STM32F4-Discovery",
-    .desc = "ST Discovery kit for STM32F407/417 lines",
-    .init = stm32f4_discovery_board_init_callback };
+static void stm32f4_discovery_board_class_init_callback(ObjectClass *oc,
+        void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "ST Discovery kit for STM32F407/417 lines";
+    mc->init = stm32f4_discovery_board_init_callback;
+}
+
+static const TypeInfo stm32f4_discovery_machine = {
+    .name = MACHINE_TYPE_NAME("STM32F4-Discovery"),
+    .parent = TYPE_MACHINE,
+    .class_init = stm32f4_discovery_board_class_init_callback, };
 
 static void stm32f4_discovery2_board_init_callback(MachineState *machine)
 {
@@ -123,10 +132,19 @@ static void stm32f4_discovery2_board_init_callback(MachineState *machine)
             board_surface);
 }
 
-static QEMUMachine stm32f4_discovery2_machine = {
-    .name = "STM32F4-Discovery2",
-    .desc = "ST Discovery kit for STM32F407/417 lines",
-    .init = stm32f4_discovery2_board_init_callback };
+static void stm32f4_discovery2_board_class_init_callback(ObjectClass *oc,
+        void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "ST Discovery kit for STM32F407/417 lines";
+    mc->init = stm32f4_discovery2_board_init_callback;
+}
+
+static const TypeInfo stm32f4_discovery2_machine = {
+    .name = MACHINE_TYPE_NAME("STM32F4-Discovery2"),
+    .parent = TYPE_MACHINE,
+    .class_init = stm32f4_discovery2_board_class_init_callback, };
 
 /* ----- ST STM32F429I-Discovery ----- */
 
@@ -177,10 +195,19 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
             board_surface);
 }
 
-static QEMUMachine stm32f429i_discovery_machine = {
-    .name = "STM32F429I-Discovery",
-    .desc = "ST Discovery kit for STM32F429/439 lines",
-    .init = stm32f429i_discovery_board_init_callback };
+static void stm32f429i_discovery_board_class_init_callback(ObjectClass *oc,
+        void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "ST Discovery kit for STM32F429/439 lines";
+    mc->init = stm32f429i_discovery_board_init_callback;
+}
+
+static const TypeInfo stm32f429i_discovery_machine = {
+    .name = MACHINE_TYPE_NAME("STM32F429I-Discovery"),
+    .parent = TYPE_MACHINE,
+    .class_init = stm32f429i_discovery_board_class_init_callback };
 
 #if 0
 /* ----- ST STM32F3-Discovery ----- */
@@ -195,7 +222,7 @@ static QEMUMachine stm32f3_discovery_machine = {
 static void stm32f3_discovery_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F303VC);
+//cortexm_mcu_alloc(machine, TYPE_STM32F303VC);
 
     /* TODO: Add board inits */
 }
@@ -212,7 +239,7 @@ static QEMUMachine stm32f0_discovery_machine = {
 static void stm32f0_discovery_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F051R8);
+//cortexm_mcu_alloc(machine, TYPE_STM32F051R8);
 
     /* TODO: Add board inits */
 }
@@ -229,7 +256,7 @@ static QEMUMachine stm32vl_discovery_machine = {
 static void stm32vl_discovery_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
-    //cortexm_mcu_alloc(machine, TYPE_STM32F100RB);
+//cortexm_mcu_alloc(machine, TYPE_STM32F100RB);
 
     /* TODO: Add board inits */
 }
@@ -238,9 +265,9 @@ static void stm32vl_discovery_init_callback(MachineState *machine)
 /* ----- Boards inits ----- */
 static void stm32_machines_init(void)
 {
-    qemu_register_machine(&stm32f4_discovery_machine);
-    qemu_register_machine(&stm32f4_discovery2_machine);
-    qemu_register_machine(&stm32f429i_discovery_machine);
+    type_register_static(&stm32f4_discovery_machine);
+    type_register_static(&stm32f4_discovery2_machine);
+    type_register_static(&stm32f429i_discovery_machine);
 #if 0
     qemu_register_machine(&stm32f3_discovery_machine);
     qemu_register_machine(&stm32f0_discovery_machine);

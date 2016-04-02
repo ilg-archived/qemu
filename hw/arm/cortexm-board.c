@@ -21,6 +21,13 @@
 #include "hw/arm/cortexm-helper.h"
 #include "sysemu/sysemu.h"
 
+//static void lm3s6965evb_init(MachineState *machine)
+//{
+//    const char *cpu_model = machine->cpu_model;
+//    const char *kernel_filename = machine->kernel_filename;
+//    stellaris_init(kernel_filename, cpu_model, &stellaris_boards[1]);
+//}
+
 static void cortexm_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -33,14 +40,29 @@ static void cortexm_board_init_callback(MachineState *machine)
     }
 }
 
-static QEMUMachine machine_none = {
-    .name = "generic",
-    .desc = "Generic Cortex-M board; use -mcu to define the device",
-    .init = cortexm_board_init_callback, };
+static void cortexm_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Generic Cortex-M board; use -mcu to define the device";
+    mc->init = cortexm_board_init_callback;
+}
+
+//static QEMUMachine machine_none = {
+//    .name = "generic",
+//    .desc = "Generic Cortex-M board; use -mcu to define the device",
+//    .init = cortexm_board_init_callback, };
+
+static const TypeInfo machine_none = {
+    .name = MACHINE_TYPE_NAME("generic"),
+    .parent = TYPE_MACHINE,
+    .class_init = cortexm_board_class_init_callback,
+};
 
 static void cortexm_board_init(void)
 {
-    qemu_register_machine(&machine_none);
+//    qemu_register_machine(&machine_none);
+    type_register_static(&machine_none);
 }
 
 machine_init(cortexm_board_init);

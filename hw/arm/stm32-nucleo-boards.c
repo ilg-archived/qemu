@@ -64,10 +64,18 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
             board_surface);
 }
 
-static QEMUMachine nucleo_f103rb_machine = {
-    .name = "NUCLEO-F103RB",
-    .desc = "ST Nucleo Development Board for STM32 F1 series",
-    .init = nucleo_f103rb_board_init_callback };
+static void nucleo_f103rb_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "ST Nucleo Development Board for STM32 F1 series";
+    mc->init = nucleo_f103rb_board_init_callback;
+}
+
+static const TypeInfo nucleo_f103rb_machine = {
+    .name = MACHINE_TYPE_NAME("NUCLEO-F103RB"),
+    .parent = TYPE_MACHINE,
+    .class_init = nucleo_f103rb_board_class_init_callback };
 
 #if 0
 /* ----- ST NUCLEO-L152RE ----- */
@@ -125,10 +133,18 @@ static void nucleo_f411re_board_init_callback(MachineState *machine)
             board_surface);
 }
 
-static QEMUMachine nucleo_f411re_machine = {
-    .name = "NUCLEO-F411RE",
-    .desc = "ST Nucleo Development Board for STM32 F4 series",
-    .init = nucleo_f411re_board_init_callback };
+static void nucleo_f411re_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "ST Nucleo Development Board for STM32 F4 series";
+    mc->init = nucleo_f411re_board_init_callback;
+}
+
+static const TypeInfo nucleo_f411re_machine = {
+    .name = MACHINE_TYPE_NAME("NUCLEO-F411RE"),
+    .parent = TYPE_MACHINE,
+    .class_init = nucleo_f411re_board_class_init_callback };
 
 #if 0
 /* ----- ST NUCLEO-F334R8 ----- */
@@ -151,12 +167,14 @@ static void nucleo_f334r8_board_init_callback(MachineState *machine)
 /* ----- Boards inits ----- */
 static void stm32_machines_init(void)
 {
-    qemu_register_machine(&nucleo_f103rb_machine);
-    qemu_register_machine(&nucleo_f411re_machine);
+    type_register_static(&nucleo_f103rb_machine);
+    type_register_static(&nucleo_f411re_machine);
 #if 0
     qemu_register_machine(&nucleo_l152re_machine);
     qemu_register_machine(&nucleo_f334r8_machine);
 #endif
 }
 
+#if 1
 machine_init(stm32_machines_init);
+#endif

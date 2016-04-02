@@ -63,10 +63,18 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, stm32_h103_leds_info, board_surface);
 }
 
-static QEMUMachine stm32_h103_machine = {
-    .name = "STM32-H103",
-    .desc = "Olimex Header Board for STM32F103RBT6",
-    .init = stm32_h103_board_init_callback };
+static void stm32_h103_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Olimex Header Board for STM32F103RBT6";
+    mc->init = stm32_h103_board_init_callback;
+}
+
+static const TypeInfo stm32_h103_machine = {
+    .name = MACHINE_TYPE_NAME("STM32-H103"),
+    .parent = TYPE_MACHINE,
+    .class_init = stm32_h103_board_class_init_callback };
 
 /* ----- Olimex STM32-P103 ----- */
 
@@ -106,10 +114,18 @@ static void stm32_p103_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, stm32_p103_leds_info, board_surface);
 }
 
-static QEMUMachine stm32_p103_machine = {
-    .name = "STM32-P103",
-    .desc = "Olimex Prototype Board for STM32F103RBT6",
-    .init = stm32_p103_board_init_callback };
+static void stm32_p103_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Olimex Prototype Board for STM32F103RBT6";
+    mc->init = stm32_p103_board_init_callback;
+}
+
+static const TypeInfo stm32_p103_machine = {
+    .name = MACHINE_TYPE_NAME("STM32-P103"),
+    .parent = TYPE_MACHINE,
+    .class_init = stm32_p103_board_class_init_callback };
 
 /* ----- Olimex OLIMEXINO-STM32 ----- */
 
@@ -160,10 +176,19 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
             board_surface);
 }
 
-static QEMUMachine olimexino_stm32_machine = {
-    .name = "OLIMEXINO-STM32",
-    .desc = "Olimex Maple (Arduino-like) Development Board",
-    .init = olimexino_stm32_board_init_callback };
+static void olimexino_stm32_board_class_init_callback(ObjectClass *oc,
+        void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Olimex Maple (Arduino-like) Development Board";
+    mc->init = olimexino_stm32_board_init_callback;
+}
+
+static const TypeInfo olimexino_stm32_machine = {
+    .name = MACHINE_TYPE_NAME("OLIMEXINO-STM32"),
+    .parent = TYPE_MACHINE,
+    .class_init = olimexino_stm32_board_class_init_callback };
 
 /* ----- Olimex STM32-P107 ----- */
 
@@ -213,10 +238,18 @@ static void stm32_p107_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, stm32_p107_leds_info, board_surface);
 }
 
-static QEMUMachine stm32_p107_machine = {
-    .name = "STM32-P107",
-    .desc = "Olimex Prototype Board for STM32F107VCT6",
-    .init = stm32_p107_board_init_callback };
+static void stm32_p107_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Olimex Prototype Board for STM32F107VCT6";
+    mc->init = stm32_p107_board_init_callback;
+}
+
+static const TypeInfo stm32_p107_machine = {
+    .name = MACHINE_TYPE_NAME("STM32-P107"),
+    .parent = TYPE_MACHINE,
+    .class_init = stm32_p107_board_class_init_callback };
 
 /* ----- Olimex STM32-P407 ----- */
 
@@ -255,19 +288,29 @@ static void stm32_e407_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, stm32_e407_leds_info, board_surface);
 }
 
-static QEMUMachine stm32_e407_machine = {
-    .name = "STM32-E407",
-    .desc = "Olimex Development Board for STM32F407ZGT6",
-    .init = stm32_e407_board_init_callback };
+static void stm32_e407_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "Olimex Development Board for STM32F407ZGT6";
+    mc->init = stm32_e407_board_init_callback;
+}
+
+static const TypeInfo stm32_e407_machine = {
+    .name = MACHINE_TYPE_NAME("STM32-E407"),
+    .parent = TYPE_MACHINE,
+    .class_init = stm32_e407_board_class_init_callback };
 
 /* ----- Boards inits ----- */
 static void stm32_olimex_machines_init(void)
 {
-    qemu_register_machine(&stm32_e407_machine);
-    qemu_register_machine(&stm32_p107_machine);
-    qemu_register_machine(&stm32_p103_machine);
-    qemu_register_machine(&stm32_h103_machine);
-    qemu_register_machine(&olimexino_stm32_machine);
+    type_register_static(&stm32_e407_machine);
+    type_register_static(&stm32_p107_machine);
+    type_register_static(&stm32_p103_machine);
+    type_register_static(&stm32_h103_machine);
+    type_register_static(&olimexino_stm32_machine);
 }
 
+#if 1
 machine_init(stm32_olimex_machines_init);
+#endif
