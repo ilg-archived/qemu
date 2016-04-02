@@ -160,6 +160,7 @@ int autostart;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 int with_gdb;
+const char *mcu_device = NULL;
 #endif
 
 #if defined(CONFIG_VERBOSE)
@@ -2892,11 +2893,50 @@ static const QEMUOption *lookup_opt(int argc, char **argv,
 
 static void set_machine_options(MachineClass **machine_class)
 {
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     const char *optarg;
+#endif
+
     QemuOpts *opts;
     Location loc;
 
     loc_push_none(&loc);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    opts = qemu_get_machine_opts();
+    qemu_opts_loc_restore(opts);
+
+    const char *board_name;
+    board_name = qemu_opt_get(opts, "type");
+    if (board_name == NULL && mcu_device == NULL) {
+        error_report(
+                "Neither board nor mcu specified, and there is no default.\n"
+                        "Use -board help or -mcu help to list supported boards or devices!\n");
+        exit(1);
+    }
+
+    if (cm_board_help_func(board_name)) {
+        cm_mcu_help_func(mcu_device);
+        exit(0);
+    }
+
+    if (cm_mcu_help_func(mcu_device)) {
+        exit(0);
+    }
+
+    if (board_name == NULL) {
+        board_name = "generic";
+    }
+
+    MachineClass *mc = find_machine(board_name);
+    if (machine_class == NULL) {
+        cm_board_help_func("?");
+    } else {
+        *machine_class = mc;
+    }
+
+#else
 
     opts = qemu_get_machine_opts();
     qemu_opts_loc_restore(opts);
@@ -2911,6 +2951,7 @@ static void set_machine_options(MachineClass **machine_class)
         error_printf("Use -machine help to list supported machines\n");
         exit(1);
     }
+#endif
 
     loc_pop(&loc);
 }
@@ -3161,7 +3202,6 @@ int main(int argc, char **argv, char **envp)
     Error *err = NULL;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    const char *mcu_device = NULL;
     const char *image_filename = NULL;
     int actual_argc = argc;
     with_gdb = false;
@@ -3193,8 +3233,6 @@ int main(int argc, char **argv, char **envp)
                "QEMU v%s (%s).\n", QEMU_VERSION, error_get_progname());
     }
 #endif /* defined(CONFIG_VERBOSE) */
-
-    g_mem_set_vtable(&mem_trace);
 
     module_call_init(MODULE_INIT_QOM);
 
@@ -3325,9 +3363,11 @@ int main(int argc, char **argv, char **envp)
                 /* hw initialization will check this */
                 cpu_model = optarg;
                 break;
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_mcu:
                 mcu_device = optarg;
                 break;
+#endif
             case QEMU_OPTION_hda:
                 {
                     char buf[256];
@@ -3899,7 +3939,9 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_M:
             case QEMU_OPTION_machine:
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_board:
+#endif
                 olist = qemu_find_opts("machine");
                 opts = qemu_opts_parse_noisily(olist, optarg, true);
                 if (!opts) {
@@ -4305,7 +4347,7 @@ int main(int argc, char **argv, char **envp)
 
 #if !defined(CONFIG_GNU_ARM_ECLIPSE)
     if (machine_class == NULL) {
-        fprintf(stderr, "No machine specified, and there is no default.\n"
+        error_report("No machine specified, and there is no default.\n"
                 "Use -machine help to list supported machines!\n");
         exit(1);
     }
