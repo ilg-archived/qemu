@@ -76,6 +76,7 @@ typedef struct {
     MemoryRegion gic_iomem_alias;
     MemoryRegion container;
     uint32_t num_irq;
+    qemu_irq sysresetreq;
 } CortexMNVICState;
 
 /* ------------------------------------------------------------------------- */
