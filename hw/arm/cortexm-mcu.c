@@ -475,7 +475,7 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
     uint64_t entry;
     uint64_t lowaddr;
     image_size = load_elf(image_filename, NULL, NULL, &entry, &lowaddr,
-    NULL, big_endian, ELF_MACHINE, 1);
+    NULL, big_endian, EM_ARM, 1);
     if (image_size < 0) {
         image_size = load_image_targphys(image_filename, 0,
                 cm_state->flash_size_kb * 1024);
