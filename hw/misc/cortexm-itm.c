@@ -105,7 +105,12 @@ static void cortexm_itm_write_callback(void *opaque, hwaddr addr,
             if (size == 1) {
                 uint8_t byte;
                 byte = value;
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-result"
                 write(2, &byte, 1); /* Write on stderr */
+#pragma GCC diagnostic pop
+
             } else {
                 qemu_log_mask(LOG_GUEST_ERROR,
                         "ITM: Stimulus write size %d at offset 0x%x not implemented\n",
