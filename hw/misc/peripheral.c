@@ -77,7 +77,7 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
             state->registers[index]);
     if (reg == NULL) {
         qemu_log_mask(LOG_UNIMP, "%s: Peripheral read of size %d at offset "
-                "0x%llX not implemented.\n", object_get_typename(OBJECT(state)),
+                "0x%"PRIX64" not implemented.\n", object_get_typename(OBJECT(state)),
                 size, addr);
         return 0;
     }
@@ -128,7 +128,7 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
             state->registers[index]);
     if (reg == NULL) {
         qemu_log_mask(LOG_UNIMP,
-                "%s: Write of size %d at offset 0x%llX not implemented.\n",
+                "%s: Write of size %d at offset 0x%"PRIX64" not implemented.\n",
                 object_get_typename(OBJECT(state)), size, addr);
         return;
     }

@@ -810,8 +810,8 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     }
 
     qemu_log_mask(LOG_TRACE,
-            "%s() '%s', readable: 0x%08llX, writable: 0x%08llX, "
-                    "reset: 0x%08llX, mode: %s%s\n", __FUNCTION__, state->name,
+            "%s() '%s', readable: 0x%08"PRIX64", writable: 0x%08"PRIX64", "
+                    "reset: 0x%08"PRIX64", mode: %s%s\n", __FUNCTION__, state->name,
             state->readable_bits, state->writable_bits, state->reset_value,
             state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }

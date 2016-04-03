@@ -130,7 +130,7 @@ static void sysbus_mmio_map_common(SysBusDevice *dev, int n, hwaddr addr,
     assert(n >= 0 && n < dev->num_mmio);
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    qemu_log_mask(LOG_TRACE, "%s(0x%08llX)\n", __FUNCTION__, addr);
+    qemu_log_mask(LOG_TRACE, "%s(0x%08"PRIX64")\n", __FUNCTION__, addr);
 #endif
 
     if (dev->mmio[n].addr == addr) {
