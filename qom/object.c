@@ -10,6 +10,8 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "config-host.h"
+
 #include "qom/object.h"
 #include "qom/object_interfaces.h"
 #include "qemu-common.h"
@@ -290,6 +292,9 @@ static void type_initialize(TypeImpl *ti)
                 continue;
             }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+            g_assert(t);
+#endif
             type_initialize_interface(ti, t, t);
         }
     }
