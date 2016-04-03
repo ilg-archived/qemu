@@ -21,7 +21,7 @@
 #include "qemu/log.h"
 #endif
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_ARM_ECLIPSE__)
 static char *dump_value(QObject *value, char *buf, size_t siz)
 {
     if (value->type->code == QTYPE_QINT) {
