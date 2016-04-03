@@ -663,7 +663,8 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
         break;
 
     default:
-        break;
+        g_assert(0);
+        return;
     }
 
     if (level == 0) {
