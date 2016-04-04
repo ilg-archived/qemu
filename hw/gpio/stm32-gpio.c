@@ -823,7 +823,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
     state->dir_mask = 0;
 
     /* Call parent reset(). */
-    cm_device_parent_reset(dev, TYPE_STM32_RCC);
+    cm_device_parent_reset(dev, TYPE_STM32_GPIO);
 
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
