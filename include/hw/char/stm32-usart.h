@@ -92,7 +92,7 @@ typedef struct {
     stm32_usart_index_t port_index;
 
     STM32RCCState *rcc;
-    CortexMNVICState *nvic; 
+    CortexMNVICState *nvic;
 
     CharDriverState *chr;
 

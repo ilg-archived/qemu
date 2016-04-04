@@ -57,14 +57,12 @@ static bool stm32_usart_is_enabled(Object *obj)
                     & 0x10) != 0) {
                 return true;
             }
-        }
-        else if (state->port_index == STM32_USART_6) {
+        } else if (state->port_index == STM32_USART_6) {
             if ((peripheral_register_read_value(state->rcc->f4.reg.apb2enr)
                     & 0x20) != 0) {
                 return true;
             }
-        }
-        else {
+        } else {
             if ((peripheral_register_read_value(state->rcc->f4.reg.apb1enr)
                     & (0x20000 << (state->port_index - STM32_USART_2))) != 0) {
                 return true;
@@ -83,84 +81,82 @@ static bool stm32_usart_is_enabled(Object *obj)
 /* ------------------------------------------------------------------------- */
 
 static PeripheralInfo stm32_usart_info =
-{
-    .desc = "Universal synch asynch receiver transmitter (USART)",
-    .registers =
-        (PeripheralRegisterInfo[] ) {
-            {
-                .desc =
-                        "USART status register (USART_SR)",
-                .name = "sr",
-                .offset_bytes = 0x00,
-                /* datasheet indicates 0x00C00000, but I think it's wrong */
-                .reset_value = 0x000000C0,
-                .access_flags =
-                PERIPHERAL_REGISTER_32BITS_ALL,
-                .readable_bits = 0x000003FF,
-                .writable_bits = 0x000003FF, },
-            {
-                .desc =
-                        "USART data register (USART_DR)",
-                .name = "dr",
-                .offset_bytes = 0x04,
-                .reset_value = 0x00000000,
-                .access_flags =
-                PERIPHERAL_REGISTER_32BITS_ALL,
-                .readable_bits = 0x000001FF,
-                .writable_bits = 0x000001FF, },
-            {
-                .desc =
-                        "USART baud rate register (USART_BRR)",
-                .name = "brr",
-                .offset_bytes = 0x08,
-                .reset_value = 0x00000000,
-                .access_flags =
-                PERIPHERAL_REGISTER_32BITS_ALL,
-                .readable_bits = 0x0000FFFF,
-                .writable_bits = 0x0000FFFF, },
-            {
-                .desc =
-                        "USART control register 1 (USART_CR1)",
-                .name = "cr1",
-                .offset_bytes = 0x0C,
-                .reset_value = 0x00000000,
-                .access_flags =
-                PERIPHERAL_REGISTER_32BITS_ALL,
-                .readable_bits = 0x0000BFFF,
-                .writable_bits = 0x0000BFFF, },
-            {
-                .desc =
-                        "USART control register 2 (USART_CR2)",
-                .name = "cr2",
-                .offset_bytes = 0x10,
-                .reset_value = 0x00000000,
-                .access_flags =
-                PERIPHERAL_REGISTER_32BITS_ALL,
-                .readable_bits = 0x00007F6F,
-                .writable_bits = 0x00007F6F, },
-            {
-                .desc =
-                        "USART control register 3 (USART_CR3)",
-                .name = "cr3",
-                .offset_bytes = 0x14,
-                .reset_value = 0x00000000,
-                .access_flags =
-                PERIPHERAL_REGISTER_32BITS_ALL,
-                .writable_bits = 0x00000FFF,
-                .readable_bits = 0x00000FFF, },
-            {
-                .desc =
-                        "USART guard time and prescaler register (USART_GTPR)",
-                .name = "gtpr",
-                .offset_bytes = 0x18,
-                .reset_value = 0x00000000,
-                .access_flags =
-                PERIPHERAL_REGISTER_32BITS_ALL,
-                .writable_bits = 0x0000FFFF,
-                .readable_bits = 0x0000FFFF, },
-            { }, /**/
-        } , /**/
-};
+        {
+            .desc = "Universal synch asynch receiver transmitter (USART)",
+            .registers =
+                    (PeripheralRegisterInfo[] ) {
+                                {
+                                    .desc = "USART status register (USART_SR)",
+                                    .name = "sr",
+                                    .offset_bytes = 0x00,
+                                    /* datasheet indicates 0x00C00000, but I think it's wrong */
+                                    .reset_value = 0x000000C0,
+                                    .access_flags =
+                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    .readable_bits = 0x000003FF,
+                                    .writable_bits = 0x000003FF, },
+                                {
+                                    .desc = "USART data register (USART_DR)",
+                                    .name = "dr",
+                                    .offset_bytes = 0x04,
+                                    .reset_value = 0x00000000,
+                                    .access_flags =
+                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    .readable_bits = 0x000001FF,
+                                    .writable_bits = 0x000001FF, },
+                                {
+                                    .desc =
+                                            "USART baud rate register (USART_BRR)",
+                                    .name = "brr",
+                                    .offset_bytes = 0x08,
+                                    .reset_value = 0x00000000,
+                                    .access_flags =
+                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    .readable_bits = 0x0000FFFF,
+                                    .writable_bits = 0x0000FFFF, },
+                                {
+                                    .desc =
+                                            "USART control register 1 (USART_CR1)",
+                                    .name = "cr1",
+                                    .offset_bytes = 0x0C,
+                                    .reset_value = 0x00000000,
+                                    .access_flags =
+                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    .readable_bits = 0x0000BFFF,
+                                    .writable_bits = 0x0000BFFF, },
+                                {
+                                    .desc =
+                                            "USART control register 2 (USART_CR2)",
+                                    .name = "cr2",
+                                    .offset_bytes = 0x10,
+                                    .reset_value = 0x00000000,
+                                    .access_flags =
+                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    .readable_bits = 0x00007F6F,
+                                    .writable_bits = 0x00007F6F, },
+                                {
+                                    .desc =
+                                            "USART control register 3 (USART_CR3)",
+                                    .name = "cr3",
+                                    .offset_bytes = 0x14,
+                                    .reset_value = 0x00000000,
+                                    .access_flags =
+                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    .writable_bits = 0x00000FFF,
+                                    .readable_bits = 0x00000FFF, },
+                                {
+                                    .desc =
+                                            "USART guard time and prescaler register (USART_GTPR)",
+                                    .name = "gtpr",
+                                    .offset_bytes = 0x18,
+                                    .reset_value = 0x00000000,
+                                    .access_flags =
+                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    .writable_bits = 0x0000FFFF,
+                                    .readable_bits = 0x0000FFFF, },
+                                { }, /**/
+                            } , /**/
+        };
 
 static void stm32_usart_create_objects(Object *obj)
 {
@@ -201,7 +197,7 @@ static int smt32_usart_get_irq_vector(STM32USARTState *state)
 
 static int stm32_usart_can_receive(void *obj)
 {
-    STM32USARTState *state = STM32_USART_STATE((Object *)obj);
+    STM32USARTState *state = STM32_USART_STATE((Object * )obj);
 
     int32_t sr = peripheral_register_get_raw_value(state->reg.sr);
     if (!(sr & USART_SR_RXNE)) {
@@ -213,12 +209,12 @@ static int stm32_usart_can_receive(void *obj)
 
 static void stm32_usart_receive(void *obj, const uint8_t *buf, int size)
 {
-    STM32USARTState *state = STM32_USART_STATE((Object *)obj);
+    STM32USARTState *state = STM32_USART_STATE((Object * )obj);
 
     int32_t cr1 = peripheral_register_get_raw_value(state->reg.cr1);
 
-    if (!stm32_usart_is_enabled(obj)
-            || !(cr1 & USART_CR1_UE) || !(cr1 & USART_CR1_RE)) {
+    if (!stm32_usart_is_enabled(obj) || !(cr1 & USART_CR1_UE)
+            || !(cr1 & USART_CR1_RE)) {
         /* USART not enabled - drop the chars */
         return;
     }
@@ -238,7 +234,7 @@ static void stm32_usart_dr_post_write_callback(Object *reg, Object *periph,
 {
     STM32USARTState *state = STM32_USART_STATE(periph);
     unsigned char ch;
-    
+
     int32_t cr1 = peripheral_register_get_raw_value(state->reg.cr1);
 
     if ((cr1 & USART_CR1_UE) && (cr1 & USART_CR1_TE)) {
@@ -248,7 +244,7 @@ static void stm32_usart_dr_post_write_callback(Object *reg, Object *periph,
         }
         /* transmission is immediately complete */
         peripheral_register_or_raw_value(state->reg.sr,
-                USART_SR_TC | USART_SR_TXE);
+        USART_SR_TC | USART_SR_TXE);
         if ((cr1 & USART_CR1_TXEIE) || (cr1 & USART_CR1_TCIE)) {
             cortexm_nvic_set_pending(state->nvic,
                     smt32_usart_get_irq_vector(state));
@@ -256,8 +252,8 @@ static void stm32_usart_dr_post_write_callback(Object *reg, Object *periph,
     }
 }
 
-static peripheral_register_t stm32_usart_dr_pre_read_callback(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size)
+static peripheral_register_t stm32_usart_dr_pre_read_callback(Object *reg,
+        Object *periph, uint32_t addr, uint32_t offset, unsigned size)
 {
     STM32USARTState *state = STM32_USART_STATE(periph);
 
@@ -266,7 +262,7 @@ static peripheral_register_t stm32_usart_dr_pre_read_callback(Object *reg, Objec
 //        qemu_chr_accept_input(state->chr);
 //    }
 
-    // TODO: return the value to be returned by read
+// TODO: return the value to be returned by read
     return '?';
 }
 
@@ -278,9 +274,9 @@ static void stm32_usart_cr1_post_write_callback(Object *reg, Object *periph,
 
     int32_t sr = peripheral_register_get_raw_value(state->reg.sr);
 
-    if (((value & USART_CR1_RXNEIE) && (sr & USART_SR_RXNE)) ||
-            ((value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))  ||
-            ((value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
+    if (((value & USART_CR1_RXNEIE) && (sr & USART_SR_RXNE))
+            || ((value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))
+            || ((value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
         cortexm_nvic_set_pending(state->nvic,
                 smt32_usart_get_irq_vector(state));
     }
@@ -333,11 +329,9 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         size = 0x400;
         if (state->port_index == STM32_USART_1) {
             addr = 0x40011000;
-        }
-        else if (state->port_index == STM32_USART_6) {
+        } else if (state->port_index == STM32_USART_6) {
             addr = 0x40011400;
-        }
-        else {
+        } else {
             addr = 0x40004400 + (state->port_index - STM32_USART_2) * size;
         }
 
@@ -355,7 +349,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
     stm32_usart_create_objects(obj);
-    
+
     /* Register callbacks. */
     peripheral_register_set_pre_read(state->reg.dr,
             &stm32_usart_dr_pre_read_callback);
@@ -367,9 +361,9 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     /* Chardev callbacks. */
     if (state->chr) {
         qemu_chr_add_handlers(state->chr, stm32_usart_can_receive,
-                              stm32_usart_receive, NULL, obj);
+                stm32_usart_receive, NULL, obj);
     }
-    
+
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_USART)) {
         return;
@@ -416,7 +410,7 @@ static void stm32_usart_class_init_callback(ObjectClass *klass, void *data)
     dc->props = stm32_usart_properties;
 
     /* Reason: instance_init() method uses qemu_char_get_next_serial()
-    dc->cannot_instantiate_with_device_add_yet = true;*/
+     dc->cannot_instantiate_with_device_add_yet = true;*/
 
     PeripheralClass *per_class = PERIPHERAL_CLASS(klass);
     per_class->is_enabled = stm32_usart_is_enabled;
