@@ -213,7 +213,11 @@ void hmp_pcie_aer_inject_error(Monitor *mon, const QDict *qdict);
 
 /* serial ports */
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define MAX_SERIAL_PORTS 10
+#else
 #define MAX_SERIAL_PORTS 4
+#endif
 
 extern CharDriverState *serial_hds[MAX_SERIAL_PORTS];
 

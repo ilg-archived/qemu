@@ -66,6 +66,7 @@ typedef void (*register_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value);
 
+
 /**
  * Info structure used to create new register types.
  */
@@ -179,7 +180,7 @@ typedef struct {
 
     /*
      * Placing pointers to functions in the instance data is not very
-     * nice, but the alternative to create new times and make these
+     * nice, but the alternative to create new times(???) and make these
      * functions virtuals is not very practical, since there are
      * hundreds of such objects, mostly used only once.
      */
