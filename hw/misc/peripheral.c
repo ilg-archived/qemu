@@ -71,7 +71,17 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
     }
 
     uint32_t index = addr / state->register_size_bytes;
+
+#if 0
     assert(index < state->registers_size_ptrs);
+#else
+    if (index >= state->registers_size_ptrs) {
+        qemu_log_mask(LOG_UNIMP, "%s: Peripheral read of size %d at offset "
+                      "0x%"PRIX64" outside peripheral area.\n",
+                      object_get_typename(OBJECT(state)), size, addr);
+        return 0;
+    }
+#endif
 
     PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(
             state->registers[index]);
@@ -122,7 +132,16 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
     }
 
     uint32_t index = addr / state->register_size_bytes;
+#if 0
     assert(index < state->registers_size_ptrs);
+#else
+    if (index >= state->registers_size_ptrs) {
+        qemu_log_mask(LOG_UNIMP, "%s: Peripheral write of size %d at offset "
+                      "0x%"PRIX64" outside peripheral area.\n",
+                      object_get_typename(OBJECT(state)), size, addr);
+        return;
+    }
+#endif
 
     PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(
             state->registers[index]);
