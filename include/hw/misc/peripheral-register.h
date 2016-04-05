@@ -39,14 +39,32 @@
 
 /* ------------------------------------------------------------------------- */
 
-/* Allow all accesses, of all sizes. */
-#define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS    (0xFFFFFFFFFFFFFFFF)
+/*
+ * Access bits are grouped by size and offset.
+ *
+ * The byte position encodes the size (4321, or 87654321).
+ * The bit position encodes the offset (3210, or 76543210)
+ * - 01 - offset = 0, word aligned
+ * - 04 - offset = 2, half-word aligned
+ * - 08 - offset = 3, byte aligned
+ *
+ * Checked by peripheral_register_check_access().
+ */
+
+/* Allow all unaligned accesses, of all sizes. */
+#define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS        (0xFFFFFFFFFFFFFFFF)
 #define PERIPHERAL_REGISTER_64BITS_ALL                  (0xFFFFFFFFFFFFFFFF)
 #define PERIPHERAL_REGISTER_32BITS_ALL                  (0x0F0F0F0F)
-#define PERIPHERAL_REGISTER_32BITS_WORD                 (0x01000000)
 
-#define PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES      (4)
-#define PERIPHERAL_REGISTER_MAX_SIZE_BITS           (64)
+/* Allow word access aligned at 4 byte margin (reg-offset 0) */
+#define PERIPHERAL_REGISTER_32BITS_WORD                 (0x01000000)
+/* Allow word access aligned at 4 byte margin and half word access
+ * aligned at 2 and 4 byte margin  (reg-offset 0 or 2) */
+#define PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD        (0x01000500)
+
+/* --- */
+#define PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES          (4)
+#define PERIPHERAL_REGISTER_MAX_SIZE_BITS               (64)
 
 #define REGISTER_RW_MODE_READ          (0x01)
 #define REGISTER_RW_MODE_WRITE         (0x02)
@@ -62,10 +80,12 @@
 typedef peripheral_register_t (*register_read_callback_t)(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size);
 
+typedef void (*register_post_read_callback_t)(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size);
+
 typedef void (*register_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value);
-
 
 /**
  * Info structure used to create new register types.
@@ -141,6 +161,7 @@ typedef struct {
 
     register_read_callback_t pre_read;
     register_read_callback_t read;
+    register_post_read_callback_t post_read;
     register_write_callback_t write;
     register_write_callback_t post_write;
 } PeripheralRegisterClass;
@@ -185,6 +206,7 @@ typedef struct {
      * hundreds of such objects, mostly used only once.
      */
     register_read_callback_t pre_read;
+    register_post_read_callback_t post_read;
     register_write_callback_t post_write;
 } PeripheralRegisterState;
 
@@ -223,6 +245,9 @@ void peripheral_register_set_post_write(Object* obj,
 
 void peripheral_register_set_pre_read(Object* obj,
         register_read_callback_t ptr);
+
+void peripheral_register_set_post_read(Object* obj,
+        register_post_read_callback_t ptr);
 
 /* ------------------------------------------------------------------------- */
 

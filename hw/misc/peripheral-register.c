@@ -30,6 +30,8 @@
  */
 
 static int peripheral_register_create_auto_array(Object *obj, void *opaque);
+static int peripheral_register_check_access(unsigned size, unsigned offset,
+        uint64_t access);
 
 /* ----- Public ------------------------------------------------------------ */
 
@@ -306,7 +308,30 @@ void peripheral_register_set_pre_read(Object* obj, register_read_callback_t ptr)
     state->pre_read = ptr;
 }
 
+void peripheral_register_set_post_read(Object* obj,
+        register_post_read_callback_t ptr)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->post_read = ptr;
+}
+
 /* ----- Private ----------------------------------------------------------- */
+
+/**
+ * Validate the access, using the bits defined for each register.
+ * Each byte encodes one size and inside the byte each bit encodes
+ * one unaligned offset.
+ */
+static int peripheral_register_check_access(unsigned size, unsigned offset,
+        uint64_t access)
+{
+    if ((access >> (8 * ((size - 1) & 7))) & (1 << (offset & 7))) {
+        return true;
+    }
+
+    return false;
+}
 
 /**
  * Structure used to process endianness.
@@ -438,6 +463,15 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
     PeripheralState *periph_state = PERIPHERAL_STATE(periph);
 
+    /* Validate alignment */
+    if (!peripheral_register_check_access(size, offset, state->access_flags)) {
+        qemu_log_mask(LOG_GUEST_ERROR,
+                "%s: Peripheral register read of size %d at offset "
+                        "0x%"PRIX32" not aligned.\n",
+                object_get_typename(OBJECT(state)), size, addr);
+        return 0;
+    }
+
     /*
      * Specific actions required to get the actual values are implemented
      * with pre read callbacks. These should prepare the value in the
@@ -447,12 +481,24 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
         peripheral_register_t new_value;
         new_value = state->pre_read(reg, periph, addr, offset, size);
 
+#if 0
+        // This complicated thing is most probably an error.
         state->value &= (new_value & state->readable_bits);
         state->value |= (new_value & state->readable_bits);
+#else
+        state->value = (new_value & state->readable_bits);
+#endif
     }
 
-    return peripheral_register_shorten(state->value & state->readable_bits,
-            offset, size, periph_state->is_little_endian);
+    peripheral_register_t ret = peripheral_register_shorten(
+            state->value & state->readable_bits, offset, size,
+            periph_state->is_little_endian);
+
+    if (state->post_read) {
+        state->post_read(reg, periph, addr, offset, size);
+    }
+
+    return ret;
 }
 
 static void peripheral_register_write_callback(Object *reg, Object *periph,
@@ -461,6 +507,15 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
     PeripheralState *periph_state = PERIPHERAL_STATE(periph);
+
+    /* Validate alignment */
+    if (!peripheral_register_check_access(size, offset, state->access_flags)) {
+        qemu_log_mask(LOG_GUEST_ERROR,
+                "%s: Peripheral register write of size %d at offset "
+                        "0x%"PRIX32" not aligned.\n",
+                object_get_typename(OBJECT(state)), size, addr);
+        return;
+    }
 
     peripheral_register_t new_value = peripheral_register_widen(state->value,
             value, offset, size, periph_state->is_little_endian);
@@ -811,7 +866,7 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
 
     qemu_log_mask(LOG_TRACE,
             "%s() '%s', readable: 0x%08"PRIX64", writable: 0x%08"PRIX64", "
-                    "reset: 0x%08"PRIX64", mode: %s%s\n", __FUNCTION__, state->name,
+            "reset: 0x%08"PRIX64", mode: %s%s\n", __FUNCTION__, state->name,
             state->readable_bits, state->writable_bits, state->reset_value,
             state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
