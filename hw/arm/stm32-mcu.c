@@ -62,7 +62,7 @@ static void create_usart(STM32MCUState *state, stm32_usart_index_t index,
 
     snprintf(child_name, sizeof(child_name), "usart[%c]", '1' + index);
     Object *usart = cm_object_new(state->container, child_name,
-        TYPE_STM32_USART);
+    TYPE_STM32_USART);
 
     object_property_set_int(usart, index, "port-index", NULL);
     // TODO: get rid of pointers
@@ -70,9 +70,9 @@ static void create_usart(STM32MCUState *state, stm32_usart_index_t index,
     qdev_prop_set_ptr(DEVICE(usart), "rcc", state->rcc);
     qdev_prop_set_ptr(DEVICE(usart), "nvic", state->parent_obj.nvic);
 
-    if ((int)index >= MAX_SERIAL_PORTS) {
-        hw_error("Cannot assign usart %d: QEMU supports only %d ports\n",
-                 index, MAX_SERIAL_PORTS);
+    if ((int) index >= MAX_SERIAL_PORTS) {
+        hw_error("Cannot assign usart %d: QEMU supports only %d ports\n", index,
+                MAX_SERIAL_PORTS);
     }
     chr = serial_hds[index];
     if (!chr) {
