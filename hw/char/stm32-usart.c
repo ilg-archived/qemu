@@ -80,7 +80,7 @@ static bool stm32_usart_is_enabled(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
-static PeripheralInfo stm32_usart_info =
+static PeripheralInfo stm32f4_usart_info =
         {
             .desc = "Universal synch asynch receiver transmitter (USART)",
             .registers =
@@ -92,16 +92,16 @@ static PeripheralInfo stm32_usart_info =
                                     /* datasheet indicates 0x00C00000, but I think it's wrong */
                                     .reset_value = 0x000000C0,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
                                     .readable_bits = 0x000003FF,
-                                    .writable_bits = 0x000003FF, },
+                                    .writable_bits = 0x00000360, },
                                 {
                                     .desc = "USART data register (USART_DR)",
                                     .name = "dr",
                                     .offset_bytes = 0x04,
                                     .reset_value = 0x00000000,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
                                     .readable_bits = 0x000001FF,
                                     .writable_bits = 0x000001FF, },
                                 {
@@ -111,7 +111,7 @@ static PeripheralInfo stm32_usart_info =
                                     .offset_bytes = 0x08,
                                     .reset_value = 0x00000000,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
                                     .readable_bits = 0x0000FFFF,
                                     .writable_bits = 0x0000FFFF, },
                                 {
@@ -121,7 +121,7 @@ static PeripheralInfo stm32_usart_info =
                                     .offset_bytes = 0x0C,
                                     .reset_value = 0x00000000,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
                                     .readable_bits = 0x0000BFFF,
                                     .writable_bits = 0x0000BFFF, },
                                 {
@@ -131,9 +131,9 @@ static PeripheralInfo stm32_usart_info =
                                     .offset_bytes = 0x10,
                                     .reset_value = 0x00000000,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
-                                    .readable_bits = 0x00007F6F,
-                                    .writable_bits = 0x00007F6F, },
+                                    PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
+                                    .readable_bits = 0x00007F7F,
+                                    .writable_bits = 0x00007F7F, },
                                 {
                                     .desc =
                                             "USART control register 3 (USART_CR3)",
@@ -141,7 +141,7 @@ static PeripheralInfo stm32_usart_info =
                                     .offset_bytes = 0x14,
                                     .reset_value = 0x00000000,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
                                     .writable_bits = 0x00000FFF,
                                     .readable_bits = 0x00000FFF, },
                                 {
@@ -151,18 +151,18 @@ static PeripheralInfo stm32_usart_info =
                                     .offset_bytes = 0x18,
                                     .reset_value = 0x00000000,
                                     .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
+                                    PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
                                     .writable_bits = 0x0000FFFF,
                                     .readable_bits = 0x0000FFFF, },
                                 { }, /**/
                             } , /**/
         };
 
-static void stm32_usart_create_objects(Object *obj)
+static void stm32f4_usart_create_objects(Object *obj)
 {
     STM32USARTState *state = STM32_USART_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32_usart_info);
+    peripheral_new_with_info(obj, NULL, &stm32f4_usart_info);
 
     state->reg.sr = cm_object_get_child_by_name(obj, "sr");
     state->reg.dr = cm_object_get_child_by_name(obj, "dr");
@@ -175,7 +175,7 @@ static void stm32_usart_create_objects(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
-static int smt32_usart_get_irq_vector(STM32USARTState *state)
+static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
 {
     switch (state->port_index) {
     case STM32_USART_1:
@@ -195,7 +195,7 @@ static int smt32_usart_get_irq_vector(STM32USARTState *state)
     }
 }
 
-static int stm32_usart_can_receive(void *obj)
+static int stm32f4_usart_can_receive(void *obj)
 {
     STM32USARTState *state = STM32_USART_STATE((Object * )obj);
 
@@ -207,7 +207,7 @@ static int stm32_usart_can_receive(void *obj)
     return 0;
 }
 
-static void stm32_usart_receive(void *obj, const uint8_t *buf, int size)
+static void stm32f4_usart_receive(void *obj, const uint8_t *buf, int size)
 {
     STM32USARTState *state = STM32_USART_STATE((Object * )obj);
 
@@ -224,11 +224,22 @@ static void stm32_usart_receive(void *obj, const uint8_t *buf, int size)
 
     if (cr1 & USART_CR1_RXNEIE) {
         cortexm_nvic_set_pending(state->nvic,
-                smt32_usart_get_irq_vector(state));
+                smt32f4_usart_get_irq_vector(state));
     }
 }
 
-static void stm32_usart_dr_post_write_callback(Object *reg, Object *periph,
+static void stm32f4_usart_dr_post_read_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size)
+{
+    STM32USARTState *state = STM32_USART_STATE(periph);
+
+    peripheral_register_and_raw_value(state->reg.sr, ~USART_SR_RXNE);
+    if (state->chr) {
+        qemu_chr_accept_input(state->chr);
+    }
+}
+
+static void stm32f4_usart_dr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value)
 {
@@ -247,26 +258,12 @@ static void stm32_usart_dr_post_write_callback(Object *reg, Object *periph,
         USART_SR_TC | USART_SR_TXE);
         if ((cr1 & USART_CR1_TXEIE) || (cr1 & USART_CR1_TCIE)) {
             cortexm_nvic_set_pending(state->nvic,
-                    smt32_usart_get_irq_vector(state));
+                    smt32f4_usart_get_irq_vector(state));
         }
     }
 }
 
-static peripheral_register_t stm32_usart_dr_pre_read_callback(Object *reg,
-        Object *periph, uint32_t addr, uint32_t offset, unsigned size)
-{
-    STM32USARTState *state = STM32_USART_STATE(periph);
-
-    peripheral_register_and_raw_value(state->reg.sr, ~USART_SR_RXNE);
-//    if (state->chr) {
-//        qemu_chr_accept_input(state->chr);
-//    }
-
-// TODO: return the value to be returned by read
-    return '?';
-}
-
-static void stm32_usart_cr1_post_write_callback(Object *reg, Object *periph,
+static void stm32f4_usart_cr1_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value)
 {
@@ -278,7 +275,7 @@ static void stm32_usart_cr1_post_write_callback(Object *reg, Object *periph,
             || ((value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))
             || ((value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
         cortexm_nvic_set_pending(state->nvic,
-                smt32_usart_get_irq_vector(state));
+                smt32f4_usart_get_irq_vector(state));
     }
 }
 
@@ -290,7 +287,7 @@ static void stm32_usart_instance_init_callback(Object *obj)
 
     /* STM32USARTState *state = STM32_USART_STATE(obj); */
 
-    /* FIXME use a qdev chardev prop instead of qemu_char_get_next_serial() */
+    /* FIXME use a qdev char-device prop instead of qemu_char_get_next_serial() */
     /* state->chr = qemu_char_get_next_serial(); */
 }
 
@@ -302,10 +299,6 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     STM32USARTState *state = STM32_USART_STATE(dev);
 
-    const STM32Capabilities *capabilities =
-    STM32_USART_STATE(state)->capabilities;
-    assert(capabilities != NULL);
-
     Object *obj = OBJECT(dev);
 
     /* Must be defined before creating registers. */
@@ -316,6 +309,10 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     uint32_t size;
     hwaddr addr;
+
+    const STM32Capabilities *capabilities =
+    STM32_USART_STATE(state)->capabilities;
+    assert(capabilities != NULL);
 
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
@@ -348,20 +345,29 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, addr, "mmio-address");
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
-    stm32_usart_create_objects(obj);
+    switch (capabilities->family) {
+    case STM32_FAMILY_F4:
 
-    /* Register callbacks. */
-    peripheral_register_set_pre_read(state->reg.dr,
-            &stm32_usart_dr_pre_read_callback);
-    peripheral_register_set_post_write(state->reg.dr,
-            &stm32_usart_dr_post_write_callback);
-    peripheral_register_set_post_write(state->reg.cr1,
-            &stm32_usart_cr1_post_write_callback);
+        stm32f4_usart_create_objects(obj);
 
-    /* Chardev callbacks. */
-    if (state->chr) {
-        qemu_chr_add_handlers(state->chr, stm32_usart_can_receive,
-                stm32_usart_receive, NULL, obj);
+        /* Register callbacks. */
+        peripheral_register_set_post_read(state->reg.dr,
+                &stm32f4_usart_dr_post_read_callback);
+        peripheral_register_set_post_write(state->reg.dr,
+                &stm32f4_usart_dr_post_write_callback);
+        peripheral_register_set_post_write(state->reg.cr1,
+                &stm32f4_usart_cr1_post_write_callback);
+
+        /* char-device callbacks. */
+        if (state->chr) {
+            qemu_chr_add_handlers(state->chr, stm32f4_usart_can_receive,
+                    stm32f4_usart_receive, NULL, obj);
+        }
+
+        break;
+
+    default:
+        break;
     }
 
     /* Call parent realize(). */
@@ -381,12 +387,26 @@ static void stm32_usart_reset_callback(DeviceState *dev)
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_STM32_USART);
 
-    /* FIXME: We should certainly clear the interrupt state.
-     * Don't know how to do that: implement cortexm_nvic_clear_pending ??? */
-
     if (state->chr) {
         qemu_chr_accept_input(state->chr);
     }
+
+    const STM32Capabilities *capabilities =
+    STM32_USART_STATE(state)->capabilities;
+    assert(capabilities != NULL);
+
+    switch (capabilities->family) {
+    case STM32_FAMILY_F4:
+
+        // TODO:
+        /* FIXME: We should certainly clear the interrupt state.
+         * Don't know how to do that: implement cortexm_nvic_clear_pending ??? */
+        break;
+
+    default:
+        break;
+    }
+
 }
 
 static Property stm32_usart_properties[] = {
