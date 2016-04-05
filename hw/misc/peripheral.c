@@ -52,7 +52,7 @@ Object *peripheral_new_with_info(Object *parent_obj, const char *node_name,
  * Memory region read callback.
  *
  * Forward the read to the register. The basic register will do the
- * endiannes and size magic and return the value from the internal storage.
+ * endianness and size magic and return the value from the internal storage.
  *
  * For special processing, create a new derived type with custom read()
  * and add the required actions.
@@ -77,8 +77,8 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
 #else
     if (index >= state->registers_size_ptrs) {
         qemu_log_mask(LOG_UNIMP, "%s: Peripheral read of size %d at offset "
-                      "0x%"PRIX64" outside peripheral area.\n",
-                      object_get_typename(OBJECT(state)), size, addr);
+                "0x%"PRIX64" outside peripheral area.\n",
+                object_get_typename(OBJECT(state)), size, addr);
         return 0;
     }
 #endif
@@ -87,8 +87,8 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
             state->registers[index]);
     if (reg == NULL) {
         qemu_log_mask(LOG_UNIMP, "%s: Peripheral read of size %d at offset "
-                "0x%"PRIX64" not implemented.\n", object_get_typename(OBJECT(state)),
-                size, addr);
+                "0x%"PRIX64" not implemented.\n",
+                object_get_typename(OBJECT(state)), size, addr);
         return 0;
     }
 
@@ -112,7 +112,7 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
  * Memory region write callback.
  *
  * Forward the write to the register. The basic register will do the
- * endiannes and size magic and store the value internally.
+ * endianness and size magic and store the value internally.
  *
  * For special processing, create a new derived type with custom write()
  * and add the required actions.
@@ -137,8 +137,8 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
 #else
     if (index >= state->registers_size_ptrs) {
         qemu_log_mask(LOG_UNIMP, "%s: Peripheral write of size %d at offset "
-                      "0x%"PRIX64" outside peripheral area.\n",
-                      object_get_typename(OBJECT(state)), size, addr);
+                "0x%"PRIX64" outside peripheral area.\n",
+                object_get_typename(OBJECT(state)), size, addr);
         return;
     }
 #endif
