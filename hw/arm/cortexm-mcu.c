@@ -324,7 +324,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* ----- Construct the ITM object. ----- */
     if (capabilities->core->has_itm) {
-        /* The ITM will be available via "/machine/cortexm/nvic" */
+        /* The ITM will be available via "/machine/cortexm/itm" */
         Object *itm = cm_object_new(cm_state->container, "itm",
         TYPE_CORTEXM_ITM);
 
