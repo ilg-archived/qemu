@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/stm32-sys-bus-device.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/stm32-sys-bus-device.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 /* ------------------------------------------------------------------------- */
 

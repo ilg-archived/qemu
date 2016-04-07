@@ -21,12 +21,12 @@
 #define STM32_MCU_H_
 
 #include "hw/boards.h"
-#include "hw/arm/cortexm-mcu.h"
-#include "hw/misc/stm32-rcc.h"
-#include "hw/misc/stm32-flash.h"
-#include "hw/misc/stm32-pwr.h"
-#include "hw/gpio/stm32-gpio.h"
-#include "hw/char/stm32-usart.h"
+#include "hw/cortexm/cortexm-mcu.h"
+#include "hw/cortexm/stm32-rcc.h"
+#include "hw/cortexm/stm32-flash.h"
+#include "hw/cortexm/stm32-pwr.h"
+#include "hw/cortexm/stm32-gpio.h"
+#include "hw/cortexm/stm32-usart.h"
 
 /* ------------------------------------------------------------------------- */
 

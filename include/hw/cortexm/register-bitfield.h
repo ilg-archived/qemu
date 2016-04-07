@@ -23,7 +23,7 @@
 #include "config.h"
 #include "qemu/typedefs.h"
 #include "hw/sysbus.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 /**
  * Emulates the behaviour of a register bitfield.

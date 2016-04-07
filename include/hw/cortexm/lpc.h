@@ -1,5 +1,5 @@
 /*
- * TI Tiva devices emulation.
+ * NXP LPC Cortex-M devices emulation.
  *
  * Copyright (c) 2014 Liviu Ionescu
  *
@@ -17,14 +17,14 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HW_ARM_TIVA_H
-#define HW_ARM_TIVA_H 1
+#ifndef HW_ARM_LPC_H
+#define HW_ARM_LPC_H 1
 
 #include "hw/boards.h"
-#include "hw/arm/cortexm-mcu.h"
+#include "hw/cortexm/cortexm-mcu.h"
 
-void tiva_board_init(MachineState *machine, QEMUMachine *qm);
+void lpc_board_init(MachineState *machine, QEMUMachine *qm);
 
-qemu_irq *tm4c123gh6pm_mcu_init(MachineState *machine);
+qemu_irq *lpc1769fbd100_mcu_init(MachineState *machine);
 
-#endif /* HW_ARM_TIVA_H */
+#endif /* HW_ARM_LPC_H */

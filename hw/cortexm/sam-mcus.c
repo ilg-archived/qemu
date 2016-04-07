@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/sam.h"
-#include "hw/arm/cortexm-mcu.h"
+#include "hw/cortexm/sam.h"
+#include "hw/cortexm/cortexm-mcu.h"
 
 /* ----- SAM3S4B ----- */
 static CortexMCoreCapabilities sam3s4b_core_info = {

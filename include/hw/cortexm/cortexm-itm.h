@@ -22,8 +22,8 @@
 
 #include "hw/sysbus.h"
 #include "exec/address-spaces.h"
-#include "hw/misc/peripheral.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/peripheral.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 /* ------------------------------------------------------------------------- */
 

@@ -127,7 +127,7 @@ int main(int argc, char **argv)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include <strings.h>
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 #endif
 
 #if defined(CONFIG_VERBOSE)

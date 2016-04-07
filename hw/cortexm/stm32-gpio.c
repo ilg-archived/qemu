@@ -18,9 +18,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/gpio/stm32-gpio.h"
+#include "hw/cortexm/stm32-gpio.h"
 #include "qemu/bitops.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 /**
  * This file implements the STM32 GPIO device.

@@ -29,8 +29,8 @@
 #include "hw/arm/arm.h"
 #include "exec/address-spaces.h"
 #include "cpu.h"
-#include "hw/intc/cortexm-nvic.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-nvic.h"
+#include "hw/cortexm/cortexm-helper.h"
 #include "qemu/error-report.h"
 
 /* ----- Public ------------------------------------------------------------ */

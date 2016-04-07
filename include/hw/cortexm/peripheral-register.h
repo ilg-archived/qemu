@@ -22,7 +22,7 @@
 
 #include "config.h"
 #include "qemu/typedefs.h"
-#include "hw/misc/register-bitfield.h"
+#include "hw/cortexm/register-bitfield.h"
 
 /**
  * Emulates the behaviour of a peripheral register.

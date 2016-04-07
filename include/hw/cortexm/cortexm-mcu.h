@@ -20,7 +20,7 @@
 #ifndef CORTEXM_MCU_H_
 #define CORTEXM_MCU_H_
 
-#include "hw/misc/cortexm-itm.h"
+#include "hw/cortexm/cortexm-itm.h"
 #include "exec/memory.h"
 #include "hw/irq.h"
 #include "hw/boards.h"

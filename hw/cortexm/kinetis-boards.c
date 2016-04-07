@@ -17,9 +17,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/kinetis.h"
+#include "hw/cortexm/kinetis.h"
 #include "qemu/module.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

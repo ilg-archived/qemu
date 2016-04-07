@@ -20,8 +20,8 @@
 #ifndef STM32_RCC_H_
 #define STM32_RCC_H_
 
-#include "hw/misc/peripheral.h"
-#include "hw/arm/stm32-capabilities.h"
+#include "hw/cortexm/peripheral.h"
+#include "hw/cortexm/stm32-capabilities.h"
 
 /* ------------------------------------------------------------------------- */
 

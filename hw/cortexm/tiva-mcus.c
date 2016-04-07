@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/tiva.h"
-#include "hw/arm/cortexm-mcu.h"
+#include "hw/cortexm/tiva.h"
+#include "hw/cortexm/cortexm-mcu.h"
 
 /* ----- TM4C123GH6PM ----- */
 static CortexMCoreCapabilities tm4c123gh6pm_core_info = {

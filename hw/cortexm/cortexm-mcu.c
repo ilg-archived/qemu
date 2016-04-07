@@ -19,7 +19,7 @@
 
 #include "config.h"
 #include "sysemu/sysemu.h"
-#include "hw/arm/cortexm-mcu.h"
+#include "hw/cortexm/cortexm-mcu.h"
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "hw/arm/arm.h"
@@ -31,8 +31,8 @@
 #include "elf.h"
 #include "cpu.h"
 #include "exec/semihost.h"
-#include "hw/intc/cortexm-nvic.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-nvic.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

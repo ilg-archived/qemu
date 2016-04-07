@@ -17,9 +17,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/stm32-mcus.h"
+#include "hw/cortexm/stm32-mcus.h"
 #include "hw/display/gpio-led.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 /*
  * This file defines several STM32 Nucleo boards.

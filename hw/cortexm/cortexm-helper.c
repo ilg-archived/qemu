@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/cortexm-helper.h"
-#include "hw/arm/cortexm-mcu.h"
+#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-mcu.h"
 
 #include "hw/boards.h"
 #include "qom/object.h"

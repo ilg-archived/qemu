@@ -20,7 +20,7 @@
 #ifndef PERIPHERAL_H_
 #define PERIPHERAL_H_
 
-#include "hw/misc/peripheral-register.h"
+#include "hw/cortexm/peripheral-register.h"
 
 /**
  * Parent type for peripherals.

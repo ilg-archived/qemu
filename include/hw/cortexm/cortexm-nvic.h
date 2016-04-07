@@ -23,7 +23,7 @@
 #define CORTEXM_NVIC_H
 
 #include "hw/intc/gic_internal.h"
-#include "hw/misc/peripheral.h"
+#include "hw/cortexm/peripheral.h"
 
 /* ------------------------------------------------------------------------- */
 

@@ -1,7 +1,7 @@
 /*
- * Atmel SAM devices emulation.
+ * TI Tiva devices emulation.
  *
- * Copyright (c) 2014 Liviu Ionescu.
+ * Copyright (c) 2014 Liviu Ionescu
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,14 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HW_ARM_SAM_H
-#define HW_ARM_SAM_H 1
+#ifndef HW_ARM_TIVA_H
+#define HW_ARM_TIVA_H 1
 
 #include "hw/boards.h"
-#include "hw/arm/cortexm-mcu.h"
+#include "hw/cortexm/cortexm-mcu.h"
 
-void sam_board_init(MachineState *machine, QEMUMachine *qm);
+void tiva_board_init(MachineState *machine, QEMUMachine *qm);
 
-qemu_irq *sam3s4b_mcu_init(MachineState *machine);
+qemu_irq *tm4c123gh6pm_mcu_init(MachineState *machine);
 
-#endif /* HW_ARM_SAM_H */
+#endif /* HW_ARM_TIVA_H */

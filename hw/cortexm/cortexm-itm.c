@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/cortexm-itm.h"
+#include "hw/cortexm/cortexm-itm.h"
 
 /**
  * This file implements a minimal ITM peripheral, intended to display

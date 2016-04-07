@@ -17,9 +17,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/misc/peripheral-register.h"
-#include "hw/misc/register-bitfield.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/peripheral-register.h"
+#include "hw/cortexm/register-bitfield.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 /**
  * This file implements a register bitfield.

@@ -20,7 +20,7 @@
 #ifndef STM32_MCUS_H_
 #define STM32_MCUS_H_
 
-#include "hw/arm/stm32-mcu.h"
+#include "hw/cortexm/stm32-mcu.h"
 
 /* ------------------------------------------------------------------------- */
 

@@ -18,8 +18,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/arm/stm32-mcu.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/stm32-mcu.h"
+#include "hw/cortexm/cortexm-helper.h"
 #include "sysemu/sysemu.h"
 
 #if defined(CONFIG_VERBOSE)

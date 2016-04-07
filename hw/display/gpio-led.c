@@ -18,7 +18,7 @@
  */
 
 #include "hw/display/gpio-led.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

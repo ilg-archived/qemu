@@ -26,7 +26,7 @@
  * THE SOFTWARE.
  */
 
-#include "hw/char/stm32-usart.h"
+#include "hw/cortexm/stm32-usart.h"
 
 #define USART_SR_TXE        (1 << 7)
 #define USART_SR_TC         (1 << 6)
