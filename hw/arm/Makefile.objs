@@ -4,6 +4,11 @@
 # [GNU ARM Eclipse] boot.o required for TYPE_ARM_LINUX_BOOT_IF,
 # refered as interface by TYPE_ARM_GIC_COMMON, parent of TYPE_CORTEXM_NVIC
 obj-y += boot.o
+
+# [GNU ARM Eclipse] armv7m.o still needed for 
+# the definition of "ARM,bitband-memory"
+obj-y += armv7m.o
+
 ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
 obj-y += collie.o exynos4_boards.o gumstix.o highbank.o
 obj-$(CONFIG_DIGIC) += digic_boards.o
