@@ -27,8 +27,3 @@ common-obj-$(CONFIG_MILKYMIST) += milkymist-uart.o
 common-obj-$(CONFIG_SCLPCONSOLE) += sclpconsole.o sclpconsole-lm.o
 
 obj-$(CONFIG_VIRTIO) += virtio-serial-bus.o
-
-# [GNU ARM Eclipse]
-# Cortex-M files
-obj-$(CONFIG_STM32) += stm32-usart.o
-# [GNU ARM Eclipse]

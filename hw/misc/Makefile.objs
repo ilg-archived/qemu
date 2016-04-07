@@ -41,10 +41,3 @@ obj-$(CONFIG_STM32F2XX_SYSCFG) += stm32f2xx_syscfg.o
 
 obj-$(CONFIG_PVPANIC) += pvpanic.o
 obj-$(CONFIG_EDU) += edu.o
-
-# [GNU ARM Eclipse]
-# Cortex-M files
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += register-bitfield.o peripheral-register.o peripheral.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-itm.o
-obj-$(CONFIG_STM32) += stm32-sys-bus-device.o stm32-rcc.o stm32-flash.o stm32-pwr.o
-# [GNU ARM Eclipse]

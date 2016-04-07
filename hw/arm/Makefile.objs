@@ -23,16 +23,3 @@ obj-$(CONFIG_XLNX_ZYNQMP) += xlnx-zynqmp.o xlnx-ep108.o
 obj-$(CONFIG_FSL_IMX25) += fsl-imx25.o imx25_pdk.o
 obj-$(CONFIG_FSL_IMX31) += fsl-imx31.o kzm.o
 endif
-
-# [GNU ARM Eclipse]
-obj-y += armv7m.o
-# Cortex-M files
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-mcu.o cortexm-helper.o cortexm-board.o
-obj-$(CONFIG_STM32) += stm32-mcu.o stm32-mcus.o stm32-boards.o stm32-olimex-boards.o
-obj-$(CONFIG_STM32) += stm32-duino-boards.o stm32-nucleo-boards.o
-obj-$(CONFIG_KINETIS) += kinetis-mcus.o kinetis-boards.o
-obj-$(CONFIG_LPC) += lpc-mcus.o lpc-boards.o
-obj-$(CONFIG_TIVA) += tiva-mcus.o tiva-boards.o
-obj-$(CONFIG_XMC) += xmc-mcus.o xmc-boards.o
-obj-$(CONFIG_SAM) += sam-mcus.o sam-boards.o
-# [GNU ARM Eclipse]
