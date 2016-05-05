@@ -25,3 +25,6 @@
 [submodule "roms/u-boot"]
 	path = roms/u-boot
 	url = git://git.qemu-project.org/u-boot.git
+[submodule "dtc"]
+	path = dtc
+	url = git://git.qemu-project.org/dtc.git
