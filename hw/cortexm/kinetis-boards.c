@@ -31,14 +31,6 @@
  */
 
 /* ----- FRDM-K20D50M ----- */
-static void frdm_k20d50m_board_init(MachineState *machine);
-
-static QEMUMachine frdm_k20d50m_machine = {
-    .name = "FRDM-K20D50M",
-    .desc = "Freescale Freedom Development Platform for "
-            "Kinetis K20 USB MCUs (Experimental)",
-    .init = frdm_k20d50m_board_init };
-
 static void frdm_k20d50m_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -46,15 +38,14 @@ static void frdm_k20d50m_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+static void frdm_k20d50m_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Freedom Development Platform for "
+               "Kinetis K20 USB MCUs (Experimental)";
+    mc->init = frdm_k20d50m_board_init;
+}
+DEFINE_MACHINE("FRDM-K20D50M", frdm_k20d50m_machine_init)
+
 /* ----- FRDM-K22F ----- */
-static void frdm_k22f_board_init(MachineState *machine);
-
-static QEMUMachine frdm_k22f_machine = {
-    .name = "FRDM-K22F",
-    .desc = "Freescale Freedom Development Platform for "
-            "Kinetis K22 MCUs (Experimental)",
-    .init = frdm_k22f_board_init };
-
 static void frdm_k22f_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -62,15 +53,15 @@ static void frdm_k22f_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+static void frdm_k22f_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Freedom Development Platform for "
+               "Kinetis K22 MCUs (Experimental)";
+    mc->init = frdm_k22f_board_init;
+}
+
+DEFINE_MACHINE("FRDM-K22F", frdm_k22f_machine_init)
+
 /* ----- FRDM-K64F ----- */
-static void frdm_k64f_board_init(MachineState *machine);
-
-static QEMUMachine frdm_k64f_machine = {
-    .name = "FRDM-K64F",
-    .desc = "Freescale Freedom Development Platform for "
-            "Kinetis K6[34] and K24 MCUs (Experimental)",
-    .init = frdm_k64f_board_init };
-
 static void frdm_k64f_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -78,14 +69,15 @@ static void frdm_k64f_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+static void frdm_k64f_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Freedom Development Platform for "
+               "Kinetis K6[34] and K24 MCUs (Experimental)";
+    mc->init = frdm_k64f_board_init;
+}
+
+DEFINE_MACHINE("FRDM-K64F", frdm_k64f_machine_init)
+
 /* ----- TWR-K60F120M ----- */
-static void twr_k60f120m_board_init(MachineState *machine);
-
-static QEMUMachine twr_k60f120m_machine = {
-    .name = "TWR-K60F120M",
-    .desc = "Freescale Kinetis K60 120 MHz Tower System Module (Experimental)",
-    .init = twr_k60f120m_board_init };
-
 static void twr_k60f120m_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -93,15 +85,13 @@ static void twr_k60f120m_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+static void twr_k60f120m_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Kinetis K60 120 MHz Tower System Module (Experimental)";
+    mc->init = twr_k60f120m_board_init;
+}
+DEFINE_MACHINE("TWR-K60F120M", twr_k60f120m_machine_init)
+
 /* ----- FRDM-KL25Z ----- */
-static void frdm_kl25z_board_init(MachineState *machine);
-
-static QEMUMachine frdm_kl25z_machine = {
-    .name = "FRDM-KL25Z",
-    .desc = "Freescale Freedom Development Platform for "
-            "Kinetis KL[12][45] MCUs (Experimental)",
-    .init = frdm_kl25z_board_init };
-
 static void frdm_kl25z_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -109,15 +99,14 @@ static void frdm_kl25z_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+static void frdm_kl25z_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Freedom Development Platform for "
+               "Kinetis KL[12][45] MCUs (Experimental)";
+    mc->init = frdm_kl25z_board_init;
+}
+DEFINE_MACHINE("FRDM-KL25Z", frdm_kl25z_machine_init)
+
 /* ----- FRDM-KL26Z ----- */
-static void frdm_kl26z_board_init(MachineState *machine);
-
-static QEMUMachine frdm_kl26z_machine = {
-    .name = "FRDM-KL26Z",
-    .desc = "Freescale Freedom Development Platform for "
-            "Kinetis KL[12]6 MCUs (Experimental)",
-    .init = frdm_kl26z_board_init };
-
 static void frdm_kl26z_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -126,15 +115,14 @@ static void frdm_kl26z_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+static void frdm_kl26z_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Freedom Development Platform for "
+               "Kinetis KL[12]6 MCUs (Experimental)";
+    mc->init = frdm_kl26z_board_init;
+}
+DEFINE_MACHINE("FRDM-KL26Z", frdm_kl26z_machine_init)
+
 /* ----- FRDM-KL43Z ----- */
-static void frdm_kl43z_board_init(MachineState *machine);
-
-static QEMUMachine frdm_kl43z_machine = {
-    .name = "FRDM-KL43Z",
-    .desc = "Freescale Freedom Development Platform for "
-            "Kinetis KL[34]3, KL[12]7 MCUs (Experimental)",
-    .init = frdm_kl43z_board_init };
-
 static void frdm_kl43z_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -143,15 +131,14 @@ static void frdm_kl43z_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
+static void frdm_kl43z_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Freedom Development Platform for "
+               "Kinetis KL[34]3, KL[12]7 MCUs (Experimental)";
+    mc->init = frdm_kl43z_board_init;
+}
+DEFINE_MACHINE("FRDM-KL43Z", frdm_kl43z_machine_init)
+
 /* ----- FRDM-KL46Z ----- */
-static void frdm_kl46z_board_init(MachineState *machine);
-
-static QEMUMachine frdm_kl46z_machine = {
-    .name = "FRDM-KL46Z",
-    .desc = "Freescale Freedom Development Platform for "
-            "Kinetis KL[34]x MCUs (Experimental)",
-    .init = frdm_kl46z_board_init };
-
 static void frdm_kl46z_board_init(MachineState *machine)
 {
     cm_board_greeting(machine);
@@ -160,18 +147,10 @@ static void frdm_kl46z_board_init(MachineState *machine)
     /* TODO: Add board inits */
 }
 
-/* ----- Boards inits ----- */
-static void kinetis_machine_init(void)
-{
-    qemu_register_machine(&frdm_k20d50m_machine);
-    qemu_register_machine(&frdm_k64f_machine);
-    qemu_register_machine(&frdm_k22f_machine);
-    qemu_register_machine(&twr_k60f120m_machine);
-    qemu_register_machine(&frdm_kl25z_machine);
-    qemu_register_machine(&frdm_kl26z_machine);
-    qemu_register_machine(&frdm_kl46z_machine);
-    qemu_register_machine(&frdm_kl43z_machine);
+static void frdm_kl46z_machine_init(MachineClass *mc) {
+    mc->desc = "Freescale Freedom Development Platform for "
+               "Kinetis KL[34]x MCUs (Experimental)";
+    mc->init = frdm_kl46z_board_init;
 }
 
-machine_init(kinetis_machine_init);
-
+DEFINE_MACHINE("FRDM-KL46Z", frdm_kl46z_machine_init)
