@@ -55,6 +55,7 @@ void cm_board_greeting(MachineState *machine)
 
 /* ------------------------------------------------------------------------- */
 
+#if defined(CONFIG_SDL)
 static QEMUTimer *timer;
 
 /**
@@ -75,6 +76,7 @@ static void sdl_event_loop(void *p)
 
     timer_mod(timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME) + 10);
 }
+#endif /* defined(CONFIG_SDL) */
 
 /**
  * Initialise SDL and display the board image.
