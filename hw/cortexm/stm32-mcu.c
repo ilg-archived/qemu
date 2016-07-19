@@ -317,6 +317,12 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
             device_reset(state->gpio[i]);
         }
     }
+
+    for (i = 0; i < STM32_MAX_USART; ++i) {
+        if (state->usart[i]) {
+            device_reset(state->usart[i]);
+        }
+    }
 }
 
 /**
