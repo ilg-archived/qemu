@@ -881,11 +881,10 @@ static void peripheral_register_reset_callback(DeviceState *dev)
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
     /* Clear the value according to the reset mask. */
-    state->reset_value &= ~(state->reset_mask);
+    state->value &= ~(state->reset_mask);
 
     /* Copy bits from reset value. */
-    state->reset_value |= (state->reset_value & state->reset_mask);
-
+    state->value |= (state->reset_value & state->reset_mask);
 }
 
 static void peripheral_register_class_init(ObjectClass *klass, void *data)
