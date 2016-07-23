@@ -5634,7 +5634,7 @@ case "$target_name" in
   gnuarmeclipse)
     TARGET_ARCH=arm
     bflt="yes"
-    gdb_xml_files="arm-core.xml arm-vfp.xml arm-vfp3.xml arm-neon.xml"
+    gdb_xml_files="arm-core.xml arm-cortexm.xml arm-vfp.xml arm-vfp3.xml arm-neon.xml"
   ;;
   cris)
   ;;
