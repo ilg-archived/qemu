@@ -111,6 +111,10 @@ int gdbserver_start(int);
 int gdbserver_start(const char *port);
 #endif
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+int gdbserver_is_started(void);
+#endif
+
 /**
  * gdb_has_xml:
  * This is an ugly hack to cope with both new and old gdb.

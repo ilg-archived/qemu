@@ -24,6 +24,12 @@
  * NVIC.  Much of that is also implemented here.
  */
 
+#include "config.h"
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "sysemu/sysemu.h"
+#include "exec/gdbstub.h"
+#endif
+
 #include "hw/sysbus.h"
 #include "qemu/timer.h"
 #include "hw/arm/arm.h"
@@ -187,6 +193,9 @@ static uint32_t nvic_readl(CortexMNVICState *s, uint32_t offset)
     }
     case 0x1c: /* SysTick Calibration Value.  */
         return 10000;
+
+    // System Control Block 0xE000ED00 - 0xE000ED8C
+
     case 0xd00: /* CPUID Base.  */
         cpu = ARM_CPU(current_cpu);
         return cpu->midr;
@@ -264,18 +273,26 @@ static uint32_t nvic_readl(CortexMNVICState *s, uint32_t offset)
         if (s->gic.irq_state[ARMV7M_EXCP_USAGE].enabled)
             val |= (1 << 18);
         return val;
+
     case 0xd28: /* Configurable Fault Status.  */
-        /* TODO: Implement Fault Status.  */
-        qemu_log_mask(LOG_UNIMP, "Configurable Fault Status unimplemented\n");
-        return 0;
+        return s->scb.cfsr;
+
     case 0xd2c: /* Hard Fault Status.  */
+        return s->scb.hfsr & 0xC0000003;
+
     case 0xd30: /* Debug Fault Status.  */
+        return s->scb.dfsr;
+
     case 0xd34: /* Mem Manage Address.  */
+        return s->scb.mmfar;
+
     case 0xd38: /* Bus Fault Address.  */
+        return s->scb.bfar;
+
     case 0xd3c: /* Aux Fault Status.  */
-        /* TODO: Implement fault status registers.  */
-        qemu_log_mask(LOG_UNIMP, "Fault status registers unimplemented\n");
-        return 0;
+        return s->scb.afsr;
+
+    // Reserved for CPUID registers, 0xE000ED40 - 0xE000ED84
     case 0xd40: /* PFR0.  */
         return 0x00000030;
     case 0xd44: /* PRF1.  */
@@ -302,16 +319,26 @@ static uint32_t nvic_readl(CortexMNVICState *s, uint32_t offset)
         return 0x01111110;
     case 0xd70: /* ISAR4.  */
         return 0x01310102;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    // Debug Control Block 0xE000EDF0 - 0xE000EEFF
+
     case 0xDF0: /* DHCSR.  */
+        return s->dcb.dhcsr & 0x0000001F;
+
     case 0xDF4: /* DCRSR.  */
-    case 0xDF8: /* DCRDR.  */
-    case 0xDFC: /* DEMCR.  */
-        /* TODO: Implement debug registers.  */
-        qemu_log_mask(LOG_UNIMP, "NVIC: debug register %08X unimplemented\n",
-                offset);
+        qemu_log_mask(LOG_GUEST_ERROR, "NVIC: read WO DCRSR\n");
         return 0;
+
+    case 0xDF8: /* DCRDR.  */
+        return s->dcb.dcrdr;
+
+    case 0xDFC: /* DEMCR.  */
+        return s->dcb.demcr & 0x10F03F1;
+
 #endif
+
     default:
         qemu_log_mask(LOG_GUEST_ERROR, "NVIC: Bad read offset 0x%x\n", offset);
         return 0;
@@ -355,6 +382,8 @@ static void nvic_writel(CortexMNVICState *s, uint32_t offset, uint32_t value)
         systick_reload(s, 1);
         s->systick.control &= ~SYSTICK_COUNTFLAG;
         break;
+
+    // System Control Block 0xE000ED00 - 0xE000ED8C
     case 0xd04: /* Interrupt Control State.  */
         if (value & (1 << 31)) {
             cortexm_nvic_set_pending(s, ARMV7M_EXCP_NMI);
@@ -413,7 +442,9 @@ static void nvic_writel(CortexMNVICState *s, uint32_t offset, uint32_t value)
         qemu_log_mask(LOG_UNIMP,
                 "NVIC: fault status registers unimplemented\n");
         break;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
+
     case 0xD88: /* CPACR.  */
         if (value & (((3UL << 10 * 2) | (3UL << 11 * 2)))) {
             /* Attempt to enable CP10 & CP11 (the FPU). */
@@ -423,15 +454,31 @@ static void nvic_writel(CortexMNVICState *s, uint32_t offset, uint32_t value)
         }
         break;
 
+    // Debug Control Block 0xE000EDF0 - 0xE000EEFF
+    // All registers are 32-bits wide.
+    // See also SCB.DFSR 0xE000ED30
+
     case 0xDF0: /* DHCSR.  */
-    case 0xDF4: /* DCRSR.  */
-    case 0xDF8: /* DCRDR.  */
-    case 0xDFC: /* DEMCR.  */
-        /* TODO: Implement debug registers.  */
-        qemu_log_mask(LOG_UNIMP, "NVIC: debug register %08X unimplemented\n",
-                offset);
+        if ((value & 0xFFFF0000) == 0xA05F0000) {
+            s->dcb.dhcsr = value & 0x0000001E;
+        }
         break;
+
+    case 0xDF4: /* DCRSR.  */
+        s->dcb.dcrsr = value & 0x0001003F;
+        // TODO: implement read/write register
+        break;
+
+    case 0xDF8: /* DCRDR.  */
+        s->dcb.dcrdr = value;
+        break;
+
+    case 0xDFC: /* DEMCR.  */
+        s->dcb.demcr = value & 0x010F03F1;
+        break;
+
 #endif
+
     case 0xf00: /* Software Triggered Interrupt Register */
         if ((value & 0x1ff) < s->num_irq) {
             gic_set_pending_private(&s->gic, 0, value & 0x1ff);
@@ -608,6 +655,24 @@ static void cortexm_nvic_reset_callback(DeviceState *dev)
     /* The NVIC as a whole is always enabled. */
     s->gic.ctlr = 1;
     systick_reset(s);
+
+    // System Control Block
+    s->scb.scr = 0;
+    s->scb.ccr = 0; // Implementation dependent
+    s->scb.cfsr = 0;
+    s->scb.hfsr = 0;
+    s->scb.dfsr = 0;
+    s->scb.mmfar = 0;
+    s->scb.bfar = 0;
+    s->scb.afsr = 0;
+
+    // Debug Control Block
+
+    s->dcb.dhcsr = gdbserver_is_started() ? 1 : 0; // C_DEBUGEN[0]
+
+    s->dcb.dcrsr = 0;
+    s->dcb.dcrdr = 0;
+    s->dcb.demcr = 0;
 }
 
 static void cortexm_nvic_class_init_callback(ObjectClass *klass, void *data)

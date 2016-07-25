@@ -78,6 +78,29 @@ typedef struct {
     MemoryRegion container;
     uint32_t num_irq;
     qemu_irq sysresetreq;
+
+    // System Control Block 0xE000ED00 - 0xE000ED8C
+    struct {
+        uint32_t scr; // 0xE000ED10, RW, 0x00000000, System Control Block
+        uint32_t ccr; // 0xE000ED14, RW, IMPL, Configuration & Control Register
+                        // 0xE000ED24, RW, System Handler Control and State Register
+        uint32_t cfsr; // 0xE000ED28, RW, 0x00000000, Configurable Fault Status Register
+        uint32_t hfsr; // 0xE000ED2C, RW, 0x00000000, Hard Fault Status Register
+        uint32_t dfsr; // 0xE000ED30, RW, 0x00000000, Debug Fault Status Register
+        uint32_t mmfar; // 0xE000ED34, RW, UNK, MemManage Fault Address Register
+        uint32_t bfar; // 0xE000ED38, RW, UNK, Bus Fault Address Register
+        uint32_t afsr; // 0xE000ED3C, RW, UNK, Auxiliary Fault Status Register
+    } scb;
+
+    // Debug Control Block 0xE000EDF0 - 0xE000EEFF
+    // All registers are 32-bits wide.
+    struct {
+        uint32_t dhcsr; // 0xE000EDF0, RW, Debug Halting Control and Status Register,
+        uint32_t dcrsr; // 0xE000EDF4, WO, Debug Core Register Selector Register
+        uint32_t dcrdr; // 0xE000EDF8, RW, Debug Core Register Data Register
+        uint32_t demcr; // 0xE000EDFC, RW, 0x00000000, Debug Exception and Monitor Control Register
+    } dcb;
+
 } CortexMNVICState;
 
 /* ------------------------------------------------------------------------- */
