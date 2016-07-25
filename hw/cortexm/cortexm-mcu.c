@@ -309,6 +309,9 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
                 qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
 
+        GICState *gs = ARM_GIC_COMMON(nvic);
+        gs->basepri_ptr = &env->v7m.basepri;
+
         /*
          * Create the CPU exception handler interrupts. Peripherals
          * will connect to them and set interrupts to be delivered to

@@ -13,6 +13,10 @@
 #include <zlib.h> /* For crc32 */
 #include "exec/semihost.h"
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "hw/intc/gic_internal.h"
+#endif
+
 #define ARM_CPU_FREQ 1000000000 /* FIXME: 1 GHz, should be configurable */
 
 #ifndef CONFIG_USER_ONLY
@@ -7580,6 +7584,30 @@ void HELPER(v7m_msr)(CPUARMState *env, uint32_t reg, uint32_t val)
             env->daif &= ~PSTATE_I;
         }
         break;
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    case 17: /* BASEPRI */
+        env->v7m.basepri = val & 0xff;
+
+        void* nvic = env->nvic;
+        GICState* gic = ARM_GIC_COMMON(nvic);
+        gic_update(gic);
+        break;
+
+    case 18: /* BASEPRI_MAX */
+        val &= 0xff;
+        if (val != 0 && (val < env->v7m.basepri || env->v7m.basepri == 0)) {
+            env->v7m.basepri = val;
+
+            void* nvic = env->nvic;
+            GICState* gic = ARM_GIC_COMMON(nvic);
+            gic_update(gic);
+        }
+        break;
+
+#else
+
     case 17: /* BASEPRI */
         env->v7m.basepri = val & 0xff;
         break;
@@ -7588,6 +7616,9 @@ void HELPER(v7m_msr)(CPUARMState *env, uint32_t reg, uint32_t val)
         if (val != 0 && (val < env->v7m.basepri || env->v7m.basepri == 0))
             env->v7m.basepri = val;
         break;
+
+#endif
+
     case 19: /* FAULTMASK */
         if (val & 1) {
             env->daif |= PSTATE_F;
