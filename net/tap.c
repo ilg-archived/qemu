@@ -23,12 +23,11 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
 #include "tap_int.h"
 
-#include "config-host.h"
 
 #include <sys/ioctl.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
 #include <net/if.h>
@@ -37,7 +36,9 @@
 #include "clients.h"
 #include "monitor/monitor.h"
 #include "sysemu/sysemu.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
+#include "qemu/cutils.h"
 #include "qemu/error-report.h"
 
 #include "net/tap.h"
@@ -566,7 +567,7 @@ int net_init_bridge(const NetClientOptions *opts, const char *name,
     int fd, vnet_hdr;
 
     assert(opts->type == NET_CLIENT_OPTIONS_KIND_BRIDGE);
-    bridge = opts->u.bridge;
+    bridge = opts->u.bridge.data;
 
     helper = bridge->has_helper ? bridge->helper : DEFAULT_BRIDGE_HELPER;
     br     = bridge->has_br     ? bridge->br     : DEFAULT_BRIDGE_INTERFACE;
@@ -663,7 +664,7 @@ static void net_init_tap_one(const NetdevTapOptions *tap, NetClientState *peer,
         options.backend_type = VHOST_BACKEND_TYPE_KERNEL;
         options.net_backend = &s->nc;
 
-        if (tap->has_vhostfd || tap->has_vhostfds) {
+        if (vhostfdname) {
             vhostfd = monitor_fd_param(cur_mon, vhostfdname, &err);
             if (vhostfd == -1) {
                 error_propagate(errp, err);
@@ -685,7 +686,7 @@ static void net_init_tap_one(const NetdevTapOptions *tap, NetClientState *peer,
                        "vhost-net requested but could not be initialized");
             return;
         }
-    } else if (tap->has_vhostfd || tap->has_vhostfds) {
+    } else if (vhostfdname) {
         error_setg(errp, "vhostfd= is not valid without vhost");
     }
 }
@@ -729,7 +730,7 @@ int net_init_tap(const NetClientOptions *opts, const char *name,
     char ifname[128];
 
     assert(opts->type == NET_CLIENT_OPTIONS_KIND_TAP);
-    tap = opts->u.tap;
+    tap = opts->u.tap.data;
     queues = tap->has_queues ? tap->queues : 1;
     vhostfdname = tap->has_vhostfd ? tap->vhostfd : NULL;
 

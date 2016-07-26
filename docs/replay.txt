@@ -107,7 +107,7 @@ at the specified moments of time. There are several kinds of timers:
    sources (e.g. real time clock chip). Host clock is the one of the sources
    of non-determinism. Host clock read operations should be logged to
    make the execution deterministic.
- * Real time clock for icount. This clock is similar to real time clock but
+ * Virtual real time clock. This clock is similar to real time clock but
    it is used only for increasing virtual clock while virtual machine is
    sleeping. Due to its nature it is also non-deterministic as the host clock
    and has to be logged too.
@@ -134,11 +134,20 @@ of time. That's why we do not process a group of timers until the checkpoint
 event will be read from the log. Such an event allows synchronizing CPU
 execution and timer events.
 
-Another checkpoints application in record/replay is instruction counting
-while the virtual machine is idle. This function (qemu_clock_warp) is called
-from the wait loop. It changes virtual machine state and must be deterministic
-then. That is why we added checkpoint to this function to prevent its
-operation in replay mode when it does not correspond to record mode.
+Two other checkpoints govern the "warping" of the virtual clock.
+While the virtual machine is idle, the virtual clock increments at
+1 ns per *real time* nanosecond.  This is done by setting up a timer
+(called the warp timer) on the virtual real time clock, so that the
+timer fires at the next deadline of the virtual clock; the virtual clock
+is then incremented (which is called "warping" the virtual clock) as
+soon as the timer fires or the CPUs need to go out of the idle state.
+Two functions are used for this purpose; because these actions change
+virtual machine state and must be deterministic, each of them creates a
+checkpoint.  qemu_start_warp_timer checks if the CPUs are idle and if so
+starts accounting real time to virtual clock.  qemu_account_warp_timer
+is called when the CPUs get an interrupt or when the warp timer fires,
+and it warps the virtual clock by the amount of real time that has passed
+since qemu_start_warp_timer.
 
 Bottom halves
 -------------
@@ -166,3 +175,23 @@ Sometimes the block layer uses asynchronous callbacks for its internal purposes
 (like reading or writing VM snapshots or disk image cluster tables). In this
 case bottom halves are not marked as "replayable" and do not saved
 into the log.
+
+Block devices
+-------------
+
+Block devices record/replay module intercepts calls of
+bdrv coroutine functions at the top of block drivers stack.
+To record and replay block operations the drive must be configured
+as following:
+ -drive file=disk.qcow,if=none,id=img-direct
+ -drive driver=blkreplay,if=none,image=img-direct,id=img-blkreplay
+ -device ide-hd,drive=img-blkreplay
+
+blkreplay driver should be inserted between disk image and virtual driver
+controller. Therefore all disk requests may be recorded and replayed.
+
+All block completion operations are added to the queue in the coroutines.
+Queue is flushed at checkpoints and information about processed requests
+is recorded to the log. In replay phase the queue is matched with
+events read from the log. Therefore block devices requests are processed
+deterministically.

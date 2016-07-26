@@ -14,10 +14,12 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/pci/msi.h"
 #include "hw/pci/msix.h"
 #include "hw/pci/pci.h"
+#include "hw/xen/xen.h"
 #include "qemu/range.h"
 
 #define MSIX_CAP_LENGTH 12
@@ -77,8 +79,15 @@ static void msix_clr_pending(PCIDevice *dev, int vector)
 
 static bool msix_vector_masked(PCIDevice *dev, unsigned int vector, bool fmask)
 {
-    unsigned offset = vector * PCI_MSIX_ENTRY_SIZE + PCI_MSIX_ENTRY_VECTOR_CTRL;
-    return fmask || dev->msix_table[offset] & PCI_MSIX_ENTRY_CTRL_MASKBIT;
+    unsigned offset = vector * PCI_MSIX_ENTRY_SIZE;
+    uint8_t *data = &dev->msix_table[offset + PCI_MSIX_ENTRY_DATA];
+    /* MSIs on Xen can be remapped into pirqs. In those cases, masking
+     * and unmasking go through the PV evtchn path. */
+    if (xen_enabled() && xen_is_pirq_msi(pci_get_long(data))) {
+        return false;
+    }
+    return fmask || dev->msix_table[offset + PCI_MSIX_ENTRY_VECTOR_CTRL] &
+        PCI_MSIX_ENTRY_CTRL_MASKBIT;
 }
 
 bool msix_is_masked(PCIDevice *dev, unsigned int vector)
@@ -240,7 +249,7 @@ int msix_init(struct PCIDevice *dev, unsigned short nentries,
     uint8_t *config;
 
     /* Nothing to do if MSI is not supported by interrupt controller */
-    if (!msi_supported) {
+    if (!msi_nonbroken) {
         return -ENOTSUP;
     }
 

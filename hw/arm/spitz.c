@@ -10,13 +10,15 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "hw/hw.h"
 #include "hw/arm/pxa.h"
 #include "hw/arm/arm.h"
 #include "sysemu/sysemu.h"
 #include "hw/pcmcia.h"
 #include "hw/i2c/i2c.h"
-#include "hw/ssi.h"
+#include "hw/ssi/ssi.h"
 #include "hw/block/flash.h"
 #include "qemu/timer.h"
 #include "hw/devices.h"
@@ -403,7 +405,7 @@ static void spitz_keyboard_tick(void *opaque)
     }
 
     timer_mod(s->kbdtimer, qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                   get_ticks_per_sec() / 32);
+                   NANOSECONDS_PER_SECOND / 32);
 }
 
 static void spitz_keyboard_pre_map(SpitzKeyboardState *s)
@@ -1036,7 +1038,7 @@ static void spitz_machine_init(void)
     type_register_static(&terrierpda_type);
 }
 
-machine_init(spitz_machine_init)
+type_init(spitz_machine_init)
 
 static bool is_version_0(void *opaque, int version_id)
 {

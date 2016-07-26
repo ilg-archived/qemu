@@ -25,6 +25,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "sysemu/sysemu.h"
 #include "hw/boards.h"
 #include "hw/loader.h"
@@ -354,7 +358,7 @@ static void lx_init(const LxBoardDesc *board, MachineState *machine)
         uint64_t elf_entry;
         uint64_t elf_lowaddr;
         int success = load_elf(kernel_filename, translate_phys_addr, cpu,
-                &elf_entry, &elf_lowaddr, NULL, be, EM_XTENSA, 0);
+                &elf_entry, &elf_lowaddr, NULL, be, EM_XTENSA, 0, 0);
         if (success > 0) {
             entry_point = elf_entry;
         } else {
@@ -509,4 +513,4 @@ static void xtensa_lx_machines_init(void)
     type_register_static(&xtensa_kc705_type);
 }
 
-machine_init(xtensa_lx_machines_init)
+type_init(xtensa_lx_machines_init)

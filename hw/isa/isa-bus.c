@@ -16,6 +16,8 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "hw/hw.h"
 #include "monitor/monitor.h"
 #include "hw/sysbus.h"
@@ -36,6 +38,12 @@ static void isa_bus_class_init(ObjectClass *klass, void *data)
     k->get_fw_dev_path = isabus_get_fw_dev_path;
 }
 
+static const TypeInfo isa_dma_info = {
+    .name = TYPE_ISADMA,
+    .parent = TYPE_INTERFACE,
+    .class_size = sizeof(IsaDmaClass),
+};
+
 static const TypeInfo isa_bus_info = {
     .name = TYPE_ISA_BUS,
     .parent = TYPE_BUS,
@@ -44,10 +52,10 @@ static const TypeInfo isa_bus_info = {
 };
 
 ISABus *isa_bus_new(DeviceState *dev, MemoryRegion* address_space,
-                    MemoryRegion *address_space_io)
+                    MemoryRegion *address_space_io, Error **errp)
 {
     if (isabus) {
-        fprintf(stderr, "Can't create a second ISA bus\n");
+        error_setg(errp, "Can't create a second ISA bus");
         return NULL;
     }
     if (!dev) {
@@ -63,9 +71,6 @@ ISABus *isa_bus_new(DeviceState *dev, MemoryRegion* address_space,
 
 void isa_bus_irqs(ISABus *bus, qemu_irq *irqs)
 {
-    if (!bus) {
-        hw_error("Can't set isa irqs with no isa bus present.");
-    }
     bus->irqs = irqs;
 }
 
@@ -90,6 +95,20 @@ void isa_init_irq(ISADevice *dev, qemu_irq *p, int isairq)
     dev->isairq[dev->nirqs] = isairq;
     *p = isa_get_irq(dev, isairq);
     dev->nirqs++;
+}
+
+void isa_bus_dma(ISABus *bus, IsaDma *dma8, IsaDma *dma16)
+{
+    assert(bus && dma8 && dma16);
+    assert(!bus->dma[0] && !bus->dma[1]);
+    bus->dma[0] = dma8;
+    bus->dma[1] = dma16;
+}
+
+IsaDma *isa_get_dma(ISABus *bus, int nchan)
+{
+    assert(bus);
+    return bus->dma[nchan > 3 ? 1 : 0];
 }
 
 static inline void isa_init_ioport(ISADevice *dev, uint16_t ioport)
@@ -137,10 +156,6 @@ ISADevice *isa_create(ISABus *bus, const char *name)
 {
     DeviceState *dev;
 
-    if (!bus) {
-        hw_error("Tried to create isa device %s with no isa bus present.",
-                 name);
-    }
     dev = qdev_create(BUS(bus), name);
     return ISA_DEVICE(dev);
 }
@@ -149,10 +164,6 @@ ISADevice *isa_try_create(ISABus *bus, const char *name)
 {
     DeviceState *dev;
 
-    if (!bus) {
-        hw_error("Tried to create isa device %s with no isa bus present.",
-                 name);
-    }
     dev = qdev_try_create(BUS(bus), name);
     return ISA_DEVICE(dev);
 }
@@ -233,6 +244,7 @@ static const TypeInfo isa_device_type_info = {
 
 static void isabus_register_types(void)
 {
+    type_register_static(&isa_dma_info);
     type_register_static(&isa_bus_info);
     type_register_static(&isabus_bridge_info);
     type_register_static(&isa_device_type_info);

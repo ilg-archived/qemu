@@ -25,6 +25,10 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/sysbus.h"
 #include "hw/hw.h"
 #include "net/net.h"
@@ -35,7 +39,7 @@
 #include "sysemu/block-backend.h"
 #include "hw/char/serial.h"
 #include "exec/address-spaces.h"
-#include "hw/ssi.h"
+#include "hw/ssi/ssi.h"
 
 #include "boot.h"
 
@@ -81,6 +85,7 @@ petalogix_ml605_init(MachineState *machine)
 
     /* init CPUs */
     cpu = MICROBLAZE_CPU(object_new(TYPE_MICROBLAZE_CPU));
+    object_property_set_str(OBJECT(cpu), "8.10.a", "version", &error_abort);
     /* Use FPU but don't use floating point conversion and square
      * root instructions
      */

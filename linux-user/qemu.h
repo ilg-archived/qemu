@@ -1,22 +1,19 @@
 #ifndef QEMU_H
 #define QEMU_H
 
-#include <signal.h>
-#include <string.h>
 
 #include "cpu.h"
 #include "exec/cpu_ldst.h"
 
 #undef DEBUG_REMAP
 #ifdef DEBUG_REMAP
-#include <stdlib.h>
 #endif /* DEBUG_REMAP */
 
 #include "exec/user/abitypes.h"
 
 #include "exec/user/thunk.h"
 #include "syscall_defs.h"
-#include "syscall.h"
+#include "target_syscall.h"
 #include "exec/gdbstub.h"
 #include "qemu/queue.h"
 

@@ -10,16 +10,15 @@
  * See the COPYING file in the top-level directory.
  */
 
-#include <string.h>
-#include <stdio.h>
+#include "qemu/osdep.h"
 #include <glib.h>
 #include <glib/gstdio.h>
 #include "qemu-common.h"
 #include "libqtest.h"
-#include "qemu/compiler.h"
 #include "hw/acpi/acpi-defs.h"
 #include "hw/smbios/smbios.h"
 #include "qemu/bitmap.h"
+#include "boot-sector.h"
 
 #define MACHINE_PC "pc"
 #define MACHINE_Q35 "q35"
@@ -52,13 +51,6 @@ typedef struct {
     uint32_t smbios_ep_addr;
     struct smbios_21_entry_point smbios_ep_table;
 } test_data;
-
-#define LOW(x) ((x) & 0xff)
-#define HIGH(x) ((x) >> 8)
-
-#define SIGNATURE 0xdead
-#define SIGNATURE_OFFSET 0x10
-#define BOOT_SECTOR_ADDRESS 0x7c00
 
 #define ACPI_READ_FIELD(field, addr)           \
     do {                                       \
@@ -118,35 +110,6 @@ typedef struct {
     memcpy(ACPI_ASSERT_CMP_str, &ACPI_ASSERT_CMP_le, 8); \
     g_assert_cmpstr(ACPI_ASSERT_CMP_str, ==, expected); \
 } while (0)
-
-/* Boot sector code: write SIGNATURE into memory,
- * then halt.
- * Q35 machine requires a minimum 0x7e000 bytes disk.
- * (bug or feature?)
- */
-static uint8_t boot_sector[0x7e000] = {
-    /* 7c00: mov $0xdead,%ax */
-    [0x00] = 0xb8,
-    [0x01] = LOW(SIGNATURE),
-    [0x02] = HIGH(SIGNATURE),
-    /* 7c03:  mov %ax,0x7c10 */
-    [0x03] = 0xa3,
-    [0x04] = LOW(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET),
-    [0x05] = HIGH(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET),
-    /* 7c06: cli */
-    [0x06] = 0xfa,
-    /* 7c07: hlt */
-    [0x07] = 0xf4,
-    /* 7c08: jmp 0x7c07=0x7c0a-3 */
-    [0x08] = 0xeb,
-    [0x09] = LOW(-3),
-    /* We mov 0xdead here: set value to make debugging easier */
-    [SIGNATURE_OFFSET] = LOW(0xface),
-    [SIGNATURE_OFFSET + 1] = HIGH(0xface),
-    /* End of boot sector marker */
-    [0x1FE] = 0x55,
-    [0x1FF] = 0xAA,
-};
 
 static const char *disk = "tests/acpi-test-disk.raw";
 static const char *data_dir = "tests/acpi-test-data";
@@ -469,7 +432,7 @@ static bool load_asl(GArray *sdts, AcpiSdtTable *sdt)
 
 #define COMMENT_END "*/"
 #define DEF_BLOCK "DefinitionBlock ("
-#define BLOCK_NAME_END ".aml"
+#define BLOCK_NAME_END ","
 
 static GString *normalize_asl(gchar *asl_code)
 {
@@ -580,6 +543,22 @@ static void test_acpi_asl(test_data *data)
                         (gchar *)&signature,
                         sdt->asl_file, sdt->aml_file,
                         exp_sdt->asl_file, exp_sdt->aml_file);
+                if (getenv("V")) {
+                    const char *diff_cmd = getenv("DIFF");
+                    if (diff_cmd) {
+                        int ret G_GNUC_UNUSED;
+                        char *diff = g_strdup_printf("%s %s %s", diff_cmd,
+                            exp_sdt->asl_file, sdt->asl_file);
+                        ret = system(diff) ;
+                        g_free(diff);
+                    } else {
+                        fprintf(stderr, "acpi-test: Warning. not showing "
+                            "difference since no diff utility is specified. "
+                            "Set 'DIFF' environment variable to a preferred "
+                            "diff utility and run 'make V=1 check' again to "
+                            "see ASL difference.");
+                    }
+                }
           }
         }
         g_string_free(asl, true);
@@ -723,10 +702,6 @@ static void test_smbios_structs(test_data *data)
 static void test_acpi_one(const char *params, test_data *data)
 {
     char *args;
-    uint8_t signature_low;
-    uint8_t signature_high;
-    uint16_t signature;
-    int i;
 
     args = g_strdup_printf("-net none -display none %s "
                            "-drive id=hd0,if=none,file=%s,format=raw "
@@ -735,24 +710,7 @@ static void test_acpi_one(const char *params, test_data *data)
 
     qtest_start(args);
 
-   /* Wait at most 1 minute */
-#define TEST_DELAY (1 * G_USEC_PER_SEC / 10)
-#define TEST_CYCLES MAX((60 * G_USEC_PER_SEC / TEST_DELAY), 1)
-
-    /* Poll until code has run and modified memory.  Once it has we know BIOS
-     * initialization is done.  TODO: check that IP reached the halt
-     * instruction.
-     */
-    for (i = 0; i < TEST_CYCLES; ++i) {
-        signature_low = readb(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET);
-        signature_high = readb(BOOT_SECTOR_ADDRESS + SIGNATURE_OFFSET + 1);
-        signature = (signature_high << 8) | signature_low;
-        if (signature == SIGNATURE) {
-            break;
-        }
-        g_usleep(TEST_DELAY);
-    }
-    g_assert_cmphex(signature, ==, SIGNATURE);
+    boot_sector_test();
 
     test_acpi_rsdp_address(data);
     test_acpi_rsdp_table(data);
@@ -826,15 +784,11 @@ static void test_acpi_q35_tcg_bridge(void)
 int main(int argc, char *argv[])
 {
     const char *arch = qtest_get_arch();
-    FILE *f = fopen(disk, "w");
     int ret;
 
-    if (!f) {
-        fprintf(stderr, "Couldn't open \"%s\": %s", disk, strerror(errno));
-        return 1;
-    }
-    fwrite(boot_sector, 1, sizeof boot_sector, f);
-    fclose(f);
+    ret = boot_sector_init(disk);
+    if(ret)
+        return ret;
 
     g_test_init(&argc, &argv, NULL);
 
@@ -845,6 +799,6 @@ int main(int argc, char *argv[])
         qtest_add_func("acpi/q35/tcg/bridge", test_acpi_q35_tcg_bridge);
     }
     ret = g_test_run();
-    unlink(disk);
+    boot_sector_cleanup(disk);
     return ret;
 }

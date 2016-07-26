@@ -5,6 +5,7 @@
  * terms and conditions of the copyright.
  */
 
+#include "qemu/osdep.h"
 #include <slirp.h>
 #include <libslirp.h>
 
@@ -15,11 +16,6 @@
 #ifdef DEBUG
 int slirp_debug = DBG_CALL|DBG_MISC|DBG_ERROR;
 #endif
-
-struct quehead {
-	struct quehead *qh_link;
-	struct quehead *qh_rlink;
-};
 
 inline void
 insque(void *a, void *b)

@@ -18,13 +18,13 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "exec/exec-all.h"
 #include "disas/disas.h"
 #include "tcg-op.h"
 #include "qemu-common.h"
 #include "qemu/log.h"
-#include "config.h"
 #include "qemu/bitops.h"
 #include "exec/cpu_ldst.h"
 
@@ -32,6 +32,7 @@
 #include "exec/helper-gen.h"
 
 #include "trace-tcg.h"
+#include "exec/log.h"
 
 
 #define OPENRISC_DISAS
@@ -52,7 +53,7 @@ typedef struct DisasContext {
     uint32_t delayed_branch;
 } DisasContext;
 
-static TCGv_ptr cpu_env;
+static TCGv_env cpu_env;
 static TCGv cpu_sr;
 static TCGv cpu_R[32];
 static TCGv cpu_pc;
@@ -77,39 +78,39 @@ void openrisc_translate_init(void)
     int i;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
-    cpu_sr = tcg_global_mem_new(TCG_AREG0,
+    cpu_sr = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUOpenRISCState, sr), "sr");
-    env_flags = tcg_global_mem_new_i32(TCG_AREG0,
+    env_flags = tcg_global_mem_new_i32(cpu_env,
                                        offsetof(CPUOpenRISCState, flags),
                                        "flags");
-    cpu_pc = tcg_global_mem_new(TCG_AREG0,
+    cpu_pc = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUOpenRISCState, pc), "pc");
-    cpu_npc = tcg_global_mem_new(TCG_AREG0,
+    cpu_npc = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUOpenRISCState, npc), "npc");
-    cpu_ppc = tcg_global_mem_new(TCG_AREG0,
+    cpu_ppc = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUOpenRISCState, ppc), "ppc");
-    jmp_pc = tcg_global_mem_new(TCG_AREG0,
+    jmp_pc = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUOpenRISCState, jmp_pc), "jmp_pc");
-    env_btaken = tcg_global_mem_new_i32(TCG_AREG0,
+    env_btaken = tcg_global_mem_new_i32(cpu_env,
                                         offsetof(CPUOpenRISCState, btaken),
                                         "btaken");
-    fpcsr = tcg_global_mem_new_i32(TCG_AREG0,
+    fpcsr = tcg_global_mem_new_i32(cpu_env,
                                    offsetof(CPUOpenRISCState, fpcsr),
                                    "fpcsr");
-    machi = tcg_global_mem_new(TCG_AREG0,
+    machi = tcg_global_mem_new(cpu_env,
                                offsetof(CPUOpenRISCState, machi),
                                "machi");
-    maclo = tcg_global_mem_new(TCG_AREG0,
+    maclo = tcg_global_mem_new(cpu_env,
                                offsetof(CPUOpenRISCState, maclo),
                                "maclo");
-    fpmaddhi = tcg_global_mem_new(TCG_AREG0,
+    fpmaddhi = tcg_global_mem_new(cpu_env,
                                   offsetof(CPUOpenRISCState, fpmaddhi),
                                   "fpmaddhi");
-    fpmaddlo = tcg_global_mem_new(TCG_AREG0,
+    fpmaddlo = tcg_global_mem_new(cpu_env,
                                   offsetof(CPUOpenRISCState, fpmaddlo),
                                   "fpmaddlo");
     for (i = 0; i < 32; i++) {
-        cpu_R[i] = tcg_global_mem_new(TCG_AREG0,
+        cpu_R[i] = tcg_global_mem_new(cpu_env,
                                       offsetof(CPUOpenRISCState, gpr[i]),
                                       regnames[i]);
     }

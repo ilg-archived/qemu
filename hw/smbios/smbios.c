@@ -15,6 +15,8 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu/config-file.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
@@ -319,7 +321,7 @@ static void smbios_register_config(void)
     qemu_add_opts(&qemu_smbios_opts);
 }
 
-machine_init(smbios_register_config);
+opts_init(smbios_register_config);
 
 static void smbios_validate_table(void)
 {
@@ -937,7 +939,6 @@ static void save_opt(const char **dest, QemuOpts *opts, const char *name)
 
 void smbios_entry_add(QemuOpts *opts)
 {
-    Error *local_err = NULL;
     const char *val;
 
     assert(!smbios_immutable);
@@ -948,11 +949,7 @@ void smbios_entry_add(QemuOpts *opts)
         int size;
         struct smbios_table *table; /* legacy mode only */
 
-        qemu_opts_validate(opts, qemu_smbios_file_opts, &local_err);
-        if (local_err) {
-            error_report_err(local_err);
-            exit(1);
-        }
+        qemu_opts_validate(opts, qemu_smbios_file_opts, &error_fatal);
 
         size = get_image_size(val);
         if (size == -1 || size < sizeof(struct smbios_structure_header)) {
@@ -1034,11 +1031,7 @@ void smbios_entry_add(QemuOpts *opts)
 
         switch (type) {
         case 0:
-            qemu_opts_validate(opts, qemu_smbios_type0_opts, &local_err);
-            if (local_err) {
-                error_report_err(local_err);
-                exit(1);
-            }
+            qemu_opts_validate(opts, qemu_smbios_type0_opts, &error_fatal);
             save_opt(&type0.vendor, opts, "vendor");
             save_opt(&type0.version, opts, "version");
             save_opt(&type0.date, opts, "date");
@@ -1054,11 +1047,7 @@ void smbios_entry_add(QemuOpts *opts)
             }
             return;
         case 1:
-            qemu_opts_validate(opts, qemu_smbios_type1_opts, &local_err);
-            if (local_err) {
-                error_report_err(local_err);
-                exit(1);
-            }
+            qemu_opts_validate(opts, qemu_smbios_type1_opts, &error_fatal);
             save_opt(&type1.manufacturer, opts, "manufacturer");
             save_opt(&type1.product, opts, "product");
             save_opt(&type1.version, opts, "version");
@@ -1076,11 +1065,7 @@ void smbios_entry_add(QemuOpts *opts)
             }
             return;
         case 2:
-            qemu_opts_validate(opts, qemu_smbios_type2_opts, &local_err);
-            if (local_err) {
-                error_report_err(local_err);
-                exit(1);
-            }
+            qemu_opts_validate(opts, qemu_smbios_type2_opts, &error_fatal);
             save_opt(&type2.manufacturer, opts, "manufacturer");
             save_opt(&type2.product, opts, "product");
             save_opt(&type2.version, opts, "version");
@@ -1089,11 +1074,7 @@ void smbios_entry_add(QemuOpts *opts)
             save_opt(&type2.location, opts, "location");
             return;
         case 3:
-            qemu_opts_validate(opts, qemu_smbios_type3_opts, &local_err);
-            if (local_err) {
-                error_report_err(local_err);
-                exit(1);
-            }
+            qemu_opts_validate(opts, qemu_smbios_type3_opts, &error_fatal);
             save_opt(&type3.manufacturer, opts, "manufacturer");
             save_opt(&type3.version, opts, "version");
             save_opt(&type3.serial, opts, "serial");
@@ -1101,11 +1082,7 @@ void smbios_entry_add(QemuOpts *opts)
             save_opt(&type3.sku, opts, "sku");
             return;
         case 4:
-            qemu_opts_validate(opts, qemu_smbios_type4_opts, &local_err);
-            if (local_err) {
-                error_report_err(local_err);
-                exit(1);
-            }
+            qemu_opts_validate(opts, qemu_smbios_type4_opts, &error_fatal);
             save_opt(&type4.sock_pfx, opts, "sock_pfx");
             save_opt(&type4.manufacturer, opts, "manufacturer");
             save_opt(&type4.version, opts, "version");
@@ -1114,11 +1091,7 @@ void smbios_entry_add(QemuOpts *opts)
             save_opt(&type4.part, opts, "part");
             return;
         case 17:
-            qemu_opts_validate(opts, qemu_smbios_type17_opts, &local_err);
-            if (local_err) {
-                error_report_err(local_err);
-                exit(1);
-            }
+            qemu_opts_validate(opts, qemu_smbios_type17_opts, &error_fatal);
             save_opt(&type17.loc_pfx, opts, "loc_pfx");
             save_opt(&type17.bank, opts, "bank");
             save_opt(&type17.manufacturer, opts, "manufacturer");

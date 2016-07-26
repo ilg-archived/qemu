@@ -19,9 +19,7 @@
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stdint.h"
-
-typedef struct CPUState CPUState;
+#include "qemu/osdep.h"
 
 int target_get_monitor_def(CPUState *cs, const char *name, uint64_t *pval);
 

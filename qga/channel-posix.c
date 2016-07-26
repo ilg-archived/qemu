@@ -1,11 +1,7 @@
+#include "qemu/osdep.h"
 #include <glib.h>
 #include <termios.h>
-#include <errno.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
-#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu/sockets.h"
 #include "qga/channel.h"
 

@@ -13,8 +13,7 @@
 #ifndef BLOCK_BACKEND_H
 #define BLOCK_BACKEND_H
 
-#include "qemu/typedefs.h"
-#include "qapi/error.h"
+#include "qemu/iov.h"
 
 /*
  * TODO Have to include block/block.h for a bunch of block layer
@@ -60,24 +59,26 @@ typedef struct BlockDevOps {
     void (*resize_cb)(void *opaque);
 } BlockDevOps;
 
-BlockBackend *blk_new(const char *name, Error **errp);
-BlockBackend *blk_new_with_bs(const char *name, Error **errp);
-BlockBackend *blk_new_open(const char *name, const char *filename,
-                           const char *reference, QDict *options, int flags,
-                           Error **errp);
+BlockBackend *blk_new(Error **errp);
+BlockBackend *blk_new_with_bs(Error **errp);
+BlockBackend *blk_new_open(const char *filename, const char *reference,
+                           QDict *options, int flags, Error **errp);
 int blk_get_refcnt(BlockBackend *blk);
 void blk_ref(BlockBackend *blk);
 void blk_unref(BlockBackend *blk);
+void blk_remove_all_bs(void);
 const char *blk_name(BlockBackend *blk);
 BlockBackend *blk_by_name(const char *name);
 BlockBackend *blk_next(BlockBackend *blk);
+BlockDriverState *blk_next_root_bs(BlockDriverState *bs);
+bool monitor_add_blk(BlockBackend *blk, const char *name, Error **errp);
+void monitor_remove_blk(BlockBackend *blk);
 
 BlockDriverState *blk_bs(BlockBackend *blk);
 void blk_remove_bs(BlockBackend *blk);
 void blk_insert_bs(BlockBackend *blk, BlockDriverState *bs);
 
-void blk_hide_on_behalf_of_hmp_drive_del(BlockBackend *blk);
-
+void blk_set_allow_write_beyond_eof(BlockBackend *blk, bool allow);
 void blk_iostatus_enable(BlockBackend *blk);
 bool blk_iostatus_is_enabled(const BlockBackend *blk);
 BlockDeviceIoStatus blk_iostatus(const BlockBackend *blk);
@@ -126,6 +127,7 @@ int blk_co_discard(BlockBackend *blk, int64_t sector_num, int nb_sectors);
 int blk_co_flush(BlockBackend *blk);
 int blk_flush(BlockBackend *blk);
 int blk_flush_all(void);
+int blk_commit_all(void);
 void blk_drain(BlockBackend *blk);
 void blk_drain_all(void);
 void blk_set_on_error(BlockBackend *blk, BlockdevOnError on_read_error,
@@ -146,7 +148,9 @@ void blk_lock_medium(BlockBackend *blk, bool locked);
 void blk_eject(BlockBackend *blk, bool eject_flag);
 int blk_get_flags(BlockBackend *blk);
 int blk_get_max_transfer_length(BlockBackend *blk);
+int blk_get_max_iov(BlockBackend *blk);
 void blk_set_guest_block_size(BlockBackend *blk, int align);
+void *blk_try_blockalign(BlockBackend *blk, size_t size);
 void *blk_blockalign(BlockBackend *blk, size_t size);
 bool blk_op_is_blocked(BlockBackend *blk, BlockOpType op, Error **errp);
 void blk_op_unblock(BlockBackend *blk, BlockOpType op, Error *reason);
@@ -162,7 +166,8 @@ void blk_remove_aio_context_notifier(BlockBackend *blk,
                                                                   void *),
                                      void (*detach_aio_context)(void *),
                                      void *opaque);
-void blk_add_close_notifier(BlockBackend *blk, Notifier *notify);
+void blk_add_remove_bs_notifier(BlockBackend *blk, Notifier *notify);
+void blk_add_insert_bs_notifier(BlockBackend *blk, Notifier *notify);
 void blk_io_plug(BlockBackend *blk);
 void blk_io_unplug(BlockBackend *blk);
 BlockAcctStats *blk_get_stats(BlockBackend *blk);

@@ -25,6 +25,7 @@
 #include "hw/ide/pci.h"
 #include "hw/ide/ahci.h"
 #include "hw/sd/sdhci.h"
+#include "hw/ssi/xilinx_spips.h"
 
 #define TYPE_XLNX_ZYNQMP "xlnx,zynqmp"
 #define XLNX_ZYNQMP(obj) OBJECT_CHECK(XlnxZynqMPState, (obj), \
@@ -35,6 +36,7 @@
 #define XLNX_ZYNQMP_NUM_GEMS 4
 #define XLNX_ZYNQMP_NUM_UARTS 2
 #define XLNX_ZYNQMP_NUM_SDHCI 2
+#define XLNX_ZYNQMP_NUM_SPIS 2
 
 #define XLNX_ZYNQMP_NUM_OCM_BANKS 4
 #define XLNX_ZYNQMP_OCM_RAM_0_ADDRESS 0xFFFC0000
@@ -51,6 +53,14 @@
 #define XLNX_ZYNQMP_GIC_REGION_SIZE 0x1000
 #define XLNX_ZYNQMP_GIC_ALIASES     (0x10000 / XLNX_ZYNQMP_GIC_REGION_SIZE - 1)
 
+#define XLNX_ZYNQMP_MAX_LOW_RAM_SIZE    0x80000000ull
+
+#define XLNX_ZYNQMP_MAX_HIGH_RAM_SIZE   0x800000000ull
+#define XLNX_ZYNQMP_HIGH_RAM_START      0x800000000ull
+
+#define XLNX_ZYNQMP_MAX_RAM_SIZE (XLNX_ZYNQMP_MAX_LOW_RAM_SIZE + \
+                                  XLNX_ZYNQMP_MAX_HIGH_RAM_SIZE)
+
 typedef struct XlnxZynqMPState {
     /*< private >*/
     DeviceState parent_obj;
@@ -60,12 +70,17 @@ typedef struct XlnxZynqMPState {
     ARMCPU rpu_cpu[XLNX_ZYNQMP_NUM_RPU_CPUS];
     GICState gic;
     MemoryRegion gic_mr[XLNX_ZYNQMP_GIC_REGIONS][XLNX_ZYNQMP_GIC_ALIASES];
+
     MemoryRegion ocm_ram[XLNX_ZYNQMP_NUM_OCM_BANKS];
+
+    MemoryRegion *ddr_ram;
+    MemoryRegion ddr_ram_low, ddr_ram_high;
 
     CadenceGEMState gem[XLNX_ZYNQMP_NUM_GEMS];
     CadenceUARTState uart[XLNX_ZYNQMP_NUM_UARTS];
     SysbusAHCIState sata;
     SDHCIState sdhci[XLNX_ZYNQMP_NUM_SDHCI];
+    XilinxSPIPS spi[XLNX_ZYNQMP_NUM_SPIS];
 
     char *boot_cpu;
     ARMCPU *boot_cpu_ptr;

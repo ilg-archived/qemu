@@ -5,9 +5,7 @@
 #include "qom/object.h"
 #include "qapi/qmp/qdict.h"
 #include "qemu/notify.h"
-#include "qemu/typedefs.h"
 #include "qapi-types.h"
-#include "qapi/error.h"
 
 #ifdef CONFIG_OPENGL
 # include <epoxy/gl.h>
@@ -29,6 +27,21 @@
 /* in ms */
 #define GUI_REFRESH_INTERVAL_DEFAULT    30
 #define GUI_REFRESH_INTERVAL_IDLE     3000
+
+/* Color number is match to standard vga palette */
+enum qemu_color_names {
+    QEMU_COLOR_BLACK   = 0,
+    QEMU_COLOR_BLUE    = 1,
+    QEMU_COLOR_GREEN   = 2,
+    QEMU_COLOR_CYAN    = 3,
+    QEMU_COLOR_RED     = 4,
+    QEMU_COLOR_MAGENTA = 5,
+    QEMU_COLOR_YELLOW  = 6,
+    QEMU_COLOR_WHITE   = 7
+};
+/* Convert to curses char attributes */
+#define ATTR2CHTYPE(c, fg, bg, bold) \
+    ((bold) << 21 | (bg) << 11 | (fg) << 8 | (c))
 
 typedef void QEMUPutKBDEvent(void *opaque, int keycode);
 typedef void QEMUPutLEDEvent(void *opaque, int ledstate);
@@ -221,6 +234,7 @@ DisplayState *init_displaystate(void);
 DisplaySurface *qemu_create_displaysurface_from(int width, int height,
                                                 pixman_format_code_t format,
                                                 int linesize, uint8_t *data);
+DisplaySurface *qemu_create_displaysurface_pixman(pixman_image_t *image);
 DisplaySurface *qemu_create_displaysurface_guestmem(int width, int height,
                                                     pixman_format_code_t format,
                                                     int linesize,
@@ -347,6 +361,7 @@ typedef struct GraphicHwOps {
     void (*text_update)(void *opaque, console_ch_t *text);
     void (*update_interval)(void *opaque, uint64_t interval);
     int (*ui_info)(void *opaque, uint32_t head, QemuUIInfo *info);
+    void (*gl_block)(void *opaque, bool block);
 } GraphicHwOps;
 
 QemuConsole *graphic_console_init(DeviceState *dev, uint32_t head,
@@ -359,9 +374,12 @@ void graphic_console_set_hwops(QemuConsole *con,
 void graphic_hw_update(QemuConsole *con);
 void graphic_hw_invalidate(QemuConsole *con);
 void graphic_hw_text_update(QemuConsole *con, console_ch_t *chardata);
+void graphic_hw_gl_block(QemuConsole *con, bool block);
 
 QemuConsole *qemu_console_lookup_by_index(unsigned int index);
 QemuConsole *qemu_console_lookup_by_device(DeviceState *dev, uint32_t head);
+QemuConsole *qemu_console_lookup_by_device_name(const char *device_id,
+                                                uint32_t head, Error **errp);
 bool qemu_console_is_visible(QemuConsole *con);
 bool qemu_console_is_graphic(QemuConsole *con);
 bool qemu_console_is_fixedsize(QemuConsole *con);

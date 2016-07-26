@@ -14,7 +14,6 @@
 #include "qemu/bswap.h"
 #include "qemu/queue.h"
 #include "qemu/fprintf-fn.h"
-#include "qemu/typedefs.h"
 
 /**
  * CPUListState:
@@ -54,7 +53,6 @@ typedef uintptr_t ram_addr_t;
 #endif
 
 extern ram_addr_t ram_size;
-ram_addr_t get_current_ram_size(void);
 
 /* memory API */
 

@@ -21,6 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/hw.h"
 #include "hw/ppc/ppc.h"
 #include "ppc405.h"
@@ -657,4 +661,4 @@ static void ppc405_machine_init(void)
     type_register_static(&taihu_type);
 }
 
-machine_init(ppc405_machine_init)
+type_init(ppc405_machine_init)

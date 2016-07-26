@@ -49,6 +49,7 @@
  */
 
 /* For crc32 */
+#include "qemu/osdep.h"
 #include <zlib.h>
 
 #include "hw/hw.h"
@@ -74,7 +75,6 @@
     ( ( input ) & ( size - 1 )  )
 
 #define ETHER_TYPE_LEN 2
-#define ETH_HLEN (ETH_ALEN * 2 + ETHER_TYPE_LEN)
 #define ETH_MTU     1500
 
 #define VLAN_TCI_LEN 2
@@ -2046,7 +2046,7 @@ static int rtl8139_cplus_transmit_one(RTL8139State *s)
     }
 
     /* transfer ownership to target */
-    txdw0 &= ~CP_RX_OWN;
+    txdw0 &= ~CP_TX_OWN;
 
     /* reset error indicator bits */
     txdw0 &= ~CP_TX_STATUS_UNF;

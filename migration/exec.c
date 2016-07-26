@@ -15,13 +15,14 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "qemu/sockets.h"
 #include "qemu/main-loop.h"
 #include "migration/migration.h"
 #include "migration/qemu-file.h"
 #include "block/block.h"
-#include <sys/types.h>
 #include <sys/wait.h>
 
 //#define DEBUG_MIGRATION_EXEC
@@ -36,8 +37,8 @@
 
 void exec_start_outgoing_migration(MigrationState *s, const char *command, Error **errp)
 {
-    s->file = qemu_popen_cmd(command, "w");
-    if (s->file == NULL) {
+    s->to_dst_file = qemu_popen_cmd(command, "w");
+    if (s->to_dst_file == NULL) {
         error_setg_errno(errp, errno, "failed to popen the migration target");
         return;
     }

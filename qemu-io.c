@@ -7,13 +7,11 @@
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
  */
-#include <sys/time.h>
-#include <sys/types.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include "qemu/osdep.h"
 #include <getopt.h>
 #include <libgen.h>
 
+#include "qapi/error.h"
 #include "qemu-io.h"
 #include "qemu/error-report.h"
 #include "qemu/main-loop.h"
@@ -21,9 +19,11 @@
 #include "qemu/config-file.h"
 #include "qemu/readline.h"
 #include "qapi/qmp/qstring.h"
+#include "qom/object_interfaces.h"
 #include "sysemu/block-backend.h"
 #include "block/block_int.h"
 #include "trace/control.h"
+#include "crypto/init.h"
 
 #define CMD_NOFILE_OK   0x01
 
@@ -34,6 +34,7 @@ static BlockBackend *qemuio_blk;
 /* qemu-io commands passed using -c */
 static int ncmdline;
 static char **cmdline;
+static bool imageOpts;
 
 static ReadLineState *readline_state;
 
@@ -51,28 +52,26 @@ static const cmdinfo_t close_cmd = {
     .oneline    = "close the current open file",
 };
 
-static int openfile(char *name, int flags, QDict *opts)
+static int openfile(char *name, int flags, bool writethrough, QDict *opts)
 {
     Error *local_err = NULL;
     BlockDriverState *bs;
 
     if (qemuio_blk) {
-        fprintf(stderr, "file open already, try 'help close'\n");
+        error_report("file open already, try 'help close'");
         QDECREF(opts);
         return 1;
     }
 
-    qemuio_blk = blk_new_open("hda", name, NULL, opts, flags, &local_err);
+    qemuio_blk = blk_new_open(name, NULL, opts, flags, &local_err);
     if (!qemuio_blk) {
-        fprintf(stderr, "%s: can't open%s%s: %s\n", progname,
-                name ? " device " : "", name ?: "",
-                error_get_pretty(local_err));
-        error_free(local_err);
+        error_reportf_err(local_err, "can't open%s%s: ",
+                          name ? " device " : "", name ?: "");
         return 1;
     }
 
     bs = blk_bs(qemuio_blk);
-    if (bdrv_is_encrypted(bs)) {
+    if (bdrv_is_encrypted(bs) && bdrv_key_required(bs)) {
         char password[256];
         printf("Disk image '%s' is encrypted.\n", name);
         if (qemu_read_password(password, sizeof(password)) < 0) {
@@ -85,6 +84,7 @@ static int openfile(char *name, int flags, QDict *opts)
         }
     }
 
+    blk_set_enable_write_cache(qemuio_blk, !writethrough);
 
     return 0;
 
@@ -139,6 +139,7 @@ static int open_f(BlockBackend *blk, int argc, char **argv)
 {
     int flags = 0;
     int readonly = 0;
+    bool writethrough = true;
     int c;
     QemuOpts *qopts;
     QDict *opts;
@@ -149,12 +150,17 @@ static int open_f(BlockBackend *blk, int argc, char **argv)
             flags |= BDRV_O_SNAPSHOT;
             break;
         case 'n':
-            flags |= BDRV_O_NOCACHE | BDRV_O_CACHE_WB;
+            flags |= BDRV_O_NOCACHE;
+            writethrough = false;
             break;
         case 'r':
             readonly = 1;
             break;
         case 'o':
+            if (imageOpts) {
+                printf("--image-opts and 'open -o' are mutually exclusive\n");
+                return 0;
+            }
             if (!qemu_opts_parse_noisily(&empty_opts, optarg, false)) {
                 qemu_opts_reset(&empty_opts);
                 return 0;
@@ -170,14 +176,22 @@ static int open_f(BlockBackend *blk, int argc, char **argv)
         flags |= BDRV_O_RDWR;
     }
 
+    if (imageOpts && (optind == argc - 1)) {
+        if (!qemu_opts_parse_noisily(&empty_opts, argv[optind], false)) {
+            qemu_opts_reset(&empty_opts);
+            return 0;
+        }
+        optind++;
+    }
+
     qopts = qemu_opts_find(&empty_opts, NULL);
     opts = qopts ? qemu_opts_to_qdict(qopts, NULL) : NULL;
     qemu_opts_reset(&empty_opts);
 
     if (optind == argc - 1) {
-        return openfile(argv[optind], flags, opts);
+        return openfile(argv[optind], flags, writethrough, opts);
     } else if (optind == argc) {
-        return openfile(NULL, flags, opts);
+        return openfile(NULL, flags, writethrough, opts);
     } else {
         QDECREF(opts);
         return qemuio_command_usage(&open_cmd);
@@ -205,6 +219,8 @@ static void usage(const char *name)
 "Usage: %s [-h] [-V] [-rsnm] [-f FMT] [-c STRING] ... [file]\n"
 "QEMU Disk exerciser\n"
 "\n"
+"  --object OBJECTDEF   define an object such as 'secret' for\n"
+"                       passwords and/or encryption keys\n"
 "  -c, --cmd STRING     execute command with its arguments\n"
 "                       from the given string\n"
 "  -f, --format FMT     specifies the block driver to use\n"
@@ -366,31 +382,60 @@ static void reenable_tty_echo(void)
     qemu_set_tty_echo(STDIN_FILENO, true);
 }
 
+enum {
+    OPTION_OBJECT = 256,
+    OPTION_IMAGE_OPTS = 257,
+};
+
+static QemuOptsList qemu_object_opts = {
+    .name = "object",
+    .implied_opt_name = "qom-type",
+    .head = QTAILQ_HEAD_INITIALIZER(qemu_object_opts.head),
+    .desc = {
+        { }
+    },
+};
+
+
+static QemuOptsList file_opts = {
+    .name = "file",
+    .implied_opt_name = "file",
+    .head = QTAILQ_HEAD_INITIALIZER(file_opts.head),
+    .desc = {
+        /* no elements => accept any params */
+        { /* end of list */ }
+    },
+};
+
 int main(int argc, char **argv)
 {
     int readonly = 0;
     const char *sopt = "hVc:d:f:rsnmgkt:T:";
     const struct option lopt[] = {
-        { "help", 0, NULL, 'h' },
-        { "version", 0, NULL, 'V' },
-        { "offset", 1, NULL, 'o' },
-        { "cmd", 1, NULL, 'c' },
-        { "format", 1, NULL, 'f' },
-        { "read-only", 0, NULL, 'r' },
-        { "snapshot", 0, NULL, 's' },
-        { "nocache", 0, NULL, 'n' },
-        { "misalign", 0, NULL, 'm' },
-        { "native-aio", 0, NULL, 'k' },
-        { "discard", 1, NULL, 'd' },
-        { "cache", 1, NULL, 't' },
-        { "trace", 1, NULL, 'T' },
+        { "help", no_argument, NULL, 'h' },
+        { "version", no_argument, NULL, 'V' },
+        { "offset", required_argument, NULL, 'o' },
+        { "cmd", required_argument, NULL, 'c' },
+        { "format", required_argument, NULL, 'f' },
+        { "read-only", no_argument, NULL, 'r' },
+        { "snapshot", no_argument, NULL, 's' },
+        { "nocache", no_argument, NULL, 'n' },
+        { "misalign", no_argument, NULL, 'm' },
+        { "native-aio", no_argument, NULL, 'k' },
+        { "discard", required_argument, NULL, 'd' },
+        { "cache", required_argument, NULL, 't' },
+        { "trace", required_argument, NULL, 'T' },
+        { "object", required_argument, NULL, OPTION_OBJECT },
+        { "image-opts", no_argument, NULL, OPTION_IMAGE_OPTS },
         { NULL, 0, NULL, 0 }
     };
     int c;
     int opt_index = 0;
     int flags = BDRV_O_UNMAP;
+    bool writethrough = true;
     Error *local_error = NULL;
     QDict *opts = NULL;
+    const char *format = NULL;
 
 #ifdef CONFIG_POSIX
     signal(SIGPIPE, SIG_IGN);
@@ -399,6 +444,13 @@ int main(int argc, char **argv)
     progname = basename(argv[0]);
     qemu_init_exec_dir(argv[0]);
 
+    if (qcrypto_init(&local_error) < 0) {
+        error_reportf_err(local_error, "cannot initialize crypto: ");
+        exit(1);
+    }
+
+    module_call_init(MODULE_INIT_QOM);
+    qemu_add_opts(&qemu_object_opts);
     bdrv_init();
 
     while ((c = getopt_long(argc, argv, sopt, lopt, &opt_index)) != -1) {
@@ -407,7 +459,8 @@ int main(int argc, char **argv)
             flags |= BDRV_O_SNAPSHOT;
             break;
         case 'n':
-            flags |= BDRV_O_NOCACHE | BDRV_O_CACHE_WB;
+            flags |= BDRV_O_NOCACHE;
+            writethrough = false;
             break;
         case 'd':
             if (bdrv_parse_discard_flags(optarg, &flags) < 0) {
@@ -416,10 +469,7 @@ int main(int argc, char **argv)
             }
             break;
         case 'f':
-            if (!opts) {
-                opts = qdict_new();
-            }
-            qdict_put(opts, "driver", qstring_from_str(optarg));
+            format = optarg;
             break;
         case 'c':
             add_user_command(optarg);
@@ -434,13 +484,13 @@ int main(int argc, char **argv)
             flags |= BDRV_O_NATIVE_AIO;
             break;
         case 't':
-            if (bdrv_parse_cache_flags(optarg, &flags) < 0) {
+            if (bdrv_parse_cache_mode(optarg, &flags, &writethrough) < 0) {
                 error_report("Invalid cache option: %s", optarg);
                 exit(1);
             }
             break;
         case 'T':
-            if (!trace_init_backends(optarg, NULL)) {
+            if (!trace_init_backends()) {
                 exit(1); /* error message will have been printed */
             }
             break;
@@ -450,6 +500,17 @@ int main(int argc, char **argv)
         case 'h':
             usage(progname);
             exit(0);
+        case OPTION_OBJECT: {
+            QemuOpts *qopts;
+            qopts = qemu_opts_parse_noisily(&qemu_object_opts,
+                                            optarg, true);
+            if (!qopts) {
+                exit(1);
+            }
+        }   break;
+        case OPTION_IMAGE_OPTS:
+            imageOpts = true;
+            break;
         default:
             usage(progname);
             exit(1);
@@ -461,8 +522,19 @@ int main(int argc, char **argv)
         exit(1);
     }
 
+    if (format && imageOpts) {
+        error_report("--image-opts and -f are mutually exclusive");
+        exit(1);
+    }
+
     if (qemu_init_main_loop(&local_error)) {
         error_report_err(local_error);
+        exit(1);
+    }
+
+    if (qemu_opts_foreach(&qemu_object_opts,
+                          user_creatable_add_opts_foreach,
+                          NULL, NULL)) {
         exit(1);
     }
 
@@ -486,7 +558,21 @@ int main(int argc, char **argv)
     }
 
     if ((argc - optind) == 1) {
-        openfile(argv[optind], flags, opts);
+        if (imageOpts) {
+            QemuOpts *qopts = NULL;
+            qopts = qemu_opts_parse_noisily(&file_opts, argv[optind], false);
+            if (!qopts) {
+                exit(1);
+            }
+            opts = qemu_opts_to_qdict(qopts, NULL);
+            openfile(NULL, flags, writethrough, opts);
+        } else {
+            if (format) {
+                opts = qdict_new();
+                qdict_put(opts, "driver", qstring_from_str(format));
+            }
+            openfile(argv[optind], flags, writethrough, opts);
+        }
     }
     command_loop();
 

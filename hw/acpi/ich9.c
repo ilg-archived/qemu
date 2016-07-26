@@ -23,7 +23,9 @@
  * Contributions after 2012-01-13 are licensed under the terms of the
  * GNU GPL, version 2 or (at your option) any later version.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
+#include "qapi/error.h"
 #include "qapi/visitor.h"
 #include "hw/i386/pc.h"
 #include "hw/pci/pci.h"
@@ -239,7 +241,7 @@ static void pm_powerdown_req(Notifier *n, void *opaque)
 }
 
 void ich9_pm_init(PCIDevice *lpc_pci, ICH9LPCPMRegs *pm,
-                  bool smm_enabled, bool enable_tco,
+                  bool smm_enabled,
                   qemu_irq sci_irq)
 {
     memory_region_init(&pm->io, OBJECT(lpc_pci), "ich9-pm", ICH9_PMIO_SIZE);
@@ -263,10 +265,8 @@ void ich9_pm_init(PCIDevice *lpc_pci, ICH9LPCPMRegs *pm,
 
     pm->smm_enabled = smm_enabled;
 
-    pm->enable_tco = enable_tco;
-    if (pm->enable_tco) {
-        acpi_pm_tco_init(&pm->tco_regs, &pm->io);
-    }
+    pm->enable_tco = true;
+    acpi_pm_tco_init(&pm->tco_regs, &pm->io);
 
     pm->irq = sci_irq;
     qemu_register_reset(pm_reset, pm);
@@ -282,14 +282,13 @@ void ich9_pm_init(PCIDevice *lpc_pci, ICH9LPCPMRegs *pm,
     }
 }
 
-static void ich9_pm_get_gpe0_blk(Object *obj, Visitor *v,
-                                 void *opaque, const char *name,
-                                 Error **errp)
+static void ich9_pm_get_gpe0_blk(Object *obj, Visitor *v, const char *name,
+                                 void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint32_t value = pm->pm_io_base + ICH9_PMIO_GPE0_STS;
 
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
 static bool ich9_pm_get_memory_hotplug_support(Object *obj, Error **errp)
@@ -307,25 +306,23 @@ static void ich9_pm_set_memory_hotplug_support(Object *obj, bool value,
     s->pm.acpi_memory_hotplug.is_enabled = value;
 }
 
-static void ich9_pm_get_disable_s3(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_get_disable_s3(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint8_t value = pm->disable_s3;
 
-    visit_type_uint8(v, &value, name, errp);
+    visit_type_uint8(v, name, &value, errp);
 }
 
-static void ich9_pm_set_disable_s3(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_set_disable_s3(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     Error *local_err = NULL;
     uint8_t value;
 
-    visit_type_uint8(v, &value, name, &local_err);
+    visit_type_uint8(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }
@@ -334,25 +331,23 @@ out:
     error_propagate(errp, local_err);
 }
 
-static void ich9_pm_get_disable_s4(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_get_disable_s4(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint8_t value = pm->disable_s4;
 
-    visit_type_uint8(v, &value, name, errp);
+    visit_type_uint8(v, name, &value, errp);
 }
 
-static void ich9_pm_set_disable_s4(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_set_disable_s4(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     Error *local_err = NULL;
     uint8_t value;
 
-    visit_type_uint8(v, &value, name, &local_err);
+    visit_type_uint8(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }
@@ -361,25 +356,23 @@ out:
     error_propagate(errp, local_err);
 }
 
-static void ich9_pm_get_s4_val(Object *obj, Visitor *v,
-                               void *opaque, const char *name,
-                               Error **errp)
+static void ich9_pm_get_s4_val(Object *obj, Visitor *v, const char *name,
+                               void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint8_t value = pm->s4_val;
 
-    visit_type_uint8(v, &value, name, errp);
+    visit_type_uint8(v, name, &value, errp);
 }
 
-static void ich9_pm_set_s4_val(Object *obj, Visitor *v,
-                               void *opaque, const char *name,
-                               Error **errp)
+static void ich9_pm_set_s4_val(Object *obj, Visitor *v, const char *name,
+                               void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     Error *local_err = NULL;
     uint8_t value;
 
-    visit_type_uint8(v, &value, name, &local_err);
+    visit_type_uint8(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }

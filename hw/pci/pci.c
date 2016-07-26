@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/pci/pci.h"
 #include "hw/pci/pci_bridge.h"
@@ -39,6 +40,7 @@
 #include "exec/address-spaces.h"
 #include "hw/hotplug.h"
 #include "hw/boards.h"
+#include "qemu/cutils.h"
 
 //#define DEBUG_PCI
 #ifdef DEBUG_PCI
@@ -277,9 +279,9 @@ static void pcibus_reset(BusState *qbus)
     }
 }
 
-static void pci_host_bus_register(PCIBus *bus, DeviceState *parent)
+static void pci_host_bus_register(DeviceState *host)
 {
-    PCIHostState *host_bridge = PCI_HOST_BRIDGE(parent);
+    PCIHostState *host_bridge = PCI_HOST_BRIDGE(host);
 
     QLIST_INSERT_HEAD(&pci_host_bridges, host_bridge, next);
 }
@@ -330,7 +332,6 @@ const char *pci_root_bus_path(PCIDevice *dev)
 }
 
 static void pci_bus_init(PCIBus *bus, DeviceState *parent,
-                         const char *name,
                          MemoryRegion *address_space_mem,
                          MemoryRegion *address_space_io,
                          uint8_t devfn_min)
@@ -343,7 +344,7 @@ static void pci_bus_init(PCIBus *bus, DeviceState *parent,
     /* host bridge */
     QLIST_INIT(&bus->child);
 
-    pci_host_bus_register(bus, parent);
+    pci_host_bus_register(parent);
 }
 
 bool pci_bus_is_express(PCIBus *bus)
@@ -363,8 +364,7 @@ void pci_bus_new_inplace(PCIBus *bus, size_t bus_size, DeviceState *parent,
                          uint8_t devfn_min, const char *typename)
 {
     qbus_create_inplace(bus, bus_size, typename, parent, name);
-    pci_bus_init(bus, parent, name, address_space_mem,
-                 address_space_io, devfn_min);
+    pci_bus_init(bus, parent, address_space_mem, address_space_io, devfn_min);
 }
 
 PCIBus *pci_bus_new(DeviceState *parent, const char *name,
@@ -375,8 +375,7 @@ PCIBus *pci_bus_new(DeviceState *parent, const char *name,
     PCIBus *bus;
 
     bus = PCI_BUS(qbus_create(typename, parent, name));
-    pci_bus_init(bus, parent, name, address_space_mem,
-                 address_space_io, devfn_min);
+    pci_bus_init(bus, parent, address_space_mem, address_space_io, devfn_min);
     return bus;
 }
 
@@ -850,6 +849,13 @@ static PCIDevice *do_pci_register_device(PCIDevice *pci_dev, PCIBus *bus,
     DeviceState *dev = DEVICE(pci_dev);
 
     pci_dev->bus = bus;
+    /* Only pci bridges can be attached to extra PCI root buses */
+    if (pci_bus_is_root(bus) && bus->parent_dev && !pc->is_bridge) {
+        error_setg(errp,
+                   "PCI: Only PCI/PCIe bridges can be plugged into %s",
+                    bus->parent_dev->name);
+        return NULL;
+    }
 
     if (devfn < 0) {
         for(devfn = bus->devfn_min ; devfn < ARRAY_SIZE(bus->devices);

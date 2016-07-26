@@ -7,6 +7,8 @@
  * This code is licensed under the LGPL.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "qemu/error-report.h"
 #include "qemu/option.h"
@@ -20,6 +22,7 @@
 #include "sysemu/block-backend.h"
 #include "sysemu/blockdev.h"
 #include "qapi/visitor.h"
+#include "qemu/cutils.h"
 
 //#define DEBUG_MSD
 
@@ -780,24 +783,24 @@ static void usb_msd_class_initfn_storage(ObjectClass *klass, void *data)
     dc->props = msd_properties;
 }
 
-static void usb_msd_get_bootindex(Object *obj, Visitor *v, void *opaque,
-                                  const char *name, Error **errp)
+static void usb_msd_get_bootindex(Object *obj, Visitor *v, const char *name,
+                                  void *opaque, Error **errp)
 {
     USBDevice *dev = USB_DEVICE(obj);
     MSDState *s = USB_STORAGE_DEV(dev);
 
-    visit_type_int32(v, &s->conf.bootindex, name, errp);
+    visit_type_int32(v, name, &s->conf.bootindex, errp);
 }
 
-static void usb_msd_set_bootindex(Object *obj, Visitor *v, void *opaque,
-                                  const char *name, Error **errp)
+static void usb_msd_set_bootindex(Object *obj, Visitor *v, const char *name,
+                                  void *opaque, Error **errp)
 {
     USBDevice *dev = USB_DEVICE(obj);
     MSDState *s = USB_STORAGE_DEV(dev);
     int32_t boot_index;
     Error *local_err = NULL;
 
-    visit_type_int32(v, &boot_index, name, &local_err);
+    visit_type_int32(v, name, &boot_index, &local_err);
     if (local_err) {
         goto out;
     }

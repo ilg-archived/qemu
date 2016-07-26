@@ -16,15 +16,12 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <inttypes.h>
+#include "qemu/osdep.h"
 
 #include "cpu.h"
 #include "sysemu/kvm.h"
 #include "exec/cpu_ldst.h"
+#include "exec/log.h"
 
 enum {
     TLBRET_XI = -6,

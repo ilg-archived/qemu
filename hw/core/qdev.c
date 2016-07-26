@@ -25,10 +25,10 @@
    inherit from a particular bus (e.g. PCI or I2C) rather than
    this API directly.  */
 
+#include "qemu/osdep.h"
 #include "hw/qdev.h"
 #include "hw/fw-path-provider.h"
 #include "sysemu/sysemu.h"
-#include "qapi/error.h"
 #include "qapi/qmp/qerror.h"
 #include "qapi/visitor.h"
 #include "qapi/qmp/qjson.h"
@@ -370,9 +370,8 @@ void qdev_init_nofail(DeviceState *dev)
 
     object_property_set_bool(OBJECT(dev), true, "realized", &err);
     if (err) {
-        error_report("Initialization of device %s failed: %s",
-                     object_get_typename(OBJECT(dev)),
-                     error_get_pretty(err));
+        error_reportf_err(err, "Initialization of device %s failed: ",
+                          object_get_typename(OBJECT(dev)));
         exit(1);
     }
 }
@@ -581,6 +580,12 @@ void qdev_pass_gpios(DeviceState *dev, DeviceState *container,
 BusState *qdev_get_child_bus(DeviceState *dev, const char *name)
 {
     BusState *bus;
+    Object *child = object_resolve_path_component(OBJECT(dev), name);
+
+    bus = (BusState *)object_dynamic_cast(child, TYPE_BUS);
+    if (bus) {
+        return bus;
+    }
 
     QLIST_FOREACH(bus, &dev->child_bus, sibling) {
         if (strcmp(name, bus->name) == 0) {
@@ -888,8 +893,9 @@ char *qdev_get_dev_path(DeviceState *dev)
  * Legacy property handling
  */
 
-static void qdev_get_legacy_property(Object *obj, Visitor *v, void *opaque,
-                                     const char *name, Error **errp)
+static void qdev_get_legacy_property(Object *obj, Visitor *v,
+                                     const char *name, void *opaque,
+                                     Error **errp)
 {
     DeviceState *dev = DEVICE(obj);
     Property *prop = opaque;
@@ -898,7 +904,7 @@ static void qdev_get_legacy_property(Object *obj, Visitor *v, void *opaque,
     char *ptr = buffer;
 
     prop->info->print(dev, prop, buffer, sizeof(buffer));
-    visit_type_str(v, &ptr, name, errp);
+    visit_type_str(v, name, &ptr, errp);
 }
 
 /**
@@ -1134,7 +1140,6 @@ post_realize_fail:
 
 fail:
     error_propagate(errp, local_err);
-    return;
 }
 
 static bool device_get_hotpluggable(Object *obj, Error **errp)
@@ -1208,7 +1213,6 @@ static void device_finalize(Object *obj)
     NamedGPIOList *ngl, *next;
 
     DeviceState *dev = DEVICE(obj);
-    qemu_opts_del(dev->opts);
 
     QLIST_FOREACH_SAFE(ngl, &dev->gpios, node, next) {
         QLIST_REMOVE(ngl, node);
@@ -1256,6 +1260,9 @@ static void device_unparent(Object *obj)
         qapi_event_send_device_deleted(!!dev->id, dev->id, path, &error_abort);
         g_free(path);
     }
+
+    qemu_opts_del(dev->opts);
+    dev->opts = NULL;
 }
 
 static void device_class_init(ObjectClass *class, void *data)

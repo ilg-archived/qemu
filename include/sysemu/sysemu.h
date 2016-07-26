@@ -3,7 +3,10 @@
 /* Misc. things related to the system emulator.  */
 
 #include "config-host.h"
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qemu/typedefs.h"
+#endif
+
 #include "qemu/option.h"
 #include "qemu/queue.h"
 #include "qemu/timer.h"

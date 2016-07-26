@@ -14,8 +14,9 @@
  *
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include <sys/ioctl.h>
-#include "config.h"
 #include "qemu/error-report.h"
 #include "qemu/queue.h"
 #include "monitor/monitor.h"
@@ -27,6 +28,7 @@
 #include "hw/virtio/virtio-access.h"
 #include "hw/fw-path-provider.h"
 #include "linux/vhost.h"
+#include "qemu/cutils.h"
 
 /* Features supported by host kernel. */
 static const int kernel_feature_bits[] = {
@@ -217,11 +219,9 @@ static void vhost_scsi_realize(DeviceState *dev, Error **errp)
     }
 
     if (vs->conf.vhostfd) {
-        vhostfd = monitor_fd_param(cur_mon, vs->conf.vhostfd, &err);
+        vhostfd = monitor_fd_param(cur_mon, vs->conf.vhostfd, errp);
         if (vhostfd == -1) {
-            error_setg(errp, "vhost-scsi: unable to parse vhostfd: %s",
-                       error_get_pretty(err));
-            error_free(err);
+            error_prepend(errp, "vhost-scsi: unable to parse vhostfd: ");
             return;
         }
     } else {

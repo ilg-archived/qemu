@@ -17,6 +17,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "exec/helper-proto.h"
 #include "exec/cpu_ldst.h"
@@ -111,6 +112,9 @@ void helper_boundw(CPUX86State *env, target_ulong a0, int v)
     high = cpu_ldsw_data_ra(env, a0 + 2, GETPC());
     v = (int16_t)v;
     if (v < low || v > high) {
+        if (env->hflags & HF_MPX_EN_MASK) {
+            env->bndcs_regs.sts = 0;
+        }
         raise_exception_ra(env, EXCP05_BOUND, GETPC());
     }
 }
@@ -122,6 +126,9 @@ void helper_boundl(CPUX86State *env, target_ulong a0, int v)
     low = cpu_ldl_data_ra(env, a0, GETPC());
     high = cpu_ldl_data_ra(env, a0 + 4, GETPC());
     if (v < low || v > high) {
+        if (env->hflags & HF_MPX_EN_MASK) {
+            env->bndcs_regs.sts = 0;
+        }
         raise_exception_ra(env, EXCP05_BOUND, GETPC());
     }
 }

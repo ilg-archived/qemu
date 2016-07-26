@@ -19,6 +19,10 @@
  *  with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/arm/fsl-imx31.h"
 #include "sysemu/sysemu.h"
 #include "exec/address-spaces.h"
@@ -35,7 +39,7 @@ static void fsl_imx31_init(Object *obj)
     object_initialize(&s->avic, sizeof(s->avic), TYPE_IMX_AVIC);
     qdev_set_parent_bus(DEVICE(&s->avic), sysbus_get_default());
 
-    object_initialize(&s->ccm, sizeof(s->ccm), TYPE_IMX_CCM);
+    object_initialize(&s->ccm, sizeof(s->ccm), TYPE_IMX31_CCM);
     qdev_set_parent_bus(DEVICE(&s->ccm), sysbus_get_default());
 
     for (i = 0; i < FSL_IMX31_NUM_UARTS; i++) {
@@ -128,7 +132,7 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
                                             serial_table[i].irq));
     }
 
-    s->gpt.ccm = DEVICE(&s->ccm);
+    s->gpt.ccm = IMX_CCM(&s->ccm);
 
     object_property_set_bool(OBJECT(&s->gpt), true, "realized", &err);
     if (err) {
@@ -150,7 +154,7 @@ static void fsl_imx31_realize(DeviceState *dev, Error **errp)
             { FSL_IMX31_EPIT2_ADDR, FSL_IMX31_EPIT2_IRQ },
         };
 
-        s->epit[i].ccm = DEVICE(&s->ccm);
+        s->epit[i].ccm = IMX_CCM(&s->ccm);
 
         object_property_set_bool(OBJECT(&s->epit[i]), true, "realized", &err);
         if (err) {
@@ -264,6 +268,7 @@ static void fsl_imx31_class_init(ObjectClass *oc, void *data)
      * arm_cpu_class_init()
      */
     dc->cannot_destroy_with_object_finalize_yet = true;
+    dc->desc = "i.MX31 SOC";
 }
 
 static const TypeInfo fsl_imx31_type_info = {

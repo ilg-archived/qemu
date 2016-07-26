@@ -21,6 +21,10 @@
  *  GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/sysbus.h"
 #include "hw/arm/arm.h"
 #include "hw/arm/primecell.h"
@@ -211,7 +215,6 @@ static void init_cpus(const char *cpu_model, const char *privdev,
     /* Create the actual CPUs */
     for (n = 0; n < smp_cpus; n++) {
         Object *cpuobj = object_new(object_class_get_name(cpu_oc));
-        Error *err = NULL;
 
         if (!secure) {
             object_property_set_bool(cpuobj, false, "has_el3", NULL);
@@ -221,11 +224,7 @@ static void init_cpus(const char *cpu_model, const char *privdev,
             object_property_set_int(cpuobj, periphbase,
                                     "reset-cbar", &error_abort);
         }
-        object_property_set_bool(cpuobj, true, "realized", &err);
-        if (err) {
-            error_report_err(err);
-            exit(1);
-        }
+        object_property_set_bool(cpuobj, true, "realized", &error_fatal);
     }
 
     /* Create the private peripheral devices (including the GIC);
@@ -482,8 +481,10 @@ static void vexpress_modify_dtb(const struct arm_boot_info *info, void *fdt)
     uint32_t acells, scells, intc;
     const VEDBoardInfo *daughterboard = (const VEDBoardInfo *)info;
 
-    acells = qemu_fdt_getprop_cell(fdt, "/", "#address-cells");
-    scells = qemu_fdt_getprop_cell(fdt, "/", "#size-cells");
+    acells = qemu_fdt_getprop_cell(fdt, "/", "#address-cells",
+                                   NULL, &error_fatal);
+    scells = qemu_fdt_getprop_cell(fdt, "/", "#size-cells",
+                                   NULL, &error_fatal);
     intc = find_int_controller(fdt);
     if (!intc) {
         /* Not fatal, we just won't provide virtio. This will
@@ -802,4 +803,4 @@ static void vexpress_machine_init(void)
     type_register_static(&vexpress_a15_info);
 }
 
-machine_init(vexpress_machine_init);
+type_init(vexpress_machine_init);

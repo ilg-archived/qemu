@@ -1,6 +1,7 @@
 /*
  * Input Visitor
  *
+ * Copyright (C) 2012-2016 Red Hat, Inc.
  * Copyright IBM, Corp. 2011
  *
  * Authors:
@@ -11,6 +12,8 @@
  *
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qapi/qmp-input-visitor.h"
 #include "qapi/visitor-impl.h"
 #include "qemu/queue.h"
@@ -88,12 +91,6 @@ static void qmp_input_push(QmpInputVisitor *qiv, QObject *obj, Error **errp)
     qiv->nb_stack++;
 }
 
-/** Only for qmp_input_pop. */
-static gboolean always_true(gpointer key, gpointer val, gpointer user_pkey)
-{
-    *(const char **)user_pkey = (const char *)key;
-    return TRUE;
-}
 
 static void qmp_input_pop(QmpInputVisitor *qiv, Error **errp)
 {
@@ -102,9 +99,11 @@ static void qmp_input_pop(QmpInputVisitor *qiv, Error **errp)
     if (qiv->strict) {
         GHashTable * const top_ht = qiv->stack[qiv->nb_stack - 1].h;
         if (top_ht) {
-            if (g_hash_table_size(top_ht)) {
-                const char *key;
-                g_hash_table_find(top_ht, always_true, &key);
+            GHashTableIter iter;
+            const char *key;
+
+            g_hash_table_iter_init(&iter, top_ht);
+            if (g_hash_table_iter_next(&iter, (void **)&key, NULL)) {
                 error_setg(errp, QERR_QMP_EXTRA_MEMBER, key);
             }
             g_hash_table_unref(top_ht);
@@ -114,8 +113,8 @@ static void qmp_input_pop(QmpInputVisitor *qiv, Error **errp)
     qiv->nb_stack--;
 }
 
-static void qmp_input_start_struct(Visitor *v, void **obj, const char *kind,
-                                   const char *name, size_t size, Error **errp)
+static void qmp_input_start_struct(Visitor *v, const char *name, void **obj,
+                                   size_t size, Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
     QObject *qobj = qmp_input_get_object(qiv, name, true);
@@ -145,18 +144,6 @@ static void qmp_input_end_struct(Visitor *v, Error **errp)
     qmp_input_pop(qiv, errp);
 }
 
-static void qmp_input_start_implicit_struct(Visitor *v, void **obj,
-                                            size_t size, Error **errp)
-{
-    if (obj) {
-        *obj = g_malloc0(size);
-    }
-}
-
-static void qmp_input_end_implicit_struct(Visitor *v, Error **errp)
-{
-}
-
 static void qmp_input_start_list(Visitor *v, const char *name, Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
@@ -172,7 +159,7 @@ static void qmp_input_start_list(Visitor *v, const char *name, Error **errp)
 }
 
 static GenericList *qmp_input_next_list(Visitor *v, GenericList **list,
-                                        Error **errp)
+                                        size_t size)
 {
     QmpInputVisitor *qiv = to_qiv(v);
     GenericList *entry;
@@ -191,7 +178,7 @@ static GenericList *qmp_input_next_list(Visitor *v, GenericList **list,
         return NULL;
     }
 
-    entry = g_malloc0(sizeof(*entry));
+    entry = g_malloc0(size);
     if (first) {
         *list = entry;
     } else {
@@ -201,28 +188,34 @@ static GenericList *qmp_input_next_list(Visitor *v, GenericList **list,
     return entry;
 }
 
-static void qmp_input_end_list(Visitor *v, Error **errp)
+static void qmp_input_end_list(Visitor *v)
 {
     QmpInputVisitor *qiv = to_qiv(v);
 
-    qmp_input_pop(qiv, errp);
+    qmp_input_pop(qiv, &error_abort);
 }
 
-static void qmp_input_get_next_type(Visitor *v, int *kind, const int *qobjects,
-                                    const char *name, Error **errp)
+static void qmp_input_start_alternate(Visitor *v, const char *name,
+                                      GenericAlternate **obj, size_t size,
+                                      bool promote_int, Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
     QObject *qobj = qmp_input_get_object(qiv, name, false);
 
     if (!qobj) {
+        *obj = NULL;
         error_setg(errp, QERR_MISSING_PARAMETER, name ? name : "null");
         return;
     }
-    *kind = qobjects[qobject_type(qobj)];
+    *obj = g_malloc0(size);
+    (*obj)->type = qobject_type(qobj);
+    if (promote_int && (*obj)->type == QTYPE_QINT) {
+        (*obj)->type = QTYPE_QFLOAT;
+    }
 }
 
-static void qmp_input_type_int(Visitor *v, int64_t *obj, const char *name,
-                               Error **errp)
+static void qmp_input_type_int64(Visitor *v, const char *name, int64_t *obj,
+                                 Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
     QInt *qint = qobject_to_qint(qmp_input_get_object(qiv, name, true));
@@ -236,7 +229,23 @@ static void qmp_input_type_int(Visitor *v, int64_t *obj, const char *name,
     *obj = qint_get_int(qint);
 }
 
-static void qmp_input_type_bool(Visitor *v, bool *obj, const char *name,
+static void qmp_input_type_uint64(Visitor *v, const char *name, uint64_t *obj,
+                                  Error **errp)
+{
+    /* FIXME: qobject_to_qint mishandles values over INT64_MAX */
+    QmpInputVisitor *qiv = to_qiv(v);
+    QInt *qint = qobject_to_qint(qmp_input_get_object(qiv, name, true));
+
+    if (!qint) {
+        error_setg(errp, QERR_INVALID_PARAMETER_TYPE, name ? name : "null",
+                   "integer");
+        return;
+    }
+
+    *obj = qint_get_int(qint);
+}
+
+static void qmp_input_type_bool(Visitor *v, const char *name, bool *obj,
                                 Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
@@ -251,7 +260,7 @@ static void qmp_input_type_bool(Visitor *v, bool *obj, const char *name,
     *obj = qbool_get_bool(qbool);
 }
 
-static void qmp_input_type_str(Visitor *v, char **obj, const char *name,
+static void qmp_input_type_str(Visitor *v, const char *name, char **obj,
                                Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
@@ -266,7 +275,7 @@ static void qmp_input_type_str(Visitor *v, char **obj, const char *name,
     *obj = g_strdup(qstring_get_str(qstr));
 }
 
-static void qmp_input_type_number(Visitor *v, double *obj, const char *name,
+static void qmp_input_type_number(Visitor *v, const char *name, double *obj,
                                   Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
@@ -290,7 +299,7 @@ static void qmp_input_type_number(Visitor *v, double *obj, const char *name,
                "number");
 }
 
-static void qmp_input_type_any(Visitor *v, QObject **obj, const char *name,
+static void qmp_input_type_any(Visitor *v, const char *name, QObject **obj,
                                Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
@@ -300,8 +309,7 @@ static void qmp_input_type_any(Visitor *v, QObject **obj, const char *name,
     *obj = qobj;
 }
 
-static void qmp_input_optional(Visitor *v, bool *present, const char *name,
-                               Error **errp)
+static void qmp_input_optional(Visitor *v, const char *name, bool *present)
 {
     QmpInputVisitor *qiv = to_qiv(v);
     QObject *qobj = qmp_input_get_object(qiv, name, true);
@@ -333,19 +341,18 @@ QmpInputVisitor *qmp_input_visitor_new(QObject *obj)
 
     v->visitor.start_struct = qmp_input_start_struct;
     v->visitor.end_struct = qmp_input_end_struct;
-    v->visitor.start_implicit_struct = qmp_input_start_implicit_struct;
-    v->visitor.end_implicit_struct = qmp_input_end_implicit_struct;
     v->visitor.start_list = qmp_input_start_list;
     v->visitor.next_list = qmp_input_next_list;
     v->visitor.end_list = qmp_input_end_list;
+    v->visitor.start_alternate = qmp_input_start_alternate;
     v->visitor.type_enum = input_type_enum;
-    v->visitor.type_int = qmp_input_type_int;
+    v->visitor.type_int64 = qmp_input_type_int64;
+    v->visitor.type_uint64 = qmp_input_type_uint64;
     v->visitor.type_bool = qmp_input_type_bool;
     v->visitor.type_str = qmp_input_type_str;
     v->visitor.type_number = qmp_input_type_number;
     v->visitor.type_any = qmp_input_type_any;
     v->visitor.optional = qmp_input_optional;
-    v->visitor.get_next_type = qmp_input_get_next_type;
 
     qmp_input_push(v, obj, NULL);
     qobject_incref(obj);

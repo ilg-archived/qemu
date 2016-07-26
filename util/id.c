@@ -10,7 +10,9 @@
  * or later.  See the COPYING.LIB file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include "qemu-common.h"
+#include "qemu/id.h"
 
 bool id_wellformed(const char *id)
 {

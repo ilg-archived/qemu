@@ -9,6 +9,8 @@
  * top-level directory.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu/iov.h"
 #include "hw/qdev.h"
 #include "hw/virtio/virtio.h"
@@ -43,7 +45,7 @@ static void chr_read(void *opaque, const void *buf, size_t size)
 {
     VirtIORNG *vrng = opaque;
     VirtIODevice *vdev = VIRTIO_DEVICE(vrng);
-    VirtQueueElement elem;
+    VirtQueueElement *elem;
     size_t len;
     int offset;
 
@@ -55,17 +57,26 @@ static void chr_read(void *opaque, const void *buf, size_t size)
 
     offset = 0;
     while (offset < size) {
-        if (!virtqueue_pop(vrng->vq, &elem)) {
+        elem = virtqueue_pop(vrng->vq, sizeof(VirtQueueElement));
+        if (!elem) {
             break;
         }
-        len = iov_from_buf(elem.in_sg, elem.in_num,
+        len = iov_from_buf(elem->in_sg, elem->in_num,
                            0, buf + offset, size - offset);
         offset += len;
 
-        virtqueue_push(vrng->vq, &elem, len);
+        virtqueue_push(vrng->vq, elem, len);
         trace_virtio_rng_pushed(vrng, len);
+        g_free(elem);
     }
     virtio_notify(vdev, vrng->vq);
+
+    if (!virtio_queue_empty(vrng->vq)) {
+        /* If we didn't drain the queue, call virtio_rng_process
+         * to take care of asking for more data as appropriate.
+         */
+        virtio_rng_process(vrng);
+    }
 }
 
 static void virtio_rng_process(VirtIORNG *vrng)

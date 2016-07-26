@@ -1,5 +1,7 @@
 stub-obj-y += arch-query-cpu-def.o
-stub-obj-y += bdrv-commit-all.o
+stub-obj-y += bdrv-next-monitor-owned.o
+stub-obj-y += blk-commit-all.o
+stub-obj-y += blockdev-close-all-bdrv-states.o
 stub-obj-y += clock-warp.o
 stub-obj-y += cpu-get-clock.o
 stub-obj-y += cpu-get-icount.o
@@ -38,3 +40,4 @@ stub-obj-y += qmp_pc_dimm_device_list.o
 stub-obj-y += target-monitor-defs.o
 stub-obj-y += target-get-monitor-def.o
 stub-obj-y += vhost.o
+stub-obj-y += iohandler.o

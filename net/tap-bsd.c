@@ -22,8 +22,10 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "tap_int.h"
-#include "qemu-common.h"
+#include "qemu/cutils.h"
 #include "sysemu/sysemu.h"
 #include "qemu/error-report.h"
 

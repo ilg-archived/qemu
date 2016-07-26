@@ -12,9 +12,11 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include "trace.h"
 #include "block/block_int.h"
 #include "block/blockjob.h"
+#include "qapi/error.h"
 #include "qapi/qmp/qerror.h"
 #include "qemu/ratelimit.h"
 #include "sysemu/block-backend.h"

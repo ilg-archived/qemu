@@ -14,7 +14,6 @@
 #ifndef QBOOL_H
 #define QBOOL_H
 
-#include <stdbool.h>
 #include "qapi/qmp/qobject.h"
 
 typedef struct QBool {
@@ -25,5 +24,6 @@ typedef struct QBool {
 QBool *qbool_from_bool(bool value);
 bool qbool_get_bool(const QBool *qb);
 QBool *qobject_to_qbool(const QObject *obj);
+void qbool_destroy_obj(QObject *obj);
 
 #endif /* QBOOL_H */

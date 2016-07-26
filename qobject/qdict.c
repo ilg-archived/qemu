@@ -10,6 +10,7 @@
  * See the COPYING.LIB file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include "qapi/qmp/qint.h"
 #include "qapi/qmp/qfloat.h"
 #include "qapi/qmp/qdict.h"
@@ -18,13 +19,7 @@
 #include "qapi/qmp/qobject.h"
 #include "qemu/queue.h"
 #include "qemu-common.h"
-
-static void qdict_destroy_obj(QObject *obj);
-
-static const QType qdict_type = {
-    .code = QTYPE_QDICT,
-    .destroy = qdict_destroy_obj,
-};
+#include "qemu/cutils.h"
 
 /**
  * qdict_new(): Create a new QDict
@@ -36,7 +31,7 @@ QDict *qdict_new(void)
     QDict *qdict;
 
     qdict = g_malloc0(sizeof(*qdict));
-    QOBJECT_INIT(qdict, &qdict_type);
+    qobject_init(QOBJECT(qdict), QTYPE_QDICT);
 
     return qdict;
 }
@@ -184,8 +179,7 @@ size_t qdict_size(const QDict *qdict)
 /**
  * qdict_get_obj(): Get a QObject of a specific type
  */
-static QObject *qdict_get_obj(const QDict *qdict, const char *key,
-                              qtype_code type)
+static QObject *qdict_get_obj(const QDict *qdict, const char *key, QType type)
 {
     QObject *obj;
 
@@ -441,7 +435,7 @@ void qdict_del(QDict *qdict, const char *key)
 /**
  * qdict_destroy_obj(): Free all the memory allocated by a QDict
  */
-static void qdict_destroy_obj(QObject *obj)
+void qdict_destroy_obj(QObject *obj)
 {
     int i;
     QDict *qdict;

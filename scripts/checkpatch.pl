@@ -212,6 +212,7 @@ our @typeList = (
 	qr{${Ident}_t},
 	qr{${Ident}_handler},
 	qr{${Ident}_handler_fn},
+	qr{target_(?:u)?long},
 );
 
 # This can be modified by sub possible.  Since it can be empty, be careful
@@ -1715,11 +1716,15 @@ sub process {
 #  1. with a type on the left -- int [] a;
 #  2. at the beginning of a line for slice initialisers -- [0...10] = 5,
 #  3. inside a curly brace -- = { [0...10] = 5 }
+#  4. after a comma -- [1] = 5, [2] = 6
+#  5. in a macro definition -- #define abc(x) [x] = y
 		while ($line =~ /(.*?\s)\[/g) {
 			my ($where, $prefix) = ($-[1], $1);
 			if ($prefix !~ /$Type\s+$/ &&
 			    ($where != 0 || $prefix !~ /^.\s+$/) &&
-			    $prefix !~ /{\s+$/) {
+			    $prefix !~ /{\s+$/ &&
+			    $prefix !~ /\#\s*define[^(]*\([^)]*\)\s+$/ &&
+			    $prefix !~ /,\s+$/) {
 				ERROR("space prohibited before open square bracket '['\n" . $herecurr);
 			}
 		}
@@ -1888,19 +1893,6 @@ sub process {
 					}
 					if ($ctx =~ /ExW/) {
 						ERROR("space prohibited after that '$op' $at\n" . $hereptr);
-					}
-
-
-				# << and >> may either have or not have spaces both sides
-				} elsif ($op eq '<<' or $op eq '>>' or
-					 $op eq '&' or $op eq '^' or $op eq '|' or
-					 $op eq '+' or $op eq '-' or
-					 $op eq '*' or $op eq '/' or
-					 $op eq '%')
-				{
-					if ($ctx =~ /Wx[^WCE]|[^WCE]xW/) {
-						ERROR("need consistent spacing around '$op' $at\n" .
-							$hereptr);
 					}
 
 				# A colon needs no spaces before when it is
@@ -2510,6 +2502,42 @@ sub process {
 		if ($rawline =~ /\b(?:Qemu|QEmu)\b/) {
 			WARN("use QEMU instead of Qemu or QEmu\n" . $herecurr);
 		}
+
+# Qemu error function tests
+
+	# Find newlines in error messages
+	my $qemu_error_funcs = qr{error_setg|
+				error_setg_errno|
+				error_setg_win32|
+				error_set|
+				error_vreport|
+				error_report}x;
+
+	if ($rawline =~ /\b(?:$qemu_error_funcs)\s*\(\s*\".*\\n/) {
+		WARN("Error messages should not contain newlines\n" . $herecurr);
+	}
+
+	# Continue checking for error messages that contains newlines. This
+	# check handles cases where string literals are spread over multiple lines.
+	# Example:
+	# error_report("Error msg line #1"
+	#              "Error msg line #2\n");
+	my $quoted_newline_regex = qr{\+\s*\".*\\n.*\"};
+	my $continued_str_literal = qr{\+\s*\".*\"};
+
+	if ($rawline =~ /$quoted_newline_regex/) {
+		# Backtrack to first line that does not contain only a quoted literal
+		# and assume that it is the start of the statement.
+		my $i = $linenr - 2;
+
+		while (($i >= 0) & $rawlines[$i] =~ /$continued_str_literal/) {
+			$i--;
+		}
+
+		if ($rawlines[$i] =~ /\b(?:$qemu_error_funcs)\s*\(/) {
+			WARN("Error messages should not contain newlines\n" . $herecurr);
+		}
+	}
 
 # check for non-portable ffs() calls that have portable alternatives in QEMU
 		if ($line =~ /\bffs\(/) {

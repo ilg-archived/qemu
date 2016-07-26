@@ -23,6 +23,10 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/sysbus.h"
 #include "hw/hw.h"
 #include "net/net.h"
@@ -66,6 +70,7 @@ petalogix_s3adsp1800_init(MachineState *machine)
     MemoryRegion *sysmem = get_system_memory();
 
     cpu = MICROBLAZE_CPU(object_new(TYPE_MICROBLAZE_CPU));
+    object_property_set_str(OBJECT(cpu), "7.10.d", "version", &error_abort);
     object_property_set_bool(OBJECT(cpu), true, "realized", &error_abort);
 
     /* Attach emulated BRAM through the LMB.  */

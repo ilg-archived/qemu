@@ -23,12 +23,13 @@
  */
 
 /* Needed early for CONFIG_BSD etc. */
-#include "config-host.h"
+#include "qemu/osdep.h"
 
 #include "monitor/monitor.h"
 #include "qapi/qmp/qerror.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
+#include "sysemu/block-backend.h"
 #include "exec/gdbstub.h"
 #include "sysemu/dma.h"
 #include "sysemu/kvm.h"
@@ -275,7 +276,7 @@ void cpu_disable_ticks(void)
    fairly approximate, so ignore small variation.
    When the guest is idle real and virtual time will be aligned in
    the IO wait loop.  */
-#define ICOUNT_WOBBLE (get_ticks_per_sec() / 10)
+#define ICOUNT_WOBBLE (NANOSECONDS_PER_SECOND / 10)
 
 static void icount_adjust(void)
 {
@@ -326,7 +327,7 @@ static void icount_adjust_vm(void *opaque)
 {
     timer_mod(icount_vm_timer,
                    qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                   get_ticks_per_sec() / 10);
+                   NANOSECONDS_PER_SECOND / 10);
     icount_adjust();
 }
 
@@ -337,10 +338,18 @@ static int64_t qemu_icount_round(int64_t count)
 
 static void icount_warp_rt(void)
 {
+    unsigned seq;
+    int64_t warp_start;
+
     /* The icount_warp_timer is rescheduled soon after vm_clock_warp_start
      * changes from -1 to another value, so the race here is okay.
      */
-    if (atomic_read(&vm_clock_warp_start) == -1) {
+    do {
+        seq = seqlock_read_begin(&timers_state.vm_clock_seqlock);
+        warp_start = vm_clock_warp_start;
+    } while (seqlock_read_retry(&timers_state.vm_clock_seqlock, seq));
+
+    if (warp_start == -1) {
         return;
     }
 
@@ -370,9 +379,12 @@ static void icount_warp_rt(void)
     }
 }
 
-static void icount_dummy_timer(void *opaque)
+static void icount_timer_cb(void *opaque)
 {
-    (void)opaque;
+    /* No need for a checkpoint because the timer already synchronizes
+     * with CHECKPOINT_CLOCK_VIRTUAL_RT.
+     */
+    icount_warp_rt();
 }
 
 void qtest_clock_warp(int64_t dest)
@@ -396,17 +408,12 @@ void qtest_clock_warp(int64_t dest)
     qemu_clock_notify(QEMU_CLOCK_VIRTUAL);
 }
 
-void qemu_clock_warp(QEMUClockType type)
+void qemu_start_warp_timer(void)
 {
     int64_t clock;
     int64_t deadline;
 
-    /*
-     * There are too many global variables to make the "warp" behavior
-     * applicable to other clocks.  But a clock argument removes the
-     * need for if statements all over the place.
-     */
-    if (type != QEMU_CLOCK_VIRTUAL || !use_icount) {
+    if (!use_icount) {
         return;
     }
 
@@ -418,29 +425,17 @@ void qemu_clock_warp(QEMUClockType type)
     }
 
     /* warp clock deterministically in record/replay mode */
-    if (!replay_checkpoint(CHECKPOINT_CLOCK_WARP)) {
+    if (!replay_checkpoint(CHECKPOINT_CLOCK_WARP_START)) {
         return;
     }
 
-    if (icount_sleep) {
-        /*
-         * If the CPUs have been sleeping, advance QEMU_CLOCK_VIRTUAL timer now.
-         * This ensures that the deadline for the timer is computed correctly
-         * below.
-         * This also makes sure that the insn counter is synchronized before
-         * the CPU starts running, in case the CPU is woken by an event other
-         * than the earliest QEMU_CLOCK_VIRTUAL timer.
-         */
-        icount_warp_rt();
-        timer_del(icount_warp_timer);
-    }
     if (!all_cpu_threads_idle()) {
         return;
     }
 
     if (qtest_enabled()) {
         /* When testing, qtest commands advance icount.  */
-	return;
+        return;
     }
 
     /* We want to use the earliest deadline from ALL vm_clocks */
@@ -494,6 +489,28 @@ void qemu_clock_warp(QEMUClockType type)
     } else if (deadline == 0) {
         qemu_clock_notify(QEMU_CLOCK_VIRTUAL);
     }
+}
+
+static void qemu_account_warp_timer(void)
+{
+    if (!use_icount || !icount_sleep) {
+        return;
+    }
+
+    /* Nothing to do if the VM is stopped: QEMU_CLOCK_VIRTUAL timers
+     * do not fire, so computing the deadline does not make sense.
+     */
+    if (!runstate_is_running()) {
+        return;
+    }
+
+    /* warp clock deterministically in record/replay mode */
+    if (!replay_checkpoint(CHECKPOINT_CLOCK_WARP_ACCOUNT)) {
+        return;
+    }
+
+    timer_del(icount_warp_timer);
+    icount_warp_rt();
 }
 
 static bool icount_state_needed(void *opaque)
@@ -624,13 +641,13 @@ void configure_icount(QemuOpts *opts, Error **errp)
     icount_sleep = qemu_opt_get_bool(opts, "sleep", true);
     if (icount_sleep) {
         icount_warp_timer = timer_new_ns(QEMU_CLOCK_VIRTUAL_RT,
-                                         icount_dummy_timer, NULL);
+                                         icount_timer_cb, NULL);
     }
 
     icount_align_option = qemu_opt_get_bool(opts, "align", false);
 
     if (icount_align_option && !icount_sleep) {
-        error_setg(errp, "align=on and sleep=no are incompatible");
+        error_setg(errp, "align=on and sleep=off are incompatible");
     }
     if (strcmp(option, "auto") != 0) {
         errno = 0;
@@ -643,7 +660,7 @@ void configure_icount(QemuOpts *opts, Error **errp)
     } else if (icount_align_option) {
         error_setg(errp, "shift=auto and align=on are incompatible");
     } else if (!icount_sleep) {
-        error_setg(errp, "shift=auto and sleep=no are incompatible");
+        error_setg(errp, "shift=auto and sleep=off are incompatible");
     }
 
     use_icount = 2;
@@ -665,7 +682,7 @@ void configure_icount(QemuOpts *opts, Error **errp)
                                         icount_adjust_vm, NULL);
     timer_mod(icount_vm_timer,
                    qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                   get_ticks_per_sec() / 10);
+                   NANOSECONDS_PER_SECOND / 10);
 }
 
 /***********************************************************/
@@ -726,7 +743,7 @@ static int do_vm_stop(RunState state)
     }
 
     bdrv_drain_all();
-    ret = bdrv_flush_all();
+    ret = blk_flush_all();
 
     return ret;
 }
@@ -995,9 +1012,6 @@ static void qemu_wait_io_event_common(CPUState *cpu)
 static void qemu_tcg_wait_io_event(CPUState *cpu)
 {
     while (all_cpu_threads_idle()) {
-       /* Start accounting real time to the virtual clock if the CPUs
-          are idle.  */
-        qemu_clock_warp(QEMU_CLOCK_VIRTUAL);
         qemu_cond_wait(cpu->halt_cond, &qemu_global_mutex);
     }
 
@@ -1310,8 +1324,6 @@ static void qemu_tcg_init_vcpu(CPUState *cpu)
     static QemuCond *tcg_halt_cond;
     static QemuThread *tcg_cpu_thread;
 
-    tcg_cpu_address_space_init(cpu, cpu->as);
-
     /* share a single thread for all cpus with TCG */
     if (!tcg_cpu_thread) {
         cpu->thread = g_malloc0(sizeof(QemuThread));
@@ -1372,6 +1384,17 @@ void qemu_init_vcpu(CPUState *cpu)
     cpu->nr_cores = smp_cores;
     cpu->nr_threads = smp_threads;
     cpu->stopped = true;
+
+    if (!cpu->as) {
+        /* If the target cpu hasn't set up any address spaces itself,
+         * give it the default one.
+         */
+        AddressSpace *as = address_space_init_shareable(cpu->memory,
+                                                        "cpu-memory");
+        cpu->num_ases = 1;
+        cpu_address_space_init(cpu, as, 0);
+    }
+
     if (kvm_enabled()) {
         qemu_kvm_start_vcpu(cpu);
     } else if (tcg_enabled()) {
@@ -1419,7 +1442,7 @@ int vm_stop_force_state(RunState state)
         bdrv_drain_all();
         /* Make sure to return an error if the flush in a previous vm_stop()
          * failed. */
-        return bdrv_flush_all();
+        return blk_flush_all();
     }
 }
 
@@ -1490,7 +1513,7 @@ static void tcg_exec_all(void)
     int r;
 
     /* Account partial waits to QEMU_CLOCK_VIRTUAL.  */
-    qemu_clock_warp(QEMU_CLOCK_VIRTUAL);
+    qemu_account_warp_timer();
 
     if (next_cpu == NULL) {
         next_cpu = first_cpu;
@@ -1558,22 +1581,23 @@ CpuInfoList *qmp_query_cpus(Error **errp)
         info->value->qom_path = object_get_canonical_path(OBJECT(cpu));
         info->value->thread_id = cpu->thread_id;
 #if defined(TARGET_I386)
-        info->value->has_pc = true;
-        info->value->pc = env->eip + env->segs[R_CS].base;
+        info->value->arch = CPU_INFO_ARCH_X86;
+        info->value->u.x86.pc = env->eip + env->segs[R_CS].base;
 #elif defined(TARGET_PPC)
-        info->value->has_nip = true;
-        info->value->nip = env->nip;
+        info->value->arch = CPU_INFO_ARCH_PPC;
+        info->value->u.ppc.nip = env->nip;
 #elif defined(TARGET_SPARC)
-        info->value->has_pc = true;
-        info->value->pc = env->pc;
-        info->value->has_npc = true;
-        info->value->npc = env->npc;
+        info->value->arch = CPU_INFO_ARCH_SPARC;
+        info->value->u.q_sparc.pc = env->pc;
+        info->value->u.q_sparc.npc = env->npc;
 #elif defined(TARGET_MIPS)
-        info->value->has_PC = true;
-        info->value->PC = env->active_tc.PC;
+        info->value->arch = CPU_INFO_ARCH_MIPS;
+        info->value->u.q_mips.PC = env->active_tc.PC;
 #elif defined(TARGET_TRICORE)
-        info->value->has_PC = true;
-        info->value->PC = env->PC;
+        info->value->arch = CPU_INFO_ARCH_TRICORE;
+        info->value->u.tricore.PC = env->PC;
+#else
+        info->value->arch = CPU_INFO_ARCH_OTHER;
 #endif
 
         /* XXX: waiting for the qapi to support GSList */

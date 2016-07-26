@@ -16,23 +16,19 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
+#include "qemu/osdep.h"
 #include <machine/trap.h>
-#include <sys/types.h>
 #include <sys/mman.h>
 
 #include "qemu.h"
-#include "qemu-common.h"
+#include "qemu/path.h"
+#include "qemu/help_option.h"
 /* For tb_lock */
 #include "cpu.h"
 #include "tcg.h"
 #include "qemu/timer.h"
 #include "qemu/envlist.h"
+#include "exec/log.h"
 
 int singlestep;
 unsigned long mmap_min_addr;
@@ -938,7 +934,7 @@ int main(int argc, char **argv)
             unsigned long tmp;
             if (fscanf(fp, "%lu", &tmp) == 1) {
                 mmap_min_addr = tmp;
-                qemu_log("host mmap_min_addr=0x%lx\n", mmap_min_addr);
+                qemu_log_mask(CPU_LOG_PAGE, "host mmap_min_addr=0x%lx\n", mmap_min_addr);
             }
             fclose(fp);
         }
@@ -955,7 +951,7 @@ int main(int argc, char **argv)
 
     free(target_environ);
 
-    if (qemu_log_enabled()) {
+    if (qemu_loglevel_mask(CPU_LOG_PAGE)) {
         qemu_log("guest_base  0x%lx\n", guest_base);
         log_page_dump();
 

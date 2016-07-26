@@ -186,6 +186,33 @@
            '*fragmented-clusters': 'int', '*compressed-clusters': 'int' } }
 
 ##
+# @MapEntry:
+#
+# Mapping information from a virtual block range to a host file range
+#
+# @start: the start byte of the mapped virtual range
+#
+# @length: the number of bytes of the mapped virtual range
+#
+# @data: whether the mapped range has data
+#
+# @zero: whether the virtual blocks are zeroed
+#
+# @depth: the depth of the mapping
+#
+# @offset: #optional the offset in file that the virtual sectors are mapped to
+#
+# @filename: #optional filename that is referred to by @offset
+#
+# Since: 2.6
+#
+##
+{ 'struct': 'MapEntry',
+  'data': {'start': 'int', 'length': 'int', 'data': 'bool',
+           'zero': 'bool', 'depth': 'int', '*offset': 'int',
+           '*filename': 'str' } }
+
+##
 # @BlockdevCacheInfo
 #
 # Cache mode information for a block device
@@ -215,11 +242,12 @@
 # @drv: the name of the block format used to open the backing device. As of
 #       0.14.0 this can be: 'blkdebug', 'bochs', 'cloop', 'cow', 'dmg',
 #       'file', 'file', 'ftp', 'ftps', 'host_cdrom', 'host_device',
-#       'http', 'https', 'nbd', 'parallels', 'qcow',
+#       'http', 'https', 'luks', 'nbd', 'parallels', 'qcow',
 #       'qcow2', 'raw', 'tftp', 'vdi', 'vmdk', 'vpc', 'vvfat'
 #       2.2: 'archipelago' added, 'cow' dropped
 #       2.3: 'host_floppy' deprecated
 #       2.5: 'host_floppy' dropped
+#       2.6: 'luks' added
 #
 # @backing_file: #optional the name of the backing file (for copy-on-write)
 #
@@ -246,17 +274,41 @@
 #
 # @image: the info of image used (since: 1.6)
 #
-# @bps_max: #optional total max in bytes (Since 1.7)
+# @bps_max: #optional total throughput limit during bursts,
+#                     in bytes (Since 1.7)
 #
-# @bps_rd_max: #optional read max in bytes (Since 1.7)
+# @bps_rd_max: #optional read throughput limit during bursts,
+#                        in bytes (Since 1.7)
 #
-# @bps_wr_max: #optional write max in bytes (Since 1.7)
+# @bps_wr_max: #optional write throughput limit during bursts,
+#                        in bytes (Since 1.7)
 #
-# @iops_max: #optional total I/O operations max (Since 1.7)
+# @iops_max: #optional total I/O operations per second during bursts,
+#                      in bytes (Since 1.7)
 #
-# @iops_rd_max: #optional read I/O operations max (Since 1.7)
+# @iops_rd_max: #optional read I/O operations per second during bursts,
+#                         in bytes (Since 1.7)
 #
-# @iops_wr_max: #optional write I/O operations max (Since 1.7)
+# @iops_wr_max: #optional write I/O operations per second during bursts,
+#                         in bytes (Since 1.7)
+#
+# @bps_max_length: #optional maximum length of the @bps_max burst
+#                            period, in seconds. (Since 2.6)
+#
+# @bps_rd_max_length: #optional maximum length of the @bps_rd_max
+#                               burst period, in seconds. (Since 2.6)
+#
+# @bps_wr_max_length: #optional maximum length of the @bps_wr_max
+#                               burst period, in seconds. (Since 2.6)
+#
+# @iops_max_length: #optional maximum length of the @iops burst
+#                             period, in seconds. (Since 2.6)
+#
+# @iops_rd_max_length: #optional maximum length of the @iops_rd_max
+#                                burst period, in seconds. (Since 2.6)
+#
+# @iops_wr_max_length: #optional maximum length of the @iops_wr_max
+#                                burst period, in seconds. (Since 2.6)
 #
 # @iops_size: #optional an I/O size in bytes (Since 1.7)
 #
@@ -281,6 +333,9 @@
             '*bps_max': 'int', '*bps_rd_max': 'int',
             '*bps_wr_max': 'int', '*iops_max': 'int',
             '*iops_rd_max': 'int', '*iops_wr_max': 'int',
+            '*bps_max_length': 'int', '*bps_rd_max_length': 'int',
+            '*bps_wr_max_length': 'int', '*iops_max_length': 'int',
+            '*iops_rd_max_length': 'int', '*iops_wr_max_length': 'int',
             '*iops_size': 'int', '*group': 'str', 'cache': 'BlockdevCacheInfo',
             'write_threshold': 'int' } }
 
@@ -382,8 +437,8 @@
 # @locked: True if the guest has locked this device from having its media
 #          removed
 #
-# @tray_open: #optional True if the device has a tray and it is open
-#             (only present if removable is true)
+# @tray_open: #optional True if the device's tray is open
+#             (only present if it has a tray)
 #
 # @dirty-bitmaps: #optional dirty bitmaps information (only present if the
 #                 driver has one or more dirty bitmaps) (Since 2.0)
@@ -1184,6 +1239,54 @@
   'data': 'BlockDirtyBitmap' }
 
 ##
+# @blockdev-mirror
+#
+# Start mirroring a block device's writes to a new destination.
+#
+# @device: the name of the device whose writes should be mirrored.
+#
+# @target: the id or node-name of the block device to mirror to. This mustn't be
+#          attached to guest.
+#
+# @replaces: #optional with sync=full graph node name to be replaced by the new
+#            image when a whole image copy is done. This can be used to repair
+#            broken Quorum files.
+#
+# @speed:  #optional the maximum speed, in bytes per second
+#
+# @sync: what parts of the disk image should be copied to the destination
+#        (all the disk, only the sectors allocated in the topmost image, or
+#        only new I/O).
+#
+# @granularity: #optional granularity of the dirty bitmap, default is 64K
+#               if the image format doesn't have clusters, 4K if the clusters
+#               are smaller than that, else the cluster size.  Must be a
+#               power of 2 between 512 and 64M
+#
+# @buf-size: #optional maximum amount of data in flight from source to
+#            target
+#
+# @on-source-error: #optional the action to take on an error on the source,
+#                   default 'report'.  'stop' and 'enospc' can only be used
+#                   if the block device supports io-status (see BlockInfo).
+#
+# @on-target-error: #optional the action to take on an error on the target,
+#                   default 'report' (no limitations, since this applies to
+#                   a different block device than @device).
+#
+# Returns: nothing on success.
+#
+# Since 2.6
+##
+{ 'command': 'blockdev-mirror',
+  'data': { 'device': 'str', 'target': 'str',
+            '*replaces': 'str',
+            'sync': 'MirrorSyncMode',
+            '*speed': 'int', '*granularity': 'uint32',
+            '*buf-size': 'int', '*on-source-error': 'BlockdevOnError',
+            '*on-target-error': 'BlockdevOnError' } }
+
+##
 # @block_set_io_throttle:
 #
 # Change I/O throttle limits for a block drive.
@@ -1219,21 +1322,57 @@
 #
 # @iops: total I/O operations per second
 #
-# @ops_rd: read I/O operations per second
+# @iops_rd: read I/O operations per second
 #
 # @iops_wr: write I/O operations per second
 #
-# @bps_max: #optional total max in bytes (Since 1.7)
+# @bps_max: #optional total throughput limit during bursts,
+#                     in bytes (Since 1.7)
 #
-# @bps_rd_max: #optional read max in bytes (Since 1.7)
+# @bps_rd_max: #optional read throughput limit during bursts,
+#                        in bytes (Since 1.7)
 #
-# @bps_wr_max: #optional write max in bytes (Since 1.7)
+# @bps_wr_max: #optional write throughput limit during bursts,
+#                        in bytes (Since 1.7)
 #
-# @iops_max: #optional total I/O operations max (Since 1.7)
+# @iops_max: #optional total I/O operations per second during bursts,
+#                      in bytes (Since 1.7)
 #
-# @iops_rd_max: #optional read I/O operations max (Since 1.7)
+# @iops_rd_max: #optional read I/O operations per second during bursts,
+#                         in bytes (Since 1.7)
 #
-# @iops_wr_max: #optional write I/O operations max (Since 1.7)
+# @iops_wr_max: #optional write I/O operations per second during bursts,
+#                         in bytes (Since 1.7)
+#
+# @bps_max_length: #optional maximum length of the @bps_max burst
+#                            period, in seconds. It must only
+#                            be set if @bps_max is set as well.
+#                            Defaults to 1. (Since 2.6)
+#
+# @bps_rd_max_length: #optional maximum length of the @bps_rd_max
+#                               burst period, in seconds. It must only
+#                               be set if @bps_rd_max is set as well.
+#                               Defaults to 1. (Since 2.6)
+#
+# @bps_wr_max_length: #optional maximum length of the @bps_wr_max
+#                               burst period, in seconds. It must only
+#                               be set if @bps_wr_max is set as well.
+#                               Defaults to 1. (Since 2.6)
+#
+# @iops_max_length: #optional maximum length of the @iops burst
+#                             period, in seconds. It must only
+#                             be set if @iops_max is set as well.
+#                             Defaults to 1. (Since 2.6)
+#
+# @iops_rd_max_length: #optional maximum length of the @iops_rd_max
+#                                burst period, in seconds. It must only
+#                                be set if @iops_rd_max is set as well.
+#                                Defaults to 1. (Since 2.6)
+#
+# @iops_wr_max_length: #optional maximum length of the @iops_wr_max
+#                                burst period, in seconds. It must only
+#                                be set if @iops_wr_max is set as well.
+#                                Defaults to 1. (Since 2.6)
 #
 # @iops_size: #optional an I/O size in bytes (Since 1.7)
 #
@@ -1250,6 +1389,9 @@
             '*bps_max': 'int', '*bps_rd_max': 'int',
             '*bps_wr_max': 'int', '*iops_max': 'int',
             '*iops_rd_max': 'int', '*iops_wr_max': 'int',
+            '*bps_max_length': 'int', '*bps_rd_max_length': 'int',
+            '*bps_wr_max_length': 'int', '*iops_max_length': 'int',
+            '*iops_rd_max_length': 'int', '*iops_wr_max_length': 'int',
             '*iops_size': 'int', '*group': 'str' } }
 
 ##
@@ -1473,7 +1615,6 @@
 #
 # Includes cache-related options for block devices
 #
-# @writeback:   #optional enables writeback mode for any caches (default: true)
 # @direct:      #optional enables use of O_DIRECT (bypass the host page cache;
 #               default: false)
 # @no-flush:    #optional ignore any flush requests for the device (default:
@@ -1482,8 +1623,7 @@
 # Since: 1.7
 ##
 { 'struct': 'BlockdevCacheOptions',
-  'data': { '*writeback': 'bool',
-            '*direct': 'bool',
+  'data': { '*direct': 'bool',
             '*no-flush': 'bool' } }
 
 ##
@@ -1498,60 +1638,9 @@
 { 'enum': 'BlockdevDriver',
   'data': [ 'archipelago', 'blkdebug', 'blkverify', 'bochs', 'cloop',
             'dmg', 'file', 'ftp', 'ftps', 'host_cdrom', 'host_device',
-            'http', 'https', 'null-aio', 'null-co', 'parallels',
+            'http', 'https', 'luks', 'null-aio', 'null-co', 'parallels',
             'qcow', 'qcow2', 'qed', 'quorum', 'raw', 'tftp', 'vdi', 'vhdx',
             'vmdk', 'vpc', 'vvfat' ] }
-
-##
-# @BlockdevOptionsBase
-#
-# Options that are available for all block devices, independent of the block
-# driver.
-#
-# @driver:        block driver name
-# @id:            #optional id by which the new block device can be referred to.
-#                 This option is only allowed on the top level of blockdev-add.
-#                 A BlockBackend will be created by blockdev-add if and only if
-#                 this option is given.
-# @node-name:     #optional the name of a block driver state node (Since 2.0).
-#                 This option is required on the top level of blockdev-add if
-#                 the @id option is not given there.
-# @discard:       #optional discard-related options (default: ignore)
-# @cache:         #optional cache-related options
-# @aio:           #optional AIO backend (default: threads)
-# @rerror:        #optional how to handle read errors on the device
-#                 (default: report)
-# @werror:        #optional how to handle write errors on the device
-#                 (default: enospc)
-# @read-only:     #optional whether the block device should be read-only
-#                 (default: false)
-# @stats-account-invalid: #optional whether to include invalid
-#                         operations when computing last access statistics
-#                         (default: true) (Since 2.5)
-# @stats-account-failed: #optional whether to include failed
-#                         operations when computing latency and last
-#                         access statistics (default: true) (Since 2.5)
-# @stats-intervals: #optional list of intervals for collecting I/O
-#                   statistics, in seconds (default: none) (Since 2.5)
-# @detect-zeroes: #optional detect and optimize zero writes (Since 2.1)
-#                 (default: off)
-#
-# Since: 1.7
-##
-{ 'struct': 'BlockdevOptionsBase',
-  'data': { 'driver': 'BlockdevDriver',
-            '*id': 'str',
-            '*node-name': 'str',
-            '*discard': 'BlockdevDiscardOptions',
-            '*cache': 'BlockdevCacheOptions',
-            '*aio': 'BlockdevAioOptions',
-            '*rerror': 'BlockdevOnError',
-            '*werror': 'BlockdevOnError',
-            '*read-only': 'bool',
-            '*stats-account-invalid': 'bool',
-            '*stats-account-failed': 'bool',
-            '*stats-intervals': ['int'],
-            '*detect-zeroes': 'BlockdevDetectZeroesOptions' } }
 
 ##
 # @BlockdevOptionsFile
@@ -1614,6 +1703,22 @@
 ##
 { 'struct': 'BlockdevOptionsGenericFormat',
   'data': { 'file': 'BlockdevRef' } }
+
+##
+# @BlockdevOptionsLUKS
+#
+# Driver specific block device options for LUKS.
+#
+# @key-secret: #optional the ID of a QCryptoSecret object providing
+#              the decryption key (since 2.6). Mandatory except when
+#              doing a metadata-only probe of the image.
+#
+# Since: 2.6
+##
+{ 'struct': 'BlockdevOptionsLUKS',
+  'base': 'BlockdevOptionsGenericFormat',
+  'data': { '*key-secret': 'str' } }
+
 
 ##
 # @BlockdevOptionsGenericCOWFormat
@@ -1776,21 +1881,23 @@
 # @BlkdebugEvent
 #
 # Trigger events supported by blkdebug.
+#
+# Since: 2.0
 ##
-{ 'enum': 'BlkdebugEvent',
-  'data': [ 'l1_update', 'l1_grow.alloc_table', 'l1_grow.write_table',
-            'l1_grow.activate_table', 'l2_load', 'l2_update',
-            'l2_update_compressed', 'l2_alloc.cow_read', 'l2_alloc.write',
+{ 'enum': 'BlkdebugEvent', 'prefix': 'BLKDBG',
+  'data': [ 'l1_update', 'l1_grow_alloc_table', 'l1_grow_write_table',
+            'l1_grow_activate_table', 'l2_load', 'l2_update',
+            'l2_update_compressed', 'l2_alloc_cow_read', 'l2_alloc_write',
             'read_aio', 'read_backing_aio', 'read_compressed', 'write_aio',
             'write_compressed', 'vmstate_load', 'vmstate_save', 'cow_read',
             'cow_write', 'reftable_load', 'reftable_grow', 'reftable_update',
             'refblock_load', 'refblock_update', 'refblock_update_part',
-            'refblock_alloc', 'refblock_alloc.hookup', 'refblock_alloc.write',
-            'refblock_alloc.write_blocks', 'refblock_alloc.write_table',
-            'refblock_alloc.switch_table', 'cluster_alloc',
+            'refblock_alloc', 'refblock_alloc_hookup', 'refblock_alloc_write',
+            'refblock_alloc_write_blocks', 'refblock_alloc_write_table',
+            'refblock_alloc_switch_table', 'cluster_alloc',
             'cluster_alloc_bytes', 'cluster_free', 'flush_to_os',
-            'flush_to_disk', 'pwritev_rmw.head', 'pwritev_rmw.after_head',
-            'pwritev_rmw.tail', 'pwritev_rmw.after_tail', 'pwritev',
+            'flush_to_disk', 'pwritev_rmw_head', 'pwritev_rmw_after_head',
+            'pwritev_rmw_tail', 'pwritev_rmw_after_tail', 'pwritev',
             'pwritev_zero', 'pwritev_done', 'empty_image_prepare' ] }
 
 ##
@@ -1927,12 +2034,55 @@
 ##
 # @BlockdevOptions
 #
-# Options for creating a block device.
+# Options for creating a block device.  Many options are available for all
+# block devices, independent of the block driver:
+#
+# @driver:        block driver name
+# @id:            #optional id by which the new block device can be referred to.
+#                 This option is only allowed on the top level of blockdev-add.
+#                 A BlockBackend will be created by blockdev-add if and only if
+#                 this option is given.
+# @node-name:     #optional the name of a block driver state node (Since 2.0).
+#                 This option is required on the top level of blockdev-add if
+#                 the @id option is not given there.
+# @discard:       #optional discard-related options (default: ignore)
+# @cache:         #optional cache-related options
+# @aio:           #optional AIO backend (default: threads)
+# @rerror:        #optional how to handle read errors on the device
+#                 (default: report)
+# @werror:        #optional how to handle write errors on the device
+#                 (default: enospc)
+# @read-only:     #optional whether the block device should be read-only
+#                 (default: false)
+# @stats-account-invalid: #optional whether to include invalid
+#                         operations when computing last access statistics
+#                         (default: true) (Since 2.5)
+# @stats-account-failed: #optional whether to include failed
+#                         operations when computing latency and last
+#                         access statistics (default: true) (Since 2.5)
+# @stats-intervals: #optional list of intervals for collecting I/O
+#                   statistics, in seconds (default: none) (Since 2.5)
+# @detect-zeroes: #optional detect and optimize zero writes (Since 2.1)
+#                 (default: off)
+#
+# Remaining options are determined by the block driver.
 #
 # Since: 1.7
 ##
 { 'union': 'BlockdevOptions',
-  'base': 'BlockdevOptionsBase',
+  'base': { 'driver': 'BlockdevDriver',
+            '*id': 'str',
+            '*node-name': 'str',
+            '*discard': 'BlockdevDiscardOptions',
+            '*cache': 'BlockdevCacheOptions',
+            '*aio': 'BlockdevAioOptions',
+            '*rerror': 'BlockdevOnError',
+            '*werror': 'BlockdevOnError',
+            '*read-only': 'bool',
+            '*stats-account-invalid': 'bool',
+            '*stats-account-failed': 'bool',
+            '*stats-intervals': ['int'],
+            '*detect-zeroes': 'BlockdevDetectZeroesOptions' },
   'discriminator': 'driver',
   'data': {
       'archipelago':'BlockdevOptionsArchipelago',
@@ -1950,6 +2100,7 @@
       'http':       'BlockdevOptionsFile',
       'https':      'BlockdevOptionsFile',
 # TODO iscsi: Wait for structured options
+      'luks':       'BlockdevOptionsLUKS',
 # TODO nbd: Should take InetSocketAddress for 'host'?
 # TODO nfs: Wait for structured options
       'null-aio':   'BlockdevOptionsNull',

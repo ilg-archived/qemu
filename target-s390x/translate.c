@@ -28,6 +28,7 @@
 #  define LOG_DISAS(...) do { } while (0)
 #endif
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "disas/disas.h"
 #include "tcg-op.h"
@@ -36,13 +37,14 @@
 #include "exec/cpu_ldst.h"
 
 /* global register indexes */
-static TCGv_ptr cpu_env;
+static TCGv_env cpu_env;
 
 #include "exec/gen-icount.h"
 #include "exec/helper-proto.h"
 #include "exec/helper-gen.h"
 
 #include "trace-tcg.h"
+#include "exec/log.h"
 
 
 /* Information that (most) every instruction needs to manipulate.  */
@@ -166,35 +168,35 @@ void s390x_translate_init(void)
     int i;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
-    psw_addr = tcg_global_mem_new_i64(TCG_AREG0,
+    psw_addr = tcg_global_mem_new_i64(cpu_env,
                                       offsetof(CPUS390XState, psw.addr),
                                       "psw_addr");
-    psw_mask = tcg_global_mem_new_i64(TCG_AREG0,
+    psw_mask = tcg_global_mem_new_i64(cpu_env,
                                       offsetof(CPUS390XState, psw.mask),
                                       "psw_mask");
-    gbea = tcg_global_mem_new_i64(TCG_AREG0,
+    gbea = tcg_global_mem_new_i64(cpu_env,
                                   offsetof(CPUS390XState, gbea),
                                   "gbea");
 
-    cc_op = tcg_global_mem_new_i32(TCG_AREG0, offsetof(CPUS390XState, cc_op),
+    cc_op = tcg_global_mem_new_i32(cpu_env, offsetof(CPUS390XState, cc_op),
                                    "cc_op");
-    cc_src = tcg_global_mem_new_i64(TCG_AREG0, offsetof(CPUS390XState, cc_src),
+    cc_src = tcg_global_mem_new_i64(cpu_env, offsetof(CPUS390XState, cc_src),
                                     "cc_src");
-    cc_dst = tcg_global_mem_new_i64(TCG_AREG0, offsetof(CPUS390XState, cc_dst),
+    cc_dst = tcg_global_mem_new_i64(cpu_env, offsetof(CPUS390XState, cc_dst),
                                     "cc_dst");
-    cc_vr = tcg_global_mem_new_i64(TCG_AREG0, offsetof(CPUS390XState, cc_vr),
+    cc_vr = tcg_global_mem_new_i64(cpu_env, offsetof(CPUS390XState, cc_vr),
                                    "cc_vr");
 
     for (i = 0; i < 16; i++) {
         snprintf(cpu_reg_names[i], sizeof(cpu_reg_names[0]), "r%d", i);
-        regs[i] = tcg_global_mem_new(TCG_AREG0,
+        regs[i] = tcg_global_mem_new(cpu_env,
                                      offsetof(CPUS390XState, regs[i]),
                                      cpu_reg_names[i]);
     }
 
     for (i = 0; i < 16; i++) {
         snprintf(cpu_reg_names[i + 16], sizeof(cpu_reg_names[0]), "f%d", i);
-        fregs[i] = tcg_global_mem_new(TCG_AREG0,
+        fregs[i] = tcg_global_mem_new(cpu_env,
                                       offsetof(CPUS390XState, vregs[i][0].d),
                                       cpu_reg_names[i + 16]);
     }

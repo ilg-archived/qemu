@@ -11,9 +11,11 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include "trace.h"
 #include "block/block_int.h"
 #include "block/blockjob.h"
+#include "qapi/error.h"
 #include "qapi/qmp/qerror.h"
 #include "qemu/ratelimit.h"
 #include "sysemu/block-backend.h"
@@ -88,21 +90,21 @@ static void coroutine_fn stream_run(void *opaque)
     StreamCompleteData *data;
     BlockDriverState *bs = s->common.bs;
     BlockDriverState *base = s->base;
-    int64_t sector_num, end;
+    int64_t sector_num = 0;
+    int64_t end = -1;
     int error = 0;
     int ret = 0;
     int n = 0;
     void *buf;
 
     if (!bs->backing) {
-        block_job_completed(&s->common, 0);
-        return;
+        goto out;
     }
 
     s->common.len = bdrv_getlength(bs);
     if (s->common.len < 0) {
-        block_job_completed(&s->common, s->common.len);
-        return;
+        ret = s->common.len;
+        goto out;
     }
 
     end = s->common.len >> BDRV_SECTOR_BITS;
@@ -189,6 +191,7 @@ wait:
 
     qemu_vfree(buf);
 
+out:
     /* Modify backing chain and close BDSes in main loop */
     data = g_malloc(sizeof(*data));
     data->ret = ret;

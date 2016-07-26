@@ -25,12 +25,10 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
 #include <glib.h>
-#include <errno.h>
-#include <string.h>
 
-#include "qemu-common.h"
-
+#include "qemu/cutils.h"
 
 static void test_parse_uint_null(void)
 {

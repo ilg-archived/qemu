@@ -6,8 +6,10 @@
  * later.  See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include "net/filter.h"
 #include "net/queue.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "qemu/timer.h"
 #include "qemu/iov.h"
@@ -99,6 +101,19 @@ static void filter_buffer_cleanup(NetFilterState *nf)
     }
 }
 
+static void filter_buffer_setup_timer(NetFilterState *nf)
+{
+    FilterBufferState *s = FILTER_BUFFER(nf);
+
+    if (s->interval) {
+        timer_init_us(&s->release_timer, QEMU_CLOCK_VIRTUAL,
+                      filter_buffer_release_timer, nf);
+        /* Timer armed to fire in s->interval microseconds. */
+        timer_mod(&s->release_timer,
+                  qemu_clock_get_us(QEMU_CLOCK_VIRTUAL) + s->interval);
+    }
+}
+
 static void filter_buffer_setup(NetFilterState *nf, Error **errp)
 {
     FilterBufferState *s = FILTER_BUFFER(nf);
@@ -114,12 +129,20 @@ static void filter_buffer_setup(NetFilterState *nf, Error **errp)
     }
 
     s->incoming_queue = qemu_new_net_queue(qemu_netfilter_pass_to_next, nf);
-    if (s->interval) {
-        timer_init_us(&s->release_timer, QEMU_CLOCK_VIRTUAL,
-                      filter_buffer_release_timer, nf);
-        /* Timer armed to fire in s->interval microseconds. */
-        timer_mod(&s->release_timer,
-                  qemu_clock_get_us(QEMU_CLOCK_VIRTUAL) + s->interval);
+    filter_buffer_setup_timer(nf);
+}
+
+static void filter_buffer_status_changed(NetFilterState *nf, Error **errp)
+{
+    FilterBufferState *s = FILTER_BUFFER(nf);
+
+    if (!nf->on) {
+        if (s->interval) {
+            timer_del(&s->release_timer);
+        }
+        filter_buffer_flush(nf);
+    } else {
+        filter_buffer_setup_timer(nf);
     }
 }
 
@@ -130,25 +153,28 @@ static void filter_buffer_class_init(ObjectClass *oc, void *data)
     nfc->setup = filter_buffer_setup;
     nfc->cleanup = filter_buffer_cleanup;
     nfc->receive_iov = filter_buffer_receive_iov;
+    nfc->status_changed = filter_buffer_status_changed;
 }
 
-static void filter_buffer_get_interval(Object *obj, Visitor *v, void *opaque,
-                                       const char *name, Error **errp)
+static void filter_buffer_get_interval(Object *obj, Visitor *v,
+                                       const char *name, void *opaque,
+                                       Error **errp)
 {
     FilterBufferState *s = FILTER_BUFFER(obj);
     uint32_t value = s->interval;
 
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
-static void filter_buffer_set_interval(Object *obj, Visitor *v, void *opaque,
-                                       const char *name, Error **errp)
+static void filter_buffer_set_interval(Object *obj, Visitor *v,
+                                       const char *name, void *opaque,
+                                       Error **errp)
 {
     FilterBufferState *s = FILTER_BUFFER(obj);
     Error *local_err = NULL;
     uint32_t value;
 
-    visit_type_uint32(v, &value, name, &local_err);
+    visit_type_uint32(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }

@@ -3,11 +3,11 @@
 #ifndef HW_BOARDS_H
 #define HW_BOARDS_H
 
-#include "qemu/typedefs.h"
 #include "sysemu/blockdev.h"
 #include "sysemu/accel.h"
 #include "hw/qdev.h"
 #include "qom/object.h"
+#include "qom/cpu.h"
 
 void memory_region_allocate_system_memory(MemoryRegion *mr, Object *owner,
                                           const char *name,
@@ -35,10 +35,31 @@ extern MachineState *current_machine;
 bool machine_usb(MachineState *machine);
 bool machine_kernel_irqchip_allowed(MachineState *machine);
 bool machine_kernel_irqchip_required(MachineState *machine);
+bool machine_kernel_irqchip_split(MachineState *machine);
 int machine_kvm_shadow_mem(MachineState *machine);
 int machine_phandle_start(MachineState *machine);
 bool machine_dump_guest_core(MachineState *machine);
 bool machine_mem_merge(MachineState *machine);
+
+/**
+ * CPUArchId:
+ * @arch_id - architecture-dependent CPU ID of present or possible CPU
+ * @cpu - pointer to corresponding CPU object if it's present on NULL otherwise
+ */
+typedef struct {
+    uint64_t arch_id;
+    struct CPUState *cpu;
+} CPUArchId;
+
+/**
+ * CPUArchIdList:
+ * @len - number of @CPUArchId items in @cpus array
+ * @cpus - array of present or possible CPUs for current machine configuration
+ */
+typedef struct {
+    int len;
+    CPUArchId cpus[0];
+} CPUArchIdList;
 
 /**
  * MachineClass:
@@ -56,6 +77,10 @@ bool machine_mem_merge(MachineState *machine);
  *    Set only by old machines because they need to keep
  *    compatibility on code that exposed QEMU_VERSION to guests in
  *    the past (and now use qemu_hw_version()).
+ * @possible_cpu_arch_ids:
+ *    Returns an array of @CPUArchId architecture-dependent CPU IDs
+ *    which includes CPU IDs for present and possible to hotplug CPUs.
+ *    Caller is responsible for freeing returned list.
  */
 struct MachineClass {
     /*< private >*/
@@ -83,8 +108,8 @@ struct MachineClass {
         no_cdrom:1,
         no_sdcard:1,
         has_dynamic_sysbus:1,
-        no_tco:1,
-        pci_allow_0_address:1;
+        pci_allow_0_address:1,
+        legacy_fw_cfg_order:1;
     int is_default;
     const char *default_machine_opts;
     const char *default_boot_order;
@@ -92,10 +117,13 @@ struct MachineClass {
     GlobalProperty *compat_props;
     const char *hw_version;
     ram_addr_t default_ram_size;
+    bool option_rom_has_mr;
+    bool rom_file_has_mr;
 
     HotplugHandler *(*get_hotplug_handler)(MachineState *machine,
                                            DeviceState *dev);
     unsigned (*cpu_index_to_socket_id)(unsigned cpu_index);
+    CPUArchIdList *(*possible_cpu_arch_ids)(MachineState *machine);
 };
 
 /**
@@ -111,6 +139,7 @@ struct MachineState {
     char *accel;
     bool kernel_irqchip_allowed;
     bool kernel_irqchip_required;
+    bool kernel_irqchip_split;
     int kvm_shadow_mem;
     char *dtb;
     char *dumpdtb;
@@ -156,6 +185,15 @@ struct MachineState {
     { \
         type_register_static(&machine_initfn##_typeinfo); \
     } \
-    machine_init(machine_initfn##_register_types)
+    type_init(machine_initfn##_register_types)
+
+#define SET_MACHINE_COMPAT(m, COMPAT) \
+    do {                              \
+        static GlobalProperty props[] = {       \
+            COMPAT                              \
+            { /* end of list */ }               \
+        };                                      \
+        (m)->compat_props = props;              \
+    } while (0)
 
 #endif

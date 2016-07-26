@@ -8,6 +8,7 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include "clients.h"
 #include "net/vhost_net.h"
 #include "net/vhost-user.h"
@@ -26,7 +27,6 @@ typedef struct VhostUserState {
 typedef struct VhostUserChardevProps {
     bool is_socket;
     bool is_unix;
-    bool is_server;
 } VhostUserChardevProps;
 
 VHostNetState *vhost_user_get_vhost_net(NetClientState *nc)
@@ -82,15 +82,15 @@ static int vhost_user_start(int queues, NetClientState *ncs[])
         options.opaque      = s->chr;
         s->vhost_net = vhost_net_init(&options);
         if (!s->vhost_net) {
-            error_report("failed to init vhost_net for queue %d\n", i);
+            error_report("failed to init vhost_net for queue %d", i);
             goto err;
         }
 
         if (i == 0) {
             max_queues = vhost_net_get_max_queues(s->vhost_net);
             if (queues > max_queues) {
-                error_report("you are asking more queues than "
-                             "supported: %d\n", max_queues);
+                error_report("you are asking more queues than supported: %d",
+                             max_queues);
                 goto err;
             }
         }
@@ -178,6 +178,8 @@ static void net_vhost_user_event(void *opaque, int event)
     queues = qemu_find_net_clients_except(name, ncs,
                                           NET_CLIENT_OPTIONS_KIND_NIC,
                                           MAX_QUEUE_NUM);
+    assert(queues < MAX_QUEUE_NUM);
+
     s = DO_UPCAST(VhostUserState, nc, ncs[0]);
     trace_vhost_user_event(s->chr->label, event);
     switch (event) {
@@ -206,6 +208,9 @@ static int net_vhost_user_init(NetClientState *peer, const char *device,
     VhostUserState *s;
     int i;
 
+    assert(name);
+    assert(queues > 0);
+
     for (i = 0; i < queues; i++) {
         nc = qemu_new_net_client(&net_vhost_user_info, peer, device, name);
 
@@ -218,7 +223,7 @@ static int net_vhost_user_init(NetClientState *peer, const char *device,
         s->chr = chr;
     }
 
-    qemu_chr_add_handlers(chr, NULL, NULL, net_vhost_user_event, (void*)name);
+    qemu_chr_add_handlers(chr, NULL, NULL, net_vhost_user_event, nc[0].name);
 
     return 0;
 }
@@ -234,7 +239,6 @@ static int net_vhost_chardev_opts(void *opaque,
     } else if (strcmp(name, "path") == 0) {
         props->is_unix = true;
     } else if (strcmp(name, "server") == 0) {
-        props->is_server = true;
     } else {
         error_setg(errp,
                    "vhost-user does not support a chardev with option %s=%s",
@@ -302,7 +306,7 @@ int net_init_vhost_user(const NetClientOptions *opts, const char *name,
     CharDriverState *chr;
 
     assert(opts->type == NET_CLIENT_OPTIONS_KIND_VHOST_USER);
-    vhost_user_opts = opts->u.vhost_user;
+    vhost_user_opts = opts->u.vhost_user.data;
 
     chr = net_vhost_parse_chardev(vhost_user_opts, errp);
     if (!chr) {
@@ -316,9 +320,10 @@ int net_init_vhost_user(const NetClientOptions *opts, const char *name,
     }
 
     queues = vhost_user_opts->has_queues ? vhost_user_opts->queues : 1;
-    if (queues < 1) {
+    if (queues < 1 || queues > MAX_QUEUE_NUM) {
         error_setg(errp,
-                   "vhost-user number of queues must be bigger than zero");
+                   "vhost-user number of queues must be in range [1, %d]",
+                   MAX_QUEUE_NUM);
         return -1;
     }
 

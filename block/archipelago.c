@@ -50,7 +50,8 @@
  *
  */
 
-#include "qemu-common.h"
+#include "qemu/osdep.h"
+#include "qemu/cutils.h"
 #include "block/block_int.h"
 #include "qemu/error-report.h"
 #include "qemu/thread.h"
@@ -59,7 +60,6 @@
 #include "qapi/qmp/qjson.h"
 #include "qemu/atomic.h"
 
-#include <inttypes.h>
 #include <xseg/xseg.h>
 #include <xseg/protocol.h>
 

@@ -26,6 +26,7 @@
  *  distribution); if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "tap_int.h"
 
 #include "qemu-common.h"
@@ -34,7 +35,6 @@
 #include "net/tap.h"            /* tap_has_ufo, ... */
 #include "sysemu/sysemu.h"
 #include "qemu/error-report.h"
-#include <stdio.h>
 #include <windows.h>
 #include <winioctl.h>
 
@@ -795,7 +795,7 @@ int net_init_tap(const NetClientOptions *opts, const char *name,
     const NetdevTapOptions *tap;
 
     assert(opts->type == NET_CLIENT_OPTIONS_KIND_TAP);
-    tap = opts->u.tap;
+    tap = opts->u.tap.data;
 
     if (!tap->has_ifname) {
         error_report("tap: no interface name");

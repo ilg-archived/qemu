@@ -23,6 +23,8 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "hw/usb.h"
 #include "hw/usb/desc.h"
@@ -32,6 +34,7 @@
 #include "qemu/config-file.h"
 #include "sysemu/sysemu.h"
 #include "qemu/iov.h"
+#include "qemu/cutils.h"
 
 /*#define TRAFFIC_DEBUG*/
 /* Thanks to NetChip Technologies for donating this product ID.

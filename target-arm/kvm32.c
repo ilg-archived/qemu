@@ -8,8 +8,7 @@
  *
  */
 
-#include <stdio.h>
-#include <sys/types.h>
+#include "qemu/osdep.h"
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
@@ -429,7 +428,7 @@ int kvm_arch_get_registers(CPUState *cs)
     if (ret) {
         return ret;
     }
-    cpsr_write(env, cpsr, 0xffffffff);
+    cpsr_write(env, cpsr, 0xffffffff, CPSRWriteRaw);
 
     /* Make sure the current mode regs are properly set */
     mode = env->uncached_cpsr & CPSR_M;
@@ -474,4 +473,51 @@ int kvm_arch_get_registers(CPUState *cs)
     kvm_arm_sync_mpstate_to_qemu(cpu);
 
     return 0;
+}
+
+int kvm_arch_insert_sw_breakpoint(CPUState *cs, struct kvm_sw_breakpoint *bp)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: guest debug not yet implemented\n", __func__);
+    return -EINVAL;
+}
+
+int kvm_arch_remove_sw_breakpoint(CPUState *cs, struct kvm_sw_breakpoint *bp)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: guest debug not yet implemented\n", __func__);
+    return -EINVAL;
+}
+
+bool kvm_arm_handle_debug(CPUState *cs, struct kvm_debug_exit_arch *debug_exit)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: guest debug not yet implemented\n", __func__);
+    return false;
+}
+
+int kvm_arch_insert_hw_breakpoint(target_ulong addr,
+                                  target_ulong len, int type)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: not implemented\n", __func__);
+    return -EINVAL;
+}
+
+int kvm_arch_remove_hw_breakpoint(target_ulong addr,
+                                  target_ulong len, int type)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: not implemented\n", __func__);
+    return -EINVAL;
+}
+
+void kvm_arch_remove_all_hw_breakpoints(void)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: not implemented\n", __func__);
+}
+
+void kvm_arm_copy_hw_debug_data(struct kvm_guest_debug_arch *ptr)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: not implemented\n", __func__);
+}
+
+bool kvm_arm_hw_debug_active(CPUState *cs)
+{
+    return false;
 }

@@ -38,6 +38,7 @@
  * terms and conditions of the copyright.
  */
 
+#include "qemu/osdep.h"
 #include <slirp.h>
 #include <qemu/osdep.h>
 #include "ip_icmp.h"
@@ -79,12 +80,16 @@ ip_input(struct mbuf *m)
 	register struct ip *ip;
 	int hlen;
 
+	if (!slirp->in_enabled) {
+		goto bad;
+	}
+
 	DEBUG_CALL("ip_input");
 	DEBUG_ARG("m = %p", m);
 	DEBUG_ARG("m_len = %d", m->m_len);
 
 	if (m->m_len < sizeof (struct ip)) {
-		return;
+		goto bad;
 	}
 
 	ip = mtod(m, struct ip *);
@@ -131,9 +136,9 @@ ip_input(struct mbuf *m)
 	   m_adj(m, ip->ip_len - m->m_len);
 
 	/* check ip_ttl for a correct ICMP reply */
-	if(ip->ip_ttl==0) {
-	  icmp_error(m, ICMP_TIMXCEED,ICMP_TIMXCEED_INTRANS, 0,"ttl");
-	  goto bad;
+	if (ip->ip_ttl == 0) {
+	    icmp_send_error(m, ICMP_TIMXCEED, ICMP_TIMXCEED_INTRANS, 0, "ttl");
+	    goto bad;
 	}
 
 	/*
@@ -199,7 +204,7 @@ ip_input(struct mbuf *m)
 	 */
 	switch (ip->ip_p) {
 	 case IPPROTO_TCP:
-		tcp_input(m, hlen, (struct socket *)NULL);
+		tcp_input(m, hlen, (struct socket *)NULL, AF_INET);
 		break;
 	 case IPPROTO_UDP:
 		udp_input(m, hlen);
@@ -636,7 +641,7 @@ typedef uint32_t n_time;
 	}
 	return (0);
 bad:
- 	icmp_error(m, type, code, 0, 0);
+	icmp_send_error(m, type, code, 0, 0);
 
 	return (1);
 }

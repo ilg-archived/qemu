@@ -220,6 +220,24 @@ Data:
   },
   "timestamp": { "seconds": 1265044230, "microseconds": 450486 } }
 
+DUMP_COMPLETED
+--------------
+
+Emitted when the guest has finished one memory dump.
+
+Data:
+
+- "result": DumpQueryResult type described in qapi-schema.json
+- "error": Error message when dump failed. This is only a
+  human-readable string provided when dump failed. It should not be
+  parsed in any way (json-string, optional)
+
+Example:
+
+{ "event": "DUMP_COMPLETED",
+  "data": {"result": {"total": 1090650112, "status": "completed",
+                      "completed": 1090650112} } }
+
 GUEST_PANICKED
 --------------
 
@@ -307,6 +325,7 @@ Emitted to report a corruption of a Quorum file.
 
 Data:
 
+- "type":          Quorum operation type
 - "error":         Error message (json-string, optional)
                    Only present on failure.  This field contains a human-readable
                    error message.  There are no semantics other than that the
@@ -318,9 +337,17 @@ Data:
 
 Example:
 
+Read operation:
 { "event": "QUORUM_REPORT_BAD",
-     "data": { "node-name": "1.raw", "sector-num": 345435, "sectors-count": 5 },
+     "data": { "node-name": "node0", "sector-num": 345435, "sectors-count": 5,
+               "type": "read" },
      "timestamp": { "seconds": 1344522075, "microseconds": 745528 } }
+
+Flush operation:
+{ "event": "QUORUM_REPORT_BAD",
+     "data": { "node-name": "node0", "sector-num": 0, "sectors-count": 2097120,
+               "type": "flush", "error": "Broken pipe" },
+     "timestamp": { "seconds": 1456406829, "microseconds": 291763 } }
 
 Note: this event is rate-limited.
 
@@ -495,6 +522,20 @@ Example:
 
 {"timestamp": {"seconds": 1432121972, "microseconds": 744001},
  "event": "MIGRATION", "data": {"status": "completed"}}
+
+MIGRATION_PASS
+--------------
+
+Emitted from the source side of a migration at the start of each pass
+(when it syncs the dirty bitmap)
+
+Data: None.
+
+  - "pass": An incrementing count (starting at 1 on the first pass)
+
+Example:
+{"timestamp": {"seconds": 1449669631, "microseconds": 239225},
+ "event": "MIGRATION_PASS", "data": {"pass": 2}}
 
 STOP
 ----

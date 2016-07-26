@@ -26,6 +26,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "hw/arm/virt-acpi-build.h"
 #include "qemu/bitmap.h"
@@ -43,20 +45,7 @@
 #include "hw/pci/pci.h"
 
 #define ARM_SPI_BASE 32
-
-typedef struct VirtAcpiCpuInfo {
-    DECLARE_BITMAP(found_cpus, VIRT_ACPI_CPU_ID_LIMIT);
-} VirtAcpiCpuInfo;
-
-static void virt_acpi_get_cpu_info(VirtAcpiCpuInfo *cpuinfo)
-{
-    CPUState *cpu;
-
-    memset(cpuinfo->found_cpus, 0, sizeof cpuinfo->found_cpus);
-    CPU_FOREACH(cpu) {
-        set_bit(cpu->cpu_index, cpuinfo->found_cpus);
-    }
-}
+#define ACPI_POWER_BUTTON_DEVICE "PWRB"
 
 static void acpi_dsdt_add_cpus(Aml *scope, int smp_cpus)
 {
@@ -71,7 +60,7 @@ static void acpi_dsdt_add_cpus(Aml *scope, int smp_cpus)
 }
 
 static void acpi_dsdt_add_uart(Aml *scope, const MemMapEntry *uart_memmap,
-                                           int uart_irq)
+                                           uint32_t uart_irq)
 {
     Aml *dev = aml_device("COM0");
     aml_append(dev, aml_name_decl("_HID", aml_string("ARMH0011")));
@@ -82,7 +71,7 @@ static void acpi_dsdt_add_uart(Aml *scope, const MemMapEntry *uart_memmap,
                                        uart_memmap->size, AML_READ_WRITE));
     aml_append(crs,
                aml_interrupt(AML_CONSUMER, AML_LEVEL, AML_ACTIVE_HIGH,
-                             AML_EXCLUSIVE, uart_irq));
+                             AML_EXCLUSIVE, &uart_irq, 1));
     aml_append(dev, aml_name_decl("_CRS", crs));
 
     /* The _ADR entry is used to link this device to the UART described
@@ -93,19 +82,16 @@ static void acpi_dsdt_add_uart(Aml *scope, const MemMapEntry *uart_memmap,
     aml_append(scope, dev);
 }
 
-static void acpi_dsdt_add_rtc(Aml *scope, const MemMapEntry *rtc_memmap,
-                                          int rtc_irq)
+static void acpi_dsdt_add_fw_cfg(Aml *scope, const MemMapEntry *fw_cfg_memmap)
 {
-    Aml *dev = aml_device("RTC0");
-    aml_append(dev, aml_name_decl("_HID", aml_string("LNRO0013")));
-    aml_append(dev, aml_name_decl("_UID", aml_int(0)));
+    Aml *dev = aml_device("FWCF");
+    aml_append(dev, aml_name_decl("_HID", aml_string("QEMU0002")));
+    /* device present, functioning, decoding, not shown in UI */
+    aml_append(dev, aml_name_decl("_STA", aml_int(0xB)));
 
     Aml *crs = aml_resource_template();
-    aml_append(crs, aml_memory32_fixed(rtc_memmap->base,
-                                       rtc_memmap->size, AML_READ_WRITE));
-    aml_append(crs,
-               aml_interrupt(AML_CONSUMER, AML_LEVEL, AML_ACTIVE_HIGH,
-                             AML_EXCLUSIVE, rtc_irq));
+    aml_append(crs, aml_memory32_fixed(fw_cfg_memmap->base,
+                                       fw_cfg_memmap->size, AML_READ_WRITE));
     aml_append(dev, aml_name_decl("_CRS", crs));
     aml_append(scope, dev);
 }
@@ -136,14 +122,14 @@ static void acpi_dsdt_add_flash(Aml *scope, const MemMapEntry *flash_memmap)
 
 static void acpi_dsdt_add_virtio(Aml *scope,
                                  const MemMapEntry *virtio_mmio_memmap,
-                                 int mmio_irq, int num)
+                                 uint32_t mmio_irq, int num)
 {
     hwaddr base = virtio_mmio_memmap->base;
     hwaddr size = virtio_mmio_memmap->size;
-    int irq = mmio_irq;
     int i;
 
     for (i = 0; i < num; i++) {
+        uint32_t irq = mmio_irq + i;
         Aml *dev = aml_device("VR%02u", i);
         aml_append(dev, aml_name_decl("_HID", aml_string("LNRO0005")));
         aml_append(dev, aml_name_decl("_UID", aml_int(i)));
@@ -152,15 +138,15 @@ static void acpi_dsdt_add_virtio(Aml *scope,
         aml_append(crs, aml_memory32_fixed(base, size, AML_READ_WRITE));
         aml_append(crs,
                    aml_interrupt(AML_CONSUMER, AML_LEVEL, AML_ACTIVE_HIGH,
-                                 AML_EXCLUSIVE, irq + i));
+                                 AML_EXCLUSIVE, &irq, 1));
         aml_append(dev, aml_name_decl("_CRS", crs));
         aml_append(scope, dev);
         base += size;
     }
 }
 
-static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap, int irq,
-                              bool use_highmem)
+static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap,
+                              uint32_t irq, bool use_highmem)
 {
     Aml *method, *crs, *ifctx, *UUID, *ifctx1, *elsectx, *buf;
     int i, bus_no;
@@ -199,29 +185,30 @@ static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap, int irq,
 
     /* Create GSI link device */
     for (i = 0; i < PCI_NUM_PINS; i++) {
+        uint32_t irqs =  irq + i;
         Aml *dev_gsi = aml_device("GSI%d", i);
         aml_append(dev_gsi, aml_name_decl("_HID", aml_string("PNP0C0F")));
         aml_append(dev_gsi, aml_name_decl("_UID", aml_int(0)));
         crs = aml_resource_template();
         aml_append(crs,
                    aml_interrupt(AML_CONSUMER, AML_LEVEL, AML_ACTIVE_HIGH,
-                                 AML_EXCLUSIVE, irq + i));
+                                 AML_EXCLUSIVE, &irqs, 1));
         aml_append(dev_gsi, aml_name_decl("_PRS", crs));
         crs = aml_resource_template();
         aml_append(crs,
                    aml_interrupt(AML_CONSUMER, AML_LEVEL, AML_ACTIVE_HIGH,
-                                 AML_EXCLUSIVE, irq + i));
+                                 AML_EXCLUSIVE, &irqs, 1));
         aml_append(dev_gsi, aml_name_decl("_CRS", crs));
-        method = aml_method("_SRS", 1);
+        method = aml_method("_SRS", 1, AML_NOTSERIALIZED);
         aml_append(dev_gsi, method);
         aml_append(dev, dev_gsi);
     }
 
-    method = aml_method("_CBA", 0);
+    method = aml_method("_CBA", 0, AML_NOTSERIALIZED);
     aml_append(method, aml_return(aml_int(base_ecam)));
     aml_append(dev, method);
 
-    method = aml_method("_CRS", 0);
+    method = aml_method("_CRS", 0, AML_NOTSERIALIZED);
     Aml *rbuf = aml_resource_template();
     aml_append(rbuf,
         aml_word_bus_number(AML_MIN_FIXED, AML_MAX_FIXED, AML_POS_DECODE,
@@ -254,7 +241,7 @@ static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap, int irq,
     /* Declare an _OSC (OS Control Handoff) method */
     aml_append(dev, aml_name_decl("SUPP", aml_int(0)));
     aml_append(dev, aml_name_decl("CTRL", aml_int(0)));
-    method = aml_method("_OSC", 4);
+    method = aml_method("_OSC", 4, AML_NOTSERIALIZED);
     aml_append(method,
         aml_create_dword_field(aml_arg(3), aml_int(0), "CDW1"));
 
@@ -272,16 +259,16 @@ static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap, int irq,
         aml_create_dword_field(aml_arg(3), aml_int(8), "CDW3"));
     aml_append(ifctx, aml_store(aml_name("CDW2"), aml_name("SUPP")));
     aml_append(ifctx, aml_store(aml_name("CDW3"), aml_name("CTRL")));
-    aml_append(ifctx, aml_store(aml_and(aml_name("CTRL"), aml_int(0x1D)),
+    aml_append(ifctx, aml_store(aml_and(aml_name("CTRL"), aml_int(0x1D), NULL),
                                 aml_name("CTRL")));
 
     ifctx1 = aml_if(aml_lnot(aml_equal(aml_arg(1), aml_int(0x1))));
-    aml_append(ifctx1, aml_store(aml_or(aml_name("CDW1"), aml_int(0x08)),
+    aml_append(ifctx1, aml_store(aml_or(aml_name("CDW1"), aml_int(0x08), NULL),
                                  aml_name("CDW1")));
     aml_append(ifctx, ifctx1);
 
     ifctx1 = aml_if(aml_lnot(aml_equal(aml_name("CDW3"), aml_name("CTRL"))));
-    aml_append(ifctx1, aml_store(aml_or(aml_name("CDW1"), aml_int(0x10)),
+    aml_append(ifctx1, aml_store(aml_or(aml_name("CDW1"), aml_int(0x10), NULL),
                                  aml_name("CDW1")));
     aml_append(ifctx, ifctx1);
 
@@ -290,13 +277,13 @@ static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap, int irq,
     aml_append(method, ifctx);
 
     elsectx = aml_else();
-    aml_append(elsectx, aml_store(aml_or(aml_name("CDW1"), aml_int(4)),
+    aml_append(elsectx, aml_store(aml_or(aml_name("CDW1"), aml_int(4), NULL),
                                   aml_name("CDW1")));
     aml_append(elsectx, aml_return(aml_arg(3)));
     aml_append(method, elsectx);
     aml_append(dev, method);
 
-    method = aml_method("_DSM", 4);
+    method = aml_method("_DSM", 4, AML_NOTSERIALIZED);
 
     /* PCI Firmware Specification 3.0
      * 4.6.1. _DSM for PCI Express Slot Information
@@ -320,6 +307,46 @@ static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap, int irq,
     Aml *dev_rp0 = aml_device("%s", "RP0");
     aml_append(dev_rp0, aml_name_decl("_ADR", aml_int(0)));
     aml_append(dev, dev_rp0);
+    aml_append(scope, dev);
+}
+
+static void acpi_dsdt_add_gpio(Aml *scope, const MemMapEntry *gpio_memmap,
+                                           uint32_t gpio_irq)
+{
+    Aml *dev = aml_device("GPO0");
+    aml_append(dev, aml_name_decl("_HID", aml_string("ARMH0061")));
+    aml_append(dev, aml_name_decl("_ADR", aml_int(0)));
+    aml_append(dev, aml_name_decl("_UID", aml_int(0)));
+
+    Aml *crs = aml_resource_template();
+    aml_append(crs, aml_memory32_fixed(gpio_memmap->base, gpio_memmap->size,
+                                       AML_READ_WRITE));
+    aml_append(crs, aml_interrupt(AML_CONSUMER, AML_LEVEL, AML_ACTIVE_HIGH,
+                                  AML_EXCLUSIVE, &gpio_irq, 1));
+    aml_append(dev, aml_name_decl("_CRS", crs));
+
+    Aml *aei = aml_resource_template();
+    /* Pin 3 for power button */
+    const uint32_t pin_list[1] = {3};
+    aml_append(aei, aml_gpio_int(AML_CONSUMER, AML_EDGE, AML_ACTIVE_HIGH,
+                                 AML_EXCLUSIVE, AML_PULL_UP, 0, pin_list, 1,
+                                 "GPO0", NULL, 0));
+    aml_append(dev, aml_name_decl("_AEI", aei));
+
+    /* _E03 is handle for power button */
+    Aml *method = aml_method("_E03", 0, AML_NOTSERIALIZED);
+    aml_append(method, aml_notify(aml_name(ACPI_POWER_BUTTON_DEVICE),
+                                  aml_int(0x80)));
+    aml_append(dev, method);
+    aml_append(scope, dev);
+}
+
+static void acpi_dsdt_add_power_button(Aml *scope)
+{
+    Aml *dev = aml_device(ACPI_POWER_BUTTON_DEVICE);
+    aml_append(dev, aml_name_decl("_HID", aml_string("PNP0C0C")));
+    aml_append(dev, aml_name_decl("_ADR", aml_int(0)));
+    aml_append(dev, aml_name_decl("_UID", aml_int(0)));
     aml_append(scope, dev);
 }
 
@@ -347,7 +374,8 @@ build_rsdp(GArray *rsdp_table, GArray *linker, unsigned rsdt)
     rsdp->checksum = 0;
     /* Checksum to be filled by Guest linker */
     bios_linker_loader_add_checksum(linker, ACPI_BUILD_RSDP_FILE,
-                                    rsdp, rsdp, sizeof *rsdp, &rsdp->checksum);
+                                    rsdp_table, rsdp, sizeof *rsdp,
+                                    &rsdp->checksum);
 
     return rsdp_table;
 }
@@ -381,7 +409,8 @@ build_spcr(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
     spcr->pci_device_id = 0xffff;  /* PCI Device ID: not a PCI device */
     spcr->pci_vendor_id = 0xffff;  /* PCI Vendor ID: not a PCI device */
 
-    build_header(linker, table_data, (void *)spcr, "SPCR", sizeof(*spcr), 2);
+    build_header(linker, table_data, (void *)spcr, "SPCR", sizeof(*spcr), 2,
+                 NULL, NULL);
 }
 
 static void
@@ -400,7 +429,7 @@ build_mcfg(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
     mcfg->allocation[0].end_bus_number = (memmap[VIRT_PCIE_ECAM].size
                                           / PCIE_MMCFG_SIZE_MIN) - 1;
 
-    build_header(linker, table_data, (void *)mcfg, "MCFG", len, 1);
+    build_header(linker, table_data, (void *)mcfg, "MCFG", len, 1, NULL, NULL);
 }
 
 /* GTDT */
@@ -416,7 +445,7 @@ build_gtdt(GArray *table_data, GArray *linker)
     gtdt->secure_el1_flags = ACPI_EDGE_SENSITIVE;
 
     gtdt->non_secure_el1_interrupt = ARCH_TIMER_NS_EL1_IRQ + 16;
-    gtdt->non_secure_el1_flags = ACPI_EDGE_SENSITIVE;
+    gtdt->non_secure_el1_flags = ACPI_EDGE_SENSITIVE | ACPI_GTDT_ALWAYS_ON;
 
     gtdt->virtual_timer_interrupt = ARCH_TIMER_VIRT_IRQ + 16;
     gtdt->virtual_timer_flags = ACPI_EDGE_SENSITIVE;
@@ -426,13 +455,12 @@ build_gtdt(GArray *table_data, GArray *linker)
 
     build_header(linker, table_data,
                  (void *)(table_data->data + gtdt_start), "GTDT",
-                 table_data->len - gtdt_start, 2);
+                 table_data->len - gtdt_start, 2, NULL, NULL);
 }
 
 /* MADT */
 static void
-build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info,
-           VirtAcpiCpuInfo *cpuinfo)
+build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
 {
     int madt_start = table_data->len;
     const MemMapEntry *memmap = guest_info->memmap;
@@ -462,9 +490,7 @@ build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info,
         gicc->cpu_interface_number = i;
         gicc->arm_mpidr = armcpu->mp_affinity;
         gicc->uid = i;
-        if (test_bit(i, cpuinfo->found_cpus)) {
-            gicc->flags = cpu_to_le32(ACPI_GICC_ENABLED);
-        }
+        gicc->flags = cpu_to_le32(ACPI_GICC_ENABLED);
     }
 
     if (guest_info->gic_version == 3) {
@@ -488,7 +514,7 @@ build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info,
 
     build_header(linker, table_data,
                  (void *)(table_data->data + madt_start), "APIC",
-                 table_data->len - madt_start, 3);
+                 table_data->len - madt_start, 3, NULL, NULL);
 }
 
 /* FADT */
@@ -513,7 +539,7 @@ build_fadt(GArray *table_data, GArray *linker, unsigned dsdt)
                                    sizeof fadt->dsdt);
 
     build_header(linker, table_data,
-                 (void *)fadt, "FACP", sizeof(*fadt), 5);
+                 (void *)fadt, "FACP", sizeof(*fadt), 5, NULL, NULL);
 }
 
 /* DSDT */
@@ -528,17 +554,24 @@ build_dsdt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
     /* Reserve space for header */
     acpi_data_push(dsdt->buf, sizeof(AcpiTableHeader));
 
+    /* When booting the VM with UEFI, UEFI takes ownership of the RTC hardware.
+     * While UEFI can use libfdt to disable the RTC device node in the DTB that
+     * it passes to the OS, it cannot modify AML. Therefore, we won't generate
+     * the RTC ACPI device at all when using UEFI.
+     */
     scope = aml_scope("\\_SB");
     acpi_dsdt_add_cpus(scope, guest_info->smp_cpus);
     acpi_dsdt_add_uart(scope, &memmap[VIRT_UART],
                        (irqmap[VIRT_UART] + ARM_SPI_BASE));
-    acpi_dsdt_add_rtc(scope, &memmap[VIRT_RTC],
-                      (irqmap[VIRT_RTC] + ARM_SPI_BASE));
     acpi_dsdt_add_flash(scope, &memmap[VIRT_FLASH]);
+    acpi_dsdt_add_fw_cfg(scope, &memmap[VIRT_FW_CFG]);
     acpi_dsdt_add_virtio(scope, &memmap[VIRT_MMIO],
                     (irqmap[VIRT_MMIO] + ARM_SPI_BASE), NUM_VIRTIO_TRANSPORTS);
     acpi_dsdt_add_pci(scope, memmap, (irqmap[VIRT_PCIE] + ARM_SPI_BASE),
                       guest_info->use_highmem);
+    acpi_dsdt_add_gpio(scope, &memmap[VIRT_GPIO],
+                       (irqmap[VIRT_GPIO] + ARM_SPI_BASE));
+    acpi_dsdt_add_power_button(scope);
 
     aml_append(dsdt, scope);
 
@@ -546,7 +579,7 @@ build_dsdt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
     g_array_append_vals(table_data, dsdt->buf->data, dsdt->buf->len);
     build_header(linker, table_data,
         (void *)(table_data->data + table_data->len - dsdt->buf->len),
-        "DSDT", dsdt->buf->len, 2);
+        "DSDT", dsdt->buf->len, 2, NULL, NULL);
     free_aml_allocator();
 }
 
@@ -566,10 +599,7 @@ void virt_acpi_build(VirtGuestInfo *guest_info, AcpiBuildTables *tables)
 {
     GArray *table_offsets;
     unsigned dsdt, rsdt;
-    VirtAcpiCpuInfo cpuinfo;
     GArray *tables_blob = tables->table_data;
-
-    virt_acpi_get_cpu_info(&cpuinfo);
 
     table_offsets = g_array_new(false, true /* clear */,
                                         sizeof(uint32_t));
@@ -597,7 +627,7 @@ void virt_acpi_build(VirtGuestInfo *guest_info, AcpiBuildTables *tables)
     build_fadt(tables_blob, tables->linker, dsdt);
 
     acpi_add_table(table_offsets, tables_blob);
-    build_madt(tables_blob, tables->linker, guest_info, &cpuinfo);
+    build_madt(tables_blob, tables->linker, guest_info);
 
     acpi_add_table(table_offsets, tables_blob);
     build_gtdt(tables_blob, tables->linker);
@@ -610,7 +640,7 @@ void virt_acpi_build(VirtGuestInfo *guest_info, AcpiBuildTables *tables)
 
     /* RSDT is pointed to by RSDP */
     rsdt = tables_blob->len;
-    build_rsdt(tables_blob, tables->linker, table_offsets);
+    build_rsdt(tables_blob, tables->linker, table_offsets, NULL, NULL);
 
     /* RSDP is in FSEG memory, so allocate it separately */
     build_rsdp(tables->rsdp, tables->linker, rsdt);
@@ -631,7 +661,7 @@ static void acpi_ram_update(MemoryRegion *mr, GArray *data)
     memory_region_set_dirty(mr, 0, size);
 }
 
-static void virt_acpi_build_update(void *build_opaque, uint32_t offset)
+static void virt_acpi_build_update(void *build_opaque)
 {
     AcpiBuildState *build_state = build_opaque;
     AcpiBuildTables tables;

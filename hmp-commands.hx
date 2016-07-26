@@ -1026,7 +1026,7 @@ ETEXI
         .args_type  = "",
         .params     = "",
         .help       = "Followup to a migration command to switch the migration"
-                      " to postcopy mode. The x-postcopy-ram capability must "
+                      " to postcopy mode. The postcopy-ram capability must "
                       "be set before the original migration command.",
         .mhandler.cmd = hmp_migrate_start_postcopy,
     },
@@ -1056,10 +1056,11 @@ ETEXI
 
     {
         .name       = "dump-guest-memory",
-        .args_type  = "paging:-p,zlib:-z,lzo:-l,snappy:-s,filename:F,begin:i?,length:i?",
-        .params     = "[-p] [-z|-l|-s] filename [begin length]",
+        .args_type  = "paging:-p,detach:-d,zlib:-z,lzo:-l,snappy:-s,filename:F,begin:i?,length:i?",
+        .params     = "[-p] [-d] [-z|-l|-s] filename [begin length]",
         .help       = "dump guest memory into file 'filename'.\n\t\t\t"
                       "-p: do paging to get guest's memory mapping.\n\t\t\t"
+                      "-d: return immediately (do not wait for completion).\n\t\t\t"
                       "-z: dump in kdump-compressed format, with zlib compression.\n\t\t\t"
                       "-l: dump in kdump-compressed format, with lzo compression.\n\t\t\t"
                       "-s: dump in kdump-compressed format, with snappy compression.\n\t\t\t"
@@ -1200,8 +1201,8 @@ ETEXI
 
     {
         .name       = "drive_add",
-        .args_type  = "pci_addr:s,opts:s",
-        .params     = "[[<domain>:]<bus>:]<slot>\n"
+        .args_type  = "node:-n,pci_addr:s,opts:s",
+        .params     = "[-n] [[<domain>:]<bus>:]<slot>\n"
                       "[file=file][,if=type][,bus=n]\n"
                       "[,unit=m][,media=d][,index=i]\n"
                       "[,cyls=c,heads=h,secs=s[,trans=t]]\n"

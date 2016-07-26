@@ -18,6 +18,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "disas/disas.h"
 #include "tcg-op.h"
@@ -28,6 +29,7 @@
 #include "exec/helper-gen.h"
 
 #include "trace-tcg.h"
+#include "exec/log.h"
 
 
 #define CPU_SINGLE_STEP 0x1
@@ -47,7 +49,7 @@
 /* Code translation helpers                                                  */
 
 /* global register indexes */
-static TCGv_ptr cpu_env;
+static TCGv_env cpu_env;
 static char cpu_reg_names[10*3 + 22*4 /* GPR */
     + 10*4 + 22*5 /* SPE GPRh */
     + 10*4 + 22*5 /* FPR */
@@ -91,7 +93,7 @@ void ppc_translate_init(void)
 
     for (i = 0; i < 8; i++) {
         snprintf(p, cpu_reg_names_size, "crf%d", i);
-        cpu_crf[i] = tcg_global_mem_new_i32(TCG_AREG0,
+        cpu_crf[i] = tcg_global_mem_new_i32(cpu_env,
                                             offsetof(CPUPPCState, crf[i]), p);
         p += 5;
         cpu_reg_names_size -= 5;
@@ -99,28 +101,28 @@ void ppc_translate_init(void)
 
     for (i = 0; i < 32; i++) {
         snprintf(p, cpu_reg_names_size, "r%d", i);
-        cpu_gpr[i] = tcg_global_mem_new(TCG_AREG0,
+        cpu_gpr[i] = tcg_global_mem_new(cpu_env,
                                         offsetof(CPUPPCState, gpr[i]), p);
         p += (i < 10) ? 3 : 4;
         cpu_reg_names_size -= (i < 10) ? 3 : 4;
         snprintf(p, cpu_reg_names_size, "r%dH", i);
-        cpu_gprh[i] = tcg_global_mem_new(TCG_AREG0,
+        cpu_gprh[i] = tcg_global_mem_new(cpu_env,
                                          offsetof(CPUPPCState, gprh[i]), p);
         p += (i < 10) ? 4 : 5;
         cpu_reg_names_size -= (i < 10) ? 4 : 5;
 
         snprintf(p, cpu_reg_names_size, "fp%d", i);
-        cpu_fpr[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_fpr[i] = tcg_global_mem_new_i64(cpu_env,
                                             offsetof(CPUPPCState, fpr[i]), p);
         p += (i < 10) ? 4 : 5;
         cpu_reg_names_size -= (i < 10) ? 4 : 5;
 
         snprintf(p, cpu_reg_names_size, "avr%dH", i);
 #ifdef HOST_WORDS_BIGENDIAN
-        cpu_avrh[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_avrh[i] = tcg_global_mem_new_i64(cpu_env,
                                              offsetof(CPUPPCState, avr[i].u64[0]), p);
 #else
-        cpu_avrh[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_avrh[i] = tcg_global_mem_new_i64(cpu_env,
                                              offsetof(CPUPPCState, avr[i].u64[1]), p);
 #endif
         p += (i < 10) ? 6 : 7;
@@ -128,55 +130,55 @@ void ppc_translate_init(void)
 
         snprintf(p, cpu_reg_names_size, "avr%dL", i);
 #ifdef HOST_WORDS_BIGENDIAN
-        cpu_avrl[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_avrl[i] = tcg_global_mem_new_i64(cpu_env,
                                              offsetof(CPUPPCState, avr[i].u64[1]), p);
 #else
-        cpu_avrl[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_avrl[i] = tcg_global_mem_new_i64(cpu_env,
                                              offsetof(CPUPPCState, avr[i].u64[0]), p);
 #endif
         p += (i < 10) ? 6 : 7;
         cpu_reg_names_size -= (i < 10) ? 6 : 7;
         snprintf(p, cpu_reg_names_size, "vsr%d", i);
-        cpu_vsr[i] = tcg_global_mem_new_i64(TCG_AREG0,
-                                             offsetof(CPUPPCState, vsr[i]), p);
+        cpu_vsr[i] = tcg_global_mem_new_i64(cpu_env,
+                                            offsetof(CPUPPCState, vsr[i]), p);
         p += (i < 10) ? 5 : 6;
         cpu_reg_names_size -= (i < 10) ? 5 : 6;
     }
 
-    cpu_nip = tcg_global_mem_new(TCG_AREG0,
+    cpu_nip = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUPPCState, nip), "nip");
 
-    cpu_msr = tcg_global_mem_new(TCG_AREG0,
+    cpu_msr = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUPPCState, msr), "msr");
 
-    cpu_ctr = tcg_global_mem_new(TCG_AREG0,
+    cpu_ctr = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUPPCState, ctr), "ctr");
 
-    cpu_lr = tcg_global_mem_new(TCG_AREG0,
+    cpu_lr = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUPPCState, lr), "lr");
 
 #if defined(TARGET_PPC64)
-    cpu_cfar = tcg_global_mem_new(TCG_AREG0,
+    cpu_cfar = tcg_global_mem_new(cpu_env,
                                   offsetof(CPUPPCState, cfar), "cfar");
 #endif
 
-    cpu_xer = tcg_global_mem_new(TCG_AREG0,
+    cpu_xer = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUPPCState, xer), "xer");
-    cpu_so = tcg_global_mem_new(TCG_AREG0,
+    cpu_so = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUPPCState, so), "SO");
-    cpu_ov = tcg_global_mem_new(TCG_AREG0,
+    cpu_ov = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUPPCState, ov), "OV");
-    cpu_ca = tcg_global_mem_new(TCG_AREG0,
+    cpu_ca = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUPPCState, ca), "CA");
 
-    cpu_reserve = tcg_global_mem_new(TCG_AREG0,
+    cpu_reserve = tcg_global_mem_new(cpu_env,
                                      offsetof(CPUPPCState, reserve_addr),
                                      "reserve_addr");
 
-    cpu_fpscr = tcg_global_mem_new(TCG_AREG0,
+    cpu_fpscr = tcg_global_mem_new(cpu_env,
                                    offsetof(CPUPPCState, fpscr), "fpscr");
 
-    cpu_access_type = tcg_global_mem_new_i32(TCG_AREG0,
+    cpu_access_type = tcg_global_mem_new_i32(cpu_env,
                                              offsetof(CPUPPCState, access_type), "access_type");
 
     done_init = 1;
@@ -2500,18 +2502,31 @@ static void gen_fmrgow(DisasContext *ctx)
 static void gen_mcrfs(DisasContext *ctx)
 {
     TCGv tmp = tcg_temp_new();
+    TCGv_i32 tmask;
+    TCGv_i64 tnew_fpscr = tcg_temp_new_i64();
     int bfa;
+    int nibble;
+    int shift;
 
     if (unlikely(!ctx->fpu_enabled)) {
         gen_exception(ctx, POWERPC_EXCP_FPU);
         return;
     }
-    bfa = 4 * (7 - crfS(ctx->opcode));
-    tcg_gen_shri_tl(tmp, cpu_fpscr, bfa);
+    bfa = crfS(ctx->opcode);
+    nibble = 7 - bfa;
+    shift = 4 * nibble;
+    tcg_gen_shri_tl(tmp, cpu_fpscr, shift);
     tcg_gen_trunc_tl_i32(cpu_crf[crfD(ctx->opcode)], tmp);
-    tcg_temp_free(tmp);
     tcg_gen_andi_i32(cpu_crf[crfD(ctx->opcode)], cpu_crf[crfD(ctx->opcode)], 0xf);
-    tcg_gen_andi_tl(cpu_fpscr, cpu_fpscr, ~(0xF << bfa));
+    tcg_temp_free(tmp);
+    tcg_gen_extu_tl_i64(tnew_fpscr, cpu_fpscr);
+    /* Only the exception bits (including FX) should be cleared if read */
+    tcg_gen_andi_i64(tnew_fpscr, tnew_fpscr, ~((0xF << shift) & FP_EX_CLEAR_BITS));
+    /* FEX and VX need to be updated, so don't set fpscr directly */
+    tmask = tcg_const_i32(1 << nibble);
+    gen_helper_store_fpscr(cpu_env, tnew_fpscr, tmask);
+    tcg_temp_free_i32(tmask);
+    tcg_temp_free_i64(tnew_fpscr);
 }
 
 /* mffs */
@@ -3212,10 +3227,8 @@ static void gen_lswi(DisasContext *ctx)
 
     if (nb == 0)
         nb = 32;
-    nr = nb / 4;
-    if (unlikely(((start + nr) > 32  &&
-                  start <= ra && (start + nr - 32) > ra) ||
-                 ((start + nr) <= 32 && start <= ra && (start + nr) > ra))) {
+    nr = (nb + 3) / 4;
+    if (unlikely(lsw_reg_in_range(start, nr, ra))) {
         gen_inval_exception(ctx, POWERPC_EXCP_INVAL_LSWX);
         return;
     }
@@ -4267,14 +4280,17 @@ static inline void gen_op_mfspr(DisasContext *ctx)
     void (*read_cb)(DisasContext *ctx, int gprn, int sprn);
     uint32_t sprn = SPR(ctx->opcode);
 
-#if !defined(CONFIG_USER_ONLY)
-    if (ctx->hv)
-        read_cb = ctx->spr_cb[sprn].hea_read;
-    else if (!ctx->pr)
-        read_cb = ctx->spr_cb[sprn].oea_read;
-    else
-#endif
+#if defined(CONFIG_USER_ONLY)
+    read_cb = ctx->spr_cb[sprn].uea_read;
+#else
+    if (ctx->pr) {
         read_cb = ctx->spr_cb[sprn].uea_read;
+    } else if (ctx->hv) {
+        read_cb = ctx->spr_cb[sprn].hea_read;
+    } else {
+        read_cb = ctx->spr_cb[sprn].oea_read;
+    }
+#endif
     if (likely(read_cb != NULL)) {
         if (likely(read_cb != SPR_NOACCESS)) {
             (*read_cb)(ctx, rD(ctx->opcode), sprn);
@@ -4285,19 +4301,23 @@ static inline void gen_op_mfspr(DisasContext *ctx)
              * allowing userland application to read the PVR
              */
             if (sprn != SPR_PVR) {
-                qemu_log("Trying to read privileged spr %d (0x%03x) at "
-                         TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
-                printf("Trying to read privileged spr %d (0x%03x) at "
-                       TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+                fprintf(stderr, "Trying to read privileged spr %d (0x%03x) at "
+                        TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+                if (qemu_log_separate()) {
+                    qemu_log("Trying to read privileged spr %d (0x%03x) at "
+                             TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+                }
             }
             gen_inval_exception(ctx, POWERPC_EXCP_PRIV_REG);
         }
     } else {
         /* Not defined */
-        qemu_log("Trying to read invalid spr %d (0x%03x) at "
-                 TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
-        printf("Trying to read invalid spr %d (0x%03x) at "
-               TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+        fprintf(stderr, "Trying to read invalid spr %d (0x%03x) at "
+                TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+        if (qemu_log_separate()) {
+            qemu_log("Trying to read invalid spr %d (0x%03x) at "
+                     TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+        }
         gen_inval_exception(ctx, POWERPC_EXCP_INVAL_SPR);
     }
 }
@@ -4418,31 +4438,38 @@ static void gen_mtspr(DisasContext *ctx)
     void (*write_cb)(DisasContext *ctx, int sprn, int gprn);
     uint32_t sprn = SPR(ctx->opcode);
 
-#if !defined(CONFIG_USER_ONLY)
-    if (ctx->hv)
-        write_cb = ctx->spr_cb[sprn].hea_write;
-    else if (!ctx->pr)
-        write_cb = ctx->spr_cb[sprn].oea_write;
-    else
-#endif
+#if defined(CONFIG_USER_ONLY)
+    write_cb = ctx->spr_cb[sprn].uea_write;
+#else
+    if (ctx->pr) {
         write_cb = ctx->spr_cb[sprn].uea_write;
+    } else if (ctx->hv) {
+        write_cb = ctx->spr_cb[sprn].hea_write;
+    } else {
+        write_cb = ctx->spr_cb[sprn].oea_write;
+    }
+#endif
     if (likely(write_cb != NULL)) {
         if (likely(write_cb != SPR_NOACCESS)) {
             (*write_cb)(ctx, sprn, rS(ctx->opcode));
         } else {
             /* Privilege exception */
-            qemu_log("Trying to write privileged spr %d (0x%03x) at "
-                     TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
-            printf("Trying to write privileged spr %d (0x%03x) at "
-                   TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+            fprintf(stderr, "Trying to write privileged spr %d (0x%03x) at "
+                    TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+            if (qemu_log_separate()) {
+                qemu_log("Trying to write privileged spr %d (0x%03x) at "
+                         TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+            }
             gen_inval_exception(ctx, POWERPC_EXCP_PRIV_REG);
         }
     } else {
         /* Not defined */
-        qemu_log("Trying to write invalid spr %d (0x%03x) at "
-                 TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
-        printf("Trying to write invalid spr %d (0x%03x) at "
-               TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+        if (qemu_log_separate()) {
+            qemu_log("Trying to write invalid spr %d (0x%03x) at "
+                     TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
+        }
+        fprintf(stderr, "Trying to write invalid spr %d (0x%03x) at "
+                TARGET_FMT_lx "\n", sprn, sprn, ctx->nip - 4);
         gen_inval_exception(ctx, POWERPC_EXCP_INVAL_SPR);
     }
 }
@@ -5896,7 +5923,7 @@ static void gen_tlbiva(DisasContext *ctx)
     }
     t0 = tcg_temp_new();
     gen_addr_reg_index(ctx, t0);
-    gen_helper_tlbie(cpu_env, cpu_gpr[rB(ctx->opcode)]);
+    gen_helper_tlbiva(cpu_env, cpu_gpr[rB(ctx->opcode)]);
     tcg_temp_free(t0);
 #endif
 }
@@ -11329,7 +11356,9 @@ void ppc_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,
     case POWERPC_MMU_64B:
     case POWERPC_MMU_2_03:
     case POWERPC_MMU_2_06:
+    case POWERPC_MMU_2_06a:
     case POWERPC_MMU_2_07:
+    case POWERPC_MMU_2_07a:
 #endif
         cpu_fprintf(f, " SDR1 " TARGET_FMT_lx "   DAR " TARGET_FMT_lx
                        "  DSISR " TARGET_FMT_lx "\n", env->spr[SPR_SDR1],
@@ -11522,12 +11551,10 @@ void gen_intermediate_code(CPUPPCState *env, struct TranslationBlock *tb)
         }
         /* Is opcode *REALLY* valid ? */
         if (unlikely(handler->handler == &gen_invalid)) {
-            if (qemu_log_enabled()) {
-                qemu_log("invalid/unsupported opcode: "
-                         "%02x - %02x - %02x (%08x) " TARGET_FMT_lx " %d\n",
-                         opc1(ctx.opcode), opc2(ctx.opcode),
-                         opc3(ctx.opcode), ctx.opcode, ctx.nip - 4, (int)msr_ir);
-            }
+            qemu_log_mask(LOG_GUEST_ERROR, "invalid/unsupported opcode: "
+                          "%02x - %02x - %02x (%08x) " TARGET_FMT_lx " %d\n",
+                          opc1(ctx.opcode), opc2(ctx.opcode),
+                          opc3(ctx.opcode), ctx.opcode, ctx.nip - 4, (int)msr_ir);
         } else {
             uint32_t inval;
 
@@ -11538,13 +11565,11 @@ void gen_intermediate_code(CPUPPCState *env, struct TranslationBlock *tb)
             }
 
             if (unlikely((ctx.opcode & inval) != 0)) {
-                if (qemu_log_enabled()) {
-                    qemu_log("invalid bits: %08x for opcode: "
-                             "%02x - %02x - %02x (%08x) " TARGET_FMT_lx "\n",
-                             ctx.opcode & inval, opc1(ctx.opcode),
-                             opc2(ctx.opcode), opc3(ctx.opcode),
-                             ctx.opcode, ctx.nip - 4);
-                }
+                qemu_log_mask(LOG_GUEST_ERROR, "invalid bits: %08x for opcode: "
+                              "%02x - %02x - %02x (%08x) " TARGET_FMT_lx "\n",
+                              ctx.opcode & inval, opc1(ctx.opcode),
+                              opc2(ctx.opcode), opc3(ctx.opcode),
+                              ctx.opcode, ctx.nip - 4);
                 gen_inval_exception(ctxp, POWERPC_EXCP_INVAL_INVAL);
                 break;
             }

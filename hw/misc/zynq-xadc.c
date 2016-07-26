@@ -13,6 +13,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/misc/zynq-xadc.h"
 #include "qemu/timer.h"
@@ -220,7 +221,7 @@ static void zynq_xadc_write(void *opaque, hwaddr offset, uint64_t val,
             break;
         }
 
-        if (xadc_reg > ZYNQ_XADC_NUM_ADC_REGS && xadc_cmd != CMD_NOP) {
+        if (xadc_reg >= ZYNQ_XADC_NUM_ADC_REGS && xadc_cmd != CMD_NOP) {
             qemu_log_mask(LOG_GUEST_ERROR, "read/write op to invalid xadc "
                           "reg 0x%x\n", xadc_reg);
             break;

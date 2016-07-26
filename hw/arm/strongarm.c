@@ -27,6 +27,8 @@
  *  GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
+#include "cpu.h"
 #include "hw/boards.h"
 #include "hw/sysbus.h"
 #include "strongarm.h"
@@ -34,7 +36,8 @@
 #include "hw/arm/arm.h"
 #include "sysemu/char.h"
 #include "sysemu/sysemu.h"
-#include "hw/ssi.h"
+#include "hw/ssi/ssi.h"
+#include "qemu/cutils.h"
 
 //#define DEBUG
 
@@ -1023,7 +1026,7 @@ static void strongarm_uart_update_parameters(StrongARMUARTState *s)
     ssp.parity = parity;
     ssp.data_bits = data_bits;
     ssp.stop_bits = stop_bits;
-    s->char_transmit_time =  (get_ticks_per_sec() / speed) * frame_size;
+    s->char_transmit_time =  (NANOSECONDS_PER_SECOND / speed) * frame_size;
     if (s->chr) {
         qemu_chr_fe_ioctl(s->chr, CHR_IOCTL_SERIAL_SET_PARAMS, &ssp);
     }

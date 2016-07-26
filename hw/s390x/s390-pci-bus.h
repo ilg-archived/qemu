@@ -23,6 +23,7 @@
 #define TYPE_S390_PCI_HOST_BRIDGE "s390-pcihost"
 #define FH_VIRT 0x00ff0000
 #define ENABLE_BIT_OFFSET 31
+#define FH_ENABLED (1 << ENABLE_BIT_OFFSET)
 #define S390_PCIPT_ADAPTER 2
 
 #define S390_PCI_HOST_BRIDGE(obj) \
@@ -232,6 +233,8 @@ typedef struct S390PCIBusDevice {
     AddressSpace as;
     MemoryRegion mr;
     MemoryRegion iommu_mr;
+    IndAddr *summary_ind;
+    IndAddr *indicator;
 } S390PCIBusDevice;
 
 typedef struct S390pciState {

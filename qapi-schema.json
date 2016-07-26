@@ -295,8 +295,6 @@
 # @format: #optional data encoding (default 'utf8').
 #          - base64: data must be base64 encoded text.  Its binary
 #            decoding gets written.
-#            Bug: invalid base64 is currently not rejected.
-#            Whitespace *is* invalid.
 #          - utf8: data's UTF-8 encoding is written
 #          - data itself is always Unicode regardless of format, like
 #            any other string.
@@ -542,15 +540,15 @@
 # @auto-converge: If enabled, QEMU will automatically throttle down the guest
 #          to speed up convergence of RAM migration. (since 1.6)
 #
-# @x-postcopy-ram: Start executing on the migration target before all of RAM has
+# @postcopy-ram: Start executing on the migration target before all of RAM has
 #          been migrated, pulling the remaining pages along as needed. NOTE: If
-#          the migration fails during postcopy the VM will fail.  (since 2.5)
+#          the migration fails during postcopy the VM will fail.  (since 2.6)
 #
 # Since: 1.2
 ##
 { 'enum': 'MigrationCapability',
   'data': ['xbzrle', 'rdma-pin-all', 'auto-converge', 'zero-blocks',
-           'compress', 'events', 'x-postcopy-ram'] }
+           'compress', 'events', 'postcopy-ram'] }
 
 ##
 # @MigrationCapabilityStatus
@@ -707,7 +705,7 @@
 # @migrate-start-postcopy
 #
 # Followup to a migration command to switch the migration to postcopy mode.
-# The x-postcopy-ram capability must be set before the original migration
+# The postcopy-ram capability must be set before the original migration
 # command.
 #
 # Since: 2.5
@@ -744,43 +742,117 @@
 { 'command': 'query-mice', 'returns': ['MouseInfo'] }
 
 ##
+# @CpuInfoArch:
+#
+# An enumeration of cpu types that enable additional information during
+# @query-cpus.
+#
+# Since: 2.6
+##
+{ 'enum': 'CpuInfoArch',
+  'data': ['x86', 'sparc', 'ppc', 'mips', 'tricore', 'other' ] }
+
+##
 # @CpuInfo:
 #
 # Information about a virtual CPU
 #
 # @CPU: the index of the virtual CPU
 #
-# @current: this only exists for backwards compatible and should be ignored
+# @current: this only exists for backwards compatibility and should be ignored
 #
 # @halted: true if the virtual CPU is in the halt state.  Halt usually refers
 #          to a processor specific low power mode.
 #
 # @qom_path: path to the CPU object in the QOM tree (since 2.4)
 #
-# @pc: #optional If the target is i386 or x86_64, this is the 64-bit instruction
-#                pointer.
-#                If the target is Sparc, this is the PC component of the
-#                instruction pointer.
-#
-# @nip: #optional If the target is PPC, the instruction pointer
-#
-# @npc: #optional If the target is Sparc, the NPC component of the instruction
-#                 pointer
-#
-# @PC: #optional If the target is MIPS, the instruction pointer
-#
 # @thread_id: ID of the underlying host thread
+#
+# @arch: architecture of the cpu, which determines which additional fields
+#        will be listed (since 2.6)
 #
 # Since: 0.14.0
 #
 # Notes: @halted is a transient state that changes frequently.  By the time the
 #        data is sent to the client, the guest may no longer be halted.
 ##
-{ 'struct': 'CpuInfo',
-  'data': {'CPU': 'int', 'current': 'bool', 'halted': 'bool',
-           'qom_path': 'str',
-           '*pc': 'int', '*nip': 'int', '*npc': 'int', '*PC': 'int',
-           'thread_id': 'int'} }
+{ 'union': 'CpuInfo',
+  'base': {'CPU': 'int', 'current': 'bool', 'halted': 'bool',
+           'qom_path': 'str', 'thread_id': 'int', 'arch': 'CpuInfoArch' },
+  'discriminator': 'arch',
+  'data': { 'x86': 'CpuInfoX86',
+            'sparc': 'CpuInfoSPARC',
+            'ppc': 'CpuInfoPPC',
+            'mips': 'CpuInfoMIPS',
+            'tricore': 'CpuInfoTricore',
+            'other': 'CpuInfoOther' } }
+
+##
+# @CpuInfoX86:
+#
+# Additional information about a virtual i386 or x86_64 CPU
+#
+# @pc: the 64-bit instruction pointer
+#
+# Since 2.6
+##
+{ 'struct': 'CpuInfoX86', 'data': { 'pc': 'int' } }
+
+##
+# @CpuInfoSPARC:
+#
+# Additional information about a virtual SPARC CPU
+#
+# @pc: the PC component of the instruction pointer
+#
+# @npc: the NPC component of the instruction pointer
+#
+# Since 2.6
+##
+{ 'struct': 'CpuInfoSPARC', 'data': { 'pc': 'int', 'npc': 'int' } }
+
+##
+# @CpuInfoPPC:
+#
+# Additional information about a virtual PPC CPU
+#
+# @nip: the instruction pointer
+#
+# Since 2.6
+##
+{ 'struct': 'CpuInfoPPC', 'data': { 'nip': 'int' } }
+
+##
+# @CpuInfoMIPS:
+#
+# Additional information about a virtual MIPS CPU
+#
+# @PC: the instruction pointer
+#
+# Since 2.6
+##
+{ 'struct': 'CpuInfoMIPS', 'data': { 'PC': 'int' } }
+
+##
+# @CpuInfoTricore:
+#
+# Additional information about a virtual Tricore CPU
+#
+# @PC: the instruction pointer
+#
+# Since 2.6
+##
+{ 'struct': 'CpuInfoTricore', 'data': { 'PC': 'int' } }
+
+##
+# @CpuInfoOther:
+#
+# No additional information is available about the virtual CPU
+#
+# Since 2.6
+#
+##
+{ 'struct': 'CpuInfoOther', 'data': { } }
 
 ##
 # @query-cpus:
@@ -2089,8 +2161,7 @@
 # @dump-guest-memory
 #
 # Dump guest's memory to vmcore. It is a synchronous operation that can take
-# very long depending on the amount of guest memory. This command is only
-# supported on i386 and x86_64.
+# very long depending on the amount of guest memory.
 #
 # @paging: if true, do paging to get guest's memory mapping. This allows
 #          using gdb to process the core file.
@@ -2106,6 +2177,7 @@
 #             2. The guest can be in real-mode even if paging is enabled. For
 #                example, the guest uses ACPI to sleep, and ACPI sleep state
 #                goes in real-mode
+#             3. Currently only supported on i386 and x86_64.
 #
 # @protocol: the filename or file descriptor of the vmcore. The supported
 #            protocols are:
@@ -2114,6 +2186,10 @@
 #               string is the file's path.
 #            2. fd: the protocol starts with "fd:", and the following string
 #               is the fd's name.
+#
+# @detach: #optional if true, QMP will return immediately rather than
+#          waiting for the dump to finish. The user can track progress
+#          using "query-dump". (since 2.6).
 #
 # @begin: #optional if specified, the starting physical address.
 #
@@ -2131,8 +2207,56 @@
 # Since: 1.2
 ##
 { 'command': 'dump-guest-memory',
-  'data': { 'paging': 'bool', 'protocol': 'str', '*begin': 'int',
-            '*length': 'int', '*format': 'DumpGuestMemoryFormat' } }
+  'data': { 'paging': 'bool', 'protocol': 'str', '*detach': 'bool',
+            '*begin': 'int', '*length': 'int',
+            '*format': 'DumpGuestMemoryFormat'} }
+
+##
+# @DumpStatus
+#
+# Describe the status of a long-running background guest memory dump.
+#
+# @none: no dump-guest-memory has started yet.
+#
+# @active: there is one dump running in background.
+#
+# @completed: the last dump has finished successfully.
+#
+# @failed: the last dump has failed.
+#
+# Since 2.6
+##
+{ 'enum': 'DumpStatus',
+  'data': [ 'none', 'active', 'completed', 'failed' ] }
+
+##
+# @DumpQueryResult
+#
+# The result format for 'query-dump'.
+#
+# @status: enum of @DumpStatus, which shows current dump status
+#
+# @completed: bytes written in latest dump (uncompressed)
+#
+# @total: total bytes to be written in latest dump (uncompressed)
+#
+# Since 2.6
+##
+{ 'struct': 'DumpQueryResult',
+  'data': { 'status': 'DumpStatus',
+            'completed': 'int',
+            'total': 'int' } }
+
+##
+# @query-dump
+#
+# Query latest dump status.
+#
+# Returns: A @DumpStatus object showing the dump status.
+#
+# Since: 2.6
+##
+{ 'command': 'query-dump', 'returns': 'DumpQueryResult' }
 
 ##
 # @DumpGuestMemoryCapability:
@@ -2301,9 +2425,18 @@
 #
 # @restrict: #optional isolate the guest from the host
 #
+# @ipv4: #optional whether to support IPv4, default true for enabled
+#        (since 2.6)
+#
+# @ipv6: #optional whether to support IPv6, default true for enabled
+#        (since 2.6)
+#
 # @ip: #optional legacy parameter, use net= instead
 #
-# @net: #optional IP address and optional netmask
+# @net: #optional IP network address that the guest will see, in the
+#       form addr[/netmask] The netmask is optional, and can be
+#       either in the form a.b.c.d or as a number of valid top-most
+#       bits. Default is 10.0.2.0/24.
 #
 # @host: #optional guest-visible address of the host
 #
@@ -2318,6 +2451,18 @@
 #
 # @dnssearch: #optional list of DNS suffixes to search, passed as DHCP option
 #             to the guest
+#
+# @ipv6-prefix: #optional IPv6 network prefix (default is fec0::) (since
+#               2.6). The network prefix is given in the usual
+#               hexadecimal IPv6 address notation.
+#
+# @ipv6-prefixlen: #optional IPv6 network prefix length (default is 64)
+#                  (since 2.6)
+#
+# @ipv6-host: #optional guest-visible IPv6 address of the host (since 2.6)
+#
+# @ipv6-dns: #optional guest-visible IPv6 address of the virtual
+#            nameserver (since 2.6)
 #
 # @smb: #optional root directory of the built-in SMB server
 #
@@ -2334,6 +2479,8 @@
   'data': {
     '*hostname':  'str',
     '*restrict':  'bool',
+    '*ipv4':      'bool',
+    '*ipv6':      'bool',
     '*ip':        'str',
     '*net':       'str',
     '*host':      'str',
@@ -2342,6 +2489,10 @@
     '*dhcpstart': 'str',
     '*dns':       'str',
     '*dnssearch': ['String'],
+    '*ipv6-prefix':      'str',
+    '*ipv6-prefixlen':   'int',
+    '*ipv6-host':        'str',
+    '*ipv6-dns':         'str',
     '*smb':       'str',
     '*smbserver': 'str',
     '*hostfwd':   ['String'],
@@ -2946,6 +3097,7 @@
 #
 # 'unmapped' and 'pause' since 2.0
 # 'ro' and 'kp_comma' since 2.4
+# 'kp_equals' and 'power' since 2.6
 ##
 { 'enum': 'QKeyCode',
   'data': [ 'unmapped',
@@ -2964,7 +3116,7 @@
             'left', 'up', 'down', 'right', 'insert', 'delete', 'stop', 'again',
             'props', 'undo', 'front', 'copy', 'open', 'paste', 'find', 'cut',
             'lf', 'help', 'meta_l', 'meta_r', 'compose', 'pause', 'ro',
-            'kp_comma' ] }
+            'kp_comma', 'kp_equals', 'power' ] }
 
 ##
 # @KeyValue
@@ -3013,6 +3165,21 @@
 ##
 { 'command': 'screendump', 'data': {'filename': 'str'} }
 
+
+##
+# @ChardevCommon:
+#
+# Configuration shared across all chardev backends
+#
+# @logfile: #optional The name of a logfile to save output
+# @logappend: #optional true to append instead of truncate
+#             (default to false to truncate)
+#
+# Since: 2.6
+##
+{ 'struct': 'ChardevCommon', 'data': { '*logfile': 'str',
+                                       '*logappend': 'bool' } }
+
 ##
 # @ChardevFile:
 #
@@ -3020,11 +3187,15 @@
 #
 # @in:  #optional The name of the input file
 # @out: The name of the output file
+# @append: #optional Open the file in append mode (default false to
+#          truncate) (Since 2.6)
 #
 # Since: 1.4
 ##
 { 'struct': 'ChardevFile', 'data': { '*in' : 'str',
-                                   'out' : 'str' } }
+                                   'out' : 'str',
+                                   '*append': 'bool' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevHostdev:
@@ -3037,7 +3208,8 @@
 #
 # Since: 1.4
 ##
-{ 'struct': 'ChardevHostdev', 'data': { 'device' : 'str' } }
+{ 'struct': 'ChardevHostdev', 'data': { 'device' : 'str' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevSocket:
@@ -3046,6 +3218,7 @@
 #
 # @addr: socket address to listen on (server=true)
 #        or connect to (server=false)
+# @tls-creds: #optional the ID of the TLS credentials object (since 2.6)
 # @server: #optional create server socket (default: true)
 # @wait: #optional wait for incoming connection on server
 #        sockets (default: false).
@@ -3060,11 +3233,13 @@
 # Since: 1.4
 ##
 { 'struct': 'ChardevSocket', 'data': { 'addr'       : 'SocketAddress',
+                                     '*tls-creds'  : 'str',
                                      '*server'    : 'bool',
                                      '*wait'      : 'bool',
                                      '*nodelay'   : 'bool',
                                      '*telnet'    : 'bool',
-                                     '*reconnect' : 'int' } }
+                                     '*reconnect' : 'int' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevUdp:
@@ -3077,7 +3252,8 @@
 # Since: 1.5
 ##
 { 'struct': 'ChardevUdp', 'data': { 'remote' : 'SocketAddress',
-                                  '*local' : 'SocketAddress' } }
+                                  '*local' : 'SocketAddress' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevMux:
@@ -3088,7 +3264,8 @@
 #
 # Since: 1.5
 ##
-{ 'struct': 'ChardevMux', 'data': { 'chardev' : 'str' } }
+{ 'struct': 'ChardevMux', 'data': { 'chardev' : 'str' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevStdio:
@@ -3101,7 +3278,9 @@
 #
 # Since: 1.5
 ##
-{ 'struct': 'ChardevStdio', 'data': { '*signal' : 'bool' } }
+{ 'struct': 'ChardevStdio', 'data': { '*signal' : 'bool' },
+  'base': 'ChardevCommon' }
+
 
 ##
 # @ChardevSpiceChannel:
@@ -3112,7 +3291,8 @@
 #
 # Since: 1.5
 ##
-{ 'struct': 'ChardevSpiceChannel', 'data': { 'type'  : 'str' } }
+{ 'struct': 'ChardevSpiceChannel', 'data': { 'type'  : 'str' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevSpicePort:
@@ -3123,7 +3303,8 @@
 #
 # Since: 1.5
 ##
-{ 'struct': 'ChardevSpicePort', 'data': { 'fqdn'  : 'str' } }
+{ 'struct': 'ChardevSpicePort', 'data': { 'fqdn'  : 'str' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevVC:
@@ -3140,7 +3321,8 @@
 { 'struct': 'ChardevVC', 'data': { '*width'  : 'int',
                                  '*height' : 'int',
                                  '*cols'   : 'int',
-                                 '*rows'   : 'int' } }
+                                 '*rows'   : 'int' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevRingbuf:
@@ -3151,7 +3333,8 @@
 #
 # Since: 1.5
 ##
-{ 'struct': 'ChardevRingbuf', 'data': { '*size'  : 'int' } }
+{ 'struct': 'ChardevRingbuf', 'data': { '*size'  : 'int' },
+  'base': 'ChardevCommon' }
 
 ##
 # @ChardevBackend:
@@ -3160,22 +3343,20 @@
 #
 # Since: 1.4 (testdev since 2.2)
 ##
-{ 'struct': 'ChardevDummy', 'data': { } }
-
 { 'union': 'ChardevBackend', 'data': { 'file'   : 'ChardevFile',
                                        'serial' : 'ChardevHostdev',
                                        'parallel': 'ChardevHostdev',
                                        'pipe'   : 'ChardevHostdev',
                                        'socket' : 'ChardevSocket',
                                        'udp'    : 'ChardevUdp',
-                                       'pty'    : 'ChardevDummy',
-                                       'null'   : 'ChardevDummy',
+                                       'pty'    : 'ChardevCommon',
+                                       'null'   : 'ChardevCommon',
                                        'mux'    : 'ChardevMux',
-                                       'msmouse': 'ChardevDummy',
-                                       'braille': 'ChardevDummy',
-                                       'testdev': 'ChardevDummy',
+                                       'msmouse': 'ChardevCommon',
+                                       'braille': 'ChardevCommon',
+                                       'testdev': 'ChardevCommon',
                                        'stdio'  : 'ChardevStdio',
-                                       'console': 'ChardevDummy',
+                                       'console': 'ChardevCommon',
                                        'spicevmc' : 'ChardevSpiceChannel',
                                        'spiceport' : 'ChardevSpicePort',
                                        'vc'     : 'ChardevVC',
@@ -3579,12 +3760,9 @@
 # Button of a pointer input device (mouse, tablet).
 #
 # Since: 2.0
-#
-# Note that the spelling of these values may change when the
-# x-input-send-event is promoted out of experimental status.
 ##
 { 'enum'  : 'InputButton',
-  'data'  : [ 'Left', 'Middle', 'Right', 'WheelUp', 'WheelDown' ] }
+  'data'  : [ 'left', 'middle', 'right', 'wheel-up', 'wheel-down' ] }
 
 ##
 # @InputAxis
@@ -3592,12 +3770,9 @@
 # Position axis of a pointer input device (mouse, tablet).
 #
 # Since: 2.0
-#
-# Note that the spelling of these values may change when the
-# x-input-send-event is promoted out of experimental status.
 ##
 { 'enum'  : 'InputAxis',
-  'data'  : [ 'X', 'Y' ] }
+  'data'  : [ 'x', 'y' ] }
 
 ##
 # @InputKeyEvent
@@ -3661,38 +3836,34 @@
               'abs'     : 'InputMoveEvent' } }
 
 ##
-# @x-input-send-event
+# @input-send-event
 #
 # Send input event(s) to guest.
 #
-# @console: #optional console to send event(s) to.
-#           This parameter can be used to send the input event to
-#           specific input devices in case (a) multiple input devices
-#           of the same kind are added to the virtual machine and (b)
-#           you have configured input routing (see docs/multiseat.txt)
-#           for those input devices.  If input routing is not
-#           configured this parameter has no effect.
-#           If @console is missing, only devices that aren't associated
-#           with a console are admissible.
-#           If @console is specified, it must exist, and both devices
-#           associated with that console and devices not associated with a
-#           console are admissible, but the former take precedence.
-
-#
+# @device: #optional display device to send event(s) to.
+# @head: #optional head to send event(s) to, in case the
+#        display device supports multiple scanouts.
 # @events: List of InputEvent union.
 #
 # Returns: Nothing on success.
 #
-# Since: 2.2
+# The @display and @head parameters can be used to send the input
+# event to specific input devices in case (a) multiple input devices
+# of the same kind are added to the virtual machine and (b) you have
+# configured input routing (see docs/multiseat.txt) for those input
+# devices.  The parameters work exactly like the device and head
+# properties of input devices.  If @device is missing, only devices
+# that have no input routing config are admissible.  If @device is
+# specified, both input devices with and without input routing config
+# are admissible, but devices with input routing config take
+# precedence.
 #
-# Note: this command is experimental, and not a stable API.  Things that
-# might change before it becomes stable include the spelling of enum
-# values for InputButton and InputAxis, and the notion of how to designate
-# which console will receive the event.
-#
+# Since: 2.6
 ##
-{ 'command': 'x-input-send-event',
-  'data': { '*console':'int', 'events': [ 'InputEvent' ] } }
+{ 'command': 'input-send-event',
+  'data': { '*device': 'str',
+            '*head'  : 'int',
+            'events' : [ 'InputEvent' ] } }
 
 ##
 # @NumaOptions
@@ -3971,3 +4142,39 @@
 ##
 { 'enum': 'ReplayMode',
   'data': [ 'none', 'record', 'play' ] }
+
+##
+# @GICCapability:
+#
+# The struct describes capability for a specific GIC (Generic
+# Interrupt Controller) version. These bits are not only decided by
+# QEMU/KVM software version, but also decided by the hardware that
+# the program is running upon.
+#
+# @version:  version of GIC to be described. Currently, only 2 and 3
+#            are supported.
+#
+# @emulated: whether current QEMU/hardware supports emulated GIC
+#            device in user space.
+#
+# @kernel:   whether current QEMU/hardware supports hardware
+#            accelerated GIC device in kernel.
+#
+# Since: 2.6
+##
+{ 'struct': 'GICCapability',
+  'data': { 'version': 'int',
+            'emulated': 'bool',
+            'kernel': 'bool' } }
+
+##
+# @query-gic-capabilities:
+#
+# This command is ARM-only. It will return a list of GICCapability
+# objects that describe its capability bits.
+#
+# Returns: a list of GICCapability objects.
+#
+# Since: 2.6
+##
+{ 'command': 'query-gic-capabilities', 'returns': ['GICCapability'] }

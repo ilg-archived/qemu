@@ -18,7 +18,6 @@
 #include "qemu-common.h"
 #include "qemu/thread.h"
 #include "qemu/notify.h"
-#include "qapi/error.h"
 #include "migration/vmstate.h"
 #include "qapi-types.h"
 #include "exec/cpu-common.h"
@@ -105,6 +104,9 @@ struct MigrationIncomingState {
     QemuMutex rp_mutex;    /* We send replies from multiple threads */
     void     *postcopy_tmp_page;
 
+    QEMUBH *bh;
+
+    int state;
     /* See savevm.c */
     LoadStateEntry_Head loadvm_handlers;
 };
@@ -132,8 +134,8 @@ struct MigrationState
     size_t xfer_limit;
     QemuThread thread;
     QEMUBH *cleanup_bh;
-    QEMUFile *file;
-    int parameters[MIGRATION_PARAMETER_MAX];
+    QEMUFile *to_dst_file;
+    int parameters[MIGRATION_PARAMETER__MAX];
 
     int state;
     MigrationParams params;
@@ -151,13 +153,15 @@ struct MigrationState
     int64_t expected_downtime;
     int64_t dirty_pages_rate;
     int64_t dirty_bytes_rate;
-    bool enabled_capabilities[MIGRATION_CAPABILITY_MAX];
+    bool enabled_capabilities[MIGRATION_CAPABILITY__MAX];
     int64_t xbzrle_cache_size;
     int64_t setup_time;
     int64_t dirty_sync_count;
 
     /* Flag set once the migration has been asked to enter postcopy */
     bool start_postcopy;
+    /* Flag set after postcopy has sent the device state */
+    bool postcopy_after_devices;
 
     /* Flag set once the migration thread is running (and needs joining) */
     bool migration_thread_running;
@@ -168,6 +172,8 @@ struct MigrationState
     /* The RAMBlock used in the last src_page_request */
     RAMBlock *last_req_rb;
 };
+
+void migrate_set_state(int *state, int old_state, int new_state);
 
 void process_incoming_migration(QEMUFile *f);
 
@@ -209,6 +215,8 @@ bool migration_has_finished(MigrationState *);
 bool migration_has_failed(MigrationState *);
 /* True if outgoing migration has entered postcopy phase */
 bool migration_in_postcopy(MigrationState *);
+/* ...and after the device transmission */
+bool migration_in_postcopy_after_devices(MigrationState *);
 MigrationState *migrate_get_current(void);
 
 void migrate_compress_threads_create(void);

@@ -18,7 +18,9 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include "crypto/init.h"
+#include "qapi/error.h"
 #include "qemu/thread.h"
 
 #ifdef CONFIG_GNUTLS

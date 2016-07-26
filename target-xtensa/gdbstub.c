@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-#include "config.h"
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "exec/gdbstub.h"
 
@@ -63,8 +63,8 @@ int xtensa_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
         return gdb_get_reg32(mem_buf, env->regs[reg->targno & 0x0f]);
 
     default:
-        qemu_log("%s from reg %d of unsupported type %d\n",
-                 __func__, n, reg->type);
+        qemu_log_mask(LOG_UNIMP, "%s from reg %d of unsupported type %d\n",
+                      __func__, n, reg->type);
         return 0;
     }
 }
@@ -117,8 +117,8 @@ int xtensa_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
         break;
 
     default:
-        qemu_log("%s to reg %d of unsupported type %d\n",
-                 __func__, n, reg->type);
+        qemu_log_mask(LOG_UNIMP, "%s to reg %d of unsupported type %d\n",
+                      __func__, n, reg->type);
         return 0;
     }
 

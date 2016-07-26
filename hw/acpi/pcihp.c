@@ -24,6 +24,7 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
 #include "hw/acpi/pcihp.h"
 
 #include "hw/hw.h"
@@ -34,6 +35,7 @@
 #include "exec/ioport.h"
 #include "exec/address-spaces.h"
 #include "hw/pci/pci_bus.h"
+#include "qapi/error.h"
 #include "qom/qom-qobject.h"
 #include "qapi/qmp/qint.h"
 

@@ -26,7 +26,9 @@
  * IN THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
 #include "block/block_int.h"
+#include "qapi/error.h"
 #include "qemu/option.h"
 
 static QemuOptsList raw_create_opts = {
@@ -55,8 +57,9 @@ static int coroutine_fn raw_co_readv(BlockDriverState *bs, int64_t sector_num,
     return bdrv_co_readv(bs->file->bs, sector_num, nb_sectors, qiov);
 }
 
-static int coroutine_fn raw_co_writev(BlockDriverState *bs, int64_t sector_num,
-                                      int nb_sectors, QEMUIOVector *qiov)
+static int coroutine_fn
+raw_co_writev_flags(BlockDriverState *bs, int64_t sector_num, int nb_sectors,
+                    QEMUIOVector *qiov, int flags)
 {
     void *buf = NULL;
     BlockDriver *drv;
@@ -102,7 +105,8 @@ static int coroutine_fn raw_co_writev(BlockDriverState *bs, int64_t sector_num,
     }
 
     BLKDBG_EVENT(bs->file, BLKDBG_WRITE_AIO);
-    ret = bdrv_co_writev(bs->file->bs, sector_num, nb_sectors, qiov);
+    ret = bdrv_co_do_pwritev(bs->file->bs, sector_num * BDRV_SECTOR_SIZE,
+                             nb_sectors * BDRV_SECTOR_SIZE, qiov, flags);
 
 fail:
     if (qiov == &local_qiov) {
@@ -112,11 +116,20 @@ fail:
     return ret;
 }
 
+static int coroutine_fn
+raw_co_writev(BlockDriverState *bs, int64_t sector_num, int nb_sectors,
+              QEMUIOVector *qiov)
+{
+    return raw_co_writev_flags(bs, sector_num, nb_sectors, qiov, 0);
+}
+
 static int64_t coroutine_fn raw_co_get_block_status(BlockDriverState *bs,
                                             int64_t sector_num,
-                                            int nb_sectors, int *pnum)
+                                            int nb_sectors, int *pnum,
+                                            BlockDriverState **file)
 {
     *pnum = nb_sectors;
+    *file = bs->file->bs;
     return BDRV_BLOCK_RAW | BDRV_BLOCK_OFFSET_VALID | BDRV_BLOCK_DATA |
            (sector_num << BDRV_SECTOR_BITS);
 }
@@ -244,6 +257,8 @@ BlockDriver bdrv_raw = {
     .bdrv_create          = &raw_create,
     .bdrv_co_readv        = &raw_co_readv,
     .bdrv_co_writev       = &raw_co_writev,
+    .bdrv_co_writev_flags = &raw_co_writev_flags,
+    .supported_write_flags = BDRV_REQ_FUA,
     .bdrv_co_write_zeroes = &raw_co_write_zeroes,
     .bdrv_co_discard      = &raw_co_discard,
     .bdrv_co_get_block_status = &raw_co_get_block_status,

@@ -35,7 +35,8 @@ struct sPAPRMachineClass {
     MachineClass parent_class;
 
     /*< public >*/
-    bool dr_lmb_enabled; /* enable dynamic-reconfig/hotplug of LMBs */
+    bool dr_lmb_enabled;       /* enable dynamic-reconfig/hotplug of LMBs */
+    bool use_ohci_by_default;  /* use USB-OHCI instead of XHCI */
 };
 
 /**
@@ -71,7 +72,6 @@ struct sPAPRMachineState {
     int htab_save_index;
     bool htab_first_pass;
     int htab_fd;
-    bool htab_fd_stale;
 
     /* RTAS state */
     QTAILQ_HEAD(, sPAPRConfigureConnectorState) ccs_list;
@@ -203,11 +203,6 @@ struct sPAPRMachineState {
 /* Flags for H_SET_MODE_RESOURCE_LE */
 #define H_SET_MODE_ENDIAN_BIG    0
 #define H_SET_MODE_ENDIAN_LITTLE 1
-
-/* Flags for H_SET_MODE_RESOURCE_ADDR_TRANS_MODE */
-#define H_SET_MODE_ADDR_TRANS_NONE                  0
-#define H_SET_MODE_ADDR_TRANS_0001_8000             2
-#define H_SET_MODE_ADDR_TRANS_C000_0000_0000_4000   3
 
 /* VASI States */
 #define H_VASI_INVALID    0
@@ -407,14 +402,15 @@ int spapr_allocate_irq_block(int num, bool lsi, bool msi);
 #define RTAS_SLOT_PERM_ERR_LOG           2
 
 /* RTAS return codes */
-#define RTAS_OUT_SUCCESS            0
-#define RTAS_OUT_NO_ERRORS_FOUND    1
-#define RTAS_OUT_HW_ERROR           -1
-#define RTAS_OUT_BUSY               -2
-#define RTAS_OUT_PARAM_ERROR        -3
-#define RTAS_OUT_NOT_SUPPORTED      -3
-#define RTAS_OUT_NO_SUCH_INDICATOR  -3
-#define RTAS_OUT_NOT_AUTHORIZED     -9002
+#define RTAS_OUT_SUCCESS                        0
+#define RTAS_OUT_NO_ERRORS_FOUND                1
+#define RTAS_OUT_HW_ERROR                       -1
+#define RTAS_OUT_BUSY                           -2
+#define RTAS_OUT_PARAM_ERROR                    -3
+#define RTAS_OUT_NOT_SUPPORTED                  -3
+#define RTAS_OUT_NO_SUCH_INDICATOR              -3
+#define RTAS_OUT_NOT_AUTHORIZED                 -9002
+#define RTAS_OUT_SYSPARM_PARAM_ERROR            -9999
 
 /* RTAS tokens */
 #define RTAS_TOKEN_BASE      0x2000
@@ -502,25 +498,6 @@ static inline uint64_t rtas_ldq(target_ulong phys, int n)
 static inline void rtas_st(target_ulong phys, int n, uint32_t val)
 {
     stl_be_phys(&address_space_memory, ppc64_phys_to_real(phys + 4*n), val);
-}
-
-static inline void rtas_st_buffer_direct(target_ulong phys,
-                                         target_ulong phys_len,
-                                         uint8_t *buffer, uint16_t buffer_len)
-{
-    cpu_physical_memory_write(ppc64_phys_to_real(phys), buffer,
-                              MIN(buffer_len, phys_len));
-}
-
-static inline void rtas_st_buffer(target_ulong phys, target_ulong phys_len,
-                                  uint8_t *buffer, uint16_t buffer_len)
-{
-    if (phys_len < 2) {
-        return;
-    }
-    stw_be_phys(&address_space_memory,
-                ppc64_phys_to_real(phys), buffer_len);
-    rtas_st_buffer_direct(phys + 2, phys_len - 2, buffer, buffer_len);
 }
 
 typedef void (*spapr_rtas_fn)(PowerPCCPU *cpu, sPAPRMachineState *sm,

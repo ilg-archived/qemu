@@ -7,8 +7,10 @@
  *
  * To avoid getting into possible circular include dependencies, this
  * file should not include any other QEMU headers, with the exceptions
- * of config-host.h, compiler.h, os-posix.h and os-win32.h, all of which
- * are doing a similar job to this file and are under similar constraints.
+ * of config-host.h, config-target.h, qemu/compiler.h,
+ * sysemu/os-posix.h, sysemu/os-win32.h, glib-compat.h and
+ * qemu/typedefs.h, all of which are doing a similar job to this file
+ * and are under similar constraints.
  *
  * This header also contains prototypes for functions defined in
  * os-*.c and util/oslib-*.c; those would probably be better split
@@ -26,7 +28,35 @@
 #define QEMU_OSDEP_H
 
 #include "config-host.h"
+#ifdef NEED_CPU_H
+#include "config-target.h"
+#endif
 #include "qemu/compiler.h"
+
+/* Older versions of C++ don't get definitions of various macros from
+ * stdlib.h unless we define these macros before first inclusion of
+ * that system header.
+ */
+#ifndef __STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
+#ifndef __STDC_LIMIT_MACROS
+#define __STDC_LIMIT_MACROS
+#endif
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
+/* The following block of code temporarily renames the daemon() function so the
+ * compiler does not see the warning associated with it in stdlib.h on OSX
+ */
+#ifdef __APPLE__
+#define daemon qemu_fake_daemon_function
+#include <stdlib.h>
+#undef daemon
+extern int daemon(int, int);
+#endif
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdbool.h>
@@ -48,6 +78,9 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <assert.h>
+/* setjmp must be declared before sysemu/os-win32.h
+ * because it is redefined there. */
+#include <setjmp.h>
 #include <signal.h>
 
 #ifdef __OpenBSD__
@@ -69,14 +102,8 @@
 #include "sysemu/os-posix.h"
 #endif
 
-#include "qapi/error.h"
-
-#if defined(CONFIG_SOLARIS) && CONFIG_SOLARIS_VERSION < 10
-/* [u]int_fast*_t not in <sys/int_types.h> */
-typedef unsigned char           uint_fast8_t;
-typedef unsigned int            uint_fast16_t;
-typedef signed int              int_fast16_t;
-#endif
+#include "glib-compat.h"
+#include "qemu/typedefs.h"
 
 #ifndef O_LARGEFILE
 #define O_LARGEFILE 0
@@ -103,6 +130,15 @@ typedef signed int              int_fast16_t;
 #define TIME_MAX LONG_MAX
 #endif
 
+/* HOST_LONG_BITS is the size of a native pointer in bits. */
+#if UINTPTR_MAX == UINT32_MAX
+# define HOST_LONG_BITS 32
+#elif UINTPTR_MAX == UINT64_MAX
+# define HOST_LONG_BITS 64
+#else
+# error Unknown pointer size
+#endif
+
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #endif
@@ -115,6 +151,12 @@ typedef signed int              int_fast16_t;
 #ifndef MIN_NON_ZERO
 #define MIN_NON_ZERO(a, b) (((a) != 0 && (a) < (b)) ? (a) : (b))
 #endif
+
+/* Round number down to multiple */
+#define QEMU_ALIGN_DOWN(n, m) ((n) / (m) * (m))
+
+/* Round number up to multiple */
+#define QEMU_ALIGN_UP(n, m) QEMU_ALIGN_DOWN((n) + (m) - 1, (m))
 
 #ifndef ROUND_UP
 #define ROUND_UP(n,d) (((n) + (d) - 1) & -(d))

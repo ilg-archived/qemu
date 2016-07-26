@@ -13,6 +13,8 @@
  *
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "standard-headers/linux/virtio_ids.h"
 #include "hw/virtio/virtio-scsi.h"
 #include "qemu/error-report.h"
@@ -22,7 +24,6 @@
 #include <block/scsi.h>
 #include <hw/virtio/virtio-bus.h>
 #include "hw/virtio/virtio-access.h"
-#include "migration/migration.h"
 
 static inline int virtio_scsi_get_lun(uint8_t *lun)
 {
@@ -40,20 +41,16 @@ static inline SCSIDevice *virtio_scsi_device_find(VirtIOSCSI *s, uint8_t *lun)
     return scsi_device_find(&s->bus, 0, lun[1], virtio_scsi_get_lun(lun));
 }
 
-VirtIOSCSIReq *virtio_scsi_init_req(VirtIOSCSI *s, VirtQueue *vq)
+void virtio_scsi_init_req(VirtIOSCSI *s, VirtQueue *vq, VirtIOSCSIReq *req)
 {
-    VirtIOSCSIReq *req;
-    VirtIOSCSICommon *vs = (VirtIOSCSICommon *)s;
-    const size_t zero_skip = offsetof(VirtIOSCSIReq, elem)
-                             + sizeof(VirtQueueElement);
+    const size_t zero_skip =
+        offsetof(VirtIOSCSIReq, resp_iov) + sizeof(req->resp_iov);
 
-    req = g_malloc(sizeof(*req) + vs->cdb_size);
     req->vq = vq;
     req->dev = s;
     qemu_sglist_init(&req->qsgl, DEVICE(s), 8, &address_space_memory);
     qemu_iovec_init(&req->resp_iov, 1);
     memset((uint8_t *)req + zero_skip, 0, sizeof(*req) - zero_skip);
-    return req;
 }
 
 void virtio_scsi_free_req(VirtIOSCSIReq *req)
@@ -70,11 +67,10 @@ static void virtio_scsi_complete_req(VirtIOSCSIReq *req)
     VirtIODevice *vdev = VIRTIO_DEVICE(s);
 
     qemu_iovec_from_buf(&req->resp_iov, 0, &req->resp, req->resp_size);
-    if (req->vring) {
-        assert(req->vq == NULL);
-        virtio_scsi_vring_push_notify(req);
+    virtqueue_push(vq, &req->elem, req->qsgl.size + req->resp_iov.size);
+    if (s->dataplane_started && !s->dataplane_fenced) {
+        virtio_scsi_dataplane_notify(vdev, req);
     } else {
-        virtqueue_push(vq, &req->elem, req->qsgl.size + req->resp_iov.size);
         virtio_notify(vdev, vq);
     }
 
@@ -174,11 +170,14 @@ static int virtio_scsi_parse_req(VirtIOSCSIReq *req,
 
 static VirtIOSCSIReq *virtio_scsi_pop_req(VirtIOSCSI *s, VirtQueue *vq)
 {
-    VirtIOSCSIReq *req = virtio_scsi_init_req(s, vq);
-    if (!virtqueue_pop(vq, &req->elem)) {
-        virtio_scsi_free_req(req);
+    VirtIOSCSICommon *vs = (VirtIOSCSICommon *)s;
+    VirtIOSCSIReq *req;
+
+    req = virtqueue_pop(vq, sizeof(VirtIOSCSIReq) + vs->cdb_size);
+    if (!req) {
         return NULL;
     }
+    virtio_scsi_init_req(s, vq, req);
     return req;
 }
 
@@ -190,7 +189,7 @@ static void virtio_scsi_save_request(QEMUFile *f, SCSIRequest *sreq)
 
     assert(n < vs->conf.num_queues);
     qemu_put_be32s(f, &n);
-    qemu_put_buffer(f, (unsigned char *)&req->elem, sizeof(req->elem));
+    qemu_put_virtqueue_element(f, &req->elem);
 }
 
 static void *virtio_scsi_load_request(QEMUFile *f, SCSIRequest *sreq)
@@ -203,10 +202,8 @@ static void *virtio_scsi_load_request(QEMUFile *f, SCSIRequest *sreq)
 
     qemu_get_be32s(f, &n);
     assert(n < vs->conf.num_queues);
-    req = virtio_scsi_init_req(s, vs->cmd_vqs[n]);
-    qemu_get_buffer(f, (unsigned char *)&req->elem, sizeof(req->elem));
-
-    virtqueue_map(&req->elem);
+    req = qemu_get_virtqueue_element(f, sizeof(VirtIOSCSIReq) + vs->cdb_size);
+    virtio_scsi_init_req(s, vs->cmd_vqs[n], req);
 
     if (virtio_scsi_parse_req(req, sizeof(VirtIOSCSICmdReq) + vs->cdb_size,
                               sizeof(VirtIOSCSICmdResp) + vs->sense_size) < 0) {
@@ -352,7 +349,7 @@ static int virtio_scsi_do_tmf(VirtIOSCSI *s, VirtIOSCSIReq *req)
         target = req->req.tmf.lun[1];
         s->resetting++;
         QTAILQ_FOREACH(kid, &s->bus.qbus.children, sibling) {
-             d = DO_UPCAST(SCSIDevice, qdev, kid->child);
+             d = SCSI_DEVICE(kid->child);
              if (d->channel == 0 && d->id == target) {
                 qdev_reset_all(&d->qdev);
              }
@@ -377,7 +374,7 @@ fail:
     return ret;
 }
 
-void virtio_scsi_handle_ctrl_req(VirtIOSCSI *s, VirtIOSCSIReq *req)
+static void virtio_scsi_handle_ctrl_req(VirtIOSCSI *s, VirtIOSCSIReq *req)
 {
     VirtIODevice *vdev = (VirtIODevice *)s;
     uint32_t type;
@@ -415,18 +412,26 @@ void virtio_scsi_handle_ctrl_req(VirtIOSCSI *s, VirtIOSCSIReq *req)
     }
 }
 
-static void virtio_scsi_handle_ctrl(VirtIODevice *vdev, VirtQueue *vq)
+void virtio_scsi_handle_ctrl_vq(VirtIOSCSI *s, VirtQueue *vq)
 {
-    VirtIOSCSI *s = (VirtIOSCSI *)vdev;
     VirtIOSCSIReq *req;
 
-    if (s->ctx && !s->dataplane_disabled) {
-        virtio_scsi_dataplane_start(s);
-        return;
-    }
     while ((req = virtio_scsi_pop_req(s, vq))) {
         virtio_scsi_handle_ctrl_req(s, req);
     }
+}
+
+static void virtio_scsi_handle_ctrl(VirtIODevice *vdev, VirtQueue *vq)
+{
+    VirtIOSCSI *s = (VirtIOSCSI *)vdev;
+
+    if (s->ctx) {
+        virtio_scsi_dataplane_start(s);
+        if (!s->dataplane_fenced) {
+            return;
+        }
+    }
+    virtio_scsi_handle_ctrl_vq(s, vq);
 }
 
 static void virtio_scsi_complete_cmd_req(VirtIOSCSIReq *req)
@@ -511,7 +516,7 @@ static void virtio_scsi_fail_cmd_req(VirtIOSCSIReq *req)
     virtio_scsi_complete_cmd_req(req);
 }
 
-bool virtio_scsi_handle_cmd_req_prepare(VirtIOSCSI *s, VirtIOSCSIReq *req)
+static bool virtio_scsi_handle_cmd_req_prepare(VirtIOSCSI *s, VirtIOSCSIReq *req)
 {
     VirtIOSCSICommon *vs = &s->parent_obj;
     SCSIDevice *d;
@@ -553,7 +558,7 @@ bool virtio_scsi_handle_cmd_req_prepare(VirtIOSCSI *s, VirtIOSCSIReq *req)
     return true;
 }
 
-void virtio_scsi_handle_cmd_req_submit(VirtIOSCSI *s, VirtIOSCSIReq *req)
+static void virtio_scsi_handle_cmd_req_submit(VirtIOSCSI *s, VirtIOSCSIReq *req)
 {
     SCSIRequest *sreq = req->sreq;
     if (scsi_req_enqueue(sreq)) {
@@ -563,17 +568,11 @@ void virtio_scsi_handle_cmd_req_submit(VirtIOSCSI *s, VirtIOSCSIReq *req)
     scsi_req_unref(sreq);
 }
 
-static void virtio_scsi_handle_cmd(VirtIODevice *vdev, VirtQueue *vq)
+void virtio_scsi_handle_cmd_vq(VirtIOSCSI *s, VirtQueue *vq)
 {
-    /* use non-QOM casts in the data path */
-    VirtIOSCSI *s = (VirtIOSCSI *)vdev;
     VirtIOSCSIReq *req, *next;
     QTAILQ_HEAD(, VirtIOSCSIReq) reqs = QTAILQ_HEAD_INITIALIZER(reqs);
 
-    if (s->ctx && !s->dataplane_disabled) {
-        virtio_scsi_dataplane_start(s);
-        return;
-    }
     while ((req = virtio_scsi_pop_req(s, vq))) {
         if (virtio_scsi_handle_cmd_req_prepare(s, req)) {
             QTAILQ_INSERT_TAIL(&reqs, req, next);
@@ -583,6 +582,20 @@ static void virtio_scsi_handle_cmd(VirtIODevice *vdev, VirtQueue *vq)
     QTAILQ_FOREACH_SAFE(req, &reqs, next, next) {
         virtio_scsi_handle_cmd_req_submit(s, req);
     }
+}
+
+static void virtio_scsi_handle_cmd(VirtIODevice *vdev, VirtQueue *vq)
+{
+    /* use non-QOM casts in the data path */
+    VirtIOSCSI *s = (VirtIOSCSI *)vdev;
+
+    if (s->ctx) {
+        virtio_scsi_dataplane_start(s);
+        if (!s->dataplane_fenced) {
+            return;
+        }
+    }
+    virtio_scsi_handle_cmd_vq(s, vq);
 }
 
 static void virtio_scsi_get_config(VirtIODevice *vdev,
@@ -690,11 +703,7 @@ void virtio_scsi_push_event(VirtIOSCSI *s, SCSIDevice *dev,
         aio_context_acquire(s->ctx);
     }
 
-    if (s->dataplane_started) {
-        req = virtio_scsi_pop_req_vring(s, s->event_vring);
-    } else {
-        req = virtio_scsi_pop_req(s, vs->event_vq);
-    }
+    req = virtio_scsi_pop_req(s, vs->event_vq);
     if (!req) {
         s->events_dropped = true;
         goto out;
@@ -732,17 +741,24 @@ out:
     }
 }
 
+void virtio_scsi_handle_event_vq(VirtIOSCSI *s, VirtQueue *vq)
+{
+    if (s->events_dropped) {
+        virtio_scsi_push_event(s, NULL, VIRTIO_SCSI_T_NO_EVENT, 0);
+    }
+}
+
 static void virtio_scsi_handle_event(VirtIODevice *vdev, VirtQueue *vq)
 {
     VirtIOSCSI *s = VIRTIO_SCSI(vdev);
 
-    if (s->ctx && !s->dataplane_disabled) {
+    if (s->ctx) {
         virtio_scsi_dataplane_start(s);
-        return;
+        if (!s->dataplane_fenced) {
+            return;
+        }
     }
-    if (s->events_dropped) {
-        virtio_scsi_push_event(s, NULL, VIRTIO_SCSI_T_NO_EVENT, 0);
-    }
+    virtio_scsi_handle_event_vq(s, vq);
 }
 
 static void virtio_scsi_change(SCSIBus *bus, SCSIDevice *dev, SCSISense sense)
@@ -757,6 +773,22 @@ static void virtio_scsi_change(SCSIBus *bus, SCSIDevice *dev, SCSISense sense)
     }
 }
 
+static void virtio_scsi_blk_insert_notifier(Notifier *n, void *data)
+{
+    VirtIOSCSIBlkChangeNotifier *cn = DO_UPCAST(VirtIOSCSIBlkChangeNotifier,
+                                                n, n);
+    assert(cn->sd->conf.blk == data);
+    blk_op_block_all(cn->sd->conf.blk, cn->s->blocker);
+}
+
+static void virtio_scsi_blk_remove_notifier(Notifier *n, void *data)
+{
+    VirtIOSCSIBlkChangeNotifier *cn = DO_UPCAST(VirtIOSCSIBlkChangeNotifier,
+                                                n, n);
+    assert(cn->sd->conf.blk == data);
+    blk_op_unblock_all(cn->sd->conf.blk, cn->s->blocker);
+}
+
 static void virtio_scsi_hotplug(HotplugHandler *hotplug_dev, DeviceState *dev,
                                 Error **errp)
 {
@@ -764,7 +796,9 @@ static void virtio_scsi_hotplug(HotplugHandler *hotplug_dev, DeviceState *dev,
     VirtIOSCSI *s = VIRTIO_SCSI(vdev);
     SCSIDevice *sd = SCSI_DEVICE(dev);
 
-    if (s->ctx && !s->dataplane_disabled) {
+    if (s->ctx && !s->dataplane_fenced) {
+        VirtIOSCSIBlkChangeNotifier *insert_notifier, *remove_notifier;
+
         if (blk_op_is_blocked(sd->conf.blk, BLOCK_OP_TYPE_DATAPLANE, errp)) {
             return;
         }
@@ -772,6 +806,20 @@ static void virtio_scsi_hotplug(HotplugHandler *hotplug_dev, DeviceState *dev,
         aio_context_acquire(s->ctx);
         blk_set_aio_context(sd->conf.blk, s->ctx);
         aio_context_release(s->ctx);
+
+        insert_notifier = g_new0(VirtIOSCSIBlkChangeNotifier, 1);
+        insert_notifier->n.notify = virtio_scsi_blk_insert_notifier;
+        insert_notifier->s = s;
+        insert_notifier->sd = sd;
+        blk_add_insert_bs_notifier(sd->conf.blk, &insert_notifier->n);
+        QTAILQ_INSERT_TAIL(&s->insert_notifiers, insert_notifier, next);
+
+        remove_notifier = g_new0(VirtIOSCSIBlkChangeNotifier, 1);
+        remove_notifier->n.notify = virtio_scsi_blk_remove_notifier;
+        remove_notifier->s = s;
+        remove_notifier->sd = sd;
+        blk_add_remove_bs_notifier(sd->conf.blk, &remove_notifier->n);
+        QTAILQ_INSERT_TAIL(&s->remove_notifiers, remove_notifier, next);
     }
 
     if (virtio_vdev_has_feature(vdev, VIRTIO_SCSI_F_HOTPLUG)) {
@@ -787,6 +835,7 @@ static void virtio_scsi_hotunplug(HotplugHandler *hotplug_dev, DeviceState *dev,
     VirtIODevice *vdev = VIRTIO_DEVICE(hotplug_dev);
     VirtIOSCSI *s = VIRTIO_SCSI(vdev);
     SCSIDevice *sd = SCSI_DEVICE(dev);
+    VirtIOSCSIBlkChangeNotifier *insert_notifier, *remove_notifier;
 
     if (virtio_vdev_has_feature(vdev, VIRTIO_SCSI_F_HOTPLUG)) {
         virtio_scsi_push_event(s, sd,
@@ -797,6 +846,25 @@ static void virtio_scsi_hotunplug(HotplugHandler *hotplug_dev, DeviceState *dev,
     if (s->ctx) {
         blk_op_unblock_all(sd->conf.blk, s->blocker);
     }
+
+    QTAILQ_FOREACH(insert_notifier, &s->insert_notifiers, next) {
+        if (insert_notifier->sd == sd) {
+            notifier_remove(&insert_notifier->n);
+            QTAILQ_REMOVE(&s->insert_notifiers, insert_notifier, next);
+            g_free(insert_notifier);
+            break;
+        }
+    }
+
+    QTAILQ_FOREACH(remove_notifier, &s->remove_notifiers, next) {
+        if (remove_notifier->sd == sd) {
+            notifier_remove(&remove_notifier->n);
+            QTAILQ_REMOVE(&s->remove_notifiers, remove_notifier, next);
+            g_free(remove_notifier);
+            break;
+        }
+    }
+
     qdev_simple_device_unplug_cb(hotplug_dev, dev, errp);
 }
 
@@ -852,31 +920,6 @@ void virtio_scsi_common_realize(DeviceState *dev, Error **errp,
     }
 }
 
-/* Disable dataplane thread during live migration since it does not
- * update the dirty memory bitmap yet.
- */
-static void virtio_scsi_migration_state_changed(Notifier *notifier, void *data)
-{
-    VirtIOSCSI *s = container_of(notifier, VirtIOSCSI,
-                                 migration_state_notifier);
-    MigrationState *mig = data;
-
-    if (migration_in_setup(mig)) {
-        if (!s->dataplane_started) {
-            return;
-        }
-        virtio_scsi_dataplane_stop(s);
-        s->dataplane_disabled = true;
-    } else if (migration_has_finished(mig) ||
-               migration_has_failed(mig)) {
-        if (s->dataplane_started) {
-            return;
-        }
-        blk_drain_all(); /* complete in-flight non-dataplane requests */
-        s->dataplane_disabled = false;
-    }
-}
-
 static void virtio_scsi_device_realize(DeviceState *dev, Error **errp)
 {
     VirtIODevice *vdev = VIRTIO_DEVICE(dev);
@@ -907,10 +950,11 @@ static void virtio_scsi_device_realize(DeviceState *dev, Error **errp)
 
     register_savevm(dev, "virtio-scsi", virtio_scsi_id++, 1,
                     virtio_scsi_save, virtio_scsi_load, s);
-    s->migration_state_notifier.notify = virtio_scsi_migration_state_changed;
-    add_migration_state_change_notifier(&s->migration_state_notifier);
 
     error_setg(&s->blocker, "block device is in use by data plane");
+
+    QTAILQ_INIT(&s->insert_notifiers);
+    QTAILQ_INIT(&s->remove_notifiers);
 }
 
 static void virtio_scsi_instance_init(Object *obj)
@@ -939,8 +983,6 @@ static void virtio_scsi_device_unrealize(DeviceState *dev, Error **errp)
     error_free(s->blocker);
 
     unregister_savevm(dev, "virtio-scsi", s);
-    remove_migration_state_change_notifier(&s->migration_state_notifier);
-
     virtio_scsi_common_unrealize(dev, errp);
 }
 

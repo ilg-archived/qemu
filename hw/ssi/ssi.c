@@ -12,7 +12,8 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
-#include "hw/ssi.h"
+#include "qemu/osdep.h"
+#include "hw/ssi/ssi.h"
 
 struct SSIBus {
     BusState parent_obj;

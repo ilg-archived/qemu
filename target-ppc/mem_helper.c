@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "qemu/host-utils.h"
 #include "exec/helper-proto.h"
@@ -101,8 +102,9 @@ void helper_lswx(CPUPPCState *env, target_ulong addr, uint32_t reg,
 {
     if (likely(xer_bc != 0)) {
         int num_used_regs = (xer_bc + 3) / 4;
-        if (unlikely((ra != 0 && reg < ra && (reg + num_used_regs) > ra) ||
-                     (reg < rb && (reg + num_used_regs) > rb))) {
+        if (unlikely((ra != 0 && lsw_reg_in_range(reg, num_used_regs, ra)) ||
+                     lsw_reg_in_range(reg, num_used_regs, rb))) {
+            env->nip += 4;     /* Compensate the "nip - 4" from gen_lswx() */
             helper_raise_exception_err(env, POWERPC_EXCP_PROGRAM,
                                        POWERPC_EXCP_INVAL |
                                        POWERPC_EXCP_INVAL_LSWX);

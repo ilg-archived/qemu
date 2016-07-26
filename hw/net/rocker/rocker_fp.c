@@ -14,6 +14,7 @@
  * GNU General Public License for more details.
  */
 
+#include "qemu/osdep.h"
 #include "net/clients.h"
 
 #include "rocker.h"
@@ -183,6 +184,11 @@ void fp_port_set_world(FpPort *port, World *world)
 {
     DPRINTF("port %d setting world \"%s\"\n", port->index, world_name(world));
     port->world = world;
+}
+
+bool fp_port_check_world(FpPort *port, World *world)
+{
+    return port->world == world;
 }
 
 bool fp_port_enabled(FpPort *port)

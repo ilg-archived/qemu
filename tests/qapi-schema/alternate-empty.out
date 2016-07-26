@@ -1,4 +1,0 @@
-object :empty
-alternate Alt
-    case i: int
-enum AltKind ['i']

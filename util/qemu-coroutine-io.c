@@ -22,6 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "qemu/sockets.h"
 #include "qemu/coroutine.h"
@@ -34,18 +35,16 @@ qemu_co_sendv_recvv(int sockfd, struct iovec *iov, unsigned iov_cnt,
 {
     size_t done = 0;
     ssize_t ret;
-    int err;
     while (done < bytes) {
         ret = iov_send_recv(sockfd, iov, iov_cnt,
                             offset + done, bytes - done, do_send);
         if (ret > 0) {
             done += ret;
         } else if (ret < 0) {
-            err = socket_error();
-            if (err == EAGAIN || err == EWOULDBLOCK) {
+            if (errno == EAGAIN || errno == EWOULDBLOCK) {
                 qemu_coroutine_yield();
             } else if (done == 0) {
-                return -err;
+                return -errno;
             } else {
                 break;
             }

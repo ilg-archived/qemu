@@ -84,6 +84,7 @@ struct mips_def_t {
     int32_t CP0_TCStatus_rw_bitmask;
     int32_t CP0_SRSCtl;
     int32_t CP1_fcr0;
+    int32_t CP1_fcr31;
     int32_t MSAIR;
     int32_t SEGBITS;
     int32_t PABITS;
@@ -410,7 +411,8 @@ static const mips_def_t mips_defs[] =
         .CP0_Config4 = MIPS_CONFIG4 | (1U << CP0C4_M) | (2 << CP0C4_IE) |
                        (0x1c << CP0C4_KScrExist),
         .CP0_Config4_rw_bitmask = 0,
-        .CP0_Config5 = MIPS_CONFIG5 | (1 << CP0C5_MVH) | (1 << CP0C5_LLB),
+        .CP0_Config5 = MIPS_CONFIG5 | (1 << CP0C5_MVH) | (1 << CP0C5_LLB) |
+                       (1 << CP0C5_MRP),
         .CP0_Config5_rw_bitmask = (1 << CP0C5_K) | (1 << CP0C5_CV) |
                                   (1 << CP0C5_MSAEn) | (1 << CP0C5_UFE) |
                                   (1 << CP0C5_FRE) | (1 << CP0C5_UFR),
@@ -421,9 +423,10 @@ static const mips_def_t mips_defs[] =
         .CP0_Status_rw_bitmask = 0x3C68FF1F,
         .CP0_PageGrain_rw_bitmask = (1U << CP0PG_RIE) | (1 << CP0PG_XIE) |
                     (1 << CP0PG_ELPA) | (1 << CP0PG_IEC),
-        .CP1_fcr0 = (1 << FCR0_FREP) | (1 << FCR0_UFRP) | (1 << FCR0_F64) |
-                    (1 << FCR0_L) | (1 << FCR0_W) | (1 << FCR0_D) |
-                    (1 << FCR0_S) | (0x03 << FCR0_PRID),
+        .CP1_fcr0 = (1 << FCR0_FREP) | (1 << FCR0_UFRP) | (1 << FCR0_HAS2008) |
+                    (1 << FCR0_F64) | (1 << FCR0_L) | (1 << FCR0_W) |
+                    (1 << FCR0_D) | (1 << FCR0_S) | (0x03 << FCR0_PRID),
+        .CP1_fcr31 = (1 << FCR31_ABS2008) | (1 << FCR31_NAN2008),
         .SEGBITS = 32,
         .PABITS = 40,
         .insn_flags = CPU_MIPS32R5 | ASE_MSA,
@@ -458,9 +461,10 @@ static const mips_def_t mips_defs[] =
         .CP0_PageGrain = (1 << CP0PG_IEC) | (1 << CP0PG_XIE) |
                          (1U << CP0PG_RIE),
         .CP0_PageGrain_rw_bitmask = 0,
-        .CP1_fcr0 = (1 << FCR0_FREP) | (1 << FCR0_F64) | (1 << FCR0_L) |
-                    (1 << FCR0_W) | (1 << FCR0_D) | (1 << FCR0_S) |
-                    (0x00 << FCR0_PRID) | (0x0 << FCR0_REV),
+        .CP1_fcr0 = (1 << FCR0_FREP) | (1 << FCR0_HAS2008) | (1 << FCR0_F64) |
+                    (1 << FCR0_L) | (1 << FCR0_W) | (1 << FCR0_D) |
+                    (1 << FCR0_S) | (0x00 << FCR0_PRID) | (0x0 << FCR0_REV),
+        .CP1_fcr31 = (1 << FCR31_ABS2008) | (1 << FCR31_NAN2008),
         .SEGBITS = 32,
         .PABITS = 32,
         .insn_flags = CPU_MIPS32R6 | ASE_MICROMIPS,
@@ -660,12 +664,14 @@ static const mips_def_t mips_defs[] =
                        (2 << CP0C1_DS) | (4 << CP0C1_DL) | (3 << CP0C1_DA) |
                        (0 << CP0C1_PC) | (1 << CP0C1_WR) | (1 << CP0C1_EP),
         .CP0_Config2 = MIPS_CONFIG2,
-        .CP0_Config3 = MIPS_CONFIG3 | (1U << CP0C3_M) | (1 << CP0C3_MSAP) |
+        .CP0_Config3 = MIPS_CONFIG3 | (1U << CP0C3_M) |
+                       (1 << CP0C3_CMGCR) | (1 << CP0C3_MSAP) |
                        (1 << CP0C3_BP) | (1 << CP0C3_BI) | (1 << CP0C3_ULRI) |
                        (1 << CP0C3_RXI) | (1 << CP0C3_LPA),
         .CP0_Config4 = MIPS_CONFIG4 | (1U << CP0C4_M) | (3 << CP0C4_IE) |
                        (0xfc << CP0C4_KScrExist),
-        .CP0_Config5 = MIPS_CONFIG5 | (1 << CP0C5_XNP) | (1 << CP0C5_LLB),
+        .CP0_Config5 = MIPS_CONFIG5 | (1 << CP0C5_XNP) | (1 << CP0C5_VP) |
+                       (1 << CP0C5_LLB),
         .CP0_Config5_rw_bitmask = (1 << CP0C5_MSAEn) | (1 << CP0C5_SBRI) |
                                   (1 << CP0C5_FRE) | (1 << CP0C5_UFE),
         .CP0_LLAddr_rw_bitmask = 0,
@@ -676,9 +682,10 @@ static const mips_def_t mips_defs[] =
         .CP0_PageGrain = (1 << CP0PG_IEC) | (1 << CP0PG_XIE) |
                          (1U << CP0PG_RIE),
         .CP0_PageGrain_rw_bitmask = (1 << CP0PG_ELPA),
-        .CP1_fcr0 = (1 << FCR0_FREP) | (1 << FCR0_F64) | (1 << FCR0_L) |
-                    (1 << FCR0_W) | (1 << FCR0_D) | (1 << FCR0_S) |
-                    (0x00 << FCR0_PRID) | (0x0 << FCR0_REV),
+        .CP1_fcr0 = (1 << FCR0_FREP) | (1 << FCR0_HAS2008) | (1 << FCR0_F64) |
+                    (1 << FCR0_L) | (1 << FCR0_W) | (1 << FCR0_D) |
+                    (1 << FCR0_S) | (0x00 << FCR0_PRID) | (0x0 << FCR0_REV),
+        .CP1_fcr31 = (1 << FCR31_ABS2008) | (1 << FCR31_NAN2008),
         .SEGBITS = 48,
         .PABITS = 48,
         .insn_flags = CPU_MIPS64R6 | ASE_MSA,

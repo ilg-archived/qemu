@@ -18,6 +18,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "disas/disas.h"
 #include "tcg-op.h"
@@ -28,6 +29,7 @@
 #include "exec/helper-gen.h"
 
 #include "trace-tcg.h"
+#include "exec/log.h"
 
 
 //#define DEBUG_DISPATCH 1
@@ -48,7 +50,7 @@
 static TCGv_i32 cpu_halted;
 static TCGv_i32 cpu_exception_index;
 
-static TCGv_ptr cpu_env;
+static TCGv_env cpu_env;
 
 static char cpu_reg_names[3*8*3 + 5*4];
 static TCGv cpu_dregs[8];
@@ -74,48 +76,52 @@ void m68k_tcg_init(void)
     char *p;
     int i;
 
-#define DEFO32(name,  offset) QREG_##name = tcg_global_mem_new_i32(TCG_AREG0, offsetof(CPUM68KState, offset), #name);
-#define DEFO64(name,  offset) QREG_##name = tcg_global_mem_new_i64(TCG_AREG0, offsetof(CPUM68KState, offset), #name);
-#define DEFF64(name,  offset) DEFO64(name, offset)
+    cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
+
+#define DEFO32(name, offset) \
+    QREG_##name = tcg_global_mem_new_i32(cpu_env, \
+        offsetof(CPUM68KState, offset), #name);
+#define DEFO64(name, offset) \
+    QREG_##name = tcg_global_mem_new_i64(cpu_env, \
+        offsetof(CPUM68KState, offset), #name);
+#define DEFF64(name, offset) DEFO64(name, offset)
 #include "qregs.def"
 #undef DEFO32
 #undef DEFO64
 #undef DEFF64
 
-    cpu_halted = tcg_global_mem_new_i32(TCG_AREG0,
+    cpu_halted = tcg_global_mem_new_i32(cpu_env,
                                         -offsetof(M68kCPU, env) +
                                         offsetof(CPUState, halted), "HALTED");
-    cpu_exception_index = tcg_global_mem_new_i32(TCG_AREG0,
+    cpu_exception_index = tcg_global_mem_new_i32(cpu_env,
                                                  -offsetof(M68kCPU, env) +
                                                  offsetof(CPUState, exception_index),
                                                  "EXCEPTION");
 
-    cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
-
     p = cpu_reg_names;
     for (i = 0; i < 8; i++) {
         sprintf(p, "D%d", i);
-        cpu_dregs[i] = tcg_global_mem_new(TCG_AREG0,
+        cpu_dregs[i] = tcg_global_mem_new(cpu_env,
                                           offsetof(CPUM68KState, dregs[i]), p);
         p += 3;
         sprintf(p, "A%d", i);
-        cpu_aregs[i] = tcg_global_mem_new(TCG_AREG0,
+        cpu_aregs[i] = tcg_global_mem_new(cpu_env,
                                           offsetof(CPUM68KState, aregs[i]), p);
         p += 3;
         sprintf(p, "F%d", i);
-        cpu_fregs[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_fregs[i] = tcg_global_mem_new_i64(cpu_env,
                                           offsetof(CPUM68KState, fregs[i]), p);
         p += 3;
     }
     for (i = 0; i < 4; i++) {
         sprintf(p, "ACC%d", i);
-        cpu_macc[i] = tcg_global_mem_new_i64(TCG_AREG0,
+        cpu_macc[i] = tcg_global_mem_new_i64(cpu_env,
                                          offsetof(CPUM68KState, macc[i]), p);
         p += 5;
     }
 
-    NULL_QREG = tcg_global_mem_new(TCG_AREG0, -4, "NULL");
-    store_dummy = tcg_global_mem_new(TCG_AREG0, -8, "NULL");
+    NULL_QREG = tcg_global_mem_new(cpu_env, -4, "NULL");
+    store_dummy = tcg_global_mem_new(cpu_env, -8, "NULL");
 }
 
 /* internal defines */

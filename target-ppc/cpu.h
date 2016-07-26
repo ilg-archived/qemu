@@ -19,7 +19,6 @@
 #if !defined (__CPU_PPC_H__)
 #define __CPU_PPC_H__
 
-#include "config.h"
 #include "qemu-common.h"
 
 //#define PPC_EMULATE_32BITS_HYPV
@@ -168,6 +167,8 @@ enum powerpc_excp_t {
     POWERPC_EXCP_970,
     /* POWER7 exception model           */
     POWERPC_EXCP_POWER7,
+    /* POWER8 exception model           */
+    POWERPC_EXCP_POWER8,
 #endif /* defined(TARGET_PPC64) */
 };
 
@@ -419,6 +420,7 @@ typedef struct ppc_slb_t ppc_slb_t;
 struct ppc_slb_t {
     uint64_t esid;
     uint64_t vsid;
+    const struct ppc_one_seg_page_size *sps;
 };
 
 #define MAX_SLB_ENTRIES         64
@@ -474,9 +476,17 @@ struct ppc_slb_t {
 #define MSR_RI   1  /* Recoverable interrupt                        1        */
 #define MSR_LE   0  /* Little-endian mode                           1 hflags */
 
-#define LPCR_ILE (1 << (63-38))
-#define LPCR_AIL_SHIFT (63-40)      /* Alternate interrupt location */
-#define LPCR_AIL (3 << LPCR_AIL_SHIFT)
+/* LPCR bits */
+#define LPCR_VPM0         (1ull << (63 - 0))
+#define LPCR_VPM1         (1ull << (63 - 1))
+#define LPCR_ISL          (1ull << (63 - 2))
+#define LPCR_KBV          (1ull << (63 - 3))
+#define LPCR_ILE          (1ull << (63 - 38))
+#define LPCR_MER          (1ull << (63 - 52))
+#define LPCR_LPES0        (1ull << (63 - 60))
+#define LPCR_LPES1        (1ull << (63 - 61))
+#define LPCR_AIL_SHIFT    (63 - 40)      /* Alternate interrupt location */
+#define LPCR_AIL          (3ull << LPCR_AIL_SHIFT)
 
 #define msr_sf   ((env->msr >> MSR_SF)   & 1)
 #define msr_isf  ((env->msr >> MSR_ISF)  & 1)
@@ -686,24 +696,43 @@ enum {
 
 #define FP_FX		(1ull << FPSCR_FX)
 #define FP_FEX		(1ull << FPSCR_FEX)
-#define FP_OX		(1ull << FPSCR_OX)
-#define FP_OE		(1ull << FPSCR_OE)
-#define FP_UX		(1ull << FPSCR_UX)
-#define FP_UE		(1ull << FPSCR_UE)
-#define FP_XX		(1ull << FPSCR_XX)
-#define FP_XE		(1ull << FPSCR_XE)
-#define FP_ZX		(1ull << FPSCR_ZX)
-#define FP_ZE		(1ull << FPSCR_ZE)
 #define FP_VX		(1ull << FPSCR_VX)
+#define FP_OX		(1ull << FPSCR_OX)
+#define FP_UX		(1ull << FPSCR_UX)
+#define FP_ZX		(1ull << FPSCR_ZX)
+#define FP_XX		(1ull << FPSCR_XX)
 #define FP_VXSNAN	(1ull << FPSCR_VXSNAN)
 #define FP_VXISI	(1ull << FPSCR_VXISI)
-#define FP_VXIMZ	(1ull << FPSCR_VXIMZ)
-#define FP_VXZDZ	(1ull << FPSCR_VXZDZ)
 #define FP_VXIDI	(1ull << FPSCR_VXIDI)
+#define FP_VXZDZ	(1ull << FPSCR_VXZDZ)
+#define FP_VXIMZ	(1ull << FPSCR_VXIMZ)
 #define FP_VXVC		(1ull << FPSCR_VXVC)
+#define FP_FR		(1ull << FSPCR_FR)
+#define FP_FI		(1ull << FPSCR_FI)
+#define FP_C		(1ull << FPSCR_C)
+#define FP_FL		(1ull << FPSCR_FL)
+#define FP_FG		(1ull << FPSCR_FG)
+#define FP_FE		(1ull << FPSCR_FE)
+#define FP_FU		(1ull << FPSCR_FU)
+#define FP_FPCC		(FP_FL | FP_FG | FP_FE | FP_FU)
+#define FP_FPRF		(FP_C  | FP_FL | FP_FG | FP_FE | FP_FU)
+#define FP_VXSOFT	(1ull << FPSCR_VXSOFT)
+#define FP_VXSQRT	(1ull << FPSCR_VXSQRT)
 #define FP_VXCVI	(1ull << FPSCR_VXCVI)
 #define FP_VE		(1ull << FPSCR_VE)
-#define FP_FI		(1ull << FPSCR_FI)
+#define FP_OE		(1ull << FPSCR_OE)
+#define FP_UE		(1ull << FPSCR_UE)
+#define FP_ZE		(1ull << FPSCR_ZE)
+#define FP_XE		(1ull << FPSCR_XE)
+#define FP_NI		(1ull << FPSCR_NI)
+#define FP_RN1		(1ull << FPSCR_RN1)
+#define FP_RN		(1ull << FPSCR_RN)
+
+/* the exception bits which can be cleared by mcrfs - includes FX */
+#define FP_EX_CLEAR_BITS (FP_FX     | FP_OX     | FP_UX     | FP_ZX     | \
+                          FP_XX     | FP_VXSNAN | FP_VXISI  | FP_VXIDI  | \
+                          FP_VXZDZ  | FP_VXIMZ  | FP_VXVC   | FP_VXSOFT | \
+                          FP_VXSQRT | FP_VXCVI)
 
 /*****************************************************************************/
 /* Vector status and control register */
@@ -1210,7 +1239,7 @@ void ppc_store_msr (CPUPPCState *env, target_ulong value);
 
 void ppc_cpu_list (FILE *f, fprintf_function cpu_fprintf);
 int ppc_get_compat_smt_threads(PowerPCCPU *cpu);
-int ppc_set_compat(PowerPCCPU *cpu, uint32_t cpu_version);
+void ppc_set_compat(PowerPCCPU *cpu, uint32_t cpu_version, Error **errp);
 
 /* Time-base and decrementer management */
 #ifndef NO_CPU_IO_DEFS
@@ -1241,6 +1270,7 @@ void store_booke_tcr (CPUPPCState *env, target_ulong val);
 void store_booke_tsr (CPUPPCState *env, target_ulong val);
 void ppc_tlb_invalidate_all (CPUPPCState *env);
 void ppc_tlb_invalidate_one (CPUPPCState *env, target_ulong addr);
+void cpu_ppc_set_papr(PowerPCCPU *cpu);
 #endif
 #endif
 
@@ -1327,11 +1357,14 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_SRR1              (0x01B)
 #define SPR_CFAR              (0x01C)
 #define SPR_AMR               (0x01D)
+#define SPR_ACOP              (0x01F)
 #define SPR_BOOKE_PID         (0x030)
+#define SPR_BOOKS_PID         (0x030)
 #define SPR_BOOKE_DECAR       (0x036)
 #define SPR_BOOKE_CSRR0       (0x03A)
 #define SPR_BOOKE_CSRR1       (0x03B)
 #define SPR_BOOKE_DEAR        (0x03D)
+#define SPR_IAMR              (0x03D)
 #define SPR_BOOKE_ESR         (0x03E)
 #define SPR_BOOKE_IVPR        (0x03F)
 #define SPR_MPC_EIE           (0x050)
@@ -1361,6 +1394,12 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_UAMOR             (0x09D)
 #define SPR_MPC_ICTRL         (0x09E)
 #define SPR_MPC_BAR           (0x09F)
+#define SPR_PSPB              (0x09F)
+#define SPR_DAWR              (0x0B4)
+#define SPR_RPR               (0x0BA)
+#define SPR_CIABR             (0x0BB)
+#define SPR_DAWRX             (0x0BC)
+#define SPR_HFSCR             (0x0BE)
 #define SPR_VRSAVE            (0x100)
 #define SPR_USPRG0            (0x100)
 #define SPR_USPRG1            (0x101)
@@ -1415,19 +1454,25 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_HSRR1             (0x13B)
 #define SPR_BOOKE_IAC4        (0x13B)
 #define SPR_BOOKE_DAC1        (0x13C)
-#define SPR_LPIDR             (0x13D)
+#define SPR_MMCRH             (0x13C)
 #define SPR_DABR2             (0x13D)
 #define SPR_BOOKE_DAC2        (0x13D)
+#define SPR_TFMR              (0x13D)
 #define SPR_BOOKE_DVC1        (0x13E)
 #define SPR_LPCR              (0x13E)
 #define SPR_BOOKE_DVC2        (0x13F)
+#define SPR_LPIDR             (0x13F)
 #define SPR_BOOKE_TSR         (0x150)
+#define SPR_HMER              (0x150)
+#define SPR_HMEER             (0x151)
 #define SPR_PCR               (0x152)
+#define SPR_BOOKE_LPIDR       (0x152)
 #define SPR_BOOKE_TCR         (0x154)
 #define SPR_BOOKE_TLB0PS      (0x158)
 #define SPR_BOOKE_TLB1PS      (0x159)
 #define SPR_BOOKE_TLB2PS      (0x15A)
 #define SPR_BOOKE_TLB3PS      (0x15B)
+#define SPR_AMOR              (0x15D)
 #define SPR_BOOKE_MAS7_MAS3   (0x174)
 #define SPR_BOOKE_IVOR0       (0x190)
 #define SPR_BOOKE_IVOR1       (0x191)
@@ -1544,6 +1589,7 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_PERF0             (0x300)
 #define SPR_RCPU_MI_RBA0      (0x300)
 #define SPR_MPC_MI_CTR        (0x300)
+#define SPR_POWER_USIER       (0x300)
 #define SPR_PERF1             (0x301)
 #define SPR_RCPU_MI_RBA1      (0x301)
 #define SPR_POWER_UMMCR2      (0x301)
@@ -1593,6 +1639,7 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_PERFF             (0x30F)
 #define SPR_MPC_MD_TW         (0x30F)
 #define SPR_UPERF0            (0x310)
+#define SPR_POWER_SIER        (0x310)
 #define SPR_UPERF1            (0x311)
 #define SPR_POWER_MMCR2       (0x311)
 #define SPR_UPERF2            (0x312)
@@ -1644,7 +1691,9 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_MPC_MD_DBRAM1     (0x32A)
 #define SPR_RCPU_L2U_RA3      (0x32B)
 #define SPR_TAR               (0x32F)
+#define SPR_IC                (0x350)
 #define SPR_VTB               (0x351)
+#define SPR_MMCRC             (0x353)
 #define SPR_440_INV0          (0x370)
 #define SPR_440_INV1          (0x371)
 #define SPR_440_INV2          (0x372)
@@ -1654,8 +1703,14 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_440_ITV2          (0x376)
 #define SPR_440_ITV3          (0x377)
 #define SPR_440_CCR1          (0x378)
+#define SPR_TACR              (0x378)
+#define SPR_TCSCR             (0x379)
+#define SPR_CSIGR             (0x37a)
 #define SPR_DCRIPR            (0x37B)
+#define SPR_POWER_SPMC1       (0x37C)
+#define SPR_POWER_SPMC2       (0x37D)
 #define SPR_POWER_MMCRS       (0x37E)
+#define SPR_WORT              (0x37F)
 #define SPR_PPR               (0x380)
 #define SPR_750_GQR0          (0x390)
 #define SPR_440_DNV0          (0x390)
@@ -1678,6 +1733,7 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define SPR_440_DVLIM         (0x398)
 #define SPR_750_WPAR          (0x399)
 #define SPR_440_IVLIM         (0x399)
+#define SPR_TSCR              (0x399)
 #define SPR_750_DMAU          (0x39A)
 #define SPR_750_DMAL          (0x39B)
 #define SPR_440_RSTCFG        (0x39B)
@@ -1852,9 +1908,10 @@ static inline int cpu_mmu_index (CPUPPCState *env, bool ifetch)
 #define   L1CSR1_ICE		0x00000001	/* Instruction Cache Enable */
 
 /* HID0 bits */
-#define HID0_DEEPNAP        (1 << 24)
-#define HID0_DOZE           (1 << 23)
-#define HID0_NAP            (1 << 22)
+#define HID0_DEEPNAP        (1 << 24)           /* pre-2.06 */
+#define HID0_DOZE           (1 << 23)           /* pre-2.06 */
+#define HID0_NAP            (1 << 22)           /* pre-2.06 */
+#define HID0_HILE           (1ull << (63 - 19)) /* POWER8 */
 
 /*****************************************************************************/
 /* PowerPC Instructions types definitions                                    */
@@ -2203,6 +2260,33 @@ enum {
     PCR_TM_DIS          = 1ull << (63-2), /* Trans. memory disable (POWER8) */
 };
 
+/* HMER/HMEER */
+enum {
+    HMER_MALFUNCTION_ALERT      = 1ull << (63 - 0),
+    HMER_PROC_RECV_DONE         = 1ull << (63 - 2),
+    HMER_PROC_RECV_ERROR_MASKED = 1ull << (63 - 3),
+    HMER_TFAC_ERROR             = 1ull << (63 - 4),
+    HMER_TFMR_PARITY_ERROR      = 1ull << (63 - 5),
+    HMER_XSCOM_FAIL             = 1ull << (63 - 8),
+    HMER_XSCOM_DONE             = 1ull << (63 - 9),
+    HMER_PROC_RECV_AGAIN        = 1ull << (63 - 11),
+    HMER_WARN_RISE              = 1ull << (63 - 14),
+    HMER_WARN_FALL              = 1ull << (63 - 15),
+    HMER_SCOM_FIR_HMI           = 1ull << (63 - 16),
+    HMER_TRIG_FIR_HMI           = 1ull << (63 - 17),
+    HMER_HYP_RESOURCE_ERR       = 1ull << (63 - 20),
+    HMER_XSCOM_STATUS_MASK      = 7ull << (63 - 23),
+    HMER_XSCOM_STATUS_LSH       = (63 - 23),
+};
+
+/* Alternate Interrupt Location (AIL) */
+enum {
+    AIL_NONE                = 0,
+    AIL_RESERVED            = 1,
+    AIL_0001_8000           = 2,
+    AIL_C000_0000_0000_4000 = 3,
+};
+
 /*****************************************************************************/
 
 static inline target_ulong cpu_read_xer(CPUPPCState *env)
@@ -2331,6 +2415,16 @@ static inline bool msr_is_64bit(CPUPPCState *env, target_ulong msr)
     return msr & (1ULL << MSR_SF);
 }
 
+/**
+ * Check whether register rx is in the range between start and
+ * start + nregs (as needed by the LSWX and LSWI instructions)
+ */
+static inline bool lsw_reg_in_range(int start, int nregs, int rx)
+{
+    return (start + nregs <= 32 && rx >= start && rx < start + nregs) ||
+           (start + nregs > 32 && (rx >= start || rx < start + nregs - 32));
+}
+
 extern void (*cpu_ppc_hypercall)(PowerPCCPU *);
 
 #include "exec/exec-all.h"
@@ -2355,4 +2449,5 @@ int ppc_get_vcpu_dt_id(PowerPCCPU *cpu);
  */
 PowerPCCPU *ppc_get_vcpu_by_dt_id(int cpu_dt_id);
 
+void ppc_maybe_bswap_register(CPUPPCState *env, uint8_t *mem_buf, int len);
 #endif /* !defined (__CPU_PPC_H__) */

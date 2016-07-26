@@ -18,10 +18,12 @@
 
 #ifndef NAND_IO
 
-# include "hw/hw.h"
-# include "hw/block/flash.h"
+#include "qemu/osdep.h"
+#include "hw/hw.h"
+#include "hw/block/flash.h"
 #include "sysemu/block-backend.h"
 #include "hw/qdev.h"
+#include "qapi/error.h"
 #include "qemu/error-report.h"
 
 # define NAND_CMD_READ0		0x00
@@ -635,7 +637,7 @@ DeviceState *nand_init(BlockBackend *blk, int manf_id, int chip_id)
     qdev_prop_set_uint8(dev, "manufacturer_id", manf_id);
     qdev_prop_set_uint8(dev, "chip_id", chip_id);
     if (blk) {
-        qdev_prop_set_drive_nofail(dev, "drive", blk);
+        qdev_prop_set_drive(dev, "drive", blk, &error_fatal);
     }
 
     qdev_init_nofail(dev);

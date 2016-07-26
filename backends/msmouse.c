@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdlib.h>
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "sysemu/char.h"
 #include "ui/console.h"
@@ -68,9 +68,13 @@ static CharDriverState *qemu_chr_open_msmouse(const char *id,
                                               ChardevReturn *ret,
                                               Error **errp)
 {
+    ChardevCommon *common = backend->u.msmouse.data;
     CharDriverState *chr;
 
-    chr = qemu_chr_alloc();
+    chr = qemu_chr_alloc(common, errp);
+    if (!chr) {
+        return NULL;
+    }
     chr->chr_write = msmouse_chr_write;
     chr->chr_close = msmouse_chr_close;
     chr->explicit_be_open = true;

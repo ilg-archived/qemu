@@ -15,7 +15,7 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
-#include <inttypes.h>
+#include "qemu/osdep.h"
 
 #include "standard-headers/linux/virtio_pci.h"
 #include "hw/virtio/virtio.h"
@@ -26,6 +26,7 @@
 #include "hw/virtio/virtio-balloon.h"
 #include "hw/virtio/virtio-input.h"
 #include "hw/pci/pci.h"
+#include "qapi/error.h"
 #include "qemu/error-report.h"
 #include "hw/pci/msi.h"
 #include "hw/pci/msix.h"
@@ -47,6 +48,7 @@
 
 static void virtio_pci_bus_new(VirtioBusState *bus, size_t bus_size,
                                VirtIOPCIProxy *dev);
+static void virtio_pci_reset(DeviceState *qdev);
 
 /* virtio device */
 /* DeviceState to VirtIOPCIProxy. For use off data-path. TODO: use QOM. */
@@ -404,9 +406,7 @@ static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
     case VIRTIO_PCI_QUEUE_PFN:
         pa = (hwaddr)val << VIRTIO_PCI_QUEUE_ADDR_SHIFT;
         if (pa == 0) {
-            virtio_pci_stop_ioeventfd(proxy);
-            virtio_reset(vdev);
-            msix_unuse_all_vectors(&proxy->pci_dev);
+            virtio_pci_reset(DEVICE(proxy));
         }
         else
             virtio_queue_set_addr(vdev, vdev->queue_sel, pa);
@@ -432,8 +432,7 @@ static void virtio_ioport_write(void *opaque, uint32_t addr, uint32_t val)
         }
 
         if (vdev->status == 0) {
-            virtio_reset(vdev);
-            msix_unuse_all_vectors(&proxy->pci_dev);
+            virtio_pci_reset(DEVICE(proxy));
         }
 
         /* Linux before 2.6.34 drives the device without enabling
@@ -806,7 +805,7 @@ static int kvm_virtio_pci_vector_use(VirtIOPCIProxy *proxy, int nvqs)
         /* If guest supports masking, set up irqfd now.
          * Otherwise, delay until unmasked in the frontend.
          */
-        if (k->guest_notifier_mask) {
+        if (vdev->use_guest_notifier_mask && k->guest_notifier_mask) {
             ret = kvm_virtio_pci_irqfd_use(proxy, queue_no, vector);
             if (ret < 0) {
                 kvm_virtio_pci_vq_vector_release(proxy, vector);
@@ -822,7 +821,7 @@ undo:
         if (vector >= msix_nr_vectors_allocated(dev)) {
             continue;
         }
-        if (k->guest_notifier_mask) {
+        if (vdev->use_guest_notifier_mask && k->guest_notifier_mask) {
             kvm_virtio_pci_irqfd_release(proxy, queue_no, vector);
         }
         kvm_virtio_pci_vq_vector_release(proxy, vector);
@@ -849,7 +848,7 @@ static void kvm_virtio_pci_vector_release(VirtIOPCIProxy *proxy, int nvqs)
         /* If guest supports masking, clean up irqfd now.
          * Otherwise, it was cleaned when masked in the frontend.
          */
-        if (k->guest_notifier_mask) {
+        if (vdev->use_guest_notifier_mask && k->guest_notifier_mask) {
             kvm_virtio_pci_irqfd_release(proxy, queue_no, vector);
         }
         kvm_virtio_pci_vq_vector_release(proxy, vector);
@@ -882,7 +881,7 @@ static int virtio_pci_vq_vector_unmask(VirtIOPCIProxy *proxy,
     /* If guest supports masking, irqfd is already setup, unmask it.
      * Otherwise, set it up now.
      */
-    if (k->guest_notifier_mask) {
+    if (vdev->use_guest_notifier_mask && k->guest_notifier_mask) {
         k->guest_notifier_mask(vdev, queue_no, false);
         /* Test after unmasking to avoid losing events. */
         if (k->guest_notifier_pending &&
@@ -905,7 +904,7 @@ static void virtio_pci_vq_vector_mask(VirtIOPCIProxy *proxy,
     /* If guest supports masking, keep irqfd but mask it.
      * Otherwise, clean it up now.
      */ 
-    if (k->guest_notifier_mask) {
+    if (vdev->use_guest_notifier_mask && k->guest_notifier_mask) {
         k->guest_notifier_mask(vdev, queue_no, true);
     } else {
         kvm_virtio_pci_irqfd_release(proxy, queue_no, vector);
@@ -1022,7 +1021,9 @@ static int virtio_pci_set_guest_notifier(DeviceState *d, int n, bool assign,
         event_notifier_cleanup(notifier);
     }
 
-    if (!msix_enabled(&proxy->pci_dev) && vdc->guest_notifier_mask) {
+    if (!msix_enabled(&proxy->pci_dev) &&
+        vdev->use_guest_notifier_mask &&
+        vdc->guest_notifier_mask) {
         vdc->guest_notifier_mask(vdev, n, !assign);
     }
 
@@ -1351,8 +1352,7 @@ static void virtio_pci_common_write(void *opaque, hwaddr addr,
         }
 
         if (vdev->status == 0) {
-            virtio_reset(vdev);
-            msix_unuse_all_vectors(&proxy->pci_dev);
+            virtio_pci_reset(DEVICE(proxy));
         }
 
         break;

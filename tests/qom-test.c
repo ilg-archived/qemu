@@ -7,12 +7,12 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include <glib.h>
-#include <string.h>
 
 #include "qemu-common.h"
+#include "qemu/cutils.h"
 #include "libqtest.h"
-#include "qemu/osdep.h"
 #include "qapi/qmp/types.h"
 
 static const char *blacklist_x86[] = {

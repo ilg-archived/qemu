@@ -10,6 +10,10 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "cpu.h"
+#include "qemu/cutils.h"
 #include "hw/ppc/spapr_drc.h"
 #include "qom/object.h"
 #include "hw/qdev.h"
@@ -172,6 +176,12 @@ static void set_configured(sPAPRDRConnector *drc)
     drc->configured = true;
 }
 
+/* has the guest been notified of device attachment? */
+static void set_signalled(sPAPRDRConnector *drc)
+{
+    drc->signalled = true;
+}
+
 /*
  * dr-entity-sense sensor value
  * returned via get-sensor-state RTAS calls
@@ -214,22 +224,22 @@ static uint32_t entity_sense(sPAPRDRConnector *drc, sPAPRDREntitySense *state)
     return RTAS_OUT_SUCCESS;
 }
 
-static void prop_get_index(Object *obj, Visitor *v, void *opaque,
-                                  const char *name, Error **errp)
+static void prop_get_index(Object *obj, Visitor *v, const char *name,
+                           void *opaque, Error **errp)
 {
     sPAPRDRConnector *drc = SPAPR_DR_CONNECTOR(obj);
     sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
     uint32_t value = (uint32_t)drck->get_index(drc);
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
-static void prop_get_type(Object *obj, Visitor *v, void *opaque,
-                          const char *name, Error **errp)
+static void prop_get_type(Object *obj, Visitor *v, const char *name,
+                          void *opaque, Error **errp)
 {
     sPAPRDRConnector *drc = SPAPR_DR_CONNECTOR(obj);
     sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
     uint32_t value = (uint32_t)drck->get_type(drc);
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
 static char *prop_get_name(Object *obj, Error **errp)
@@ -239,19 +249,19 @@ static char *prop_get_name(Object *obj, Error **errp)
     return g_strdup(drck->get_name(drc));
 }
 
-static void prop_get_entity_sense(Object *obj, Visitor *v, void *opaque,
-                                  const char *name, Error **errp)
+static void prop_get_entity_sense(Object *obj, Visitor *v, const char *name,
+                                  void *opaque, Error **errp)
 {
     sPAPRDRConnector *drc = SPAPR_DR_CONNECTOR(obj);
     sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
     uint32_t value;
 
     drck->entity_sense(drc, &value);
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
-static void prop_get_fdt(Object *obj, Visitor *v, void *opaque,
-                        const char *name, Error **errp)
+static void prop_get_fdt(Object *obj, Visitor *v, const char *name,
+                         void *opaque, Error **errp)
 {
     sPAPRDRConnector *drc = SPAPR_DR_CONNECTOR(obj);
     Error *err = NULL;
@@ -259,7 +269,7 @@ static void prop_get_fdt(Object *obj, Visitor *v, void *opaque,
     void *fdt;
 
     if (!drc->fdt) {
-        visit_start_struct(v, NULL, NULL, name, 0, &err);
+        visit_start_struct(v, name, NULL, 0, &err);
         if (!err) {
             visit_end_struct(v, &err);
         }
@@ -282,7 +292,7 @@ static void prop_get_fdt(Object *obj, Visitor *v, void *opaque,
         case FDT_BEGIN_NODE:
             fdt_depth++;
             name = fdt_get_name(fdt, fdt_offset, &name_len);
-            visit_start_struct(v, NULL, NULL, name, 0, &err);
+            visit_start_struct(v, name, NULL, 0, &err);
             if (err) {
                 error_propagate(errp, err);
                 return;
@@ -308,17 +318,13 @@ static void prop_get_fdt(Object *obj, Visitor *v, void *opaque,
                 return;
             }
             for (i = 0; i < prop_len; i++) {
-                visit_type_uint8(v, (uint8_t *)&prop->data[i], NULL, &err);
+                visit_type_uint8(v, NULL, (uint8_t *)&prop->data[i], &err);
                 if (err) {
                     error_propagate(errp, err);
                     return;
                 }
             }
-            visit_end_list(v, &err);
-            if (err) {
-                error_propagate(errp, err);
-                return;
-            }
+            visit_end_list(v);
             break;
         }
         default:
@@ -358,6 +364,17 @@ static void attach(sPAPRDRConnector *drc, DeviceState *d, void *fdt,
     drc->fdt = fdt;
     drc->fdt_start_offset = fdt_start_offset;
     drc->configured = coldplug;
+    /* 'logical' DR resources such as memory/cpus are in some cases treated
+     * as a pool of resources from which the guest is free to choose from
+     * based on only a count. for resources that can be assigned in this
+     * fashion, we must assume the resource is signalled immediately
+     * since a single hotplug request might make an arbitrary number of
+     * such attached resources available to the guest, as opposed to
+     * 'physical' DR resources such as PCI where each device/resource is
+     * signalled individually.
+     */
+    drc->signalled = (drc->type != SPAPR_DR_CONNECTOR_TYPE_PCI)
+                     ? true : coldplug;
 
     object_property_add_link(OBJECT(drc), "device",
                              object_get_typename(OBJECT(drc->dev)),
@@ -373,6 +390,26 @@ static void detach(sPAPRDRConnector *drc, DeviceState *d,
 
     drc->detach_cb = detach_cb;
     drc->detach_cb_opaque = detach_cb_opaque;
+
+    /* if we've signalled device presence to the guest, or if the guest
+     * has gone ahead and configured the device (via manually-executed
+     * device add via drmgr in guest, namely), we need to wait
+     * for the guest to quiesce the device before completing detach.
+     * Otherwise, we can assume the guest hasn't seen it and complete the
+     * detach immediately. Note that there is a small race window
+     * just before, or during, configuration, which is this context
+     * refers mainly to fetching the device tree via RTAS.
+     * During this window the device access will be arbitrated by
+     * associated DRC, which will simply fail the RTAS calls as invalid.
+     * This is recoverable within guest and current implementations of
+     * drmgr should be able to cope.
+     */
+    if (!drc->signalled && !drc->configured) {
+        /* if the guest hasn't seen the device we can't rely on it to
+         * set it back to an isolated state via RTAS, so do it here manually
+         */
+        drc->isolation_state = SPAPR_DR_ISOLATION_STATE_ISOLATED;
+    }
 
     if (drc->isolation_state != SPAPR_DR_ISOLATION_STATE_ISOLATED) {
         DPRINTFN("awaiting transition to isolated state before removal");
@@ -412,6 +449,7 @@ static void reset(DeviceState *d)
 {
     sPAPRDRConnector *drc = SPAPR_DR_CONNECTOR(d);
     sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
+    sPAPRDREntitySense state;
 
     DPRINTFN("drc reset: %x", drck->get_index(drc));
     /* immediately upon reset we can safely assume DRCs whose devices
@@ -439,6 +477,11 @@ static void reset(DeviceState *d)
             drck->set_allocation_state(drc, SPAPR_DR_ALLOCATION_STATE_UNUSABLE);
         }
     }
+
+    drck->entity_sense(drc, &state);
+    if (state == SPAPR_DR_ENTITY_SENSE_PRESENT) {
+        drck->set_signalled(drc);
+    }
 }
 
 static void realize(DeviceState *d, Error **errp)
@@ -465,8 +508,7 @@ static void realize(DeviceState *d, Error **errp)
     object_property_add_alias(root_container, link_name,
                               drc->owner, child_name, &err);
     if (err) {
-        error_report("%s", error_get_pretty(err));
-        error_free(err);
+        error_report_err(err);
         object_unref(OBJECT(drc));
     }
     g_free(child_name);
@@ -486,8 +528,7 @@ static void unrealize(DeviceState *d, Error **errp)
     snprintf(name, sizeof(name), "%x", drck->get_index(drc));
     object_property_del(root_container, name, &err);
     if (err) {
-        error_report("%s", error_get_pretty(err));
-        error_free(err);
+        error_report_err(err);
         object_unref(OBJECT(drc));
     }
 }
@@ -599,6 +640,7 @@ static void spapr_dr_connector_class_init(ObjectClass *k, void *data)
     drck->attach = attach;
     drck->detach = detach;
     drck->release_pending = release_pending;
+    drck->set_signalled = set_signalled;
     /*
      * Reason: it crashes FIXME find and document the real reason
      */
@@ -686,7 +728,7 @@ int spapr_drc_populate_dt(void *fdt, int fdt_offset, Object *owner,
 {
     Object *root_container;
     ObjectProperty *prop;
-    ObjectPropertyIterator *iter;
+    ObjectPropertyIterator iter;
     uint32_t drc_count = 0;
     GArray *drc_indexes, *drc_power_domains;
     GString *drc_names, *drc_types;
@@ -710,8 +752,8 @@ int spapr_drc_populate_dt(void *fdt, int fdt_offset, Object *owner,
      */
     root_container = container_get(object_get_root(), DRC_CONTAINER_PATH);
 
-    iter = object_property_iter_init(root_container);
-    while ((prop = object_property_iter_next(iter))) {
+    object_property_iter_init(&iter, root_container);
+    while ((prop = object_property_iter_next(&iter))) {
         Object *obj;
         sPAPRDRConnector *drc;
         sPAPRDRConnectorClass *drck;
@@ -752,7 +794,6 @@ int spapr_drc_populate_dt(void *fdt, int fdt_offset, Object *owner,
                                     spapr_drc_get_type_str(drc->type));
         drc_types = g_string_insert_len(drc_types, -1, "\0", 1);
     }
-    object_property_iter_free(iter);
 
     /* now write the drc count into the space we reserved at the
      * beginning of the arrays previously

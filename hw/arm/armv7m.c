@@ -7,6 +7,10 @@
  * This code is licensed under the GPL.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/sysbus.h"
 #include "hw/arm/arm.h"
 #include "hw/loader.h"
@@ -226,7 +230,7 @@ DeviceState *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
 
     if (kernel_filename) {
         image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,
-                              NULL, big_endian, EM_ARM, 1);
+                              NULL, big_endian, EM_ARM, 1, 0);
         if (image_size < 0) {
             image_size = load_image_targphys(kernel_filename, 0, mem_size);
             lowaddr = 0;

@@ -88,6 +88,9 @@ typedef struct ARMCPU {
     /* GPIO outputs for generic timer */
     qemu_irq gt_timer_outputs[NUM_GTIMERS];
 
+    /* MemoryRegion to use for secure physical accesses */
+    MemoryRegion *secure_memory;
+
     /* 'compatible' string for this CPU for Linux device trees */
     const char *dtb_compatible;
 
@@ -146,6 +149,8 @@ typedef struct ARMCPU {
     uint32_t id_pfr0;
     uint32_t id_pfr1;
     uint32_t id_dfr0;
+    uint32_t pmceid0;
+    uint32_t pmceid1;
     uint32_t id_afr0;
     uint32_t id_mmfr0;
     uint32_t id_mmfr1;
@@ -221,10 +226,16 @@ bool arm_cpu_exec_interrupt(CPUState *cpu, int int_req);
 void arm_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,
                         int flags);
 
-hwaddr arm_cpu_get_phys_page_debug(CPUState *cpu, vaddr addr);
+hwaddr arm_cpu_get_phys_page_attrs_debug(CPUState *cpu, vaddr addr,
+                                         MemTxAttrs *attrs);
 
 int arm_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
 int arm_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);
+
+int arm_cpu_write_elf64_note(WriteCoreDumpFunction f, CPUState *cs,
+                             int cpuid, void *opaque);
+int arm_cpu_write_elf32_note(WriteCoreDumpFunction f, CPUState *cs,
+                             int cpuid, void *opaque);
 
 /* Callback functions for the generic timer's timers. */
 void arm_gt_ptimer_cb(void *opaque);
@@ -248,8 +259,6 @@ void arm_gt_stimer_cb(void *opaque);
 #ifdef TARGET_AARCH64
 int aarch64_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
 int aarch64_cpu_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg);
-
-void aarch64_cpu_do_interrupt(CPUState *cs);
 #endif
 
 #endif

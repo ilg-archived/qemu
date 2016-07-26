@@ -18,15 +18,10 @@
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <time.h>
-
 #include "config-host.h"
+
+#include "qemu/osdep.h"
+
 #include "cpu.h"
 #include "exec/semihost.h"
 #ifdef CONFIG_USER_ONLY
@@ -37,11 +32,14 @@
 #include "qemu-common.h"
 #include "exec/gdbstub.h"
 #include "hw/arm/arm.h"
+#include "qemu/cutils.h"
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "sysemu/sysemu.h"
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 #endif
 
 #if defined(CONFIG_VERBOSE)
@@ -654,12 +652,14 @@ target_ulong do_arm_semihosting(CPUARMState *env)
             ret = (args == ADP_Stopped_ApplicationExit) ? 0 : 1;
         }
         gdb_exit(env, ret);
+
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
         fsync(STDERR_FILENO);
         printf("QEMU exit(%d)\n", ret);
     }
 #endif
+
         exit(ret);
     case TARGET_SYS_SYNCCACHE:
         /* Clean the D-cache and invalidate the I-cache for the specified

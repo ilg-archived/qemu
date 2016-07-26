@@ -8,6 +8,8 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-io.h"
 #include "sysemu/block-backend.h"
 #include "block/block.h"
@@ -17,6 +19,7 @@
 #include "qemu/main-loop.h"
 #include "qemu/timer.h"
 #include "sysemu/block-backend.h"
+#include "qemu/cutils.h"
 
 #define CMD_NOFILE_OK   0x01
 
@@ -1413,6 +1416,7 @@ struct aio_ctx {
     int vflag;
     int Cflag;
     int Pflag;
+    int zflag;
     BlockAcctCookie acct;
     int pattern;
     struct timeval t1;
@@ -1443,8 +1447,10 @@ static void aio_write_done(void *opaque, int ret)
     print_report("wrote", &t2, ctx->offset, ctx->qiov.size,
                  ctx->qiov.size, 1, ctx->Cflag);
 out:
-    qemu_io_free(ctx->buf);
-    qemu_iovec_destroy(&ctx->qiov);
+    if (!ctx->zflag) {
+        qemu_io_free(ctx->buf);
+        qemu_iovec_destroy(&ctx->qiov);
+    }
     g_free(ctx);
 }
 
@@ -1609,6 +1615,7 @@ static void aio_write_help(void)
 " -P, -- use different pattern to fill file\n"
 " -C, -- report statistics in a machine parsable format\n"
 " -q, -- quiet mode, do not show I/O statistics\n"
+" -z, -- write zeroes using blk_aio_write_zeroes\n"
 "\n");
 }
 
@@ -1619,7 +1626,7 @@ static const cmdinfo_t aio_write_cmd = {
     .cfunc      = aio_write_f,
     .argmin     = 2,
     .argmax     = -1,
-    .args       = "[-Cq] [-P pattern ] off len [len..]",
+    .args       = "[-Cqz] [-P pattern ] off len [len..]",
     .oneline    = "asynchronously writes a number of bytes",
     .help       = aio_write_help,
 };
@@ -1631,7 +1638,7 @@ static int aio_write_f(BlockBackend *blk, int argc, char **argv)
     struct aio_ctx *ctx = g_new0(struct aio_ctx, 1);
 
     ctx->blk = blk;
-    while ((c = getopt(argc, argv, "CqP:")) != -1) {
+    while ((c = getopt(argc, argv, "CqP:z")) != -1) {
         switch (c) {
         case 'C':
             ctx->Cflag = 1;
@@ -1646,6 +1653,9 @@ static int aio_write_f(BlockBackend *blk, int argc, char **argv)
                 return 0;
             }
             break;
+        case 'z':
+            ctx->zflag = 1;
+            break;
         default:
             g_free(ctx);
             return qemuio_command_usage(&aio_write_cmd);
@@ -1655,6 +1665,18 @@ static int aio_write_f(BlockBackend *blk, int argc, char **argv)
     if (optind > argc - 2) {
         g_free(ctx);
         return qemuio_command_usage(&aio_write_cmd);
+    }
+
+    if (ctx->zflag && optind != argc - 2) {
+        printf("-z supports only a single length parameter\n");
+        g_free(ctx);
+        return 0;
+    }
+
+    if (ctx->zflag && ctx->Pflag) {
+        printf("-z and -P cannot be specified at the same time\n");
+        g_free(ctx);
+        return 0;
     }
 
     ctx->offset = cvtnum(argv[optind]);
@@ -1673,19 +1695,33 @@ static int aio_write_f(BlockBackend *blk, int argc, char **argv)
         return 0;
     }
 
-    nr_iov = argc - optind;
-    ctx->buf = create_iovec(blk, &ctx->qiov, &argv[optind], nr_iov, pattern);
-    if (ctx->buf == NULL) {
-        block_acct_invalid(blk_get_stats(blk), BLOCK_ACCT_WRITE);
-        g_free(ctx);
-        return 0;
-    }
+    if (ctx->zflag) {
+        int64_t count = cvtnum(argv[optind]);
+        if (count < 0) {
+            print_cvtnum_err(count, argv[optind]);
+            return 0;
+        }
 
-    gettimeofday(&ctx->t1, NULL);
-    block_acct_start(blk_get_stats(blk), &ctx->acct, ctx->qiov.size,
-                     BLOCK_ACCT_WRITE);
-    blk_aio_writev(blk, ctx->offset >> 9, &ctx->qiov,
-                   ctx->qiov.size >> 9, aio_write_done, ctx);
+        ctx->qiov.size = count;
+        blk_aio_write_zeroes(blk, ctx->offset >> 9, count >> 9, 0,
+                             aio_write_done, ctx);
+    } else {
+        nr_iov = argc - optind;
+        ctx->buf = create_iovec(blk, &ctx->qiov, &argv[optind], nr_iov,
+                                pattern);
+        if (ctx->buf == NULL) {
+            block_acct_invalid(blk_get_stats(blk), BLOCK_ACCT_WRITE);
+            g_free(ctx);
+            return 0;
+        }
+
+        gettimeofday(&ctx->t1, NULL);
+        block_acct_start(blk_get_stats(blk), &ctx->acct, ctx->qiov.size,
+                         BLOCK_ACCT_WRITE);
+
+        blk_aio_writev(blk, ctx->offset >> 9, &ctx->qiov,
+                       ctx->qiov.size >> 9, aio_write_done, ctx);
+    }
     return 0;
 }
 
@@ -2103,6 +2139,7 @@ static int reopen_f(BlockBackend *blk, int argc, char **argv)
     QDict *opts;
     int c;
     int flags = bs->open_flags;
+    bool writethrough = !blk_enable_write_cache(blk);
 
     BlockReopenQueue *brq;
     Error *local_err = NULL;
@@ -2110,7 +2147,7 @@ static int reopen_f(BlockBackend *blk, int argc, char **argv)
     while ((c = getopt(argc, argv, "c:o:r")) != -1) {
         switch (c) {
         case 'c':
-            if (bdrv_parse_cache_flags(optarg, &flags) < 0) {
+            if (bdrv_parse_cache_mode(optarg, &flags, &writethrough) < 0) {
                 error_report("Invalid cache option: %s", optarg);
                 return 0;
             }
@@ -2135,6 +2172,14 @@ static int reopen_f(BlockBackend *blk, int argc, char **argv)
         return qemuio_command_usage(&reopen_cmd);
     }
 
+    if (writethrough != blk_enable_write_cache(blk) &&
+        blk_get_attached_dev(blk))
+    {
+        error_report("Cannot change cache.writeback: Device attached");
+        qemu_opts_reset(&reopen_opts);
+        return 0;
+    }
+
     qopts = qemu_opts_find(&reopen_opts, NULL);
     opts = qopts ? qemu_opts_to_qdict(qopts, NULL) : NULL;
     qemu_opts_reset(&reopen_opts);
@@ -2143,6 +2188,8 @@ static int reopen_f(BlockBackend *blk, int argc, char **argv)
     bdrv_reopen_multiple(brq, &local_err);
     if (local_err) {
         error_report_err(local_err);
+    } else {
+        blk_set_enable_write_cache(blk, !writethrough);
     }
 
     return 0;

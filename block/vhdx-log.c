@@ -17,6 +17,8 @@
  * See the COPYING.LIB file in the top-level directory.
  *
  */
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "block/block_int.h"
 #include "qemu/error-report.h"
@@ -784,12 +786,13 @@ int vhdx_parse_log(BlockDriverState *bs, BDRVVHDXState *s, bool *flushed,
     if (logs.valid) {
         if (bs->read_only) {
             ret = -EPERM;
-            error_setg_errno(errp, EPERM,
-                             "VHDX image file '%s' opened read-only, but "
-                             "contains a log that needs to be replayed.  To "
-                             "replay the log, execute:\n qemu-img check -r "
-                             "all '%s'",
-                             bs->filename, bs->filename);
+            error_setg(errp,
+                       "VHDX image file '%s' opened read-only, but "
+                       "contains a log that needs to be replayed",
+                       bs->filename);
+            error_append_hint(errp,  "To replay the log, run:\n"
+                              "qemu-img check -r all '%s'\n",
+                              bs->filename);
             goto exit;
         }
         /* now flush the log */

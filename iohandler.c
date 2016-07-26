@@ -22,7 +22,8 @@
  * THE SOFTWARE.
  */
 
-#include "config-host.h"
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "qemu/queue.h"
 #include "block/aio.h"
@@ -41,6 +42,12 @@ static void iohandler_init(void)
     if (!iohandler_ctx) {
         iohandler_ctx = aio_context_new(&error_abort);
     }
+}
+
+AioContext *iohandler_get_aio_context(void)
+{
+    iohandler_init();
+    return iohandler_ctx;
 }
 
 GSource *iohandler_get_g_source(void)

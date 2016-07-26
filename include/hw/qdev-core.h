@@ -3,11 +3,9 @@
 
 #include "qemu/queue.h"
 #include "qemu/option.h"
-#include "qemu/typedefs.h"
 #include "qemu/bitmap.h"
 #include "qom/object.h"
 #include "hw/irq.h"
-#include "qapi/error.h"
 #include "hw/hotplug.h"
 
 enum {
@@ -239,7 +237,7 @@ struct Property {
     PropertyInfo *info;
     ptrdiff_t    offset;
     uint8_t      bitnr;
-    qtype_code   qtype;
+    QType        qtype;
     int64_t      defval;
     int          arrayoffset;
     PropertyInfo *arrayinfo;

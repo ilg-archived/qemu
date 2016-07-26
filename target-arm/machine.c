@@ -1,3 +1,4 @@
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/boards.h"
 #include "qemu/error-report.h"
@@ -172,9 +173,7 @@ static int get_cpsr(QEMUFile *f, void *opaque, size_t size)
         return 0;
     }
 
-    /* Avoid mode switch when restoring CPSR */
-    env->uncached_cpsr = val & CPSR_M;
-    cpsr_write(env, val, 0xffffffff);
+    cpsr_write(env, val, 0xffffffff, CPSRWriteRaw);
     return 0;
 }
 
@@ -337,11 +336,11 @@ const char *gicv3_class_name(void)
         return "kvm-arm-gicv3";
 #else
         error_report("KVM GICv3 acceleration is not supported on this "
-                     "platform\n");
+                     "platform");
 #endif
     } else {
         /* TODO: Software emulation is not implemented yet */
-        error_report("KVM is currently required for GICv3 emulation\n");
+        error_report("KVM is currently required for GICv3 emulation");
     }
 
     exit(1);

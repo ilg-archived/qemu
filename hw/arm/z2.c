@@ -11,12 +11,13 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/arm/pxa.h"
 #include "hw/arm/arm.h"
 #include "hw/devices.h"
 #include "hw/i2c/i2c.h"
-#include "hw/ssi.h"
+#include "hw/ssi/ssi.h"
 #include "hw/boards.h"
 #include "sysemu/sysemu.h"
 #include "hw/block/flash.h"

@@ -326,5 +326,9 @@
 #define __NR_execveat 322
 #define __NR_userfaultfd 323
 #define __NR_membarrier 324
+#define __NR_mlock2 325
+#define __NR_copy_file_range 326
+#define __NR_preadv2 327
+#define __NR_pwritev2 328
 
 #endif /* _ASM_X86_UNISTD_64_H */

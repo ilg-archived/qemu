@@ -16,23 +16,21 @@
  *  You should have received a copy of the GNU General Public License
  *  along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
-#include <errno.h>
-#include <unistd.h>
+#include "qemu/osdep.h"
 #include <sys/mman.h>
 #include <sys/syscall.h>
 #include <sys/resource.h>
 
 #include "qemu.h"
-#include "qemu-common.h"
+#include "qemu/path.h"
+#include "qemu/cutils.h"
+#include "qemu/help_option.h"
 #include "cpu.h"
 #include "tcg.h"
 #include "qemu/timer.h"
 #include "qemu/envlist.h"
 #include "elf.h"
+#include "exec/log.h"
 
 char *exec_path;
 
@@ -45,6 +43,18 @@ static const char *cpu_model;
 unsigned long mmap_min_addr;
 unsigned long guest_base;
 int have_guest_base;
+
+#define EXCP_DUMP(env, fmt, ...)                                        \
+do {                                                                    \
+    CPUState *cs = ENV_GET_CPU(env);                                    \
+    fprintf(stderr, fmt , ## __VA_ARGS__);                              \
+    cpu_dump_state(cs, stderr, fprintf, 0);                             \
+    if (qemu_log_separate()) {                                          \
+        qemu_log(fmt, ## __VA_ARGS__);                                  \
+        log_cpu_state(cs, 0);                                           \
+    }                                                                   \
+} while (0)
+
 #if (TARGET_LONG_BITS == 32) && (HOST_LONG_BITS == 64)
 /*
  * When running 32-on-64 we should make sure we can fit all of the possible
@@ -416,8 +426,8 @@ void cpu_loop(CPUX86State *env)
             break;
         default:
             pc = env->segs[R_CS].base + env->eip;
-            fprintf(stderr, "qemu: 0x%08lx: unhandled CPU exception 0x%x - aborting\n",
-                    (long)pc, trapnr);
+            EXCP_DUMP(env, "qemu: 0x%08lx: unhandled CPU exception 0x%x - aborting\n",
+                      (long)pc, trapnr);
             abort();
         }
         process_pending_signals(env);
@@ -427,20 +437,52 @@ void cpu_loop(CPUX86State *env)
 
 #ifdef TARGET_ARM
 
-#define get_user_code_u32(x, gaddr, doswap)             \
+#define get_user_code_u32(x, gaddr, env)                \
     ({ abi_long __r = get_user_u32((x), (gaddr));       \
-        if (!__r && (doswap)) {                         \
+        if (!__r && bswap_code(arm_sctlr_b(env))) {     \
             (x) = bswap32(x);                           \
         }                                               \
         __r;                                            \
     })
 
-#define get_user_code_u16(x, gaddr, doswap)             \
+#define get_user_code_u16(x, gaddr, env)                \
     ({ abi_long __r = get_user_u16((x), (gaddr));       \
-        if (!__r && (doswap)) {                         \
+        if (!__r && bswap_code(arm_sctlr_b(env))) {     \
             (x) = bswap16(x);                           \
         }                                               \
         __r;                                            \
+    })
+
+#define get_user_data_u32(x, gaddr, env)                \
+    ({ abi_long __r = get_user_u32((x), (gaddr));       \
+        if (!__r && arm_cpu_bswap_data(env)) {          \
+            (x) = bswap32(x);                           \
+        }                                               \
+        __r;                                            \
+    })
+
+#define get_user_data_u16(x, gaddr, env)                \
+    ({ abi_long __r = get_user_u16((x), (gaddr));       \
+        if (!__r && arm_cpu_bswap_data(env)) {          \
+            (x) = bswap16(x);                           \
+        }                                               \
+        __r;                                            \
+    })
+
+#define put_user_data_u32(x, gaddr, env)                \
+    ({ typeof(x) __x = (x);                             \
+        if (arm_cpu_bswap_data(env)) {                  \
+            __x = bswap32(__x);                         \
+        }                                               \
+        put_user_u32(__x, (gaddr));                     \
+    })
+
+#define put_user_data_u16(x, gaddr, env)                \
+    ({ typeof(x) __x = (x);                             \
+        if (arm_cpu_bswap_data(env)) {                  \
+            __x = bswap16(__x);                         \
+        }                                               \
+        put_user_u16(__x, (gaddr));                     \
     })
 
 #ifdef TARGET_ABI32
@@ -505,7 +547,7 @@ static void arm_kernel_cmpxchg64_helper(CPUARMState *env)
         env->regs[0] = -1;
         cpsr &= ~CPSR_C;
     }
-    cpsr_write(env, cpsr, CPSR_C);
+    cpsr_write(env, cpsr, CPSR_C, CPSRWriteByInstr);
     end_exclusive();
     return;
 
@@ -554,7 +596,7 @@ do_kernel_trap(CPUARMState *env)
             env->regs[0] = -1;
             cpsr &= ~CPSR_C;
         }
-        cpsr_write(env, cpsr, CPSR_C);
+        cpsr_write(env, cpsr, CPSR_C, CPSRWriteByInstr);
         end_exclusive();
         break;
     case 0xffff0fe0: /* __kernel_get_tls */
@@ -602,11 +644,11 @@ static int do_strex(CPUARMState *env)
         segv = get_user_u8(val, addr);
         break;
     case 1:
-        segv = get_user_u16(val, addr);
+        segv = get_user_data_u16(val, addr, env);
         break;
     case 2:
     case 3:
-        segv = get_user_u32(val, addr);
+        segv = get_user_data_u32(val, addr, env);
         break;
     default:
         abort();
@@ -617,12 +659,16 @@ static int do_strex(CPUARMState *env)
     }
     if (size == 3) {
         uint32_t valhi;
-        segv = get_user_u32(valhi, addr + 4);
+        segv = get_user_data_u32(valhi, addr + 4, env);
         if (segv) {
             env->exception.vaddress = addr + 4;
             goto done;
         }
-        val = deposit64(val, 32, 32, valhi);
+        if (arm_cpu_bswap_data(env)) {
+            val = deposit64((uint64_t)valhi, 32, 32, val);
+        } else {
+            val = deposit64(val, 32, 32, valhi);
+        }
     }
     if (val != env->exclusive_val) {
         goto fail;
@@ -634,11 +680,11 @@ static int do_strex(CPUARMState *env)
         segv = put_user_u8(val, addr);
         break;
     case 1:
-        segv = put_user_u16(val, addr);
+        segv = put_user_data_u16(val, addr, env);
         break;
     case 2:
     case 3:
-        segv = put_user_u32(val, addr);
+        segv = put_user_data_u32(val, addr, env);
         break;
     }
     if (segv) {
@@ -647,7 +693,7 @@ static int do_strex(CPUARMState *env)
     }
     if (size == 3) {
         val = env->regs[(env->exclusive_info >> 12) & 0xf];
-        segv = put_user_u32(val, addr + 4);
+        segv = put_user_data_u32(val, addr + 4, env);
         if (segv) {
             env->exception.vaddress = addr + 4;
             goto done;
@@ -684,7 +730,7 @@ void cpu_loop(CPUARMState *env)
                 /* we handle the FPU emulation here, as Linux */
                 /* we get the opcode */
                 /* FIXME - what to do if get_user() fails? */
-                get_user_code_u32(opcode, env->regs[15], env->bswap_code);
+                get_user_code_u32(opcode, env->regs[15], env);
 
                 rc = EmulateAll(opcode, &ts->fpa, env);
                 if (rc == 0) { /* illegal instruction */
@@ -754,25 +800,23 @@ void cpu_loop(CPUARMState *env)
                 if (trapnr == EXCP_BKPT) {
                     if (env->thumb) {
                         /* FIXME - what to do if get_user() fails? */
-                        get_user_code_u16(insn, env->regs[15], env->bswap_code);
+                        get_user_code_u16(insn, env->regs[15], env);
                         n = insn & 0xff;
                         env->regs[15] += 2;
                     } else {
                         /* FIXME - what to do if get_user() fails? */
-                        get_user_code_u32(insn, env->regs[15], env->bswap_code);
+                        get_user_code_u32(insn, env->regs[15], env);
                         n = (insn & 0xf) | ((insn >> 4) & 0xff0);
                         env->regs[15] += 4;
                     }
                 } else {
                     if (env->thumb) {
                         /* FIXME - what to do if get_user() fails? */
-                        get_user_code_u16(insn, env->regs[15] - 2,
-                                          env->bswap_code);
+                        get_user_code_u16(insn, env->regs[15] - 2, env);
                         n = insn & 0xff;
                     } else {
                         /* FIXME - what to do if get_user() fails? */
-                        get_user_code_u32(insn, env->regs[15] - 4,
-                                          env->bswap_code);
+                        get_user_code_u32(insn, env->regs[15] - 4, env);
                         n = insn & 0xffffff;
                     }
                 }
@@ -863,11 +907,12 @@ void cpu_loop(CPUARMState *env)
             if (do_kernel_trap(env))
               goto error;
             break;
+        case EXCP_YIELD:
+            /* nothing to do here for user-mode, just resume guest code */
+            break;
         default:
         error:
-            fprintf(stderr, "qemu: unhandled CPU exception 0x%x - aborting\n",
-                    trapnr);
-            cpu_dump_state(cs, stderr, fprintf, 0);
+            EXCP_DUMP(env, "qemu: unhandled CPU exception 0x%x - aborting\n", trapnr);
             abort();
         }
         process_pending_signals(env);
@@ -1055,10 +1100,11 @@ void cpu_loop(CPUARMState *env)
         case EXCP_SEMIHOST:
             env->xregs[0] = do_arm_semihosting(env);
             break;
+        case EXCP_YIELD:
+            /* nothing to do here for user-mode, just resume guest code */
+            break;
         default:
-            fprintf(stderr, "qemu: unhandled CPU exception 0x%x - aborting\n",
-                    trapnr);
-            cpu_dump_state(cs, stderr, fprintf, 0);
+            EXCP_DUMP(env, "qemu: unhandled CPU exception 0x%x - aborting\n", trapnr);
             abort();
         }
         process_pending_signals(env);
@@ -1148,8 +1194,7 @@ void cpu_loop(CPUUniCore32State *env)
     }
 
 error:
-    fprintf(stderr, "qemu: unhandled CPU exception 0x%x - aborting\n", trapnr);
-    cpu_dump_state(cs, stderr, fprintf, 0);
+    EXCP_DUMP(env, "qemu: unhandled CPU exception 0x%x - aborting\n", trapnr);
     abort();
 }
 #endif
@@ -1466,17 +1511,6 @@ int ppc_dcr_write (ppc_dcr_t *dcr_env, int dcrn, uint32_t val)
 {
     return -1;
 }
-
-#define EXCP_DUMP(env, fmt, ...)                                        \
-do {                                                                    \
-    CPUState *cs = ENV_GET_CPU(env);                                    \
-    fprintf(stderr, fmt , ## __VA_ARGS__);                              \
-    cpu_dump_state(cs, stderr, fprintf, 0);                             \
-    qemu_log(fmt, ## __VA_ARGS__);                                      \
-    if (qemu_log_enabled()) {                                           \
-        log_cpu_state(cs, 0);                                           \
-    }                                                                   \
-} while (0)
 
 static int do_store_exclusive(CPUPPCState *env)
 {
@@ -2636,9 +2670,7 @@ done_syscall:
             break;
         default:
 error:
-            fprintf(stderr, "qemu: unhandled CPU exception 0x%x - aborting\n",
-                    trapnr);
-            cpu_dump_state(cs, stderr, fprintf, 0);
+            EXCP_DUMP(env, "qemu: unhandled CPU exception 0x%x - aborting\n", trapnr);
             abort();
         }
         process_pending_signals(env);
@@ -2661,11 +2693,11 @@ void cpu_loop(CPUOpenRISCState *env)
 
         switch (trapnr) {
         case EXCP_RESET:
-            qemu_log("\nReset request, exit, pc is %#x\n", env->pc);
+            qemu_log_mask(CPU_LOG_INT, "\nReset request, exit, pc is %#x\n", env->pc);
             exit(EXIT_FAILURE);
             break;
         case EXCP_BUSERR:
-            qemu_log("\nBus error, exit, pc is %#x\n", env->pc);
+            qemu_log_mask(CPU_LOG_INT, "\nBus error, exit, pc is %#x\n", env->pc);
             gdbsig = TARGET_SIGBUS;
             break;
         case EXCP_DPF:
@@ -2674,25 +2706,25 @@ void cpu_loop(CPUOpenRISCState *env)
             gdbsig = TARGET_SIGSEGV;
             break;
         case EXCP_TICK:
-            qemu_log("\nTick time interrupt pc is %#x\n", env->pc);
+            qemu_log_mask(CPU_LOG_INT, "\nTick time interrupt pc is %#x\n", env->pc);
             break;
         case EXCP_ALIGN:
-            qemu_log("\nAlignment pc is %#x\n", env->pc);
+            qemu_log_mask(CPU_LOG_INT, "\nAlignment pc is %#x\n", env->pc);
             gdbsig = TARGET_SIGBUS;
             break;
         case EXCP_ILLEGAL:
-            qemu_log("\nIllegal instructionpc is %#x\n", env->pc);
+            qemu_log_mask(CPU_LOG_INT, "\nIllegal instructionpc is %#x\n", env->pc);
             gdbsig = TARGET_SIGILL;
             break;
         case EXCP_INT:
-            qemu_log("\nExternal interruptpc is %#x\n", env->pc);
+            qemu_log_mask(CPU_LOG_INT, "\nExternal interruptpc is %#x\n", env->pc);
             break;
         case EXCP_DTLBMISS:
         case EXCP_ITLBMISS:
-            qemu_log("\nTLB miss\n");
+            qemu_log_mask(CPU_LOG_INT, "\nTLB miss\n");
             break;
         case EXCP_RANGE:
-            qemu_log("\nRange\n");
+            qemu_log_mask(CPU_LOG_INT, "\nRange\n");
             gdbsig = TARGET_SIGSEGV;
             break;
         case EXCP_SYSCALL:
@@ -2707,19 +2739,18 @@ void cpu_loop(CPUOpenRISCState *env)
                                       env->gpr[8], 0, 0);
             break;
         case EXCP_FPE:
-            qemu_log("\nFloating point error\n");
+            qemu_log_mask(CPU_LOG_INT, "\nFloating point error\n");
             break;
         case EXCP_TRAP:
-            qemu_log("\nTrap\n");
+            qemu_log_mask(CPU_LOG_INT, "\nTrap\n");
             gdbsig = TARGET_SIGTRAP;
             break;
         case EXCP_NR:
-            qemu_log("\nNR\n");
+            qemu_log_mask(CPU_LOG_INT, "\nNR\n");
             break;
         default:
-            qemu_log("\nqemu: unhandled CPU exception %#x - aborting\n",
+            EXCP_DUMP(env, "\nqemu: unhandled CPU exception %#x - aborting\n",
                      trapnr);
-            cpu_dump_state(cs, stderr, fprintf, 0);
             gdbsig = TARGET_SIGILL;
             break;
         }
@@ -3047,9 +3078,7 @@ void cpu_loop(CPUM68KState *env)
             }
             break;
         default:
-            fprintf(stderr, "qemu: unhandled CPU exception 0x%x - aborting\n",
-                    trapnr);
-            cpu_dump_state(cs, stderr, fprintf, 0);
+            EXCP_DUMP(env, "qemu: unhandled CPU exception 0x%x - aborting\n", trapnr);
             abort();
         }
         process_pending_signals(env);
@@ -4173,7 +4202,7 @@ int main(int argc, char **argv, char **envp)
         cpu_model = "or1200";
 #elif defined(TARGET_PPC)
 # ifdef TARGET_PPC64
-        cpu_model = "POWER7";
+        cpu_model = "POWER8";
 # else
         cpu_model = "750";
 # endif
@@ -4241,7 +4270,7 @@ int main(int argc, char **argv, char **envp)
             unsigned long tmp;
             if (fscanf(fp, "%lu", &tmp) == 1) {
                 mmap_min_addr = tmp;
-                qemu_log("host mmap_min_addr=0x%lx\n", mmap_min_addr);
+                qemu_log_mask(CPU_LOG_PAGE, "host mmap_min_addr=0x%lx\n", mmap_min_addr);
             }
             fclose(fp);
         }
@@ -4300,7 +4329,7 @@ int main(int argc, char **argv, char **envp)
 
     free(target_environ);
 
-    if (qemu_log_enabled()) {
+    if (qemu_loglevel_mask(CPU_LOG_PAGE)) {
         qemu_log("guest_base  0x%lx\n", guest_base);
         log_page_dump();
 
@@ -4459,15 +4488,21 @@ int main(int argc, char **argv, char **envp)
 #elif defined(TARGET_ARM)
     {
         int i;
-        cpsr_write(env, regs->uregs[16], 0xffffffff);
+        cpsr_write(env, regs->uregs[16], CPSR_USER | CPSR_EXEC,
+                   CPSRWriteByInstr);
         for(i = 0; i < 16; i++) {
             env->regs[i] = regs->uregs[i];
         }
+#ifdef TARGET_WORDS_BIGENDIAN
         /* Enable BE8.  */
         if (EF_ARM_EABI_VERSION(info->elf_flags) >= EF_ARM_EABI_VER4
             && (info->elf_flags & EF_ARM_BE8)) {
-            env->bswap_code = 1;
+            env->uncached_cpsr |= CPSR_E;
+            env->cp15.sctlr_el[1] |= SCTLR_E0E;
+        } else {
+            env->cp15.sctlr_el[1] |= SCTLR_B;
         }
+#endif
     }
 #elif defined(TARGET_UNICORE32)
     {

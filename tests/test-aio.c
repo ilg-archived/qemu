@@ -10,8 +10,10 @@
  * See the COPYING.LIB file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include <glib.h>
 #include "block/aio.h"
+#include "qapi/error.h"
 #include "qemu/timer.h"
 #include "qemu/sockets.h"
 #include "qemu/error-report.h"
@@ -832,9 +834,7 @@ int main(int argc, char **argv)
 
     ctx = aio_context_new(&local_error);
     if (!ctx) {
-        error_report("Failed to create AIO Context: '%s'",
-                     error_get_pretty(local_error));
-        error_free(local_error);
+        error_reportf_err(local_error, "Failed to create AIO Context: ");
         exit(1);
     }
     src = aio_get_g_source(ctx);

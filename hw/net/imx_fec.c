@@ -21,6 +21,7 @@
  *  with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/net/imx_fec.h"
 #include "sysemu/dma.h"
 
@@ -692,6 +693,7 @@ static void imx_fec_class_init(ObjectClass *klass, void *data)
     dc->reset = imx_fec_reset;
     dc->props = imx_fec_properties;
     dc->realize = imx_fec_realize;
+    dc->desc = "i.MX FEC Ethernet Controller";
 }
 
 static const TypeInfo imx_fec_info = {

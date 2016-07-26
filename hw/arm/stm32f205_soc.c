@@ -22,6 +22,10 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/arm/arm.h"
 #include "exec/address-spaces.h"
 #include "hw/arm/stm32f205_soc.h"

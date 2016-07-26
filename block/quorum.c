@@ -13,6 +13,7 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include "block/block_int.h"
 #include "qapi/qmp/qbool.h"
 #include "qapi/qmp/qdict.h"
@@ -214,14 +215,16 @@ static QuorumAIOCB *quorum_aio_get(BDRVQuorumState *s,
     return acb;
 }
 
-static void quorum_report_bad(QuorumAIOCB *acb, char *node_name, int ret)
+static void quorum_report_bad(QuorumOpType type, uint64_t sector_num,
+                              int nb_sectors, char *node_name, int ret)
 {
     const char *msg = NULL;
     if (ret < 0) {
         msg = strerror(-ret);
     }
-    qapi_event_send_quorum_report_bad(!!msg, msg, node_name,
-                                      acb->sector_num, acb->nb_sectors, &error_abort);
+
+    qapi_event_send_quorum_report_bad(type, !!msg, msg, node_name,
+                                      sector_num, nb_sectors, &error_abort);
 }
 
 static void quorum_report_failure(QuorumAIOCB *acb)
@@ -283,9 +286,19 @@ static void quorum_aio_cb(void *opaque, int ret)
     BDRVQuorumState *s = acb->common.bs->opaque;
     bool rewrite = false;
 
+    if (ret == 0) {
+        acb->success_count++;
+    } else {
+        QuorumOpType type;
+        type = acb->is_read ? QUORUM_OP_TYPE_READ : QUORUM_OP_TYPE_WRITE;
+        quorum_report_bad(type, acb->sector_num, acb->nb_sectors,
+                          sacb->aiocb->bs->node_name, ret);
+    }
+
     if (acb->is_read && s->read_pattern == QUORUM_READ_PATTERN_FIFO) {
         /* We try to read next child in FIFO order if we fail to read */
-        if (ret < 0 && ++acb->child_iter < s->num_children) {
+        if (ret < 0 && (acb->child_iter + 1) < s->num_children) {
+            acb->child_iter++;
             read_fifo_child(acb);
             return;
         }
@@ -300,11 +313,6 @@ static void quorum_aio_cb(void *opaque, int ret)
 
     sacb->ret = ret;
     acb->count++;
-    if (ret == 0) {
-        acb->success_count++;
-    } else {
-        quorum_report_bad(acb, sacb->aiocb->bs->node_name, ret);
-    }
     assert(acb->count <= s->num_children);
     assert(acb->success_count <= s->num_children);
     if (acb->count < s->num_children) {
@@ -336,7 +344,9 @@ static void quorum_report_bad_versions(BDRVQuorumState *s,
             continue;
         }
         QLIST_FOREACH(item, &version->items, next) {
-            quorum_report_bad(acb, s->children[item->index]->bs->node_name, 0);
+            quorum_report_bad(QUORUM_OP_TYPE_READ, acb->sector_num,
+                              acb->nb_sectors,
+                              s->children[item->index]->bs->node_name, 0);
         }
     }
 }
@@ -760,19 +770,30 @@ static coroutine_fn int quorum_co_flush(BlockDriverState *bs)
     QuorumVoteValue result_value;
     int i;
     int result = 0;
+    int success_count = 0;
 
     QLIST_INIT(&error_votes.vote_list);
     error_votes.compare = quorum_64bits_compare;
 
     for (i = 0; i < s->num_children; i++) {
         result = bdrv_co_flush(s->children[i]->bs);
-        result_value.l = result;
-        quorum_count_vote(&error_votes, &result_value, i);
+        if (result) {
+            quorum_report_bad(QUORUM_OP_TYPE_FLUSH, 0,
+                              bdrv_nb_sectors(s->children[i]->bs),
+                              s->children[i]->bs->node_name, result);
+            result_value.l = result;
+            quorum_count_vote(&error_votes, &result_value, i);
+        } else {
+            success_count++;
+        }
     }
 
-    winner = quorum_get_vote_winner(&error_votes);
-    result = winner->value.l;
-
+    if (success_count >= s->threshold) {
+        result = 0;
+    } else {
+        winner = quorum_get_vote_winner(&error_votes);
+        result = winner->value.l;
+    }
     quorum_free_vote_list(&error_votes);
 
     return result;
@@ -849,7 +870,7 @@ static int parse_read_pattern(const char *opt)
         return QUORUM_READ_PATTERN_QUORUM;
     }
 
-    for (i = 0; i < QUORUM_READ_PATTERN_MAX; i++) {
+    for (i = 0; i < QUORUM_READ_PATTERN__MAX; i++) {
         if (!strcmp(opt, QuorumReadPattern_lookup[i])) {
             return i;
         }
@@ -999,7 +1020,7 @@ static void quorum_attach_aio_context(BlockDriverState *bs,
     }
 }
 
-static void quorum_refresh_filename(BlockDriverState *bs)
+static void quorum_refresh_filename(BlockDriverState *bs, QDict *options)
 {
     BDRVQuorumState *s = bs->opaque;
     QDict *opts;

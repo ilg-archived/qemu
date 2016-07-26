@@ -15,8 +15,11 @@
  *
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "block/block_int.h"
+#include "sysemu/block-backend.h"
 #include "qemu/module.h"
 #include "qemu/crc32c.h"
 #include "block/vhdx.h"
@@ -263,10 +266,10 @@ static void vhdx_region_unregister_all(BDRVVHDXState *s)
 
 static void vhdx_set_shift_bits(BDRVVHDXState *s)
 {
-    s->logical_sector_size_bits = 31 - clz32(s->logical_sector_size);
-    s->sectors_per_block_bits =   31 - clz32(s->sectors_per_block);
-    s->chunk_ratio_bits =         63 - clz64(s->chunk_ratio);
-    s->block_size_bits =          31 - clz32(s->block_size);
+    s->logical_sector_size_bits = ctz32(s->logical_sector_size);
+    s->sectors_per_block_bits =   ctz32(s->sectors_per_block);
+    s->chunk_ratio_bits =         ctz64(s->chunk_ratio);
+    s->block_size_bits =          ctz32(s->block_size);
 }
 
 /*
@@ -856,14 +859,8 @@ static void vhdx_calc_bat_entries(BDRVVHDXState *s)
 {
     uint32_t data_blocks_cnt, bitmap_blocks_cnt;
 
-    data_blocks_cnt = s->virtual_disk_size >> s->block_size_bits;
-    if (s->virtual_disk_size - (data_blocks_cnt << s->block_size_bits)) {
-        data_blocks_cnt++;
-    }
-    bitmap_blocks_cnt = data_blocks_cnt >> s->chunk_ratio_bits;
-    if (data_blocks_cnt - (bitmap_blocks_cnt << s->chunk_ratio_bits)) {
-        bitmap_blocks_cnt++;
-    }
+    data_blocks_cnt = DIV_ROUND_UP(s->virtual_disk_size, s->block_size);
+    bitmap_blocks_cnt = DIV_ROUND_UP(data_blocks_cnt, s->chunk_ratio);
 
     if (s->parent_entries) {
         s->bat_entries = bitmap_blocks_cnt * (s->chunk_ratio + 1);
@@ -1777,7 +1774,7 @@ static int vhdx_create(const char *filename, QemuOpts *opts, Error **errp)
 
     gunichar2 *creator = NULL;
     glong creator_items;
-    BlockDriverState *bs;
+    BlockBackend *blk;
     char *type = NULL;
     VHDXImageType image_type;
     Error *local_err = NULL;
@@ -1842,13 +1839,15 @@ static int vhdx_create(const char *filename, QemuOpts *opts, Error **errp)
         goto exit;
     }
 
-    bs = NULL;
-    ret = bdrv_open(&bs, filename, NULL, NULL, BDRV_O_RDWR | BDRV_O_PROTOCOL,
-                    &local_err);
-    if (ret < 0) {
+    blk = blk_new_open(filename, NULL, NULL,
+                       BDRV_O_RDWR | BDRV_O_PROTOCOL, &local_err);
+    if (blk == NULL) {
         error_propagate(errp, local_err);
+        ret = -EIO;
         goto exit;
     }
+
+    blk_set_allow_write_beyond_eof(blk, true);
 
     /* Create (A) */
 
@@ -1857,13 +1856,13 @@ static int vhdx_create(const char *filename, QemuOpts *opts, Error **errp)
     creator = g_utf8_to_utf16("QEMU v" QEMU_VERSION, -1, NULL,
                               &creator_items, NULL);
     signature = cpu_to_le64(VHDX_FILE_SIGNATURE);
-    ret = bdrv_pwrite(bs, VHDX_FILE_ID_OFFSET, &signature, sizeof(signature));
+    ret = blk_pwrite(blk, VHDX_FILE_ID_OFFSET, &signature, sizeof(signature));
     if (ret < 0) {
         goto delete_and_exit;
     }
     if (creator) {
-        ret = bdrv_pwrite(bs, VHDX_FILE_ID_OFFSET + sizeof(signature),
-                          creator, creator_items * sizeof(gunichar2));
+        ret = blk_pwrite(blk, VHDX_FILE_ID_OFFSET + sizeof(signature),
+                         creator, creator_items * sizeof(gunichar2));
         if (ret < 0) {
             goto delete_and_exit;
         }
@@ -1871,13 +1870,13 @@ static int vhdx_create(const char *filename, QemuOpts *opts, Error **errp)
 
 
     /* Creates (B),(C) */
-    ret = vhdx_create_new_headers(bs, image_size, log_size);
+    ret = vhdx_create_new_headers(blk_bs(blk), image_size, log_size);
     if (ret < 0) {
         goto delete_and_exit;
     }
 
     /* Creates (D),(E),(G) explicitly. (F) created as by-product */
-    ret = vhdx_create_new_region_table(bs, image_size, block_size, 512,
+    ret = vhdx_create_new_region_table(blk_bs(blk), image_size, block_size, 512,
                                        log_size, use_zero_blocks, image_type,
                                        &metadata_offset);
     if (ret < 0) {
@@ -1885,7 +1884,7 @@ static int vhdx_create(const char *filename, QemuOpts *opts, Error **errp)
     }
 
     /* Creates (H) */
-    ret = vhdx_create_new_metadata(bs, image_size, block_size, 512,
+    ret = vhdx_create_new_metadata(blk_bs(blk), image_size, block_size, 512,
                                    metadata_offset, image_type);
     if (ret < 0) {
         goto delete_and_exit;
@@ -1893,7 +1892,7 @@ static int vhdx_create(const char *filename, QemuOpts *opts, Error **errp)
 
 
 delete_and_exit:
-    bdrv_unref(bs);
+    blk_unref(blk);
 exit:
     g_free(type);
     g_free(creator);

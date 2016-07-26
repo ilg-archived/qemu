@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/ppc/mac.h"
 #include "hw/pci/pci.h"
@@ -119,7 +120,7 @@ static void unin_data_write(void *opaque, hwaddr addr,
 {
     UNINState *s = opaque;
     PCIHostState *phb = PCI_HOST_BRIDGE(s);
-    UNIN_DPRINTF("write addr %" TARGET_FMT_plx " len %d val %"PRIx64"\n",
+    UNIN_DPRINTF("write addr " TARGET_FMT_plx " len %d val %"PRIx64"\n",
                  addr, len, val);
     pci_data_write(phb->bus,
                    unin_get_config_reg(phb->config_reg, addr),
@@ -136,7 +137,7 @@ static uint64_t unin_data_read(void *opaque, hwaddr addr,
     val = pci_data_read(phb->bus,
                         unin_get_config_reg(phb->config_reg, addr),
                         len);
-    UNIN_DPRINTF("read addr %" TARGET_FMT_plx " len %d val %x\n",
+    UNIN_DPRINTF("read addr " TARGET_FMT_plx " len %d val %x\n",
                  addr, len, val);
     return val;
 }
@@ -330,6 +331,15 @@ static void unin_agp_pci_host_realize(PCIDevice *d, Error **errp)
     d->config[0x0C] = 0x08; // cache_line_size
     d->config[0x0D] = 0x10; // latency_timer
     //    d->config[0x34] = 0x80; // capabilities_pointer
+    /*
+     * Set kMacRISCPCIAddressSelect (0x48) register to indicate PCI
+     * memory space with base 0x80000000, size 0x10000000 for Apple's
+     * AppleMacRiscPCI driver
+     */
+    d->config[0x48] = 0x0;
+    d->config[0x49] = 0x0;
+    d->config[0x4a] = 0x0;
+    d->config[0x4b] = 0x1;
 }
 
 static void u3_agp_pci_host_realize(PCIDevice *d, Error **errp)

@@ -18,13 +18,33 @@
  *
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "crypto/hash.h"
 
 #ifdef CONFIG_GNUTLS_HASH
 #include <gnutls/gnutls.h>
 #include <gnutls/crypto.h>
+#endif
 
-static int qcrypto_hash_alg_map[QCRYPTO_HASH_ALG_LAST] = {
+
+static size_t qcrypto_hash_alg_size[QCRYPTO_HASH_ALG__MAX] = {
+    [QCRYPTO_HASH_ALG_MD5] = 16,
+    [QCRYPTO_HASH_ALG_SHA1] = 20,
+    [QCRYPTO_HASH_ALG_SHA256] = 32,
+};
+
+size_t qcrypto_hash_digest_len(QCryptoHashAlgorithm alg)
+{
+    if (alg >= G_N_ELEMENTS(qcrypto_hash_alg_size)) {
+        return 0;
+    }
+    return qcrypto_hash_alg_size[alg];
+}
+
+
+#ifdef CONFIG_GNUTLS_HASH
+static int qcrypto_hash_alg_map[QCRYPTO_HASH_ALG__MAX] = {
     [QCRYPTO_HASH_ALG_MD5] = GNUTLS_DIG_MD5,
     [QCRYPTO_HASH_ALG_SHA1] = GNUTLS_DIG_SHA1,
     [QCRYPTO_HASH_ALG_SHA256] = GNUTLS_DIG_SHA256,
@@ -37,6 +57,7 @@ gboolean qcrypto_hash_supports(QCryptoHashAlgorithm alg)
     }
     return false;
 }
+
 
 int qcrypto_hash_bytesv(QCryptoHashAlgorithm alg,
                         const struct iovec *iov,

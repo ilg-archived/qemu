@@ -21,6 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "sysemu/char.h"
 #include "qemu/timer.h"
@@ -335,7 +337,7 @@ static int baum_eat_packet(BaumDriverState *baum, const uint8_t *buf, int len)
 
         /* Allow 100ms to complete the DisplayData packet */
         timer_mod(baum->cellCount_timer, qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                       get_ticks_per_sec() / 10);
+                       NANOSECONDS_PER_SECOND / 10);
         for (i = 0; i < baum->x * baum->y ; i++) {
             EAT(c);
             cells[i] = c;
@@ -566,6 +568,7 @@ static CharDriverState *chr_baum_init(const char *id,
                                       ChardevReturn *ret,
                                       Error **errp)
 {
+    ChardevCommon *common = backend->u.braille.data;
     BaumDriverState *baum;
     CharDriverState *chr;
     brlapi_handle_t *handle;
@@ -576,8 +579,12 @@ static CharDriverState *chr_baum_init(const char *id,
 #endif
     int tty;
 
+    chr = qemu_chr_alloc(common, errp);
+    if (!chr) {
+        return NULL;
+    }
     baum = g_malloc0(sizeof(BaumDriverState));
-    baum->chr = chr = qemu_chr_alloc();
+    baum->chr = chr;
 
     chr->opaque = baum;
     chr->chr_write = baum_write;

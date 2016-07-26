@@ -17,6 +17,8 @@
  *
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "hw/sysbus.h"
 #include "hw/arm/arm.h"
 #include "hw/devices.h"
@@ -34,49 +36,16 @@
 #define MPCORE_PERIPHBASE       0xfff10000
 
 #define MVBAR_ADDR              0x200
+#define BOARD_SETUP_ADDR        (MVBAR_ADDR + 8 * sizeof(uint32_t))
 
 #define NIRQ_GIC                160
 
 /* Board init.  */
 
-/* MVBAR_ADDR is limited by precision of movw */
-
-QEMU_BUILD_BUG_ON(MVBAR_ADDR >= (1 << 16));
-
-#define ARMV7_IMM16(x) (extract32((x),  0, 12) | \
-                        extract32((x), 12,  4) << 16)
-
 static void hb_write_board_setup(ARMCPU *cpu,
                                  const struct arm_boot_info *info)
 {
-    int n;
-    uint32_t board_setup_blob[] = {
-        /* MVBAR_ADDR */
-        /* Default unimplemented and unused vectors to spin. Makes it
-         * easier to debug (as opposed to the CPU running away).
-         */
-        0xeafffffe, /* notused1: b notused */
-        0xeafffffe, /* notused2: b notused */
-        0xe1b0f00e, /* smc: movs pc, lr - exception return */
-        0xeafffffe, /* prefetch_abort: b prefetch_abort */
-        0xeafffffe, /* data_abort: b data_abort */
-        0xeafffffe, /* notused3: b notused3 */
-        0xeafffffe, /* irq: b irq */
-        0xeafffffe, /* fiq: b fiq */
-#define BOARD_SETUP_ADDR (MVBAR_ADDR + 8 * sizeof(uint32_t))
-        0xe3000000 + ARMV7_IMM16(MVBAR_ADDR), /* movw r0, MVBAR_ADDR */
-        0xee0c0f30, /* mcr p15, 0, r0, c12, c0, 1 - set MVBAR */
-        0xee110f11, /* mrc p15, 0, r0, c1 , c1, 0 - get SCR */
-        0xe3810001, /* orr r0, #1 - set NS */
-        0xee010f11, /* mcr p15, 0, r0, c1 , c1, 0 - set SCR */
-        0xe1600070, /* smc - go to monitor mode to flush NS change */
-        0xe12fff1e, /* bx lr - return to caller */
-    };
-    for (n = 0; n < ARRAY_SIZE(board_setup_blob); n++) {
-        board_setup_blob[n] = tswap32(board_setup_blob[n]);
-    }
-    rom_add_blob_fixed("board-setup", board_setup_blob,
-                       sizeof(board_setup_blob), MVBAR_ADDR);
+    arm_write_secure_board_setup_dummy_smc(cpu, info, MVBAR_ADDR);
 }
 
 static void hb_write_secondary(ARMCPU *cpu, const struct arm_boot_info *info)
@@ -279,7 +248,6 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
         ObjectClass *oc = cpu_class_by_name(TYPE_ARM_CPU, cpu_model);
         Object *cpuobj;
         ARMCPU *cpu;
-        Error *err = NULL;
 
         cpuobj = object_new(object_class_get_name(oc));
         cpu = ARM_CPU(cpuobj);
@@ -297,11 +265,7 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
             object_property_set_int(cpuobj, MPCORE_PERIPHBASE,
                                     "reset-cbar", &error_abort);
         }
-        object_property_set_bool(cpuobj, true, "realized", &err);
-        if (err) {
-            error_report_err(err);
-            exit(1);
-        }
+        object_property_set_bool(cpuobj, true, "realized", &error_fatal);
         cpu_irq[n] = qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_IRQ);
         cpu_fiq[n] = qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_FIQ);
     }
@@ -320,11 +284,13 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
         sysboot_filename = qemu_find_file(QEMU_FILE_TYPE_BIOS, bios_name);
         if (sysboot_filename != NULL) {
             if (load_image_targphys(sysboot_filename, 0xfff88000, 0x8000) < 0) {
-                hw_error("Unable to load %s\n", bios_name);
+                error_report("Unable to load %s", bios_name);
+                exit(1);
             }
             g_free(sysboot_filename);
         } else {
-           hw_error("Unable to find %s\n", bios_name);
+            error_report("Unable to find %s", bios_name);
+            exit(1);
         }
     }
 
@@ -472,4 +438,4 @@ static void calxeda_machines_init(void)
     type_register_static(&midway_type);
 }
 
-machine_init(calxeda_machines_init)
+type_init(calxeda_machines_init)

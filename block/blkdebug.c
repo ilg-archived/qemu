@@ -22,7 +22,9 @@
  * THE SOFTWARE.
  */
 
-#include "qemu-common.h"
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu/cutils.h"
 #include "qemu/config-file.h"
 #include "block/block_int.h"
 #include "qemu/module.h"
@@ -36,7 +38,7 @@ typedef struct BDRVBlkdebugState {
     int state;
     int new_state;
 
-    QLIST_HEAD(, BlkdebugRule) rules[BLKDBG_EVENT_MAX];
+    QLIST_HEAD(, BlkdebugRule) rules[BLKDBG__MAX];
     QSIMPLEQ_HEAD(, BlkdebugRule) active_rules;
     QLIST_HEAD(, BlkdebugSuspendedReq) suspended_reqs;
 } BDRVBlkdebugState;
@@ -64,7 +66,7 @@ enum {
 };
 
 typedef struct BlkdebugRule {
-    BlkDebugEvent event;
+    BlkdebugEvent event;
     int action;
     int state;
     union {
@@ -143,69 +145,12 @@ static QemuOptsList *config_groups[] = {
     NULL
 };
 
-static const char *event_names[BLKDBG_EVENT_MAX] = {
-    [BLKDBG_L1_UPDATE]                      = "l1_update",
-    [BLKDBG_L1_GROW_ALLOC_TABLE]            = "l1_grow.alloc_table",
-    [BLKDBG_L1_GROW_WRITE_TABLE]            = "l1_grow.write_table",
-    [BLKDBG_L1_GROW_ACTIVATE_TABLE]         = "l1_grow.activate_table",
-
-    [BLKDBG_L2_LOAD]                        = "l2_load",
-    [BLKDBG_L2_UPDATE]                      = "l2_update",
-    [BLKDBG_L2_UPDATE_COMPRESSED]           = "l2_update_compressed",
-    [BLKDBG_L2_ALLOC_COW_READ]              = "l2_alloc.cow_read",
-    [BLKDBG_L2_ALLOC_WRITE]                 = "l2_alloc.write",
-
-    [BLKDBG_READ_AIO]                       = "read_aio",
-    [BLKDBG_READ_BACKING_AIO]               = "read_backing_aio",
-    [BLKDBG_READ_COMPRESSED]                = "read_compressed",
-
-    [BLKDBG_WRITE_AIO]                      = "write_aio",
-    [BLKDBG_WRITE_COMPRESSED]               = "write_compressed",
-
-    [BLKDBG_VMSTATE_LOAD]                   = "vmstate_load",
-    [BLKDBG_VMSTATE_SAVE]                   = "vmstate_save",
-
-    [BLKDBG_COW_READ]                       = "cow_read",
-    [BLKDBG_COW_WRITE]                      = "cow_write",
-
-    [BLKDBG_REFTABLE_LOAD]                  = "reftable_load",
-    [BLKDBG_REFTABLE_GROW]                  = "reftable_grow",
-    [BLKDBG_REFTABLE_UPDATE]                = "reftable_update",
-
-    [BLKDBG_REFBLOCK_LOAD]                  = "refblock_load",
-    [BLKDBG_REFBLOCK_UPDATE]                = "refblock_update",
-    [BLKDBG_REFBLOCK_UPDATE_PART]           = "refblock_update_part",
-    [BLKDBG_REFBLOCK_ALLOC]                 = "refblock_alloc",
-    [BLKDBG_REFBLOCK_ALLOC_HOOKUP]          = "refblock_alloc.hookup",
-    [BLKDBG_REFBLOCK_ALLOC_WRITE]           = "refblock_alloc.write",
-    [BLKDBG_REFBLOCK_ALLOC_WRITE_BLOCKS]    = "refblock_alloc.write_blocks",
-    [BLKDBG_REFBLOCK_ALLOC_WRITE_TABLE]     = "refblock_alloc.write_table",
-    [BLKDBG_REFBLOCK_ALLOC_SWITCH_TABLE]    = "refblock_alloc.switch_table",
-
-    [BLKDBG_CLUSTER_ALLOC]                  = "cluster_alloc",
-    [BLKDBG_CLUSTER_ALLOC_BYTES]            = "cluster_alloc_bytes",
-    [BLKDBG_CLUSTER_FREE]                   = "cluster_free",
-
-    [BLKDBG_FLUSH_TO_OS]                    = "flush_to_os",
-    [BLKDBG_FLUSH_TO_DISK]                  = "flush_to_disk",
-
-    [BLKDBG_PWRITEV_RMW_HEAD]               = "pwritev_rmw.head",
-    [BLKDBG_PWRITEV_RMW_AFTER_HEAD]         = "pwritev_rmw.after_head",
-    [BLKDBG_PWRITEV_RMW_TAIL]               = "pwritev_rmw.tail",
-    [BLKDBG_PWRITEV_RMW_AFTER_TAIL]         = "pwritev_rmw.after_tail",
-    [BLKDBG_PWRITEV]                        = "pwritev",
-    [BLKDBG_PWRITEV_ZERO]                   = "pwritev_zero",
-    [BLKDBG_PWRITEV_DONE]                   = "pwritev_done",
-
-    [BLKDBG_EMPTY_IMAGE_PREPARE]            = "empty_image_prepare",
-};
-
-static int get_event_by_name(const char *name, BlkDebugEvent *event)
+static int get_event_by_name(const char *name, BlkdebugEvent *event)
 {
     int i;
 
-    for (i = 0; i < BLKDBG_EVENT_MAX; i++) {
-        if (!strcmp(event_names[i], name)) {
+    for (i = 0; i < BLKDBG__MAX; i++) {
+        if (!strcmp(BlkdebugEvent_lookup[i], name)) {
             *event = i;
             return 0;
         }
@@ -224,7 +169,7 @@ static int add_rule(void *opaque, QemuOpts *opts, Error **errp)
     struct add_rule_data *d = opaque;
     BDRVBlkdebugState *s = d->s;
     const char* event_name;
-    BlkDebugEvent event;
+    BlkdebugEvent event;
     struct BlkdebugRule *rule;
 
     /* Find the right event for the rule */
@@ -564,7 +509,7 @@ static void blkdebug_close(BlockDriverState *bs)
     BlkdebugRule *rule, *next;
     int i;
 
-    for (i = 0; i < BLKDBG_EVENT_MAX; i++) {
+    for (i = 0; i < BLKDBG__MAX; i++) {
         QLIST_FOREACH_SAFE(rule, &s->rules[i], next, next) {
             remove_rule(rule);
         }
@@ -627,13 +572,13 @@ static bool process_rule(BlockDriverState *bs, struct BlkdebugRule *rule,
     return injected;
 }
 
-static void blkdebug_debug_event(BlockDriverState *bs, BlkDebugEvent event)
+static void blkdebug_debug_event(BlockDriverState *bs, BlkdebugEvent event)
 {
     BDRVBlkdebugState *s = bs->opaque;
     struct BlkdebugRule *rule, *next;
     bool injected;
 
-    assert((int)event >= 0 && event < BLKDBG_EVENT_MAX);
+    assert((int)event >= 0 && event < BLKDBG__MAX);
 
     injected = false;
     s->new_state = s->state;
@@ -648,7 +593,7 @@ static int blkdebug_debug_breakpoint(BlockDriverState *bs, const char *event,
 {
     BDRVBlkdebugState *s = bs->opaque;
     struct BlkdebugRule *rule;
-    BlkDebugEvent blkdebug_event;
+    BlkdebugEvent blkdebug_event;
 
     if (get_event_by_name(event, &blkdebug_event) < 0) {
         return -ENOENT;
@@ -690,7 +635,7 @@ static int blkdebug_debug_remove_breakpoint(BlockDriverState *bs,
     BlkdebugRule *rule, *next;
     int i, ret = -ENOENT;
 
-    for (i = 0; i < BLKDBG_EVENT_MAX; i++) {
+    for (i = 0; i < BLKDBG__MAX; i++) {
         QLIST_FOREACH_SAFE(rule, &s->rules[i], next, next) {
             if (rule->action == ACTION_SUSPEND &&
                 !strcmp(rule->options.suspend.tag, tag)) {
@@ -731,17 +676,15 @@ static int blkdebug_truncate(BlockDriverState *bs, int64_t offset)
     return bdrv_truncate(bs->file->bs, offset);
 }
 
-static void blkdebug_refresh_filename(BlockDriverState *bs)
+static void blkdebug_refresh_filename(BlockDriverState *bs, QDict *options)
 {
     QDict *opts;
     const QDictEntry *e;
     bool force_json = false;
 
-    for (e = qdict_first(bs->options); e; e = qdict_next(bs->options, e)) {
+    for (e = qdict_first(options); e; e = qdict_next(options, e)) {
         if (strcmp(qdict_entry_key(e), "config") &&
-            strcmp(qdict_entry_key(e), "x-image") &&
-            strcmp(qdict_entry_key(e), "image") &&
-            strncmp(qdict_entry_key(e), "image.", strlen("image.")))
+            strcmp(qdict_entry_key(e), "x-image"))
         {
             force_json = true;
             break;
@@ -757,7 +700,7 @@ static void blkdebug_refresh_filename(BlockDriverState *bs)
     if (!force_json && bs->file->bs->exact_filename[0]) {
         snprintf(bs->exact_filename, sizeof(bs->exact_filename),
                  "blkdebug:%s:%s",
-                 qdict_get_try_str(bs->options, "config") ?: "",
+                 qdict_get_try_str(options, "config") ?: "",
                  bs->file->bs->exact_filename);
     }
 
@@ -767,17 +710,20 @@ static void blkdebug_refresh_filename(BlockDriverState *bs)
     QINCREF(bs->file->bs->full_open_options);
     qdict_put_obj(opts, "image", QOBJECT(bs->file->bs->full_open_options));
 
-    for (e = qdict_first(bs->options); e; e = qdict_next(bs->options, e)) {
-        if (strcmp(qdict_entry_key(e), "x-image") &&
-            strcmp(qdict_entry_key(e), "image") &&
-            strncmp(qdict_entry_key(e), "image.", strlen("image.")))
-        {
+    for (e = qdict_first(options); e; e = qdict_next(options, e)) {
+        if (strcmp(qdict_entry_key(e), "x-image")) {
             qobject_incref(qdict_entry_value(e));
             qdict_put_obj(opts, qdict_entry_key(e), qdict_entry_value(e));
         }
     }
 
     bs->full_open_options = opts;
+}
+
+static int blkdebug_reopen_prepare(BDRVReopenState *reopen_state,
+                                   BlockReopenQueue *queue, Error **errp)
+{
+    return 0;
 }
 
 static BlockDriver bdrv_blkdebug = {
@@ -788,6 +734,7 @@ static BlockDriver bdrv_blkdebug = {
     .bdrv_parse_filename    = blkdebug_parse_filename,
     .bdrv_file_open         = blkdebug_open,
     .bdrv_close             = blkdebug_close,
+    .bdrv_reopen_prepare    = blkdebug_reopen_prepare,
     .bdrv_getlength         = blkdebug_getlength,
     .bdrv_truncate          = blkdebug_truncate,
     .bdrv_refresh_filename  = blkdebug_refresh_filename,

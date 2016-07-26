@@ -113,7 +113,7 @@ const float16 float16_default_nan = const_float16(0xFE00);
 #if defined(TARGET_SPARC)
 const float32 float32_default_nan = const_float32(0x7FFFFFFF);
 #elif defined(TARGET_PPC) || defined(TARGET_ARM) || defined(TARGET_ALPHA) || \
-      defined(TARGET_XTENSA) || defined(TARGET_S390X)
+      defined(TARGET_XTENSA) || defined(TARGET_S390X) || defined(TARGET_TRICORE)
 const float32 float32_default_nan = const_float32(0x7FC00000);
 #elif SNAN_BIT_IS_ONE
 const float32 float32_default_nan = const_float32(0x7FBFFFFF);
@@ -174,7 +174,7 @@ const float128 float128_default_nan
 | should be simply `float_exception_flags |= flags;'.
 *----------------------------------------------------------------------------*/
 
-void float_raise(int8 flags, float_status *status)
+void float_raise(int8_t flags, float_status *status)
 {
     status->float_exception_flags |= flags;
 }

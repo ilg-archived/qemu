@@ -23,6 +23,7 @@
  * The condition code translation is in need of attention.
  */
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "disas/disas.h"
 #include "tcg-op.h"
@@ -34,6 +35,7 @@
 #include "exec/helper-gen.h"
 
 #include "trace-tcg.h"
+#include "exec/log.h"
 
 
 #define DISAS_CRIS 0
@@ -58,7 +60,7 @@
 #define CC_MASK_NZVC 0xf
 #define CC_MASK_RNZV 0x10e
 
-static TCGv_ptr cpu_env;
+static TCGv_env cpu_env;
 static TCGv cpu_R[16];
 static TCGv cpu_PR[16];
 static TCGv cc_x;
@@ -130,8 +132,10 @@ typedef struct DisasContext {
 
 static void gen_BUG(DisasContext *dc, const char *file, int line)
 {
-    printf("BUG: pc=%x %s %d\n", dc->pc, file, line);
-    qemu_log("BUG: pc=%x %s %d\n", dc->pc, file, line);
+    fprintf(stderr, "BUG: pc=%x %s %d\n", dc->pc, file, line);
+    if (qemu_log_separate()) {
+        qemu_log("BUG: pc=%x %s %d\n", dc->pc, file, line);
+    }
     cpu_abort(CPU(dc->cpu), "%s:%d\n", file, line);
 }
 
@@ -777,7 +781,7 @@ static void cris_alu_op_exec(DisasContext *dc, int op,
         t_gen_subx_carry(dc, dst);
         break;
     default:
-        qemu_log("illegal ALU op.\n");
+        qemu_log_mask(LOG_GUEST_ERROR, "illegal ALU op.\n");
         BUG();
         break;
     }
@@ -3360,41 +3364,41 @@ void cris_initialize_tcg(void)
     int i;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
-    cc_x = tcg_global_mem_new(TCG_AREG0,
+    cc_x = tcg_global_mem_new(cpu_env,
                               offsetof(CPUCRISState, cc_x), "cc_x");
-    cc_src = tcg_global_mem_new(TCG_AREG0,
+    cc_src = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUCRISState, cc_src), "cc_src");
-    cc_dest = tcg_global_mem_new(TCG_AREG0,
+    cc_dest = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUCRISState, cc_dest),
                                  "cc_dest");
-    cc_result = tcg_global_mem_new(TCG_AREG0,
+    cc_result = tcg_global_mem_new(cpu_env,
                                    offsetof(CPUCRISState, cc_result),
                                    "cc_result");
-    cc_op = tcg_global_mem_new(TCG_AREG0,
+    cc_op = tcg_global_mem_new(cpu_env,
                                offsetof(CPUCRISState, cc_op), "cc_op");
-    cc_size = tcg_global_mem_new(TCG_AREG0,
+    cc_size = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUCRISState, cc_size),
                                  "cc_size");
-    cc_mask = tcg_global_mem_new(TCG_AREG0,
+    cc_mask = tcg_global_mem_new(cpu_env,
                                  offsetof(CPUCRISState, cc_mask),
                                  "cc_mask");
 
-    env_pc = tcg_global_mem_new(TCG_AREG0,
+    env_pc = tcg_global_mem_new(cpu_env,
                                 offsetof(CPUCRISState, pc),
                                 "pc");
-    env_btarget = tcg_global_mem_new(TCG_AREG0,
+    env_btarget = tcg_global_mem_new(cpu_env,
                                      offsetof(CPUCRISState, btarget),
                                      "btarget");
-    env_btaken = tcg_global_mem_new(TCG_AREG0,
+    env_btaken = tcg_global_mem_new(cpu_env,
                                     offsetof(CPUCRISState, btaken),
                                     "btaken");
     for (i = 0; i < 16; i++) {
-        cpu_R[i] = tcg_global_mem_new(TCG_AREG0,
+        cpu_R[i] = tcg_global_mem_new(cpu_env,
                                       offsetof(CPUCRISState, regs[i]),
                                       regnames[i]);
     }
     for (i = 0; i < 16; i++) {
-        cpu_PR[i] = tcg_global_mem_new(TCG_AREG0,
+        cpu_PR[i] = tcg_global_mem_new(cpu_env,
                                        offsetof(CPUCRISState, pregs[i]),
                                        pregnames[i]);
     }

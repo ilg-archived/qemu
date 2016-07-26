@@ -22,7 +22,6 @@
 #ifndef CPU_S390X_H
 #define CPU_S390X_H
 
-#include "config.h"
 #include "qemu-common.h"
 
 #define TARGET_LONG_BITS 64
@@ -414,6 +413,8 @@ void trigger_pgm_exception(CPUS390XState *env, uint32_t code, uint32_t ilen);
 #endif
 
 S390CPU *cpu_s390x_init(const char *cpu_model);
+S390CPU *s390x_new_cpu(const char *cpu_model, int64_t id, Error **errp);
+S390CPU *cpu_s390x_create(const char *cpu_model, Error **errp);
 void s390x_translate_init(void);
 int cpu_s390x_exec(CPUState *cpu);
 
@@ -471,10 +472,8 @@ void s390x_tod_timer(void *opaque);
 void s390x_cpu_timer(void *opaque);
 
 int s390_virtio_hypercall(CPUS390XState *env);
-void s390_virtio_irq(int config_change, uint64_t token);
 
 #ifdef CONFIG_KVM
-void kvm_s390_virtio_irq(int config_change, uint64_t token);
 void kvm_s390_service_interrupt(uint32_t parm);
 void kvm_s390_vcpu_interrupt(S390CPU *cpu, struct kvm_s390_irq *irq);
 void kvm_s390_floating_interrupt(struct kvm_s390_irq *irq);
@@ -485,9 +484,6 @@ int kvm_s390_mem_op(S390CPU *cpu, vaddr addr, uint8_t ar, void *hostbuf,
 int kvm_s390_get_clock(uint8_t *tod_high, uint64_t *tod_clock);
 int kvm_s390_set_clock(uint8_t *tod_high, uint64_t *tod_clock);
 #else
-static inline void kvm_s390_virtio_irq(int config_change, uint64_t token)
-{
-}
 static inline void kvm_s390_service_interrupt(uint32_t parm)
 {
 }
@@ -544,9 +540,6 @@ int gtod_load(QEMUFile *f, void *opaque, int version_id);
 
 /* service interrupts are floating therefore we must not pass an cpustate */
 void s390_sclp_extint(uint32_t parm);
-
-/* from s390-virtio-bus */
-extern const hwaddr virtio_size;
 
 #else
 static inline unsigned int s390_cpu_halt(S390CPU *cpu)

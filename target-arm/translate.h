@@ -16,7 +16,8 @@ typedef struct DisasContext {
     struct TranslationBlock *tb;
     int singlestep_enabled;
     int thumb;
-    int bswap_code;
+    int sctlr_b;
+    TCGMemOp be_data;
 #if !defined(CONFIG_USER_ONLY)
     int user;
 #endif
@@ -70,7 +71,7 @@ typedef struct DisasCompare {
 } DisasCompare;
 
 /* Share the TCG temporaries common between 32 and 64 bit modes.  */
-extern TCGv_ptr cpu_env;
+extern TCGv_env cpu_env;
 extern TCGv_i32 cpu_NF, cpu_ZF, cpu_CF, cpu_VF;
 extern TCGv_i64 cpu_exclusive_addr;
 extern TCGv_i64 cpu_exclusive_val;

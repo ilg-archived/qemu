@@ -25,7 +25,6 @@ seq=`basename $0`
 echo "QA output created by $seq"
 
 here=`pwd`
-tmp=/tmp/$$
 status=1	# failure is the default!
 
 # get standard environment, filters and checks
@@ -47,17 +46,6 @@ wait_for_tcp_port() {
 		 grep "$1.*0\\.0\\.0\\.0:\\*.*LISTEN") 2>&1 >/dev/null; do
 		sleep 0.1
 	done
-}
-
-filter_nbd() {
-	# nbd.c error messages contain function names and line numbers that are prone
-	# to change.  Message ordering depends on timing between send and receive
-	# callbacks sometimes, making them unreliable.
-	#
-	# Filter out the TCP port number since this changes between runs.
-	sed -e 's#^.*nbd\.c:.*##g' \
-	    -e 's#nbd:127\.0\.0\.1:[^:]*:#nbd:127\.0\.0\.1:PORT:#g' \
-            -e 's#\(exportname=foo\|PORT\): Failed to .*$#\1#'
 }
 
 check_disconnect() {
@@ -84,7 +72,7 @@ EOF
 
 	$PYTHON nbd-fault-injector.py $extra_args "127.0.0.1:$port" "$TEST_DIR/nbd-fault-injector.conf" 2>&1 >/dev/null &
 	wait_for_tcp_port "127\\.0\\.0\\.1:$port"
-	$QEMU_IO -c "read 0 512" "$nbd_url" 2>&1 | _filter_qemu_io | filter_nbd
+	$QEMU_IO -c "read 0 512" "$nbd_url" 2>&1 | _filter_qemu_io | _filter_nbd
 
 	echo
 }

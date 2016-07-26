@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdint.h>
+#include "qemu/osdep.h"
 #include "sysemu/sysemu.h"
 #include "sysemu/arch_init.h"
 #include "hw/pci/pci.h"
@@ -31,6 +31,7 @@
 #include "qemu/error-report.h"
 #include "qmp-commands.h"
 #include "hw/acpi/acpi.h"
+#include "qemu/help_option.h"
 
 #ifdef TARGET_SPARC
 int graphic_width = 1024;
@@ -264,9 +265,7 @@ void do_acpitable_option(const QemuOpts *opts)
 
     acpi_table_add(opts, &err);
     if (err) {
-        error_report("Wrong acpi table provided: %s",
-                     error_get_pretty(err));
-        error_free(err);
+        error_reportf_err(err, "Wrong acpi table provided: ");
         exit(1);
     }
 #endif

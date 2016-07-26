@@ -55,6 +55,7 @@ void kvmppc_hash64_write_pte(CPUPPCState *env, target_ulong pte_index,
                              target_ulong pte0, target_ulong pte1);
 bool kvmppc_has_cap_fixup_hcalls(void);
 int kvmppc_enable_hwrng(void);
+int kvmppc_put_books_sregs(PowerPCCPU *cpu);
 
 #else
 
@@ -94,11 +95,6 @@ static inline int kvmppc_get_hasidle(CPUPPCState *env)
 }
 
 static inline int kvmppc_get_hypercall(CPUPPCState *env, uint8_t *buf, int buf_len)
-{
-    return -1;
-}
-
-static inline int kvmppc_read_segment_page_sizes(uint32_t *prop, int maxcells)
 {
     return -1;
 }
@@ -189,11 +185,6 @@ static inline uint64_t kvmppc_rma_size(uint64_t current_size,
     return ram_size;
 }
 
-static inline int kvmppc_update_sdr1(CPUPPCState *env)
-{
-    return 0;
-}
-
 #endif /* !CONFIG_USER_ONLY */
 
 static inline bool kvmppc_has_cap_epr(void)
@@ -256,18 +247,55 @@ static inline int kvmppc_enable_hwrng(void)
 {
     return -1;
 }
+
+static inline int kvmppc_put_books_sregs(PowerPCCPU *cpu)
+{
+    abort();
+}
 #endif
 
 #ifndef CONFIG_KVM
+
 #define kvmppc_eieio() do { } while (0)
-#else
+
+static inline void kvmppc_dcbst_range(PowerPCCPU *cpu, uint8_t *addr, int len)
+{
+}
+
+static inline void kvmppc_icbi_range(PowerPCCPU *cpu, uint8_t *addr, int len)
+{
+}
+
+#else   /* CONFIG_KVM */
+
 #define kvmppc_eieio() \
     do {                                          \
         if (kvm_enabled()) {                          \
             asm volatile("eieio" : : : "memory"); \
         } \
     } while (0)
-#endif
+
+/* Store data cache blocks back to memory */
+static inline void kvmppc_dcbst_range(PowerPCCPU *cpu, uint8_t *addr, int len)
+{
+    uint8_t *p;
+
+    for (p = addr; p < addr + len; p += cpu->env.dcache_line_size) {
+        asm volatile("dcbst 0,%0" : : "r"(p) : "memory");
+    }
+}
+
+/* Invalidate instruction cache blocks */
+static inline void kvmppc_icbi_range(PowerPCCPU *cpu, uint8_t *addr, int len)
+{
+    uint8_t *p;
+
+    for (p = addr; p < addr + len; p += cpu->env.icache_line_size) {
+        asm volatile("icbi 0,%0" : : "r"(p));
+    }
+}
+
+#endif  /* CONFIG_KVM */
 
 #ifndef KVM_INTERRUPT_SET
 #define KVM_INTERRUPT_SET -1

@@ -21,11 +21,7 @@
  *    http://moxielogic.org/wiki
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <inttypes.h>
+#include "qemu/osdep.h"
 
 #include "cpu.h"
 #include "exec/exec-all.h"
@@ -35,6 +31,7 @@
 
 #include "exec/helper-proto.h"
 #include "exec/helper-gen.h"
+#include "exec/log.h"
 
 /* This is the state at translation time.  */
 typedef struct DisasContext {
@@ -59,7 +56,7 @@ enum {
 
 static TCGv cpu_pc;
 static TCGv cpu_gregs[16];
-static TCGv_ptr cpu_env;
+static TCGv_env cpu_env;
 static TCGv cc_a, cc_b;
 
 #include "exec/gen-icount.h"
@@ -109,16 +106,16 @@ void moxie_translate_init(void)
         return;
     }
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
-    cpu_pc = tcg_global_mem_new_i32(TCG_AREG0,
+    cpu_pc = tcg_global_mem_new_i32(cpu_env,
                                     offsetof(CPUMoxieState, pc), "$pc");
     for (i = 0; i < 16; i++)
-        cpu_gregs[i] = tcg_global_mem_new_i32(TCG_AREG0,
+        cpu_gregs[i] = tcg_global_mem_new_i32(cpu_env,
                                               offsetof(CPUMoxieState, gregs[i]),
                                               gregnames[i]);
 
-    cc_a = tcg_global_mem_new_i32(TCG_AREG0,
+    cc_a = tcg_global_mem_new_i32(cpu_env,
                                   offsetof(CPUMoxieState, cc_a), "cc_a");
-    cc_b = tcg_global_mem_new_i32(TCG_AREG0,
+    cc_b = tcg_global_mem_new_i32(cpu_env,
                                   offsetof(CPUMoxieState, cc_b), "cc_b");
 
     done_init = 1;

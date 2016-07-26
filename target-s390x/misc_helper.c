@@ -18,11 +18,11 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "exec/memory.h"
 #include "qemu/host-utils.h"
 #include "exec/helper-proto.h"
-#include <string.h>
 #include "sysemu/kvm.h"
 #include "qemu/timer.h"
 #include "exec/address-spaces.h"
@@ -299,7 +299,7 @@ void HELPER(spx)(CPUS390XState *env, uint64_t a1)
     uint32_t prefix = a1 & 0x7fffe000;
 
     env->psa = prefix;
-    qemu_log("prefix: %#x\n", prefix);
+    HELPER_LOG("prefix: %#x\n", prefix);
     tlb_flush_page(cs, 0);
     tlb_flush_page(cs, TARGET_PAGE_SIZE);
 }

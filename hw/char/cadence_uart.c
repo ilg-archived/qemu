@@ -16,6 +16,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/char/cadence_uart.h"
 
 #ifdef CADENCE_UART_ERR_DEBUG
@@ -204,7 +205,7 @@ static void uart_parameters_setup(CadenceUARTState *s)
     }
 
     packet_size += ssp.data_bits + ssp.stop_bits;
-    s->char_tx_time = (get_ticks_per_sec() / ssp.speed) * packet_size;
+    s->char_tx_time = (NANOSECONDS_PER_SECOND / ssp.speed) * packet_size;
     if (s->chr) {
         qemu_chr_fe_ioctl(s->chr, CHR_IOCTL_SERIAL_SET_PARAMS, &ssp);
     }
@@ -374,6 +375,9 @@ static void uart_write(void *opaque, hwaddr offset,
 
     DB_PRINT(" offset:%x data:%08x\n", (unsigned)offset, (unsigned)value);
     offset >>= 2;
+    if (offset >= CADENCE_UART_R_MAX) {
+        return;
+    }
     switch (offset) {
     case R_IER: /* ier (wts imr) */
         s->r[R_IMR] |= value;
@@ -478,7 +482,7 @@ static void cadence_uart_init(Object *obj)
     sysbus_init_mmio(sbd, &s->iomem);
     sysbus_init_irq(sbd, &s->irq);
 
-    s->char_tx_time = (get_ticks_per_sec() / 9600) * 10;
+    s->char_tx_time = (NANOSECONDS_PER_SECOND / 9600) * 10;
 }
 
 static int cadence_uart_post_load(void *opaque, int version_id)

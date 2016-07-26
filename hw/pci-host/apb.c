@@ -27,6 +27,7 @@
    Ultrasparc PCI host is called the PCI Bus Module (PBM).  The APB is
    the secondary PCI bridge.  */
 
+#include "qemu/osdep.h"
 #include "hw/sysbus.h"
 #include "hw/pci/pci.h"
 #include "hw/pci/pci_host.h"
@@ -634,12 +635,7 @@ static void pci_apb_set_irq(void *opaque, int irq_num, int level)
 
 static int apb_pci_bridge_initfn(PCIDevice *dev)
 {
-    int rc;
-
-    rc = pci_bridge_initfn(dev, TYPE_PCI_BUS);
-    if (rc < 0) {
-        return rc;
-    }
+    pci_bridge_initfn(dev, TYPE_PCI_BUS);
 
     /*
      * command register:

@@ -9,8 +9,10 @@
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
  */
+#include "qemu/osdep.h"
 #include "sysemu/hostmem.h"
 #include "hw/boards.h"
+#include "qapi/error.h"
 #include "qapi/visitor.h"
 #include "qapi-types.h"
 #include "qapi-visit.h"
@@ -26,18 +28,18 @@ QEMU_BUILD_BUG_ON(HOST_MEM_POLICY_INTERLEAVE != MPOL_INTERLEAVE);
 #endif
 
 static void
-host_memory_backend_get_size(Object *obj, Visitor *v, void *opaque,
-                             const char *name, Error **errp)
+host_memory_backend_get_size(Object *obj, Visitor *v, const char *name,
+                             void *opaque, Error **errp)
 {
     HostMemoryBackend *backend = MEMORY_BACKEND(obj);
     uint64_t value = backend->size;
 
-    visit_type_size(v, &value, name, errp);
+    visit_type_size(v, name, &value, errp);
 }
 
 static void
-host_memory_backend_set_size(Object *obj, Visitor *v, void *opaque,
-                             const char *name, Error **errp)
+host_memory_backend_set_size(Object *obj, Visitor *v, const char *name,
+                             void *opaque, Error **errp)
 {
     HostMemoryBackend *backend = MEMORY_BACKEND(obj);
     Error *local_err = NULL;
@@ -48,7 +50,7 @@ host_memory_backend_set_size(Object *obj, Visitor *v, void *opaque,
         goto out;
     }
 
-    visit_type_size(v, &value, name, &local_err);
+    visit_type_size(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }
@@ -63,8 +65,8 @@ out:
 }
 
 static void
-host_memory_backend_get_host_nodes(Object *obj, Visitor *v, void *opaque,
-                                   const char *name, Error **errp)
+host_memory_backend_get_host_nodes(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     HostMemoryBackend *backend = MEMORY_BACKEND(obj);
     uint16List *host_nodes = NULL;
@@ -91,18 +93,18 @@ host_memory_backend_get_host_nodes(Object *obj, Visitor *v, void *opaque,
         node = &(*node)->next;
     } while (true);
 
-    visit_type_uint16List(v, &host_nodes, name, errp);
+    visit_type_uint16List(v, name, &host_nodes, errp);
 }
 
 static void
-host_memory_backend_set_host_nodes(Object *obj, Visitor *v, void *opaque,
-                                   const char *name, Error **errp)
+host_memory_backend_set_host_nodes(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
 #ifdef CONFIG_NUMA
     HostMemoryBackend *backend = MEMORY_BACKEND(obj);
     uint16List *l = NULL;
 
-    visit_type_uint16List(v, &l, name, errp);
+    visit_type_uint16List(v, name, &l, errp);
 
     while (l) {
         bitmap_set(backend->host_nodes, l->value, 1);

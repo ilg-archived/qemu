@@ -18,8 +18,10 @@ extern PropertyInfo qdev_prop_string;
 extern PropertyInfo qdev_prop_chr;
 extern PropertyInfo qdev_prop_ptr;
 extern PropertyInfo qdev_prop_macaddr;
+extern PropertyInfo qdev_prop_on_off_auto;
 extern PropertyInfo qdev_prop_losttickpolicy;
 extern PropertyInfo qdev_prop_bios_chs_trans;
+extern PropertyInfo qdev_prop_fdc_drive_type;
 extern PropertyInfo qdev_prop_drive;
 extern PropertyInfo qdev_prop_netdev;
 extern PropertyInfo qdev_prop_vlan;
@@ -154,6 +156,8 @@ extern PropertyInfo qdev_prop_arraylen;
     DEFINE_PROP(_n, _s, _f, qdev_prop_drive, BlockBackend *)
 #define DEFINE_PROP_MACADDR(_n, _s, _f)         \
     DEFINE_PROP(_n, _s, _f, qdev_prop_macaddr, MACAddr)
+#define DEFINE_PROP_ON_OFF_AUTO(_n, _s, _f, _d) \
+    DEFINE_PROP_DEFAULT(_n, _s, _f, _d, qdev_prop_on_off_auto, OnOffAuto)
 #define DEFINE_PROP_LOSTTICKPOLICY(_n, _s, _f, _d) \
     DEFINE_PROP_DEFAULT(_n, _s, _f, _d, qdev_prop_losttickpolicy, \
                         LostTickPolicy)
@@ -180,8 +184,6 @@ void qdev_prop_set_chr(DeviceState *dev, const char *name, CharDriverState *valu
 void qdev_prop_set_netdev(DeviceState *dev, const char *name, NetClientState *value);
 void qdev_prop_set_drive(DeviceState *dev, const char *name,
                          BlockBackend *value, Error **errp);
-void qdev_prop_set_drive_nofail(DeviceState *dev, const char *name,
-                                BlockBackend *value);
 void qdev_prop_set_macaddr(DeviceState *dev, const char *name, uint8_t *value);
 void qdev_prop_set_enum(DeviceState *dev, const char *name, int value);
 /* FIXME: Remove opaque pointer properties.  */

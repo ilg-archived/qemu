@@ -19,18 +19,8 @@
  *  GNU GPL, version 2 or (at your option) any later version.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-#include <string.h>
-#include <unistd.h>
-#include <inttypes.h>
-#include <time.h>
-#include <fcntl.h>
-#include <errno.h>
+#include "qemu/osdep.h"
 #include <sys/ioctl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/mman.h>
 #include <sys/uio.h>
 
@@ -39,6 +29,7 @@
 #include "xen_blkif.h"
 #include "sysemu/blockdev.h"
 #include "sysemu/block-backend.h"
+#include "qapi/error.h"
 #include "qapi/qmp/qdict.h"
 #include "qapi/qmp/qstring.h"
 
@@ -171,11 +162,11 @@ static gint int_cmp(gconstpointer a, gconstpointer b, gpointer user_data)
 static void destroy_grant(gpointer pgnt)
 {
     PersistentGrant *grant = pgnt;
-    XenGnttab gnt = grant->blkdev->xendev.gnttabdev;
+    xengnttab_handle *gnt = grant->blkdev->xendev.gnttabdev;
 
-    if (xc_gnttab_munmap(gnt, grant->page, 1) != 0) {
+    if (xengnttab_unmap(gnt, grant->page, 1) != 0) {
         xen_be_printf(&grant->blkdev->xendev, 0,
-                      "xc_gnttab_munmap failed: %s\n",
+                      "xengnttab_unmap failed: %s\n",
                       strerror(errno));
     }
     grant->blkdev->persistent_gnt_count--;
@@ -188,11 +179,11 @@ static void remove_persistent_region(gpointer data, gpointer dev)
 {
     PersistentRegion *region = data;
     struct XenBlkDev *blkdev = dev;
-    XenGnttab gnt = blkdev->xendev.gnttabdev;
+    xengnttab_handle *gnt = blkdev->xendev.gnttabdev;
 
-    if (xc_gnttab_munmap(gnt, region->addr, region->num) != 0) {
+    if (xengnttab_unmap(gnt, region->addr, region->num) != 0) {
         xen_be_printf(&blkdev->xendev, 0,
-                      "xc_gnttab_munmap region %p failed: %s\n",
+                      "xengnttab_unmap region %p failed: %s\n",
                       region->addr, strerror(errno));
     }
     xen_be_printf(&blkdev->xendev, 3,
@@ -327,7 +318,7 @@ err:
 
 static void ioreq_unmap(struct ioreq *ioreq)
 {
-    XenGnttab gnt = ioreq->blkdev->xendev.gnttabdev;
+    xengnttab_handle *gnt = ioreq->blkdev->xendev.gnttabdev;
     int i;
 
     if (ioreq->num_unmap == 0 || ioreq->mapped == 0) {
@@ -337,8 +328,9 @@ static void ioreq_unmap(struct ioreq *ioreq)
         if (!ioreq->pages) {
             return;
         }
-        if (xc_gnttab_munmap(gnt, ioreq->pages, ioreq->num_unmap) != 0) {
-            xen_be_printf(&ioreq->blkdev->xendev, 0, "xc_gnttab_munmap failed: %s\n",
+        if (xengnttab_unmap(gnt, ioreq->pages, ioreq->num_unmap) != 0) {
+            xen_be_printf(&ioreq->blkdev->xendev, 0,
+                          "xengnttab_unmap failed: %s\n",
                           strerror(errno));
         }
         ioreq->blkdev->cnt_map -= ioreq->num_unmap;
@@ -348,8 +340,9 @@ static void ioreq_unmap(struct ioreq *ioreq)
             if (!ioreq->page[i]) {
                 continue;
             }
-            if (xc_gnttab_munmap(gnt, ioreq->page[i], 1) != 0) {
-                xen_be_printf(&ioreq->blkdev->xendev, 0, "xc_gnttab_munmap failed: %s\n",
+            if (xengnttab_unmap(gnt, ioreq->page[i], 1) != 0) {
+                xen_be_printf(&ioreq->blkdev->xendev, 0,
+                              "xengnttab_unmap failed: %s\n",
                               strerror(errno));
             }
             ioreq->blkdev->cnt_map--;
@@ -361,7 +354,7 @@ static void ioreq_unmap(struct ioreq *ioreq)
 
 static int ioreq_map(struct ioreq *ioreq)
 {
-    XenGnttab gnt = ioreq->blkdev->xendev.gnttabdev;
+    xengnttab_handle *gnt = ioreq->blkdev->xendev.gnttabdev;
     uint32_t domids[BLKIF_MAX_SEGMENTS_PER_REQUEST];
     uint32_t refs[BLKIF_MAX_SEGMENTS_PER_REQUEST];
     void *page[BLKIF_MAX_SEGMENTS_PER_REQUEST];
@@ -412,7 +405,7 @@ static int ioreq_map(struct ioreq *ioreq)
     }
 
     if (batch_maps && new_maps) {
-        ioreq->pages = xc_gnttab_map_grant_refs
+        ioreq->pages = xengnttab_map_grant_refs
             (gnt, new_maps, domids, refs, ioreq->prot);
         if (ioreq->pages == NULL) {
             xen_be_printf(&ioreq->blkdev->xendev, 0,
@@ -428,7 +421,7 @@ static int ioreq_map(struct ioreq *ioreq)
         ioreq->blkdev->cnt_map += new_maps;
     } else if (new_maps)  {
         for (i = 0; i < new_maps; i++) {
-            ioreq->page[i] = xc_gnttab_map_grant_ref
+            ioreq->page[i] = xengnttab_map_grant_ref
                 (gnt, domids[i], refs[i], ioreq->prot);
             if (ioreq->page[i] == NULL) {
                 xen_be_printf(&ioreq->blkdev->xendev, 0,
@@ -778,9 +771,9 @@ static void blk_alloc(struct XenDevice *xendev)
     if (xen_mode != XEN_EMULATE) {
         batch_maps = 1;
     }
-    if (xc_gnttab_set_max_grants(xendev->gnttabdev,
+    if (xengnttab_set_max_grants(xendev->gnttabdev,
             MAX_GRANTS(max_requests, BLKIF_MAX_SEGMENTS_PER_REQUEST)) < 0) {
-        xen_be_printf(xendev, 0, "xc_gnttab_set_max_grants failed: %s\n",
+        xen_be_printf(xendev, 0, "xengnttab_set_max_grants failed: %s\n",
                       strerror(errno));
     }
 }
@@ -824,6 +817,9 @@ static int blk_init(struct XenDevice *xendev)
     }
     if (!strcmp("aio", blkdev->fileproto)) {
         blkdev->fileproto = "raw";
+    }
+    if (!strcmp("vhd", blkdev->fileproto)) {
+        blkdev->fileproto = "vpc";
     }
     if (blkdev->mode == NULL) {
         blkdev->mode = xenstore_read_be_str(&blkdev->xendev, "mode");
@@ -893,12 +889,14 @@ static int blk_connect(struct XenDevice *xendev)
     struct XenBlkDev *blkdev = container_of(xendev, struct XenBlkDev, xendev);
     int pers, index, qflags;
     bool readonly = true;
+    bool writethrough = true;
 
     /* read-only ? */
     if (blkdev->directiosafe) {
         qflags = BDRV_O_NOCACHE | BDRV_O_NATIVE_AIO;
     } else {
-        qflags = BDRV_O_CACHE_WB;
+        qflags = 0;
+        writethrough = false;
     }
     if (strcmp(blkdev->mode, "w") == 0) {
         qflags |= BDRV_O_RDWR;
@@ -922,7 +920,7 @@ static int blk_connect(struct XenDevice *xendev)
 
         /* setup via xenbus -> create new block driver instance */
         xen_be_printf(&blkdev->xendev, 2, "create new bdrv (xenbus setup)\n");
-        blkdev->blk = blk_new_open(blkdev->dev, blkdev->filename, NULL, options,
+        blkdev->blk = blk_new_open(blkdev->filename, NULL, options,
                                    qflags, &local_err);
         if (!blkdev->blk) {
             xen_be_printf(&blkdev->xendev, 0, "error: %s\n",
@@ -930,6 +928,7 @@ static int blk_connect(struct XenDevice *xendev)
             error_free(local_err);
             return -1;
         }
+        blk_set_enable_write_cache(blkdev->blk, !writethrough);
     } else {
         /* setup via qemu cmdline -> already setup for us */
         xen_be_printf(&blkdev->xendev, 2, "get configured bdrv (cmdline setup)\n");
@@ -987,7 +986,7 @@ static int blk_connect(struct XenDevice *xendev)
         }
     }
 
-    blkdev->sring = xc_gnttab_map_grant_ref(blkdev->xendev.gnttabdev,
+    blkdev->sring = xengnttab_map_grant_ref(blkdev->xendev.gnttabdev,
                                             blkdev->xendev.dom,
                                             blkdev->ring_ref,
                                             PROT_READ | PROT_WRITE);
@@ -1052,7 +1051,7 @@ static void blk_disconnect(struct XenDevice *xendev)
     xen_be_unbind_evtchn(&blkdev->xendev);
 
     if (blkdev->sring) {
-        xc_gnttab_munmap(blkdev->xendev.gnttabdev, blkdev->sring, 1);
+        xengnttab_unmap(blkdev->xendev.gnttabdev, blkdev->sring, 1);
         blkdev->cnt_map--;
         blkdev->sring = NULL;
     }

@@ -25,11 +25,8 @@
 #ifdef _FORTIFY_SOURCE
 #undef _FORTIFY_SOURCE
 #endif
-#include <stdlib.h>
-#include <setjmp.h>
-#include <stdint.h>
+#include "qemu/osdep.h"
 #include <pthread.h>
-#include <signal.h>
 #include "qemu-common.h"
 #include "qemu/coroutine_int.h"
 

@@ -11,6 +11,9 @@
  * directory.
  */
 
+#include "qemu/osdep.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "s390-pci-inst.h"
 #include "s390-pci-bus.h"
 #include <exec/memory-internal.h>
@@ -105,7 +108,8 @@ static int list_pci(ClpReqRspListPci *rrb, uint8_t *cc)
             pci_get_word(pbdev->pdev->config + PCI_DEVICE_ID));
         stw_p(&rrb->response.fh_list[idx - resume_token].vendor_id,
             pci_get_word(pbdev->pdev->config + PCI_VENDOR_ID));
-        stl_p(&rrb->response.fh_list[idx - resume_token].config, 0x80000000);
+        stl_p(&rrb->response.fh_list[idx - resume_token].config,
+            pbdev->configured << 31);
         stl_p(&rrb->response.fh_list[idx - resume_token].fid, pbdev->fid);
         stl_p(&rrb->response.fh_list[idx - resume_token].fh, pbdev->fh);
 
@@ -208,12 +212,12 @@ int clp_service_call(S390CPU *cpu, uint8_t r2)
 
         switch (reqsetpci->oc) {
         case CLP_SET_ENABLE_PCI_FN:
-            pbdev->fh = pbdev->fh | 1 << ENABLE_BIT_OFFSET;
+            pbdev->fh = pbdev->fh | FH_ENABLED;
             stl_p(&ressetpci->fh, pbdev->fh);
             stw_p(&ressetpci->hdr.rsp, CLP_RC_OK);
             break;
         case CLP_SET_DISABLE_PCI_FN:
-            pbdev->fh = pbdev->fh & ~(1 << ENABLE_BIT_OFFSET);
+            pbdev->fh = pbdev->fh & ~FH_ENABLED;
             pbdev->error_state = false;
             pbdev->lgstg_blocked = false;
             stl_p(&ressetpci->fh, pbdev->fh);
@@ -313,7 +317,7 @@ int pcilg_service_call(S390CPU *cpu, uint8_t r1, uint8_t r2)
     offset = env->regs[r2 + 1];
 
     pbdev = s390_pci_find_dev_by_fh(fh);
-    if (!pbdev) {
+    if (!pbdev || !(pbdev->fh & FH_ENABLED)) {
         DPRINTF("pcilg no pci dev\n");
         setcc(cpu, ZPCI_PCI_LS_INVAL_HANDLE);
         return 0;
@@ -430,7 +434,7 @@ int pcistg_service_call(S390CPU *cpu, uint8_t r1, uint8_t r2)
     offset = env->regs[r2 + 1];
 
     pbdev = s390_pci_find_dev_by_fh(fh);
-    if (!pbdev) {
+    if (!pbdev || !(pbdev->fh & FH_ENABLED)) {
         DPRINTF("pcistg no pci dev\n");
         setcc(cpu, ZPCI_PCI_LS_INVAL_HANDLE);
         return 0;
@@ -521,8 +525,7 @@ int rpcit_service_call(S390CPU *cpu, uint8_t r1, uint8_t r2)
     end = start + env->regs[r2 + 1];
 
     pbdev = s390_pci_find_dev_by_fh(fh);
-
-    if (!pbdev) {
+    if (!pbdev || !(pbdev->fh & FH_ENABLED)) {
         DPRINTF("rpcit no pci dev\n");
         setcc(cpu, ZPCI_PCI_LS_INVAL_HANDLE);
         goto out;
@@ -586,7 +589,7 @@ int pcistb_service_call(S390CPU *cpu, uint8_t r1, uint8_t r3, uint64_t gaddr,
     }
 
     pbdev = s390_pci_find_dev_by_fh(fh);
-    if (!pbdev) {
+    if (!pbdev || !(pbdev->fh & FH_ENABLED)) {
         DPRINTF("pcistb no pci dev fh 0x%x\n", fh);
         setcc(cpu, ZPCI_PCI_LS_INVAL_HANDLE);
         return 0;
@@ -620,19 +623,19 @@ int pcistb_service_call(S390CPU *cpu, uint8_t r1, uint8_t r3, uint64_t gaddr,
 
 static int reg_irqs(CPUS390XState *env, S390PCIBusDevice *pbdev, ZpciFib fib)
 {
-    int ret;
-    S390FLICState *fs = s390_get_flic();
-    S390FLICStateClass *fsc = S390_FLIC_COMMON_GET_CLASS(fs);
+    int ret, len;
 
     ret = css_register_io_adapter(S390_PCIPT_ADAPTER,
                                   FIB_DATA_ISC(ldl_p(&fib.data)), true, false,
                                   &pbdev->routes.adapter.adapter_id);
     assert(ret == 0);
 
-    fsc->io_adapter_map(fs, pbdev->routes.adapter.adapter_id,
-        ldq_p(&fib.aisb), true);
-    fsc->io_adapter_map(fs, pbdev->routes.adapter.adapter_id,
-        ldq_p(&fib.aibv), true);
+    pbdev->summary_ind = get_indicator(ldq_p(&fib.aisb), sizeof(uint64_t));
+    len = BITS_TO_LONGS(FIB_DATA_NOI(ldl_p(&fib.data))) * sizeof(unsigned long);
+    pbdev->indicator = get_indicator(ldq_p(&fib.aibv), len);
+
+    map_indicator(&pbdev->routes.adapter, pbdev->summary_ind);
+    map_indicator(&pbdev->routes.adapter, pbdev->indicator);
 
     pbdev->routes.adapter.summary_addr = ldq_p(&fib.aisb);
     pbdev->routes.adapter.summary_offset = FIB_DATA_AISBO(ldl_p(&fib.data));
@@ -648,12 +651,11 @@ static int reg_irqs(CPUS390XState *env, S390PCIBusDevice *pbdev, ZpciFib fib)
 
 static int dereg_irqs(S390PCIBusDevice *pbdev)
 {
-    S390FLICState *fs = s390_get_flic();
-    S390FLICStateClass *fsc = S390_FLIC_COMMON_GET_CLASS(fs);
+    release_indicator(&pbdev->routes.adapter, pbdev->summary_ind);
+    release_indicator(&pbdev->routes.adapter, pbdev->indicator);
 
-    fsc->io_adapter_map(fs, pbdev->routes.adapter.adapter_id,
-                        pbdev->routes.adapter.ind_addr, false);
-
+    pbdev->summary_ind = NULL;
+    pbdev->indicator = NULL;
     pbdev->routes.adapter.summary_addr = 0;
     pbdev->routes.adapter.summary_offset = 0;
     pbdev->routes.adapter.ind_addr = 0;
@@ -727,7 +729,7 @@ int mpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba, uint8_t ar)
     }
 
     pbdev = s390_pci_find_dev_by_fh(fh);
-    if (!pbdev) {
+    if (!pbdev || !(pbdev->fh & FH_ENABLED)) {
         DPRINTF("mpcifc no pci dev fh 0x%x\n", fh);
         setcc(cpu, ZPCI_PCI_LS_INVAL_HANDLE);
         return 0;
@@ -819,7 +821,7 @@ int stpcifc_service_call(S390CPU *cpu, uint8_t r1, uint64_t fiba, uint8_t ar)
            ((uint32_t)pbdev->sum << 7) | pbdev->routes.adapter.summary_offset;
     stl_p(&fib.data, data);
 
-    if (pbdev->fh >> ENABLE_BIT_OFFSET) {
+    if (pbdev->fh & FH_ENABLED) {
         fib.fc |= 0x80;
     }
 

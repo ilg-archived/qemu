@@ -8,11 +8,7 @@
  * published by the Free Software Foundation, or (at your option) any
  * later version. See the COPYING file in the top-level directory.
  */
-#include <stdarg.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <inttypes.h>
+#include "qemu/osdep.h"
 
 #include "cpu.h"
 #include "disas/disas.h"
@@ -24,6 +20,7 @@
 #include "exec/helper-gen.h"
 
 #include "trace-tcg.h"
+#include "exec/log.h"
 
 
 /* internal defines */
@@ -51,7 +48,7 @@ typedef struct DisasContext {
    conditional executions state has been updated.  */
 #define DISAS_SYSCALL 5
 
-static TCGv_ptr cpu_env;
+static TCGv_env cpu_env;
 static TCGv_i32 cpu_R[32];
 
 /* FIXME:  These should be removed.  */
@@ -74,7 +71,7 @@ void uc32_translate_init(void)
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
 
     for (i = 0; i < 32; i++) {
-        cpu_R[i] = tcg_global_mem_new_i32(TCG_AREG0,
+        cpu_R[i] = tcg_global_mem_new_i32(cpu_env,
                                 offsetof(CPUUniCore32State, regs[i]), regnames[i]);
     }
 }
@@ -1863,8 +1860,7 @@ static void disas_uc32_insn(CPUUniCore32State *env, DisasContext *s)
     }
 }
 
-/* generate intermediate code in gen_opc_buf and gen_opparam_buf for
-   basic block 'tb'.  */
+/* generate intermediate code for basic block 'tb'.  */
 void gen_intermediate_code(CPUUniCore32State *env, TranslationBlock *tb)
 {
     UniCore32CPU *cpu = uc32_env_get_cpu(env);

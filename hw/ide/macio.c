@@ -22,6 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/ppc/mac.h"
 #include "hw/ppc/mac_dbdma.h"
@@ -119,8 +120,8 @@ static void pmac_dma_read(BlockBackend *blk,
     MACIO_DPRINTF("--- Block read transfer - sector_num: %" PRIx64 "  "
                   "nsector: %x\n", (offset >> 9), (bytes >> 9));
 
-    m->aiocb = blk_aio_readv(blk, (offset >> 9), &io->iov, (bytes >> 9),
-                             cb, io);
+    s->bus->dma->aiocb = blk_aio_readv(blk, (offset >> 9), &io->iov,
+                             (bytes >> 9), cb, io);
 }
 
 static void pmac_dma_write(BlockBackend *blk,
@@ -204,8 +205,8 @@ static void pmac_dma_write(BlockBackend *blk,
     MACIO_DPRINTF("--- Block write transfer - sector_num: %" PRIx64 "  "
                   "nsector: %x\n", (offset >> 9), (bytes >> 9));
 
-    m->aiocb = blk_aio_writev(blk, (offset >> 9), &io->iov, (bytes >> 9),
-                              cb, io);
+    s->bus->dma->aiocb = blk_aio_writev(blk, (offset >> 9), &io->iov,
+                             (bytes >> 9), cb, io);
 }
 
 static void pmac_dma_trim(BlockBackend *blk,
@@ -231,8 +232,8 @@ static void pmac_dma_trim(BlockBackend *blk,
     s->io_buffer_index += io->len;
     io->len = 0;
 
-    m->aiocb = ide_issue_trim(blk, (offset >> 9), &io->iov, (bytes >> 9),
-                              cb, io);
+    s->bus->dma->aiocb = ide_issue_trim(blk, (offset >> 9), &io->iov,
+                             (bytes >> 9), cb, io);
 }
 
 static void pmac_ide_atapi_transfer_cb(void *opaque, int ret)
@@ -280,7 +281,7 @@ static void pmac_ide_atapi_transfer_cb(void *opaque, int ret)
     }
 
     /* Calculate current offset */
-    offset = (int64_t)(s->lba << 11) + s->io_buffer_index;
+    offset = ((int64_t)s->lba << 11) + s->io_buffer_index;
 
     pmac_dma_read(s->blk, offset, io->len, pmac_ide_atapi_transfer_cb, io);
     return;
@@ -291,9 +292,9 @@ done:
     } else {
         block_acct_done(blk_get_stats(s->blk), &s->acct);
     }
-    io->dma_end(opaque);
 
-    return;
+    ide_set_inactive(s, false);
+    io->dma_end(opaque);
 }
 
 static void pmac_ide_transfer_cb(void *opaque, int ret)
@@ -307,7 +308,6 @@ static void pmac_ide_transfer_cb(void *opaque, int ret)
 
     if (ret < 0) {
         MACIO_DPRINTF("DMA error: %d\n", ret);
-        m->aiocb = NULL;
         ide_dma_error(s);
         goto done;
     }
@@ -346,6 +346,8 @@ static void pmac_ide_transfer_cb(void *opaque, int ret)
     case IDE_DMA_TRIM:
         pmac_dma_trim(s->blk, offset, io->len, pmac_ide_transfer_cb, io);
         break;
+    default:
+        abort();
     }
 
     return;
@@ -358,6 +360,8 @@ done:
             block_acct_done(blk_get_stats(s->blk), &s->acct);
         }
     }
+
+    ide_set_inactive(s, false);
     io->dma_end(opaque);
 }
 
@@ -395,8 +399,9 @@ static void pmac_ide_transfer(DBDMA_io *io)
 static void pmac_ide_flush(DBDMA_io *io)
 {
     MACIOIDEState *m = io->opaque;
+    IDEState *s = idebus_active_if(&m->bus);
 
-    if (m->aiocb) {
+    if (s->bus->dma->aiocb) {
         blk_drain_all();
     }
 }
@@ -514,11 +519,12 @@ static const MemoryRegionOps pmac_ide_ops = {
 
 static const VMStateDescription vmstate_pmac = {
     .name = "ide",
-    .version_id = 3,
+    .version_id = 4,
     .minimum_version_id = 0,
     .fields = (VMStateField[]) {
         VMSTATE_IDE_BUS(bus, MACIOIDEState),
         VMSTATE_IDE_DRIVES(bus.ifs, MACIOIDEState),
+        VMSTATE_BOOL(dma_active, MACIOIDEState),
         VMSTATE_END_OF_LIST()
     }
 };

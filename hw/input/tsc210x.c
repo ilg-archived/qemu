@@ -19,6 +19,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "audio/audio.h"
 #include "qemu/timer.h"
@@ -834,7 +835,8 @@ static void tsc210x_pin_update(TSC210xState *s)
     s->busy = 1;
     s->precision = s->nextprecision;
     s->function = s->nextfunction;
-    expires = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) + (get_ticks_per_sec() >> 10);
+    expires = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
+        (NANOSECONDS_PER_SECOND >> 10);
     timer_mod(s->timer, expires);
 }
 

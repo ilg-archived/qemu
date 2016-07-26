@@ -23,7 +23,7 @@
  * THE SOFTWARE.
  */
 
-#include "config-host.h"
+#include "qemu/osdep.h"
 
 #include <poll.h>
 #include <math.h>
@@ -39,6 +39,7 @@
 #include "sysemu/sysemu.h"
 #include "qmp-commands.h"
 #include "qapi/qmp/qstring.h"
+#include "crypto/secret.h"
 
 #include <iscsi/iscsi.h>
 #include <iscsi/scsi-lowlevel.h>
@@ -69,7 +70,6 @@ typedef struct IscsiLun {
     bool lbprz;
     bool dpofua;
     bool has_write_same;
-    bool force_next_flush;
     bool request_timed_out;
 } IscsiLun;
 
@@ -83,7 +83,6 @@ typedef struct IscsiTask {
     QEMUBH *bh;
     IscsiLun *iscsilun;
     QEMUTimer retry_timer;
-    bool force_next_flush;
     int err_code;
 } IscsiTask;
 
@@ -281,8 +280,6 @@ iscsi_co_generic_cb(struct iscsi_context *iscsi, int status,
         }
         iTask->err_code = iscsi_translate_sense(&task->sense);
         error_report("iSCSI Failure: %s", iscsi_get_error(iscsi));
-    } else {
-        iTask->iscsilun->force_next_flush |= iTask->force_next_flush;
     }
 
 out:
@@ -451,15 +448,15 @@ static void iscsi_allocationmap_clear(IscsiLun *iscsilun, int64_t sector_num,
     }
 }
 
-static int coroutine_fn iscsi_co_writev(BlockDriverState *bs,
-                                        int64_t sector_num, int nb_sectors,
-                                        QEMUIOVector *iov)
+static int coroutine_fn
+iscsi_co_writev_flags(BlockDriverState *bs, int64_t sector_num, int nb_sectors,
+                      QEMUIOVector *iov, int flags)
 {
     IscsiLun *iscsilun = bs->opaque;
     struct IscsiTask iTask;
     uint64_t lba;
     uint32_t num_sectors;
-    int fua;
+    bool fua;
 
     if (!is_request_lun_aligned(sector_num, nb_sectors, iscsilun)) {
         return -EINVAL;
@@ -475,8 +472,7 @@ static int coroutine_fn iscsi_co_writev(BlockDriverState *bs,
     num_sectors = sector_qemu2lun(nb_sectors, iscsilun);
     iscsi_co_init_iscsitask(iscsilun, &iTask);
 retry:
-    fua = iscsilun->dpofua && !bs->enable_write_cache;
-    iTask.force_next_flush = !fua;
+    fua = iscsilun->dpofua && (flags & BDRV_REQ_FUA);
     if (iscsilun->use_16_for_rw) {
         iTask.task = iscsi_write16_task(iscsilun->iscsi, iscsilun->lun, lba,
                                         NULL, num_sectors * iscsilun->block_size,
@@ -517,6 +513,13 @@ retry:
     return 0;
 }
 
+static int coroutine_fn
+iscsi_co_writev(BlockDriverState *bs, int64_t sector_num, int nb_sectors,
+                QEMUIOVector *iov)
+{
+    return iscsi_co_writev_flags(bs, sector_num, nb_sectors, iov, 0);
+}
+
 
 static bool iscsi_allocationmap_is_allocated(IscsiLun *iscsilun,
                                              int64_t sector_num, int nb_sectors)
@@ -532,7 +535,8 @@ static bool iscsi_allocationmap_is_allocated(IscsiLun *iscsilun,
 
 static int64_t coroutine_fn iscsi_co_get_block_status(BlockDriverState *bs,
                                                   int64_t sector_num,
-                                                  int nb_sectors, int *pnum)
+                                                  int nb_sectors, int *pnum,
+                                                  BlockDriverState **file)
 {
     IscsiLun *iscsilun = bs->opaque;
     struct scsi_get_lba_status *lbas = NULL;
@@ -624,6 +628,9 @@ out:
     if (iTask.task != NULL) {
         scsi_free_scsi_task(iTask.task);
     }
+    if (ret > 0 && ret & BDRV_BLOCK_OFFSET_VALID) {
+        *file = bs;
+    }
     return ret;
 }
 
@@ -650,7 +657,8 @@ static int coroutine_fn iscsi_co_readv(BlockDriverState *bs,
         !iscsi_allocationmap_is_allocated(iscsilun, sector_num, nb_sectors)) {
         int64_t ret;
         int pnum;
-        ret = iscsi_co_get_block_status(bs, sector_num, INT_MAX, &pnum);
+        BlockDriverState *file;
+        ret = iscsi_co_get_block_status(bs, sector_num, INT_MAX, &pnum, &file);
         if (ret < 0) {
             return ret;
         }
@@ -708,11 +716,6 @@ static int coroutine_fn iscsi_co_flush(BlockDriverState *bs)
 {
     IscsiLun *iscsilun = bs->opaque;
     struct IscsiTask iTask;
-
-    if (!iscsilun->force_next_flush) {
-        return 0;
-    }
-    iscsilun->force_next_flush = false;
 
     iscsi_co_init_iscsitask(iscsilun, &iTask);
 retry:
@@ -1013,7 +1016,6 @@ coroutine_fn iscsi_co_write_zeroes(BlockDriverState *bs, int64_t sector_num,
     }
 
     iscsi_co_init_iscsitask(iscsilun, &iTask);
-    iTask.force_next_flush = true;
 retry:
     if (use_16_for_ws) {
         iTask.task = iscsi_writesame16_task(iscsilun->iscsi, iscsilun->lun, lba,
@@ -1075,6 +1077,8 @@ static void parse_chap(struct iscsi_context *iscsi, const char *target,
     QemuOpts *opts;
     const char *user = NULL;
     const char *password = NULL;
+    const char *secretid;
+    char *secret = NULL;
 
     list = qemu_find_opts("iscsi");
     if (!list) {
@@ -1094,8 +1098,20 @@ static void parse_chap(struct iscsi_context *iscsi, const char *target,
         return;
     }
 
+    secretid = qemu_opt_get(opts, "password-secret");
     password = qemu_opt_get(opts, "password");
-    if (!password) {
+    if (secretid && password) {
+        error_setg(errp, "'password' and 'password-secret' properties are "
+                   "mutually exclusive");
+        return;
+    }
+    if (secretid) {
+        secret = qcrypto_secret_lookup_as_utf8(secretid, errp);
+        if (!secret) {
+            return;
+        }
+        password = secret;
+    } else if (!password) {
         error_setg(errp, "CHAP username specified but no password was given");
         return;
     }
@@ -1103,6 +1119,8 @@ static void parse_chap(struct iscsi_context *iscsi, const char *target,
     if (iscsi_set_initiator_username_pwd(iscsi, user, password)) {
         error_setg(errp, "Failed to set initiator username and password");
     }
+
+    g_free(secret);
 }
 
 static void parse_header_digest(struct iscsi_context *iscsi, const char *target,
@@ -1243,8 +1261,13 @@ static void iscsi_readcapacity_sync(IscsiLun *iscsilun, Error **errp)
                     iscsilun->lbprz = !!rc16->lbprz;
                     iscsilun->use_16_for_rw = (rc16->returned_lba > 0xffffffff);
                 }
+                break;
             }
-            break;
+            if (task != NULL && task->status == SCSI_STATUS_CHECK_CONDITION
+                && task->sense.key == SCSI_SENSE_UNIT_ATTENTION) {
+                break;
+            }
+            /* Fall through and try READ CAPACITY(10) instead.  */
         case TYPE_ROM:
             task = iscsi_readcapacity10_sync(iscsilun->iscsi, iscsilun->lun, 0, 0);
             if (task != NULL && task->status == SCSI_STATUS_GOOD) {
@@ -1270,7 +1293,7 @@ static void iscsi_readcapacity_sync(IscsiLun *iscsilun, Error **errp)
              && retries-- > 0);
 
     if (task == NULL || task->status != SCSI_STATUS_GOOD) {
-        error_setg(errp, "iSCSI: failed to send readcapacity10 command.");
+        error_setg(errp, "iSCSI: failed to send readcapacity10/16 command");
     } else if (!iscsilun->block_size ||
                iscsilun->block_size % BDRV_SECTOR_SIZE) {
         error_setg(errp, "iSCSI: the target returned an invalid "
@@ -1825,6 +1848,8 @@ static BlockDriver bdrv_iscsi = {
     .bdrv_co_write_zeroes = iscsi_co_write_zeroes,
     .bdrv_co_readv         = iscsi_co_readv,
     .bdrv_co_writev        = iscsi_co_writev,
+    .bdrv_co_writev_flags  = iscsi_co_writev_flags,
+    .supported_write_flags = BDRV_REQ_FUA,
     .bdrv_co_flush_to_disk = iscsi_co_flush,
 
 #ifdef __linux__
@@ -1847,6 +1872,11 @@ static QemuOptsList qemu_iscsi_opts = {
             .name = "password",
             .type = QEMU_OPT_STRING,
             .help = "password for CHAP authentication to target",
+        },{
+            .name = "password-secret",
+            .type = QEMU_OPT_STRING,
+            .help = "ID of the secret providing password for CHAP "
+                    "authentication to target",
         },{
             .name = "header-digest",
             .type = QEMU_OPT_STRING,

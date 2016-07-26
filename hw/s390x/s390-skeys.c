@@ -9,6 +9,7 @@
  * directory.
  */
 
+#include "qemu/osdep.h"
 #include "hw/boards.h"
 #include "qmp-commands.h"
 #include "migration/qemu-file.h"
@@ -100,8 +101,7 @@ void hmp_dump_skeys(Monitor *mon, const QDict *qdict)
 
     qmp_dump_skeys(filename, &err);
     if (err) {
-        monitor_printf(mon, "%s\n", error_get_pretty(err));
-        error_free(err);
+        error_report_err(err);
     }
 }
 
@@ -192,8 +192,8 @@ static int qemu_s390_skeys_set(S390SKeysState *ss, uint64_t start_gfn,
     /* Check for uint64 overflow and access beyond end of key data */
     if (start_gfn + count > skeydev->key_count || start_gfn + count < count) {
         error_report("Error: Setting storage keys for page beyond the end "
-                "of memory: gfn=%" PRIx64 " count=%" PRId64 "\n", start_gfn,
-                count);
+                     "of memory: gfn=%" PRIx64 " count=%" PRId64,
+                     start_gfn, count);
         return -EINVAL;
     }
 
@@ -212,8 +212,8 @@ static int qemu_s390_skeys_get(S390SKeysState *ss, uint64_t start_gfn,
     /* Check for uint64 overflow and access beyond end of key data */
     if (start_gfn + count > skeydev->key_count || start_gfn + count < count) {
         error_report("Error: Getting storage keys for page beyond the end "
-                "of memory: gfn=%" PRIx64 " count=%" PRId64 "\n", start_gfn,
-                count);
+                     "of memory: gfn=%" PRIx64 " count=%" PRId64,
+                     start_gfn, count);
         return -EINVAL;
     }
 
@@ -238,7 +238,7 @@ static const TypeInfo qemu_s390_skeys_info = {
     .instance_init = qemu_s390_skeys_init,
     .instance_size = sizeof(QEMUS390SKeysState),
     .class_init    = qemu_s390_skeys_class_init,
-    .instance_size = sizeof(S390SKeysClass),
+    .class_size    = sizeof(S390SKeysClass),
 };
 
 static void s390_storage_keys_save(QEMUFile *f, void *opaque)
@@ -257,7 +257,7 @@ static void s390_storage_keys_save(QEMUFile *f, void *opaque)
 
     buf = g_try_malloc(S390_SKEYS_BUFFER_SIZE);
     if (!buf) {
-        error_report("storage key save could not allocate memory\n");
+        error_report("storage key save could not allocate memory");
         goto end_stream;
     }
 
@@ -277,7 +277,7 @@ static void s390_storage_keys_save(QEMUFile *f, void *opaque)
                  * use S390_SKEYS_SAVE_FLAG_ERROR to indicate failure to the
                  * reading side.
                  */
-                error_report("S390_GET_KEYS error %d\n", error);
+                error_report("S390_GET_KEYS error %d", error);
                 memset(buf, 0, S390_SKEYS_BUFFER_SIZE);
                 eos = S390_SKEYS_SAVE_FLAG_ERROR;
             }
@@ -315,7 +315,7 @@ static int s390_storage_keys_load(QEMUFile *f, void *opaque, int version_id)
             uint8_t *buf = g_try_malloc(S390_SKEYS_BUFFER_SIZE);
 
             if (!buf) {
-                error_report("storage key load could not allocate memory\n");
+                error_report("storage key load could not allocate memory");
                 ret = -ENOMEM;
                 break;
             }
@@ -327,7 +327,7 @@ static int s390_storage_keys_load(QEMUFile *f, void *opaque, int version_id)
 
                 ret = skeyclass->set_skeys(ss, cur_gfn, cur_count, buf);
                 if (ret < 0) {
-                    error_report("S390_SET_KEYS error %d\n", ret);
+                    error_report("S390_SET_KEYS error %d", ret);
                     break;
                 }
                 handled_count += cur_count;

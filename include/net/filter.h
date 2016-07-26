@@ -11,7 +11,6 @@
 
 #include "qom/object.h"
 #include "qemu-common.h"
-#include "qemu/typedefs.h"
 #include "net/queue.h"
 
 #define TYPE_NETFILTER "netfilter"
@@ -36,12 +35,15 @@ typedef ssize_t (FilterReceiveIOV)(NetFilterState *nc,
                                    int iovcnt,
                                    NetPacketSent *sent_cb);
 
+typedef void (FilterStatusChanged) (NetFilterState *nf, Error **errp);
+
 typedef struct NetFilterClass {
     ObjectClass parent_class;
 
     /* optional */
     FilterSetup *setup;
     FilterCleanup *cleanup;
+    FilterStatusChanged *status_changed;
     /* mandatory */
     FilterReceiveIOV *receive_iov;
 } NetFilterClass;
@@ -55,7 +57,7 @@ struct NetFilterState {
     char *netdev_id;
     NetClientState *netdev;
     NetFilterDirection direction;
-    char info_str[256];
+    bool on;
     QTAILQ_ENTRY(NetFilterState) next;
 };
 

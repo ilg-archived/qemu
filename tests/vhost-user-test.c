@@ -8,6 +8,7 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include <glib.h>
 
 #include "libqtest.h"
@@ -35,11 +36,10 @@
                         "mem-path=%s,share=on -numa node,memdev=mem"
 #define QEMU_CMD_CHR    " -chardev socket,id=%s,path=%s"
 #define QEMU_CMD_NETDEV " -netdev vhost-user,id=net0,chardev=%s,vhostforce"
-#define QEMU_CMD_NET    " -device virtio-net-pci,netdev=net0 "
-#define QEMU_CMD_ROM    " -option-rom ../pc-bios/pxe-virtio.rom"
+#define QEMU_CMD_NET    " -device virtio-net-pci,netdev=net0,romfile=./pc-bios/pxe-virtio.rom"
 
 #define QEMU_CMD        QEMU_CMD_ACCEL QEMU_CMD_MEM QEMU_CMD_CHR \
-                        QEMU_CMD_NETDEV QEMU_CMD_NET QEMU_CMD_ROM
+                        QEMU_CMD_NETDEV QEMU_CMD_NET
 
 #define HUGETLBFS_MAGIC       0x958458f6
 
@@ -439,7 +439,7 @@ static void wait_for_log_fd(TestServer *s)
     g_mutex_unlock(&s->data_mutex);
 }
 
-static void write_guest_mem(TestServer *s, uint32 seed)
+static void write_guest_mem(TestServer *s, uint32_t seed)
 {
     uint32_t *guest_mem;
     int i, j;

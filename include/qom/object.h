@@ -15,12 +15,8 @@
 #define QEMU_OBJECT_H
 
 #include <glib.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include "qapi-types.h"
 #include "qemu/queue.h"
-#include "qapi/error.h"
-
-struct Visitor;
 
 struct TypeImpl;
 typedef struct TypeImpl *Type;
@@ -291,16 +287,16 @@ typedef struct InterfaceInfo InterfaceInfo;
  * ObjectPropertyAccessor:
  * @obj: the object that owns the property
  * @v: the visitor that contains the property data
- * @opaque: the object property opaque
  * @name: the name of the property
+ * @opaque: the object property opaque
  * @errp: a pointer to an Error that is filled if getting/setting fails.
  *
  * Called when trying to get/set a property.
  */
 typedef void (ObjectPropertyAccessor)(Object *obj,
-                                      struct Visitor *v,
-                                      void *opaque,
+                                      Visitor *v,
                                       const char *name,
+                                      void *opaque,
                                       Error **errp);
 
 /**
@@ -381,6 +377,8 @@ struct ObjectClass
     const char *class_cast_cache[OBJECT_CLASS_CAST_CACHE];
 
     ObjectUnparent *unparent;
+
+    GHashTable *properties;
 };
 
 /**
@@ -944,6 +942,13 @@ ObjectProperty *object_property_add(Object *obj, const char *name,
 
 void object_property_del(Object *obj, const char *name, Error **errp);
 
+ObjectProperty *object_class_property_add(ObjectClass *klass, const char *name,
+                                          const char *type,
+                                          ObjectPropertyAccessor *get,
+                                          ObjectPropertyAccessor *set,
+                                          ObjectPropertyRelease *release,
+                                          void *opaque, Error **errp);
+
 /**
  * object_property_find:
  * @obj: the object
@@ -954,15 +959,20 @@ void object_property_del(Object *obj, const char *name, Error **errp);
  */
 ObjectProperty *object_property_find(Object *obj, const char *name,
                                      Error **errp);
+ObjectProperty *object_class_property_find(ObjectClass *klass, const char *name,
+                                           Error **errp);
 
-typedef struct ObjectPropertyIterator ObjectPropertyIterator;
+typedef struct ObjectPropertyIterator {
+    ObjectClass *nextclass;
+    GHashTableIter iter;
+} ObjectPropertyIterator;
 
 /**
  * object_property_iter_init:
  * @obj: the object
  *
  * Initializes an iterator for traversing all properties
- * registered against an object instance.
+ * registered against an object instance, its class and all parent classes.
  *
  * It is forbidden to modify the property list while iterating,
  * whether removing or adding properties.
@@ -973,31 +983,26 @@ typedef struct ObjectPropertyIterator ObjectPropertyIterator;
  *   <title>Using object property iterators</title>
  *   <programlisting>
  *   ObjectProperty *prop;
- *   ObjectPropertyIterator *iter;
+ *   ObjectPropertyIterator iter;
  *
- *   iter = object_property_iter_init(obj);
- *   while ((prop = object_property_iter_next(iter))) {
+ *   object_property_iter_init(&iter, obj);
+ *   while ((prop = object_property_iter_next(&iter))) {
  *     ... do something with prop ...
  *   }
- *   object_property_iter_free(iter);
  *   </programlisting>
  * </example>
- *
- * Returns: the new iterator
  */
-ObjectPropertyIterator *object_property_iter_init(Object *obj);
-
-/**
- * object_property_iter_free:
- * @iter: the iterator instance
- *
- * Releases any resources associated with the iterator.
- */
-void object_property_iter_free(ObjectPropertyIterator *iter);
+void object_property_iter_init(ObjectPropertyIterator *iter,
+                               Object *obj);
 
 /**
  * object_property_iter_next:
  * @iter: the iterator instance
+ *
+ * Return the next available property. If no further properties
+ * are available, a %NULL value will be returned and the @iter
+ * pointer should not be used again after this point without
+ * re-initializing it.
  *
  * Returns: the next property, or %NULL when all properties
  * have been traversed.
@@ -1016,7 +1021,7 @@ void object_unparent(Object *obj);
  *
  * Reads a property from a object.
  */
-void object_property_get(Object *obj, struct Visitor *v, const char *name,
+void object_property_get(Object *obj, Visitor *v, const char *name,
                          Error **errp);
 
 /**
@@ -1107,7 +1112,7 @@ void object_property_set_int(Object *obj, int64_t value,
  * @name: the name of the property
  * @errp: returns an error if this function fails
  *
- * Returns: the value of the property, converted to an integer, or NULL if
+ * Returns: the value of the property, converted to an integer, or negative if
  * an error occurs (including when the property value is not an integer).
  */
 int64_t object_property_get_int(Object *obj, const char *name,
@@ -1152,7 +1157,7 @@ void object_property_get_uint16List(Object *obj, const char *name,
  *
  * Writes a property to a object.
  */
-void object_property_set(Object *obj, struct Visitor *v, const char *name,
+void object_property_set(Object *obj, Visitor *v, const char *name,
                          Error **errp);
 
 /**
@@ -1371,6 +1376,12 @@ void object_property_add_str(Object *obj, const char *name,
                              void (*set)(Object *, const char *, Error **),
                              Error **errp);
 
+void object_class_property_add_str(ObjectClass *klass, const char *name,
+                                   char *(*get)(Object *, Error **),
+                                   void (*set)(Object *, const char *,
+                                               Error **),
+                                   Error **errp);
+
 /**
  * object_property_add_bool:
  * @obj: the object to add a property to
@@ -1386,6 +1397,11 @@ void object_property_add_bool(Object *obj, const char *name,
                               bool (*get)(Object *, Error **),
                               void (*set)(Object *, bool, Error **),
                               Error **errp);
+
+void object_class_property_add_bool(ObjectClass *klass, const char *name,
+                                    bool (*get)(Object *, Error **),
+                                    void (*set)(Object *, bool, Error **),
+                                    Error **errp);
 
 /**
  * object_property_add_enum:
@@ -1406,6 +1422,13 @@ void object_property_add_enum(Object *obj, const char *name,
                               void (*set)(Object *, int, Error **),
                               Error **errp);
 
+void object_class_property_add_enum(ObjectClass *klass, const char *name,
+                                    const char *typename,
+                                    const char * const *strings,
+                                    int (*get)(Object *, Error **),
+                                    void (*set)(Object *, int, Error **),
+                                    Error **errp);
+
 /**
  * object_property_add_tm:
  * @obj: the object to add a property to
@@ -1420,6 +1443,10 @@ void object_property_add_tm(Object *obj, const char *name,
                             void (*get)(Object *, struct tm *, Error **),
                             Error **errp);
 
+void object_class_property_add_tm(ObjectClass *klass, const char *name,
+                                  void (*get)(Object *, struct tm *, Error **),
+                                  Error **errp);
+
 /**
  * object_property_add_uint8_ptr:
  * @obj: the object to add a property to
@@ -1432,6 +1459,8 @@ void object_property_add_tm(Object *obj, const char *name,
  */
 void object_property_add_uint8_ptr(Object *obj, const char *name,
                                    const uint8_t *v, Error **errp);
+void object_class_property_add_uint8_ptr(ObjectClass *klass, const char *name,
+                                         const uint8_t *v, Error **errp);
 
 /**
  * object_property_add_uint16_ptr:
@@ -1445,6 +1474,8 @@ void object_property_add_uint8_ptr(Object *obj, const char *name,
  */
 void object_property_add_uint16_ptr(Object *obj, const char *name,
                                     const uint16_t *v, Error **errp);
+void object_class_property_add_uint16_ptr(ObjectClass *klass, const char *name,
+                                          const uint16_t *v, Error **errp);
 
 /**
  * object_property_add_uint32_ptr:
@@ -1458,6 +1489,8 @@ void object_property_add_uint16_ptr(Object *obj, const char *name,
  */
 void object_property_add_uint32_ptr(Object *obj, const char *name,
                                     const uint32_t *v, Error **errp);
+void object_class_property_add_uint32_ptr(ObjectClass *klass, const char *name,
+                                          const uint32_t *v, Error **errp);
 
 /**
  * object_property_add_uint64_ptr:
@@ -1471,6 +1504,8 @@ void object_property_add_uint32_ptr(Object *obj, const char *name,
  */
 void object_property_add_uint64_ptr(Object *obj, const char *name,
                                     const uint64_t *v, Error **Errp);
+void object_class_property_add_uint64_ptr(ObjectClass *klass, const char *name,
+                                          const uint64_t *v, Error **Errp);
 
 /**
  * object_property_add_alias:
@@ -1522,6 +1557,9 @@ void object_property_add_const_link(Object *obj, const char *name,
  */
 void object_property_set_description(Object *obj, const char *name,
                                      const char *description, Error **errp);
+void object_class_property_set_description(ObjectClass *klass, const char *name,
+                                           const char *description,
+                                           Error **errp);
 
 /**
  * object_child_foreach:

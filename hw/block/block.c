@@ -7,9 +7,11 @@
  * later.  See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include "sysemu/blockdev.h"
 #include "sysemu/block-backend.h"
 #include "hw/block/block.h"
+#include "qapi/error.h"
 #include "qemu/error-report.h"
 
 void blkconf_serial(BlockConf *conf, char **serial)

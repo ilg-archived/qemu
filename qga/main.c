@@ -10,16 +10,13 @@
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
+#include "qemu/osdep.h"
 #include <glib.h>
 #include <getopt.h>
 #include <glib/gstdio.h>
 #ifndef _WIN32
 #include <syslog.h>
 #include <sys/wait.h>
-#include <sys/stat.h>
 #endif
 #include "qapi/qmp/json-streamer.h"
 #include "qapi/qmp/json-parser.h"
@@ -27,11 +24,11 @@
 #include "qapi/qmp/qjson.h"
 #include "qga/guest-agent-core.h"
 #include "qemu/module.h"
-#include "signal.h"
 #include "qapi/qmp/qerror.h"
 #include "qapi/qmp/dispatch.h"
 #include "qga/channel.h"
 #include "qemu/bswap.h"
+#include "qemu/help_option.h"
 #ifdef _WIN32
 #include "qga/service-win32.h"
 #include "qga/vss-win32.h"
@@ -621,13 +618,7 @@ static gboolean channel_event_cb(GIOCondition condition, gpointer data)
     GAState *s = data;
     gchar buf[QGA_READ_COUNT_DEFAULT+1];
     gsize count;
-    GError *err = NULL;
     GIOStatus status = ga_channel_read(s->channel, buf, QGA_READ_COUNT_DEFAULT, &count);
-    if (err != NULL) {
-        g_warning("error reading channel: %s", err->message);
-        g_error_free(err);
-        return false;
-    }
     switch (status) {
     case G_IO_STATUS_ERROR:
         g_warning("error reading channel");

@@ -9,8 +9,11 @@
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/acpi/cpu_hotplug.h"
+#include "qapi/error.h"
+#include "qom/cpu.h"
 
 static uint64_t cpu_status_read(void *opaque, hwaddr addr, unsigned int size)
 {
