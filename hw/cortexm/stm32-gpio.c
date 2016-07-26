@@ -112,7 +112,7 @@ static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index);
 
 static void stm32f1_gpio_crl_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -121,7 +121,7 @@ static void stm32f1_gpio_crl_post_write_callback(Object *reg, Object *periph,
 
 static void stm32f1_gpio_crh_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -130,7 +130,7 @@ static void stm32f1_gpio_crh_post_write_callback(Object *reg, Object *periph,
 
 static void stm32f1_gpio_odr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -138,51 +138,45 @@ static void stm32f1_gpio_odr_post_write_callback(Object *reg, Object *periph,
     assert(odr);
 
     uint16_t prev_value = peripheral_register_get_raw_prev_value(odr);
-    uint16_t new_value = peripheral_register_get_raw_value(odr);
 
-    stm32_gpio_set_odr_irqs(state, prev_value, new_value);
-    stm32_gpio_update_idr(state, state->f1.reg.idr, new_value);
+    stm32_gpio_set_odr_irqs(state, prev_value, full_value);
+    stm32_gpio_update_idr(state, state->f1.reg.idr, full_value);
 }
 
 static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
     Object *odr = state->f1.reg.odr;
     assert(odr);
 
-    uint32_t new_value;
-    uint32_t bits_to_set;
-    uint32_t bits_to_reset;
-
-    /* Value is word (32-bits) and can be used directly. */
-    bits_to_set = (value & 0x0000FFFF);
-    bits_to_reset = ((value >> 16) & 0x0000FFFF);
+    /* Although 'value' is known to be 32-bits, for consistency use full_value */
+    uint32_t bits_to_set = (full_value & 0x0000FFFF);
+    uint32_t bits_to_reset = ((full_value >> 16) & 0x0000FFFF);
 
     /* Clear the BR bits and set the BS bits. */
-    new_value = (peripheral_register_get_raw_value(odr) & (~bits_to_reset))
-            | bits_to_set;
+    uint32_t new_value = (peripheral_register_get_raw_value(odr)
+            & (~bits_to_reset)) | bits_to_set;
     stm32_gpio_update_odr_and_idr(state, odr, state->f1.reg.idr, new_value);
 }
 
 static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
     Object *odr = state->f1.reg.odr;
     assert(odr);
 
-    /* Value is word (32-bits) and can be used directly. */
-    uint32_t new_value;
-    uint32_t bits_to_reset;
-    bits_to_reset = (value & 0x0000FFFF);
+    /* Although 'value' is known to be 32-bits, for consistency use full_value */
+    uint32_t bits_to_reset = (full_value & 0x0000FFFF);
 
     /* Clear the BR bits. */
-    new_value = peripheral_register_get_raw_value(odr) & ~bits_to_reset;
+    uint32_t new_value = peripheral_register_get_raw_value(odr)
+            & ~bits_to_reset;
     stm32_gpio_update_odr_and_idr(state, odr, state->f1.reg.idr, new_value);
 }
 
@@ -353,7 +347,7 @@ static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state);
 
 static void stm32f4_gpio_moder_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -362,7 +356,7 @@ static void stm32f4_gpio_moder_post_write_callback(Object *reg, Object *periph,
 
 static void stm32f4_gpio_odr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
@@ -370,32 +364,28 @@ static void stm32f4_gpio_odr_post_write_callback(Object *reg, Object *periph,
     assert(odr);
 
     uint16_t prev_value = peripheral_register_get_raw_prev_value(odr);
-    uint16_t new_value = peripheral_register_get_raw_value(odr);
 
-    stm32_gpio_set_odr_irqs(state, prev_value, new_value);
-    stm32_gpio_update_idr(state, state->f4.reg.idr, new_value);
+    /* 'value' may be have any size, use full_word. */
+    stm32_gpio_set_odr_irqs(state, prev_value, full_value);
+    stm32_gpio_update_idr(state, state->f4.reg.idr, full_value);
 }
 
 static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
     Object *odr = state->f4.reg.odr;
     assert(odr);
 
-    uint32_t new_value;
-    uint32_t bits_to_set;
-    uint32_t bits_to_reset;
-
-    /* Value is word (32-bits). */
-    bits_to_set = (value & 0x0000FFFF);
-    bits_to_reset = ((value >> 16) & 0x0000FFFF);
+    /* 'value' may be have any size, use full_word. */
+    uint32_t bits_to_set = (full_value & 0x0000FFFF);
+    uint32_t bits_to_reset = ((full_value >> 16) & 0x0000FFFF);
 
     /* Clear the BR bits and set the BS bits. */
-    new_value = (peripheral_register_get_raw_value(odr) & (~bits_to_reset))
-            | bits_to_set;
+    uint32_t new_value = (peripheral_register_get_raw_value(odr)
+            & (~bits_to_reset)) | bits_to_set;
     stm32_gpio_update_odr_and_idr(state, odr, state->f4.reg.idr, new_value);
 }
 

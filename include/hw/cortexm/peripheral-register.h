@@ -87,6 +87,10 @@ typedef void (*register_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value);
 
+typedef void (*register_post_write_callback_t)(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value, peripheral_register_t full_value);
+
 /**
  * Info structure used to create new register types.
  */
@@ -163,7 +167,7 @@ typedef struct {
     register_read_callback_t read;
     register_post_read_callback_t post_read;
     register_write_callback_t write;
-    register_write_callback_t post_write;
+    register_post_write_callback_t post_write;
 } PeripheralRegisterClass;
 
 /* ------------------------------------------------------------------------- */
@@ -207,7 +211,7 @@ typedef struct {
      */
     register_read_callback_t pre_read;
     register_post_read_callback_t post_read;
-    register_write_callback_t post_write;
+    register_post_write_callback_t post_write;
 } PeripheralRegisterState;
 
 /* ----- Public ------------------------------------------------------------ */
@@ -241,7 +245,7 @@ peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
         bool is_little_endian);
 
 void peripheral_register_set_post_write(Object* obj,
-        register_write_callback_t ptr);
+        register_post_write_callback_t ptr);
 
 void peripheral_register_set_pre_read(Object* obj,
         register_read_callback_t ptr);

@@ -3567,7 +3567,7 @@ extern int system_clock_scale;
 
 static void stm32_rcc_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32RCCState *state = STM32_RCC_STATE(periph);
     stm32_rcc_update_clocks(state);

@@ -143,6 +143,7 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
     }
 #endif
 
+    // Identify the register inside the peripheral, by index.
     PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(
             state->registers[index]);
     if (reg == NULL) {

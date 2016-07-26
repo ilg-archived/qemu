@@ -241,16 +241,17 @@ static void stm32f4_usart_dr_post_read_callback(Object *reg, Object *periph,
 
 static void stm32f4_usart_dr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32USARTState *state = STM32_USART_STATE(periph);
     unsigned char ch;
 
     int32_t cr1 = peripheral_register_get_raw_value(state->reg.cr1);
 
+    /* 'value' may be half-word, use full_word. */
     if ((cr1 & USART_CR1_UE) && (cr1 & USART_CR1_TE)) {
         if (state->chr) {
-            ch = value;
+            ch = full_value; /* Use only the lower 8 bits */
             qemu_chr_fe_write_all(state->chr, &ch, 1);
         }
         /* transmission is immediately complete */
@@ -265,15 +266,16 @@ static void stm32f4_usart_dr_post_write_callback(Object *reg, Object *periph,
 
 static void stm32f4_usart_cr1_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
-        peripheral_register_t value)
+        peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32USARTState *state = STM32_USART_STATE(periph);
 
     int32_t sr = peripheral_register_get_raw_value(state->reg.sr);
 
-    if (((value & USART_CR1_RXNEIE) && (sr & USART_SR_RXNE))
-            || ((value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))
-            || ((value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
+    /* 'value' may be half-word, use full_word. */
+    if (((full_value & USART_CR1_RXNEIE) && (sr & USART_SR_RXNE))
+            || ((full_value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))
+            || ((full_value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
         cortexm_nvic_set_pending(state->nvic,
                 smt32f4_usart_get_irq_vector(state));
     }

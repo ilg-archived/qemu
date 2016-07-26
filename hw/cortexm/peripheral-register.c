@@ -294,7 +294,7 @@ peripheral_register_t peripheral_register_get_raw_prev_value(Object* obj)
 }
 
 void peripheral_register_set_post_write(Object* obj,
-        register_write_callback_t ptr)
+        register_post_write_callback_t ptr)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
@@ -520,11 +520,11 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
     peripheral_register_t new_value = peripheral_register_widen(state->value,
             value, offset, size, periph_state->is_little_endian);
 
-    peripheral_register_t tmp;
+    peripheral_register_t full_value;
     /* Clear all writable bits, preserve the rest. */
-    tmp = state->value & (~state->writable_bits);
+    full_value = state->value & (~state->writable_bits);
     /* Set all writable bits with the new values. */
-    tmp |= (new_value & state->writable_bits);
+    full_value |= (new_value & state->writable_bits);
 
     PeripheralRegisterAutoBits *auto_bits;
     for (auto_bits = state->auto_bits; auto_bits && auto_bits->mask;
@@ -532,40 +532,47 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
         if (auto_bits->type == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS) {
             /* Clear the linked bits and copy those from the referred bits. */
             if (auto_bits->shift > 0) {
-                tmp &= ~(auto_bits->mask << auto_bits->shift);
-                tmp |= ((tmp & auto_bits->mask) << auto_bits->shift);
+                full_value &= ~(auto_bits->mask << auto_bits->shift);
+                full_value |= ((full_value & auto_bits->mask)
+                        << auto_bits->shift);
             } else if (auto_bits->shift < 0) {
-                tmp &= ~(auto_bits->mask >> auto_bits->shift);
-                tmp |= ((tmp & auto_bits->mask) >> auto_bits->shift);
+                full_value &= ~(auto_bits->mask >> auto_bits->shift);
+                full_value |= ((full_value & auto_bits->mask)
+                        >> auto_bits->shift);
             }
         } else if (auto_bits->type
                 == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY) {
             /* If the referred bits are set, clear the linked bits. */
             if (auto_bits->shift > 0) {
-                tmp &= ~((tmp & auto_bits->mask) << auto_bits->shift);
+                full_value &= ~((full_value & auto_bits->mask)
+                        << auto_bits->shift);
             } else if (auto_bits->shift < 0) {
-                tmp &= ~((tmp & auto_bits->mask) >> auto_bits->shift);
+                full_value &= ~((full_value & auto_bits->mask)
+                        >> auto_bits->shift);
             }
         } else if (auto_bits->type
                 == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY) {
             /* If the referred bits are set, set the linked bits. */
             if (auto_bits->shift > 0) {
-                tmp |= ((tmp & auto_bits->mask) << auto_bits->shift);
+                full_value |= ((full_value & auto_bits->mask)
+                        << auto_bits->shift);
             } else if (auto_bits->shift < 0) {
-                tmp |= ((tmp & auto_bits->mask) >> auto_bits->shift);
+                full_value |= ((full_value & auto_bits->mask)
+                        >> auto_bits->shift);
             }
         }
     }
 
     state->prev_value = state->value;
-    state->value = tmp;
+    state->value = full_value;
 
     /*
      * Actions associated with registers are implemented with post write
-     * callbacks.
+     * callbacks. The original value, possibly short and unaligned, is
+     * passed first, then the full register value.
      */
     if (state->post_write) {
-        state->post_write(reg, periph, addr, offset, size, value);
+        state->post_write(reg, periph, addr, offset, size, value, full_value);
     }
 }
 
