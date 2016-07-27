@@ -763,6 +763,8 @@ case $target_list in
     guest_agent="no"
     bzip2="no"
     libusb="no"
+    kvm="no"
+    trace_backends="log"
     # fdt="no" # it fails
     ;;
 esac
