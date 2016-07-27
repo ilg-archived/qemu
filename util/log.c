@@ -46,9 +46,13 @@ void qemu_log(const char *fmt, ...)
 void do_qemu_set_log(int log_flags, bool use_own_buffers)
 {
     qemu_loglevel = log_flags;
+
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
 #ifdef CONFIG_TRACE_LOG
     qemu_loglevel |= LOG_TRACE;
 #endif
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     if (!qemu_logfile &&
         (is_daemonized() ? logfilename != NULL : qemu_loglevel)) {
         if (logfilename) {

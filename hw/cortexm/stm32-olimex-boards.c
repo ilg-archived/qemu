@@ -312,5 +312,5 @@ static void stm32_olimex_machines_init(void)
 }
 
 #if 1
-machine_init(stm32_olimex_machines_init);
+type_init(stm32_olimex_machines_init);
 #endif

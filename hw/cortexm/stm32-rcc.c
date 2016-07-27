@@ -3769,7 +3769,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
     }
     state->cpu_freq_hz = cpu_freq_hz;
 
-    system_clock_scale = get_ticks_per_sec() / cpu_freq_hz;
+    system_clock_scale = NANOSECONDS_PER_SECOND / cpu_freq_hz;
     if (system_clock_scale == 0) {
         system_clock_scale = 1;
     }

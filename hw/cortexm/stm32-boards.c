@@ -275,4 +275,4 @@ static void stm32_machines_init(void)
 #endif
 }
 
-machine_init(stm32_machines_init);
+type_init(stm32_machines_init);

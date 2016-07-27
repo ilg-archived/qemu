@@ -52,5 +52,5 @@ static void lpc_machine_init(void)
     qemu_register_machine(&lpcxpresso_lpc1769_machine);
 }
 
-machine_init(lpc_machine_init);
+machine_init( lpc_machine_init);
 

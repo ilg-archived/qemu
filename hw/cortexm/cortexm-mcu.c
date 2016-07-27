@@ -17,7 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "config.h"
+#include "qemu/osdep.h"
+
 #include "sysemu/sysemu.h"
 #include "hw/cortexm/cortexm-mcu.h"
 #include "qemu/option.h"
@@ -33,6 +34,7 @@
 #include "exec/semihost.h"
 #include "hw/cortexm/cortexm-nvic.h"
 #include "hw/cortexm/cortexm-helper.h"
+#include "qapi/error.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -372,7 +374,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
      * The scale should be recomputed later, in the vendor clock
      * related peripherals.
      */
-    system_clock_scale = get_ticks_per_sec() / 8000000;
+    system_clock_scale = NANOSECONDS_PER_SECOND / 8000000;
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_COMMON) {
@@ -432,14 +434,14 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
     MemoryRegion *flash_mem = &cm_state->flash_mem;
     /* Flash programming is done via the SCU, so pretend it is ROM.  */
     memory_region_init_ram(flash_mem, mem_container, "flash", flash_size,
-            &error_abort);
+            &error_fatal);
     vmstate_register_ram_global(flash_mem);
     memory_region_set_readonly(flash_mem, true);
     memory_region_add_subregion(system_memory, 0x00000000, flash_mem);
 
     MemoryRegion *sram_mem = &cm_state->sram_mem;
     memory_region_init_ram(sram_mem, mem_container, "sram", sram_size,
-            &error_abort);
+            &error_fatal);
     vmstate_register_ram_global(sram_mem);
     memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
 
@@ -454,7 +456,7 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
      * space.  This stops qemu complaining about executing code outside RAM
      * when returning from an exception.  */
     memory_region_init_ram(hack_mem, mem_container, "hack", 0x1000,
-            &error_abort);
+            &error_fatal);
     vmstate_register_ram_global(hack_mem);
     memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);
 }
@@ -478,7 +480,7 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
     uint64_t entry;
     uint64_t lowaddr;
     image_size = load_elf(image_filename, NULL, NULL, &entry, &lowaddr,
-    NULL, big_endian, EM_ARM, 1);
+    NULL, big_endian, EM_ARM, 1, 0);
     if (image_size < 0) {
         image_size = load_image_targphys(image_filename, 0,
                 cm_state->flash_size_kb * 1024);

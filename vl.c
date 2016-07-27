@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include <strings.h>
 #include "hw/cortexm/cortexm-helper.h"
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -136,11 +136,13 @@ static const char *data_dir[16];
 static int data_dir_idx;
 const char *bios_name = NULL;
 enum vga_retrace_method vga_retrace_method = VGA_RETRACE_DUMB;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 DisplayType display_type = DT_NONE;
 #else
 DisplayType display_type = DT_DEFAULT;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 int request_opengl = -1;
 int display_opengl;
 static int display_remote;
@@ -156,7 +158,7 @@ int autostart;
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 int with_gdb;
 const char *mcu_device = NULL;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #if defined(CONFIG_VERBOSE)
 /**
@@ -1650,7 +1652,7 @@ static int machine_help_func(QemuOpts *opts, MachineState *machine)
     return 1;
 }
 
-#endif
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 
 /***********************************************************/
@@ -2030,7 +2032,7 @@ static void main_loop(void)
 #define QEMU_WORDSIZE ""
 #endif
 
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) || defined(CONFIG_VERBOSE) */
 
 static void version(void)
 {
@@ -2383,6 +2385,7 @@ char *qemu_find_file(int type, const char *name)
     case QEMU_FILE_TYPE_KEYMAP:
         subdir = "keymaps/";
         break;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     case QEMU_FILE_TYPE_IMAGES:
 #if defined(CONFIG_WIN32)
@@ -2391,12 +2394,14 @@ char *qemu_find_file(int type, const char *name)
         subdir = "images/";
 #endif
         break;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
         default:
         abort();
     }
 
     for (i = 0; i < data_dir_idx; i++) {
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #if defined(CONFIG_WIN32)
         buf = g_strdup_printf("%s\\%s%s", data_dir[i], subdir, name);
@@ -2405,7 +2410,8 @@ char *qemu_find_file(int type, const char *name)
 #endif
 #else
         buf = g_strdup_printf("%s/%s%s", data_dir[i], subdir, name);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
         if (access(buf, R_OK) == 0) {
             trace_load_file(name, buf);
             return buf;
@@ -2827,7 +2833,7 @@ static gint machine_class_cmp(gconstpointer a, gconstpointer b)
     exit(!name || !is_help_option(name));
 }
 
-#endif
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 void qemu_add_exit_notifier(Notifier *notify)
 {
@@ -2900,9 +2906,10 @@ static const QEMUOption *lookup_opt(int argc, char **argv,
     return popt;
 }
 
-#if 0
-static void set_machine_options(MachineClass **machine_class)
+static MachineClass *select_machine(void)
 {
+    MachineClass *machine_class = find_default_machine();
+
 #if !defined(CONFIG_GNU_ARM_ECLIPSE)
     const char *optarg;
 #endif
@@ -2912,10 +2919,10 @@ static void set_machine_options(MachineClass **machine_class)
 
     loc_push_none(&loc);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-
     opts = qemu_get_machine_opts();
     qemu_opts_loc_restore(opts);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 
     const char *board_name;
     board_name = qemu_opt_get(opts, "type");
@@ -2940,44 +2947,13 @@ static void set_machine_options(MachineClass **machine_class)
     }
 
     MachineClass *mc = find_machine(board_name);
-    if (machine_class == NULL) {
+    if (mc == NULL) {
         cm_board_help_func("?");
     } else {
-        *machine_class = mc;
+        machine_class = mc;
     }
 
 #else
-
-    opts = qemu_get_machine_opts();
-    qemu_opts_loc_restore(opts);
-
-    optarg = qemu_opt_get(opts, "type");
-    if (optarg) {
-        *machine_class = machine_parse(optarg);
-    }
-
-    if (*machine_class == NULL) {
-        error_report("No machine specified, and there is no default");
-        error_printf("Use -machine help to list supported machines\n");
-        exit(1);
-    }
-#endif
-
-    loc_pop(&loc);
-}
-#endif
-
-static MachineClass *select_machine(void)
-{
-    MachineClass *machine_class = find_default_machine();
-    const char *optarg;
-    QemuOpts *opts;
-    Location loc;
-
-    loc_push_none(&loc);
-
-    opts = qemu_get_machine_opts();
-    qemu_opts_loc_restore(opts);
 
     optarg = qemu_opt_get(opts, "type");
     if (optarg) {
@@ -2989,6 +2965,8 @@ static MachineClass *select_machine(void)
         error_printf("Use -machine help to list supported machines\n");
         exit(1);
     }
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     loc_pop(&loc);
     return machine_class;
@@ -3063,64 +3041,6 @@ static bool object_create_delayed(const char *type)
     return !object_create_initial(type);
 }
 
-
-#if 0
-static int object_create(void *opaque, QemuOpts *opts, Error **errp)
-{
-    Error *err = NULL;
-    char *type = NULL;
-    char *id = NULL;
-    void *dummy = NULL;
-    OptsVisitor *ov;
-    QDict *pdict;
-    bool (*type_predicate)(const char *) = opaque;
-
-    ov = opts_visitor_new(opts);
-    pdict = qemu_opts_to_qdict(opts, NULL);
-
-    visit_start_struct(opts_get_visitor(ov), &dummy, NULL, NULL, 0, &err);
-    if (err) {
-        goto out;
-    }
-
-    qdict_del(pdict, "qom-type");
-    visit_type_str(opts_get_visitor(ov), &type, "qom-type", &err);
-    if (err) {
-        goto out;
-    }
-    if (!type_predicate(type)) {
-        goto out;
-    }
-
-    qdict_del(pdict, "id");
-    visit_type_str(opts_get_visitor(ov), &id, "id", &err);
-    if (err) {
-        goto out;
-    }
-
-    object_add(type, id, pdict, opts_get_visitor(ov), &err);
-    if (err) {
-        goto out;
-    }
-    visit_end_struct(opts_get_visitor(ov), &err);
-    if (err) {
-        qmp_object_del(id, NULL);
-    }
-
-out:
-    opts_visitor_cleanup(ov);
-
-    QDECREF(pdict);
-    g_free(id);
-    g_free(type);
-    g_free(dummy);
-    if (err) {
-        error_report_err(err);
-        return -1;
-    }
-    return 0;
-}
-#endif
 
 static void set_memory_options(uint64_t *ram_slots, ram_addr_t *maxram_size,
                                MachineClass *mc)
@@ -3256,7 +3176,7 @@ int main(int argc, char **argv, char **envp)
     /* Most emulated applications need semihosting, so start with it enabled. */
     semihosting.enabled = true;
     semihosting.target = SEMIHOSTING_TARGET_NATIVE;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     qemu_init_cpu_loop();
     qemu_mutex_lock_iothread();
@@ -3352,6 +3272,7 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_nouserconfig:
                 userconfig = false;
                 break;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_semihosting_cmdline:
                 /* no HAS_ARGS, optind set to next option */
@@ -3363,6 +3284,7 @@ int main(int argc, char **argv, char **envp)
                 semihosting.cmdline = semihosting_concatenate_cmdline(semihosting.argc, semihosting.argv);
                 break;
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
             }
         }
     }
@@ -3378,13 +3300,15 @@ int main(int argc, char **argv, char **envp)
     /* second pass of option parsing */
     optind = 1;
     for(;;) {
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
         if (optind >= actual_argc)
             break;
 #else
         if (optind >= argc)
             break;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
         if (argv[optind][0] != '-') {
             hda_opts = drive_add(IF_DEFAULT, 0, argv[optind++], HD_OPTS);
         } else {
@@ -3394,7 +3318,8 @@ int main(int argc, char **argv, char **envp)
             popt = lookup_opt(actual_argc, argv, &optarg, &optind);
 #else
             popt = lookup_opt(argc, argv, &optarg, &optind);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
             if (!(popt->arch_mask & arch_type)) {
                 printf("Option %s not supported for this target\n", popt->name);
                 exit(1);
@@ -3409,11 +3334,13 @@ int main(int argc, char **argv, char **envp)
                 /* hw initialization will check this */
                 cpu_model = optarg;
                 break;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_mcu:
                 mcu_device = optarg;
                 break;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
             case QEMU_OPTION_hda:
                 {
                     char buf[256];
@@ -3555,12 +3482,14 @@ int main(int argc, char **argv, char **envp)
                     exit(1);
                 }
                 break;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_image:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "image", optarg,
                               &error_abort);
                 break;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
             case QEMU_OPTION_kernel:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "kernel", optarg,
                               &error_abort);
@@ -3680,15 +3609,19 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_s:
                 add_device_config(DEV_GDB, "tcp::" DEFAULT_GDBSTUB_PORT);
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
                 with_gdb = true;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
                 break;
             case QEMU_OPTION_gdb:
                 add_device_config(DEV_GDB, optarg);
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
                 with_gdb = true;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
                 break;
             case QEMU_OPTION_L:
                 if (data_dir_idx < ARRAY_SIZE(data_dir)) {
@@ -4352,6 +4285,8 @@ int main(int argc, char **argv, char **envp)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 
+    // Initialise tracing as soon as possible.
+
     if (!trace_init_backends()) {
         exit(1);
     }
@@ -4375,7 +4310,7 @@ int main(int argc, char **argv, char **envp)
         qemu_set_log(0);
     }
 
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     /*
      * Clear error location left behind by the loop.
@@ -4424,15 +4359,16 @@ int main(int argc, char **argv, char **envp)
                 "Use -machine help to list supported machines!\n");
         exit(1);
     }
-#endif
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     current_machine = MACHINE(object_new(object_class_get_name(
                           OBJECT_CLASS(machine_class))));
+
 #if !defined(CONFIG_GNU_ARM_ECLIPSE)
     if (machine_help_func(qemu_get_machine_opts(), current_machine)) {
          exit(0);
     }
-#endif
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     object_property_add_child(object_get_root(), "machine",
                               OBJECT(current_machine), &error_abort);
@@ -4455,6 +4391,9 @@ int main(int argc, char **argv, char **envp)
     }
 
 #if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    // Moved up, right after the args loop.
+
     if (!trace_init_backends()) {
         exit(1);
     }
@@ -4477,7 +4416,8 @@ int main(int argc, char **argv, char **envp)
     } else {
         qemu_set_log(0);
     }
-#endif
+
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     /* If no data_dir is specified then try to find it relative to the
        executable path.  */
@@ -4699,9 +4639,10 @@ int main(int argc, char **argv, char **envp)
     initrd_filename = qemu_opt_get(machine_opts, "initrd");
     kernel_cmdline = qemu_opt_get(machine_opts, "append");
     bios_name = qemu_opt_get(machine_opts, "firmware");
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     image_filename = qemu_opt_get(machine_opts, "image");
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     opts = qemu_opts_find(qemu_find_opts("boot-opts"), NULL);
     if (opts) {
@@ -4878,9 +4819,10 @@ int main(int argc, char **argv, char **envp)
     current_machine->ram_slots = ram_slots;
     current_machine->boot_order = boot_order;
     current_machine->cpu_model = cpu_model;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     current_machine->mcu_device = mcu_device;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     machine_class->init(current_machine);
 
@@ -5017,12 +4959,14 @@ int main(int argc, char **argv, char **envp)
             error_reportf_err(local_err, "-incoming %s: ", incoming);
             exit(1);
         }
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     } else if (autostart && (kernel_filename || image_filename)) {
         /* If an image is defined and no -S is requested, start it. */
 #else
     } else if (autostart) {
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
         vm_start();
     }
 

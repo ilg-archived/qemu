@@ -20,6 +20,8 @@
 #ifndef STM32_MCUS_H_
 #define STM32_MCUS_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/stm32-mcu.h"
 
 /* ------------------------------------------------------------------------- */

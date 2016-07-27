@@ -20,8 +20,10 @@
 #ifndef REGISTER_BITFIELD_H_
 #define REGISTER_BITFIELD_H_
 
-#include "config.h"
+#include "qemu/osdep.h"
 #include "qemu/typedefs.h"
+#include "qapi/error.h"
+
 #include "hw/sysbus.h"
 #include "hw/cortexm/cortexm-helper.h"
 

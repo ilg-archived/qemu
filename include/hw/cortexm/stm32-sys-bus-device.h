@@ -20,6 +20,8 @@
 #ifndef STM32_SYS_BUS_DEVICE_H_
 #define STM32_SYS_BUS_DEVICE_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/stm32-capabilities.h"
 #include "hw/sysbus.h"
 

@@ -21,8 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "config.h"
-
 #include "qemu/osdep.h"
 #include <dirent.h>
 #include "hw/hw.h"
@@ -2919,7 +2917,7 @@ static void handle_hmp_command(Monitor *mon, const char *cmdline)
             }
         }
 #endif
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     cmd = monitor_parse_command(mon, &cmdline, mon->cmd_table);
     if (!cmd) {

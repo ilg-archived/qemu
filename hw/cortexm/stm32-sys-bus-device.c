@@ -48,8 +48,6 @@ static void stm32_types_init(void)
     type_register_static(&stm32_sys_bus_device_type_info);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
 type_init(stm32_types_init);
-#endif
 
 /* ------------------------------------------------------------------------- */

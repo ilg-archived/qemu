@@ -17,6 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/xmc.h"
 #include "qemu/module.h"
 #include "hw/cortexm/cortexm-helper.h"
@@ -196,5 +198,5 @@ static void xmc_machine_init(void)
     qemu_register_machine(&xmc2go_machine);
 }
 
-machine_init(xmc_machine_init);
+machine_init( xmc_machine_init);
 

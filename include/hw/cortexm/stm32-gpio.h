@@ -21,11 +21,12 @@
 #ifndef STM32_GPIO_H_
 #define STM32_GPIO_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/peripheral.h"
 #include "hw/cortexm/stm32-capabilities.h"
 #include "hw/cortexm/stm32-rcc.h"
 
-#include "config.h"
 #include "hw/cortexm/stm32-sys-bus-device.h"
 #include "exec/address-spaces.h"
 #include "hw/cortexm/stm32-rcc.h"

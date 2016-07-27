@@ -20,6 +20,8 @@
 #ifndef PERIPHERAL_H_
 #define PERIPHERAL_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/peripheral-register.h"
 
 /**

@@ -56,8 +56,7 @@ static void cortexm_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo machine_none = {
     .name = MACHINE_TYPE_NAME("generic"),
     .parent = TYPE_MACHINE,
-    .class_init = cortexm_board_class_init_callback,
-};
+    .class_init = cortexm_board_class_init_callback, };
 
 static void cortexm_board_init(void)
 {
@@ -65,5 +64,5 @@ static void cortexm_board_init(void)
     type_register_static(&machine_none);
 }
 
-machine_init(cortexm_board_init);
+type_init(cortexm_board_init);
 

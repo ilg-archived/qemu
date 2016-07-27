@@ -20,6 +20,8 @@
 #ifndef CORTEXM_ITM_H_
 #define CORTEXM_ITM_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/sysbus.h"
 #include "exec/address-spaces.h"
 #include "hw/cortexm/peripheral.h"

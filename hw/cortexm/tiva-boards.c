@@ -17,6 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/tiva.h"
 #include "qemu/module.h"
 #include "hw/cortexm/cortexm-helper.h"
@@ -53,5 +55,5 @@ static void lpc_machine_init(void)
     qemu_register_machine(&ek_tm4c123gxl_machine);
 }
 
-machine_init(lpc_machine_init);
+machine_init( lpc_machine_init);
 

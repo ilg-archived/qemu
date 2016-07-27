@@ -20,8 +20,10 @@
 #ifndef PERIPHERAL_REGISTER_H_
 #define PERIPHERAL_REGISTER_H_
 
-#include "config.h"
+#include "qemu/osdep.h"
 #include "qemu/typedefs.h"
+#include "qapi/error.h"
+
 #include "hw/cortexm/register-bitfield.h"
 
 /**

@@ -20,7 +20,8 @@
 #ifndef CORTEXM_HELPER_H_
 #define CORTEXM_HELPER_H_
 
-#include "qemu-common.h"
+#include "qemu/osdep.h"
+
 #include "hw/qdev-properties.h"
 
 /* ------------------------------------------------------------------------- */

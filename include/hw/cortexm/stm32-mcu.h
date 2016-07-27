@@ -20,6 +20,8 @@
 #ifndef STM32_MCU_H_
 #define STM32_MCU_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/boards.h"
 #include "hw/cortexm/cortexm-mcu.h"
 #include "hw/cortexm/stm32-rcc.h"

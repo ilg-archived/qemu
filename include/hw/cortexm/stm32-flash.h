@@ -20,6 +20,8 @@
 #ifndef STM32_FLASH_H_
 #define STM32_FLASH_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/peripheral.h"
 #include "hw/cortexm/stm32-capabilities.h"
 

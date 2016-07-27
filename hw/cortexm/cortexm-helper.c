@@ -20,6 +20,9 @@
 #include "hw/cortexm/cortexm-helper.h"
 #include "hw/cortexm/cortexm-mcu.h"
 
+#include "qemu/help_option.h"
+#include "qapi/error.h"
+
 #include "hw/boards.h"
 #include "qom/object.h"
 #include "cpu-qom.h"
@@ -516,19 +519,19 @@ Object *cm_container_get_peripheral(void)
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_str(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_get_str(Object *obj, Visitor *v, const char *name,
+        void *opaque, Error **errp)
 {
     char *value = *(char **) opaque;
-    visit_type_str(v, &value, name, errp);
+    visit_type_str(v, name, &value, errp);
 }
 
-static void cm_property_set_str(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_set_str(Object *obj, Visitor *v, const char *name,
+        void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     char *value;
-    visit_type_str(v, &value, name, &local_err);
+    visit_type_str(v, name, &value, &local_err);
     if (!local_err) {
         *((char **) opaque) = value;
     }
@@ -562,20 +565,20 @@ void cm_object_property_add_const_str(Object *obj, const char *name,
     }
 }
 
-static void cm_property_get_bool(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_get_bool(Object *obj, Visitor *v, const char *name,
+        void *opaque, Error **errp)
 {
     bool value = *(bool *) opaque;
-    visit_type_bool(v, &value, name, errp);
+    visit_type_bool(v, name, &value, errp);
 }
 
-static void cm_property_set_bool(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_set_bool(Object *obj, Visitor *v, const char *name,
+        void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     bool value;
 
-    visit_type_bool(v, &value, name, &local_err);
+    visit_type_bool(v, name, &value, &local_err);
     if (!local_err) {
         *((bool *) opaque) = value;
     }
@@ -612,19 +615,19 @@ void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
         exit(1);
     }
 }
-static void cm_property_get_uint64_ptr(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_get_uint64_ptr(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     uint64_t value = *(uint64_t *) opaque;
-    visit_type_uint64(v, &value, name, errp);
+    visit_type_uint64(v, name, &value, errp);
 }
 
 static void cm_property_set_uint64_ptr(Object *obj, struct Visitor *v,
-        void *opaque, const char *name, Error **errp)
+        const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     uint64_t value;
-    visit_type_uint64(v, &value, name, &local_err);
+    visit_type_uint64(v, name, &value, &local_err);
     if (!local_err) {
         *((uint64_t *) opaque) = value;
     }
@@ -644,19 +647,19 @@ void cm_object_property_add_uint64(Object *obj, const char *name,
     }
 }
 
-static void cm_property_get_uint32_ptr(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_get_uint32_ptr(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     uint32_t value = *(uint32_t *) opaque;
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
 static void cm_property_set_uint32_ptr(Object *obj, struct Visitor *v,
-        void *opaque, const char *name, Error **errp)
+        const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     uint32_t value;
-    visit_type_uint32(v, &value, name, &local_err);
+    visit_type_uint32(v, name, &value, &local_err);
     if (!local_err) {
         *((uint32_t *) opaque) = value;
     }
@@ -676,19 +679,19 @@ void cm_object_property_add_uint32(Object *obj, const char *name,
     }
 }
 
-static void cm_property_get_uint16_ptr(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_get_uint16_ptr(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     uint16_t value = *(uint16_t *) opaque;
-    visit_type_uint16(v, &value, name, errp);
+    visit_type_uint16(v, name, &value, errp);
 }
 
 static void cm_property_set_uint16_ptr(Object *obj, struct Visitor *v,
-        void *opaque, const char *name, Error **errp)
+        const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     uint16_t value;
-    visit_type_uint16(v, &value, name, &local_err);
+    visit_type_uint16(v, name, &value, &local_err);
     if (!local_err) {
         *((uint16_t *) opaque) = value;
     }
@@ -708,19 +711,19 @@ void cm_object_property_add_uint16(Object *obj, const char *name,
     }
 }
 
-static void cm_property_get_uint8_ptr(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_get_uint8_ptr(Object *obj, Visitor *v, const char *name,
+        void *opaque, Error **errp)
 {
     uint8_t value = *(uint8_t *) opaque;
-    visit_type_uint8(v, &value, name, errp);
+    visit_type_uint8(v, name, &value, errp);
 }
 
 static void cm_property_set_uint8_ptr(Object *obj, struct Visitor *v,
-        void *opaque, const char *name, Error **errp)
+        const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     uint8_t value;
-    visit_type_uint8(v, &value, name, &local_err);
+    visit_type_uint8(v, name, &value, &local_err);
     if (!local_err) {
         *((uint8_t *) opaque) = value;
     }
@@ -740,19 +743,19 @@ void cm_object_property_add_uint8(Object *obj, const char *name,
     }
 }
 
-static void cm_property_get_int16_ptr(Object *obj, Visitor *v, void *opaque,
-        const char *name, Error **errp)
+static void cm_property_get_int16_ptr(Object *obj, Visitor *v, const char *name,
+        void *opaque, Error **errp)
 {
     int16_t value = *(int16_t *) opaque;
-    visit_type_int16(v, &value, name, errp);
+    visit_type_int16(v, name, &value, errp);
 }
 
 static void cm_property_set_int16_ptr(Object *obj, struct Visitor *v,
-        void *opaque, const char *name, Error **errp)
+        const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     int16_t value;
-    visit_type_int16(v, &value, name, &local_err);
+    visit_type_int16(v, name, &value, &local_err);
     if (!local_err) {
         *((int16_t *) opaque) = value;
     }

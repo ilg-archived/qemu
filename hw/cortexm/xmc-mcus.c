@@ -17,6 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+
 #include "hw/cortexm/xmc.h"
 #include "hw/cortexm/cortexm-mcu.h"
 

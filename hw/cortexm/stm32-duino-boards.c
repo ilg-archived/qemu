@@ -79,7 +79,8 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
             "NetduinoPlus2");
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, netduinoplus2_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, netduinoplus2_leds_info,
+            board_surface);
 }
 
 static void netduinoplus2_board_class_init_callback(ObjectClass *oc, void *data)
@@ -295,6 +296,6 @@ static void stm32_duino_machines_init(void)
 }
 
 #if 1
-machine_init(stm32_duino_machines_init);
+type_init(stm32_duino_machines_init);
 #endif
 

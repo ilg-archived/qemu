@@ -20,6 +20,8 @@
 #ifndef HW_ARM_SAM_H
 #define HW_ARM_SAM_H 1
 
+#include "qemu/osdep.h"
+
 #include "hw/boards.h"
 #include "hw/cortexm/cortexm-mcu.h"
 
