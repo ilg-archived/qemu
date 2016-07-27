@@ -14,6 +14,7 @@
  * GNU General Public License for more details.
  */
 
+#include "qemu/osdep.h"
 #include "qemu/iov.h"
 
 #include "rocker.h"
@@ -32,7 +33,7 @@ ssize_t world_ingress(World *world, uint32_t pport,
         return world->ops->ig(world, pport, iov, iovcnt);
     }
 
-    return iov_size(iov, iovcnt);
+    return -1;
 }
 
 int world_do_cmd(World *world, DescInfo *info,
@@ -97,10 +98,5 @@ enum rocker_world_type world_type(World *world)
 
 const char *world_name(World *world)
 {
-    switch (world->type) {
-    case ROCKER_WORLD_TYPE_OF_DPA:
-        return "OF_DPA";
-    default:
-        return "unknown";
-    }
+    return world->ops->name;
 }

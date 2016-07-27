@@ -1,3 +1,4 @@
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/pci/pci.h"
 #include "ui/console.h"
@@ -65,11 +66,21 @@ static int virtio_vga_ui_info(void *opaque, uint32_t idx, QemuUIInfo *info)
     return -1;
 }
 
+static void virtio_vga_gl_block(void *opaque, bool block)
+{
+    VirtIOVGA *vvga = opaque;
+
+    if (virtio_gpu_ops.gl_block) {
+        virtio_gpu_ops.gl_block(&vvga->vdev, block);
+    }
+}
+
 static const GraphicHwOps virtio_vga_ops = {
     .invalidate = virtio_vga_invalidate_display,
     .gfx_update = virtio_vga_update_display,
     .text_update = virtio_vga_text_update,
     .ui_info = virtio_vga_ui_info,
+    .gl_block = virtio_vga_gl_block,
 };
 
 /* VGA device wrapper around PCI device around virtio GPU */
@@ -79,6 +90,7 @@ static void virtio_vga_realize(VirtIOPCIProxy *vpci_dev, Error **errp)
     VirtIOGPU *g = &vvga->vdev;
     VGACommonState *vga = &vvga->vga;
     uint32_t offset;
+    int i;
 
     /* init vga compat bits */
     vga->vram_size_mb = 8;
@@ -120,6 +132,12 @@ static void virtio_vga_realize(VirtIOPCIProxy *vpci_dev, Error **errp)
 
     vga->con = g->scanout[0].con;
     graphic_console_set_hwops(vga->con, &virtio_vga_ops, vvga);
+
+    for (i = 0; i < g->conf.max_outputs; i++) {
+        object_property_set_link(OBJECT(g->scanout[i].con),
+                                 OBJECT(vpci_dev),
+                                 "device", errp);
+    }
 }
 
 static void virtio_vga_reset(DeviceState *dev)
@@ -131,7 +149,6 @@ static void virtio_vga_reset(DeviceState *dev)
 }
 
 static Property virtio_vga_properties[] = {
-    DEFINE_VIRTIO_GPU_PROPERTIES(VirtIOVGA, vdev.conf),
     DEFINE_VIRTIO_GPU_PCI_PROPERTIES(VirtIOPCIProxy),
     DEFINE_PROP_END_OF_LIST(),
 };
@@ -155,8 +172,9 @@ static void virtio_vga_class_init(ObjectClass *klass, void *data)
 static void virtio_vga_inst_initfn(Object *obj)
 {
     VirtIOVGA *dev = VIRTIO_VGA(obj);
-    object_initialize(&dev->vdev, sizeof(dev->vdev), TYPE_VIRTIO_GPU);
-    object_property_add_child(obj, "virtio-backend", OBJECT(&dev->vdev), NULL);
+
+    virtio_instance_init_common(obj, &dev->vdev, sizeof(dev->vdev),
+                                TYPE_VIRTIO_GPU);
 }
 
 static TypeInfo virtio_vga_info = {

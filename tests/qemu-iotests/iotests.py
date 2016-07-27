@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
+import errno
 import os
 import re
 import subprocess
@@ -27,41 +28,66 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', 'scripts', '
 import qmp
 import qtest
 import struct
+import json
 
-__all__ = ['imgfmt', 'imgproto', 'test_dir' 'qemu_img', 'qemu_io',
-           'VM', 'QMPTestCase', 'notrun', 'main']
 
-# This will not work if arguments or path contain spaces but is necessary if we
+# This will not work if arguments contain spaces but is necessary if we
 # want to support the override options that ./check supports.
-qemu_img_args = os.environ.get('QEMU_IMG', 'qemu-img').strip().split(' ')
-qemu_io_args = os.environ.get('QEMU_IO', 'qemu-io').strip().split(' ')
-qemu_args = os.environ.get('QEMU', 'qemu').strip().split(' ')
+qemu_img_args = [os.environ.get('QEMU_IMG_PROG', 'qemu-img')]
+if os.environ.get('QEMU_IMG_OPTIONS'):
+    qemu_img_args += os.environ['QEMU_IMG_OPTIONS'].strip().split(' ')
+
+qemu_io_args = [os.environ.get('QEMU_IO_PROG', 'qemu-io')]
+if os.environ.get('QEMU_IO_OPTIONS'):
+    qemu_io_args += os.environ['QEMU_IO_OPTIONS'].strip().split(' ')
+
+qemu_args = [os.environ.get('QEMU_PROG', 'qemu')]
+if os.environ.get('QEMU_OPTIONS'):
+    qemu_args += os.environ['QEMU_OPTIONS'].strip().split(' ')
 
 imgfmt = os.environ.get('IMGFMT', 'raw')
 imgproto = os.environ.get('IMGPROTO', 'file')
 test_dir = os.environ.get('TEST_DIR', '/var/tmp')
 output_dir = os.environ.get('OUTPUT_DIR', '.')
 cachemode = os.environ.get('CACHEMODE')
+qemu_default_machine = os.environ.get('QEMU_DEFAULT_MACHINE')
 
 socket_scm_helper = os.environ.get('SOCKET_SCM_HELPER', 'socket_scm_helper')
 
 def qemu_img(*args):
     '''Run qemu-img and return the exit code'''
     devnull = open('/dev/null', 'r+')
-    return subprocess.call(qemu_img_args + list(args), stdin=devnull, stdout=devnull)
+    exitcode = subprocess.call(qemu_img_args + list(args), stdin=devnull, stdout=devnull)
+    if exitcode < 0:
+        sys.stderr.write('qemu-img received signal %i: %s\n' % (-exitcode, ' '.join(qemu_img_args + list(args))))
+    return exitcode
 
 def qemu_img_verbose(*args):
     '''Run qemu-img without suppressing its output and return the exit code'''
-    return subprocess.call(qemu_img_args + list(args))
+    exitcode = subprocess.call(qemu_img_args + list(args))
+    if exitcode < 0:
+        sys.stderr.write('qemu-img received signal %i: %s\n' % (-exitcode, ' '.join(qemu_img_args + list(args))))
+    return exitcode
 
 def qemu_img_pipe(*args):
     '''Run qemu-img and return its output'''
-    return subprocess.Popen(qemu_img_args + list(args), stdout=subprocess.PIPE).communicate()[0]
+    subp = subprocess.Popen(qemu_img_args + list(args),
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    exitcode = subp.wait()
+    if exitcode < 0:
+        sys.stderr.write('qemu-img received signal %i: %s\n' % (-exitcode, ' '.join(qemu_img_args + list(args))))
+    return subp.communicate()[0]
 
 def qemu_io(*args):
     '''Run qemu-io and return the stdout data'''
     args = qemu_io_args + list(args)
-    return subprocess.Popen(args, stdout=subprocess.PIPE).communicate()[0]
+    subp = subprocess.Popen(args, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    exitcode = subp.wait()
+    if exitcode < 0:
+        sys.stderr.write('qemu-io received signal %i: %s\n' % (-exitcode, ' '.join(args)))
+    return subp.communicate()[0]
 
 def compare_images(img1, img2):
     '''Return True if two image files are identical'''
@@ -77,6 +103,33 @@ def create_image(name, size):
         file.write(sector)
         i = i + 512
     file.close()
+
+def image_size(img):
+    '''Return image's virtual size'''
+    r = qemu_img_pipe('info', '--output=json', '-f', imgfmt, img)
+    return json.loads(r)['virtual-size']
+
+test_dir_re = re.compile(r"%s" % test_dir)
+def filter_test_dir(msg):
+    return test_dir_re.sub("TEST_DIR", msg)
+
+win32_re = re.compile(r"\r")
+def filter_win32(msg):
+    return win32_re.sub("", msg)
+
+qemu_io_re = re.compile(r"[0-9]* ops; [0-9\/:. sec]* \([0-9\/.inf]* [EPTGMKiBbytes]*\/sec and [0-9\/.inf]* ops\/sec\)")
+def filter_qemu_io(msg):
+    msg = filter_win32(msg)
+    return qemu_io_re.sub("X ops; XX:XX:XX.X (XXX YYY/sec and XXX ops/sec)", msg)
+
+chown_re = re.compile(r"chown [0-9]+:[0-9]+")
+def filter_chown(msg):
+    return chown_re.sub("chown UID:GID", msg)
+
+def log(msg, filters=[]):
+    for flt in filters:
+        msg = flt(msg)
+    print msg
 
 # Test if 'match' is a recursive subset of 'event'
 def event_match(event, match=None):
@@ -117,13 +170,21 @@ class VM(object):
         self._args.append('-monitor')
         self._args.append(args)
 
-    def add_drive(self, path, opts=''):
+    def add_drive_raw(self, opts):
+        self._args.append('-drive')
+        self._args.append(opts)
+        return self
+
+    def add_drive(self, path, opts='', interface='virtio'):
         '''Add a virtio-blk drive to the VM'''
-        options = ['if=virtio',
-                   'format=%s' % imgfmt,
-                   'cache=%s' % cachemode,
-                   'file=%s' % path,
+        options = ['if=%s' % interface,
                    'id=drive%d' % self._num_drives]
+
+        if path is not None:
+            options.append('file=%s' % path)
+            options.append('format=%s' % imgfmt)
+            options.append('cache=%s' % cachemode)
+
         if opts:
             options.append(opts)
 
@@ -189,14 +250,17 @@ class VM(object):
             self._qmp.accept()
             self._qtest.accept()
         except:
-            os.remove(self._monitor_path)
+            _remove_if_exists(self._monitor_path)
+            _remove_if_exists(self._qtest_path)
             raise
 
     def shutdown(self):
         '''Terminate the VM and clean up'''
         if not self._popen is None:
             self._qmp.cmd('quit')
-            self._popen.wait()
+            exitcode = self._popen.wait()
+            if exitcode < 0:
+                sys.stderr.write('qemu received signal %i: %s\n' % (-exitcode, ' '.join(self._args)))
             os.remove(self._monitor_path)
             os.remove(self._qtest_path)
             os.remove(self._qemu_log_path)
@@ -290,6 +354,20 @@ class QMPTestCase(unittest.TestCase):
         result = self.vm.qmp('query-block-jobs')
         self.assert_qmp(result, 'return', [])
 
+    def assert_has_block_node(self, node_name=None, file_name=None):
+        """Issue a query-named-block-nodes and assert node_name and/or
+        file_name is present in the result"""
+        def check_equal_or_none(a, b):
+            return a == None or b == None or a == b
+        assert node_name or file_name
+        result = self.vm.qmp('query-named-block-nodes')
+        for x in result["return"]:
+            if check_equal_or_none(x.get("node-name"), node_name) and \
+                    check_equal_or_none(x.get("file"), file_name):
+                return
+        self.assertTrue(False, "Cannot find %s %s in result:\n%s" % \
+                (node_name, file_name, result))
+
     def cancel_and_wait(self, drive='drive0', force=False, resume=False):
         '''Cancel a block job and wait for it to finish, returning the event'''
         result = self.vm.qmp('block-job-cancel', device=drive, force=force)
@@ -326,6 +404,38 @@ class QMPTestCase(unittest.TestCase):
         self.assert_no_active_block_jobs()
         return event
 
+    def wait_ready(self, drive='drive0'):
+        '''Wait until a block job BLOCK_JOB_READY event'''
+        f = {'data': {'type': 'mirror', 'device': drive } }
+        event = self.vm.event_wait(name='BLOCK_JOB_READY', match=f)
+
+    def wait_ready_and_cancel(self, drive='drive0'):
+        self.wait_ready(drive=drive)
+        event = self.cancel_and_wait(drive=drive)
+        self.assertEquals(event['event'], 'BLOCK_JOB_COMPLETED')
+        self.assert_qmp(event, 'data/type', 'mirror')
+        self.assert_qmp(event, 'data/offset', event['data']['len'])
+
+    def complete_and_wait(self, drive='drive0', wait_ready=True):
+        '''Complete a block job and wait for it to finish'''
+        if wait_ready:
+            self.wait_ready(drive=drive)
+
+        result = self.vm.qmp('block-job-complete', device=drive)
+        self.assert_qmp(result, 'return', {})
+
+        event = self.wait_until_completed(drive=drive)
+        self.assert_qmp(event, 'data/type', 'mirror')
+
+def _remove_if_exists(path):
+    '''Remove file object at path if it exists'''
+    try:
+        os.remove(path)
+    except OSError as exception:
+        if exception.errno == errno.ENOENT:
+           return
+        raise
+
 def notrun(reason):
     '''Skip this test suite'''
     # Each test in qemu-iotests has a number ("seq")
@@ -335,16 +445,26 @@ def notrun(reason):
     print '%s not run: %s' % (seq, reason)
     sys.exit(0)
 
+def verify_image_format(supported_fmts=[]):
+    if supported_fmts and (imgfmt not in supported_fmts):
+        notrun('not suitable for this image format: %s' % imgfmt)
+
+def verify_platform(supported_oses=['linux']):
+    if True not in [sys.platform.startswith(x) for x in supported_oses]:
+        notrun('not suitable for this OS: %s' % sys.platform)
+
+def verify_quorum():
+    '''Skip test suite if quorum support is not available'''
+    if 'quorum' not in qemu_img_pipe('--help'):
+        notrun('quorum support missing')
+
 def main(supported_fmts=[], supported_oses=['linux']):
     '''Run tests'''
 
     debug = '-d' in sys.argv
     verbosity = 1
-    if supported_fmts and (imgfmt not in supported_fmts):
-        notrun('not suitable for this image format: %s' % imgfmt)
-
-    if True not in [sys.platform.startswith(x) for x in supported_oses]:
-        notrun('not suitable for this OS: %s' % sys.platform)
+    verify_image_format(supported_fmts)
+    verify_platform(supported_oses)
 
     # We need to filter out the time taken from the output so that qemu-iotest
     # can reliably diff the results against master output.

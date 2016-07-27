@@ -3,7 +3,11 @@
 /* Misc. things related to the system emulator.  */
 
 #include "config-host.h"
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qemu/typedefs.h"
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 #include "qemu/option.h"
 #include "qemu/queue.h"
 #include "qemu/timer.h"
@@ -29,6 +33,7 @@ bool runstate_check(RunState state);
 void runstate_set(RunState new_state);
 int runstate_is_running(void);
 bool runstate_needs_reset(void);
+bool runstate_store(char *str, size_t size);
 typedef struct vm_change_state_entry VMChangeStateEntry;
 typedef void VMChangeStateHandler(void *opaque, int running, RunState state);
 
@@ -69,6 +74,8 @@ int qemu_reset_requested_get(void);
 void qemu_system_killed(int signal, pid_t pid);
 void qemu_devices_reset(void);
 void qemu_system_reset(bool report);
+void qemu_system_guest_panicked(void);
+size_t qemu_target_page_bits(void);
 
 void qemu_add_exit_notifier(Notifier *notify);
 void qemu_remove_exit_notifier(Notifier *notify);
@@ -82,14 +89,52 @@ void hmp_info_snapshots(Monitor *mon, const QDict *qdict);
 
 void qemu_announce_self(void);
 
+/* Subcommands for QEMU_VM_COMMAND */
+enum qemu_vm_cmd {
+    MIG_CMD_INVALID = 0,   /* Must be 0 */
+    MIG_CMD_OPEN_RETURN_PATH,  /* Tell the dest to open the Return path */
+    MIG_CMD_PING,              /* Request a PONG on the RP */
+
+    MIG_CMD_POSTCOPY_ADVISE,       /* Prior to any page transfers, just
+                                      warn we might want to do PC */
+    MIG_CMD_POSTCOPY_LISTEN,       /* Start listening for incoming
+                                      pages as it's running. */
+    MIG_CMD_POSTCOPY_RUN,          /* Start execution */
+
+    MIG_CMD_POSTCOPY_RAM_DISCARD,  /* A list of pages to discard that
+                                      were previously sent during
+                                      precopy but are dirty. */
+    MIG_CMD_PACKAGED,          /* Send a wrapped stream within this stream */
+    MIG_CMD_MAX
+};
+
+#define MAX_VM_CMD_PACKAGED_SIZE (1ul << 24)
+
 bool qemu_savevm_state_blocked(Error **errp);
 void qemu_savevm_state_begin(QEMUFile *f,
                              const MigrationParams *params);
 void qemu_savevm_state_header(QEMUFile *f);
-int qemu_savevm_state_iterate(QEMUFile *f);
-void qemu_savevm_state_complete(QEMUFile *f);
-void qemu_savevm_state_cancel(void);
-uint64_t qemu_savevm_state_pending(QEMUFile *f, uint64_t max_size);
+int qemu_savevm_state_iterate(QEMUFile *f, bool postcopy);
+void qemu_savevm_state_cleanup(void);
+void qemu_savevm_state_complete_postcopy(QEMUFile *f);
+void qemu_savevm_state_complete_precopy(QEMUFile *f, bool iterable_only);
+void qemu_savevm_state_pending(QEMUFile *f, uint64_t max_size,
+                               uint64_t *res_non_postcopiable,
+                               uint64_t *res_postcopiable);
+void qemu_savevm_command_send(QEMUFile *f, enum qemu_vm_cmd command,
+                              uint16_t len, uint8_t *data);
+void qemu_savevm_send_ping(QEMUFile *f, uint32_t value);
+void qemu_savevm_send_open_return_path(QEMUFile *f);
+int qemu_savevm_send_packaged(QEMUFile *f, const QEMUSizedBuffer *qsb);
+void qemu_savevm_send_postcopy_advise(QEMUFile *f);
+void qemu_savevm_send_postcopy_listen(QEMUFile *f);
+void qemu_savevm_send_postcopy_run(QEMUFile *f);
+
+void qemu_savevm_send_postcopy_ram_discard(QEMUFile *f, const char *name,
+                                           uint16_t len,
+                                           uint64_t *start_list,
+                                           uint64_t *length_list);
+
 int qemu_loadvm_state(QEMUFile *f);
 
 typedef enum DisplayType
@@ -106,7 +151,7 @@ extern int autostart;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 extern int with_gdb;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 typedef enum {
     VGA_NONE, VGA_STD, VGA_CIRRUS, VGA_VMWARE, VGA_XENFB, VGA_QXL,
@@ -136,6 +181,7 @@ extern int boot_menu;
 extern bool boot_strict;
 extern uint8_t *boot_splash_filedata;
 extern size_t boot_splash_filedata_size;
+extern bool enable_mlock;
 extern uint8_t qemu_extra_params_fw[2];
 extern QEMUClockType rtc_clock;
 extern const char *mem_path;
@@ -171,7 +217,11 @@ void hmp_pcie_aer_inject_error(Monitor *mon, const QDict *qdict);
 
 /* serial ports */
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#define MAX_SERIAL_PORTS 10
+#else
 #define MAX_SERIAL_PORTS 4
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 extern CharDriverState *serial_hds[MAX_SERIAL_PORTS];
 
@@ -198,7 +248,7 @@ void device_add_bootindex_property(Object *obj, int32_t *bootindex,
 void restore_boot_order(void *opaque);
 void validate_bootdevices(const char *devices, Error **errp);
 
-/* handler to set the boot_device order for a specific type of QEMUMachine */
+/* handler to set the boot_device order for a specific type of MachineClass */
 typedef void QEMUBootSetHandler(void *opaque, const char *boot_order,
                                 Error **errp);
 void qemu_register_boot_set(QEMUBootSetHandler *func, void *opaque);

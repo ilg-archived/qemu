@@ -21,7 +21,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <sys/types.h>
+#include "qemu/osdep.h"
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 
@@ -173,16 +173,15 @@ int kvm_s390_set_mem_limit(KVMState *s, uint64_t new_limit, uint64_t *hw_limit)
     return kvm_vm_ioctl(s, KVM_SET_DEVICE_ATTR, &attr);
 }
 
-void kvm_s390_clear_cmma_callback(void *opaque)
+void kvm_s390_cmma_reset(void)
 {
     int rc;
-    KVMState *s = opaque;
     struct kvm_device_attr attr = {
         .group = KVM_S390_VM_MEM_CTRL,
         .attr = KVM_S390_VM_MEM_CLR_CMMA,
     };
 
-    rc = kvm_vm_ioctl(s, KVM_SET_DEVICE_ATTR, &attr);
+    rc = kvm_vm_ioctl(kvm_state, KVM_SET_DEVICE_ATTR, &attr);
     trace_kvm_clear_cmma(rc);
 }
 
@@ -200,9 +199,6 @@ static void kvm_s390_enable_cmma(KVMState *s)
     }
 
     rc = kvm_vm_ioctl(s, KVM_SET_DEVICE_ATTR, &attr);
-    if (!rc) {
-        qemu_register_reset(kvm_s390_clear_cmma_callback, s);
-    }
     trace_kvm_enable_cmma(rc);
 }
 
@@ -249,7 +245,7 @@ static void kvm_s390_init_dea_kw(void)
     }
 }
 
-static void kvm_s390_init_crypto(void)
+void kvm_s390_crypto_reset(void)
 {
     kvm_s390_init_aes_kw();
     kvm_s390_init_dea_kw();
@@ -262,7 +258,9 @@ int kvm_arch_init(MachineState *ms, KVMState *s)
     cap_mem_op = kvm_check_extension(s, KVM_CAP_S390_MEM_OP);
     cap_s390_irq = kvm_check_extension(s, KVM_CAP_S390_INJECT_IRQ);
 
-    kvm_s390_enable_cmma(s);
+    if (!mem_path) {
+        kvm_s390_enable_cmma(s);
+    }
 
     if (!kvm_check_extension(s, KVM_CAP_S390_GMAP)
         || !kvm_check_extension(s, KVM_CAP_S390_COW)) {
@@ -301,8 +299,6 @@ void kvm_s390_reset_vcpu(S390CPU *cpu)
     if (kvm_vcpu_ioctl(cs, KVM_S390_INITIAL_RESET, NULL)) {
         error_report("Initial CPU reset failed on CPU %i", cs->cpu_index);
     }
-
-    kvm_s390_init_crypto();
 }
 
 static int can_sync_regs(CPUState *cs, int regs)
@@ -346,6 +342,12 @@ int kvm_arch_put_registers(CPUState *cs, int level)
         }
         cs->kvm_run->s.regs.fpc = env->fpc;
         cs->kvm_run->kvm_dirty_regs |= KVM_SYNC_VRS;
+    } else if (can_sync_regs(cs, KVM_SYNC_FPRS)) {
+        for (i = 0; i < 16; i++) {
+            cs->kvm_run->s.regs.fprs[i] = get_freg(env, i)->ll;
+        }
+        cs->kvm_run->s.regs.fpc = env->fpc;
+        cs->kvm_run->kvm_dirty_regs |= KVM_SYNC_FPRS;
     } else {
         /* Floating point */
         for (i = 0; i < 16; i++) {
@@ -486,6 +488,11 @@ int kvm_arch_get_registers(CPUState *cs)
             env->vregs[i][1].ll = cs->kvm_run->s.regs.vrs[i][1];
         }
         env->fpc = cs->kvm_run->s.regs.fpc;
+    } else if (can_sync_regs(cs, KVM_SYNC_FPRS)) {
+        for (i = 0; i < 16; i++) {
+            get_freg(env, i)->ll = cs->kvm_run->s.regs.fprs[i];
+        }
+        env->fpc = cs->kvm_run->s.regs.fpc;
     } else {
         r = kvm_vcpu_ioctl(cs, KVM_GET_FPU, &fpu);
         if (r < 0) {
@@ -588,9 +595,9 @@ int kvm_s390_set_clock(uint8_t *tod_high, uint64_t *tod_low)
  * @addr:      the logical start address in guest memory
  * @ar:        the access register number
  * @hostbuf:   buffer in host memory. NULL = do only checks w/o copying
- * @len:       length that should be transfered
+ * @len:       length that should be transferred
  * @is_write:  true = write, false = read
- * Returns:    0 on success, non-zero if an exception or error occured
+ * Returns:    0 on success, non-zero if an exception or error occurred
  *
  * Use KVM ioctl to read/write from/to guest memory. An access exception
  * is injected into the vCPU in case of translation errors.
@@ -927,17 +934,6 @@ void kvm_s390_floating_interrupt(struct kvm_s390_irq *irq)
         }
     }
     __kvm_s390_floating_interrupt(irq);
-}
-
-void kvm_s390_virtio_irq(int config_change, uint64_t token)
-{
-    struct kvm_s390_irq irq = {
-        .type = KVM_S390_INT_VIRTIO,
-        .u.ext.ext_params = config_change,
-        .u.ext.ext_params2 = token,
-    };
-
-    kvm_s390_floating_interrupt(&irq);
 }
 
 void kvm_s390_service_interrupt(uint32_t parm)
@@ -1437,7 +1433,7 @@ static int kvm_s390_store_status(S390CPU *cpu, hwaddr addr, bool store_arch)
         cpu_physical_memory_write(offsetof(LowCore, ar_access_id), &ar_id, 1);
     }
     for (i = 0; i < 16; ++i) {
-        *((uint64 *)mem + i) = get_freg(&cpu->env, i)->ll;
+        *((uint64_t *)mem + i) = get_freg(&cpu->env, i)->ll;
     }
     memcpy(mem + 128, &cpu->env.regs, 128);
     memcpy(mem + 256, &cpu->env.psw, 16);
@@ -1796,13 +1792,6 @@ static bool is_special_wait_psw(CPUState *cs)
     return cs->kvm_run->psw_addr == 0xfffUL;
 }
 
-static void guest_panicked(void)
-{
-    qapi_event_send_guest_panicked(GUEST_PANIC_ACTION_PAUSE,
-                                   &error_abort);
-    vm_stop(RUN_STATE_GUEST_PANICKED);
-}
-
 static void unmanageable_intercept(S390CPU *cpu, const char *str, int pswoffset)
 {
     CPUState *cs = CPU(cpu);
@@ -1811,7 +1800,7 @@ static void unmanageable_intercept(S390CPU *cpu, const char *str, int pswoffset)
                  str, cs->cpu_index, ldq_phys(cs->as, cpu->env.psa + pswoffset),
                  ldq_phys(cs->as, cpu->env.psa + pswoffset + 8));
     s390_cpu_halt(cpu);
-    guest_panicked();
+    qemu_system_guest_panicked();
 }
 
 static int handle_intercept(S390CPU *cpu)
@@ -1844,7 +1833,7 @@ static int handle_intercept(S390CPU *cpu)
                 if (is_special_wait_psw(cs)) {
                     qemu_system_shutdown_request();
                 } else {
-                    guest_panicked();
+                    qemu_system_guest_panicked();
                 }
             }
             r = EXCP_HALTED;
@@ -2007,6 +1996,8 @@ int kvm_arch_handle_exit(CPUState *cs, struct kvm_run *run)
     S390CPU *cpu = S390_CPU(cs);
     int ret = 0;
 
+    qemu_mutex_lock_iothread();
+
     switch (run->exit_reason) {
         case KVM_EXIT_S390_SIEIC:
             ret = handle_intercept(cpu);
@@ -2027,6 +2018,7 @@ int kvm_arch_handle_exit(CPUState *cs, struct kvm_run *run)
             fprintf(stderr, "Unknown KVM exit: %d\n", run->exit_reason);
             break;
     }
+    qemu_mutex_unlock_iothread();
 
     if (ret == 0) {
         ret = EXCP_INTERRUPT;
@@ -2069,12 +2061,30 @@ void kvm_s390_io_interrupt(uint16_t subchannel_id,
     kvm_s390_floating_interrupt(&irq);
 }
 
+static uint64_t build_channel_report_mcic(void)
+{
+    uint64_t mcic;
+
+    /* subclass: indicate channel report pending */
+    mcic = MCIC_SC_CP |
+    /* subclass modifiers: none */
+    /* storage errors: none */
+    /* validity bits: no damage */
+        MCIC_VB_WP | MCIC_VB_MS | MCIC_VB_PM | MCIC_VB_IA | MCIC_VB_FP |
+        MCIC_VB_GR | MCIC_VB_CR | MCIC_VB_ST | MCIC_VB_AR | MCIC_VB_PR |
+        MCIC_VB_FC | MCIC_VB_CT | MCIC_VB_CC;
+    if (kvm_check_extension(kvm_state, KVM_CAP_S390_VECTOR_REGISTERS)) {
+        mcic |= MCIC_VB_VR;
+    }
+    return mcic;
+}
+
 void kvm_s390_crw_mchk(void)
 {
     struct kvm_s390_irq irq = {
         .type = KVM_S390_MCHK,
         .u.mchk.cr14 = 1 << 28,
-        .u.mchk.mcic = 0x00400f1d40330000ULL,
+        .u.mchk.mcic = build_channel_report_mcic(),
     };
     kvm_s390_floating_interrupt(&irq);
 }
@@ -2212,7 +2222,7 @@ int kvm_s390_vcpu_interrupt_post_load(S390CPU *cpu)
 }
 
 int kvm_arch_fixup_msi_route(struct kvm_irq_routing_entry *route,
-                              uint64_t address, uint32_t data)
+                             uint64_t address, uint32_t data, PCIDevice *dev)
 {
     S390PCIBusDevice *pbdev;
     uint32_t fid = data >> ZPCI_MSI_VEC_BITS;

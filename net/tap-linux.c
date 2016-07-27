@@ -23,6 +23,7 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
 #include "tap_int.h"
 #include "tap-linux.h"
 #include "net/tap.h"
@@ -31,8 +32,9 @@
 #include <sys/ioctl.h>
 
 #include "sysemu/sysemu.h"
-#include "qemu-common.h"
+#include "qapi/error.h"
 #include "qemu/error-report.h"
+#include "qemu/cutils.h"
 
 #define PATH_NET_TUN "/dev/net/tun"
 
@@ -211,7 +213,7 @@ int tap_fd_set_vnet_le(int fd, int is_le)
         return -errno;
     }
 
-    error_report("TUNSETVNETLE ioctl() failed: %s.\n", strerror(errno));
+    error_report("TUNSETVNETLE ioctl() failed: %s.", strerror(errno));
     abort();
 }
 
@@ -228,7 +230,7 @@ int tap_fd_set_vnet_be(int fd, int is_be)
         return -errno;
     }
 
-    error_report("TUNSETVNETBE ioctl() failed: %s.\n", strerror(errno));
+    error_report("TUNSETVNETBE ioctl() failed: %s.", strerror(errno));
     abort();
 }
 

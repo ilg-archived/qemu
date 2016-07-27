@@ -18,6 +18,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "qemu/timer.h"
 #include "hw/usb.h"
@@ -697,11 +698,13 @@ static inline void xhci_dma_write_u32s(XHCIState *xhci, dma_addr_t addr,
                                        uint32_t *buf, size_t len)
 {
     int i;
-    uint32_t tmp[len / sizeof(uint32_t)];
+    uint32_t tmp[5];
+    uint32_t n = len / sizeof(uint32_t);
 
     assert((len % sizeof(uint32_t)) == 0);
+    assert(n <= ARRAY_SIZE(tmp));
 
-    for (i = 0; i < (len / sizeof(uint32_t)); i++) {
+    for (i = 0; i < n; i++) {
         tmp[i] = cpu_to_le32(buf[i]);
     }
     pci_dma_write(PCI_DEVICE(xhci), addr, tmp, len);
@@ -1453,9 +1456,7 @@ static int xhci_ep_nuke_one_xfer(XHCITransfer *t, TRBCCode report)
         t->running_retry = 0;
         killed = 1;
     }
-    if (t->trbs) {
-        g_free(t->trbs);
-    }
+    g_free(t->trbs);
 
     t->trbs = NULL;
     t->trb_count = t->trb_alloced = 0;
@@ -2190,7 +2191,7 @@ static void xhci_kick_ep(XHCIState *xhci, unsigned int slotid,
             xfer->trbs = NULL;
         }
         if (!xfer->trbs) {
-            xfer->trbs = g_malloc(sizeof(XHCITRB) * length);
+            xfer->trbs = g_new(XHCITRB, length);
             xfer->trb_alloced = length;
         }
         xfer->trb_count = length;
@@ -2222,8 +2223,6 @@ static void xhci_kick_ep(XHCIState *xhci, unsigned int slotid,
         if (xfer->running_retry) {
             DPRINTF("xhci: xfer nacked, stopping schedule\n");
             epctx->retry = xfer;
-            timer_mod(epctx->kick_timer, qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                      epctx->interval * 125000);
             break;
         }
     }

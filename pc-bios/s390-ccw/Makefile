@@ -9,8 +9,9 @@ $(call set-vpath, $(SRC_PATH)/pc-bios/s390-ccw)
 
 .PHONY : all clean build-all
 
-OBJECTS = start.o main.o bootmap.o sclp-ascii.o virtio.o
-CFLAGS += -fPIE -fno-stack-protector -ffreestanding -fno-delete-null-pointer-checks
+OBJECTS = start.o main.o bootmap.o sclp-ascii.o virtio.o virtio-scsi.o
+CFLAGS += -fPIE -fno-stack-protector -ffreestanding -march=z900
+CFLAGS += -fno-delete-null-pointer-checks -msoft-float
 LDFLAGS += -Wl,-pie -nostdlib
 
 build-all: s390-ccw.img

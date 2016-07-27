@@ -22,6 +22,7 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "block/throttle-groups.h"
 #include "qemu/queue.h"
 #include "qemu/thread.h"
@@ -33,8 +34,7 @@
  * its own locking.
  *
  * This locking is however handled internally in this file, so it's
- * mostly transparent to outside users (but see the documentation in
- * throttle_groups_lock()).
+ * transparent to outside users.
  *
  * The whole ThrottleGroup structure is private and invisible to
  * outside users, that only use it through its ThrottleState.
@@ -76,9 +76,9 @@ static QTAILQ_HEAD(, ThrottleGroup) throttle_groups =
  * created.
  *
  * @name: the name of the ThrottleGroup
- * @ret:  the ThrottleGroup
+ * @ret:  the ThrottleState member of the ThrottleGroup
  */
-static ThrottleGroup *throttle_group_incref(const char *name)
+ThrottleState *throttle_group_incref(const char *name)
 {
     ThrottleGroup *tg = NULL;
     ThrottleGroup *iter;
@@ -108,7 +108,7 @@ static ThrottleGroup *throttle_group_incref(const char *name)
 
     qemu_mutex_unlock(&throttle_groups_lock);
 
-    return tg;
+    return &tg->ts;
 }
 
 /* Decrease the reference count of a ThrottleGroup.
@@ -116,10 +116,12 @@ static ThrottleGroup *throttle_group_incref(const char *name)
  * When the reference count reaches zero the ThrottleGroup is
  * destroyed.
  *
- * @tg:  The ThrottleGroup to unref
+ * @ts:  The ThrottleGroup to unref, given by its ThrottleState member
  */
-static void throttle_group_unref(ThrottleGroup *tg)
+void throttle_group_unref(ThrottleState *ts)
 {
+    ThrottleGroup *tg = container_of(ts, ThrottleGroup, ts);
+
     qemu_mutex_lock(&throttle_groups_lock);
     if (--tg->refcount == 0) {
         QTAILQ_REMOVE(&throttle_groups, tg, list);
@@ -324,9 +326,14 @@ void throttle_group_config(BlockDriverState *bs, ThrottleConfig *cfg)
     ThrottleState *ts = bs->throttle_state;
     ThrottleGroup *tg = container_of(ts, ThrottleGroup, ts);
     qemu_mutex_lock(&tg->lock);
-    throttle_config(ts, tt, cfg);
     /* throttle_config() cancels the timers */
-    tg->any_timer_armed[0] = tg->any_timer_armed[1] = false;
+    if (timer_pending(tt->timers[0])) {
+        tg->any_timer_armed[0] = false;
+    }
+    if (timer_pending(tt->timers[1])) {
+        tg->any_timer_armed[1] = false;
+    }
+    throttle_config(ts, tt, cfg);
     qemu_mutex_unlock(&tg->lock);
 }
 
@@ -396,7 +403,8 @@ static void write_timer_cb(void *opaque)
 void throttle_group_register_bs(BlockDriverState *bs, const char *groupname)
 {
     int i;
-    ThrottleGroup *tg = throttle_group_incref(groupname);
+    ThrottleState *ts = throttle_group_incref(groupname);
+    ThrottleGroup *tg = container_of(ts, ThrottleGroup, ts);
     int clock_type = QEMU_CLOCK_REALTIME;
 
     if (qtest_enabled()) {
@@ -404,7 +412,7 @@ void throttle_group_register_bs(BlockDriverState *bs, const char *groupname)
         clock_type = QEMU_CLOCK_VIRTUAL;
     }
 
-    bs->throttle_state = &tg->ts;
+    bs->throttle_state = ts;
 
     qemu_mutex_lock(&tg->lock);
     /* If the ThrottleGroup is new set this BlockDriverState as the token */
@@ -430,6 +438,9 @@ void throttle_group_register_bs(BlockDriverState *bs, const char *groupname)
  * list, destroying the timers and setting the throttle_state pointer
  * to NULL.
  *
+ * The BlockDriverState must not have pending throttled requests, so
+ * the caller has to drain them first.
+ *
  * The group will be destroyed if it's empty after this operation.
  *
  * @bs: the BlockDriverState to remove
@@ -438,6 +449,10 @@ void throttle_group_unregister_bs(BlockDriverState *bs)
 {
     ThrottleGroup *tg = container_of(bs->throttle_state, ThrottleGroup, ts);
     int i;
+
+    assert(bs->pending_reqs[0] == 0 && bs->pending_reqs[1] == 0);
+    assert(qemu_co_queue_empty(&bs->throttled_reqs[0]));
+    assert(qemu_co_queue_empty(&bs->throttled_reqs[1]));
 
     qemu_mutex_lock(&tg->lock);
     for (i = 0; i < 2; i++) {
@@ -456,36 +471,8 @@ void throttle_group_unregister_bs(BlockDriverState *bs)
     throttle_timers_destroy(&bs->throttle_timers);
     qemu_mutex_unlock(&tg->lock);
 
-    throttle_group_unref(tg);
+    throttle_group_unref(&tg->ts);
     bs->throttle_state = NULL;
-}
-
-/* Acquire the lock of this throttling group.
- *
- * You won't normally need to use this. None of the functions from the
- * ThrottleGroup API require you to acquire the lock since all of them
- * deal with it internally.
- *
- * This should only be used in exceptional cases when you want to
- * access the protected fields of a BlockDriverState directly
- * (e.g. bdrv_swap()).
- *
- * @bs: a BlockDriverState that is member of the group
- */
-void throttle_group_lock(BlockDriverState *bs)
-{
-    ThrottleGroup *tg = container_of(bs->throttle_state, ThrottleGroup, ts);
-    qemu_mutex_lock(&tg->lock);
-}
-
-/* Release the lock of this throttling group.
- *
- * See the comments in throttle_group_lock().
- */
-void throttle_group_unlock(BlockDriverState *bs)
-{
-    ThrottleGroup *tg = container_of(bs->throttle_state, ThrottleGroup, ts);
-    qemu_mutex_unlock(&tg->lock);
 }
 
 static void throttle_groups_init(void)

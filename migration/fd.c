@@ -13,6 +13,8 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "qemu/main-loop.h"
 #include "qemu/sockets.h"
@@ -50,9 +52,9 @@ void fd_start_outgoing_migration(MigrationState *s, const char *fdname, Error **
     }
 
     if (fd_is_socket(fd)) {
-        s->file = qemu_fopen_socket(fd, "wb");
+        s->to_dst_file = qemu_fopen_socket(fd, "wb");
     } else {
-        s->file = qemu_fdopen(fd, "wb");
+        s->to_dst_file = qemu_fdopen(fd, "wb");
     }
 
     migrate_fd_connect(s);

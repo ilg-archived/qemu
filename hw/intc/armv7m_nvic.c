@@ -10,14 +10,14 @@
  * NVIC.  Much of that is also implemented here.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
 #include "hw/sysbus.h"
 #include "qemu/timer.h"
 #include "hw/arm/arm.h"
 #include "exec/address-spaces.h"
 #include "gic_internal.h"
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-#include "cpu.h"
-#endif
 
 typedef struct {
     GICState gic;
@@ -31,6 +31,7 @@ typedef struct {
     MemoryRegion gic_iomem_alias;
     MemoryRegion container;
     uint32_t num_irq;
+    qemu_irq sysresetreq;
 } nvic_state;
 
 #define TYPE_NVIC "armv7m_nvic"
@@ -188,25 +189,24 @@ static uint32_t nvic_readl(nvic_state *s, uint32_t offset)
         return cpu->midr;
     case 0xd04: /* Interrupt Control State.  */
         /* VECTACTIVE */
-        val = s->gic.running_irq[0];
+        cpu = ARM_CPU(current_cpu);
+        val = cpu->env.v7m.exception;
         if (val == 1023) {
             val = 0;
         } else if (val >= 32) {
             val -= 16;
         }
-        /* RETTOBASE */
-        if (s->gic.running_irq[0] == 1023
-                || s->gic.last_active[s->gic.running_irq[0]][0] == 1023) {
-            val |= (1 << 11);
-        }
         /* VECTPENDING */
         if (s->gic.current_pending[0] != 1023)
             val |= (s->gic.current_pending[0] << 12);
-        /* ISRPENDING */
+        /* ISRPENDING and RETTOBASE */
         for (irq = 32; irq < s->num_irq; irq++) {
             if (s->gic.irq_state[irq].pending) {
                 val |= (1 << 22);
                 break;
+            }
+            if (irq != cpu->env.v7m.exception && s->gic.irq_state[irq].active) {
+                val |= (1 << 11);
             }
         }
         /* PENDSTSET */
@@ -285,16 +285,6 @@ static uint32_t nvic_readl(nvic_state *s, uint32_t offset)
         return 0x01111110;
     case 0xd70: /* ISAR4.  */
         return 0x01310102;
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    case 0xDF0: /* DHCSR.  */
-    case 0xDF4: /* DCRSR.  */
-    case 0xDF8: /* DCRDR.  */
-    case 0xDFC: /* DEMCR.  */
-        /* TODO: Implement debug registers.  */
-        qemu_log_mask(LOG_UNIMP,
-                      "NVIC: debug register %08X unimplemented\n", offset);
-    	return 0;
-#endif
     default:
         qemu_log_mask(LOG_GUEST_ERROR, "NVIC: Bad read offset 0x%x\n", offset);
         return 0;
@@ -361,10 +351,13 @@ static void nvic_writel(nvic_state *s, uint32_t offset, uint32_t value)
         break;
     case 0xd0c: /* Application Interrupt/Reset Control.  */
         if ((value >> 16) == 0x05fa) {
+            if (value & 4) {
+                qemu_irq_pulse(s->sysresetreq);
+            }
             if (value & 2) {
                 qemu_log_mask(LOG_UNIMP, "VECTCLRACTIVE unimplemented\n");
             }
-            if (value & 5) {
+            if (value & 1) {
                 qemu_log_mask(LOG_UNIMP, "AIRCR system reset unimplemented\n");
             }
             if (value & 0x700) {
@@ -393,16 +386,6 @@ static void nvic_writel(nvic_state *s, uint32_t offset, uint32_t value)
         qemu_log_mask(LOG_UNIMP,
                       "NVIC: fault status registers unimplemented\n");
         break;
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    case 0xDF0: /* DHCSR.  */
-    case 0xDF4: /* DCRSR.  */
-    case 0xDF8: /* DCRDR.  */
-    case 0xDFC: /* DEMCR.  */
-        /* TODO: Implement debug registers.  */
-        qemu_log_mask(LOG_UNIMP,
-                      "NVIC: debug register %08X unimplemented\n", offset);
-    	break;
-#endif
     case 0xf00: /* Software Triggered Interrupt Register */
         if ((value & 0x1ff) < s->num_irq) {
             gic_set_pending_private(&s->gic, 0, value & 0x1ff);
@@ -488,9 +471,6 @@ static const VMStateDescription vmstate_nvic = {
 
 static void armv7m_nvic_reset(DeviceState *dev)
 {
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-	qemu_log_function_name();
-#endif
     nvic_state *s = NVIC(dev);
     NVICClass *nc = NVIC_GET_CLASS(s);
     nc->parent_reset(dev);
@@ -508,9 +488,6 @@ static void armv7m_nvic_reset(DeviceState *dev)
 
 static void armv7m_nvic_realize(DeviceState *dev, Error **errp)
 {
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-	qemu_log_function_name();
-#endif
     nvic_state *s = NVIC(dev);
     NVICClass *nc = NVIC_GET_CLASS(s);
     Error *local_err = NULL;
@@ -520,9 +497,6 @@ static void armv7m_nvic_realize(DeviceState *dev, Error **errp)
     /* Tell the common code we're an NVIC */
     s->gic.revision = 0xffffffff;
     s->num_irq = s->gic.num_irq;
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    qemu_log_mask(LOG_TRACE, "NVIC: %d irqs\n", s->num_irq);
-#endif
     nc->parent_realize(dev, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
@@ -560,9 +534,6 @@ static void armv7m_nvic_realize(DeviceState *dev, Error **errp)
 
 static void armv7m_nvic_instance_init(Object *obj)
 {
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-	qemu_log_function_name();
-#endif
     /* We have a different default value for the num-irq property
      * than our superclass. This function runs after qdev init
      * has set the defaults from the Property array and before
@@ -570,11 +541,14 @@ static void armv7m_nvic_instance_init(Object *obj)
      * value in the GICState struct.
      */
     GICState *s = ARM_GIC_COMMON(obj);
+    DeviceState *dev = DEVICE(obj);
+    nvic_state *nvic = NVIC(obj);
     /* The ARM v7m may have anything from 0 to 496 external interrupt
      * IRQ lines. We default to 64. Other boards may differ and should
      * set the num-irq property appropriately.
      */
     s->num_irq = 64;
+    qdev_init_gpio_out_named(dev, &nvic->sysresetreq, "SYSRESETREQ", 1);
 }
 
 static void armv7m_nvic_class_init(ObjectClass *klass, void *data)

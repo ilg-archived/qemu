@@ -15,10 +15,13 @@
  * GNU General Public License for more details.
  */
 
+#include "qemu/osdep.h"
 #include "qemu/error-report.h"
 #include "exec/address-spaces.h"
-#include "sysemu/kvm.h"
 #include "cpu.h"
+#include "sysemu/kvm.h"
+#include "trace.h"
+#include "hw/s390x/storage-keys.h"
 
 /* #define DEBUG_S390 */
 /* #define DEBUG_S390_PTE */
@@ -28,7 +31,7 @@
 #ifdef DEBUG_S390_STDOUT
 #define DPRINTF(fmt, ...) \
     do { fprintf(stderr, fmt, ## __VA_ARGS__); \
-         qemu_log(fmt, ##__VA_ARGS__); } while (0)
+         if (qemu_log_separate()) qemu_log(fmt, ##__VA_ARGS__); } while (0)
 #else
 #define DPRINTF(fmt, ...) \
     do { qemu_log(fmt, ## __VA_ARGS__); } while (0)
@@ -87,7 +90,7 @@ static void trigger_page_fault(CPUS390XState *env, target_ulong vaddr,
 
     tec = vaddr | (rw == MMU_DATA_STORE ? FS_WRITE : FS_READ) | asc >> 46;
 
-    DPRINTF("%s: vaddr=%016" PRIx64 " bits=%d\n", __func__, vaddr, bits);
+    DPRINTF("%s: trans_exc_code=%016" PRIx64 "\n", __func__, tec);
 
     if (!exc) {
         return;
@@ -309,8 +312,15 @@ static int mmu_translate_asce(CPUS390XState *env, target_ulong vaddr,
 int mmu_translate(CPUS390XState *env, target_ulong vaddr, int rw, uint64_t asc,
                   target_ulong *raddr, int *flags, bool exc)
 {
+    static S390SKeysState *ss;
+    static S390SKeysClass *skeyclass;
     int r = -1;
-    uint8_t *sk;
+    uint8_t key;
+
+    if (unlikely(!ss)) {
+        ss = s390_get_skeys_device();
+        skeyclass = S390_SKEYS_GET_CLASS(ss);
+    }
 
     *flags = PAGE_READ | PAGE_WRITE | PAGE_EXEC;
     vaddr &= TARGET_PAGE_MASK;
@@ -358,14 +368,23 @@ int mmu_translate(CPUS390XState *env, target_ulong vaddr, int rw, uint64_t asc,
     /* Convert real address -> absolute address */
     *raddr = mmu_real2abs(env, *raddr);
 
-    if (*raddr < ram_size) {
-        sk = &env->storage_keys[*raddr / TARGET_PAGE_SIZE];
+    if (r == 0 && *raddr < ram_size) {
+        if (skeyclass->get_skeys(ss, *raddr / TARGET_PAGE_SIZE, 1, &key)) {
+            trace_get_skeys_nonzero(r);
+            return 0;
+        }
+
         if (*flags & PAGE_READ) {
-            *sk |= SK_R;
+            key |= SK_R;
         }
 
         if (*flags & PAGE_WRITE) {
-            *sk |= SK_C;
+            key |= SK_C;
+        }
+
+        if (skeyclass->set_skeys(ss, *raddr / TARGET_PAGE_SIZE, 1, &key)) {
+            trace_set_skeys_nonzero(r);
+            return 0;
         }
     }
 

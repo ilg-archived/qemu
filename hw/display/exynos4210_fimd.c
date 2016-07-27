@@ -22,6 +22,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "hw/sysbus.h"
 #include "ui/console.h"
@@ -1354,9 +1355,7 @@ static void exynos4210_fimd_reset(DeviceState *d)
         fimd_update_get_alpha(s, w);
     }
 
-    if (s->ifb != NULL) {
-        g_free(s->ifb);
-    }
+    g_free(s->ifb);
     s->ifb = NULL;
 
     exynos4210_fimd_invalidate(s);

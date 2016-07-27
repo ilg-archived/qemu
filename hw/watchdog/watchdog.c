@@ -19,7 +19,7 @@
  * By Richard W.M. Jones (rjones@redhat.com).
  */
 
-#include "qemu-common.h"
+#include "qemu/osdep.h"
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "qemu/queue.h"
@@ -28,15 +28,7 @@
 #include "sysemu/watchdog.h"
 #include "qapi-event.h"
 #include "hw/nmi.h"
-
-/* Possible values for action parameter. */
-#define WDT_RESET        1	/* Hard reset. */
-#define WDT_SHUTDOWN     2	/* Shutdown. */
-#define WDT_POWEROFF     3	/* Quit. */
-#define WDT_PAUSE        4	/* Pause. */
-#define WDT_DEBUG        5	/* Prints a message and continues running. */
-#define WDT_NONE         6	/* Do nothing. */
-#define WDT_NMI          7	/* Inject nmi into the guest */
+#include "qemu/help_option.h"
 
 static int watchdog_action = WDT_RESET;
 static QLIST_HEAD(watchdog_list, WatchdogTimerModel) watchdog_list;
@@ -103,6 +95,11 @@ int select_watchdog_action(const char *p)
         return -1;
 
     return 0;
+}
+
+int get_watchdog_action(void)
+{
+    return watchdog_action;
 }
 
 /* This actually performs the "action" once a watchdog has expired,

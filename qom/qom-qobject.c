@@ -9,6 +9,8 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "qom/object.h"
 #include "qom/qom-qobject.h"
@@ -19,14 +21,14 @@
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qapi/qmp/types.h"
 #include "qemu/log.h"
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_ARM_ECLIPSE__)
 static char *dump_value(QObject *value, char *buf, size_t siz)
 {
     if (value->type->code == QTYPE_QINT) {
         QInt *p = (QInt *) value;
-        snprintf(buf, siz, "%lld", p->value);
+        snprintf(buf, siz, "%" PRId64, p->value);
         return buf;
     } else if (value->type->code == QTYPE_QSTRING) {
         QString *p = (QString *) value;
@@ -39,39 +41,29 @@ static char *dump_value(QObject *value, char *buf, size_t siz)
 }
 #endif
 
-void object_property_set_qobject(Object *obj, QObject *value, const char *name,
-        Error **errp)
+void object_property_set_qobject(Object *obj, QObject *value,
+                                 const char *name, Error **errp)
 {
-    QmpInputVisitor *mi;
+    QmpInputVisitor *qiv;
+    qiv = qmp_input_visitor_new(value);
+    object_property_set(obj, qmp_input_get_visitor(qiv), name, errp);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    if (qemu_loglevel & LOG_TRACE) {
-        char buf[100];
-        qemu_log_mask(LOG_TRACE, "%s(%s, %s, '%s')\n", __FUNCTION__,
-                object_get_typename(obj), name,
-                dump_value(value, buf, sizeof(buf)));
-    }
-#endif
-
-    mi = qmp_input_visitor_new(value);
-    object_property_set(obj, qmp_input_get_visitor(mi), name, errp);
-
-    qmp_input_visitor_cleanup(mi);
+    qmp_input_visitor_cleanup(qiv);
 }
 
 QObject *object_property_get_qobject(Object *obj, const char *name,
-        Error **errp)
+                                     Error **errp)
 {
     QObject *ret = NULL;
     Error *local_err = NULL;
-    QmpOutputVisitor *mo;
+    QmpOutputVisitor *qov;
 
-    mo = qmp_output_visitor_new();
-    object_property_get(obj, qmp_output_get_visitor(mo), name, &local_err);
+    qov = qmp_output_visitor_new();
+    object_property_get(obj, qmp_output_get_visitor(qov), name, &local_err);
     if (!local_err) {
-        ret = qmp_output_get_qobject(mo);
+        ret = qmp_output_get_qobject(qov);
     }
     error_propagate(errp, local_err);
-    qmp_output_visitor_cleanup(mo);
+    qmp_output_visitor_cleanup(qov);
     return ret;
 }

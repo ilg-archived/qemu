@@ -7,6 +7,10 @@
  * This code is licensed under the GPL
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/sysbus.h"
 #include "hw/devices.h"
 #include "hw/boards.h"
@@ -266,7 +270,7 @@ static int integratorcm_init(SysBusDevice *dev)
     s->cm_refcnt_offset = muldiv64(qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL), 24,
                                    1000);
     memory_region_init_ram(&s->flash, OBJECT(s), "integrator.flash", 0x100000,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&s->flash);
 
     memory_region_init_io(&s->iomem, OBJECT(s), &integratorcm_ops, s,
@@ -533,7 +537,6 @@ static void integratorcp_init(MachineState *machine)
     qemu_irq pic[32];
     DeviceState *dev, *sic, *icp;
     int i;
-    Error *err = NULL;
 
     if (!cpu_model) {
         cpu_model = "arm926";
@@ -552,18 +555,10 @@ static void integratorcp_init(MachineState *machine)
      * realization.
      */
     if (object_property_find(cpuobj, "has_el3", NULL)) {
-        object_property_set_bool(cpuobj, false, "has_el3", &err);
-        if (err) {
-            error_report_err(err);
-            exit(1);
-        }
+        object_property_set_bool(cpuobj, false, "has_el3", &error_fatal);
     }
 
-    object_property_set_bool(cpuobj, true, "realized", &err);
-    if (err) {
-        error_report_err(err);
-        exit(1);
-    }
+    object_property_set_bool(cpuobj, true, "realized", &error_fatal);
 
     cpu = ARM_CPU(cpuobj);
 
@@ -619,18 +614,13 @@ static void integratorcp_init(MachineState *machine)
     arm_load_kernel(cpu, &integrator_binfo);
 }
 
-static QEMUMachine integratorcp_machine = {
-    .name = "integratorcp",
-    .desc = "ARM Integrator/CP (ARM926EJ-S)",
-    .init = integratorcp_init,
-};
-
-static void integratorcp_machine_init(void)
+static void integratorcp_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&integratorcp_machine);
+    mc->desc = "ARM Integrator/CP (ARM926EJ-S)";
+    mc->init = integratorcp_init;
 }
 
-machine_init(integratorcp_machine_init);
+DEFINE_MACHINE("integratorcp", integratorcp_machine_init)
 
 static Property core_properties[] = {
     DEFINE_PROP_UINT32("memsz", IntegratorCMState, memsz, 0),

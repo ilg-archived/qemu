@@ -25,10 +25,10 @@
    inherit from a particular bus (e.g. PCI or I2C) rather than
    this API directly.  */
 
+#include "qemu/osdep.h"
 #include "hw/qdev.h"
 #include "hw/fw-path-provider.h"
 #include "sysemu/sysemu.h"
-#include "qapi/error.h"
 #include "qapi/qmp/qerror.h"
 #include "qapi/visitor.h"
 #include "qapi/qmp/qjson.h"
@@ -325,6 +325,11 @@ void qdev_reset_all(DeviceState *dev)
     qdev_walk_children(dev, NULL, NULL, qdev_reset_one, qbus_reset_one, NULL);
 }
 
+void qdev_reset_all_fn(void *opaque)
+{
+    qdev_reset_all(DEVICE(opaque));
+}
+
 void qbus_reset_all(BusState *bus)
 {
     qbus_walk_children(bus, NULL, NULL, qdev_reset_one, qbus_reset_one, NULL);
@@ -365,9 +370,8 @@ void qdev_init_nofail(DeviceState *dev)
 
     object_property_set_bool(OBJECT(dev), true, "realized", &err);
     if (err) {
-        error_report("Initialization of device %s failed: %s",
-                     object_get_typename(OBJECT(dev)),
-                     error_get_pretty(err));
+        error_reportf_err(err, "Initialization of device %s failed: ",
+                          object_get_typename(OBJECT(dev)));
         exit(1);
     }
 }
@@ -417,17 +421,21 @@ void qdev_init_gpio_in_named(DeviceState *dev, qemu_irq_handler handler,
 {
     int i;
     NamedGPIOList *gpio_list = qdev_get_named_gpio_list(dev, name);
-    char *propname = g_strdup_printf("%s[*]", name ? name : "unnamed-gpio-in");
 
     assert(gpio_list->num_out == 0 || !name);
     gpio_list->in = qemu_extend_irqs(gpio_list->in, gpio_list->num_in, handler,
                                      dev, n);
 
+    if (!name) {
+        name = "unnamed-gpio-in";
+    }
     for (i = gpio_list->num_in; i < gpio_list->num_in + n; i++) {
+        gchar *propname = g_strdup_printf("%s[%u]", name, i);
+
         object_property_add_child(OBJECT(dev), propname,
                                   OBJECT(gpio_list->in[i]), &error_abort);
+        g_free(propname);
     }
-    g_free(propname);
 
     gpio_list->num_in += n;
 }
@@ -442,20 +450,25 @@ void qdev_init_gpio_out_named(DeviceState *dev, qemu_irq *pins,
 {
     int i;
     NamedGPIOList *gpio_list = qdev_get_named_gpio_list(dev, name);
-    char *propname = g_strdup_printf("%s[*]", name ? name : "unnamed-gpio-out");
 
     assert(gpio_list->num_in == 0 || !name);
-    gpio_list->num_out += n;
 
+    if (!name) {
+        name = "unnamed-gpio-out";
+    }
+    memset(pins, 0, sizeof(*pins) * n);
     for (i = 0; i < n; ++i) {
-        memset(&pins[i], 0, sizeof(*pins));
+        gchar *propname = g_strdup_printf("%s[%u]", name,
+                                          gpio_list->num_out + i);
+
         object_property_add_link(OBJECT(dev), propname, TYPE_IRQ,
                                  (Object **)&pins[i],
                                  object_property_allow_set_link,
                                  OBJ_PROP_LINK_UNREF_ON_RELEASE,
                                  &error_abort);
+        g_free(propname);
     }
-    g_free(propname);
+    gpio_list->num_out += n;
 }
 
 void qdev_init_gpio_out(DeviceState *dev, qemu_irq *pins, int n)
@@ -506,7 +519,7 @@ qemu_irq qdev_get_gpio_out_connector(DeviceState *dev, const char *name, int n)
     return ret;
 }
 
-/* disconnect a GPIO ouput, returning the disconnected input (if any) */
+/* disconnect a GPIO output, returning the disconnected input (if any) */
 
 static qemu_irq qdev_disconnect_gpio_out_named(DeviceState *dev,
                                                const char *name, int n)
@@ -567,6 +580,12 @@ void qdev_pass_gpios(DeviceState *dev, DeviceState *container,
 BusState *qdev_get_child_bus(DeviceState *dev, const char *name)
 {
     BusState *bus;
+    Object *child = object_resolve_path_component(OBJECT(dev), name);
+
+    bus = (BusState *)object_dynamic_cast(child, TYPE_BUS);
+    if (bus) {
+        return bus;
+    }
 
     QLIST_FOREACH(bus, &dev->child_bus, sibling) {
         if (strcmp(name, bus->name) == 0) {
@@ -874,8 +893,9 @@ char *qdev_get_dev_path(DeviceState *dev)
  * Legacy property handling
  */
 
-static void qdev_get_legacy_property(Object *obj, Visitor *v, void *opaque,
-                                     const char *name, Error **errp)
+static void qdev_get_legacy_property(Object *obj, Visitor *v,
+                                     const char *name, void *opaque,
+                                     Error **errp)
 {
     DeviceState *dev = DEVICE(obj);
     Property *prop = opaque;
@@ -884,7 +904,7 @@ static void qdev_get_legacy_property(Object *obj, Visitor *v, void *opaque,
     char *ptr = buffer;
 
     prop->info->print(dev, prop, buffer, sizeof(buffer));
-    visit_type_str(v, &ptr, name, errp);
+    visit_type_str(v, name, &ptr, errp);
 }
 
 /**
@@ -1120,7 +1140,6 @@ post_realize_fail:
 
 fail:
     error_propagate(errp, local_err);
-    return;
 }
 
 static bool device_get_hotpluggable(Object *obj, Error **errp)
@@ -1194,7 +1213,6 @@ static void device_finalize(Object *obj)
     NamedGPIOList *ngl, *next;
 
     DeviceState *dev = DEVICE(obj);
-    qemu_opts_del(dev->opts);
 
     QLIST_FOREACH_SAFE(ngl, &dev->gpios, node, next) {
         QLIST_REMOVE(ngl, node);
@@ -1242,6 +1260,9 @@ static void device_unparent(Object *obj)
         qapi_event_send_device_deleted(!!dev->id, dev->id, path, &error_abort);
         g_free(path);
     }
+
+    qemu_opts_del(dev->opts);
+    dev->opts = NULL;
 }
 
 static void device_class_init(ObjectClass *class, void *data)

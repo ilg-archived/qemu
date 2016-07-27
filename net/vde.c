@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include "config-host.h"
+#include "qemu/osdep.h"
 
 #include <libvdeplug.h>
 
@@ -115,8 +115,8 @@ int net_init_vde(const NetClientOptions *opts, const char *name,
     /* FIXME error_setg(errp, ...) on failure */
     const NetdevVdeOptions *vde;
 
-    assert(opts->kind == NET_CLIENT_OPTIONS_KIND_VDE);
-    vde = opts->vde;
+    assert(opts->type == NET_CLIENT_OPTIONS_KIND_VDE);
+    vde = opts->u.vde.data;
 
     /* missing optional values have been initialized to "all bits zero" */
     if (net_vde_init(peer, "vde", name, vde->sock, vde->port, vde->group,

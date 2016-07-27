@@ -17,8 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+
 #include "hw/display/gpio-led.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -86,6 +88,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             gpio_led_connect(led, info->gpio_path, info->port_bit);
         }
 
+#if defined(CONFIG_SDL)
         if (info->w && info->h) {
             /* Compute corner coordinate from centre coordinate. */
             cm_object_property_set_int(led, info->x - (info->w / 2), "x");
@@ -119,8 +122,8 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             }
 
         }
-
         GPIO_LED_STATE(led)->board_surface = (SDL_Surface *) board_surface;
+#endif /* defined(CONFIG_SDL) */
 
         cm_object_realize(led);
 
@@ -265,6 +268,7 @@ static void gpio_led_instance_init_callback(Object *obj)
      */
 }
 
+#if defined(CONFIG_SDL)
 static SDL_Surface* crop_surface(SDL_Surface* sprite_sheet, SDL_Rect *rectangle)
 {
     SDL_Surface* surface = SDL_CreateRGBSurface(sprite_sheet->flags,
@@ -274,11 +278,13 @@ static SDL_Surface* crop_surface(SDL_Surface* sprite_sheet, SDL_Rect *rectangle)
     SDL_BlitSurface(sprite_sheet, rectangle, surface, 0);
     return surface;
 }
+#endif /* defined(CONFIG_SDL) */
 
 static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
+#if defined(CONFIG_SDL)
     GPIOLEDState *state = GPIO_LED_STATE(dev);
 
     if (state->board_surface) {
@@ -290,6 +296,7 @@ static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
                 state->colour.green, state->colour.blue);
         SDL_FillRect(state->crop_on, NULL, colour);
     }
+#endif /* defined(CONFIG_SDL) */
 }
 
 static void gpio_led_class_init_callback(ObjectClass *klass, void *data)

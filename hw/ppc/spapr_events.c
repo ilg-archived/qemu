@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  *
  */
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "cpu.h"
 #include "sysemu/sysemu.h"
 #include "sysemu/char.h"
@@ -35,7 +37,8 @@
 #include "hw/pci/pci.h"
 #include "hw/pci-host/spapr.h"
 #include "hw/ppc/spapr_drc.h"
-
+#include "qemu/help_option.h"
+#include "qemu/bcd.h"
 #include <libfdt.h>
 
 struct rtas_error_log {
@@ -238,6 +241,7 @@ void spapr_events_fdt_skel(void *fdt, uint32_t check_exception_irq)
 
 static void rtas_event_log_queue(int log_type, void *data, bool exception)
 {
+    sPAPRMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
     sPAPREventLogEntry *entry = g_new(sPAPREventLogEntry, 1);
 
     g_assert(data);
@@ -250,6 +254,7 @@ static void rtas_event_log_queue(int log_type, void *data, bool exception)
 static sPAPREventLogEntry *rtas_event_log_dequeue(uint32_t event_mask,
                                                   bool exception)
 {
+    sPAPRMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
     sPAPREventLogEntry *entry = NULL;
 
     /* we only queue EPOW events atm. */
@@ -278,6 +283,7 @@ static sPAPREventLogEntry *rtas_event_log_dequeue(uint32_t event_mask,
 
 static bool rtas_event_log_contains(uint32_t event_mask, bool exception)
 {
+    sPAPRMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
     sPAPREventLogEntry *entry = NULL;
 
     /* we only queue EPOW events atm. */
@@ -314,6 +320,7 @@ static void spapr_init_v6hdr(struct rtas_event_log_v6 *v6hdr)
 static void spapr_init_maina(struct rtas_event_log_v6_maina *maina,
                              int section_count)
 {
+    sPAPRMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
     struct tm tm;
     int year;
 
@@ -336,7 +343,7 @@ static void spapr_init_maina(struct rtas_event_log_v6_maina *maina,
 
 static void spapr_powerdown_req(Notifier *n, void *opaque)
 {
-    sPAPREnvironment *spapr = container_of(n, sPAPREnvironment, epow_notifier);
+    sPAPRMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
     struct rtas_error_log *hdr;
     struct rtas_event_log_v6 *v6hdr;
     struct rtas_event_log_v6_maina *maina;
@@ -382,16 +389,24 @@ static void spapr_powerdown_req(Notifier *n, void *opaque)
     qemu_irq_pulse(xics_get_qirq(spapr->icp, spapr->check_exception_irq));
 }
 
-static void spapr_hotplug_req_event(sPAPRDRConnector *drc, uint8_t hp_action)
+static void spapr_hotplug_set_signalled(uint32_t drc_index)
 {
+    sPAPRDRConnector *drc = spapr_dr_connector_by_index(drc_index);
+    sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
+    drck->set_signalled(drc);
+}
+
+static void spapr_hotplug_req_event(uint8_t hp_id, uint8_t hp_action,
+                                    sPAPRDRConnectorType drc_type,
+                                    uint32_t drc)
+{
+    sPAPRMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
     struct hp_log_full *new_hp;
     struct rtas_error_log *hdr;
     struct rtas_event_log_v6 *v6hdr;
     struct rtas_event_log_v6_maina *maina;
     struct rtas_event_log_v6_mainb *mainb;
     struct rtas_event_log_v6_hp *hp;
-    sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
-    sPAPRDRConnectorType drc_type = drck->get_type(drc);
 
     new_hp = g_malloc0(sizeof(struct hp_log_full));
     hdr = &new_hp->hdr;
@@ -422,13 +437,17 @@ static void spapr_hotplug_req_event(sPAPRDRConnector *drc, uint8_t hp_action)
     hp->hdr.section_length = cpu_to_be16(sizeof(*hp));
     hp->hdr.section_version = 1; /* includes extended modifier */
     hp->hotplug_action = hp_action;
-
+    hp->hotplug_identifier = hp_id;
 
     switch (drc_type) {
     case SPAPR_DR_CONNECTOR_TYPE_PCI:
-        hp->drc.index = cpu_to_be32(drck->get_index(drc));
-        hp->hotplug_identifier = RTAS_LOG_V6_HP_ID_DRC_INDEX;
         hp->hotplug_type = RTAS_LOG_V6_HP_TYPE_PCI;
+        if (hp->hotplug_action == RTAS_LOG_V6_HP_ACTION_ADD) {
+            spapr_hotplug_set_signalled(drc);
+        }
+        break;
+    case SPAPR_DR_CONNECTOR_TYPE_LMB:
+        hp->hotplug_type = RTAS_LOG_V6_HP_TYPE_MEMORY;
         break;
     default:
         /* we shouldn't be signaling hotplug events for resources
@@ -438,22 +457,52 @@ static void spapr_hotplug_req_event(sPAPRDRConnector *drc, uint8_t hp_action)
         return;
     }
 
+    if (hp_id == RTAS_LOG_V6_HP_ID_DRC_COUNT) {
+        hp->drc.count = cpu_to_be32(drc);
+    } else if (hp_id == RTAS_LOG_V6_HP_ID_DRC_INDEX) {
+        hp->drc.index = cpu_to_be32(drc);
+    }
+
     rtas_event_log_queue(RTAS_LOG_TYPE_HOTPLUG, new_hp, true);
 
     qemu_irq_pulse(xics_get_qirq(spapr->icp, spapr->check_exception_irq));
 }
 
-void spapr_hotplug_req_add_event(sPAPRDRConnector *drc)
+void spapr_hotplug_req_add_by_index(sPAPRDRConnector *drc)
 {
-    spapr_hotplug_req_event(drc, RTAS_LOG_V6_HP_ACTION_ADD);
+    sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
+    sPAPRDRConnectorType drc_type = drck->get_type(drc);
+    uint32_t index = drck->get_index(drc);
+
+    spapr_hotplug_req_event(RTAS_LOG_V6_HP_ID_DRC_INDEX,
+                            RTAS_LOG_V6_HP_ACTION_ADD, drc_type, index);
 }
 
-void spapr_hotplug_req_remove_event(sPAPRDRConnector *drc)
+void spapr_hotplug_req_remove_by_index(sPAPRDRConnector *drc)
 {
-    spapr_hotplug_req_event(drc, RTAS_LOG_V6_HP_ACTION_REMOVE);
+    sPAPRDRConnectorClass *drck = SPAPR_DR_CONNECTOR_GET_CLASS(drc);
+    sPAPRDRConnectorType drc_type = drck->get_type(drc);
+    uint32_t index = drck->get_index(drc);
+
+    spapr_hotplug_req_event(RTAS_LOG_V6_HP_ID_DRC_INDEX,
+                            RTAS_LOG_V6_HP_ACTION_REMOVE, drc_type, index);
 }
 
-static void check_exception(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+void spapr_hotplug_req_add_by_count(sPAPRDRConnectorType drc_type,
+                                       uint32_t count)
+{
+    spapr_hotplug_req_event(RTAS_LOG_V6_HP_ID_DRC_COUNT,
+                            RTAS_LOG_V6_HP_ACTION_ADD, drc_type, count);
+}
+
+void spapr_hotplug_req_remove_by_count(sPAPRDRConnectorType drc_type,
+                                          uint32_t count)
+{
+    spapr_hotplug_req_event(RTAS_LOG_V6_HP_ID_DRC_COUNT,
+                            RTAS_LOG_V6_HP_ACTION_REMOVE, drc_type, count);
+}
+
+static void check_exception(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                             uint32_t token, uint32_t nargs,
                             target_ulong args,
                             uint32_t nret, target_ulong rets)
@@ -508,7 +557,7 @@ out_no_events:
     rtas_st(rets, 0, RTAS_OUT_NO_ERRORS_FOUND);
 }
 
-static void event_scan(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static void event_scan(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                        uint32_t token, uint32_t nargs,
                        target_ulong args,
                        uint32_t nret, target_ulong rets)
@@ -548,10 +597,11 @@ out_no_events:
     rtas_st(rets, 0, RTAS_OUT_NO_ERRORS_FOUND);
 }
 
-void spapr_events_init(sPAPREnvironment *spapr)
+void spapr_events_init(sPAPRMachineState *spapr)
 {
     QTAILQ_INIT(&spapr->pending_events);
-    spapr->check_exception_irq = xics_alloc(spapr->icp, 0, 0, false);
+    spapr->check_exception_irq = xics_alloc(spapr->icp, 0, 0, false,
+                                            &error_fatal);
     spapr->epow_notifier.notify = spapr_powerdown_req;
     qemu_register_powerdown_notifier(&spapr->epow_notifier);
     spapr_rtas_register(RTAS_CHECK_EXCEPTION, "check-exception",

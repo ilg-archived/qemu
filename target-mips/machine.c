@@ -1,3 +1,4 @@
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 
 #include "cpu.h"
@@ -153,6 +154,7 @@ static void put_tlb(QEMUFile *f, void *pv, size_t size)
 {
     r4k_tlb_t *v = pv;
 
+    uint8_t asid = v->ASID;
     uint16_t flags = ((v->EHINV << 15) |
                       (v->RI1 << 14) |
                       (v->RI0 << 13) |
@@ -168,7 +170,7 @@ static void put_tlb(QEMUFile *f, void *pv, size_t size)
 
     qemu_put_betls(f, &v->VPN);
     qemu_put_be32s(f, &v->PageMask);
-    qemu_put_8s(f, &v->ASID);
+    qemu_put_8s(f, &asid);
     qemu_put_be16s(f, &flags);
     qemu_put_be64s(f, &v->PFN[0]);
     qemu_put_be64s(f, &v->PFN[1]);
@@ -202,8 +204,8 @@ const VMStateDescription vmstate_tlb = {
 
 const VMStateDescription vmstate_mips_cpu = {
     .name = "cpu",
-    .version_id = 7,
-    .minimum_version_id = 7,
+    .version_id = 8,
+    .minimum_version_id = 8,
     .post_load = cpu_post_load,
     .fields = (VMStateField[]) {
         /* Active TC */
@@ -270,6 +272,8 @@ const VMStateDescription vmstate_mips_cpu = {
         VMSTATE_INT32(env.CP0_Config3, MIPSCPU),
         VMSTATE_INT32(env.CP0_Config6, MIPSCPU),
         VMSTATE_INT32(env.CP0_Config7, MIPSCPU),
+        VMSTATE_UINT64_ARRAY(env.CP0_MAAR, MIPSCPU, MIPS_MAAR_MAX),
+        VMSTATE_INT32(env.CP0_MAARI, MIPSCPU),
         VMSTATE_UINT64(env.lladdr, MIPSCPU),
         VMSTATE_UINTTL_ARRAY(env.CP0_WatchLo, MIPSCPU, 8),
         VMSTATE_INT32_ARRAY(env.CP0_WatchHi, MIPSCPU, 8),

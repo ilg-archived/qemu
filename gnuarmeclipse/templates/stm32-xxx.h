@@ -22,7 +22,8 @@
 #ifndef STM32_XXX_H_
 #define STM32_XXX_H_
 
-#include "config.h"
+#include "qemu/osdep.h"
+
 #include "hw/sysbus.h"
 #include "hw/misc/stm32-sys-bus-device.h"
 

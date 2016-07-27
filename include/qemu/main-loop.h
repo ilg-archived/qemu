@@ -203,6 +203,8 @@ void qemu_set_fd_handler(int fd,
                          IOHandler *fd_write,
                          void *opaque);
 
+GSource *iohandler_get_g_source(void);
+AioContext *iohandler_get_aio_context(void);
 #ifdef CONFIG_POSIX
 /**
  * qemu_add_child_watch: Register a child process for reaping.
@@ -221,6 +223,16 @@ void qemu_set_fd_handler(int fd,
  */
 int qemu_add_child_watch(pid_t pid);
 #endif
+
+/**
+ * qemu_mutex_iothread_locked: Return lock status of the main loop mutex.
+ *
+ * The main loop mutex is the coarsest lock in QEMU, and as such it
+ * must always be taken outside other locks.  This function helps
+ * functions take different paths depending on whether the current
+ * thread is running within the main loop mutex.
+ */
+bool qemu_mutex_iothread_locked(void);
 
 /**
  * qemu_mutex_lock_iothread: Lock the main loop mutex.
@@ -255,8 +267,6 @@ void qemu_mutex_unlock_iothread(void);
 /* internal interfaces */
 
 void qemu_fd_register(int fd);
-void qemu_iohandler_fill(GArray *pollfds);
-void qemu_iohandler_poll(GArray *pollfds, int rc);
 
 QEMUBH *qemu_bh_new(QEMUBHFunc *cb, void *opaque);
 void qemu_bh_schedule_idle(QEMUBH *bh);

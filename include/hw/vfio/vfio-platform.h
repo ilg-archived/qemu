@@ -34,13 +34,14 @@ enum {
 typedef struct VFIOINTp {
     QLIST_ENTRY(VFIOINTp) next; /* entry for IRQ list */
     QSIMPLEQ_ENTRY(VFIOINTp) pqnext; /* entry for pending IRQ queue */
-    EventNotifier interrupt; /* eventfd triggered on interrupt */
-    EventNotifier unmask; /* eventfd for unmask on QEMU bypass */
+    EventNotifier *interrupt; /* eventfd triggered on interrupt */
+    EventNotifier *unmask; /* eventfd for unmask on QEMU bypass */
     qemu_irq qemuirq;
     struct VFIOPlatformDevice *vdev; /* back pointer to device */
     int state; /* inactive, pending, active */
     uint8_t pin; /* index */
     uint32_t flags; /* IRQ info flags */
+    bool kvm_accel; /* set when QEMU bypass through KVM enabled */
 } VFIOINTp;
 
 /* function type for user side eventfd handler */
@@ -57,6 +58,7 @@ typedef struct VFIOPlatformDevice {
     uint32_t mmap_timeout; /* delay to re-enable mmaps after interrupt */
     QEMUTimer *mmap_timer; /* allows fast-path resume after IRQ hit */
     QemuMutex intp_mutex; /* protect the intp_list IRQ state */
+    bool irqfd_allowed; /* debug option to force irqfd on/off */
 } VFIOPlatformDevice;
 
 typedef struct VFIOPlatformDeviceClass {

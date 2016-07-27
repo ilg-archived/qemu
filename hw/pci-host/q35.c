@@ -27,8 +27,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/pci-host/q35.h"
+#include "qapi/error.h"
 #include "qapi/visitor.h"
 
 /****************************************************************************
@@ -67,27 +69,27 @@ static const char *q35_host_root_bus_path(PCIHostState *host_bridge,
 }
 
 static void q35_host_get_pci_hole_start(Object *obj, Visitor *v,
-                                        void *opaque, const char *name,
+                                        const char *name, void *opaque,
                                         Error **errp)
 {
     Q35PCIHost *s = Q35_HOST_DEVICE(obj);
     uint32_t value = s->mch.pci_info.w32.begin;
 
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
 static void q35_host_get_pci_hole_end(Object *obj, Visitor *v,
-                                      void *opaque, const char *name,
+                                      const char *name, void *opaque,
                                       Error **errp)
 {
     Q35PCIHost *s = Q35_HOST_DEVICE(obj);
     uint32_t value = s->mch.pci_info.w32.end;
 
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
 static void q35_host_get_pci_hole64_start(Object *obj, Visitor *v,
-                                          void *opaque, const char *name,
+                                          const char *name, void *opaque,
                                           Error **errp)
 {
     PCIHostState *h = PCI_HOST_BRIDGE(obj);
@@ -95,11 +97,11 @@ static void q35_host_get_pci_hole64_start(Object *obj, Visitor *v,
 
     pci_bus_get_w64_range(h->bus, &w64);
 
-    visit_type_uint64(v, &w64.begin, name, errp);
+    visit_type_uint64(v, name, &w64.begin, errp);
 }
 
 static void q35_host_get_pci_hole64_end(Object *obj, Visitor *v,
-                                        void *opaque, const char *name,
+                                        const char *name, void *opaque,
                                         Error **errp)
 {
     PCIHostState *h = PCI_HOST_BRIDGE(obj);
@@ -107,17 +109,16 @@ static void q35_host_get_pci_hole64_end(Object *obj, Visitor *v,
 
     pci_bus_get_w64_range(h->bus, &w64);
 
-    visit_type_uint64(v, &w64.end, name, errp);
+    visit_type_uint64(v, name, &w64.end, errp);
 }
 
-static void q35_host_get_mmcfg_size(Object *obj, Visitor *v,
-                                    void *opaque, const char *name,
-                                    Error **errp)
+static void q35_host_get_mmcfg_size(Object *obj, Visitor *v, const char *name,
+                                    void *opaque, Error **errp)
 {
     PCIExpressHost *e = PCIE_HOST_BRIDGE(obj);
     uint32_t value = e->size;
 
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
 static Property mch_props[] = {
@@ -426,31 +427,12 @@ static void mch_reset(DeviceState *qdev)
 static AddressSpace *q35_host_dma_iommu(PCIBus *bus, void *opaque, int devfn)
 {
     IntelIOMMUState *s = opaque;
-    VTDAddressSpace **pvtd_as;
-    int bus_num = pci_bus_num(bus);
+    VTDAddressSpace *vtd_as;
 
-    assert(0 <= bus_num && bus_num <= VTD_PCI_BUS_MAX);
     assert(0 <= devfn && devfn <= VTD_PCI_DEVFN_MAX);
 
-    pvtd_as = s->address_spaces[bus_num];
-    if (!pvtd_as) {
-        /* No corresponding free() */
-        pvtd_as = g_malloc0(sizeof(VTDAddressSpace *) * VTD_PCI_DEVFN_MAX);
-        s->address_spaces[bus_num] = pvtd_as;
-    }
-    if (!pvtd_as[devfn]) {
-        pvtd_as[devfn] = g_malloc0(sizeof(VTDAddressSpace));
-
-        pvtd_as[devfn]->bus_num = (uint8_t)bus_num;
-        pvtd_as[devfn]->devfn = (uint8_t)devfn;
-        pvtd_as[devfn]->iommu_state = s;
-        pvtd_as[devfn]->context_cache_entry.context_cache_gen = 0;
-        memory_region_init_iommu(&pvtd_as[devfn]->iommu, OBJECT(s),
-                                 &s->iommu_ops, "intel_iommu", UINT64_MAX);
-        address_space_init(&pvtd_as[devfn]->as,
-                           &pvtd_as[devfn]->iommu, "intel_iommu");
-    }
-    return &pvtd_as[devfn]->as;
+    vtd_as = vtd_find_add_as(s, bus, devfn);
+    return &vtd_as->as;
 }
 
 static void mch_init_dmar(MCHPCIState *mch)
@@ -525,7 +507,7 @@ static void mch_realize(PCIDevice *d, Error **errp)
                  PAM_EXPAN_BASE + i * PAM_EXPAN_SIZE, PAM_EXPAN_SIZE);
     }
     /* Intel IOMMU (VT-d) */
-    if (machine_iommu(current_machine)) {
+    if (object_property_get_bool(qdev_get_machine(), "iommu", NULL)) {
         mch_init_dmar(mch);
     }
 }

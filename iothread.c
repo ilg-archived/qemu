@@ -11,6 +11,7 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include "qom/object.h"
 #include "qom/object_interfaces.h"
 #include "qemu/module.h"
@@ -18,6 +19,7 @@
 #include "sysemu/iothread.h"
 #include "qmp-commands.h"
 #include "qemu/error-report.h"
+#include "qemu/rcu.h"
 
 typedef ObjectClass IOThreadClass;
 
@@ -30,6 +32,8 @@ static void *iothread_run(void *opaque)
 {
     IOThread *iothread = opaque;
     bool blocking;
+
+    rcu_register_thread();
 
     qemu_mutex_lock(&iothread->init_done_lock);
     iothread->thread_id = qemu_get_thread_id();
@@ -45,6 +49,8 @@ static void *iothread_run(void *opaque)
         }
         aio_context_release(iothread->ctx);
     }
+
+    rcu_unregister_thread();
     return NULL;
 }
 
@@ -67,6 +73,7 @@ static void iothread_complete(UserCreatable *obj, Error **errp)
 {
     Error *local_error = NULL;
     IOThread *iothread = IOTHREAD(obj);
+    char *name, *thread_name;
 
     iothread->stopping = false;
     iothread->thread_id = -1;
@@ -82,8 +89,12 @@ static void iothread_complete(UserCreatable *obj, Error **errp)
     /* This assumes we are called from a thread with useful CPU affinity for us
      * to inherit.
      */
-    qemu_thread_create(&iothread->thread, "iothread", iothread_run,
+    name = object_get_canonical_path_component(OBJECT(obj));
+    thread_name = g_strdup_printf("IO %s", name);
+    qemu_thread_create(&iothread->thread, thread_name, iothread_run,
                        iothread, QEMU_THREAD_JOINABLE);
+    g_free(thread_name);
+    g_free(name);
 
     /* Wait for initialization to complete */
     qemu_mutex_lock(&iothread->init_done_lock);

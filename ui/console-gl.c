@@ -24,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "ui/console.h"
 #include "ui/shader.h"
@@ -33,6 +34,7 @@
 
 struct ConsoleGLState {
     GLint texture_blit_prog;
+    GLint texture_blit_vao;
 };
 
 /* ---------------------------------------------------------------------- */
@@ -46,6 +48,9 @@ ConsoleGLState *console_gl_init_context(void)
     if (!gls->texture_blit_prog) {
         exit(1);
     }
+
+    gls->texture_blit_vao =
+        qemu_gl_init_texture_blit(gls->texture_blit_prog);
 
     return gls;
 }
@@ -131,7 +136,8 @@ void surface_gl_render_texture(ConsoleGLState *gls,
     glClearColor(0.1f, 0.1f, 0.1f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    qemu_gl_run_texture_blit(gls->texture_blit_prog);
+    qemu_gl_run_texture_blit(gls->texture_blit_prog,
+                             gls->texture_blit_vao);
 }
 
 void surface_gl_destroy_texture(ConsoleGLState *gls,

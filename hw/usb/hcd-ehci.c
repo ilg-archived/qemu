@@ -27,12 +27,14 @@
  * along with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "hw/usb/ehci-regs.h"
 #include "hw/usb/hcd-ehci.h"
 #include "trace.h"
 
 #define FRAME_TIMER_FREQ 1000
-#define FRAME_TIMER_NS   (1000000000 / FRAME_TIMER_FREQ)
+#define FRAME_TIMER_NS   (NANOSECONDS_PER_SECOND / FRAME_TIMER_FREQ)
 #define UFRAME_TIMER_NS  (FRAME_TIMER_NS / 8)
 
 #define NB_MAXINTRATE    8        // Max rate at which controller issues ints
@@ -726,7 +728,7 @@ static void ehci_detach(USBPort *port)
     ehci_queues_rip_device(s, port->dev, 0);
     ehci_queues_rip_device(s, port->dev, 1);
 
-    *portsc &= ~(PORTSC_CONNECT|PORTSC_PED);
+    *portsc &= ~(PORTSC_CONNECT|PORTSC_PED|PORTSC_SUSPEND);
     *portsc |= PORTSC_CSC;
 
     ehci_raise_irq(s, USBSTS_PCD);
@@ -865,6 +867,7 @@ void ehci_reset(void *opaque)
     s->usbsts = USBSTS_HALT;
     s->usbsts_pending = 0;
     s->usbsts_frindex = 0;
+    ehci_update_irq(s);
 
     s->astate = EST_INACTIVE;
     s->pstate = EST_INACTIVE;
@@ -891,6 +894,11 @@ static uint64_t ehci_caps_read(void *ptr, hwaddr addr,
 {
     EHCIState *s = ptr;
     return s->caps[addr];
+}
+
+static void ehci_caps_write(void *ptr, hwaddr addr,
+                             uint64_t val, unsigned size)
+{
 }
 
 static uint64_t ehci_opreg_read(void *ptr, hwaddr addr,
@@ -1389,7 +1397,7 @@ static int ehci_process_itd(EHCIState *ehci,
 {
     USBDevice *dev;
     USBEndpoint *ep;
-    uint32_t i, len, pid, dir, devaddr, endp;
+    uint32_t i, len, pid, dir, devaddr, endp, xfers = 0;
     uint32_t pg, off, ptr1, ptr2, max, mult;
 
     ehci->periodic_sched_active = PERIODIC_ACTIVE;
@@ -1404,21 +1412,23 @@ static int ehci_process_itd(EHCIState *ehci,
         if (itd->transact[i] & ITD_XACT_ACTIVE) {
             pg   = get_field(itd->transact[i], ITD_XACT_PGSEL);
             off  = itd->transact[i] & ITD_XACT_OFFSET_MASK;
-            ptr1 = (itd->bufptr[pg] & ITD_BUFPTR_MASK);
-            ptr2 = (itd->bufptr[pg+1] & ITD_BUFPTR_MASK);
             len  = get_field(itd->transact[i], ITD_XACT_LENGTH);
 
             if (len > max * mult) {
                 len = max * mult;
             }
-
-            if (len > BUFF_SIZE) {
+            if (len > BUFF_SIZE || pg > 6) {
                 return -1;
             }
 
+            ptr1 = (itd->bufptr[pg] & ITD_BUFPTR_MASK);
             qemu_sglist_init(&ehci->isgl, ehci->device, 2, ehci->as);
             if (off + len > 4096) {
                 /* transfer crosses page border */
+                if (pg == 6) {
+                    return -1;  /* avoid page pg + 1 */
+                }
+                ptr2 = (itd->bufptr[pg + 1] & ITD_BUFPTR_MASK);
                 uint32_t len2 = off + len - 4096;
                 uint32_t len1 = len - len2;
                 qemu_sglist_add(&ehci->isgl, ptr1 + off, len1);
@@ -1479,9 +1489,10 @@ static int ehci_process_itd(EHCIState *ehci,
                 ehci_raise_irq(ehci, USBSTS_INT);
             }
             itd->transact[i] &= ~ITD_XACT_ACTIVE;
+            xfers++;
         }
     }
-    return 0;
+    return xfers ? 0 : -1;
 }
 
 
@@ -2000,6 +2011,7 @@ static int ehci_state_writeback(EHCIQueue *q)
 static void ehci_advance_state(EHCIState *ehci, int async)
 {
     EHCIQueue *q = NULL;
+    int itd_count = 0;
     int again;
 
     do {
@@ -2024,10 +2036,12 @@ static void ehci_advance_state(EHCIState *ehci, int async)
 
         case EST_FETCHITD:
             again = ehci_state_fetchitd(ehci, async);
+            itd_count++;
             break;
 
         case EST_FETCHSITD:
             again = ehci_state_fetchsitd(ehci, async);
+            itd_count++;
             break;
 
         case EST_ADVANCEQUEUE:
@@ -2076,7 +2090,8 @@ static void ehci_advance_state(EHCIState *ehci, int async)
             break;
         }
 
-        if (again < 0) {
+        if (again < 0 || itd_count > 16) {
+            /* TODO: notify guest (raise HSE irq?) */
             fprintf(stderr, "processing error - resetting ehci HC\n");
             ehci_reset(ehci);
             again = 0;
@@ -2298,10 +2313,11 @@ static void ehci_frame_timer(void *opaque)
         /* If we've raised int, we speed up the timer, so that we quickly
          * notice any new packets queued up in response */
         if (ehci->int_req_by_async && (ehci->usbsts & USBSTS_INT)) {
-            expire_time = t_now + get_ticks_per_sec() / (FRAME_TIMER_FREQ * 4);
+            expire_time = t_now +
+                NANOSECONDS_PER_SECOND / (FRAME_TIMER_FREQ * 4);
             ehci->int_req_by_async = false;
         } else {
-            expire_time = t_now + (get_ticks_per_sec()
+            expire_time = t_now + (NANOSECONDS_PER_SECOND
                                * (ehci->async_stepdown+1) / FRAME_TIMER_FREQ);
         }
         timer_mod(ehci->frame_timer, expire_time);
@@ -2310,6 +2326,7 @@ static void ehci_frame_timer(void *opaque)
 
 static const MemoryRegionOps ehci_mmio_caps_ops = {
     .read = ehci_caps_read,
+    .write = ehci_caps_write,
     .valid.min_access_size = 1,
     .valid.max_access_size = 4,
     .impl.min_access_size = 1,

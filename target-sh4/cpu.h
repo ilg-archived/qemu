@@ -19,12 +19,9 @@
 #ifndef _CPU_SH4_H
 #define _CPU_SH4_H
 
-#include "config.h"
 #include "qemu-common.h"
 
 #define TARGET_LONG_BITS 32
-
-#define ELF_MACHINE	EM_SH
 
 /* CPU Subtypes */
 #define SH_CPU_SH7750  (1 << 0)
@@ -122,6 +119,7 @@ typedef struct tlb_t {
 #define ITLB_SIZE 4
 
 #define NB_MMU_MODES 2
+#define TARGET_INSN_START_EXTRA_WORDS 1
 
 enum sh_features {
     SH_FEATURE_SH4A = 1,
@@ -193,7 +191,7 @@ typedef struct CPUSH4State {
 
 void sh4_translate_init(void);
 SuperHCPU *cpu_sh4_init(const char *cpu_model);
-int cpu_sh4_exec(CPUSH4State * s);
+int cpu_sh4_exec(CPUState *s);
 int cpu_sh4_signal_handler(int host_signum, void *pinfo,
                            void *puc);
 int superh_cpu_handle_mmu_fault(CPUState *cpu, vaddr address, int rw,
@@ -227,7 +225,6 @@ void cpu_load_tlb(CPUSH4State * env);
 #define cpu_init(cpu_model) CPU(cpu_sh4_init(cpu_model))
 
 #define cpu_exec cpu_sh4_exec
-#define cpu_gen_code cpu_sh4_gen_code
 #define cpu_signal_handler cpu_sh4_signal_handler
 #define cpu_list sh4_cpu_list
 
@@ -235,7 +232,7 @@ void cpu_load_tlb(CPUSH4State * env);
 #define MMU_MODE0_SUFFIX _kernel
 #define MMU_MODE1_SUFFIX _user
 #define MMU_USER_IDX 1
-static inline int cpu_mmu_index (CPUSH4State *env)
+static inline int cpu_mmu_index (CPUSH4State *env, bool ifetch)
 {
     return (env->sr & (1u << SR_MD)) == 0 ? 1 : 0;
 }

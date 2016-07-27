@@ -10,6 +10,8 @@
  * Contributions after 2012-01-13 are licensed under the terms of the
  * GNU GPL, version 2 or (at your option) any later version.
  */
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "hw/hw.h"
 #include "hw/devices.h"
 #include "hw/block/flash.h"
@@ -584,7 +586,7 @@ TC6393xbState *tc6393xb_init(MemoryRegion *sysmem, uint32_t base, qemu_irq irq)
     memory_region_add_subregion(sysmem, base, &s->iomem);
 
     memory_region_init_ram(&s->vram, NULL, "tc6393xb.vram", 0x100000,
-                           &error_abort);
+                           &error_fatal);
     vmstate_register_ram_global(&s->vram);
     s->vram_ptr = memory_region_get_ram_ptr(&s->vram);
     memory_region_add_subregion(sysmem, base + 0x100000, &s->vram);

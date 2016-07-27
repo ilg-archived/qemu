@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
 #include <zlib.h> /* For crc32 */
 
 #include "hw/net/cadence_gem.h"
@@ -677,6 +678,10 @@ static ssize_t gem_receive(NetClientState *nc, const uint8_t *buf, size_t size)
     } else {
         unsigned crc_val;
 
+        if (size > sizeof(rxbuf) - sizeof(crc_val)) {
+            size = sizeof(rxbuf) - sizeof(crc_val);
+        }
+        bytes_to_copy = size;
         /* The application wants the FCS field, which QEMU does not provide.
          * We must try and calculate one.
          */
@@ -862,6 +867,14 @@ static void gem_transmit(CadenceGEMState *s)
             break;
         }
 
+        if (tx_desc_get_length(desc) > sizeof(tx_packet) - (p - tx_packet)) {
+            DB_PRINT("TX descriptor @ 0x%x too large: size 0x%x space 0x%x\n",
+                     (unsigned)packet_desc_addr,
+                     (unsigned)tx_desc_get_length(desc),
+                     sizeof(tx_packet) - (p - tx_packet));
+            break;
+        }
+
         /* Gather this fragment of the packet from "dma memory" to our contig.
          * buffer.
          */
@@ -951,7 +964,7 @@ static void gem_phy_reset(CadenceGEMState *s)
     s->phy_regs[PHY_REG_1000BTSTAT] = 0x7C00;
     s->phy_regs[PHY_REG_EXTSTAT] = 0x3000;
     s->phy_regs[PHY_REG_PHYSPCFC_CTL] = 0x0078;
-    s->phy_regs[PHY_REG_PHYSPCFC_ST] = 0xBC00;
+    s->phy_regs[PHY_REG_PHYSPCFC_ST] = 0x7C00;
     s->phy_regs[PHY_REG_EXT_PHYSPCFC_CTL] = 0x0C60;
     s->phy_regs[PHY_REG_LED] = 0x4100;
     s->phy_regs[PHY_REG_EXT_PHYSPCFC_CTL2] = 0x000A;
@@ -964,6 +977,7 @@ static void gem_reset(DeviceState *d)
 {
     int i;
     CadenceGEMState *s = CADENCE_GEM(d);
+    const uint8_t *a;
 
     DB_PRINT("\n");
 
@@ -981,6 +995,11 @@ static void gem_reset(DeviceState *d)
     s->regs[GEM_DESCONF2] = 0x2ab13fff;
     s->regs[GEM_DESCONF5] = 0x002f2145;
     s->regs[GEM_DESCONF6] = 0x00000200;
+
+    /* Set MAC address */
+    a = &s->conf.macaddr.a[0];
+    s->regs[GEM_SPADDR1LO] = a[0] | (a[1] << 8) | (a[2] << 16) | (a[3] << 24);
+    s->regs[GEM_SPADDR1HI] = a[4] | (a[5] << 8);
 
     for (i = 0; i < 4; i++) {
         s->sar_active[i] = false;

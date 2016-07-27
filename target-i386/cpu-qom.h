@@ -22,7 +22,6 @@
 
 #include "qom/cpu.h"
 #include "cpu.h"
-#include "qapi/error.h"
 #include "qemu/notify.h"
 
 #ifdef TARGET_X86_64
@@ -88,7 +87,14 @@ typedef struct X86CPU {
     bool hyperv_vapic;
     bool hyperv_relaxed_timing;
     int hyperv_spinlock_attempts;
+    char *hyperv_vendor_id;
     bool hyperv_time;
+    bool hyperv_crash;
+    bool hyperv_reset;
+    bool hyperv_vpindex;
+    bool hyperv_runtime;
+    bool hyperv_synic;
+    bool hyperv_stimer;
     bool check_cpuid;
     bool enforce_cpuid;
     bool expose_kvm;

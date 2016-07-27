@@ -19,7 +19,7 @@
  */
 
 #include "hw/misc/stm32-xxx.h"
-#include "hw/arm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-helper.h"
 
 /**
  * This file implements the STM32 XXX.

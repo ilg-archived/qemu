@@ -9,6 +9,7 @@
  * See the COPYING file in the top-level directory.
  *
  */
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "kvm_arm.h"
 
@@ -17,7 +18,7 @@ bool write_kvmstate_to_list(ARMCPU *cpu)
     abort();
 }
 
-bool write_list_to_kvmstate(ARMCPU *cpu)
+bool write_list_to_kvmstate(ARMCPU *cpu, int level)
 {
     abort();
 }

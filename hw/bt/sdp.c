@@ -17,6 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "hw/bt.h"
 
@@ -42,7 +43,7 @@ struct bt_l2cap_sdp_state_s {
 
 static ssize_t sdp_datalen(const uint8_t **element, ssize_t *left)
 {
-    size_t len = *(*element) ++ & SDP_DSIZE_MASK;
+    uint32_t len = *(*element) ++ & SDP_DSIZE_MASK;
 
     if (!*left)
         return -1;
@@ -150,12 +151,14 @@ static ssize_t sdp_svc_search(struct bt_l2cap_sdp_state_s *sdp,
         if (seqlen < 3 || len < seqlen)
             return -SDP_INVALID_SYNTAX;
         len -= seqlen;
-
         while (seqlen)
             if (sdp_svc_match(sdp, &req, &seqlen))
                 return -SDP_INVALID_SYNTAX;
-    } else if (sdp_svc_match(sdp, &req, &seqlen))
-        return -SDP_INVALID_SYNTAX;
+    } else {
+        if (sdp_svc_match(sdp, &req, &len)) {
+            return -SDP_INVALID_SYNTAX;
+        }
+    }
 
     if (len < 3)
         return -SDP_INVALID_SYNTAX;
@@ -278,8 +281,11 @@ static ssize_t sdp_attr_get(struct bt_l2cap_sdp_state_s *sdp,
         while (seqlen)
             if (sdp_attr_match(record, &req, &seqlen))
                 return -SDP_INVALID_SYNTAX;
-    } else if (sdp_attr_match(record, &req, &seqlen))
-        return -SDP_INVALID_SYNTAX;
+    } else {
+        if (sdp_attr_match(record, &req, &len)) {
+            return -SDP_INVALID_SYNTAX;
+        }
+    }
 
     if (len < 1)
         return -SDP_INVALID_SYNTAX;
@@ -393,8 +399,11 @@ static ssize_t sdp_svc_search_attr_get(struct bt_l2cap_sdp_state_s *sdp,
         while (seqlen)
             if (sdp_svc_match(sdp, &req, &seqlen))
                 return -SDP_INVALID_SYNTAX;
-    } else if (sdp_svc_match(sdp, &req, &seqlen))
-        return -SDP_INVALID_SYNTAX;
+    } else {
+        if (sdp_svc_match(sdp, &req, &len)) {
+            return -SDP_INVALID_SYNTAX;
+        }
+    }
 
     if (len < 3)
         return -SDP_INVALID_SYNTAX;
@@ -413,8 +422,11 @@ static ssize_t sdp_svc_search_attr_get(struct bt_l2cap_sdp_state_s *sdp,
         while (seqlen)
             if (sdp_svc_attr_match(sdp, &req, &seqlen))
                 return -SDP_INVALID_SYNTAX;
-    } else if (sdp_svc_attr_match(sdp, &req, &seqlen))
-        return -SDP_INVALID_SYNTAX;
+    } else {
+        if (sdp_svc_attr_match(sdp, &req, &len)) {
+            return -SDP_INVALID_SYNTAX;
+        }
+    }
 
     if (len < 1)
         return -SDP_INVALID_SYNTAX;

@@ -14,7 +14,34 @@
 typedef void (*gdb_syscall_complete_cb)(CPUState *cpu,
                                         target_ulong ret, target_ulong err);
 
+/**
+ * gdb_do_syscall:
+ * @cb: function to call when the system call has completed
+ * @fmt: gdb syscall format string
+ * ...: list of arguments to interpolate into @fmt
+ *
+ * Send a GDB syscall request. This function will return immediately;
+ * the callback function will be called later when the remote system
+ * call has completed.
+ *
+ * @fmt should be in the 'call-id,parameter,parameter...' format documented
+ * for the F request packet in the GDB remote protocol. A limited set of
+ * printf-style format specifiers is supported:
+ *   %x  - target_ulong argument printed in hex
+ *   %lx - 64-bit argument printed in hex
+ *   %s  - string pointer (target_ulong) and length (int) pair
+ */
 void gdb_do_syscall(gdb_syscall_complete_cb cb, const char *fmt, ...);
+/**
+ * gdb_do_syscallv:
+ * @cb: function to call when the system call has completed
+ * @fmt: gdb syscall format string
+ * @va: arguments to interpolate into @fmt
+ *
+ * As gdb_do_syscall, but taking a va_list rather than a variable
+ * argument list.
+ */
+void gdb_do_syscallv(gdb_syscall_complete_cb cb, const char *fmt, va_list va);
 int use_gdb_syscalls(void);
 void gdb_set_stop_cpu(CPUState *cpu);
 void gdb_exit(CPUArchState *, int);
@@ -22,7 +49,7 @@ void gdb_exit(CPUArchState *, int);
 int gdb_queuesig (void);
 int gdb_handlesig(CPUState *, int);
 void gdb_signalled(CPUArchState *, int);
-void gdbserver_fork(CPUArchState *);
+void gdbserver_fork(CPUState *);
 #endif
 /* Get or set a register.  Returns the size of the register.  */
 typedef int (*gdb_reg_cb)(CPUArchState *env, uint8_t *buf, int reg);
@@ -83,6 +110,10 @@ int gdbserver_start(int);
 #else
 int gdbserver_start(const char *port);
 #endif
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+int gdbserver_is_started(void);
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /**
  * gdb_has_xml:

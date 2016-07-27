@@ -5,10 +5,12 @@
  *
  * This code is licensed under the GNU LGPL.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "qemu/timer.h"
 #include "hw/ptimer.h"
 #include "qemu/host-utils.h"
+#include "sysemu/replay.h"
 
 struct ptimer_state
 {
@@ -27,7 +29,7 @@ struct ptimer_state
 static void ptimer_trigger(ptimer_state *s)
 {
     if (s->bh) {
-        qemu_bh_schedule(s->bh);
+        replay_bh_schedule_event(s->bh);
     }
 }
 

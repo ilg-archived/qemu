@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-#include "config.h"
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "disas/disas.h"
 #include "tcg.h"
@@ -33,7 +33,6 @@
 #undef ESI
 #undef EDI
 #undef EIP
-#include <signal.h>
 #ifdef __linux__
 #include <sys/ucontext.h>
 #endif
@@ -92,8 +91,8 @@ static inline int handle_cpu_signal(uintptr_t pc, unsigned long address,
     int ret;
 
 #if defined(DEBUG_SIGNAL)
-    qemu_printf("qemu: SIGSEGV pc=0x%08lx address=%08lx w=%d oldset=0x%08lx\n",
-                pc, address, is_write, *(unsigned long *)old_set);
+    printf("qemu: SIGSEGV pc=0x%08lx address=%08lx w=%d oldset=0x%08lx\n",
+           pc, address, is_write, *(unsigned long *)old_set);
 #endif
     /* XXX: locking issue */
     if (is_write && h2g_valid(address)

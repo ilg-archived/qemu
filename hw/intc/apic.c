@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>
  */
+#include "qemu/osdep.h"
 #include "qemu/thread.h"
 #include "hw/i386/apic_internal.h"
 #include "hw/i386/apic.h"
@@ -51,28 +52,12 @@ static int apic_ffs_bit(uint32_t value)
     return ctz32(value);
 }
 
-static inline void apic_set_bit(uint32_t *tab, int index)
-{
-    int i, mask;
-    i = index >> 5;
-    mask = 1 << (index & 0x1f);
-    tab[i] |= mask;
-}
-
 static inline void apic_reset_bit(uint32_t *tab, int index)
 {
     int i, mask;
     i = index >> 5;
     mask = 1 << (index & 0x1f);
     tab[i] &= ~mask;
-}
-
-static inline int apic_get_bit(uint32_t *tab, int index)
-{
-    int i, mask;
-    i = index >> 5;
-    mask = 1 << (index & 0x1f);
-    return !!(tab[i] & mask);
 }
 
 /* return -1 if no bit is set */
@@ -318,7 +303,7 @@ static uint8_t apic_get_tpr(APICCommonState *s)
     return s->tpr >> 4;
 }
 
-static int apic_get_ppr(APICCommonState *s)
+int apic_get_ppr(APICCommonState *s)
 {
     int tpr, isrv, ppr;
 
@@ -739,7 +724,7 @@ static uint32_t apic_mem_readl(void *opaque, hwaddr addr)
         val = s->divide_conf;
         break;
     default:
-        s->esr |= ESR_ILLEGAL_ADDRESS;
+        s->esr |= APIC_ESR_ILLEGAL_ADDRESS;
         val = 0;
         break;
     }
@@ -852,7 +837,7 @@ static void apic_mem_writel(void *opaque, hwaddr addr, uint32_t val)
         }
         break;
     default:
-        s->esr |= ESR_ILLEGAL_ADDRESS;
+        s->esr |= APIC_ESR_ILLEGAL_ADDRESS;
         break;
     }
 }
@@ -889,7 +874,7 @@ static void apic_realize(DeviceState *dev, Error **errp)
     s->timer = timer_new_ns(QEMU_CLOCK_VIRTUAL, apic_timer, s);
     local_apics[s->idx] = s;
 
-    msi_supported = true;
+    msi_nonbroken = true;
 }
 
 static void apic_class_init(ObjectClass *klass, void *data)

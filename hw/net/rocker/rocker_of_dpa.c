@@ -14,6 +14,7 @@
  * GNU General Public License for more details.
  */
 
+#include "qemu/osdep.h"
 #include "net/eth.h"
 #include "qemu/iov.h"
 #include "qemu/timer.h"
@@ -367,7 +368,7 @@ static OfDpaFlow *of_dpa_flow_alloc(uint64_t cookie)
     OfDpaFlow *flow;
     int64_t now = qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL) / 1000;
 
-    flow = g_malloc0(sizeof(OfDpaFlow));
+    flow = g_new0(OfDpaFlow, 1);
     if (!flow) {
         return NULL;
     }
@@ -811,7 +812,7 @@ static int of_dpa_group_get_stats(OfDpa *of_dpa, uint32_t id)
 
 static OfDpaGroup *of_dpa_group_alloc(uint32_t id)
 {
-    OfDpaGroup *group = g_malloc0(sizeof(OfDpaGroup));
+    OfDpaGroup *group = g_new0(OfDpaGroup, 1);
 
     if (!group) {
         return NULL;
@@ -825,6 +826,8 @@ static OfDpaGroup *of_dpa_group_alloc(uint32_t id)
 static void of_dpa_output_l2_interface(OfDpaFlowContext *fc,
                                        OfDpaGroup *group)
 {
+    uint8_t copy_to_cpu = fc->action_set.apply.copy_to_cpu;
+
     if (group->l2_interface.pop_vlan) {
         of_dpa_flow_pkt_strip_vlan(fc);
     }
@@ -837,7 +840,8 @@ static void of_dpa_output_l2_interface(OfDpaFlowContext *fc,
      */
 
     if (group->l2_interface.out_pport == 0) {
-        rx_produce(fc->of_dpa->world, fc->in_pport, fc->iov, fc->iovcnt);
+        rx_produce(fc->of_dpa->world, fc->in_pport, fc->iov, fc->iovcnt,
+                   copy_to_cpu);
     } else if (group->l2_interface.out_pport != fc->in_pport) {
         rocker_port_eg(world_rocker(fc->of_dpa->world),
                        group->l2_interface.out_pport,
@@ -2036,15 +2040,14 @@ static int of_dpa_cmd_add_l2_flood(OfDpa *of_dpa, OfDpaGroup *group,
     group->l2_flood.group_count =
         rocker_tlv_get_le16(group_tlvs[ROCKER_TLV_OF_DPA_GROUP_COUNT]);
 
-    tlvs = g_malloc0((group->l2_flood.group_count + 1) *
-                     sizeof(RockerTlv *));
+    tlvs = g_new0(RockerTlv *, group->l2_flood.group_count + 1);
     if (!tlvs) {
         return -ROCKER_ENOMEM;
     }
 
     g_free(group->l2_flood.group_ids);
     group->l2_flood.group_ids =
-        g_malloc0(group->l2_flood.group_count * sizeof(uint32_t));
+        g_new0(uint32_t, group->l2_flood.group_count);
     if (!group->l2_flood.group_ids) {
         err = -ROCKER_ENOMEM;
         goto err_out;
@@ -2460,15 +2463,13 @@ RockerOfDpaFlowList *qmp_query_rocker_of_dpa_flows(const char *name,
 
     r = rocker_find(name);
     if (!r) {
-        error_set(errp, ERROR_CLASS_GENERIC_ERROR,
-                  "rocker %s not found", name);
+        error_setg(errp, "rocker %s not found", name);
         return NULL;
     }
 
     w = rocker_get_world(r, ROCKER_WORLD_TYPE_OF_DPA);
     if (!w) {
-        error_set(errp, ERROR_CLASS_GENERIC_ERROR,
-                  "rocker %s doesn't have OF-DPA world", name);
+        error_setg(errp, "rocker %s doesn't have OF-DPA world", name);
         return NULL;
     }
 
@@ -2525,7 +2526,6 @@ static void of_dpa_group_fill(void *key, void *value, void *user_data)
             ngroup->has_set_vlan_id = true;
             ngroup->set_vlan_id = ntohs(group->l2_rewrite.vlan_id);
         }
-        break;
         if (memcmp(group->l2_rewrite.src_mac.a, zero_mac.a, ETH_ALEN)) {
             ngroup->has_set_eth_src = true;
             ngroup->set_eth_src =
@@ -2536,6 +2536,7 @@ static void of_dpa_group_fill(void *key, void *value, void *user_data)
             ngroup->set_eth_dst =
                 qemu_mac_strdup_printf(group->l2_rewrite.dst_mac.a);
         }
+        break;
     case ROCKER_OF_DPA_GROUP_TYPE_L2_FLOOD:
     case ROCKER_OF_DPA_GROUP_TYPE_L2_MCAST:
         ngroup->has_vlan_id = true;
@@ -2595,15 +2596,13 @@ RockerOfDpaGroupList *qmp_query_rocker_of_dpa_groups(const char *name,
 
     r = rocker_find(name);
     if (!r) {
-        error_set(errp, ERROR_CLASS_GENERIC_ERROR,
-                  "rocker %s not found", name);
+        error_setg(errp, "rocker %s not found", name);
         return NULL;
     }
 
     w = rocker_get_world(r, ROCKER_WORLD_TYPE_OF_DPA);
     if (!w) {
-        error_set(errp, ERROR_CLASS_GENERIC_ERROR,
-                  "rocker %s doesn't have OF-DPA world", name);
+        error_setg(errp, "rocker %s doesn't have OF-DPA world", name);
         return NULL;
     }
 
@@ -2615,6 +2614,7 @@ RockerOfDpaGroupList *qmp_query_rocker_of_dpa_groups(const char *name,
 }
 
 static WorldOps of_dpa_ops = {
+    .name = "ofdpa",
     .init = of_dpa_init,
     .uninit = of_dpa_uninit,
     .ig = of_dpa_ig,

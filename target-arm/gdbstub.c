@@ -17,9 +17,14 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-#include "config.h"
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "exec/gdbstub.h"
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+uint32_t helper_v7m_mrs(CPUARMState *env, uint32_t reg);
+void helper_v7m_msr(CPUARMState *env, uint32_t reg, uint32_t val);
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /* Old gdb always expect FPA registers.  Newer (xml-aware) gdb only expect
    whatever the target description contains.  Due to a historical mishap
@@ -54,6 +59,28 @@ int arm_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
     case 25:
         /* CPSR */
         return gdb_get_reg32(mem_buf, cpsr_read(env));
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    case 26:
+        /* MSP */
+        return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 8));
+    case 27:
+        /* PSP */
+        return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 9));
+    case 28:
+        /* PRIMASK */
+        return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 16));
+    case 29:
+        /* BASEPRI */
+        return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 17));
+    case 30:
+        /* FAULTMASK */
+        return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 19));
+    case 31:
+        /* CONTROL */
+        return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 20));
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     }
     /* Unknown register.  */
     return 0;
@@ -94,9 +121,37 @@ int arm_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
         return 4;
     case 25:
         /* CPSR */
-        cpsr_write(env, tmp, 0xffffffff);
+        cpsr_write(env, tmp, 0xffffffff, CPSRWriteByGDBStub);
         return 4;
-    }
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    case 26:
+        /* MSP */
+        helper_v7m_msr(env, 8, tmp);
+        return 4;
+    case 27:
+        /* PSP */
+        helper_v7m_msr(env, 9, tmp);
+        return 4;
+    case 28:
+        /* PRIMASK */
+        helper_v7m_msr(env, 16, tmp);
+        return 4;
+    case 29:
+        /* BASEPRI */
+        helper_v7m_msr(env, 17, tmp);
+        return 4;
+    case 30:
+        /* FAULTMASK */
+        helper_v7m_msr(env, 19, tmp);
+        return 4;
+    case 31:
+        /* CONTROL */
+        helper_v7m_msr(env, 20, tmp);
+        return 4;
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
+        }
     /* Unknown register.  */
     return 0;
 }

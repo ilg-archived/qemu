@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "sysemu/kvm.h"
 #include "hw/qdev.h"
@@ -60,6 +61,20 @@ sPAPRTCETable *spapr_tce_find_by_liobn(target_ulong liobn)
     return NULL;
 }
 
+static IOMMUAccessFlags spapr_tce_iommu_access_flags(uint64_t tce)
+{
+    switch (tce & SPAPR_TCE_RW) {
+    case SPAPR_TCE_FAULT:
+        return IOMMU_NONE;
+    case SPAPR_TCE_RO:
+        return IOMMU_RO;
+    case SPAPR_TCE_WO:
+        return IOMMU_WO;
+    default: /* SPAPR_TCE_RW */
+        return IOMMU_RW;
+    }
+}
+
 /* Called from RCU critical section */
 static IOMMUTLBEntry spapr_tce_translate_iommu(MemoryRegion *iommu, hwaddr addr,
                                                bool is_write)
@@ -82,7 +97,7 @@ static IOMMUTLBEntry spapr_tce_translate_iommu(MemoryRegion *iommu, hwaddr addr,
         ret.iova = addr & page_mask;
         ret.translated_addr = tce & page_mask;
         ret.addr_mask = ~page_mask;
-        ret.perm = tce & IOMMU_RW;
+        ret.perm = spapr_tce_iommu_access_flags(tce);
     }
     trace_spapr_iommu_xlate(tcet->liobn, addr, ret.iova, ret.perm,
                             ret.addr_mask);
@@ -132,7 +147,7 @@ static int spapr_tce_table_realize(DeviceState *dev)
         tcet->table = kvmppc_create_spapr_tce(tcet->liobn,
                                               window_size,
                                               &tcet->fd,
-                                              tcet->vfio_accel);
+                                              tcet->need_vfio);
     }
 
     if (!tcet->table) {
@@ -154,11 +169,43 @@ static int spapr_tce_table_realize(DeviceState *dev)
     return 0;
 }
 
+void spapr_tce_set_need_vfio(sPAPRTCETable *tcet, bool need_vfio)
+{
+    size_t table_size = tcet->nb_table * sizeof(uint64_t);
+    void *newtable;
+
+    if (need_vfio == tcet->need_vfio) {
+        /* Nothing to do */
+        return;
+    }
+
+    if (!need_vfio) {
+        /* FIXME: We don't support transition back to KVM accelerated
+         * TCEs yet */
+        return;
+    }
+
+    tcet->need_vfio = true;
+
+    if (tcet->fd < 0) {
+        /* Table is already in userspace, nothing to be do */
+        return;
+    }
+
+    newtable = g_malloc(table_size);
+    memcpy(newtable, tcet->table, table_size);
+
+    kvmppc_remove_spapr_tce(tcet->table, tcet->fd, tcet->nb_table);
+
+    tcet->fd = -1;
+    tcet->table = newtable;
+}
+
 sPAPRTCETable *spapr_tce_new_table(DeviceState *owner, uint32_t liobn,
                                    uint64_t bus_offset,
                                    uint32_t page_shift,
                                    uint32_t nb_table,
-                                   bool vfio_accel)
+                                   bool need_vfio)
 {
     sPAPRTCETable *tcet;
     char tmp[64];
@@ -178,7 +225,7 @@ sPAPRTCETable *spapr_tce_new_table(DeviceState *owner, uint32_t liobn,
     tcet->bus_offset = bus_offset;
     tcet->page_shift = page_shift;
     tcet->nb_table = nb_table;
-    tcet->vfio_accel = vfio_accel;
+    tcet->need_vfio = need_vfio;
 
     snprintf(tmp, sizeof(tmp), "tce-table-%x", liobn);
     object_property_add_child(OBJECT(owner), tmp, OBJECT(tcet), NULL);
@@ -233,14 +280,14 @@ static target_ulong put_tce_emu(sPAPRTCETable *tcet, target_ulong ioba,
     entry.iova = ioba & page_mask;
     entry.translated_addr = tce & page_mask;
     entry.addr_mask = ~page_mask;
-    entry.perm = tce & IOMMU_RW;
+    entry.perm = spapr_tce_iommu_access_flags(tce);
     memory_region_notify_iommu(&tcet->iommu, entry);
 
     return H_SUCCESS;
 }
 
 static target_ulong h_put_tce_indirect(PowerPCCPU *cpu,
-                                       sPAPREnvironment *spapr,
+                                       sPAPRMachineState *spapr,
                                        target_ulong opcode, target_ulong *args)
 {
     int i;
@@ -267,9 +314,7 @@ static target_ulong h_put_tce_indirect(PowerPCCPU *cpu,
     ioba &= page_mask;
 
     for (i = 0; i < npages; ++i, ioba += page_size) {
-        target_ulong off = (tce_list & ~SPAPR_TCE_RW) +
-                                i * sizeof(target_ulong);
-        tce = ldq_be_phys(cs->as, off);
+        tce = ldq_be_phys(cs->as, tce_list + i * sizeof(target_ulong));
 
         ret = put_tce_emu(tcet, ioba, tce);
         if (ret) {
@@ -287,7 +332,7 @@ static target_ulong h_put_tce_indirect(PowerPCCPU *cpu,
     return ret;
 }
 
-static target_ulong h_stuff_tce(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_stuff_tce(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                               target_ulong opcode, target_ulong *args)
 {
     int i;
@@ -326,7 +371,7 @@ static target_ulong h_stuff_tce(PowerPCCPU *cpu, sPAPREnvironment *spapr,
     return ret;
 }
 
-static target_ulong h_put_tce(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_put_tce(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                               target_ulong opcode, target_ulong *args)
 {
     target_ulong liobn = args[0];
@@ -367,7 +412,7 @@ static target_ulong get_tce_emu(sPAPRTCETable *tcet, target_ulong ioba,
     return H_SUCCESS;
 }
 
-static target_ulong h_get_tce(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_get_tce(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                               target_ulong opcode, target_ulong *args)
 {
     target_ulong liobn = args[0];

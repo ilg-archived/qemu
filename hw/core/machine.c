@@ -10,11 +10,15 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include "hw/boards.h"
+#include "qapi/error.h"
+#include "qapi-visit.h"
 #include "qapi/visitor.h"
 #include "hw/sysbus.h"
 #include "sysemu/sysemu.h"
 #include "qemu/error-report.h"
+#include "qemu/cutils.h"
 
 static char *machine_get_accel(Object *obj, Error **errp)
 {
@@ -31,33 +35,60 @@ static void machine_set_accel(Object *obj, const char *value, Error **errp)
     ms->accel = g_strdup(value);
 }
 
-static void machine_set_kernel_irqchip(Object *obj, bool value, Error **errp)
+static void machine_set_kernel_irqchip(Object *obj, Visitor *v,
+                                       const char *name, void *opaque,
+                                       Error **errp)
 {
+    Error *err = NULL;
     MachineState *ms = MACHINE(obj);
+    OnOffSplit mode;
 
-    ms->kernel_irqchip_allowed = value;
-    ms->kernel_irqchip_required = value;
+    visit_type_OnOffSplit(v, name, &mode, &err);
+    if (err) {
+        error_propagate(errp, err);
+        return;
+    } else {
+        switch (mode) {
+        case ON_OFF_SPLIT_ON:
+            ms->kernel_irqchip_allowed = true;
+            ms->kernel_irqchip_required = true;
+            ms->kernel_irqchip_split = false;
+            break;
+        case ON_OFF_SPLIT_OFF:
+            ms->kernel_irqchip_allowed = false;
+            ms->kernel_irqchip_required = false;
+            ms->kernel_irqchip_split = false;
+            break;
+        case ON_OFF_SPLIT_SPLIT:
+            ms->kernel_irqchip_allowed = true;
+            ms->kernel_irqchip_required = true;
+            ms->kernel_irqchip_split = true;
+            break;
+        default:
+            abort();
+        }
+    }
 }
 
 static void machine_get_kvm_shadow_mem(Object *obj, Visitor *v,
-                                       void *opaque, const char *name,
+                                       const char *name, void *opaque,
                                        Error **errp)
 {
     MachineState *ms = MACHINE(obj);
     int64_t value = ms->kvm_shadow_mem;
 
-    visit_type_int(v, &value, name, errp);
+    visit_type_int(v, name, &value, errp);
 }
 
 static void machine_set_kvm_shadow_mem(Object *obj, Visitor *v,
-                                       void *opaque, const char *name,
+                                       const char *name, void *opaque,
                                        Error **errp)
 {
     MachineState *ms = MACHINE(obj);
     Error *error = NULL;
     int64_t value;
 
-    visit_type_int(v, &value, name, &error);
+    visit_type_int(v, name, &value, &error);
     if (error) {
         error_propagate(errp, error);
         return;
@@ -161,24 +192,24 @@ static void machine_set_dumpdtb(Object *obj, const char *value, Error **errp)
 }
 
 static void machine_get_phandle_start(Object *obj, Visitor *v,
-                                       void *opaque, const char *name,
-                                       Error **errp)
+                                      const char *name, void *opaque,
+                                      Error **errp)
 {
     MachineState *ms = MACHINE(obj);
     int64_t value = ms->phandle_start;
 
-    visit_type_int(v, &value, name, errp);
+    visit_type_int(v, name, &value, errp);
 }
 
 static void machine_set_phandle_start(Object *obj, Visitor *v,
-                                       void *opaque, const char *name,
-                                       Error **errp)
+                                      const char *name, void *opaque,
+                                      Error **errp)
 {
     MachineState *ms = MACHINE(obj);
     Error *error = NULL;
     int64_t value;
 
-    visit_type_int(v, &value, name, &error);
+    visit_type_int(v, name, &value, &error);
     if (error) {
         error_propagate(errp, error);
         return;
@@ -245,6 +276,20 @@ static void machine_set_usb(Object *obj, bool value, Error **errp)
     ms->usb_disabled = !value;
 }
 
+static bool machine_get_igd_gfx_passthru(Object *obj, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    return ms->igd_gfx_passthru;
+}
+
+static void machine_set_igd_gfx_passthru(Object *obj, bool value, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    ms->igd_gfx_passthru = value;
+}
+
 static char *machine_get_firmware(Object *obj, Error **errp)
 {
     MachineState *ms = MACHINE(obj);
@@ -288,6 +333,21 @@ static bool machine_get_suppress_vmdesc(Object *obj, Error **errp)
     return ms->suppress_vmdesc;
 }
 
+static void machine_set_enforce_config_section(Object *obj, bool value,
+                                             Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    ms->enforce_config_section = value;
+}
+
+static bool machine_get_enforce_config_section(Object *obj, Error **errp)
+{
+    MachineState *ms = MACHINE(obj);
+
+    return ms->enforce_config_section;
+}
+
 static int error_on_sysbus_device(SysBusDevice *sbdev, void *opaque)
 {
     error_report("Option '-device %s' cannot be handled by this machine",
@@ -319,6 +379,18 @@ static void machine_class_init(ObjectClass *oc, void *data)
 
     /* Default 128 MB as guest ram size */
     mc->default_ram_size = 128 * M_BYTE;
+    mc->rom_file_has_mr = true;
+}
+
+static void machine_class_base_init(ObjectClass *oc, void *data)
+{
+    if (!object_class_is_abstract(oc)) {
+        MachineClass *mc = MACHINE_CLASS(oc);
+        const char *cname = object_class_get_name(oc);
+        assert(g_str_has_suffix(cname, TYPE_MACHINE_SUFFIX));
+        mc->name = g_strndup(cname,
+                            strlen(cname) - strlen(TYPE_MACHINE_SUFFIX));
+    }
 }
 
 static void machine_initfn(Object *obj)
@@ -335,12 +407,12 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "accel",
                                     "Accelerator list",
                                     NULL);
-    object_property_add_bool(obj, "kernel-irqchip",
-                             NULL,
-                             machine_set_kernel_irqchip,
-                             NULL);
+    object_property_add(obj, "kernel-irqchip", "OnOffSplit",
+                        NULL,
+                        machine_set_kernel_irqchip,
+                        NULL, NULL, NULL);
     object_property_set_description(obj, "kernel-irqchip",
-                                    "Use KVM in-kernel irqchip",
+                                    "Configure KVM in-kernel irqchip",
                                     NULL);
     object_property_add(obj, "kvm-shadow-mem", "int",
                         machine_get_kvm_shadow_mem,
@@ -364,13 +436,15 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "append",
                                     "Linux kernel command line",
                                     NULL);
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     object_property_add_str(obj, "image",
                             machine_get_image, machine_set_image, NULL);
     object_property_set_description(obj, "image",
                                     "Bare-bone image file",
                                     NULL);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     object_property_add_str(obj, "dtb",
                             machine_get_dtb, machine_set_dtb, NULL);
     object_property_set_description(obj, "dtb",
@@ -414,6 +488,12 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "usb",
                                     "Set on/off to enable/disable usb",
                                     NULL);
+    object_property_add_bool(obj, "igd-passthru",
+                             machine_get_igd_gfx_passthru,
+                             machine_set_igd_gfx_passthru, NULL);
+    object_property_set_description(obj, "igd-passthru",
+                                    "Set on/off to enable/disable igd passthrou",
+                                    NULL);
     object_property_add_str(obj, "firmware",
                             machine_get_firmware,
                             machine_set_firmware, NULL);
@@ -432,6 +512,12 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "suppress-vmdesc",
                                     "Set on to disable self-describing migration",
                                     NULL);
+    object_property_add_bool(obj, "enforce-config-section",
+                             machine_get_enforce_config_section,
+                             machine_set_enforce_config_section, NULL);
+    object_property_set_description(obj, "enforce-config-section",
+                                    "Set on to enforce configuration section migration",
+                                    NULL);
 
     /* Register notifier when init is done for sysbus sanity checks */
     ms->sysbus_notifier.notify = machine_init_notify;
@@ -446,9 +532,11 @@ static void machine_finalize(Object *obj)
     g_free(ms->kernel_filename);
     g_free(ms->initrd_filename);
     g_free(ms->kernel_cmdline);
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     g_free((void*)ms->image_filename);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     g_free(ms->dtb);
     g_free(ms->dumpdtb);
     g_free(ms->dt_compatible);
@@ -460,11 +548,6 @@ bool machine_usb(MachineState *machine)
     return machine->usb;
 }
 
-bool machine_iommu(MachineState *machine)
-{
-    return machine->iommu;
-}
-
 bool machine_kernel_irqchip_allowed(MachineState *machine)
 {
     return machine->kernel_irqchip_allowed;
@@ -473,6 +556,11 @@ bool machine_kernel_irqchip_allowed(MachineState *machine)
 bool machine_kernel_irqchip_required(MachineState *machine)
 {
     return machine->kernel_irqchip_required;
+}
+
+bool machine_kernel_irqchip_split(MachineState *machine)
+{
+    return machine->kernel_irqchip_split;
 }
 
 int machine_kvm_shadow_mem(MachineState *machine)
@@ -501,6 +589,7 @@ static const TypeInfo machine_info = {
     .abstract = true,
     .class_size = sizeof(MachineClass),
     .class_init    = machine_class_init,
+    .class_base_init = machine_class_base_init,
     .instance_size = sizeof(MachineState),
     .instance_init = machine_initfn,
     .instance_finalize = machine_finalize,

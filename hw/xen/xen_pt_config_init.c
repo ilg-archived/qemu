@@ -12,6 +12,8 @@
  * This file implements direct PCI assignment to a HVM guest
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu/timer.h"
 #include "hw/xen/xen_backend.h"
 #include "xen_pt.h"
@@ -96,8 +98,7 @@ XenPTReg *xen_pt_find_reg(XenPTRegGroup *reg_grp, uint32_t address)
 }
 
 static uint32_t get_throughable_mask(const XenPCIPassthroughState *s,
-                                     const XenPTRegInfo *reg,
-                                     uint32_t valid_mask)
+                                     XenPTRegInfo *reg, uint32_t valid_mask)
 {
     uint32_t throughable_mask = ~(reg->emu_mask | reg->ro_mask);
 
@@ -129,10 +130,11 @@ static int xen_pt_byte_reg_read(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
 {
     XenPTRegInfo *reg = cfg_entry->reg;
     uint8_t valid_emu_mask = 0;
+    uint8_t *data = cfg_entry->ptr.byte;
 
     /* emulate byte register */
     valid_emu_mask = reg->emu_mask & valid_mask;
-    *value = XEN_PT_MERGE_VALUE(*value, cfg_entry->data, ~valid_emu_mask);
+    *value = XEN_PT_MERGE_VALUE(*value, *data, ~valid_emu_mask);
 
     return 0;
 }
@@ -141,10 +143,11 @@ static int xen_pt_word_reg_read(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
 {
     XenPTRegInfo *reg = cfg_entry->reg;
     uint16_t valid_emu_mask = 0;
+    uint16_t *data = cfg_entry->ptr.half_word;
 
     /* emulate word register */
     valid_emu_mask = reg->emu_mask & valid_mask;
-    *value = XEN_PT_MERGE_VALUE(*value, cfg_entry->data, ~valid_emu_mask);
+    *value = XEN_PT_MERGE_VALUE(*value, *data, ~valid_emu_mask);
 
     return 0;
 }
@@ -153,10 +156,11 @@ static int xen_pt_long_reg_read(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
 {
     XenPTRegInfo *reg = cfg_entry->reg;
     uint32_t valid_emu_mask = 0;
+    uint32_t *data = cfg_entry->ptr.word;
 
     /* emulate long register */
     valid_emu_mask = reg->emu_mask & valid_mask;
-    *value = XEN_PT_MERGE_VALUE(*value, cfg_entry->data, ~valid_emu_mask);
+    *value = XEN_PT_MERGE_VALUE(*value, *data, ~valid_emu_mask);
 
     return 0;
 }
@@ -170,13 +174,15 @@ static int xen_pt_byte_reg_write(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
     XenPTRegInfo *reg = cfg_entry->reg;
     uint8_t writable_mask = 0;
     uint8_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
+    uint8_t *data = cfg_entry->ptr.byte;
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
 
     /* create value for writing to I/O device register */
-    *val = XEN_PT_MERGE_VALUE(*val, dev_value, throughable_mask);
+    *val = XEN_PT_MERGE_VALUE(*val, dev_value & ~reg->rw1c_mask,
+                              throughable_mask);
 
     return 0;
 }
@@ -187,13 +193,15 @@ static int xen_pt_word_reg_write(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
     XenPTRegInfo *reg = cfg_entry->reg;
     uint16_t writable_mask = 0;
     uint16_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
+    uint16_t *data = cfg_entry->ptr.half_word;
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
 
     /* create value for writing to I/O device register */
-    *val = XEN_PT_MERGE_VALUE(*val, dev_value, throughable_mask);
+    *val = XEN_PT_MERGE_VALUE(*val, dev_value & ~reg->rw1c_mask,
+                              throughable_mask);
 
     return 0;
 }
@@ -204,13 +212,15 @@ static int xen_pt_long_reg_write(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
     XenPTRegInfo *reg = cfg_entry->reg;
     uint32_t writable_mask = 0;
     uint32_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
+    uint32_t *data = cfg_entry->ptr.word;
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
 
     /* create value for writing to I/O device register */
-    *val = XEN_PT_MERGE_VALUE(*val, dev_value, throughable_mask);
+    *val = XEN_PT_MERGE_VALUE(*val, dev_value & ~reg->rw1c_mask,
+                              throughable_mask);
 
     return 0;
 }
@@ -256,7 +266,7 @@ static int xen_pt_status_reg_init(XenPCIPassthroughState *s,
         reg_entry = xen_pt_find_reg(reg_grp_entry, PCI_CAPABILITY_LIST);
         if (reg_entry) {
             /* check Capabilities Pointer register */
-            if (reg_entry->data) {
+            if (*reg_entry->ptr.half_word) {
                 reg_field |= PCI_STATUS_CAP_LIST;
             } else {
                 reg_field &= ~PCI_STATUS_CAP_LIST;
@@ -302,10 +312,11 @@ static int xen_pt_cmd_reg_write(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
     XenPTRegInfo *reg = cfg_entry->reg;
     uint16_t writable_mask = 0;
     uint16_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
+    uint16_t *data = cfg_entry->ptr.half_word;
 
     /* modify emulate register */
     writable_mask = ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
 
     /* create value for writing to I/O device register */
     if (*val & PCI_COMMAND_INTX_DISABLE) {
@@ -448,7 +459,7 @@ static int xen_pt_bar_reg_read(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
 
     /* emulate BAR */
     valid_emu_mask = bar_emu_mask & valid_mask;
-    *value = XEN_PT_MERGE_VALUE(*value, cfg_entry->data, ~valid_emu_mask);
+    *value = XEN_PT_MERGE_VALUE(*value, *cfg_entry->ptr.word, ~valid_emu_mask);
 
     return 0;
 }
@@ -465,6 +476,7 @@ static int xen_pt_bar_reg_write(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
     uint32_t bar_ro_mask = 0;
     uint32_t r_size = 0;
     int index = 0;
+    uint32_t *data = cfg_entry->ptr.word;
 
     index = xen_pt_bar_offset_to_index(reg->offset);
     if (index < 0 || index >= PCI_NUM_REGIONS) {
@@ -501,7 +513,7 @@ static int xen_pt_bar_reg_write(XenPCIPassthroughState *s, XenPTReg *cfg_entry,
 
     /* modify emulate register */
     writable_mask = bar_emu_mask & ~bar_ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
 
     /* check whether we need to update the virtual region address or not */
     switch (s->bases[index].bar_flag) {
@@ -534,6 +546,7 @@ static int xen_pt_exp_rom_bar_reg_write(XenPCIPassthroughState *s,
     uint32_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
     pcibus_t r_size = 0;
     uint32_t bar_ro_mask = 0;
+    uint32_t *data = cfg_entry->ptr.word;
 
     r_size = d->io_regions[PCI_ROM_SLOT].size;
     base = &s->bases[PCI_ROM_SLOT];
@@ -545,11 +558,27 @@ static int xen_pt_exp_rom_bar_reg_write(XenPCIPassthroughState *s,
 
     /* modify emulate register */
     writable_mask = ~bar_ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
 
     /* create value for writing to I/O device register */
     *val = XEN_PT_MERGE_VALUE(*val, dev_value, throughable_mask);
 
+    return 0;
+}
+
+static int xen_pt_intel_opregion_read(XenPCIPassthroughState *s,
+                                      XenPTReg *cfg_entry,
+                                      uint32_t *value, uint32_t valid_mask)
+{
+    *value = igd_read_opregion(s);
+    return 0;
+}
+
+static int xen_pt_intel_opregion_write(XenPCIPassthroughState *s,
+                                       XenPTReg *cfg_entry, uint32_t *value,
+                                       uint32_t dev_value, uint32_t valid_mask)
+{
+    igd_write_opregion(s, *value);
     return 0;
 }
 
@@ -609,6 +638,7 @@ static XenPTRegInfo xen_pt_emu_reg_header0[] = {
         .init_val   = 0x0000,
         .res_mask   = 0x0007,
         .ro_mask    = 0x06F8,
+        .rw1c_mask  = 0xF900,
         .emu_mask   = 0x0010,
         .init       = xen_pt_status_reg_init,
         .u.w.read   = xen_pt_word_reg_read,
@@ -729,8 +759,8 @@ static XenPTRegInfo xen_pt_emu_reg_header0[] = {
         .offset     = PCI_ROM_ADDRESS,
         .size       = 4,
         .init_val   = 0x00000000,
-        .ro_mask    = 0x000007FE,
-        .emu_mask   = 0xFFFFF800,
+        .ro_mask    = ~PCI_ROM_ADDRESS_MASK & ~PCI_ROM_ADDRESS_ENABLE,
+        .emu_mask   = (uint32_t)PCI_ROM_ADDRESS_MASK,
         .init       = xen_pt_bar_reg_init,
         .u.dw.read  = xen_pt_long_reg_read,
         .u.dw.write = xen_pt_exp_rom_bar_reg_write,
@@ -801,15 +831,21 @@ static XenPTRegInfo xen_pt_emu_reg_vendor[] = {
 static inline uint8_t get_capability_version(XenPCIPassthroughState *s,
                                              uint32_t offset)
 {
-    uint8_t flags = pci_get_byte(s->dev.config + offset + PCI_EXP_FLAGS);
-    return flags & PCI_EXP_FLAGS_VERS;
+    uint8_t flag;
+    if (xen_host_pci_get_byte(&s->real_device, offset + PCI_EXP_FLAGS, &flag)) {
+        return 0;
+    }
+    return flag & PCI_EXP_FLAGS_VERS;
 }
 
 static inline uint8_t get_device_type(XenPCIPassthroughState *s,
                                       uint32_t offset)
 {
-    uint8_t flags = pci_get_byte(s->dev.config + offset + PCI_EXP_FLAGS);
-    return (flags & PCI_EXP_FLAGS_TYPE) >> 4;
+    uint8_t flag;
+    if (xen_host_pci_get_byte(&s->real_device, offset + PCI_EXP_FLAGS, &flag)) {
+        return 0;
+    }
+    return (flag & PCI_EXP_FLAGS_TYPE) >> 4;
 }
 
 /* initialize Link Control register */
@@ -858,8 +894,14 @@ static int xen_pt_linkctrl2_reg_init(XenPCIPassthroughState *s,
         reg_field = XEN_PT_INVALID_REG;
     } else {
         /* set Supported Link Speed */
-        uint8_t lnkcap = pci_get_byte(s->dev.config + real_offset - reg->offset
-                                      + PCI_EXP_LNKCAP);
+        uint8_t lnkcap;
+        int rc;
+        rc = xen_host_pci_get_byte(&s->real_device,
+                                   real_offset - reg->offset + PCI_EXP_LNKCAP,
+                                   &lnkcap);
+        if (rc) {
+            return rc;
+        }
         reg_field |= PCI_EXP_LNKCAP_SLS & lnkcap;
     }
 
@@ -908,6 +950,7 @@ static XenPTRegInfo xen_pt_emu_reg_pcie[] = {
         .size       = 2,
         .res_mask   = 0xFFC0,
         .ro_mask    = 0x0030,
+        .rw1c_mask  = 0x000F,
         .init       = xen_pt_common_reg_init,
         .u.w.read   = xen_pt_word_reg_read,
         .u.w.write  = xen_pt_word_reg_write,
@@ -928,6 +971,7 @@ static XenPTRegInfo xen_pt_emu_reg_pcie[] = {
         .offset     = PCI_EXP_LNKSTA,
         .size       = 2,
         .ro_mask    = 0x3FFF,
+        .rw1c_mask  = 0xC000,
         .init       = xen_pt_common_reg_init,
         .u.w.read   = xen_pt_word_reg_read,
         .u.w.write  = xen_pt_word_reg_write,
@@ -964,26 +1008,6 @@ static XenPTRegInfo xen_pt_emu_reg_pcie[] = {
  * Power Management Capability
  */
 
-/* write Power Management Control/Status register */
-static int xen_pt_pmcsr_reg_write(XenPCIPassthroughState *s,
-                                  XenPTReg *cfg_entry, uint16_t *val,
-                                  uint16_t dev_value, uint16_t valid_mask)
-{
-    XenPTRegInfo *reg = cfg_entry->reg;
-    uint16_t writable_mask = 0;
-    uint16_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
-
-    /* modify emulate register */
-    writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
-
-    /* create value for writing to I/O device register */
-    *val = XEN_PT_MERGE_VALUE(*val, dev_value & ~PCI_PM_CTRL_PME_STATUS,
-                              throughable_mask);
-
-    return 0;
-}
-
 /* Power Management Capability reg static information table */
 static XenPTRegInfo xen_pt_emu_reg_pm[] = {
     /* Next Pointer reg */
@@ -1014,11 +1038,12 @@ static XenPTRegInfo xen_pt_emu_reg_pm[] = {
         .size       = 2,
         .init_val   = 0x0008,
         .res_mask   = 0x00F0,
-        .ro_mask    = 0xE10C,
+        .ro_mask    = 0x610C,
+        .rw1c_mask  = 0x8000,
         .emu_mask   = 0x810B,
         .init       = xen_pt_common_reg_init,
         .u.w.read   = xen_pt_word_reg_read,
-        .u.w.write  = xen_pt_pmcsr_reg_write,
+        .u.w.write  = xen_pt_word_reg_write,
     },
     {
         .size = 0,
@@ -1040,13 +1065,15 @@ static int xen_pt_msgctrl_reg_init(XenPCIPassthroughState *s,
                                    XenPTRegInfo *reg, uint32_t real_offset,
                                    uint32_t *data)
 {
-    PCIDevice *d = &s->dev;
     XenPTMSI *msi = s->msi;
-    uint16_t reg_field = 0;
+    uint16_t reg_field;
+    int rc;
 
     /* use I/O device register's value as initial value */
-    reg_field = pci_get_word(d->config + real_offset);
-
+    rc = xen_host_pci_get_word(&s->real_device, real_offset, &reg_field);
+    if (rc) {
+        return rc;
+    }
     if (reg_field & PCI_MSI_FLAGS_ENABLE) {
         XEN_PT_LOG(&s->dev, "MSI already enabled, disabling it first\n");
         xen_host_pci_set_word(&s->real_device, real_offset,
@@ -1068,6 +1095,7 @@ static int xen_pt_msgctrl_reg_write(XenPCIPassthroughState *s,
     XenPTMSI *msi = s->msi;
     uint16_t writable_mask = 0;
     uint16_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
+    uint16_t *data = cfg_entry->ptr.half_word;
 
     /* Currently no support for multi-vector */
     if (*val & PCI_MSI_FLAGS_QSIZE) {
@@ -1076,8 +1104,8 @@ static int xen_pt_msgctrl_reg_write(XenPCIPassthroughState *s,
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
-    msi->flags |= cfg_entry->data & ~PCI_MSI_FLAGS_ENABLE;
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
+    msi->flags |= *data & ~PCI_MSI_FLAGS_ENABLE;
 
     /* create value for writing to I/O device register */
     *val = XEN_PT_MERGE_VALUE(*val, dev_value, throughable_mask);
@@ -1087,7 +1115,7 @@ static int xen_pt_msgctrl_reg_write(XenPCIPassthroughState *s,
         /* setup MSI pirq for the first time */
         if (!msi->initialized) {
             /* Init physical one */
-            XEN_PT_LOG(&s->dev, "setup MSI\n");
+            XEN_PT_LOG(&s->dev, "setup MSI (register: %x).\n", *val);
             if (xen_pt_msi_setup(s)) {
                 /* We do not broadcast the error to the framework code, so
                  * that MSI errors are contained in MSI emulation code and
@@ -1095,12 +1123,12 @@ static int xen_pt_msgctrl_reg_write(XenPCIPassthroughState *s,
                  * Guest MSI would be actually not working.
                  */
                 *val &= ~PCI_MSI_FLAGS_ENABLE;
-                XEN_PT_WARN(&s->dev, "Can not map MSI.\n");
+                XEN_PT_WARN(&s->dev, "Can not map MSI (register: %x)!\n", *val);
                 return 0;
             }
             if (xen_pt_msi_update(s)) {
                 *val &= ~PCI_MSI_FLAGS_ENABLE;
-                XEN_PT_WARN(&s->dev, "Can not bind MSI\n");
+                XEN_PT_WARN(&s->dev, "Can not bind MSI (register: %x)!\n", *val);
                 return 0;
             }
             msi->initialized = true;
@@ -1191,18 +1219,19 @@ static int xen_pt_msgaddr32_reg_write(XenPCIPassthroughState *s,
 {
     XenPTRegInfo *reg = cfg_entry->reg;
     uint32_t writable_mask = 0;
-    uint32_t old_addr = cfg_entry->data;
+    uint32_t old_addr = *cfg_entry->ptr.word;
+    uint32_t *data = cfg_entry->ptr.word;
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
-    s->msi->addr_lo = cfg_entry->data;
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
+    s->msi->addr_lo = *data;
 
     /* create value for writing to I/O device register */
     *val = XEN_PT_MERGE_VALUE(*val, dev_value, 0);
 
     /* update MSI */
-    if (cfg_entry->data != old_addr) {
+    if (*data != old_addr) {
         if (s->msi->mapped) {
             xen_pt_msi_update(s);
         }
@@ -1217,7 +1246,8 @@ static int xen_pt_msgaddr64_reg_write(XenPCIPassthroughState *s,
 {
     XenPTRegInfo *reg = cfg_entry->reg;
     uint32_t writable_mask = 0;
-    uint32_t old_addr = cfg_entry->data;
+    uint32_t old_addr = *cfg_entry->ptr.word;
+    uint32_t *data = cfg_entry->ptr.word;
 
     /* check whether the type is 64 bit or not */
     if (!(s->msi->flags & PCI_MSI_FLAGS_64BIT)) {
@@ -1228,15 +1258,15 @@ static int xen_pt_msgaddr64_reg_write(XenPCIPassthroughState *s,
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
     /* update the msi_info too */
-    s->msi->addr_hi = cfg_entry->data;
+    s->msi->addr_hi = *data;
 
     /* create value for writing to I/O device register */
     *val = XEN_PT_MERGE_VALUE(*val, dev_value, 0);
 
     /* update MSI */
-    if (cfg_entry->data != old_addr) {
+    if (*data != old_addr) {
         if (s->msi->mapped) {
             xen_pt_msi_update(s);
         }
@@ -1255,8 +1285,9 @@ static int xen_pt_msgdata_reg_write(XenPCIPassthroughState *s,
     XenPTRegInfo *reg = cfg_entry->reg;
     XenPTMSI *msi = s->msi;
     uint16_t writable_mask = 0;
-    uint16_t old_data = cfg_entry->data;
+    uint16_t old_data = *cfg_entry->ptr.half_word;
     uint32_t offset = reg->offset;
+    uint16_t *data = cfg_entry->ptr.half_word;
 
     /* check the offset whether matches the type or not */
     if (!xen_pt_msi_check_type(offset, msi->flags, DATA)) {
@@ -1267,15 +1298,15 @@ static int xen_pt_msgdata_reg_write(XenPCIPassthroughState *s,
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
     /* update the msi_info too */
-    msi->data = cfg_entry->data;
+    msi->data = *data;
 
     /* create value for writing to I/O device register */
     *val = XEN_PT_MERGE_VALUE(*val, dev_value, 0);
 
     /* update MSI */
-    if (cfg_entry->data != old_data) {
+    if (*data != old_data) {
         if (msi->mapped) {
             xen_pt_msi_update(s);
         }
@@ -1412,14 +1443,16 @@ static int xen_pt_msixctrl_reg_init(XenPCIPassthroughState *s,
                                     XenPTRegInfo *reg, uint32_t real_offset,
                                     uint32_t *data)
 {
-    PCIDevice *d = &s->dev;
-    uint16_t reg_field = 0;
+    uint16_t reg_field;
+    int rc;
 
     /* use I/O device register's value as initial value */
-    reg_field = pci_get_word(d->config + real_offset);
-
+    rc = xen_host_pci_get_word(&s->real_device, real_offset, &reg_field);
+    if (rc) {
+        return rc;
+    }
     if (reg_field & PCI_MSIX_FLAGS_ENABLE) {
-        XEN_PT_LOG(d, "MSIX already enabled, disabling it first\n");
+        XEN_PT_LOG(&s->dev, "MSIX already enabled, disabling it first\n");
         xen_host_pci_set_word(&s->real_device, real_offset,
                               reg_field & ~PCI_MSIX_FLAGS_ENABLE);
     }
@@ -1437,10 +1470,11 @@ static int xen_pt_msixctrl_reg_write(XenPCIPassthroughState *s,
     uint16_t writable_mask = 0;
     uint16_t throughable_mask = get_throughable_mask(s, reg, valid_mask);
     int debug_msix_enabled_old;
+    uint16_t *data = cfg_entry->ptr.half_word;
 
     /* modify emulate register */
     writable_mask = reg->emu_mask & ~reg->ro_mask & valid_mask;
-    cfg_entry->data = XEN_PT_MERGE_VALUE(*val, cfg_entry->data, writable_mask);
+    *data = XEN_PT_MERGE_VALUE(*val, *data, writable_mask);
 
     /* create value for writing to I/O device register */
     *val = XEN_PT_MERGE_VALUE(*val, dev_value, throughable_mask);
@@ -1452,6 +1486,8 @@ static int xen_pt_msixctrl_reg_write(XenPCIPassthroughState *s,
     } else if (!(*val & PCI_MSIX_FLAGS_ENABLE) && s->msix->enabled) {
         xen_pt_msix_disable(s);
     }
+
+    s->msix->maskall = *val & PCI_MSIX_FLAGS_MASKALL;
 
     debug_msix_enabled_old = s->msix->enabled;
     s->msix->enabled = !!(*val & PCI_MSIX_FLAGS_ENABLE);
@@ -1493,6 +1529,19 @@ static XenPTRegInfo xen_pt_emu_reg_msix[] = {
     },
 };
 
+static XenPTRegInfo xen_pt_emu_reg_igd_opregion[] = {
+    /* Intel IGFX OpRegion reg */
+    {
+        .offset     = 0x0,
+        .size       = 4,
+        .init_val   = 0,
+        .u.dw.read   = xen_pt_intel_opregion_read,
+        .u.dw.write  = xen_pt_intel_opregion_write,
+    },
+    {
+        .size = 0,
+    },
+};
 
 /****************************
  * Capabilities
@@ -1512,8 +1561,7 @@ static int xen_pt_vendor_size_init(XenPCIPassthroughState *s,
                                    const XenPTRegGroupInfo *grp_reg,
                                    uint32_t base_offset, uint8_t *size)
 {
-    *size = pci_get_byte(s->dev.config + base_offset + 0x02);
-    return 0;
+    return xen_host_pci_get_byte(&s->real_device, base_offset + 0x02, size);
 }
 /* get PCI Express Capability Structure register group size */
 static int xen_pt_pcie_size_init(XenPCIPassthroughState *s,
@@ -1592,12 +1640,15 @@ static int xen_pt_msi_size_init(XenPCIPassthroughState *s,
                                 const XenPTRegGroupInfo *grp_reg,
                                 uint32_t base_offset, uint8_t *size)
 {
-    PCIDevice *d = &s->dev;
     uint16_t msg_ctrl = 0;
     uint8_t msi_size = 0xa;
+    int rc;
 
-    msg_ctrl = pci_get_word(d->config + (base_offset + PCI_MSI_FLAGS));
-
+    rc = xen_host_pci_get_word(&s->real_device, base_offset + PCI_MSI_FLAGS,
+                               &msg_ctrl);
+    if (rc) {
+        return rc;
+    }
     /* check if 64-bit address is capable of per-vector masking */
     if (msg_ctrl & PCI_MSI_FLAGS_64BIT) {
         msi_size += 4;
@@ -1730,6 +1781,14 @@ static const XenPTRegGroupInfo xen_pt_emu_reg_grps[] = {
         .size_init   = xen_pt_msix_size_init,
         .emu_regs = xen_pt_emu_reg_msix,
     },
+    /* Intel IGD Opregion group */
+    {
+        .grp_id      = XEN_PCI_INTEL_OPREGION,
+        .grp_type    = XEN_PT_GRP_TYPE_EMU,
+        .grp_size    = 0x4,
+        .size_init   = xen_pt_reg_grp_size_init,
+        .emu_regs    = xen_pt_emu_reg_igd_opregion,
+    },
     {
         .grp_size = 0,
     },
@@ -1740,11 +1799,14 @@ static int xen_pt_ptr_reg_init(XenPCIPassthroughState *s,
                                XenPTRegInfo *reg, uint32_t real_offset,
                                uint32_t *data)
 {
-    int i;
-    uint8_t *config = s->dev.config;
-    uint32_t reg_field = pci_get_byte(config + real_offset);
+    int i, rc;
+    uint8_t reg_field;
     uint8_t cap_id = 0;
 
+    rc = xen_host_pci_get_byte(&s->real_device, real_offset, &reg_field);
+    if (rc) {
+        return rc;
+    }
     /* find capability offset */
     while (reg_field) {
         for (i = 0; xen_pt_emu_reg_grps[i].grp_size != 0; i++) {
@@ -1753,7 +1815,13 @@ static int xen_pt_ptr_reg_init(XenPCIPassthroughState *s,
                 continue;
             }
 
-            cap_id = pci_get_byte(config + reg_field + PCI_CAP_LIST_ID);
+            rc = xen_host_pci_get_byte(&s->real_device,
+                                       reg_field + PCI_CAP_LIST_ID, &cap_id);
+            if (rc) {
+                XEN_PT_ERR(&s->dev, "Failed to read capability @0x%x (rc:%d)\n",
+                           reg_field + PCI_CAP_LIST_ID, rc);
+                return rc;
+            }
             if (xen_pt_emu_reg_grps[i].grp_id == cap_id) {
                 if (xen_pt_emu_reg_grps[i].grp_type == XEN_PT_GRP_TYPE_EMU) {
                     goto out;
@@ -1764,7 +1832,11 @@ static int xen_pt_ptr_reg_init(XenPCIPassthroughState *s,
         }
 
         /* next capability */
-        reg_field = pci_get_byte(config + reg_field + PCI_CAP_LIST_NEXT);
+        rc = xen_host_pci_get_byte(&s->real_device,
+                                   reg_field + PCI_CAP_LIST_NEXT, &reg_field);
+        if (rc) {
+            return rc;
+        }
     }
 
 out:
@@ -1780,7 +1852,7 @@ out:
 static uint8_t find_cap_offset(XenPCIPassthroughState *s, uint8_t cap)
 {
     uint8_t id;
-    unsigned max_cap = PCI_CAP_MAX;
+    unsigned max_cap = XEN_PCI_CAP_MAX;
     uint8_t pos = PCI_CAPABILITY_LIST;
     uint8_t status = 0;
 
@@ -1817,8 +1889,9 @@ static uint8_t find_cap_offset(XenPCIPassthroughState *s, uint8_t cap)
     return 0;
 }
 
-static int xen_pt_config_reg_init(XenPCIPassthroughState *s,
-                                  XenPTRegGroup *reg_grp, XenPTRegInfo *reg)
+static void xen_pt_config_reg_init(XenPCIPassthroughState *s,
+                                   XenPTRegGroup *reg_grp, XenPTRegInfo *reg,
+                                   Error **errp)
 {
     XenPTReg *reg_entry;
     uint32_t data = 0;
@@ -1828,30 +1901,94 @@ static int xen_pt_config_reg_init(XenPCIPassthroughState *s,
     reg_entry->reg = reg;
 
     if (reg->init) {
+        uint32_t host_mask, size_mask;
+        unsigned int offset;
+        uint32_t val;
+
         /* initialize emulate register */
         rc = reg->init(s, reg_entry->reg,
                        reg_grp->base_offset + reg->offset, &data);
         if (rc < 0) {
             g_free(reg_entry);
-            return rc;
+            error_setg(errp, "Init emulate register fail");
+            return;
         }
         if (data == XEN_PT_INVALID_REG) {
             /* free unused BAR register entry */
             g_free(reg_entry);
-            return 0;
+            return;
         }
-        /* set register value */
-        reg_entry->data = data;
+        /* Sync up the data to dev.config */
+        offset = reg_grp->base_offset + reg->offset;
+        size_mask = 0xFFFFFFFF >> ((4 - reg->size) << 3);
+
+        switch (reg->size) {
+        case 1: rc = xen_host_pci_get_byte(&s->real_device, offset, (uint8_t *)&val);
+                break;
+        case 2: rc = xen_host_pci_get_word(&s->real_device, offset, (uint16_t *)&val);
+                break;
+        case 4: rc = xen_host_pci_get_long(&s->real_device, offset, &val);
+                break;
+        default: abort();
+        }
+        if (rc) {
+            /* Serious issues when we cannot read the host values! */
+            g_free(reg_entry);
+            error_setg(errp, "Cannot read host values");
+            return;
+        }
+        /* Set bits in emu_mask are the ones we emulate. The dev.config shall
+         * contain the emulated view of the guest - therefore we flip the mask
+         * to mask out the host values (which dev.config initially has) . */
+        host_mask = size_mask & ~reg->emu_mask;
+
+        if ((data & host_mask) != (val & host_mask)) {
+            uint32_t new_val;
+
+            /* Mask out host (including past size). */
+            new_val = val & host_mask;
+            /* Merge emulated ones (excluding the non-emulated ones). */
+            new_val |= data & host_mask;
+            /* Leave intact host and emulated values past the size - even though
+             * we do not care as we write per reg->size granularity, but for the
+             * logging below lets have the proper value. */
+            new_val |= ((val | data)) & ~size_mask;
+            XEN_PT_LOG(&s->dev,"Offset 0x%04x mismatch! Emulated=0x%04x, host=0x%04x, syncing to 0x%04x.\n",
+                       offset, data, val, new_val);
+            val = new_val;
+        } else
+            val = data;
+
+        if (val & ~size_mask) {
+            error_setg(errp, "Offset 0x%04x:0x%04x expands past"
+                    " register size (%d)", offset, val, reg->size);
+            g_free(reg_entry);
+            return;
+        }
+        /* This could be just pci_set_long as we don't modify the bits
+         * past reg->size, but in case this routine is run in parallel or the
+         * init value is larger, we do not want to over-write registers. */
+        switch (reg->size) {
+        case 1: pci_set_byte(s->dev.config + offset, (uint8_t)val);
+                break;
+        case 2: pci_set_word(s->dev.config + offset, (uint16_t)val);
+                break;
+        case 4: pci_set_long(s->dev.config + offset, val);
+                break;
+        default: abort();
+        }
+        /* set register value pointer to the data. */
+        reg_entry->ptr.byte = s->dev.config + offset;
+
     }
     /* list add register entry */
     QLIST_INSERT_HEAD(&reg_grp->reg_tbl_list, reg_entry, entries);
-
-    return 0;
 }
 
-int xen_pt_config_init(XenPCIPassthroughState *s)
+void xen_pt_config_init(XenPCIPassthroughState *s, Error **errp)
 {
     int i, rc;
+    Error *err = NULL;
 
     QLIST_INIT(&s->reg_grps);
 
@@ -1859,7 +1996,8 @@ int xen_pt_config_init(XenPCIPassthroughState *s)
         uint32_t reg_grp_offset = 0;
         XenPTRegGroup *reg_grp_entry = NULL;
 
-        if (xen_pt_emu_reg_grps[i].grp_id != 0xFF) {
+        if (xen_pt_emu_reg_grps[i].grp_id != 0xFF
+            && xen_pt_emu_reg_grps[i].grp_id != XEN_PCI_INTEL_OPREGION) {
             if (xen_pt_hide_dev_cap(&s->real_device,
                                     xen_pt_emu_reg_grps[i].grp_id)) {
                 continue;
@@ -1870,6 +2008,15 @@ int xen_pt_config_init(XenPCIPassthroughState *s)
             if (!reg_grp_offset) {
                 continue;
             }
+        }
+
+        /*
+         * By default we will trap up to 0x40 in the cfg space.
+         * If an intel device is pass through we need to trap 0xfc,
+         * therefore the size should be 0xff.
+         */
+        if (xen_pt_emu_reg_grps[i].grp_id == XEN_PCI_INTEL_OPREGION) {
+            reg_grp_offset = XEN_PCI_INTEL_OPREGION;
         }
 
         reg_grp_entry = g_new0(XenPTRegGroup, 1);
@@ -1884,8 +2031,12 @@ int xen_pt_config_init(XenPCIPassthroughState *s)
                                                   reg_grp_offset,
                                                   &reg_grp_entry->size);
             if (rc < 0) {
+                error_setg(&err, "Failed to initialize %d/%zu, type = 0x%x,"
+                           " rc: %d", i, ARRAY_SIZE(xen_pt_emu_reg_grps),
+                           xen_pt_emu_reg_grps[i].grp_type, rc);
+                error_propagate(errp, err);
                 xen_pt_config_delete(s);
-                return rc;
+                return;
             }
         }
 
@@ -1893,20 +2044,24 @@ int xen_pt_config_init(XenPCIPassthroughState *s)
             if (xen_pt_emu_reg_grps[i].emu_regs) {
                 int j = 0;
                 XenPTRegInfo *regs = xen_pt_emu_reg_grps[i].emu_regs;
+
                 /* initialize capability register */
                 for (j = 0; regs->size != 0; j++, regs++) {
-                    /* initialize capability register */
-                    rc = xen_pt_config_reg_init(s, reg_grp_entry, regs);
-                    if (rc < 0) {
+                    xen_pt_config_reg_init(s, reg_grp_entry, regs, &err);
+                    if (err) {
+                        error_append_hint(&err, "Failed to initialize %d/%zu"
+                                " reg 0x%x in grp_type = 0x%x (%d/%zu)",
+                                j, ARRAY_SIZE(xen_pt_emu_reg_grps[i].emu_regs),
+                                regs->offset, xen_pt_emu_reg_grps[i].grp_type,
+                                i, ARRAY_SIZE(xen_pt_emu_reg_grps));
+                        error_propagate(errp, err);
                         xen_pt_config_delete(s);
-                        return rc;
+                        return;
                     }
                 }
             }
         }
     }
-
-    return 0;
 }
 
 /* delete all emulate register */
@@ -1917,11 +2072,9 @@ void xen_pt_config_delete(XenPCIPassthroughState *s)
 
     /* free MSI/MSI-X info table */
     if (s->msix) {
-        xen_pt_msix_delete(s);
+        xen_pt_msix_unmap(s);
     }
-    if (s->msi) {
-        g_free(s->msi);
-    }
+    g_free(s->msi);
 
     /* free all register group entry */
     QLIST_FOREACH_SAFE(reg_group, &s->reg_grps, entries, next_grp) {

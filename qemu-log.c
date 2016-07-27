@@ -17,7 +17,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qemu-common.h"
+#include "qemu/osdep.h"
 #include "qemu/log.h"
 
 static char *logfilename;
@@ -112,19 +112,22 @@ const QEMULogItem qemu_log_items[] = {
       "x86 only: show protected mode far calls/returns/exceptions" },
     { CPU_LOG_RESET, "cpu_reset",
       "show CPU state before CPU resets" },
-    { CPU_LOG_IOPORT, "ioport",
-      "show all i/o ports accesses" },
     { LOG_UNIMP, "unimp",
       "log unimplemented functionality" },
     { LOG_GUEST_ERROR, "guest_errors",
       "log when the guest OS does something invalid (eg accessing a\n"
       "non-existent register)" },
+    { CPU_LOG_TB_NOCHAIN, "nochain",
+      "do not chain compiled TBs so that \"exec\" and \"cpu\" show\n"
+      "complete traces" },
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 	{ LOG_TRACE, "trace",
 	  "log trace messages, when execution passed specific places" },
 	{ LOG_TRACE_MR, "trace_mr",
 	  "log trace messages for memory regions read/writes" },
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     { 0, NULL, NULL },
 };
 

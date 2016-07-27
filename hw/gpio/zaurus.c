@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License along
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/arm/sharpsl.h"
 #include "hw/sysbus.h"
@@ -235,10 +236,6 @@ static const VMStateDescription vmstate_scoop_regs = {
     },
 };
 
-static Property scoop_sysbus_properties[] = {
-    DEFINE_PROP_END_OF_LIST(),
-};
-
 static void scoop_sysbus_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
@@ -247,7 +244,6 @@ static void scoop_sysbus_class_init(ObjectClass *klass, void *data)
     k->init = scoop_init;
     dc->desc = "Scoop2 Sharp custom ASIC";
     dc->vmsd = &vmstate_scoop_regs;
-    dc->props = scoop_sysbus_properties;
 }
 
 static const TypeInfo scoop_sysbus_info = {

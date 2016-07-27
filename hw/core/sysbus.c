@@ -17,6 +17,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/sysbus.h"
 #include "monitor/monitor.h"
 #include "exec/address-spaces.h"
@@ -109,7 +110,13 @@ qemu_irq sysbus_get_connected_irq(SysBusDevice *dev, int n)
 
 void sysbus_connect_irq(SysBusDevice *dev, int n, qemu_irq irq)
 {
+    SysBusDeviceClass *sbd = SYS_BUS_DEVICE_GET_CLASS(dev);
+
     qdev_connect_gpio_out_named(DEVICE(dev), SYSBUS_DEVICE_GPIO_IRQ, n, irq);
+
+    if (sbd->connect_irq_notifier) {
+        sbd->connect_irq_notifier(dev, irq);
+    }
 }
 
 /* Check whether an MMIO region exists */
@@ -124,8 +131,8 @@ static void sysbus_mmio_map_common(SysBusDevice *dev, int n, hwaddr addr,
     assert(n >= 0 && n < dev->num_mmio);
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    qemu_log_mask(LOG_TRACE, "%s(0x%08llX)\n", __FUNCTION__, addr);
-#endif
+    qemu_log_mask(LOG_TRACE, "%s(0x%08"PRIX64")\n", __FUNCTION__, addr);
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     if (dev->mmio[n].addr == addr) {
         /* ??? region already mapped here.  */
@@ -285,6 +292,9 @@ static void sysbus_dev_print(Monitor *mon, DeviceState *dev, int indent)
 static char *sysbus_get_fw_dev_path(DeviceState *dev)
 {
     SysBusDevice *s = SYS_BUS_DEVICE(dev);
+    SysBusDeviceClass *sbc = SYS_BUS_DEVICE_GET_CLASS(s);
+    /* for the explicit unit address fallback case: */
+    char *addr, *fw_dev_path;
 
     if (s->num_mmio) {
         return g_strdup_printf("%s@" TARGET_FMT_plx, qdev_fw_name(dev),
@@ -292,6 +302,14 @@ static char *sysbus_get_fw_dev_path(DeviceState *dev)
     }
     if (s->num_pio) {
         return g_strdup_printf("%s@i%04x", qdev_fw_name(dev), s->pio[0]);
+    }
+    if (sbc->explicit_ofw_unit_address) {
+        addr = sbc->explicit_ofw_unit_address(s);
+        if (addr) {
+            fw_dev_path = g_strdup_printf("%s@%s", qdev_fw_name(dev), addr);
+            g_free(addr);
+            return fw_dev_path;
+        }
     }
     return g_strdup(qdev_fw_name(dev));
 }

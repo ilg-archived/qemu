@@ -8,6 +8,7 @@
  * Contributions after 2012-01-13 are licensed under the terms of the
  * GNU GPL, version 2 or (at your option) any later version.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/sysbus.h"
 #include "hw/boards.h"
@@ -58,15 +59,10 @@ static void collie_init(MachineState *machine)
     arm_load_kernel(s->cpu, &collie_binfo);
 }
 
-static QEMUMachine collie_machine = {
-    .name = "collie",
-    .desc = "Collie PDA (SA-1110)",
-    .init = collie_init,
-};
-
-static void collie_machine_init(void)
+static void collie_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&collie_machine);
+    mc->desc = "Sharp SL-5500 (Collie) PDA (SA-1110)";
+    mc->init = collie_init;
 }
 
-machine_init(collie_machine_init)
+DEFINE_MACHINE("collie", collie_machine_init)

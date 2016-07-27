@@ -26,7 +26,7 @@
    along with GAS or GDB; see the file COPYING. If not,
    see <http://www.gnu.org/licenses/>.  */
 
-#include <stdlib.h>
+#include "qemu/osdep.h"
 #include "disas/bfd.h"
 
 /* The SPARC opcode table (and other related data) is defined in
@@ -2622,8 +2622,7 @@ build_hash_table (const sparc_opcode **opcode_table,
 
   memset (hash_table, 0, HASH_SIZE * sizeof (hash_table[0]));
   memset (hash_count, 0, HASH_SIZE * sizeof (hash_count[0]));
-  if (hash_buf != NULL)
-    free (hash_buf);
+  free(hash_buf);
   hash_buf = malloc (sizeof (* hash_buf) * num_opcodes);
   for (i = num_opcodes - 1; i >= 0; --i)
     {

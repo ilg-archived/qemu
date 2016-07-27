@@ -49,11 +49,14 @@
  * so this seems to be reasonable.
  */
 
-#include "qemu-common.h"
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "block/block_int.h"
+#include "sysemu/block-backend.h"
 #include "qemu/module.h"
 #include "migration/migration.h"
-#include "block/coroutine.h"
+#include "qemu/coroutine.h"
+#include "qemu/cutils.h"
 
 #if defined(CONFIG_UUID)
 #include <uuid/uuid.h>
@@ -399,7 +402,7 @@ static int vdi_open(BlockDriverState *bs, QDict *options, int flags,
 
     logout("\n");
 
-    ret = bdrv_read(bs->file, 0, (uint8_t *)&header, 1);
+    ret = bdrv_read(bs->file->bs, 0, (uint8_t *)&header, 1);
     if (ret < 0) {
         goto fail;
     }
@@ -490,13 +493,14 @@ static int vdi_open(BlockDriverState *bs, QDict *options, int flags,
 
     bmap_size = header.blocks_in_image * sizeof(uint32_t);
     bmap_size = DIV_ROUND_UP(bmap_size, SECTOR_SIZE);
-    s->bmap = qemu_try_blockalign(bs->file, bmap_size * SECTOR_SIZE);
+    s->bmap = qemu_try_blockalign(bs->file->bs, bmap_size * SECTOR_SIZE);
     if (s->bmap == NULL) {
         ret = -ENOMEM;
         goto fail;
     }
 
-    ret = bdrv_read(bs->file, s->bmap_sector, (uint8_t *)s->bmap, bmap_size);
+    ret = bdrv_read(bs->file->bs, s->bmap_sector, (uint8_t *)s->bmap,
+                    bmap_size);
     if (ret < 0) {
         goto fail_free_bmap;
     }
@@ -525,7 +529,7 @@ static int vdi_reopen_prepare(BDRVReopenState *state,
 }
 
 static int64_t coroutine_fn vdi_co_get_block_status(BlockDriverState *bs,
-        int64_t sector_num, int nb_sectors, int *pnum)
+        int64_t sector_num, int nb_sectors, int *pnum, BlockDriverState **file)
 {
     /* TODO: Check for too large sector_num (in bdrv_is_allocated or here). */
     BDRVVdiState *s = (BDRVVdiState *)bs->opaque;
@@ -549,6 +553,7 @@ static int64_t coroutine_fn vdi_co_get_block_status(BlockDriverState *bs,
     offset = s->header.offset_data +
                               (uint64_t)bmap_entry * s->block_size +
                               sector_in_block * SECTOR_SIZE;
+    *file = bs->file->bs;
     return BDRV_BLOCK_DATA | BDRV_BLOCK_OFFSET_VALID | offset;
 }
 
@@ -585,7 +590,7 @@ static int vdi_co_read(BlockDriverState *bs,
             uint64_t offset = s->header.offset_data / SECTOR_SIZE +
                               (uint64_t)bmap_entry * s->block_sectors +
                               sector_in_block;
-            ret = bdrv_read(bs->file, offset, buf, n_sectors);
+            ret = bdrv_read(bs->file->bs, offset, buf, n_sectors);
         }
         logout("%u sectors read\n", n_sectors);
 
@@ -653,7 +658,7 @@ static int vdi_co_write(BlockDriverState *bs,
              * acquire the lock and thus the padded cluster is written before
              * the other coroutines can write to the affected area. */
             qemu_co_mutex_lock(&s->write_lock);
-            ret = bdrv_write(bs->file, offset, block, s->block_sectors);
+            ret = bdrv_write(bs->file->bs, offset, block, s->block_sectors);
             qemu_co_mutex_unlock(&s->write_lock);
         } else {
             uint64_t offset = s->header.offset_data / SECTOR_SIZE +
@@ -669,7 +674,7 @@ static int vdi_co_write(BlockDriverState *bs,
              * that that write operation has returned (there may be other writes
              * in flight, but they do not concern this very operation). */
             qemu_co_mutex_unlock(&s->write_lock);
-            ret = bdrv_write(bs->file, offset, buf, n_sectors);
+            ret = bdrv_write(bs->file->bs, offset, buf, n_sectors);
         }
 
         nb_sectors -= n_sectors;
@@ -694,7 +699,7 @@ static int vdi_co_write(BlockDriverState *bs,
         assert(VDI_IS_ALLOCATED(bmap_first));
         *header = s->header;
         vdi_header_to_le(header);
-        ret = bdrv_write(bs->file, 0, block, 1);
+        ret = bdrv_write(bs->file->bs, 0, block, 1);
         g_free(block);
         block = NULL;
 
@@ -712,7 +717,7 @@ static int vdi_co_write(BlockDriverState *bs,
         base = ((uint8_t *)&s->bmap[0]) + bmap_first * SECTOR_SIZE;
         logout("will write %u block map sectors starting from entry %u\n",
                n_sectors, bmap_first);
-        ret = bdrv_write(bs->file, offset, base, n_sectors);
+        ret = bdrv_write(bs->file->bs, offset, base, n_sectors);
     }
 
     return ret;
@@ -730,7 +735,7 @@ static int vdi_create(const char *filename, QemuOpts *opts, Error **errp)
     size_t bmap_size;
     int64_t offset = 0;
     Error *local_err = NULL;
-    BlockDriverState *bs = NULL;
+    BlockBackend *blk = NULL;
     uint32_t *bmap = NULL;
 
     logout("\n");
@@ -763,12 +768,16 @@ static int vdi_create(const char *filename, QemuOpts *opts, Error **errp)
         error_propagate(errp, local_err);
         goto exit;
     }
-    ret = bdrv_open(&bs, filename, NULL, NULL, BDRV_O_RDWR | BDRV_O_PROTOCOL,
-                    NULL, &local_err);
-    if (ret < 0) {
+
+    blk = blk_new_open(filename, NULL, NULL,
+                       BDRV_O_RDWR | BDRV_O_PROTOCOL, &local_err);
+    if (blk == NULL) {
         error_propagate(errp, local_err);
+        ret = -EIO;
         goto exit;
     }
+
+    blk_set_allow_write_beyond_eof(blk, true);
 
     /* We need enough blocks to store the given disk size,
        so always round up. */
@@ -799,7 +808,7 @@ static int vdi_create(const char *filename, QemuOpts *opts, Error **errp)
     vdi_header_print(&header);
 #endif
     vdi_header_to_le(&header);
-    ret = bdrv_pwrite_sync(bs, offset, &header, sizeof(header));
+    ret = blk_pwrite(blk, offset, &header, sizeof(header));
     if (ret < 0) {
         error_setg(errp, "Error writing header to %s", filename);
         goto exit;
@@ -820,7 +829,7 @@ static int vdi_create(const char *filename, QemuOpts *opts, Error **errp)
                 bmap[i] = VDI_UNALLOCATED;
             }
         }
-        ret = bdrv_pwrite_sync(bs, offset, bmap, bmap_size);
+        ret = blk_pwrite(blk, offset, bmap, bmap_size);
         if (ret < 0) {
             error_setg(errp, "Error writing bmap to %s", filename);
             goto exit;
@@ -829,7 +838,7 @@ static int vdi_create(const char *filename, QemuOpts *opts, Error **errp)
     }
 
     if (image_type == VDI_TYPE_STATIC) {
-        ret = bdrv_truncate(bs, offset + blocks * block_size);
+        ret = blk_truncate(blk, offset + blocks * block_size);
         if (ret < 0) {
             error_setg(errp, "Failed to statically allocate %s", filename);
             goto exit;
@@ -837,7 +846,7 @@ static int vdi_create(const char *filename, QemuOpts *opts, Error **errp)
     }
 
 exit:
-    bdrv_unref(bs);
+    blk_unref(blk);
     g_free(bmap);
     return ret;
 }

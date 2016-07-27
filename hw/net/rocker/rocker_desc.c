@@ -14,6 +14,7 @@
  * GNU General Public License for more details.
  */
 
+#include "qemu/osdep.h"
 #include "net/net.h"
 #include "hw/hw.h"
 #include "hw/pci/pci.h"
@@ -136,15 +137,13 @@ bool desc_ring_set_size(DescRing *ring, uint32_t size)
     }
 
     for (i = 0; i < ring->size; i++) {
-        if (ring->info[i].buf) {
-            g_free(ring->info[i].buf);
-        }
+        g_free(ring->info[i].buf);
     }
 
     ring->size = size;
     ring->head = ring->tail = 0;
 
-    ring->info = g_realloc(ring->info, size * sizeof(DescInfo));
+    ring->info = g_renew(DescInfo, ring->info, size);
     if (!ring->info) {
         return false;
     }
@@ -347,7 +346,7 @@ DescRing *desc_ring_alloc(Rocker *r, int index)
 {
     DescRing *ring;
 
-    ring = g_malloc0(sizeof(DescRing));
+    ring = g_new0(DescRing, 1);
     if (!ring) {
         return NULL;
     }
@@ -360,9 +359,7 @@ DescRing *desc_ring_alloc(Rocker *r, int index)
 
 void desc_ring_free(DescRing *ring)
 {
-    if (ring->info) {
-        g_free(ring->info);
-    }
+    g_free(ring->info);
     g_free(ring);
 }
 

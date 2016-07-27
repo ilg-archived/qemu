@@ -19,6 +19,8 @@
  * <http://www.gnu.org/licenses/lgpl-2.1.html>
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "cpu.h"
 #include "qemu-common.h"
 #include "migration/vmstate.h"
@@ -68,6 +70,12 @@ static void superh_cpu_reset(CPUState *s)
     set_flush_to_zero(1, &env->fp_status);
 #endif
     set_default_nan_mode(1, &env->fp_status);
+}
+
+static void superh_cpu_disas_set_info(CPUState *cpu, disassemble_info *info)
+{
+    info->mach = bfd_mach_sh4;
+    info->print_insn = print_insn_sh;
 }
 
 typedef struct SuperHCPUListState {
@@ -248,7 +256,7 @@ static void superh_cpu_initfn(Object *obj)
     CPUSH4State *env = &cpu->env;
 
     cs->env_ptr = env;
-    cpu_exec_init(env);
+    cpu_exec_init(cs, &error_abort);
 
     env->movcal_backup_tail = &(env->movcal_backup);
 
@@ -288,8 +296,18 @@ static void superh_cpu_class_init(ObjectClass *oc, void *data)
 #else
     cc->get_phys_page_debug = superh_cpu_get_phys_page_debug;
 #endif
-    dc->vmsd = &vmstate_sh_cpu;
+    cc->disas_set_info = superh_cpu_disas_set_info;
+
     cc->gdb_num_core_regs = 59;
+
+    dc->vmsd = &vmstate_sh_cpu;
+
+    /*
+     * Reason: superh_cpu_initfn() calls cpu_exec_init(), which saves
+     * the object in cpus -> dangling pointer after final
+     * object_unref().
+     */
+    dc->cannot_destroy_with_object_finalize_yet = true;
 }
 
 static const TypeInfo superh_cpu_type_info = {

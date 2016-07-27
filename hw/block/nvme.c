@@ -20,11 +20,13 @@
  *      -device nvme,drive=<drive_id>,serial=<serial>,id=<id[optional]>
  */
 
+#include "qemu/osdep.h"
 #include <hw/block/block.h>
 #include <hw/hw.h>
 #include <hw/pci/msix.h>
 #include <hw/pci/pci.h>
 #include "sysemu/sysemu.h"
+#include "qapi/error.h"
 #include "qapi/visitor.h"
 #include "sysemu/block-backend.h"
 
@@ -154,6 +156,7 @@ static uint16_t nvme_dma_read_prp(NvmeCtrl *n, uint8_t *ptr, uint32_t len,
         qemu_sglist_destroy(&qsg);
         return NVME_INVALID_FIELD | NVME_DNR;
     }
+    qemu_sglist_destroy(&qsg);
     return NVME_SUCCESS;
 }
 
@@ -200,15 +203,28 @@ static void nvme_rw_cb(void *opaque, int ret)
     NvmeCtrl *n = sq->ctrl;
     NvmeCQueue *cq = n->cq[sq->cqid];
 
-    block_acct_done(blk_get_stats(n->conf.blk), &req->acct);
     if (!ret) {
+        block_acct_done(blk_get_stats(n->conf.blk), &req->acct);
         req->status = NVME_SUCCESS;
     } else {
+        block_acct_failed(blk_get_stats(n->conf.blk), &req->acct);
         req->status = NVME_INTERNAL_DEV_ERROR;
     }
-
-    qemu_sglist_destroy(&req->qsg);
+    if (req->has_sg) {
+        qemu_sglist_destroy(&req->qsg);
+    }
     nvme_enqueue_req_completion(cq, req);
+}
+
+static uint16_t nvme_flush(NvmeCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd,
+    NvmeRequest *req)
+{
+    req->has_sg = false;
+    block_acct_start(blk_get_stats(n->conf.blk), &req->acct, 0,
+         BLOCK_ACCT_FLUSH);
+    req->aiocb = blk_aio_flush(n->conf.blk, nvme_rw_cb, req);
+
+    return NVME_NO_COMPLETE;
 }
 
 static uint16_t nvme_rw(NvmeCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd,
@@ -225,17 +241,22 @@ static uint16_t nvme_rw(NvmeCtrl *n, NvmeNamespace *ns, NvmeCmd *cmd,
     uint64_t data_size = (uint64_t)nlb << data_shift;
     uint64_t aio_slba  = slba << (data_shift - BDRV_SECTOR_BITS);
     int is_write = rw->opcode == NVME_CMD_WRITE ? 1 : 0;
+    enum BlockAcctType acct = is_write ? BLOCK_ACCT_WRITE : BLOCK_ACCT_READ;
 
     if ((slba + nlb) > ns->id_ns.nsze) {
+        block_acct_invalid(blk_get_stats(n->conf.blk), acct);
         return NVME_LBA_RANGE | NVME_DNR;
     }
+
     if (nvme_map_prp(&req->qsg, prp1, prp2, data_size, n)) {
+        block_acct_invalid(blk_get_stats(n->conf.blk), acct);
         return NVME_INVALID_FIELD | NVME_DNR;
     }
+
     assert((nlb << data_shift) == req->qsg.size);
 
-    dma_acct_start(n->conf.blk, &req->acct, &req->qsg,
-                   is_write ? BLOCK_ACCT_WRITE : BLOCK_ACCT_READ);
+    req->has_sg = true;
+    dma_acct_start(n->conf.blk, &req->acct, &req->qsg, acct);
     req->aiocb = is_write ?
         dma_blk_write(n->conf.blk, &req->qsg, aio_slba, nvme_rw_cb, req) :
         dma_blk_read(n->conf.blk, &req->qsg, aio_slba, nvme_rw_cb, req);
@@ -255,7 +276,7 @@ static uint16_t nvme_io_cmd(NvmeCtrl *n, NvmeCmd *cmd, NvmeRequest *req)
     ns = &n->namespaces[nsid - 1];
     switch (cmd->opcode) {
     case NVME_CMD_FLUSH:
-        return NVME_SUCCESS;
+        return nvme_flush(n, ns, cmd, req);
     case NVME_CMD_WRITE:
     case NVME_CMD_READ:
         return nvme_rw(n, ns, cmd, req);
@@ -473,26 +494,32 @@ static uint16_t nvme_identify(NvmeCtrl *n, NvmeCmd *cmd)
 static uint16_t nvme_get_feature(NvmeCtrl *n, NvmeCmd *cmd, NvmeRequest *req)
 {
     uint32_t dw10 = le32_to_cpu(cmd->cdw10);
+    uint32_t result;
 
     switch (dw10) {
-    case NVME_NUMBER_OF_QUEUES:
-        req->cqe.result =
-            cpu_to_le32((n->num_queues - 1) | ((n->num_queues - 1) << 16));
-        break;
     case NVME_VOLATILE_WRITE_CACHE:
-        req->cqe.result = cpu_to_le32(1);
+        result = blk_enable_write_cache(n->conf.blk);
+        break;
+    case NVME_NUMBER_OF_QUEUES:
+        result = cpu_to_le32((n->num_queues - 1) | ((n->num_queues - 1) << 16));
         break;
     default:
         return NVME_INVALID_FIELD | NVME_DNR;
     }
+
+    req->cqe.result = result;
     return NVME_SUCCESS;
 }
 
 static uint16_t nvme_set_feature(NvmeCtrl *n, NvmeCmd *cmd, NvmeRequest *req)
 {
     uint32_t dw10 = le32_to_cpu(cmd->cdw10);
+    uint32_t dw11 = le32_to_cpu(cmd->cdw11);
 
     switch (dw10) {
+    case NVME_VOLATILE_WRITE_CACHE:
+        blk_set_enable_write_cache(n->conf.blk, dw11 & 1);
+        break;
     case NVME_NUMBER_OF_QUEUES:
         req->cqe.result =
             cpu_to_le32((n->num_queues - 1) | ((n->num_queues - 1) << 16));
@@ -785,7 +812,7 @@ static int nvme_init(PCIDevice *pci_dev)
 
     n->num_namespaces = 1;
     n->num_queues = 64;
-    n->reg_size = 1 << qemu_fls(0x1004 + 2 * (n->num_queues + 1) * 4);
+    n->reg_size = pow2ceil(0x1004 + 2 * (n->num_queues + 1) * 4);
     n->ns_size = bs_size / (uint64_t)n->num_namespaces;
 
     n->namespaces = g_new0(NvmeNamespace, n->num_namespaces);
@@ -817,6 +844,9 @@ static int nvme_init(PCIDevice *pci_dev)
     id->psd[0].mp = cpu_to_le16(0x9c4);
     id->psd[0].enlat = cpu_to_le32(0x10);
     id->psd[0].exlat = cpu_to_le32(0x4);
+    if (blk_enable_write_cache(n->conf.blk)) {
+        id->vwc = 1;
+    }
 
     n->bar.cap = 0;
     NVME_CAP_SET_MQES(n->bar.cap, 0x7ff);
@@ -887,45 +917,13 @@ static void nvme_class_init(ObjectClass *oc, void *data)
     dc->vmsd = &nvme_vmstate;
 }
 
-static void nvme_get_bootindex(Object *obj, Visitor *v, void *opaque,
-                                  const char *name, Error **errp)
-{
-    NvmeCtrl *s = NVME(obj);
-
-    visit_type_int32(v, &s->conf.bootindex, name, errp);
-}
-
-static void nvme_set_bootindex(Object *obj, Visitor *v, void *opaque,
-                                  const char *name, Error **errp)
-{
-    NvmeCtrl *s = NVME(obj);
-    int32_t boot_index;
-    Error *local_err = NULL;
-
-    visit_type_int32(v, &boot_index, name, &local_err);
-    if (local_err) {
-        goto out;
-    }
-    /* check whether bootindex is present in fw_boot_order list  */
-    check_boot_index(boot_index, &local_err);
-    if (local_err) {
-        goto out;
-    }
-    /* change bootindex to a new one */
-    s->conf.bootindex = boot_index;
-
-out:
-    if (local_err) {
-        error_propagate(errp, local_err);
-    }
-}
-
 static void nvme_instance_init(Object *obj)
 {
-    object_property_add(obj, "bootindex", "int32",
-                        nvme_get_bootindex,
-                        nvme_set_bootindex, NULL, NULL, NULL);
-    object_property_set_int(obj, -1, "bootindex", NULL);
+    NvmeCtrl *s = NVME(obj);
+
+    device_add_bootindex_property(obj, &s->conf.bootindex,
+                                  "bootindex", "/namespace@1,0",
+                                  DEVICE(obj), &error_abort);
 }
 
 static const TypeInfo nvme_info = {

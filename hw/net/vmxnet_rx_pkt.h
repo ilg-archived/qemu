@@ -18,8 +18,6 @@
 #ifndef VMXNET_RX_PKT_H
 #define VMXNET_RX_PKT_H
 
-#include "stdint.h"
-#include "stdbool.h"
 #include "net/eth.h"
 
 /* defines to enable packet dump functions */
@@ -53,6 +51,17 @@ void vmxnet_rx_pkt_init(struct VmxnetRxPkt **pkt, bool has_virt_hdr);
  *
  */
 size_t vmxnet_rx_pkt_get_total_len(struct VmxnetRxPkt *pkt);
+
+/**
+ * parse and set packet analysis results
+ *
+ * @pkt:            packet
+ * @data:           pointer to the data buffer to be parsed
+ * @len:            data length
+ *
+ */
+void vmxnet_rx_pkt_set_protocols(struct VmxnetRxPkt *pkt, const void *data,
+                                 size_t len);
 
 /**
  * fetches packet analysis results

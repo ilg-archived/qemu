@@ -17,9 +17,11 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/sysbus.h"
 #include "hw/devices.h"
 #include "net/net.h"
+#include "qapi/error.h"
 #include "qemu/timer.h"
 #include <zlib.h>
 
@@ -292,7 +294,7 @@ static void dp8393x_set_next_tick(dp8393xState *s)
 
     ticks = s->regs[SONIC_WT1] << 16 | s->regs[SONIC_WT0];
     s->wt_last_update = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-    delay = get_ticks_per_sec() * ticks / 5000000;
+    delay = NANOSECONDS_PER_SECOND * ticks / 5000000;
     timer_mod(s->watchdog, s->wt_last_update + delay);
 }
 
@@ -327,9 +329,14 @@ static void dp8393x_do_stop_timer(dp8393xState *s)
     dp8393x_update_wt_regs(s);
 }
 
+static int dp8393x_can_receive(NetClientState *nc);
+
 static void dp8393x_do_receiver_enable(dp8393xState *s)
 {
     s->regs[SONIC_CR] &= ~SONIC_CR_RXDIS;
+    if (dp8393x_can_receive(s->nic->ncs)) {
+        qemu_flush_queued_packets(qemu_get_queue(s->nic));
+    }
 }
 
 static void dp8393x_do_receiver_disable(dp8393xState *s)
@@ -569,6 +576,9 @@ static void dp8393x_write(void *opaque, hwaddr addr, uint64_t data,
                 dp8393x_do_read_rra(s);
             }
             dp8393x_update_irq(s);
+            if (dp8393x_can_receive(s->nic->ncs)) {
+                qemu_flush_queued_packets(qemu_get_queue(s->nic));
+            }
             break;
         /* Ignore least significant bit */
         case SONIC_RSA:
@@ -634,11 +644,6 @@ static int dp8393x_receive_filter(dp8393xState *s, const uint8_t * buf,
 {
     static const uint8_t bcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
     int i;
-
-    /* Check for runt packet (remember that checksum is not there) */
-    if (size < 64 - 4) {
-        return (s->regs[SONIC_RCR] & SONIC_RCR_RNT) ? 0 : -1;
-    }
 
     /* Check promiscuous mode */
     if ((s->regs[SONIC_RCR] & SONIC_RCR_PRO) && (buf[0] & 1) == 0) {
@@ -828,6 +833,7 @@ static void dp8393x_realize(DeviceState *dev, Error **errp)
     dp8393xState *s = DP8393X(dev);
     int i, checksum;
     uint8_t *prom;
+    Error *local_err = NULL;
 
     address_space_init(&s->as, s->dma_mr, "dp8393x");
     memory_region_init_io(&s->mmio, OBJECT(dev), &dp8393x_ops, s,
@@ -840,8 +846,13 @@ static void dp8393x_realize(DeviceState *dev, Error **errp)
     s->watchdog = timer_new_ns(QEMU_CLOCK_VIRTUAL, dp8393x_watchdog, s);
     s->regs[SONIC_SR] = 0x0004; /* only revision recognized by Linux */
 
-    memory_region_init_rom_device(&s->prom, OBJECT(dev), NULL, NULL,
-                                  "dp8393x-prom", SONIC_PROM_SIZE, NULL);
+    memory_region_init_ram(&s->prom, OBJECT(dev),
+                           "dp8393x-prom", SONIC_PROM_SIZE, &local_err);
+    if (local_err) {
+        error_propagate(errp, local_err);
+        return;
+    }
+    memory_region_set_readonly(&s->prom, true);
     prom = memory_region_get_ram_ptr(&s->prom);
     checksum = 0;
     for (i = 0; i < 6; i++) {
@@ -881,6 +892,8 @@ static void dp8393x_class_init(ObjectClass *klass, void *data)
     dc->reset = dp8393x_reset;
     dc->vmsd = &vmstate_dp8393x;
     dc->props = dp8393x_properties;
+    /* Reason: dma_mr property can't be set */
+    dc->cannot_instantiate_with_device_add_yet = true;
 }
 
 static const TypeInfo dp8393x_info = {

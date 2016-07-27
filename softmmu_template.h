@@ -150,11 +150,11 @@ static inline DATA_TYPE glue(io_read, SUFFIX)(CPUArchState *env,
     uint64_t val;
     CPUState *cpu = ENV_GET_CPU(env);
     hwaddr physaddr = iotlbentry->addr;
-    MemoryRegion *mr = iotlb_to_region(cpu, physaddr);
+    MemoryRegion *mr = iotlb_to_region(cpu, physaddr, iotlbentry->attrs);
 
     physaddr = (physaddr & TARGET_PAGE_MASK) + addr;
     cpu->mem_io_pc = retaddr;
-    if (mr != &io_mem_rom && mr != &io_mem_notdirty && !cpu_can_do_io(cpu)) {
+    if (mr != &io_mem_rom && mr != &io_mem_notdirty && !cpu->can_do_io) {
         cpu_io_recompile(cpu, retaddr);
     }
 
@@ -165,9 +165,6 @@ static inline DATA_TYPE glue(io_read, SUFFIX)(CPUArchState *env,
 }
 #endif
 
-#ifdef SOFTMMU_CODE_ACCESS
-static __attribute__((unused))
-#endif
 WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
                             TCGMemOpIdx oi, uintptr_t retaddr)
 {
@@ -252,9 +249,6 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
 }
 
 #if DATA_SIZE > 1
-#ifdef SOFTMMU_CODE_ACCESS
-static __attribute__((unused))
-#endif
 WORD_TYPE helper_be_ld_name(CPUArchState *env, target_ulong addr,
                             TCGMemOpIdx oi, uintptr_t retaddr)
 {
@@ -335,14 +329,6 @@ WORD_TYPE helper_be_ld_name(CPUArchState *env, target_ulong addr,
 }
 #endif /* DATA_SIZE > 1 */
 
-DATA_TYPE
-glue(glue(helper_ld, SUFFIX), MMUSUFFIX)(CPUArchState *env, target_ulong addr,
-                                         int mmu_idx)
-{
-    TCGMemOpIdx oi = make_memop_idx(SHIFT, mmu_idx);
-    return helper_te_ld_name (env, addr, oi, GETRA());
-}
-
 #ifndef SOFTMMU_CODE_ACCESS
 
 /* Provide signed versions of the load routines as well.  We can of course
@@ -371,10 +357,10 @@ static inline void glue(io_write, SUFFIX)(CPUArchState *env,
 {
     CPUState *cpu = ENV_GET_CPU(env);
     hwaddr physaddr = iotlbentry->addr;
-    MemoryRegion *mr = iotlb_to_region(cpu, physaddr);
+    MemoryRegion *mr = iotlb_to_region(cpu, physaddr, iotlbentry->attrs);
 
     physaddr = (physaddr & TARGET_PAGE_MASK) + addr;
-    if (mr != &io_mem_rom && mr != &io_mem_notdirty && !cpu_can_do_io(cpu)) {
+    if (mr != &io_mem_rom && mr != &io_mem_notdirty && !cpu->can_do_io) {
         cpu_io_recompile(cpu, retaddr);
     }
 
@@ -539,14 +525,6 @@ void helper_be_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     glue(glue(st, SUFFIX), _be_p)((uint8_t *)haddr, val);
 }
 #endif /* DATA_SIZE > 1 */
-
-void
-glue(glue(helper_st, SUFFIX), MMUSUFFIX)(CPUArchState *env, target_ulong addr,
-                                         DATA_TYPE val, int mmu_idx)
-{
-    TCGMemOpIdx oi = make_memop_idx(SHIFT, mmu_idx);
-    helper_te_st_name(env, addr, val, oi, GETRA());
-}
 
 #if DATA_SIZE == 1
 /* Probe for whether the specified guest write access is permitted.

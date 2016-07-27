@@ -22,6 +22,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "block/block_int.h"
 #include "qemu/module.h"
@@ -103,7 +105,7 @@ static int bochs_open(BlockDriverState *bs, QDict *options, int flags,
 
     bs->read_only = 1; // no write support yet
 
-    ret = bdrv_pread(bs->file, 0, &bochs, sizeof(bochs));
+    ret = bdrv_pread(bs->file->bs, 0, &bochs, sizeof(bochs));
     if (ret < 0) {
         return ret;
     }
@@ -137,7 +139,7 @@ static int bochs_open(BlockDriverState *bs, QDict *options, int flags,
         return -ENOMEM;
     }
 
-    ret = bdrv_pread(bs->file, le32_to_cpu(bochs.header), s->catalog_bitmap,
+    ret = bdrv_pread(bs->file->bs, le32_to_cpu(bochs.header), s->catalog_bitmap,
                      s->catalog_size * 4);
     if (ret < 0) {
         goto fail;
@@ -206,7 +208,7 @@ static int64_t seek_to_sector(BlockDriverState *bs, int64_t sector_num)
         (s->extent_blocks + s->bitmap_blocks));
 
     /* read in bitmap for current extent */
-    ret = bdrv_pread(bs->file, bitmap_offset + (extent_offset / 8),
+    ret = bdrv_pread(bs->file->bs, bitmap_offset + (extent_offset / 8),
                      &bitmap_entry, 1);
     if (ret < 0) {
         return ret;
@@ -229,7 +231,7 @@ static int bochs_read(BlockDriverState *bs, int64_t sector_num,
         if (block_offset < 0) {
             return block_offset;
         } else if (block_offset > 0) {
-            ret = bdrv_pread(bs->file, block_offset, buf, 512);
+            ret = bdrv_pread(bs->file->bs, block_offset, buf, 512);
             if (ret < 0) {
                 return ret;
             }

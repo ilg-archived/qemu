@@ -5,9 +5,7 @@
 #include "qom/object.h"
 #include "qapi/qmp/qdict.h"
 #include "qemu/notify.h"
-#include "qemu/typedefs.h"
 #include "qapi-types.h"
-#include "qapi/error.h"
 
 #ifdef CONFIG_OPENGL
 # include <epoxy/gl.h>
@@ -29,6 +27,21 @@
 /* in ms */
 #define GUI_REFRESH_INTERVAL_DEFAULT    30
 #define GUI_REFRESH_INTERVAL_IDLE     3000
+
+/* Color number is match to standard vga palette */
+enum qemu_color_names {
+    QEMU_COLOR_BLACK   = 0,
+    QEMU_COLOR_BLUE    = 1,
+    QEMU_COLOR_GREEN   = 2,
+    QEMU_COLOR_CYAN    = 3,
+    QEMU_COLOR_RED     = 4,
+    QEMU_COLOR_MAGENTA = 5,
+    QEMU_COLOR_YELLOW  = 6,
+    QEMU_COLOR_WHITE   = 7
+};
+/* Convert to curses char attributes */
+#define ATTR2CHTYPE(c, fg, bg, bold) \
+    ((bold) << 21 | (bg) << 11 | (fg) << 8 | (c))
 
 typedef void QEMUPutKBDEvent(void *opaque, int keycode);
 typedef void QEMUPutLEDEvent(void *opaque, int ledstate);
@@ -157,6 +170,14 @@ void cursor_set_mono(QEMUCursor *c,
 void cursor_get_mono_image(QEMUCursor *c, int foreground, uint8_t *mask);
 void cursor_get_mono_mask(QEMUCursor *c, int transparent, uint8_t *mask);
 
+typedef void *QEMUGLContext;
+typedef struct QEMUGLParams QEMUGLParams;
+
+struct QEMUGLParams {
+    int major_ver;
+    int minor_ver;
+};
+
 typedef struct DisplayChangeListenerOps {
     const char *dpy_name;
 
@@ -183,6 +204,21 @@ typedef struct DisplayChangeListenerOps {
                           int x, int y, int on);
     void (*dpy_cursor_define)(DisplayChangeListener *dcl,
                               QEMUCursor *cursor);
+
+    QEMUGLContext (*dpy_gl_ctx_create)(DisplayChangeListener *dcl,
+                                       QEMUGLParams *params);
+    void (*dpy_gl_ctx_destroy)(DisplayChangeListener *dcl,
+                               QEMUGLContext ctx);
+    int (*dpy_gl_ctx_make_current)(DisplayChangeListener *dcl,
+                                   QEMUGLContext ctx);
+    QEMUGLContext (*dpy_gl_ctx_get_current)(DisplayChangeListener *dcl);
+
+    void (*dpy_gl_scanout)(DisplayChangeListener *dcl,
+                           uint32_t backing_id, bool backing_y_0_top,
+                           uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+    void (*dpy_gl_update)(DisplayChangeListener *dcl,
+                          uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+
 } DisplayChangeListenerOps;
 
 struct DisplayChangeListener {
@@ -198,6 +234,7 @@ DisplayState *init_displaystate(void);
 DisplaySurface *qemu_create_displaysurface_from(int width, int height,
                                                 pixman_format_code_t format,
                                                 int linesize, uint8_t *data);
+DisplaySurface *qemu_create_displaysurface_pixman(pixman_image_t *image);
 DisplaySurface *qemu_create_displaysurface_guestmem(int width, int height,
                                                     pixman_format_code_t format,
                                                     int linesize,
@@ -244,6 +281,20 @@ bool dpy_cursor_define_supported(QemuConsole *con);
 bool dpy_gfx_check_format(QemuConsole *con,
                           pixman_format_code_t format);
 
+void dpy_gl_scanout(QemuConsole *con,
+                    uint32_t backing_id, bool backing_y_0_top,
+                    uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+void dpy_gl_update(QemuConsole *con,
+                   uint32_t x, uint32_t y, uint32_t w, uint32_t h);
+
+QEMUGLContext dpy_gl_ctx_create(QemuConsole *con,
+                                QEMUGLParams *params);
+void dpy_gl_ctx_destroy(QemuConsole *con, QEMUGLContext ctx);
+int dpy_gl_ctx_make_current(QemuConsole *con, QEMUGLContext ctx);
+QEMUGLContext dpy_gl_ctx_get_current(QemuConsole *con);
+
+bool console_has_gl(QemuConsole *con);
+
 static inline int surface_stride(DisplaySurface *s)
 {
     return pixman_image_get_stride(s->image);
@@ -284,13 +335,23 @@ static inline pixman_format_code_t surface_format(DisplaySurface *s)
 #ifdef CONFIG_CURSES
 #include <curses.h>
 typedef chtype console_ch_t;
+extern chtype vga_to_curses[];
 #else
 typedef unsigned long console_ch_t;
 #endif
 static inline void console_write_ch(console_ch_t *dest, uint32_t ch)
 {
-    if (!(ch & 0xff))
+    uint8_t c = ch;
+#ifdef CONFIG_CURSES
+    if (vga_to_curses[c]) {
+        ch &= ~(console_ch_t)0xff;
+        ch |= vga_to_curses[c];
+    }
+#else
+    if (c == '\0') {
         ch |= ' ';
+    }
+#endif
     *dest = ch;
 }
 
@@ -300,6 +361,7 @@ typedef struct GraphicHwOps {
     void (*text_update)(void *opaque, console_ch_t *text);
     void (*update_interval)(void *opaque, uint64_t interval);
     int (*ui_info)(void *opaque, uint32_t head, QemuUIInfo *info);
+    void (*gl_block)(void *opaque, bool block);
 } GraphicHwOps;
 
 QemuConsole *graphic_console_init(DeviceState *dev, uint32_t head,
@@ -312,9 +374,12 @@ void graphic_console_set_hwops(QemuConsole *con,
 void graphic_hw_update(QemuConsole *con);
 void graphic_hw_invalidate(QemuConsole *con);
 void graphic_hw_text_update(QemuConsole *con, console_ch_t *chardata);
+void graphic_hw_gl_block(QemuConsole *con, bool block);
 
 QemuConsole *qemu_console_lookup_by_index(unsigned int index);
 QemuConsole *qemu_console_lookup_by_device(DeviceState *dev, uint32_t head);
+QemuConsole *qemu_console_lookup_by_device_name(const char *device_id,
+                                                uint32_t head, Error **errp);
 bool qemu_console_is_visible(QemuConsole *con);
 bool qemu_console_is_graphic(QemuConsole *con);
 bool qemu_console_is_fixedsize(QemuConsole *con);
@@ -386,7 +451,7 @@ static inline int vnc_display_pw_expire(const char *id, time_t expires)
 void curses_display_init(DisplayState *ds, int full_screen);
 
 /* input.c */
-int index_from_key(const char *key);
+int index_from_key(const char *key, size_t key_length);
 
 /* gtk.c */
 void early_gtk_display_init(int opengl);

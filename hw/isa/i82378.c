@@ -17,6 +17,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/pci/pci.h"
 #include "hw/i386/pc.h"
 #include "hw/timer/i8254.h"
@@ -75,7 +76,10 @@ static void i82378_realize(PCIDevice *pci, Error **errp)
     pci_config_set_interrupt_pin(pci_conf, 1); /* interrupt pin 0 */
 
     isabus = isa_bus_new(dev, get_system_memory(),
-                         pci_address_space_io(pci));
+                         pci_address_space_io(pci), errp);
+    if (!isabus) {
+        return;
+    }
 
     /* This device has:
        2 82C59 (irq)
@@ -100,7 +104,6 @@ static void i82378_realize(PCIDevice *pci, Error **errp)
 
     /* 2 82C37 (dma) */
     isa = isa_create_simple(isabus, "i82374");
-    qdev_connect_gpio_out(DEVICE(isa), 0, s->out[1]);
 
     /* timer */
     isa_create_simple(isabus, "mc146818rtc");
@@ -111,7 +114,7 @@ static void i82378_init(Object *obj)
     DeviceState *dev = DEVICE(obj);
     I82378State *s = I82378(obj);
 
-    qdev_init_gpio_out(dev, s->out, 2);
+    qdev_init_gpio_out(dev, s->out, 1);
     qdev_init_gpio_in(dev, i82378_request_pic_irq, 16);
 }
 

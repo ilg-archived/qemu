@@ -31,6 +31,9 @@
  *  - Add indirect descriptors support
  *  - Maybe do autosense (PAPR seems to mandate it, linux doesn't care)
  */
+#include "qemu/osdep.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/hw.h"
 #include "hw/scsi/scsi.h"
 #include "block/scsi.h"
@@ -750,7 +753,6 @@ static void vscsi_report_luns(VSCSIState *s, vscsi_req *req)
     len = n+8;
 
     resp_data = g_malloc0(len);
-    memset(resp_data, 0, len);
     stl_be_p(resp_data, n);
     i = found_lun0 ? 8 : 16;
     QTAILQ_FOREACH(kid, &s->bus.qbus.children, sibling) {

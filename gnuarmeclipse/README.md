@@ -13,3 +13,7 @@ These are additional files added to **GNU ARM Eclipse QEMU**; some of them are r
 - docs - files documenting various development aspects
 - templates - sample files for new devices
 
+## OS X update
+
+On OS X 10.11 El Capitan, the images rendering with SDL_Image 1.2.12 has
+some glitches. Older version 1.2.10 seems fine.

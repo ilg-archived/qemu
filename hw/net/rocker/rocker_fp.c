@@ -14,6 +14,7 @@
  * GNU General Public License for more details.
  */
 
+#include "qemu/osdep.h"
 #include "net/clients.h"
 
 #include "rocker.h"
@@ -125,17 +126,20 @@ int fp_port_eg(FpPort *port, const struct iovec *iov, int iovcnt)
     return ROCKER_OK;
 }
 
-static int fp_port_can_receive(NetClientState *nc)
-{
-    FpPort *port = qemu_get_nic_opaque(nc);
-
-    return port->enabled;
-}
-
 static ssize_t fp_port_receive_iov(NetClientState *nc, const struct iovec *iov,
                                    int iovcnt)
 {
     FpPort *port = qemu_get_nic_opaque(nc);
+
+    /* If the port is disabled, we want to drop this pkt
+     * now rather than queing it for later.  We don't want
+     * any stale pkts getting into the device when the port
+     * transitions to enabled.
+     */
+
+    if (!port->enabled) {
+        return -1;
+    }
 
     return world_ingress(port->world, port->pport, iov, iovcnt);
 }
@@ -165,7 +169,6 @@ static void fp_port_set_link_status(NetClientState *nc)
 static NetClientInfo fp_port_info = {
     .type = NET_CLIENT_OPTIONS_KIND_NIC,
     .size = sizeof(NICState),
-    .can_receive = fp_port_can_receive,
     .receive = fp_port_receive,
     .receive_iov = fp_port_receive_iov,
     .cleanup = fp_port_cleanup,
@@ -181,6 +184,11 @@ void fp_port_set_world(FpPort *port, World *world)
 {
     DPRINTF("port %d setting world \"%s\"\n", port->index, world_name(world));
     port->world = world;
+}
+
+bool fp_port_check_world(FpPort *port, World *world)
+{
+    return port->world == world;
 }
 
 bool fp_port_enabled(FpPort *port)
@@ -216,7 +224,7 @@ FpPort *fp_port_alloc(Rocker *r, char *sw_name,
                       MACAddr *start_mac, unsigned int index,
                       NICPeers *peers)
 {
-    FpPort *port = g_malloc0(sizeof(FpPort));
+    FpPort *port = g_new0(FpPort, 1);
 
     if (!port) {
         return NULL;

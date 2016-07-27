@@ -10,6 +10,7 @@ DEF_HELPER_FLAGS_1(cttz, TCG_CALL_NO_RWG_SE, i64, i64)
 DEF_HELPER_FLAGS_2(zap, TCG_CALL_NO_RWG_SE, i64, i64, i64)
 DEF_HELPER_FLAGS_2(zapnot, TCG_CALL_NO_RWG_SE, i64, i64, i64)
 
+DEF_HELPER_FLAGS_1(cmpbe0, TCG_CALL_NO_RWG_SE, i64, i64)
 DEF_HELPER_FLAGS_2(cmpbge, TCG_CALL_NO_RWG_SE, i64, i64, i64)
 
 DEF_HELPER_FLAGS_2(minub8, TCG_CALL_NO_RWG_SE, i64, i64, i64)
@@ -91,9 +92,6 @@ DEF_HELPER_FLAGS_2(ieee_input_cmp, TCG_CALL_NO_WG, void, env, i64)
 DEF_HELPER_FLAGS_2(ieee_input_s, TCG_CALL_NO_WG, void, env, i64)
 
 #if !defined (CONFIG_USER_ONLY)
-DEF_HELPER_2(hw_ret, void, env, i64)
-DEF_HELPER_3(call_pal, void, env, i64, i64)
-
 DEF_HELPER_2(ldl_phys, i64, env, i64)
 DEF_HELPER_2(ldq_phys, i64, env, i64)
 DEF_HELPER_2(ldl_l_phys, i64, env, i64)

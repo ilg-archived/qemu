@@ -7,6 +7,10 @@
  * This code is licensed under the GPL.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/sysbus.h"
 #include "hw/arm/arm.h"
 #include "hw/loader.h"
@@ -166,22 +170,17 @@ static void armv7m_reset(void *opaque)
    mem_size is in bytes.
    Returns the NVIC array.  */
 
-qemu_irq *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
+DeviceState *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
                       const char *kernel_filename, const char *cpu_model)
 {
     ARMCPU *cpu;
     CPUARMState *env;
     DeviceState *nvic;
-    qemu_irq *pic = g_new(qemu_irq, num_irq);
     int image_size;
     uint64_t entry;
     uint64_t lowaddr;
-    int i;
     int big_endian;
     MemoryRegion *hack = g_new(MemoryRegion, 1);
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    static struct arm_boot_info boot_info;
-#endif
 
     if (cpu_model == NULL) {
 	cpu_model = "cortex-m3";
@@ -201,9 +200,6 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
     qdev_init_nofail(nvic);
     sysbus_connect_irq(SYS_BUS_DEVICE(nvic), 0,
                        qdev_get_gpio_in(DEVICE(cpu), ARM_CPU_IRQ));
-    for (i = 0; i < num_irq; i++) {
-        pic[i] = qdev_get_gpio_in(nvic, i);
-    }
 
 #ifdef TARGET_WORDS_BIGENDIAN
     big_endian = 1;
@@ -216,22 +212,9 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
         exit(1);
     }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    /*
-     * Fill-in a minimalistic boot info, required for semihosting.
-     * kernel_cmdline should be initialised with machine->kernel_cmdline,
-     * but we do not have machine here. Suggestion: change prototype
-     * and add "MachineState *machine".
-     */
-    boot_info.kernel_cmdline = "";
-    boot_info.kernel_filename = kernel_filename;
-
-    env->boot_info = &boot_info;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
-
     if (kernel_filename) {
         image_size = load_elf(kernel_filename, NULL, NULL, &entry, &lowaddr,
-                              NULL, big_endian, ELF_MACHINE, 1);
+                              NULL, big_endian, EM_ARM, 1, 0);
         if (image_size < 0) {
             image_size = load_image_targphys(kernel_filename, 0, mem_size);
             lowaddr = 0;
@@ -245,12 +228,12 @@ qemu_irq *armv7m_init(MemoryRegion *system_memory, int mem_size, int num_irq,
     /* Hack to map an additional page of ram at the top of the address
        space.  This stops qemu complaining about executing code outside RAM
        when returning from an exception.  */
-    memory_region_init_ram(hack, NULL, "armv7m.hack", 0x1000, &error_abort);
+    memory_region_init_ram(hack, NULL, "armv7m.hack", 0x1000, &error_fatal);
     vmstate_register_ram_global(hack);
     memory_region_add_subregion(system_memory, 0xfffff000, hack);
 
     qemu_register_reset(armv7m_reset, cpu);
-    return pic;
+    return nvic;
 }
 
 static Property bitband_properties[] = {

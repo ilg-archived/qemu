@@ -25,6 +25,10 @@
 /* A guest should never accept this.  It implies negotiation is broken. */
 #define VIRTIO_F_BAD_FEATURE		30
 
+#define VIRTIO_LEGACY_FEATURES ((0x1ULL << VIRTIO_F_BAD_FEATURE) | \
+                                (0x1ULL << VIRTIO_F_NOTIFY_ON_EMPTY) | \
+                                (0x1ULL << VIRTIO_F_ANY_LAYOUT))
+
 struct VirtQueue;
 
 static inline hwaddr vring_align(hwaddr addr,
@@ -42,10 +46,10 @@ typedef struct VirtQueueElement
     unsigned int index;
     unsigned int out_num;
     unsigned int in_num;
-    hwaddr in_addr[VIRTQUEUE_MAX_SIZE];
-    hwaddr out_addr[VIRTQUEUE_MAX_SIZE];
-    struct iovec in_sg[VIRTQUEUE_MAX_SIZE];
-    struct iovec out_sg[VIRTQUEUE_MAX_SIZE];
+    hwaddr *in_addr;
+    hwaddr *out_addr;
+    struct iovec *in_sg;
+    struct iovec *out_sg;
 } VirtQueueElement;
 
 #define VIRTIO_QUEUE_MAX 1024
@@ -86,6 +90,7 @@ struct VirtIODevice
     VMChangeStateEntry *vmstate;
     char *bus_name;
     uint8_t device_endian;
+    bool use_guest_notifier_mask;
     QLIST_HEAD(, VirtQueue) *vector_queues;
 };
 
@@ -97,7 +102,9 @@ typedef struct VirtioDeviceClass {
     /* This is what a VirtioDevice must implement */
     DeviceRealize realize;
     DeviceUnrealize unrealize;
-    uint64_t (*get_features)(VirtIODevice *vdev, uint64_t requested_features);
+    uint64_t (*get_features)(VirtIODevice *vdev,
+                             uint64_t requested_features,
+                             Error **errp);
     uint64_t (*bad_features)(VirtIODevice *vdev);
     void (*set_features)(VirtIODevice *vdev, uint64_t val);
     int (*validate_features)(VirtIODevice *vdev);
@@ -137,21 +144,26 @@ VirtQueue *virtio_add_queue(VirtIODevice *vdev, int queue_size,
 
 void virtio_del_queue(VirtIODevice *vdev, int n);
 
+void *virtqueue_alloc_element(size_t sz, unsigned out_num, unsigned in_num);
 void virtqueue_push(VirtQueue *vq, const VirtQueueElement *elem,
                     unsigned int len);
 void virtqueue_flush(VirtQueue *vq, unsigned int count);
+void virtqueue_discard(VirtQueue *vq, const VirtQueueElement *elem,
+                       unsigned int len);
 void virtqueue_fill(VirtQueue *vq, const VirtQueueElement *elem,
                     unsigned int len, unsigned int idx);
 
-void virtqueue_map_sg(struct iovec *sg, hwaddr *addr,
-    size_t num_sg, int is_write);
-int virtqueue_pop(VirtQueue *vq, VirtQueueElement *elem);
+void virtqueue_map(VirtQueueElement *elem);
+void *virtqueue_pop(VirtQueue *vq, size_t sz);
+void *qemu_get_virtqueue_element(QEMUFile *f, size_t sz);
+void qemu_put_virtqueue_element(QEMUFile *f, VirtQueueElement *elem);
 int virtqueue_avail_bytes(VirtQueue *vq, unsigned int in_bytes,
                           unsigned int out_bytes);
 void virtqueue_get_avail_bytes(VirtQueue *vq, unsigned int *in_bytes,
                                unsigned int *out_bytes,
                                unsigned max_in_bytes, unsigned max_out_bytes);
 
+bool virtio_should_notify(VirtIODevice *vdev, VirtQueue *vq);
 void virtio_notify(VirtIODevice *vdev, VirtQueue *vq);
 
 void virtio_save(VirtIODevice *vdev, QEMUFile *f);
@@ -214,7 +226,9 @@ typedef struct VirtIORNGConf VirtIORNGConf;
     DEFINE_PROP_BIT64("event_idx", _state, _field,        \
                       VIRTIO_RING_F_EVENT_IDX, true),     \
     DEFINE_PROP_BIT64("notify_on_empty", _state, _field,  \
-                      VIRTIO_F_NOTIFY_ON_EMPTY, true)
+                      VIRTIO_F_NOTIFY_ON_EMPTY, true), \
+    DEFINE_PROP_BIT64("any_layout", _state, _field, \
+                      VIRTIO_F_ANY_LAYOUT, true)
 
 hwaddr virtio_queue_get_desc_addr(VirtIODevice *vdev, int n);
 hwaddr virtio_queue_get_avail_addr(VirtIODevice *vdev, int n);
@@ -236,7 +250,9 @@ void virtio_queue_set_guest_notifier_fd_handler(VirtQueue *vq, bool assign,
 EventNotifier *virtio_queue_get_host_notifier(VirtQueue *vq);
 void virtio_queue_set_host_notifier_fd_handler(VirtQueue *vq, bool assign,
                                                bool set_handler);
-void virtio_queue_notify_vq(VirtQueue *vq);
+void virtio_queue_aio_set_host_notifier_handler(VirtQueue *vq, AioContext *ctx,
+                                                void (*fn)(VirtIODevice *,
+                                                           VirtQueue *));
 void virtio_irq(VirtQueue *vq);
 VirtQueue *virtio_vector_first_queue(VirtIODevice *vdev, uint16_t vector);
 VirtQueue *virtio_vector_next_queue(VirtQueue *vq);
@@ -253,20 +269,27 @@ static inline void virtio_clear_feature(uint64_t *features, unsigned int fbit)
     *features &= ~(1ULL << fbit);
 }
 
-static inline bool __virtio_has_feature(uint64_t features, unsigned int fbit)
+static inline bool virtio_has_feature(uint64_t features, unsigned int fbit)
 {
     assert(fbit < 64);
     return !!(features & (1ULL << fbit));
 }
 
-static inline bool virtio_has_feature(VirtIODevice *vdev, unsigned int fbit)
+static inline bool virtio_vdev_has_feature(VirtIODevice *vdev,
+                                           unsigned int fbit)
 {
-    return __virtio_has_feature(vdev->guest_features, fbit);
+    return virtio_has_feature(vdev->guest_features, fbit);
+}
+
+static inline bool virtio_host_has_feature(VirtIODevice *vdev,
+                                           unsigned int fbit)
+{
+    return virtio_has_feature(vdev->host_features, fbit);
 }
 
 static inline bool virtio_is_big_endian(VirtIODevice *vdev)
 {
-    if (!virtio_has_feature(vdev, VIRTIO_F_VERSION_1)) {
+    if (!virtio_vdev_has_feature(vdev, VIRTIO_F_VERSION_1)) {
         assert(vdev->device_endian != VIRTIO_DEVICE_ENDIAN_UNKNOWN);
         return vdev->device_endian == VIRTIO_DEVICE_ENDIAN_BIG;
     }

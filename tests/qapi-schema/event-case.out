@@ -1,3 +1,4 @@
-[OrderedDict([('event', 'oops')])]
-[]
-[]
+enum QType ['none', 'qnull', 'qint', 'qstring', 'qdict', 'qlist', 'qfloat', 'qbool']
+    prefix QTYPE
+event oops None
+object q_empty

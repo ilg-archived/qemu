@@ -14,6 +14,7 @@
  * See the COPYING file in the top-level directory.
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/sysbus.h"
 #include "exec/address-spaces.h"
@@ -79,7 +80,7 @@ static void intdbg_control_init(Object *obj)
     SysBusDevice *sd = SYS_BUS_DEVICE(obj);
     IntegratorDebugState *s = INTEGRATOR_DEBUG(obj);
 
-    memory_region_init_io(&s->iomem, NULL, &intdbg_control_ops,
+    memory_region_init_io(&s->iomem, obj, &intdbg_control_ops,
                           NULL, "dbg-leds", 0x1000000);
     sysbus_init_mmio(sd, &s->iomem);
 }

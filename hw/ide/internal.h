@@ -324,7 +324,7 @@ typedef void EndTransferFunc(IDEState *);
 typedef void DMAStartFunc(IDEDMA *, IDEState *, BlockCompletionFunc *);
 typedef void DMAVoidFunc(IDEDMA *);
 typedef int DMAIntFunc(IDEDMA *, int);
-typedef int32_t DMAInt32Func(IDEDMA *, int);
+typedef int32_t DMAInt32Func(IDEDMA *, int32_t len);
 typedef void DMAu32Func(IDEDMA *, uint32_t);
 typedef void DMAStopFunc(IDEDMA *, bool);
 typedef void DMARestartFunc(void *, int, RunState);
@@ -338,10 +338,21 @@ enum ide_dma_cmd {
     IDE_DMA_READ,
     IDE_DMA_WRITE,
     IDE_DMA_TRIM,
+    IDE_DMA_ATAPI,
 };
 
 #define ide_cmd_is_read(s) \
 	((s)->dma_cmd == IDE_DMA_READ)
+
+typedef struct IDEBufferedRequest {
+    QLIST_ENTRY(IDEBufferedRequest) list;
+    struct iovec iov;
+    QEMUIOVector qiov;
+    QEMUIOVector *original_qiov;
+    BlockCompletionFunc *original_cb;
+    void *original_opaque;
+    bool orphaned;
+} IDEBufferedRequest;
 
 /* NOTE: IDEState represents in fact one drive */
 struct IDEState {
@@ -396,8 +407,9 @@ struct IDEState {
     BlockAIOCB *pio_aiocb;
     struct iovec iov;
     QEMUIOVector qiov;
+    QLIST_HEAD(, IDEBufferedRequest) buffered_requests;
     /* ATA DMA state */
-    int32_t io_buffer_offset;
+    uint64_t io_buffer_offset;
     int32_t io_buffer_size;
     QEMUSGList sg;
     /* PIO transfer handling */
@@ -436,6 +448,7 @@ struct IDEDMAOps {
     DMAInt32Func *prepare_buf;
     DMAu32Func *commit_buf;
     DMAIntFunc *rw_buf;
+    DMAVoidFunc *restart;
     DMAVoidFunc *restart_dma;
     DMAStopFunc *set_inactive;
     DMAVoidFunc *cmd_done;
@@ -494,11 +507,44 @@ struct IDEDevice {
 };
 
 /* These are used for the error_status field of IDEBus */
+#define IDE_RETRY_MASK 0xf8
 #define IDE_RETRY_DMA  0x08
 #define IDE_RETRY_PIO  0x10
+#define IDE_RETRY_ATAPI 0x20 /* reused IDE_RETRY_READ bit */
 #define IDE_RETRY_READ  0x20
 #define IDE_RETRY_FLUSH 0x40
 #define IDE_RETRY_TRIM 0x80
+#define IDE_RETRY_HBA  0x100
+
+#define IS_IDE_RETRY_DMA(_status) \
+    ((_status) & IDE_RETRY_DMA)
+
+#define IS_IDE_RETRY_PIO(_status) \
+    ((_status) & IDE_RETRY_PIO)
+
+/*
+ * The method of the IDE_RETRY_ATAPI determination is to use a previously
+ * impossible bit combination as a new status value.
+ */
+#define IS_IDE_RETRY_ATAPI(_status)   \
+    (((_status) & IDE_RETRY_MASK) == IDE_RETRY_ATAPI)
+
+static inline uint8_t ide_dma_cmd_to_retry(uint8_t dma_cmd)
+{
+    switch (dma_cmd) {
+    case IDE_DMA_READ:
+        return IDE_RETRY_DMA | IDE_RETRY_READ;
+    case IDE_DMA_WRITE:
+        return IDE_RETRY_DMA;
+    case IDE_DMA_TRIM:
+        return IDE_RETRY_DMA | IDE_RETRY_TRIM;
+    case IDE_DMA_ATAPI:
+        return IDE_RETRY_ATAPI;
+    default:
+        break;
+    }
+    return 0;
+}
 
 static inline IDEState *idebus_active_if(IDEBus *bus)
 {
@@ -534,7 +580,9 @@ int64_t ide_get_sector(IDEState *s);
 void ide_set_sector(IDEState *s, int64_t sector_num);
 
 void ide_start_dma(IDEState *s, BlockCompletionFunc *cb);
+void dma_buf_commit(IDEState *s, uint32_t tx_bytes);
 void ide_dma_error(IDEState *s);
+void ide_abort_command(IDEState *s);
 
 void ide_atapi_cmd_ok(IDEState *s);
 void ide_atapi_cmd_error(IDEState *s, int sense_key, int asc);
@@ -568,6 +616,10 @@ void ide_set_inactive(IDEState *s, bool more);
 BlockAIOCB *ide_issue_trim(BlockBackend *blk,
         int64_t sector_num, QEMUIOVector *qiov, int nb_sectors,
         BlockCompletionFunc *cb, void *opaque);
+BlockAIOCB *ide_buffered_readv(IDEState *s, int64_t sector_num,
+                               QEMUIOVector *iov, int nb_sectors,
+                               BlockCompletionFunc *cb, void *opaque);
+void ide_cancel_dma_sync(IDEState *s);
 
 /* hw/ide/atapi.c */
 void ide_atapi_cmd(IDEState *s);
@@ -577,5 +629,7 @@ void ide_atapi_cmd_reply_end(IDEState *s);
 void ide_bus_new(IDEBus *idebus, size_t idebus_size, DeviceState *dev,
                  int bus_id, int max_units);
 IDEDevice *ide_create_drive(IDEBus *bus, int unit, DriveInfo *drive);
+
+int ide_handle_rw_error(IDEState *s, int error, int op);
 
 #endif /* HW_IDE_INTERNAL_H */

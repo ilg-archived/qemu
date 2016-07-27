@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
 #include "sysemu/numa.h"
 #include "exec/cpu-common.h"
 #include "qemu/bitmap.h"
@@ -30,7 +31,6 @@
 #include "include/exec/cpu-common.h" /* for RAM_ADDR_FMT */
 #include "qapi-visit.h"
 #include "qapi/opts-visitor.h"
-#include "qapi/dealloc-visitor.h"
 #include "hw/boards.h"
 #include "sysemu/hostmem.h"
 #include "qmp-commands.h"
@@ -51,6 +51,93 @@ static int max_numa_nodeid; /* Highest specified NUMA node ID, plus one.
                              */
 int nb_numa_nodes;
 NodeInfo numa_info[MAX_NODES];
+
+void numa_set_mem_node_id(ram_addr_t addr, uint64_t size, uint32_t node)
+{
+    struct numa_addr_range *range;
+
+    /*
+     * Memory-less nodes can come here with 0 size in which case,
+     * there is nothing to do.
+     */
+    if (!size) {
+        return;
+    }
+
+    range = g_malloc0(sizeof(*range));
+    range->mem_start = addr;
+    range->mem_end = addr + size - 1;
+    QLIST_INSERT_HEAD(&numa_info[node].addr, range, entry);
+}
+
+void numa_unset_mem_node_id(ram_addr_t addr, uint64_t size, uint32_t node)
+{
+    struct numa_addr_range *range, *next;
+
+    QLIST_FOREACH_SAFE(range, &numa_info[node].addr, entry, next) {
+        if (addr == range->mem_start && (addr + size - 1) == range->mem_end) {
+            QLIST_REMOVE(range, entry);
+            g_free(range);
+            return;
+        }
+    }
+}
+
+static void numa_set_mem_ranges(void)
+{
+    int i;
+    ram_addr_t mem_start = 0;
+
+    /*
+     * Deduce start address of each node and use it to store
+     * the address range info in numa_info address range list
+     */
+    for (i = 0; i < nb_numa_nodes; i++) {
+        numa_set_mem_node_id(mem_start, numa_info[i].node_mem, i);
+        mem_start += numa_info[i].node_mem;
+    }
+}
+
+/*
+ * Check if @addr falls under NUMA @node.
+ */
+static bool numa_addr_belongs_to_node(ram_addr_t addr, uint32_t node)
+{
+    struct numa_addr_range *range;
+
+    QLIST_FOREACH(range, &numa_info[node].addr, entry) {
+        if (addr >= range->mem_start && addr <= range->mem_end) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/*
+ * Given an address, return the index of the NUMA node to which the
+ * address belongs to.
+ */
+uint32_t numa_get_node(ram_addr_t addr, Error **errp)
+{
+    uint32_t i;
+
+    /* For non NUMA configurations, check if the addr falls under node 0 */
+    if (!nb_numa_nodes) {
+        if (numa_addr_belongs_to_node(addr, 0)) {
+            return 0;
+        }
+    }
+
+    for (i = 0; i < nb_numa_nodes; i++) {
+        if (numa_addr_belongs_to_node(addr, i)) {
+            return i;
+        }
+    }
+
+    error_setg(errp, "Address 0x" RAM_ADDR_FMT " doesn't belong to any "
+                "NUMA node", addr);
+    return -1;
+}
 
 static void numa_node_parse(NumaNodeOptions *node, QemuOpts *opts, Error **errp)
 {
@@ -131,7 +218,7 @@ static int parse_numa(void *opaque, QemuOpts *opts, Error **errp)
 
     {
         OptsVisitor *ov = opts_visitor_new(opts);
-        visit_type_NumaOptions(opts_get_visitor(ov), &object, NULL, &err);
+        visit_type_NumaOptions(opts_get_visitor(ov), NULL, &object, &err);
         opts_visitor_cleanup(ov);
     }
 
@@ -139,9 +226,9 @@ static int parse_numa(void *opaque, QemuOpts *opts, Error **errp)
         goto error;
     }
 
-    switch (object->kind) {
+    switch (object->type) {
     case NUMA_OPTIONS_KIND_NODE:
-        numa_node_parse(object->node, opts, &err);
+        numa_node_parse(object->u.node.data, opts, &err);
         if (err) {
             goto error;
         }
@@ -155,13 +242,7 @@ static int parse_numa(void *opaque, QemuOpts *opts, Error **errp)
 
 error:
     error_report_err(err);
-
-    if (object) {
-        QapiDeallocVisitor *dv = qapi_dealloc_visitor_new();
-        visit_type_NumaOptions(qapi_dealloc_get_visitor(dv),
-                               &object, NULL, NULL);
-        qapi_dealloc_visitor_cleanup(dv);
-    }
+    qapi_free_NumaOptions(object);
 
     return -1;
 }
@@ -193,7 +274,7 @@ static void validate_numa_cpus(void)
             bitmap_and(seen_cpus, seen_cpus,
                        numa_info[i].node_cpu, MAX_CPUMASK_BITS);
             error_report("CPU(s) present in multiple NUMA nodes: %s",
-                         enumerate_cpus(seen_cpus, max_cpus));;
+                         enumerate_cpus(seen_cpus, max_cpus));
             exit(EXIT_FAILURE);
         }
         bitmap_or(seen_cpus, seen_cpus,
@@ -274,6 +355,12 @@ void parse_numa_opts(MachineClass *mc)
         }
 
         for (i = 0; i < nb_numa_nodes; i++) {
+            QLIST_INIT(&numa_info[i].addr);
+        }
+
+        numa_set_mem_ranges();
+
+        for (i = 0; i < nb_numa_nodes; i++) {
             if (!bitmap_empty(numa_info[i].node_cpu, MAX_CPUMASK_BITS)) {
                 break;
             }
@@ -297,6 +384,8 @@ void parse_numa_opts(MachineClass *mc)
         }
 
         validate_numa_cpus();
+    } else {
+        numa_set_mem_node_id(0, ram_size, 0);
     }
 }
 
@@ -323,20 +412,23 @@ static void allocate_system_memory_nonnuma(MemoryRegion *mr, Object *owner,
         Error *err = NULL;
         memory_region_init_ram_from_file(mr, owner, name, ram_size, false,
                                          mem_path, &err);
-
-        /* Legacy behavior: if allocation failed, fall back to
-         * regular RAM allocation.
-         */
         if (err) {
             error_report_err(err);
-            memory_region_init_ram(mr, owner, name, ram_size, &error_abort);
+            if (mem_prealloc) {
+                exit(1);
+            }
+
+            /* Legacy behavior: if allocation failed, fall back to
+             * regular RAM allocation.
+             */
+            memory_region_init_ram(mr, owner, name, ram_size, &error_fatal);
         }
 #else
         fprintf(stderr, "-mem-path not supported on this host\n");
         exit(1);
 #endif
     } else {
-        memory_region_init_ram(mr, owner, name, ram_size, &error_abort);
+        memory_region_init_ram(mr, owner, name, ram_size, &error_fatal);
     }
     vmstate_register_ram_global(mr);
 }
@@ -355,17 +447,13 @@ void memory_region_allocate_system_memory(MemoryRegion *mr, Object *owner,
 
     memory_region_init(mr, owner, name, ram_size);
     for (i = 0; i < MAX_NODES; i++) {
-        Error *local_err = NULL;
         uint64_t size = numa_info[i].node_mem;
         HostMemoryBackend *backend = numa_info[i].node_memdev;
         if (!backend) {
             continue;
         }
-        MemoryRegion *seg = host_memory_backend_get_memory(backend, &local_err);
-        if (local_err) {
-            error_report_err(local_err);
-            exit(1);
-        }
+        MemoryRegion *seg = host_memory_backend_get_memory(backend,
+                                                           &error_fatal);
 
         if (memory_region_is_mapped(seg)) {
             char *path = object_get_canonical_path_component(OBJECT(backend));
@@ -392,9 +480,9 @@ static void numa_stat_memory_devices(uint64_t node_mem[])
         MemoryDeviceInfo *value = info->value;
 
         if (value) {
-            switch (value->kind) {
+            switch (value->type) {
             case MEMORY_DEVICE_INFO_KIND_DIMM:
-                node_mem[value->dimm->node] += value->dimm->size;
+                node_mem[value->u.dimm.data->node] += value->u.dimm.data->size;
                 break;
             default:
                 break;
@@ -422,7 +510,6 @@ static int query_memdev(Object *obj, void *opaque)
 {
     MemdevList **list = opaque;
     MemdevList *m = NULL;
-    Error *err = NULL;
 
     if (object_dynamic_cast(obj, TYPE_MEMORY_BACKEND)) {
         m = g_malloc0(sizeof(*m));
@@ -430,72 +517,34 @@ static int query_memdev(Object *obj, void *opaque)
         m->value = g_malloc0(sizeof(*m->value));
 
         m->value->size = object_property_get_int(obj, "size",
-                                                 &err);
-        if (err) {
-            goto error;
-        }
-
+                                                 &error_abort);
         m->value->merge = object_property_get_bool(obj, "merge",
-                                                   &err);
-        if (err) {
-            goto error;
-        }
-
+                                                   &error_abort);
         m->value->dump = object_property_get_bool(obj, "dump",
-                                                  &err);
-        if (err) {
-            goto error;
-        }
-
+                                                  &error_abort);
         m->value->prealloc = object_property_get_bool(obj,
-                                                      "prealloc", &err);
-        if (err) {
-            goto error;
-        }
-
+                                                      "prealloc",
+                                                      &error_abort);
         m->value->policy = object_property_get_enum(obj,
                                                     "policy",
                                                     "HostMemPolicy",
-                                                    &err);
-        if (err) {
-            goto error;
-        }
-
+                                                    &error_abort);
         object_property_get_uint16List(obj, "host-nodes",
-                                       &m->value->host_nodes, &err);
-        if (err) {
-            goto error;
-        }
+                                       &m->value->host_nodes,
+                                       &error_abort);
 
         m->next = *list;
         *list = m;
     }
 
     return 0;
-error:
-    g_free(m->value);
-    g_free(m);
-
-    return -1;
 }
 
 MemdevList *qmp_query_memdev(Error **errp)
 {
-    Object *obj;
+    Object *obj = object_get_objects_root();
     MemdevList *list = NULL;
 
-    obj = object_get_objects_root();
-    if (obj == NULL) {
-        return NULL;
-    }
-
-    if (object_child_foreach(obj, query_memdev, &list) != 0) {
-        goto error;
-    }
-
+    object_child_foreach(obj, query_memdev, &list);
     return list;
-
-error:
-    qapi_free_MemdevList(list);
-    return NULL;
 }

@@ -56,8 +56,19 @@ struct virtio_gpu_requested_state {
     int x, y;
 };
 
+enum virtio_gpu_conf_flags {
+    VIRTIO_GPU_FLAG_VIRGL_ENABLED = 1,
+    VIRTIO_GPU_FLAG_STATS_ENABLED,
+};
+
+#define virtio_gpu_virgl_enabled(_cfg) \
+    (_cfg.flags & (1 << VIRTIO_GPU_FLAG_VIRGL_ENABLED))
+#define virtio_gpu_stats_enabled(_cfg) \
+    (_cfg.flags & (1 << VIRTIO_GPU_FLAG_STATS_ENABLED))
+
 struct virtio_gpu_conf {
     uint32_t max_outputs;
+    uint32_t flags;
 };
 
 struct virtio_gpu_ctrl_command {
@@ -65,6 +76,7 @@ struct virtio_gpu_ctrl_command {
     VirtQueue *vq;
     struct virtio_gpu_ctrl_hdr cmd_hdr;
     uint32_t error;
+    bool waiting;
     bool finished;
     QTAILQ_ENTRY(virtio_gpu_ctrl_command) next;
 };
@@ -83,6 +95,7 @@ typedef struct VirtIOGPU {
     DeviceState *qdev;
 
     QTAILQ_HEAD(, virtio_gpu_simple_resource) reslist;
+    QTAILQ_HEAD(, virtio_gpu_ctrl_command) cmdq;
     QTAILQ_HEAD(, virtio_gpu_ctrl_command) fenceq;
 
     struct virtio_gpu_scanout scanout[VIRTIO_GPU_MAX_SCANOUT];
@@ -92,11 +105,14 @@ typedef struct VirtIOGPU {
     int enabled_output_bitmask;
     struct virtio_gpu_config virtio_config;
 
+    bool use_virgl_renderer;
+    bool renderer_inited;
+    bool renderer_blocked;
     QEMUTimer *fence_poll;
     QEMUTimer *print_stats;
 
+    uint32_t inflight;
     struct {
-        uint32_t inflight;
         uint32_t max_inflight;
         uint32_t requests;
         uint32_t req_3d;
@@ -111,9 +127,6 @@ extern const GraphicHwOps virtio_gpu_ops;
     DEFINE_PROP_BIT("ioeventfd", _state, flags,                \
                     VIRTIO_PCI_FLAG_USE_IOEVENTFD_BIT, false), \
     DEFINE_PROP_UINT32("vectors", _state, nvectors, 3)
-
-#define DEFINE_VIRTIO_GPU_PROPERTIES(_state, _conf_field)               \
-    DEFINE_PROP_UINT32("max_outputs", _state, _conf_field.max_outputs, 1)
 
 #define VIRTIO_GPU_FILL_CMD(out) do {                                   \
         size_t s;                                                       \
@@ -141,5 +154,13 @@ int virtio_gpu_create_mapping_iov(struct virtio_gpu_resource_attach_backing *ab,
                                   struct virtio_gpu_ctrl_command *cmd,
                                   struct iovec **iov);
 void virtio_gpu_cleanup_mapping_iov(struct iovec *iov, uint32_t count);
+void virtio_gpu_process_cmdq(VirtIOGPU *g);
+
+/* virtio-gpu-3d.c */
+void virtio_gpu_virgl_process_cmd(VirtIOGPU *g,
+                                  struct virtio_gpu_ctrl_command *cmd);
+void virtio_gpu_virgl_fence_poll(VirtIOGPU *g);
+void virtio_gpu_virgl_reset(VirtIOGPU *g);
+int virtio_gpu_virgl_init(VirtIOGPU *g);
 
 #endif

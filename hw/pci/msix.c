@@ -14,10 +14,12 @@
  * GNU GPL, version 2 or (at your option) any later version.
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/pci/msi.h"
 #include "hw/pci/msix.h"
 #include "hw/pci/pci.h"
+#include "hw/xen/xen.h"
 #include "qemu/range.h"
 
 #define MSIX_CAP_LENGTH 12
@@ -77,8 +79,15 @@ static void msix_clr_pending(PCIDevice *dev, int vector)
 
 static bool msix_vector_masked(PCIDevice *dev, unsigned int vector, bool fmask)
 {
-    unsigned offset = vector * PCI_MSIX_ENTRY_SIZE + PCI_MSIX_ENTRY_VECTOR_CTRL;
-    return fmask || dev->msix_table[offset] & PCI_MSIX_ENTRY_CTRL_MASKBIT;
+    unsigned offset = vector * PCI_MSIX_ENTRY_SIZE;
+    uint8_t *data = &dev->msix_table[offset + PCI_MSIX_ENTRY_DATA];
+    /* MSIs on Xen can be remapped into pirqs. In those cases, masking
+     * and unmasking go through the PV evtchn path. */
+    if (xen_enabled() && xen_is_pirq_msi(pci_get_long(data))) {
+        return false;
+    }
+    return fmask || dev->msix_table[offset + PCI_MSIX_ENTRY_VECTOR_CTRL] &
+        PCI_MSIX_ENTRY_CTRL_MASKBIT;
 }
 
 bool msix_is_masked(PCIDevice *dev, unsigned int vector)
@@ -200,8 +209,14 @@ static uint64_t msix_pba_mmio_read(void *opaque, hwaddr addr,
     return pci_get_long(dev->msix_pba + addr);
 }
 
+static void msix_pba_mmio_write(void *opaque, hwaddr addr,
+                                uint64_t val, unsigned size)
+{
+}
+
 static const MemoryRegionOps msix_pba_mmio_ops = {
     .read = msix_pba_mmio_read,
+    .write = msix_pba_mmio_write,
     .endianness = DEVICE_LITTLE_ENDIAN,
     .valid = {
         .min_access_size = 4,
@@ -234,7 +249,7 @@ int msix_init(struct PCIDevice *dev, unsigned short nentries,
     uint8_t *config;
 
     /* Nothing to do if MSI is not supported by interrupt controller */
-    if (!msi_supported) {
+    if (!msi_nonbroken) {
         return -ENOTSUP;
     }
 
@@ -314,9 +329,7 @@ int msix_init_exclusive_bar(PCIDevice *dev, unsigned short nentries,
         bar_size = bar_pba_offset + bar_pba_size;
     }
 
-    if (bar_size & (bar_size - 1)) {
-        bar_size = 1 << qemu_fls(bar_size);
-    }
+    bar_size = pow2ceil(bar_size);
 
     name = g_strdup_printf("%s-msix", dev->name);
     memory_region_init(&dev->msix_exclusive_bar, OBJECT(dev), name, bar_size);

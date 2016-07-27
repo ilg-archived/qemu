@@ -2,8 +2,10 @@
 #define __HW_SPAPR_H__
 
 #include "sysemu/dma.h"
+#include "hw/boards.h"
 #include "hw/ppc/xics.h"
 #include "hw/ppc/spapr_drc.h"
+#include "hw/mem/pc-dimm.h"
 
 struct VIOsPAPRBus;
 struct sPAPRPHBState;
@@ -12,15 +14,44 @@ typedef struct sPAPRConfigureConnectorState sPAPRConfigureConnectorState;
 typedef struct sPAPREventLogEntry sPAPREventLogEntry;
 
 #define HPTE64_V_HPTE_DIRTY     0x0000000000000040ULL
+#define SPAPR_ENTRY_POINT       0x100
 
-typedef struct sPAPREnvironment {
+typedef struct sPAPRMachineClass sPAPRMachineClass;
+typedef struct sPAPRMachineState sPAPRMachineState;
+
+#define TYPE_SPAPR_MACHINE      "spapr-machine"
+#define SPAPR_MACHINE(obj) \
+    OBJECT_CHECK(sPAPRMachineState, (obj), TYPE_SPAPR_MACHINE)
+#define SPAPR_MACHINE_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(sPAPRMachineClass, obj, TYPE_SPAPR_MACHINE)
+#define SPAPR_MACHINE_CLASS(klass) \
+    OBJECT_CLASS_CHECK(sPAPRMachineClass, klass, TYPE_SPAPR_MACHINE)
+
+/**
+ * sPAPRMachineClass:
+ */
+struct sPAPRMachineClass {
+    /*< private >*/
+    MachineClass parent_class;
+
+    /*< public >*/
+    bool dr_lmb_enabled;       /* enable dynamic-reconfig/hotplug of LMBs */
+    bool use_ohci_by_default;  /* use USB-OHCI instead of XHCI */
+};
+
+/**
+ * sPAPRMachineState:
+ */
+struct sPAPRMachineState {
+    /*< private >*/
+    MachineState parent_obj;
+
     struct VIOsPAPRBus *vio_bus;
     QLIST_HEAD(, sPAPRPHBState) phbs;
     struct sPAPRNVRAM *nvram;
     XICSState *icp;
     DeviceState *rtc;
 
-    hwaddr ram_limit;
     void *htab;
     uint32_t htab_shift;
     hwaddr rma_size;
@@ -29,7 +60,6 @@ typedef struct sPAPREnvironment {
     ssize_t rtas_size;
     void *rtas_blob;
     void *fdt_skel;
-    target_ulong entry_point;
     uint64_t rtc_offset; /* Now used only during incoming migration */
     struct PPCTimebase tb;
     bool has_graphics;
@@ -42,11 +72,14 @@ typedef struct sPAPREnvironment {
     int htab_save_index;
     bool htab_first_pass;
     int htab_fd;
-    bool htab_fd_stale;
 
     /* RTAS state */
     QTAILQ_HEAD(, sPAPRConfigureConnectorState) ccs_list;
-} sPAPREnvironment;
+
+    /*< public >*/
+    char *kvm_type;
+    MemoryHotplugState hotplug_memory;
+};
 
 #define H_SUCCESS         0
 #define H_BUSY            1        /* Hardware busy -- retry later */
@@ -170,11 +203,6 @@ typedef struct sPAPREnvironment {
 /* Flags for H_SET_MODE_RESOURCE_LE */
 #define H_SET_MODE_ENDIAN_BIG    0
 #define H_SET_MODE_ENDIAN_LITTLE 1
-
-/* Flags for H_SET_MODE_RESOURCE_ADDR_TRANS_MODE */
-#define H_SET_MODE_ADDR_TRANS_NONE                  0
-#define H_SET_MODE_ADDR_TRANS_0001_8000             2
-#define H_SET_MODE_ADDR_TRANS_C000_0000_0000_4000   3
 
 /* VASI States */
 #define H_VASI_INVALID    0
@@ -301,6 +329,7 @@ typedef struct sPAPREnvironment {
 #define H_SET_MPP               0x2D0
 #define H_GET_MPP               0x2D4
 #define H_XIRR_X                0x2FC
+#define H_RANDOM                0x300
 #define H_SET_MODE              0x31C
 #define MAX_HCALL_OPCODE        H_SET_MODE
 
@@ -319,23 +348,16 @@ typedef struct sPAPREnvironment {
 #define KVMPPC_H_CAS            (KVMPPC_HCALL_BASE + 0x2)
 #define KVMPPC_HCALL_MAX        KVMPPC_H_CAS
 
-extern sPAPREnvironment *spapr;
-
 typedef struct sPAPRDeviceTreeUpdateHeader {
     uint32_t version_id;
 } sPAPRDeviceTreeUpdateHeader;
 
-/*#define DEBUG_SPAPR_HCALLS*/
-
-#ifdef DEBUG_SPAPR_HCALLS
 #define hcall_dprintf(fmt, ...) \
-    do { fprintf(stderr, "%s: " fmt, __func__, ## __VA_ARGS__); } while (0)
-#else
-#define hcall_dprintf(fmt, ...) \
-    do { } while (0)
-#endif
+    do { \
+        qemu_log_mask(LOG_GUEST_ERROR, "%s: " fmt, __func__, ## __VA_ARGS__); \
+    } while (0)
 
-typedef target_ulong (*spapr_hcall_fn)(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+typedef target_ulong (*spapr_hcall_fn)(PowerPCCPU *cpu, sPAPRMachineState *sm,
                                        target_ulong opcode,
                                        target_ulong *args);
 
@@ -380,13 +402,15 @@ int spapr_allocate_irq_block(int num, bool lsi, bool msi);
 #define RTAS_SLOT_PERM_ERR_LOG           2
 
 /* RTAS return codes */
-#define RTAS_OUT_SUCCESS            0
-#define RTAS_OUT_NO_ERRORS_FOUND    1
-#define RTAS_OUT_HW_ERROR           -1
-#define RTAS_OUT_BUSY               -2
-#define RTAS_OUT_PARAM_ERROR        -3
-#define RTAS_OUT_NOT_SUPPORTED      -3
-#define RTAS_OUT_NOT_AUTHORIZED     -9002
+#define RTAS_OUT_SUCCESS                        0
+#define RTAS_OUT_NO_ERRORS_FOUND                1
+#define RTAS_OUT_HW_ERROR                       -1
+#define RTAS_OUT_BUSY                           -2
+#define RTAS_OUT_PARAM_ERROR                    -3
+#define RTAS_OUT_NOT_SUPPORTED                  -3
+#define RTAS_OUT_NO_SUCH_INDICATOR              -3
+#define RTAS_OUT_NOT_AUTHORIZED                 -9002
+#define RTAS_OUT_SYSPARM_PARAM_ERROR            -9999
 
 /* RTAS tokens */
 #define RTAS_TOKEN_BASE      0x2000
@@ -466,36 +490,22 @@ static inline uint32_t rtas_ld(target_ulong phys, int n)
     return ldl_be_phys(&address_space_memory, ppc64_phys_to_real(phys + 4*n));
 }
 
+static inline uint64_t rtas_ldq(target_ulong phys, int n)
+{
+    return (uint64_t)rtas_ld(phys, n) << 32 | rtas_ld(phys, n + 1);
+}
+
 static inline void rtas_st(target_ulong phys, int n, uint32_t val)
 {
     stl_be_phys(&address_space_memory, ppc64_phys_to_real(phys + 4*n), val);
 }
 
-static inline void rtas_st_buffer_direct(target_ulong phys,
-                                         target_ulong phys_len,
-                                         uint8_t *buffer, uint16_t buffer_len)
-{
-    cpu_physical_memory_write(ppc64_phys_to_real(phys), buffer,
-                              MIN(buffer_len, phys_len));
-}
-
-static inline void rtas_st_buffer(target_ulong phys, target_ulong phys_len,
-                                  uint8_t *buffer, uint16_t buffer_len)
-{
-    if (phys_len < 2) {
-        return;
-    }
-    stw_be_phys(&address_space_memory,
-                ppc64_phys_to_real(phys), buffer_len);
-    rtas_st_buffer_direct(phys + 2, phys_len - 2, buffer, buffer_len);
-}
-
-typedef void (*spapr_rtas_fn)(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+typedef void (*spapr_rtas_fn)(PowerPCCPU *cpu, sPAPRMachineState *sm,
                               uint32_t token,
                               uint32_t nargs, target_ulong args,
                               uint32_t nret, target_ulong rets);
 void spapr_rtas_register(int token, const char *name, spapr_rtas_fn fn);
-target_ulong spapr_rtas_call(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+target_ulong spapr_rtas_call(PowerPCCPU *cpu, sPAPRMachineState *sm,
                              uint32_t token, uint32_t nargs, target_ulong args,
                              uint32_t nret, target_ulong rets);
 int spapr_rtas_device_tree_setup(void *fdt, hwaddr rtas_addr,
@@ -530,7 +540,7 @@ struct sPAPRTCETable {
     uint32_t page_shift;
     uint64_t *table;
     bool bypass;
-    bool vfio_accel;
+    bool need_vfio;
     int fd;
     MemoryRegion iommu;
     struct VIOsPAPRDevice *vdev; /* for @bypass migration compatibility only */
@@ -546,22 +556,30 @@ struct sPAPREventLogEntry {
     QTAILQ_ENTRY(sPAPREventLogEntry) next;
 };
 
-void spapr_events_init(sPAPREnvironment *spapr);
+void spapr_events_init(sPAPRMachineState *sm);
 void spapr_events_fdt_skel(void *fdt, uint32_t epow_irq);
-int spapr_h_cas_compose_response(target_ulong addr, target_ulong size);
+int spapr_h_cas_compose_response(sPAPRMachineState *sm,
+                                 target_ulong addr, target_ulong size,
+                                 bool cpu_update, bool memory_update);
 sPAPRTCETable *spapr_tce_new_table(DeviceState *owner, uint32_t liobn,
                                    uint64_t bus_offset,
                                    uint32_t page_shift,
                                    uint32_t nb_table,
-                                   bool vfio_accel);
+                                   bool need_vfio);
+void spapr_tce_set_need_vfio(sPAPRTCETable *tcet, bool need_vfio);
+
 MemoryRegion *spapr_tce_get_iommu(sPAPRTCETable *tcet);
 int spapr_dma_dt(void *fdt, int node_off, const char *propname,
                  uint32_t liobn, uint64_t window, uint32_t size);
 int spapr_tcet_dma_dt(void *fdt, int node_off, const char *propname,
                       sPAPRTCETable *tcet);
 void spapr_pci_switch_vga(bool big_endian);
-void spapr_hotplug_req_add_event(sPAPRDRConnector *drc);
-void spapr_hotplug_req_remove_event(sPAPRDRConnector *drc);
+void spapr_hotplug_req_add_by_index(sPAPRDRConnector *drc);
+void spapr_hotplug_req_remove_by_index(sPAPRDRConnector *drc);
+void spapr_hotplug_req_add_by_count(sPAPRDRConnectorType drc_type,
+                                       uint32_t count);
+void spapr_hotplug_req_remove_by_count(sPAPRDRConnectorType drc_type,
+                                          uint32_t count);
 
 /* rtas-configure-connector state */
 struct sPAPRConfigureConnectorState {
@@ -574,8 +592,35 @@ struct sPAPRConfigureConnectorState {
 void spapr_ccs_reset_hook(void *opaque);
 
 #define TYPE_SPAPR_RTC "spapr-rtc"
+#define TYPE_SPAPR_RNG "spapr-rng"
 
 void spapr_rtc_read(DeviceState *dev, struct tm *tm, uint32_t *ns);
 int spapr_rtc_import_offset(DeviceState *dev, int64_t legacy_offset);
+
+int spapr_rng_populate_dt(void *fdt);
+
+#define SPAPR_MEMORY_BLOCK_SIZE (1 << 28) /* 256MB */
+
+/*
+ * This defines the maximum number of DIMM slots we can have for sPAPR
+ * guest. This is not defined by sPAPR but we are defining it to 32 slots
+ * based on default number of slots provided by PowerPC kernel.
+ */
+#define SPAPR_MAX_RAM_SLOTS     32
+
+/* 1GB alignment for hotplug memory region */
+#define SPAPR_HOTPLUG_MEM_ALIGN (1ULL << 30)
+
+/*
+ * Number of 32 bit words in each LMB list entry in ibm,dynamic-memory
+ * property under ibm,dynamic-reconfiguration-memory node.
+ */
+#define SPAPR_DR_LMB_LIST_ENTRY_SIZE 6
+
+/*
+ * This flag value defines the LMB as assigned in ibm,dynamic-memory
+ * property under ibm,dynamic-reconfiguration-memory node.
+ */
+#define SPAPR_LMB_FLAGS_ASSIGNED 0x00000008
 
 #endif /* !defined (__HW_SPAPR_H__) */

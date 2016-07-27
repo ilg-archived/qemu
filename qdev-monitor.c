@@ -17,6 +17,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "hw/qdev.h"
 #include "hw/sysbus.h"
 #include "monitor/monitor.h"
@@ -26,6 +27,7 @@
 #include "qapi/qmp/qerror.h"
 #include "qemu/config-file.h"
 #include "qemu/error-report.h"
+#include "qemu/help_option.h"
 
 /*
  * Aliases were a bad idea from the start.  Let's keep them
@@ -38,18 +40,39 @@ typedef struct QDevAlias
     uint32_t arch_mask;
 } QDevAlias;
 
+/* Please keep this table sorted by typename. */
 static const QDevAlias qdev_alias_table[] = {
-    { "virtio-blk-pci", "virtio-blk", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
-    { "virtio-net-pci", "virtio-net", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
-    { "virtio-serial-pci", "virtio-serial", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "e1000", "e1000-82540em" },
+    { "ich9-ahci", "ahci" },
+    { "kvm-pci-assign", "pci-assign" },
+    { "lsi53c895a", "lsi" },
+    { "virtio-9p-ccw", "virtio-9p", QEMU_ARCH_S390X },
+    { "virtio-9p-pci", "virtio-9p", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-balloon-ccw", "virtio-balloon", QEMU_ARCH_S390X },
     { "virtio-balloon-pci", "virtio-balloon",
             QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
     { "virtio-blk-ccw", "virtio-blk", QEMU_ARCH_S390X },
+    { "virtio-blk-pci", "virtio-blk", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-gpu-ccw", "virtio-gpu", QEMU_ARCH_S390X },
+    { "virtio-gpu-pci", "virtio-gpu", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-input-host-ccw", "virtio-input-host", QEMU_ARCH_S390X },
+    { "virtio-input-host-pci", "virtio-input-host",
+            QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-keyboard-ccw", "virtio-keyboard", QEMU_ARCH_S390X },
+    { "virtio-keyboard-pci", "virtio-keyboard",
+            QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-mouse-ccw", "virtio-mouse", QEMU_ARCH_S390X },
+    { "virtio-mouse-pci", "virtio-mouse", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
     { "virtio-net-ccw", "virtio-net", QEMU_ARCH_S390X },
+    { "virtio-net-pci", "virtio-net", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-rng-ccw", "virtio-rng", QEMU_ARCH_S390X },
+    { "virtio-rng-pci", "virtio-rng", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-scsi-ccw", "virtio-scsi", QEMU_ARCH_S390X },
+    { "virtio-scsi-pci", "virtio-scsi", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
     { "virtio-serial-ccw", "virtio-serial", QEMU_ARCH_S390X },
-    { "lsi53c895a", "lsi" },
-    { "ich9-ahci", "ahci" },
-    { "kvm-pci-assign", "pci-assign" },
+    { "virtio-serial-pci", "virtio-serial", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
+    { "virtio-tablet-ccw", "virtio-tablet", QEMU_ARCH_S390X },
+    { "virtio-tablet-pci", "virtio-tablet", QEMU_ARCH_ALL & ~QEMU_ARCH_S390X },
     { }
 };
 
@@ -186,6 +209,7 @@ static DeviceClass *qdev_get_device_class(const char **driver, Error **errp)
 {
     ObjectClass *oc;
     DeviceClass *dc;
+    const char *original_name = *driver;
 
     oc = object_class_by_name(*driver);
     if (!oc) {
@@ -198,7 +222,12 @@ static DeviceClass *qdev_get_device_class(const char **driver, Error **errp)
     }
 
     if (!object_class_dynamic_cast(oc, TYPE_DEVICE)) {
-        error_setg(errp, "'%s' is not a valid device model name", *driver);
+        if (*driver != original_name) {
+            error_setg(errp, "'%s' (alias '%s') is not a valid device model"
+                       " name", original_name, *driver);
+        } else {
+            error_setg(errp, "'%s' is not a valid device model name", *driver);
+        }
         return NULL;
     }
 
@@ -237,9 +266,12 @@ int qdev_device_help(QemuOpts *opts)
         return 0;
     }
 
-    qdev_get_device_class(&driver, &local_err);
-    if (local_err) {
-        goto error;
+    if (!object_class_by_name(driver)) {
+        const char *typename = find_typename_by_alias(driver);
+
+        if (typename) {
+            driver = typename;
+        }
     }
 
     prop_list = qmp_device_list_properties(driver, &local_err);
@@ -262,8 +294,7 @@ int qdev_device_help(QemuOpts *opts)
     return 1;
 
 error:
-    error_printf("%s\n", error_get_pretty(local_err));
-    error_free(local_err);
+    error_report_err(local_err);
     return 1;
 }
 
@@ -289,37 +320,37 @@ static Object *qdev_get_peripheral_anon(void)
     return dev;
 }
 
-#if 0 /* conversion from qerror_report() to error_set() broke their use */
-static void qbus_list_bus(DeviceState *dev)
+static void qbus_list_bus(DeviceState *dev, Error **errp)
 {
     BusState *child;
     const char *sep = " ";
 
-    error_printf("child buses at \"%s\":",
-                 dev->id ? dev->id : object_get_typename(OBJECT(dev)));
+    error_append_hint(errp, "child buses at \"%s\":",
+                      dev->id ? dev->id : object_get_typename(OBJECT(dev)));
     QLIST_FOREACH(child, &dev->child_bus, sibling) {
-        error_printf("%s\"%s\"", sep, child->name);
+        error_append_hint(errp, "%s\"%s\"", sep, child->name);
         sep = ", ";
     }
-    error_printf("\n");
+    error_append_hint(errp, "\n");
 }
 
-static void qbus_list_dev(BusState *bus)
+static void qbus_list_dev(BusState *bus, Error **errp)
 {
     BusChild *kid;
     const char *sep = " ";
 
-    error_printf("devices at \"%s\":", bus->name);
+    error_append_hint(errp, "devices at \"%s\":", bus->name);
     QTAILQ_FOREACH(kid, &bus->children, sibling) {
         DeviceState *dev = kid->child;
-        error_printf("%s\"%s\"", sep, object_get_typename(OBJECT(dev)));
-        if (dev->id)
-            error_printf("/\"%s\"", dev->id);
+        error_append_hint(errp, "%s\"%s\"", sep,
+                          object_get_typename(OBJECT(dev)));
+        if (dev->id) {
+            error_append_hint(errp, "/\"%s\"", dev->id);
+        }
         sep = ", ";
     }
-    error_printf("\n");
+    error_append_hint(errp, "\n");
 }
-#endif
 
 static BusState *qbus_find_bus(DeviceState *dev, char *elem)
 {
@@ -461,11 +492,7 @@ static BusState *qbus_find(const char *path, Error **errp)
         if (!dev) {
             error_set(errp, ERROR_CLASS_DEVICE_NOT_FOUND,
                       "Device '%s' not found", elem);
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-            if (!monitor_cur_is_qmp()) {
-                qbus_list_dev(bus);
-            }
-#endif
+            qbus_list_dev(bus, errp);
             return NULL;
         }
 
@@ -483,11 +510,7 @@ static BusState *qbus_find(const char *path, Error **errp)
             if (dev->num_child_bus) {
                 error_setg(errp, "Device '%s' has multiple child buses",
                            elem);
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-                if (!monitor_cur_is_qmp()) {
-                    qbus_list_bus(dev);
-                }
-#endif
+                qbus_list_bus(dev, errp);
             } else {
                 error_setg(errp, "Device '%s' has no child bus", elem);
             }
@@ -503,11 +526,7 @@ static BusState *qbus_find(const char *path, Error **errp)
         bus = qbus_find_bus(dev, elem);
         if (!bus) {
             error_setg(errp, "Bus '%s' not found", elem);
-#if 0 /* conversion from qerror_report() to error_set() broke this: */
-            if (!monitor_cur_is_qmp()) {
-                qbus_list_bus(dev);
-            }
-#endif
+            qbus_list_bus(dev, errp);
             return NULL;
         }
     }
@@ -785,16 +804,26 @@ void qmp_device_add(QDict *qdict, QObject **ret_data, Error **errp)
 void qmp_device_del(const char *id, Error **errp)
 {
     Object *obj;
-    char *root_path = object_get_canonical_path(qdev_get_peripheral());
-    char *path = g_strdup_printf("%s/%s", root_path, id);
 
-    g_free(root_path);
-    obj = object_resolve_path_type(path, TYPE_DEVICE, NULL);
-    g_free(path);
+    if (id[0] == '/') {
+        obj = object_resolve_path(id, NULL);
+    } else {
+        char *root_path = object_get_canonical_path(qdev_get_peripheral());
+        char *path = g_strdup_printf("%s/%s", root_path, id);
+
+        g_free(root_path);
+        obj = object_resolve_path_type(path, TYPE_DEVICE, NULL);
+        g_free(path);
+    }
 
     if (!obj) {
         error_set(errp, ERROR_CLASS_DEVICE_NOT_FOUND,
                   "Device '%s' not found", id);
+        return;
+    }
+
+    if (!object_dynamic_cast(obj, TYPE_DEVICE)) {
+        error_setg(errp, "%s is not a hotpluggable device", id);
         return;
     }
 

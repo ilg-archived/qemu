@@ -19,6 +19,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program; if not, see <http://www.gnu.org/licenses/>.  */
 
+#include "qemu/osdep.h"
 #include "disas/bfd.h"
 
 /* mips.h.  Mips opcode list for GDB, the GNU debugger.
@@ -1296,12 +1297,12 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dmod",    "d,s,t",    0x000000de, 0xfc0007ff, WR_d|RD_s|RD_t,       0, I64R6},
 {"ddivu",   "d,s,t",    0x0000009f, 0xfc0007ff, WR_d|RD_s|RD_t,       0, I64R6},
 {"dmodu",   "d,s,t",    0x000000df, 0xfc0007ff, WR_d|RD_s|RD_t,       0, I64R6},
-{"ll",      "t,o(b)",   0x7c000036, 0xfc00007f, LDD|RD_b|WR_t,        0, I32R6},
-{"sc",      "t,o(b)",   0x7c000026, 0xfc00007f, LDD|RD_b|WR_t,        0, I32R6},
-{"lld",     "t,o(b)",   0x7c000037, 0xfc00007f, LDD|RD_b|WR_t,        0, I64R6},
-{"scd",     "t,o(b)",   0x7c000027, 0xfc00007f, LDD|RD_b|WR_t,        0, I64R6},
-{"pref",    "h,o(b)",   0x7c000035, 0xfc00007f, RD_b,                 0, I32R6},
-{"cache",   "k,o(b)",   0x7c000025, 0xfc00007f, RD_b,                 0, I32R6},
+{"ll",      "t,+o(b)",  0x7c000036, 0xfc00007f, LDD|RD_b|WR_t,        0, I32R6},
+{"sc",      "t,+o(b)",  0x7c000026, 0xfc00007f, LDD|RD_b|WR_t,        0, I32R6},
+{"lld",     "t,+o(b)",  0x7c000037, 0xfc00007f, LDD|RD_b|WR_t,        0, I64R6},
+{"scd",     "t,+o(b)",  0x7c000027, 0xfc00007f, LDD|RD_b|WR_t,        0, I64R6},
+{"pref",    "h,+o(b)",  0x7c000035, 0xfc00007f, RD_b,                 0, I32R6},
+{"cache",   "k,+o(b)",  0x7c000025, 0xfc00007f, RD_b,                 0, I32R6},
 {"seleqz",  "d,v,t",    0x00000035, 0xfc0007ff, WR_d|RD_s|RD_t,       0, I32R6},
 {"selnez",  "d,v,t",    0x00000037, 0xfc0007ff, WR_d|RD_s|RD_t,       0, I32R6},
 {"maddf.s", "D,S,T",    0x46000018, 0xffe0003f, WR_D|RD_S|RD_T|FP_S,  0, I32R6},
@@ -1404,6 +1405,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"cmp.sor.d",  "D,S,T", 0x46a00019, 0xffe0003f, RD_S|RD_T|WR_D|FP_D,  0, I32R6},
 {"cmp.sune.d", "D,S,T", 0x46a0001a, 0xffe0003f, RD_S|RD_T|WR_D|FP_D,  0, I32R6},
 {"cmp.sne.d",  "D,S,T", 0x46a0001b, 0xffe0003f, RD_S|RD_T|WR_D|FP_D,  0, I32R6},
+{"dvp",        "",      0x41600024, 0xffffffff, TRAP,                 0, I32R6},
+{"dvp",        "t",     0x41600024, 0xffe0ffff, TRAP|WR_t,            0, I32R6},
+{"evp",        "",      0x41600004, 0xffffffff, TRAP,                 0, I32R6},
+{"evp",        "t",     0x41600004, 0xffe0ffff, TRAP|WR_t,            0, I32R6},
 
 /* MSA */
 {"sll.b",   "+d,+e,+f", 0x7800000d, 0xffe0003f, WR_VD|RD_VS|RD_VT,  0, MSA},
@@ -2420,9 +2425,11 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"hibernate","",        0x42000023, 0xffffffff,	0, 			0,		V1	},
 {"ins",     "t,r,+A,+B", 0x7c000004, 0xfc00003f, WR_t|RD_s,    		0,		I33	},
 {"jr",      "s",	0x00000008, 0xfc1fffff,	UBD|RD_s,		0,		I1	},
+{"jr",      "s",	0x00000009, 0xfc1fffff,	UBD|RD_s,		0,		I32R6	}, /* jalr */
 /* jr.hb is officially MIPS{32,64}R2, but it works on R1 as jr with
    the same hazard barrier effect.  */
 {"jr.hb",   "s",	0x00000408, 0xfc1fffff,	UBD|RD_s,		0,		I32	},
+{"jr.hb",   "s",	0x00000409, 0xfc1fffff,	UBD|RD_s,		0,		I32R6	}, /* jalr.hb */
 {"j",       "s",	0x00000008, 0xfc1fffff,	UBD|RD_s,		0,		I1	}, /* jr */
 /* SVR4 PIC code requires special handling for j, so it must be a
    macro.  */

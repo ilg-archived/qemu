@@ -12,11 +12,14 @@
  *
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu/timer.h"
 #include "trace.h"
 #include "qed.h"
 #include "qapi/qmp/qerror.h"
 #include "migration/migration.h"
+#include "sysemu/block-backend.h"
 
 static const AIOCBInfo qed_aiocb_info = {
     .aiocb_size         = sizeof(QEDAIOCB),
@@ -82,7 +85,7 @@ int qed_write_header_sync(BDRVQEDState *s)
     int ret;
 
     qed_header_cpu_to_le(&s->header, &le);
-    ret = bdrv_pwrite(s->bs->file, 0, &le, sizeof(le));
+    ret = bdrv_pwrite(s->bs->file->bs, 0, &le, sizeof(le));
     if (ret != sizeof(le)) {
         return ret;
     }
@@ -119,7 +122,7 @@ static void qed_write_header_read_cb(void *opaque, int ret)
     /* Update header */
     qed_header_cpu_to_le(&s->header, (QEDHeader *)write_header_cb->buf);
 
-    bdrv_aio_writev(s->bs->file, 0, &write_header_cb->qiov,
+    bdrv_aio_writev(s->bs->file->bs, 0, &write_header_cb->qiov,
                     write_header_cb->nsectors, qed_write_header_cb,
                     write_header_cb);
 }
@@ -152,7 +155,7 @@ static void qed_write_header(BDRVQEDState *s, BlockCompletionFunc cb,
     write_header_cb->iov.iov_len = len;
     qemu_iovec_init_external(&write_header_cb->qiov, &write_header_cb->iov, 1);
 
-    bdrv_aio_readv(s->bs->file, 0, &write_header_cb->qiov, nsectors,
+    bdrv_aio_readv(s->bs->file->bs, 0, &write_header_cb->qiov, nsectors,
                    qed_write_header_read_cb, write_header_cb);
 }
 
@@ -344,7 +347,7 @@ static void qed_start_need_check_timer(BDRVQEDState *s)
      * migration.
      */
     timer_mod(s->need_check_timer, qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                   get_ticks_per_sec() * QED_NEED_CHECK_TIMEOUT);
+                   NANOSECONDS_PER_SECOND * QED_NEED_CHECK_TIMEOUT);
 }
 
 /* It's okay to call this multiple times or when no timer is started */
@@ -352,12 +355,6 @@ static void qed_cancel_need_check_timer(BDRVQEDState *s)
 {
     trace_qed_cancel_need_check_timer(s);
     timer_del(s->need_check_timer);
-}
-
-static void bdrv_qed_rebind(BlockDriverState *bs)
-{
-    BDRVQEDState *s = bs->opaque;
-    s->bs = bs;
 }
 
 static void bdrv_qed_detach_aio_context(BlockDriverState *bs)
@@ -392,7 +389,7 @@ static int bdrv_qed_open(BlockDriverState *bs, QDict *options, int flags,
     s->bs = bs;
     QSIMPLEQ_INIT(&s->allocating_write_reqs);
 
-    ret = bdrv_pread(bs->file, 0, &le_header, sizeof(le_header));
+    ret = bdrv_pread(bs->file->bs, 0, &le_header, sizeof(le_header));
     if (ret < 0) {
         return ret;
     }
@@ -404,11 +401,8 @@ static int bdrv_qed_open(BlockDriverState *bs, QDict *options, int flags,
     }
     if (s->header.features & ~QED_FEATURE_MASK) {
         /* image uses unsupported feature bits */
-        char buf[64];
-        snprintf(buf, sizeof(buf), "%" PRIx64,
-            s->header.features & ~QED_FEATURE_MASK);
-        error_setg(errp, QERR_UNKNOWN_BLOCK_FORMAT_FEATURE,
-                   bdrv_get_device_or_node_name(bs), "QED", buf);
+        error_setg(errp, "Unsupported QED features: %" PRIx64,
+                   s->header.features & ~QED_FEATURE_MASK);
         return -ENOTSUP;
     }
     if (!qed_is_cluster_size_valid(s->header.cluster_size)) {
@@ -416,7 +410,7 @@ static int bdrv_qed_open(BlockDriverState *bs, QDict *options, int flags,
     }
 
     /* Round down file size to the last cluster */
-    file_size = bdrv_getlength(bs->file);
+    file_size = bdrv_getlength(bs->file->bs);
     if (file_size < 0) {
         return file_size;
     }
@@ -452,7 +446,7 @@ static int bdrv_qed_open(BlockDriverState *bs, QDict *options, int flags,
             return -EINVAL;
         }
 
-        ret = qed_read_string(bs->file, s->header.backing_filename_offset,
+        ret = qed_read_string(bs->file->bs, s->header.backing_filename_offset,
                               s->header.backing_filename_size, bs->backing_file,
                               sizeof(bs->backing_file));
         if (ret < 0) {
@@ -471,7 +465,7 @@ static int bdrv_qed_open(BlockDriverState *bs, QDict *options, int flags,
      * feature is no longer valid.
      */
     if ((s->header.autoclear_features & ~QED_AUTOCLEAR_FEATURE_MASK) != 0 &&
-        !bdrv_is_read_only(bs->file) && !(flags & BDRV_O_INCOMING)) {
+        !bdrv_is_read_only(bs->file->bs) && !(flags & BDRV_O_INACTIVE)) {
         s->header.autoclear_features &= QED_AUTOCLEAR_FEATURE_MASK;
 
         ret = qed_write_header_sync(s);
@@ -480,7 +474,7 @@ static int bdrv_qed_open(BlockDriverState *bs, QDict *options, int flags,
         }
 
         /* From here on only known autoclear feature bits are valid */
-        bdrv_flush(bs->file);
+        bdrv_flush(bs->file->bs);
     }
 
     s->l1_table = qed_alloc_table(s);
@@ -498,8 +492,8 @@ static int bdrv_qed_open(BlockDriverState *bs, QDict *options, int flags,
          * potentially inconsistent images to be opened read-only.  This can
          * aid data recovery from an otherwise inconsistent image.
          */
-        if (!bdrv_is_read_only(bs->file) &&
-            !(flags & BDRV_O_INCOMING)) {
+        if (!bdrv_is_read_only(bs->file->bs) &&
+            !(flags & BDRV_O_INACTIVE)) {
             BdrvCheckResult result = {0};
 
             ret = qed_check(s, &result, true);
@@ -541,7 +535,7 @@ static void bdrv_qed_close(BlockDriverState *bs)
     bdrv_qed_detach_aio_context(bs);
 
     /* Ensure writes reach stable storage */
-    bdrv_flush(bs->file);
+    bdrv_flush(bs->file->bs);
 
     /* Clean shutdown, no check required on next open */
     if (s->header.features & QED_F_NEED_CHECK) {
@@ -573,7 +567,7 @@ static int qed_create(const char *filename, uint32_t cluster_size,
     size_t l1_size = header.cluster_size * header.table_size;
     Error *local_err = NULL;
     int ret = 0;
-    BlockDriverState *bs;
+    BlockBackend *blk;
 
     ret = bdrv_create_file(filename, opts, &local_err);
     if (ret < 0) {
@@ -581,17 +575,17 @@ static int qed_create(const char *filename, uint32_t cluster_size,
         return ret;
     }
 
-    bs = NULL;
-    ret = bdrv_open(&bs, filename, NULL, NULL,
-                    BDRV_O_RDWR | BDRV_O_CACHE_WB | BDRV_O_PROTOCOL, NULL,
-                    &local_err);
-    if (ret < 0) {
+    blk = blk_new_open(filename, NULL, NULL,
+                       BDRV_O_RDWR | BDRV_O_PROTOCOL, &local_err);
+    if (blk == NULL) {
         error_propagate(errp, local_err);
-        return ret;
+        return -EIO;
     }
 
+    blk_set_allow_write_beyond_eof(blk, true);
+
     /* File must start empty and grow, check truncate is supported */
-    ret = bdrv_truncate(bs, 0);
+    ret = blk_truncate(blk, 0);
     if (ret < 0) {
         goto out;
     }
@@ -607,18 +601,18 @@ static int qed_create(const char *filename, uint32_t cluster_size,
     }
 
     qed_header_cpu_to_le(&header, &le_header);
-    ret = bdrv_pwrite(bs, 0, &le_header, sizeof(le_header));
+    ret = blk_pwrite(blk, 0, &le_header, sizeof(le_header));
     if (ret < 0) {
         goto out;
     }
-    ret = bdrv_pwrite(bs, sizeof(le_header), backing_file,
-                      header.backing_filename_size);
+    ret = blk_pwrite(blk, sizeof(le_header), backing_file,
+                     header.backing_filename_size);
     if (ret < 0) {
         goto out;
     }
 
     l1_table = g_malloc0(l1_size);
-    ret = bdrv_pwrite(bs, header.l1_table_offset, l1_table, l1_size);
+    ret = blk_pwrite(blk, header.l1_table_offset, l1_table, l1_size);
     if (ret < 0) {
         goto out;
     }
@@ -626,7 +620,7 @@ static int qed_create(const char *filename, uint32_t cluster_size,
     ret = 0; /* success */
 out:
     g_free(l1_table);
-    bdrv_unref(bs);
+    blk_unref(blk);
     return ret;
 }
 
@@ -686,6 +680,7 @@ typedef struct {
     uint64_t pos;
     int64_t status;
     int *pnum;
+    BlockDriverState **file;
 } QEDIsAllocatedCB;
 
 static void qed_is_allocated_cb(void *opaque, int ret, uint64_t offset, size_t len)
@@ -697,6 +692,7 @@ static void qed_is_allocated_cb(void *opaque, int ret, uint64_t offset, size_t l
     case QED_CLUSTER_FOUND:
         offset |= qed_offset_into_cluster(s, cb->pos);
         cb->status = BDRV_BLOCK_DATA | BDRV_BLOCK_OFFSET_VALID | offset;
+        *cb->file = cb->bs->file->bs;
         break;
     case QED_CLUSTER_ZERO:
         cb->status = BDRV_BLOCK_ZERO;
@@ -718,7 +714,8 @@ static void qed_is_allocated_cb(void *opaque, int ret, uint64_t offset, size_t l
 
 static int64_t coroutine_fn bdrv_qed_co_get_block_status(BlockDriverState *bs,
                                                  int64_t sector_num,
-                                                 int nb_sectors, int *pnum)
+                                                 int nb_sectors, int *pnum,
+                                                 BlockDriverState **file)
 {
     BDRVQEDState *s = bs->opaque;
     size_t len = (size_t)nb_sectors * BDRV_SECTOR_SIZE;
@@ -727,6 +724,7 @@ static int64_t coroutine_fn bdrv_qed_co_get_block_status(BlockDriverState *bs,
         .pos = (uint64_t)sector_num * BDRV_SECTOR_SIZE,
         .status = BDRV_BLOCK_OFFSET_MASK,
         .pnum = pnum,
+        .file = file,
     };
     QEDRequest request = { .l2_table = NULL };
 
@@ -772,8 +770,8 @@ static void qed_read_backing_file(BDRVQEDState *s, uint64_t pos,
     /* If there is a backing file, get its length.  Treat the absence of a
      * backing file like a zero length backing file.
      */
-    if (s->bs->backing_hd) {
-        int64_t l = bdrv_getlength(s->bs->backing_hd);
+    if (s->bs->backing) {
+        int64_t l = bdrv_getlength(s->bs->backing->bs);
         if (l < 0) {
             cb(opaque, l);
             return;
@@ -802,7 +800,7 @@ static void qed_read_backing_file(BDRVQEDState *s, uint64_t pos,
     qemu_iovec_concat(*backing_qiov, qiov, 0, size);
 
     BLKDBG_EVENT(s->bs->file, BLKDBG_READ_BACKING_AIO);
-    bdrv_aio_readv(s->bs->backing_hd, pos / BDRV_SECTOR_SIZE,
+    bdrv_aio_readv(s->bs->backing->bs, pos / BDRV_SECTOR_SIZE,
                    *backing_qiov, size / BDRV_SECTOR_SIZE, cb, opaque);
 }
 
@@ -839,7 +837,7 @@ static void qed_copy_from_backing_file_write(void *opaque, int ret)
     }
 
     BLKDBG_EVENT(s->bs->file, BLKDBG_COW_WRITE);
-    bdrv_aio_writev(s->bs->file, copy_cb->offset / BDRV_SECTOR_SIZE,
+    bdrv_aio_writev(s->bs->file->bs, copy_cb->offset / BDRV_SECTOR_SIZE,
                     &copy_cb->qiov, copy_cb->qiov.size / BDRV_SECTOR_SIZE,
                     qed_copy_from_backing_file_cb, copy_cb);
 }
@@ -1055,7 +1053,7 @@ static void qed_aio_write_flush_before_l2_update(void *opaque, int ret)
     QEDAIOCB *acb = opaque;
     BDRVQEDState *s = acb_to_s(acb);
 
-    if (!bdrv_aio_flush(s->bs->file, qed_aio_write_l2_update_cb, opaque)) {
+    if (!bdrv_aio_flush(s->bs->file->bs, qed_aio_write_l2_update_cb, opaque)) {
         qed_aio_complete(acb, -EIO);
     }
 }
@@ -1081,7 +1079,7 @@ static void qed_aio_write_main(void *opaque, int ret)
     if (acb->find_cluster_ret == QED_CLUSTER_FOUND) {
         next_fn = qed_aio_next_io;
     } else {
-        if (s->bs->backing_hd) {
+        if (s->bs->backing) {
             next_fn = qed_aio_write_flush_before_l2_update;
         } else {
             next_fn = qed_aio_write_l2_update_cb;
@@ -1089,7 +1087,7 @@ static void qed_aio_write_main(void *opaque, int ret)
     }
 
     BLKDBG_EVENT(s->bs->file, BLKDBG_WRITE_AIO);
-    bdrv_aio_writev(s->bs->file, offset / BDRV_SECTOR_SIZE,
+    bdrv_aio_writev(s->bs->file->bs, offset / BDRV_SECTOR_SIZE,
                     &acb->cur_qiov, acb->cur_qiov.size / BDRV_SECTOR_SIZE,
                     next_fn, acb);
 }
@@ -1139,7 +1137,7 @@ static void qed_aio_write_prefill(void *opaque, int ret)
 static bool qed_should_set_need_check(BDRVQEDState *s)
 {
     /* The flush before L2 update path ensures consistency */
-    if (s->bs->backing_hd) {
+    if (s->bs->backing) {
         return false;
     }
 
@@ -1321,7 +1319,7 @@ static void qed_aio_read_data(void *opaque, int ret,
     }
 
     BLKDBG_EVENT(bs->file, BLKDBG_READ_AIO);
-    bdrv_aio_readv(bs->file, offset / BDRV_SECTOR_SIZE,
+    bdrv_aio_readv(bs->file->bs, offset / BDRV_SECTOR_SIZE,
                    &acb->cur_qiov, acb->cur_qiov.size / BDRV_SECTOR_SIZE,
                    qed_aio_next_io, acb);
     return;
@@ -1443,7 +1441,7 @@ static int coroutine_fn bdrv_qed_co_write_zeroes(BlockDriverState *bs,
     struct iovec iov;
 
     /* Refuse if there are untouched backing file sectors */
-    if (bs->backing_hd) {
+    if (bs->backing) {
         if (qed_offset_into_cluster(s, sector_num * BDRV_SECTOR_SIZE) != 0) {
             return -ENOTSUP;
         }
@@ -1580,7 +1578,7 @@ static int bdrv_qed_change_backing_file(BlockDriverState *bs,
     }
 
     /* Write new header */
-    ret = bdrv_pwrite_sync(bs->file, 0, buffer, buffer_len);
+    ret = bdrv_pwrite_sync(bs->file->bs, 0, buffer, buffer_len);
     g_free(buffer);
     if (ret == 0) {
         memcpy(&s->header, &new_header, sizeof(new_header));
@@ -1596,7 +1594,7 @@ static void bdrv_qed_invalidate_cache(BlockDriverState *bs, Error **errp)
 
     bdrv_qed_close(bs);
 
-    bdrv_invalidate_cache(bs->file, &local_err);
+    bdrv_invalidate_cache(bs->file->bs, &local_err);
     if (local_err) {
         error_propagate(errp, local_err);
         return;
@@ -1605,9 +1603,8 @@ static void bdrv_qed_invalidate_cache(BlockDriverState *bs, Error **errp)
     memset(s, 0, sizeof(BDRVQEDState));
     ret = bdrv_qed_open(bs, NULL, bs->open_flags, &local_err);
     if (local_err) {
-        error_setg(errp, "Could not reopen qed layer: %s",
-                   error_get_pretty(local_err));
-        error_free(local_err);
+        error_propagate(errp, local_err);
+        error_prepend(errp, "Could not reopen qed layer: ");
         return;
     } else if (ret < 0) {
         error_setg_errno(errp, -ret, "Could not reopen qed layer");
@@ -1664,7 +1661,6 @@ static BlockDriver bdrv_qed = {
     .supports_backing         = true,
 
     .bdrv_probe               = bdrv_qed_probe,
-    .bdrv_rebind              = bdrv_qed_rebind,
     .bdrv_open                = bdrv_qed_open,
     .bdrv_close               = bdrv_qed_close,
     .bdrv_reopen_prepare      = bdrv_qed_reopen_prepare,

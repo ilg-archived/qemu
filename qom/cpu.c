@@ -18,11 +18,14 @@
  * <http://www.gnu.org/licenses/gpl-2.0.html>
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "qom/cpu.h"
 #include "sysemu/kvm.h"
 #include "qemu/notify.h"
 #include "qemu/log.h"
+#include "exec/log.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
 
@@ -114,6 +117,8 @@ void cpu_reset_interrupt(CPUState *cpu, int mask)
 void cpu_exit(CPUState *cpu)
 {
     cpu->exit_request = 1;
+    /* Ensure cpu_exec will see the exit request after TCG has exited.  */
+    smp_wmb();
     cpu->tcg_exit_req = 1;
 }
 
@@ -128,7 +133,7 @@ int cpu_write_elf32_qemunote(WriteCoreDumpFunction f, CPUState *cpu,
 static int cpu_common_write_elf32_qemunote(WriteCoreDumpFunction f,
                                            CPUState *cpu, void *opaque)
 {
-    return -1;
+    return 0;
 }
 
 int cpu_write_elf32_note(WriteCoreDumpFunction f, CPUState *cpu,
@@ -157,7 +162,7 @@ int cpu_write_elf64_qemunote(WriteCoreDumpFunction f, CPUState *cpu,
 static int cpu_common_write_elf64_qemunote(WriteCoreDumpFunction f,
                                            CPUState *cpu, void *opaque)
 {
-    return -1;
+    return 0;
 }
 
 int cpu_write_elf64_note(WriteCoreDumpFunction f, CPUState *cpu,
@@ -184,6 +189,14 @@ static int cpu_common_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg)
 static int cpu_common_gdb_write_register(CPUState *cpu, uint8_t *buf, int reg)
 {
     return 0;
+}
+
+static bool cpu_common_debug_check_watchpoint(CPUState *cpu, CPUWatchpoint *wp)
+{
+    /* If no extra check is required, QEMU watchpoint match can be considered
+     * as an architectural match.
+     */
+    return true;
 }
 
 bool target_words_bigendian(void);
@@ -226,7 +239,7 @@ void cpu_reset(CPUState *cpu)
 {
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     qemu_log_function_name();
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     CPUClass *klass = CPU_GET_CLASS(cpu);
 
@@ -251,8 +264,9 @@ static void cpu_common_reset(CPUState *cpu)
     cpu->mem_io_vaddr = 0;
     cpu->icount_extra = 0;
     cpu->icount_decr.u32 = 0;
-    cpu->can_do_io = 0;
+    cpu->can_do_io = 1;
     cpu->exception_index = -1;
+    cpu->crash_occurred = false;
     memset(cpu->tb_jmp_cache, 0, TB_JMP_CACHE_SIZE * sizeof(void *));
 }
 
@@ -316,7 +330,16 @@ static void cpu_common_initfn(Object *obj)
     CPUState *cpu = CPU(obj);
     CPUClass *cc = CPU_GET_CLASS(obj);
 
+    cpu->cpu_index = -1;
     cpu->gdb_num_regs = cpu->gdb_num_g_regs = cc->gdb_num_core_regs;
+    qemu_mutex_init(&cpu->work_mutex);
+    QTAILQ_INIT(&cpu->breakpoints);
+    QTAILQ_INIT(&cpu->watchpoints);
+}
+
+static void cpu_common_finalize(Object *obj)
+{
+    cpu_exec_exit(CPU(obj));
 }
 
 static int64_t cpu_common_get_arch_id(CPUState *cpu)
@@ -344,6 +367,7 @@ static void cpu_class_init(ObjectClass *klass, void *data)
     k->gdb_write_register = cpu_common_gdb_write_register;
     k->virtio_is_big_endian = cpu_common_virtio_is_big_endian;
     k->debug_excp_handler = cpu_common_noop;
+    k->debug_check_watchpoint = cpu_common_debug_check_watchpoint;
     k->cpu_exec_enter = cpu_common_noop;
     k->cpu_exec_exit = cpu_common_noop;
     k->cpu_exec_interrupt = cpu_common_exec_interrupt;
@@ -360,6 +384,7 @@ static const TypeInfo cpu_type_info = {
     .parent = TYPE_DEVICE,
     .instance_size = sizeof(CPUState),
     .instance_init = cpu_common_initfn,
+    .instance_finalize = cpu_common_finalize,
     .abstract = true,
     .class_size = sizeof(CPUClass),
     .class_init = cpu_class_init,

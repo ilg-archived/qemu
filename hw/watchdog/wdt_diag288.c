@@ -11,6 +11,7 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include "sysemu/watchdog.h"
 #include "hw/sysbus.h"
 #include "qemu/timer.h"
@@ -40,11 +41,29 @@ static void wdt_diag288_reset(DeviceState *dev)
     timer_del(diag288->timer);
 }
 
+static void diag288_reset(void *opaque)
+{
+    DeviceState *diag288 = opaque;
+
+    wdt_diag288_reset(diag288);
+}
+
 static void diag288_timer_expired(void *dev)
 {
     qemu_log_mask(CPU_LOG_RESET, "Watchdog timer expired.\n");
+    /* Reset the watchdog only if the guest gets notified about
+     * expiry. watchdog_perform_action() may temporarily relinquish
+     * the BQL; reset before triggering the action to avoid races with
+     * diag288 instructions. */
+    switch (get_watchdog_action()) {
+    case WDT_DEBUG:
+    case WDT_NONE:
+    case WDT_PAUSE:
+        break;
+    default:
+        wdt_diag288_reset(dev);
+    }
     watchdog_perform_action();
-    wdt_diag288_reset(dev);
 }
 
 static int wdt_diag288_handle_timer(DIAG288State *diag288,
@@ -60,7 +79,7 @@ static int wdt_diag288_handle_timer(DIAG288State *diag288,
         }
         timer_mod(diag288->timer,
                   qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                  timeout * get_ticks_per_sec());
+                  timeout * NANOSECONDS_PER_SECOND);
         break;
     case WDT_DIAG288_CANCEL:
         if (!diag288->enabled) {
@@ -80,6 +99,7 @@ static void wdt_diag288_realize(DeviceState *dev, Error **errp)
 {
     DIAG288State *diag288 = DIAG288(dev);
 
+    qemu_register_reset(diag288_reset, diag288);
     diag288->timer = timer_new_ns(QEMU_CLOCK_VIRTUAL, diag288_timer_expired,
                                   dev);
 }

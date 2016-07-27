@@ -25,11 +25,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include "qemu/osdep.h"
 #include "qemu-common.h"
 #include "qemu/error-report.h"
 #include "qemu/iov.h"
 #include "qemu/sockets.h"
-#include "block/coroutine.h"
+#include "qemu/coroutine.h"
 #include "migration/migration.h"
 #include "migration/qemu-file.h"
 #include "migration/qemu-file-internal.h"
@@ -372,7 +373,8 @@ typedef struct QEMUBuffer {
     bool qsb_allocated;
 } QEMUBuffer;
 
-static int buf_get_buffer(void *opaque, uint8_t *buf, int64_t pos, int size)
+static ssize_t buf_get_buffer(void *opaque, uint8_t *buf, int64_t pos,
+                              size_t size)
 {
     QEMUBuffer *s = opaque;
     ssize_t len = qsb_get_length(s->qsb) - pos;
@@ -387,8 +389,8 @@ static int buf_get_buffer(void *opaque, uint8_t *buf, int64_t pos, int size)
     return qsb_get_buffer(s->qsb, pos, len, buf);
 }
 
-static int buf_put_buffer(void *opaque, const uint8_t *buf,
-                          int64_t pos, int size)
+static ssize_t buf_put_buffer(void *opaque, const uint8_t *buf,
+                              int64_t pos, size_t size)
 {
     QEMUBuffer *s = opaque;
 
@@ -439,7 +441,7 @@ QEMUFile *qemu_bufopen(const char *mode, QEMUSizedBuffer *input)
         return NULL;
     }
 
-    s = g_malloc0(sizeof(QEMUBuffer));
+    s = g_new0(QEMUBuffer, 1);
     s->qsb = input;
 
     if (s->qsb == NULL) {

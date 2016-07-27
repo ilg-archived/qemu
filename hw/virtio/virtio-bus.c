@@ -22,6 +22,7 @@
  *
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "qemu/error-report.h"
 #include "hw/qdev.h"
@@ -54,7 +55,11 @@ void virtio_bus_device_plugged(VirtIODevice *vdev, Error **errp)
 
     /* Get the features of the plugged device. */
     assert(vdc->get_features != NULL);
-    vdev->host_features = vdc->get_features(vdev, vdev->host_features);
+    vdev->host_features = vdc->get_features(vdev, vdev->host_features,
+                                            errp);
+    if (klass->post_plugged != NULL) {
+        klass->post_plugged(qbus->parent, errp);
+    }
 }
 
 /* Reset the virtio_bus */

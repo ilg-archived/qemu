@@ -21,9 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#include <stdlib.h>
+#include "qemu/osdep.h"
 #include <sys/mman.h>
-#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/soundcard.h>
 #include "qemu-common.h"
@@ -853,6 +852,7 @@ static void *oss_audio_init (void)
 
     if (access(conf->devpath_in, R_OK | W_OK) < 0 ||
         access(conf->devpath_out, R_OK | W_OK) < 0) {
+        g_free(conf);
         return NULL;
     }
     return conf;

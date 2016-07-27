@@ -19,6 +19,8 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "hw/hw.h"
 #include "sysemu/sysemu.h"
 #include "hw/boards.h"
@@ -160,7 +162,7 @@ static int vio_make_devnode(VIOsPAPRDevice *dev,
 /*
  * CRQ handling
  */
-static target_ulong h_reg_crq(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_reg_crq(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                               target_ulong opcode, target_ulong *args)
 {
     target_ulong reg = args[0];
@@ -218,7 +220,7 @@ static target_ulong free_crq(VIOsPAPRDevice *dev)
     return H_SUCCESS;
 }
 
-static target_ulong h_free_crq(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_free_crq(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                                target_ulong opcode, target_ulong *args)
 {
     target_ulong reg = args[0];
@@ -232,7 +234,7 @@ static target_ulong h_free_crq(PowerPCCPU *cpu, sPAPREnvironment *spapr,
     return free_crq(dev);
 }
 
-static target_ulong h_send_crq(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_send_crq(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                                target_ulong opcode, target_ulong *args)
 {
     target_ulong reg = args[0];
@@ -255,7 +257,7 @@ static target_ulong h_send_crq(PowerPCCPU *cpu, sPAPREnvironment *spapr,
     return H_HARDWARE;
 }
 
-static target_ulong h_enable_crq(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_enable_crq(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                                  target_ulong opcode, target_ulong *args)
 {
     target_ulong reg = args[0];
@@ -333,7 +335,7 @@ void spapr_vio_set_bypass(VIOsPAPRDevice *dev, bool bypass)
     dev->tcet->bypass = bypass;
 }
 
-static void rtas_set_tce_bypass(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static void rtas_set_tce_bypass(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                                 uint32_t token,
                                 uint32_t nargs, target_ulong args,
                                 uint32_t nret, target_ulong rets)
@@ -364,7 +366,7 @@ static void rtas_set_tce_bypass(PowerPCCPU *cpu, sPAPREnvironment *spapr,
     rtas_st(rets, 0, RTAS_OUT_SUCCESS);
 }
 
-static void rtas_quiesce(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static void rtas_quiesce(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                          uint32_t token,
                          uint32_t nargs, target_ulong args,
                          uint32_t nret, target_ulong rets)
@@ -388,7 +390,7 @@ static void rtas_quiesce(PowerPCCPU *cpu, sPAPREnvironment *spapr,
 
 static VIOsPAPRDevice *reg_conflict(VIOsPAPRDevice *dev)
 {
-    VIOsPAPRBus *bus = DO_UPCAST(VIOsPAPRBus, bus, dev->qdev.parent_bus);
+    VIOsPAPRBus *bus = SPAPR_VIO_BUS(dev->qdev.parent_bus);
     BusChild *kid;
     VIOsPAPRDevice *other;
 
@@ -426,9 +428,11 @@ static void spapr_vio_busdev_reset(DeviceState *qdev)
 
 static void spapr_vio_busdev_realize(DeviceState *qdev, Error **errp)
 {
+    sPAPRMachineState *spapr = SPAPR_MACHINE(qdev_get_machine());
     VIOsPAPRDevice *dev = (VIOsPAPRDevice *)qdev;
     VIOsPAPRDeviceClass *pc = VIO_SPAPR_DEVICE_GET_CLASS(dev);
     char *id;
+    Error *local_err = NULL;
 
     if (dev->reg != -1) {
         /*
@@ -448,7 +452,7 @@ static void spapr_vio_busdev_realize(DeviceState *qdev, Error **errp)
         }
     } else {
         /* Need to assign an address */
-        VIOsPAPRBus *bus = DO_UPCAST(VIOsPAPRBus, bus, dev->qdev.parent_bus);
+        VIOsPAPRBus *bus = SPAPR_VIO_BUS(dev->qdev.parent_bus);
 
         do {
             dev->reg = bus->next_reg++;
@@ -461,9 +465,9 @@ static void spapr_vio_busdev_realize(DeviceState *qdev, Error **errp)
         dev->qdev.id = id;
     }
 
-    dev->irq = xics_alloc(spapr->icp, 0, dev->irq, false);
-    if (!dev->irq) {
-        error_setg(errp, "can't allocate IRQ");
+    dev->irq = xics_alloc(spapr->icp, 0, dev->irq, false, &local_err);
+    if (local_err) {
+        error_propagate(errp, local_err);
         return;
     }
 
@@ -491,7 +495,7 @@ static void spapr_vio_busdev_realize(DeviceState *qdev, Error **errp)
     pc->realize(dev, errp);
 }
 
-static target_ulong h_vio_signal(PowerPCCPU *cpu, sPAPREnvironment *spapr,
+static target_ulong h_vio_signal(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                                  target_ulong opcode,
                                  target_ulong *args)
 {
@@ -522,13 +526,12 @@ VIOsPAPRBus *spapr_vio_bus_init(void)
     DeviceState *dev;
 
     /* Create bridge device */
-    dev = qdev_create(NULL, "spapr-vio-bridge");
+    dev = qdev_create(NULL, TYPE_SPAPR_VIO_BRIDGE);
     qdev_init_nofail(dev);
 
     /* Create bus on bridge device */
-
     qbus = qbus_create(TYPE_SPAPR_VIO_BUS, dev, "spapr-vio");
-    bus = DO_UPCAST(VIOsPAPRBus, bus, qbus);
+    bus = SPAPR_VIO_BUS(qbus);
     bus->next_reg = 0x71000000;
 
     /* hcall-vio */
@@ -566,9 +569,8 @@ static void spapr_vio_bridge_class_init(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo spapr_vio_bridge_info = {
-    .name          = "spapr-vio-bridge",
+    .name          = TYPE_SPAPR_VIO_BRIDGE,
     .parent        = TYPE_SYS_BUS_DEVICE,
-    .instance_size = sizeof(SysBusDevice),
     .class_init    = spapr_vio_bridge_class_init,
 };
 

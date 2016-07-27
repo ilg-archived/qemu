@@ -13,20 +13,6 @@ typedef struct virtio_input_absinfo virtio_input_absinfo;
 typedef struct virtio_input_config virtio_input_config;
 typedef struct virtio_input_event virtio_input_event;
 
-#if defined(HOST_WORDS_BIGENDIAN)
-# define const_le32(_x)                          \
-    (((_x & 0x000000ffU) << 24) |                \
-     ((_x & 0x0000ff00U) <<  8) |                \
-     ((_x & 0x00ff0000U) >>  8) |                \
-     ((_x & 0xff000000U) >> 24))
-# define const_le16(_x)                          \
-    (((_x & 0x00ff) << 8) |                      \
-     ((_x & 0xff00) >> 8))
-#else
-# define const_le32(_x) (_x)
-# define const_le16(_x) (_x)
-#endif
-
 /* ----------------------------------------------------------------- */
 /* qemu internals                                                    */
 
@@ -50,17 +36,17 @@ typedef struct virtio_input_event virtio_input_event;
 #define VIRTIO_INPUT_HID_GET_PARENT_CLASS(obj) \
         OBJECT_GET_PARENT_CLASS(obj, TYPE_VIRTIO_INPUT_HID)
 
-#define DEFINE_VIRTIO_INPUT_PROPERTIES(_state, _field)       \
-        DEFINE_PROP_STRING("serial", _state, _field.serial)
+#define TYPE_VIRTIO_INPUT_HOST   "virtio-input-host-device"
+#define VIRTIO_INPUT_HOST(obj) \
+        OBJECT_CHECK(VirtIOInputHost, (obj), TYPE_VIRTIO_INPUT_HOST)
+#define VIRTIO_INPUT_HOST_GET_PARENT_CLASS(obj) \
+        OBJECT_GET_PARENT_CLASS(obj, TYPE_VIRTIO_INPUT_HOST)
 
 typedef struct VirtIOInput VirtIOInput;
 typedef struct VirtIOInputClass VirtIOInputClass;
 typedef struct VirtIOInputConfig VirtIOInputConfig;
 typedef struct VirtIOInputHID VirtIOInputHID;
-
-struct virtio_input_conf {
-    char *serial;
-};
+typedef struct VirtIOInputHost VirtIOInputHost;
 
 struct VirtIOInputConfig {
     virtio_input_config               config;
@@ -74,7 +60,7 @@ struct VirtIOInput {
     uint32_t                          cfg_size;
     QTAILQ_HEAD(, VirtIOInputConfig)  cfg_list;
     VirtQueue                         *evt, *sts;
-    virtio_input_conf                 input;
+    char                              *serial;
 
     virtio_input_event                *queue;
     uint32_t                          qindex, qsize;
@@ -95,14 +81,25 @@ struct VirtIOInputClass {
 
 struct VirtIOInputHID {
     VirtIOInput                       parent_obj;
+    char                              *display;
+    uint32_t                          head;
     QemuInputHandler                  *handler;
     QemuInputHandlerState             *hs;
     int                               ledstate;
 };
 
+struct VirtIOInputHost {
+    VirtIOInput                       parent_obj;
+    char                              *evdev;
+    int                               fd;
+};
+
 void virtio_input_send(VirtIOInput *vinput, virtio_input_event *event);
 void virtio_input_init_config(VirtIOInput *vinput,
                               virtio_input_config *config);
+virtio_input_config *virtio_input_find_config(VirtIOInput *vinput,
+                                              uint8_t select,
+                                              uint8_t subsel);
 void virtio_input_add_config(VirtIOInput *vinput,
                              virtio_input_config *config);
 void virtio_input_idstr_config(VirtIOInput *vinput,

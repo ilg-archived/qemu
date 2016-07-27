@@ -23,7 +23,6 @@
 #include "qemu-common.h"
 #include "hw/arm/virt.h"
 
-#define VIRT_ACPI_CPU_ID_LIMIT 8
 #define ACPI_GICC_ENABLED 1
 
 typedef struct VirtGuestInfo {
@@ -31,6 +30,8 @@ typedef struct VirtGuestInfo {
     FWCfgState *fw_cfg;
     const MemMapEntry *memmap;
     const int *irqmap;
+    bool use_highmem;
+    int gic_version;
 } VirtGuestInfo;
 
 

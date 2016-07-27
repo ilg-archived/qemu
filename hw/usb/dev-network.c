@@ -23,6 +23,8 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
+#include "qapi/error.h"
 #include "qemu-common.h"
 #include "hw/usb.h"
 #include "hw/usb/desc.h"
@@ -32,6 +34,7 @@
 #include "qemu/config-file.h"
 #include "sysemu/sysemu.h"
 #include "qemu/iov.h"
+#include "qemu/cutils.h"
 
 /*#define TRAFFIC_DEBUG*/
 /* Thanks to NetChip Technologies for donating this product ID.
@@ -653,7 +656,8 @@ typedef struct USBNetState {
 
 static int is_rndis(USBNetState *s)
 {
-    return s->dev.config->bConfigurationValue == DEV_RNDIS_CONFIG_VALUE;
+    return s->dev.config ?
+            s->dev.config->bConfigurationValue == DEV_RNDIS_CONFIG_VALUE : 0;
 }
 
 static int ndis_query(USBNetState *s, uint32_t oid,
@@ -914,8 +918,9 @@ static int rndis_query_response(USBNetState *s,
 
     bufoffs = le32_to_cpu(buf->InformationBufferOffset) + 8;
     buflen = le32_to_cpu(buf->InformationBufferLength);
-    if (bufoffs + buflen > length)
+    if (buflen > length || bufoffs >= length || bufoffs + buflen > length) {
         return USB_RET_STALL;
+    }
 
     infobuflen = ndis_query(s, le32_to_cpu(buf->OID),
                             bufoffs + (uint8_t *) buf, buflen, infobuf,
@@ -960,8 +965,9 @@ static int rndis_set_response(USBNetState *s,
 
     bufoffs = le32_to_cpu(buf->InformationBufferOffset) + 8;
     buflen = le32_to_cpu(buf->InformationBufferLength);
-    if (bufoffs + buflen > length)
+    if (buflen > length || bufoffs >= length || bufoffs + buflen > length) {
         return USB_RET_STALL;
+    }
 
     ret = ndis_set(s, le32_to_cpu(buf->OID),
                     bufoffs + (uint8_t *) buf, buflen);
@@ -1211,8 +1217,9 @@ static void usb_net_handle_dataout(USBNetState *s, USBPacket *p)
     if (le32_to_cpu(msg->MessageType) == RNDIS_PACKET_MSG) {
         uint32_t offs = 8 + le32_to_cpu(msg->DataOffset);
         uint32_t size = le32_to_cpu(msg->DataLength);
-        if (offs + size <= len)
+        if (offs < len && size < len && offs + size <= len) {
             qemu_send_packet(qemu_get_queue(s->nic), s->out_buf + offs, size);
+        }
     }
     s->out_ptr -= len;
     memmove(s->out_buf, &s->out_buf[len], s->out_ptr);
@@ -1268,6 +1275,10 @@ static ssize_t usbnet_receive(NetClientState *nc, const uint8_t *buf, size_t siz
     uint8_t *in_buf = s->in_buf;
     size_t total_size = size;
 
+    if (!s->dev.config) {
+        return -1;
+    }
+
     if (is_rndis(s)) {
         if (s->rndis_state != RNDIS_DATA_INITIALIZED) {
             return -1;
@@ -1309,21 +1320,6 @@ static ssize_t usbnet_receive(NetClientState *nc, const uint8_t *buf, size_t siz
     return size;
 }
 
-static int usbnet_can_receive(NetClientState *nc)
-{
-    USBNetState *s = qemu_get_nic_opaque(nc);
-
-    if (!s->dev.config) {
-        return 0;
-    }
-
-    if (is_rndis(s) && s->rndis_state != RNDIS_DATA_INITIALIZED) {
-        return 1;
-    }
-
-    return !s->in_len;
-}
-
 static void usbnet_cleanup(NetClientState *nc)
 {
     USBNetState *s = qemu_get_nic_opaque(nc);
@@ -1343,7 +1339,6 @@ static void usb_net_handle_destroy(USBDevice *dev)
 static NetClientInfo net_usbnet_info = {
     .type = NET_CLIENT_OPTIONS_KIND_NIC,
     .size = sizeof(NICState),
-    .can_receive = usbnet_can_receive,
     .receive = usbnet_receive,
     .cleanup = usbnet_cleanup,
 };

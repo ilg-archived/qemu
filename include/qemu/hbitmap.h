@@ -12,9 +12,6 @@
 #ifndef HBITMAP_H
 #define HBITMAP_H 1
 
-#include <limits.h>
-#include <stdint.h>
-#include <stdbool.h>
 #include "bitops.h"
 #include "host-utils.h"
 
@@ -130,6 +127,14 @@ void hbitmap_set(HBitmap *hb, uint64_t start, uint64_t count);
  * Reset a consecutive range of bits in an HBitmap.
  */
 void hbitmap_reset(HBitmap *hb, uint64_t start, uint64_t count);
+
+/**
+ * hbitmap_reset_all:
+ * @hb: HBitmap to operate on.
+ *
+ * Reset all bits in an HBitmap.
+ */
+void hbitmap_reset_all(HBitmap *hb);
 
 /**
  * hbitmap_get:

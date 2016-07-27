@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#include "qemu/osdep.h"
 #include "hw/hw.h"
 #include "hw/boards.h"
 #include "hw/xen/xen_backend.h"
@@ -30,9 +31,6 @@
 
 static void xen_init_pv(MachineState *machine)
 {
-    const char *kernel_filename = machine->kernel_filename;
-    const char *kernel_cmdline = machine->kernel_cmdline;
-    const char *initrd_filename = machine->initrd_filename;
     DriveInfo *dinfo;
     int i;
 
@@ -46,15 +44,25 @@ static void xen_init_pv(MachineState *machine)
     case XEN_ATTACH:
         /* nothing to do, xend handles everything */
         break;
-    case XEN_CREATE:
+#ifdef CONFIG_XEN_PV_DOMAIN_BUILD
+    case XEN_CREATE: {
+        const char *kernel_filename = machine->kernel_filename;
+        const char *kernel_cmdline = machine->kernel_cmdline;
+        const char *initrd_filename = machine->initrd_filename;
         if (xen_domain_build_pv(kernel_filename, initrd_filename,
                                 kernel_cmdline) < 0) {
             fprintf(stderr, "xen pv domain creation failed\n");
             exit(1);
         }
         break;
+    }
+#endif
     case XEN_EMULATE:
         fprintf(stderr, "xen emulation not implemented (yet)\n");
+        exit(1);
+        break;
+    default:
+        fprintf(stderr, "unhandled xen_mode %d\n", xen_mode);
         exit(1);
         break;
     }
@@ -93,17 +101,12 @@ static void xen_init_pv(MachineState *machine)
     xen_init_display(xen_domid);
 }
 
-static QEMUMachine xenpv_machine = {
-    .name = "xenpv",
-    .desc = "Xen Para-virtualized PC",
-    .init = xen_init_pv,
-    .max_cpus = 1,
-    .default_machine_opts = "accel=xen",
-};
-
-static void xenpv_machine_init(void)
+static void xenpv_machine_init(MachineClass *mc)
 {
-    qemu_register_machine(&xenpv_machine);
+    mc->desc = "Xen Para-virtualized PC";
+    mc->init = xen_init_pv;
+    mc->max_cpus = 1;
+    mc->default_machine_opts = "accel=xen";
 }
 
-machine_init(xenpv_machine_init);
+DEFINE_MACHINE("xenpv", xenpv_machine_init)

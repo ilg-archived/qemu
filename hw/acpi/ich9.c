@@ -23,13 +23,16 @@
  * Contributions after 2012-01-13 are licensed under the terms of the
  * GNU GPL, version 2 or (at your option) any later version.
  */
+#include "qemu/osdep.h"
 #include "hw/hw.h"
+#include "qapi/error.h"
 #include "qapi/visitor.h"
 #include "hw/i386/pc.h"
 #include "hw/pci/pci.h"
 #include "qemu/timer.h"
 #include "sysemu/sysemu.h"
 #include "hw/acpi/acpi.h"
+#include "hw/acpi/tco.h"
 #include "sysemu/kvm.h"
 #include "exec/address-spaces.h"
 
@@ -92,8 +95,16 @@ static void ich9_smi_writel(void *opaque, hwaddr addr, uint64_t val,
                             unsigned width)
 {
     ICH9LPCPMRegs *pm = opaque;
+    TCOIORegs *tr = &pm->tco_regs;
+    uint64_t tco_en;
+
     switch (addr) {
     case 0:
+        tco_en = pm->smi_en & ICH9_PMIO_SMI_EN_TCO_EN;
+        /* once TCO_LOCK bit is set, TCO_EN bit cannot be overwritten */
+        if (tr->tco.cnt1 & TCO_LOCK) {
+            val = (val & ~ICH9_PMIO_SMI_EN_TCO_EN) | tco_en;
+        }
         pm->smi_en &= ~pm->smi_en_wmask;
         pm->smi_en |= (val & pm->smi_en_wmask);
         break;
@@ -159,6 +170,25 @@ static const VMStateDescription vmstate_memhp_state = {
     }
 };
 
+static bool vmstate_test_use_tco(void *opaque)
+{
+    ICH9LPCPMRegs *s = opaque;
+    return s->enable_tco;
+}
+
+static const VMStateDescription vmstate_tco_io_state = {
+    .name = "ich9_pm/tco",
+    .version_id = 1,
+    .minimum_version_id = 1,
+    .minimum_version_id_old = 1,
+    .needed = vmstate_test_use_tco,
+    .fields      = (VMStateField[]) {
+        VMSTATE_STRUCT(tco_regs, ICH9LPCPMRegs, 1, vmstate_tco_io_sts,
+                       TCOIORegs),
+        VMSTATE_END_OF_LIST()
+    }
+};
+
 const VMStateDescription vmstate_ich9_pm = {
     .name = "ich9_pm",
     .version_id = 1,
@@ -178,6 +208,7 @@ const VMStateDescription vmstate_ich9_pm = {
     },
     .subsections = (const VMStateDescription*[]) {
         &vmstate_memhp_state,
+        &vmstate_tco_io_state,
         NULL
     }
 };
@@ -192,9 +223,9 @@ static void pm_reset(void *opaque)
     acpi_pm_tmr_reset(&pm->acpi_regs);
     acpi_gpe_reset(&pm->acpi_regs);
 
-    if (kvm_enabled()) {
-        /* Mark SMM as already inited to prevent SMM from running. KVM does not
-         * support SMM mode. */
+    pm->smi_en = 0;
+    if (!pm->smm_enabled) {
+        /* Mark SMM as already inited to prevent SMM from running. */
         pm->smi_en |= ICH9_PMIO_SMI_EN_APMC_EN;
     }
     pm->smi_en_wmask = ~0;
@@ -210,6 +241,7 @@ static void pm_powerdown_req(Notifier *n, void *opaque)
 }
 
 void ich9_pm_init(PCIDevice *lpc_pci, ICH9LPCPMRegs *pm,
+                  bool smm_enabled,
                   qemu_irq sci_irq)
 {
     memory_region_init(&pm->io, OBJECT(lpc_pci), "ich9-pm", ICH9_PMIO_SIZE);
@@ -231,6 +263,11 @@ void ich9_pm_init(PCIDevice *lpc_pci, ICH9LPCPMRegs *pm,
                           "acpi-smi", 8);
     memory_region_add_subregion(&pm->io, ICH9_PMIO_SMI_EN, &pm->io_smi);
 
+    pm->smm_enabled = smm_enabled;
+
+    pm->enable_tco = true;
+    acpi_pm_tco_init(&pm->tco_regs, &pm->io);
+
     pm->irq = sci_irq;
     qemu_register_reset(pm_reset, pm);
     pm->powerdown_notifier.notify = pm_powerdown_req;
@@ -245,14 +282,13 @@ void ich9_pm_init(PCIDevice *lpc_pci, ICH9LPCPMRegs *pm,
     }
 }
 
-static void ich9_pm_get_gpe0_blk(Object *obj, Visitor *v,
-                                 void *opaque, const char *name,
-                                 Error **errp)
+static void ich9_pm_get_gpe0_blk(Object *obj, Visitor *v, const char *name,
+                                 void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint32_t value = pm->pm_io_base + ICH9_PMIO_GPE0_STS;
 
-    visit_type_uint32(v, &value, name, errp);
+    visit_type_uint32(v, name, &value, errp);
 }
 
 static bool ich9_pm_get_memory_hotplug_support(Object *obj, Error **errp)
@@ -270,25 +306,23 @@ static void ich9_pm_set_memory_hotplug_support(Object *obj, bool value,
     s->pm.acpi_memory_hotplug.is_enabled = value;
 }
 
-static void ich9_pm_get_disable_s3(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_get_disable_s3(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint8_t value = pm->disable_s3;
 
-    visit_type_uint8(v, &value, name, errp);
+    visit_type_uint8(v, name, &value, errp);
 }
 
-static void ich9_pm_set_disable_s3(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_set_disable_s3(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     Error *local_err = NULL;
     uint8_t value;
 
-    visit_type_uint8(v, &value, name, &local_err);
+    visit_type_uint8(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }
@@ -297,25 +331,23 @@ out:
     error_propagate(errp, local_err);
 }
 
-static void ich9_pm_get_disable_s4(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_get_disable_s4(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint8_t value = pm->disable_s4;
 
-    visit_type_uint8(v, &value, name, errp);
+    visit_type_uint8(v, name, &value, errp);
 }
 
-static void ich9_pm_set_disable_s4(Object *obj, Visitor *v,
-                                   void *opaque, const char *name,
-                                   Error **errp)
+static void ich9_pm_set_disable_s4(Object *obj, Visitor *v, const char *name,
+                                   void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     Error *local_err = NULL;
     uint8_t value;
 
-    visit_type_uint8(v, &value, name, &local_err);
+    visit_type_uint8(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }
@@ -324,31 +356,41 @@ out:
     error_propagate(errp, local_err);
 }
 
-static void ich9_pm_get_s4_val(Object *obj, Visitor *v,
-                               void *opaque, const char *name,
-                               Error **errp)
+static void ich9_pm_get_s4_val(Object *obj, Visitor *v, const char *name,
+                               void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     uint8_t value = pm->s4_val;
 
-    visit_type_uint8(v, &value, name, errp);
+    visit_type_uint8(v, name, &value, errp);
 }
 
-static void ich9_pm_set_s4_val(Object *obj, Visitor *v,
-                               void *opaque, const char *name,
-                               Error **errp)
+static void ich9_pm_set_s4_val(Object *obj, Visitor *v, const char *name,
+                               void *opaque, Error **errp)
 {
     ICH9LPCPMRegs *pm = opaque;
     Error *local_err = NULL;
     uint8_t value;
 
-    visit_type_uint8(v, &value, name, &local_err);
+    visit_type_uint8(v, name, &value, &local_err);
     if (local_err) {
         goto out;
     }
     pm->s4_val = value;
 out:
     error_propagate(errp, local_err);
+}
+
+static bool ich9_pm_get_enable_tco(Object *obj, Error **errp)
+{
+    ICH9LPCState *s = ICH9_LPC_DEVICE(obj);
+    return s->pm.enable_tco;
+}
+
+static void ich9_pm_set_enable_tco(Object *obj, bool value, Error **errp)
+{
+    ICH9LPCState *s = ICH9_LPC_DEVICE(obj);
+    s->pm.enable_tco = value;
 }
 
 void ich9_pm_add_properties(Object *obj, ICH9LPCPMRegs *pm, Error **errp)
@@ -382,6 +424,10 @@ void ich9_pm_add_properties(Object *obj, ICH9LPCPMRegs *pm, Error **errp)
                         ich9_pm_get_s4_val,
                         ich9_pm_set_s4_val,
                         NULL, pm, NULL);
+    object_property_add_bool(obj, ACPI_PM_PROP_TCO_ENABLED,
+                             ich9_pm_get_enable_tco,
+                             ich9_pm_set_enable_tco,
+                             NULL);
 }
 
 void ich9_pm_device_plug_cb(ICH9LPCPMRegs *pm, DeviceState *dev, Error **errp)

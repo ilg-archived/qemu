@@ -18,11 +18,11 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "qemu/osdep.h"
 #include "cpu.h"
 #include "exec/memory.h"
 #include "qemu/host-utils.h"
 #include "exec/helper-proto.h"
-#include <string.h>
 #include "sysemu/kvm.h"
 #include "qemu/timer.h"
 #include "exec/address-spaces.h"
@@ -127,8 +127,9 @@ static int modified_clear_reset(S390CPU *cpu)
     CPU_FOREACH(t) {
         run_on_cpu(t, s390_do_cpu_full_reset, t);
     }
-    cmma_reset(cpu);
-    io_subsystem_reset();
+    s390_cmma_reset();
+    subsystem_reset();
+    s390_crypto_reset();
     scc->load_normal(CPU(cpu));
     cpu_synchronize_all_post_reset();
     resume_all_vcpus();
@@ -145,8 +146,8 @@ static int load_normal_reset(S390CPU *cpu)
     CPU_FOREACH(t) {
         run_on_cpu(t, s390_do_cpu_reset, t);
     }
-    cmma_reset(cpu);
-    io_subsystem_reset();
+    s390_cmma_reset();
+    subsystem_reset();
     scc->initial_cpu_reset(CPU(cpu));
     scc->load_normal(CPU(cpu));
     cpu_synchronize_all_post_reset();
@@ -233,11 +234,8 @@ void handle_diag_308(CPUS390XState *env, uint64_t r1, uint64_t r3)
         }
         iplb = g_malloc0(sizeof(struct IplParameterBlock));
         cpu_physical_memory_read(addr, iplb, sizeof(struct IplParameterBlock));
-        if (!s390_ipl_update_diag308(iplb)) {
-            env->regs[r1 + 1] = DIAG_308_RC_OK;
-        } else {
-            env->regs[r1 + 1] = DIAG_308_RC_INVALID;
-        }
+        s390_ipl_update_diag308(iplb);
+        env->regs[r1 + 1] = DIAG_308_RC_OK;
         g_free(iplb);
         return;
     case 6:
@@ -301,7 +299,7 @@ void HELPER(spx)(CPUS390XState *env, uint64_t a1)
     uint32_t prefix = a1 & 0x7fffe000;
 
     env->psa = prefix;
-    qemu_log("prefix: %#x\n", prefix);
+    HELPER_LOG("prefix: %#x\n", prefix);
     tlb_flush_page(cs, 0);
     tlb_flush_page(cs, TARGET_PAGE_SIZE);
 }

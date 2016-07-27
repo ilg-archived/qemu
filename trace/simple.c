@@ -8,12 +8,8 @@
  *
  */
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <time.h>
+#include "qemu/osdep.h"
 #ifndef _WIN32
-#include <signal.h>
 #include <pthread.h>
 #endif
 #include "qemu/timer.h"
@@ -322,20 +318,20 @@ void st_set_trace_file_enabled(bool enable)
  * @file        The trace file name or NULL for the default name-<pid> set at
  *              config time
  */
-bool st_set_trace_file(const char *file)
+void st_set_trace_file(const char *file)
 {
     st_set_trace_file_enabled(false);
 
     g_free(trace_file_name);
 
     if (!file) {
-        trace_file_name = g_strdup_printf(CONFIG_TRACE_FILE, getpid());
+        /* Type cast needed for Windows where getpid() returns an int. */
+        trace_file_name = g_strdup_printf(CONFIG_TRACE_FILE, (pid_t)getpid());
     } else {
         trace_file_name = g_strdup_printf("%s", file);
     }
 
     st_set_trace_file_enabled(true);
-    return true;
 }
 
 void st_print_trace_file_status(FILE *stream, int (*stream_printf)(FILE *stream, const char *fmt, ...))
@@ -373,7 +369,7 @@ static GThread *trace_thread_create(GThreadFunc fn)
     return thread;
 }
 
-bool st_init(const char *file)
+bool st_init(void)
 {
     GThread *thread;
 
@@ -386,6 +382,5 @@ bool st_init(const char *file)
     }
 
     atexit(st_flush_trace_buffer);
-    st_set_trace_file(file);
     return true;
 }

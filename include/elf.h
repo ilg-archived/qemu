@@ -1,7 +1,6 @@
 #ifndef _QEMU_ELF_H
 #define _QEMU_ELF_H
 
-#include <inttypes.h>
 
 /* 32-bit ELF base types. */
 typedef uint32_t Elf32_Addr;
@@ -132,6 +131,11 @@ typedef int64_t  Elf64_Sxword;
 #define EM_XTENSA   94      /* Tensilica Xtensa */
 
 #define EM_AARCH64  183
+
+#define EM_TILEGX   191 /* TILE-Gx */
+
+#define EM_MOXIE           223     /* Moxie processor family */
+#define EM_MOXIE_OLD       0xFEED
 
 /* This is the info that is needed to parse the dynamic section of the file */
 #define DT_NULL		0
@@ -1466,6 +1470,11 @@ typedef struct elf64_shdr {
 #define NT_PPC_VMX       0x100          /* PowerPC Altivec/VMX registers */
 #define NT_PPC_SPE       0x101          /* PowerPC SPE/EVR registers */
 #define NT_PPC_VSX       0x102          /* PowerPC VSX registers */
+#define NT_ARM_VFP      0x400           /* ARM VFP/NEON registers */
+#define NT_ARM_TLS      0x401           /* ARM TLS register */
+#define NT_ARM_HW_BREAK 0x402           /* ARM hardware breakpoint registers */
+#define NT_ARM_HW_WATCH 0x403           /* ARM hardware watchpoint registers */
+#define NT_ARM_SYSTEM_CALL      0x404   /* ARM system call number */
 
 
 /* Note header in a PT_NOTE section */
