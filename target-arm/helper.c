@@ -19,7 +19,7 @@
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "hw/intc/gic_internal.h"
 #include "hw/cortexm/cortexm-nvic.h"
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #define ARM_CPU_FREQ 1000000000 /* FIXME: 1 GHz, should be configurable */
 
@@ -5901,7 +5901,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
          * priority is lower than or equal to the execution priority.
          * The exception escalates to a HardFault.
          */
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
         if (semihosting_enabled()) {
             int nr;
@@ -5923,7 +5923,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
             cpu_interrupt(cs, CPU_INTERRUPT_DEBUG);
             return;
         }
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_DEBUG);
         return;
@@ -8131,7 +8131,7 @@ void HELPER(v7m_msr)(CPUARMState *env, uint32_t reg, uint32_t val)
         GICState* gic = ARM_GIC_COMMON(nvic);
         gic_update(gic);
 
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
         break;
 
@@ -8153,7 +8153,7 @@ void HELPER(v7m_msr)(CPUARMState *env, uint32_t reg, uint32_t val)
         if (val != 0 && (val < env->v7m.basepri || env->v7m.basepri == 0))
             env->v7m.basepri = val;
 
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
         break;
 

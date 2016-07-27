@@ -466,8 +466,7 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
     /* Validate alignment */
     if (!peripheral_register_check_access(size, offset, state->access_flags)) {
         qemu_log_mask(LOG_GUEST_ERROR,
-                "%s: Peripheral register read of size %d at offset "
-                        "0x%"PRIX32" not aligned.\n",
+                "%s: Peripheral register read of size %d at offset " "0x%"PRIX32" not aligned.\n",
                 object_get_typename(OBJECT(state)), size, addr);
         return 0;
     }
@@ -511,8 +510,7 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
     /* Validate alignment */
     if (!peripheral_register_check_access(size, offset, state->access_flags)) {
         qemu_log_mask(LOG_GUEST_ERROR,
-                "%s: Peripheral register write of size %d at offset "
-                        "0x%"PRIX32" not aligned.\n",
+                "%s: Peripheral register write of size %d at offset " "0x%"PRIX32" not aligned.\n",
                 object_get_typename(OBJECT(state)), size, addr);
         return;
     }
@@ -872,9 +870,9 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     }
 
     qemu_log_mask(LOG_TRACE,
-            "%s() '%s', readable: 0x%08"PRIX64", writable: 0x%08"PRIX64", "
-            "reset: 0x%08"PRIX64", mode: %s%s\n", __FUNCTION__, state->name,
-            state->readable_bits, state->writable_bits, state->reset_value,
+            "%s() '%s', readable: 0x%08"PRIX64", writable: 0x%08"PRIX64", " "reset: 0x%08"PRIX64", mode: %s%s\n",
+            __FUNCTION__, state->name, state->readable_bits,
+            state->writable_bits, state->reset_value,
             state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 

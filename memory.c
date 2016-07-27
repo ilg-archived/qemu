@@ -31,7 +31,7 @@
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qemu/log.h"
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 //#define DEBUG_UNASSIGNED
 
@@ -997,7 +997,7 @@ void memory_region_init(MemoryRegion *mr,
     if (name != NULL) {
         qemu_log_mask(LOG_TRACE, "%s(\"%s\", 0x%"PRIX64")\n", __FUNCTION__, name, size);
     }
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     object_initialize(mr, sizeof(*mr), TYPE_MEMORY_REGION);
     mr->size = int128_make64(size);

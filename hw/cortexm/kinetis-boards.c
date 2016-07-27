@@ -173,5 +173,5 @@ static void kinetis_machine_init(void)
     qemu_register_machine(&frdm_kl43z_machine);
 }
 
-machine_init(kinetis_machine_init);
+machine_init( kinetis_machine_init);
 

@@ -304,7 +304,8 @@ static void type_initialize(TypeImpl *ti)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
             g_assert(t);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
             type_initialize_interface(ti, t, t);
         }
     } else {

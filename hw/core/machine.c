@@ -436,13 +436,15 @@ static void machine_initfn(Object *obj)
     object_property_set_description(obj, "append",
                                     "Linux kernel command line",
                                     NULL);
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     object_property_add_str(obj, "image",
                             machine_get_image, machine_set_image, NULL);
     object_property_set_description(obj, "image",
                                     "Bare-bone image file",
                                     NULL);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     object_property_add_str(obj, "dtb",
                             machine_get_dtb, machine_set_dtb, NULL);
     object_property_set_description(obj, "dtb",
@@ -530,9 +532,11 @@ static void machine_finalize(Object *obj)
     g_free(ms->kernel_filename);
     g_free(ms->initrd_filename);
     g_free(ms->kernel_cmdline);
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     g_free((void*)ms->image_filename);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     g_free(ms->dtb);
     g_free(ms->dumpdtb);
     g_free(ms->dt_compatible);

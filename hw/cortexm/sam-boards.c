@@ -53,5 +53,5 @@ static void sam_machine_init(void)
     qemu_register_machine(&sam3_h256_machine);
 }
 
-machine_init(sam_machine_init);
+machine_init( sam_machine_init);
 

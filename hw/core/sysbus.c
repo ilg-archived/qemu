@@ -132,7 +132,7 @@ static void sysbus_mmio_map_common(SysBusDevice *dev, int n, hwaddr addr,
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     qemu_log_mask(LOG_TRACE, "%s(0x%08"PRIX64")\n", __FUNCTION__, addr);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     if (dev->mmio[n].addr == addr) {
         /* ??? region already mapped here.  */

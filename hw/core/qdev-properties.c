@@ -1017,7 +1017,7 @@ void qdev_prop_set_ptr(DeviceState *dev, const char *name, void *value)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
         qemu_log_mask(LOG_TRACE, "%s('%s', '%s')\n", __FUNCTION__,
                 object_get_typename(OBJECT(dev)), name);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     prop = qdev_prop_find(dev, name);
     assert(prop && prop->info == &qdev_prop_ptr);

@@ -239,7 +239,7 @@ void cpu_reset(CPUState *cpu)
 {
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     qemu_log_function_name();
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     CPUClass *klass = CPU_GET_CLASS(cpu);
 

@@ -1001,11 +1001,11 @@ int rom_add_option(const char *file, int32_t bootindex)
 void rom_reset(void *unused)
 #else
 static void rom_reset(void *unused)
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 {
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     qemu_log_function_name();
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     Rom *rom;
 

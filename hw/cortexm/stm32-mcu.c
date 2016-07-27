@@ -72,7 +72,7 @@ static void create_usart(STM32MCUState *state, stm32_usart_index_t index,
 
     if ((int) index >= MAX_SERIAL_PORTS) {
         hw_error("Cannot assign usart %d: QEMU supports only %d ports\n", index,
-                MAX_SERIAL_PORTS);
+        MAX_SERIAL_PORTS);
     }
     chr = serial_hds[index];
     if (!chr) {

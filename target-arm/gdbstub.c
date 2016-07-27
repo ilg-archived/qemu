@@ -24,7 +24,7 @@
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 uint32_t helper_v7m_mrs(CPUARMState *env, uint32_t reg);
 void helper_v7m_msr(CPUARMState *env, uint32_t reg, uint32_t val);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /* Old gdb always expect FPA registers.  Newer (xml-aware) gdb only expect
    whatever the target description contains.  Due to a historical mishap
@@ -79,7 +79,7 @@ int arm_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
     case 31:
         /* CONTROL */
         return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 20));
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     }
     /* Unknown register.  */
@@ -149,7 +149,7 @@ int arm_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
         /* CONTROL */
         helper_v7m_msr(env, 20, tmp);
         return 4;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
         }
     /* Unknown register.  */

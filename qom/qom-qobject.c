@@ -21,7 +21,7 @@
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "qapi/qmp/types.h"
 #include "qemu/log.h"
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE__)
 static char *dump_value(QObject *value, char *buf, size_t siz)

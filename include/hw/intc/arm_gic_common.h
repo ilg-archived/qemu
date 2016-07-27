@@ -82,7 +82,7 @@ typedef struct GICState {
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     uint32_t* basepri_ptr;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     /* If we present the GICv2 without security extensions to a guest,
      * the guest can configure the GICC_CTLR to configure group 1 binary point

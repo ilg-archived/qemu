@@ -202,7 +202,7 @@ static void arm_cpu_reset(CPUState *s)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
         qemu_log_mask(LOG_TRACE, "MSP=0x%08X, PC=0x%08X\n", env->regs[13],
                 env->regs[15]);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
     }
 
     /* AArch32 has a hard highvec setting of 0xFFFF0000.  If we are currently
@@ -1444,7 +1444,7 @@ static const ARMCPUInfo arm_cpus[] = {
     { .name = "arm1136",     .initfn = arm1136_initfn },
     { .name = "arm1176",     .initfn = arm1176_initfn },
     { .name = "arm11mpcore", .initfn = arm11mpcore_initfn },
-#endif
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     /* Cortex-M cores - experimental support.  */
@@ -1566,7 +1566,7 @@ static void arm_cpu_class_init(ObjectClass *oc, void *data)
 #else
     cc->gdb_num_core_regs = 26;
     cc->gdb_core_xml_file = "arm-core.xml";
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     cc->gdb_arch_name = arm_gdb_arch_name;
     cc->gdb_stop_before_watchpoint = true;

@@ -162,10 +162,12 @@ struct MachineState {
     char *kernel_filename;
     char *kernel_cmdline;
     char *initrd_filename;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     const char *image_filename;
     const char *mcu_device;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     const char *cpu_model;
     AccelState *accelerator;
 };

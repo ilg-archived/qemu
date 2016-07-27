@@ -40,7 +40,7 @@
 #endif
 #define sigsetjmp(env, savesigs) _setjmp(env, NULL)
 #endif
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /* -icount align implementation. */
 

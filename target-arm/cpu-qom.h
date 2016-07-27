@@ -218,9 +218,11 @@ void init_cpreg_list(ARMCPU *cpu);
 
 void arm_cpu_do_interrupt(CPUState *cpu);
 void arm_v7m_cpu_do_interrupt(CPUState *cpu);
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 void arm_v6m_cpu_do_interrupt(CPUState *cpu);
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 bool arm_cpu_exec_interrupt(CPUState *cpu, int int_req);
 
 void arm_cpu_dump_state(CPUState *cs, FILE *f, fprintf_function cpu_fprintf,

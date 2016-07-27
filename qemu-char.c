@@ -3130,11 +3130,13 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
 {
     CharDriverState *chr = opaque;
     TCPCharDriver *s = chr->opaque;
+
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     struct sockaddr_in6 saddr;
 #else
     struct sockaddr_in saddr;
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 #ifndef _WIN32
     struct sockaddr_un uaddr;
 #endif

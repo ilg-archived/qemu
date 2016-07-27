@@ -1257,7 +1257,7 @@ static void gdb_vm_state_change(void *opaque, int running, RunState state)
 #if defined(DEBUG_GDB)
     printf("vm_state %d, %d\n", running, state);
 #endif
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     if (running || s->state == RS_INACTIVE) {
         return;
@@ -1822,4 +1822,4 @@ int gdbserver_is_started(void)
 {
     return (gdbserver_state != NULL);
 }
-#endif
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */

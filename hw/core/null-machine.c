@@ -29,4 +29,4 @@ static void machine_none_machine_init(MachineClass *mc)
 }
 
 DEFINE_MACHINE("none", machine_none_machine_init)
-#endif
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
