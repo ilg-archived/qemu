@@ -1,5 +1,5 @@
 
-GNU ARM Eclipse 64-bits QEMU v2.3.50 (qemu-system-gnuarmeclipse).
+GNU ARM Eclipse 64-bits QEMU v2.6.0 (qemu-system-gnuarmeclipse).
 
 Supported boards:
   Maple                LeafLab Arduino-style STM32 microcontroller board (r5)
@@ -31,16 +31,39 @@ Supported MCUs:
 
 The following changes were applied to the QEMU master branch:
 
+[2016-07-28]
+
+- version 2.6.0-20160728 released on GitHub
+- fix half word writes (register_post_write_callback_t)
+- implement (minimally) the DHCSR register, for C_DEBUGEN
+- consider BASEPRI for disabling interrupts
+- add more registers to GDB server (MSP, PSP, PRIMASK, BASEPRI, FAULTMASK, CONTROL)
+
+[2016-07-19]
+
+- peripheral-register: fix reset
+- add reset for all uarts
+
+[2015-10-29]
+
+- version 2.4.50-20151029, released on GitHub
+- fix rendering on OS X 10.11 (SDL)
+
+[2015-08-16]
+
+- version 2.3.50-20150816*-dev released
+- add build for Win64
+
 [2015-08-04]
 
-- QEMU 2.3.50-20150804*-dev released
+- version 2.3.50-20150804*-dev released
 - SDL event loop added (to fix responsivness & Windows bug)
 - stm32f411re added
 - nucleo-f411re board added
 
 [2015-08-01]
 
-- QEMU 2.3.50-20150801*-dev released
+- version 2.3.50-20150801*-dev released
 
 [2015-07-23]
 
@@ -56,7 +79,7 @@ The following changes were applied to the QEMU master branch:
 
 [2015-06-25]
 
-- cortex-mcu: use *_do_unassigned_access_callback; currently just display 
+- cortex-mcu: use *_do_unassigned_access_callback; currently just display
 a message, no exceptions thrown.
 
 [2015-06-22]
@@ -133,4 +156,3 @@ using Docker, was added to the main gnuarmeclipse-se.git/scripts.
 
 
 Liviu Ionescu
-
