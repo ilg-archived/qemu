@@ -3205,6 +3205,33 @@ static gboolean tcp_chr_accept(QIOChannel *channel,
 
     sioc = qio_channel_socket_accept(QIO_CHANNEL_SOCKET(channel),
                                      NULL);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+#if defined(CONFIG_VERBOSE)
+
+    if (verbosity_level >= VERBOSITY_COMMON) {
+        char str[INET6_ADDRSTRLEN];
+        str[0] = '\0';
+        if (sioc->remoteAddr.ss_family == AF_INET) {
+            strcpy(str, inet_ntoa(((struct sockaddr_in*)(&sioc->remoteAddr))->sin_addr));
+        } else if (sioc->remoteAddr.ss_family == AF_INET6) {
+#if defined(__MINGW32__)
+            strcpy(str, "ipv6 host");
+#else
+            inet_ntop(AF_INET6, &((struct sockaddr_in6*)(&sioc->remoteAddr))->sin6_addr, str, sizeof(str));
+#endif
+        }
+
+        if (strlen(str) > 0) {
+            printf("... connection accepted from %s.\n\n", str);
+        }
+    }
+
+#endif /* defined(CONFIG_VERBOSE) */
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     if (!sioc) {
         return TRUE;
     }
