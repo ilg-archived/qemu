@@ -117,9 +117,11 @@ static const STM32Capabilities stm32f103x8b = {
     .has_wwdg = true,
     .has_i2c1 = true,
     .has_i2c2 = true,
+#if 0
     .has_usart1 = true, /* 4.5Mb/s */
     .has_usart2 = true, /* 2.25 Mb/s */
     .has_usart3 = true, /* 2.25 Mb/s */
+#endif
     .has_spi1 = true,
     .has_spi2 = true,
     .has_bx_can1 = true,
@@ -167,11 +169,13 @@ static const STM32Capabilities stm32f10_57_xx = {
     .has_wwdg = true,
     .has_i2c1 = true,
     .has_i2c2 = true,
+#if 0
     .has_usart1 = true,
     .has_usart2 = true,
     .has_usart3 = true,
     .has_uart4 = true,
     .has_uart5 = true,
+#endif
     .has_spi1 = true,
     .has_spi2 = true,
     .has_spi3 = true,
@@ -234,11 +238,13 @@ static const STM32Capabilities stm32l15_12_xd = {
     .has_wwdg = true,
     .has_i2c1 = true,
     .has_i2c2 = true,
+#if 0
     .has_usart1 = true,
     .has_usart2 = true,
     .has_usart3 = true,
     .has_uart4 = true,
     .has_uart5 = true,
+#endif
     .has_spi1 = true,
     .has_spi2 = true,
     .has_spi3 = true,
