@@ -1,5 +1,5 @@
 
-GNU ARM Eclipse 64-bits QEMU v2.6.0 (qemu-system-gnuarmeclipse).
+GNU ARM Eclipse 64-bits QEMU v2.7.0 (qemu-system-gnuarmeclipse).
 
 Supported boards:
   Maple                LeafLab Arduino-style STM32 microcontroller board (r5)
@@ -29,7 +29,11 @@ Supported MCUs:
 
 -------------------------------------------------------------------------------
 
-The following changes were applied to the QEMU master branch:
+The following changes (in reverse order) were applied to the QEMU master branch:
+
+[2016-10-24]
+
+- version 2.7.0 merged released
 
 [2016-07-28]
 
