@@ -12,7 +12,6 @@
  */
 
 #include "qemu/osdep.h"
-#include <glib.h>
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #include <dirent.h>
@@ -128,7 +127,6 @@ int64_t qmp_guest_get_time(Error **errp)
 {
    int ret;
    qemu_timeval tq;
-   int64_t time_ns;
 
    ret = qemu_gettimeofday(&tq);
    if (ret < 0) {
@@ -136,8 +134,7 @@ int64_t qmp_guest_get_time(Error **errp)
        return -1;
    }
 
-   time_ns = tq.tv_sec * 1000000000LL + tq.tv_usec * 1000;
-   return time_ns;
+   return tq.tv_sec * 1000000000LL + tq.tv_usec * 1000;
 }
 
 void qmp_guest_set_time(bool has_time, int64_t time_ns, Error **errp)
@@ -1242,8 +1239,8 @@ int64_t qmp_guest_fsfreeze_freeze_list(bool has_mountpoints,
             goto error;
         }
 
-        /* we try to cull filesytems we know won't work in advance, but other
-         * filesytems may not implement fsfreeze for less obvious reasons.
+        /* we try to cull filesystems we know won't work in advance, but other
+         * filesystems may not implement fsfreeze for less obvious reasons.
          * these will report EOPNOTSUPP. we simply ignore these when tallying
          * the number of frozen filesystems.
          *
@@ -1392,10 +1389,10 @@ qmp_guest_fstrim(bool has_minimum, int64_t minimum, Error **errp)
             continue;
         }
 
-        /* We try to cull filesytems we know won't work in advance, but other
-         * filesytems may not implement fstrim for less obvious reasons.  These
-         * will report EOPNOTSUPP; while in some other cases ENOTTY will be
-         * reported (e.g. CD-ROMs).
+        /* We try to cull filesystems we know won't work in advance, but other
+         * filesystems may not implement fstrim for less obvious reasons.
+         * These will report EOPNOTSUPP; while in some other cases ENOTTY
+         * will be reported (e.g. CD-ROMs).
          * Any other error means an unexpected error.
          */
         r.start = 0;

@@ -10,18 +10,18 @@
 
 #include "qemu/osdep.h"
 #include <sys/ioctl.h>
-#include <sys/mman.h>
 
 #include <linux/kvm.h>
 
 #include "qemu-common.h"
+#include "cpu.h"
 #include "qemu/timer.h"
 #include "sysemu/sysemu.h"
 #include "sysemu/kvm.h"
 #include "kvm_arm.h"
-#include "cpu.h"
 #include "internals.h"
 #include "hw/arm/arm.h"
+#include "qemu/log.h"
 
 static inline void set_feature(uint64_t *features, int feature)
 {
@@ -520,4 +520,10 @@ void kvm_arm_copy_hw_debug_data(struct kvm_guest_debug_arch *ptr)
 bool kvm_arm_hw_debug_active(CPUState *cs)
 {
     return false;
+}
+
+int kvm_arm_pmu_create(CPUState *cs, int irq)
+{
+    qemu_log_mask(LOG_UNIMP, "%s: not implemented\n", __func__);
+    return 0;
 }

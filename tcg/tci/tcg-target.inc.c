@@ -553,17 +553,19 @@ static void tcg_out_op(TCGContext *s, TCGOpcode opc, const TCGArg *args,
         tcg_out64(s, args[0]);
         break;
     case INDEX_op_goto_tb:
-        if (s->tb_jmp_offset) {
+        if (s->tb_jmp_insn_offset) {
             /* Direct jump method. */
-            tcg_debug_assert(args[0] < ARRAY_SIZE(s->tb_jmp_offset));
-            s->tb_jmp_offset[args[0]] = tcg_current_code_size(s);
+            tcg_debug_assert(args[0] < ARRAY_SIZE(s->tb_jmp_insn_offset));
+            /* Align for atomic patching and thread safety */
+            s->code_ptr = QEMU_ALIGN_PTR_UP(s->code_ptr, 4);
+            s->tb_jmp_insn_offset[args[0]] = tcg_current_code_size(s);
             tcg_out32(s, 0);
         } else {
             /* Indirect jump method. */
             TODO();
         }
-        tcg_debug_assert(args[0] < ARRAY_SIZE(s->tb_next_offset));
-        s->tb_next_offset[args[0]] = tcg_current_code_size(s);
+        tcg_debug_assert(args[0] < ARRAY_SIZE(s->tb_jmp_reset_offset));
+        s->tb_jmp_reset_offset[args[0]] = tcg_current_code_size(s);
         break;
     case INDEX_op_br:
         tci_out_label(s, arg_label(args[0]));
@@ -830,6 +832,12 @@ static void tcg_out_st(TCGContext *s, TCGType type, TCGReg arg, TCGReg arg1,
 #endif
     }
     old_code_ptr[1] = s->code_ptr - old_code_ptr;
+}
+
+static inline bool tcg_out_sti(TCGContext *s, TCGType type, TCGArg val,
+                               TCGReg base, intptr_t ofs)
+{
+    return false;
 }
 
 /* Test if a constant matches the constraint. */

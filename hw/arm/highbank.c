@@ -30,6 +30,7 @@
 #include "sysemu/block-backend.h"
 #include "exec/address-spaces.h"
 #include "qemu/error-report.h"
+#include "hw/char/pl011.h"
 
 #define SMP_BOOT_ADDR           0x100
 #define SMP_BOOT_REG            0x40
@@ -168,23 +169,20 @@ static void highbank_regs_reset(DeviceState *dev)
     s->regs[0x43] = 0x05F40121;
 }
 
-static int highbank_regs_init(SysBusDevice *dev)
+static void highbank_regs_init(Object *obj)
 {
-    HighbankRegsState *s = HIGHBANK_REGISTERS(dev);
+    HighbankRegsState *s = HIGHBANK_REGISTERS(obj);
+    SysBusDevice *dev = SYS_BUS_DEVICE(obj);
 
-    memory_region_init_io(&s->iomem, OBJECT(s), &hb_mem_ops, s->regs,
+    memory_region_init_io(&s->iomem, obj, &hb_mem_ops, s->regs,
                           "highbank_regs", 0x1000);
     sysbus_init_mmio(dev, &s->iomem);
-
-    return 0;
 }
 
 static void highbank_regs_class_init(ObjectClass *klass, void *data)
 {
-    SysBusDeviceClass *sbc = SYS_BUS_DEVICE_CLASS(klass);
     DeviceClass *dc = DEVICE_CLASS(klass);
 
-    sbc->init = highbank_regs_init;
     dc->desc = "Calxeda Highbank registers";
     dc->vmsd = &vmstate_highbank_regs;
     dc->reset = highbank_regs_reset;
@@ -194,6 +192,7 @@ static const TypeInfo highbank_regs_info = {
     .name          = TYPE_HIGHBANK_REGISTERS,
     .parent        = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(HighbankRegsState),
+    .instance_init = highbank_regs_init,
     .class_init    = highbank_regs_class_init,
 };
 
@@ -328,7 +327,7 @@ static void calxeda_init(MachineState *machine, enum cxmachines machine_id)
     busdev = SYS_BUS_DEVICE(dev);
     sysbus_mmio_map(busdev, 0, 0xfff34000);
     sysbus_connect_irq(busdev, 0, pic[18]);
-    sysbus_create_simple("pl011", 0xfff36000, pic[20]);
+    pl011_create(0xfff36000, pic[20], serial_hds[0]);
 
     dev = qdev_create(NULL, "highbank-regs");
     qdev_init_nofail(dev);

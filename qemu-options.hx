@@ -38,10 +38,9 @@ DEF("machine", HAS_ARG, QEMU_OPTION_machine, \
     "                kernel_irqchip=on|off controls accelerated irqchip support\n"
     "                kernel_irqchip=on|off|split controls accelerated irqchip support (default=off)\n"
     "                vmport=on|off|auto controls emulation of vmport (default: auto)\n"
-    "                kvm_shadow_mem=size of KVM shadow MMU\n"
+    "                kvm_shadow_mem=size of KVM shadow MMU in bytes\n"
     "                dump-guest-core=on|off include guest memory in a core dump (default=on)\n"
     "                mem-merge=on|off controls memory merge support (default: on)\n"
-    "                iommu=on|off controls emulated Intel IOMMU (VT-d) support (default=off)\n"
     "                igd-passthru=on|off controls IGD GFX passthrough support (default=off)\n"
     "                aes-key-wrap=on|off controls support for AES key wrapping (default=on)\n"
     "                dea-key-wrap=on|off controls support for DEA key wrapping (default=on)\n"
@@ -76,8 +75,6 @@ Include guest memory in a core dump. The default is on.
 Enables or disables memory merge support. This feature, when supported by
 the host, de-duplicates identical memory pages among VMs instances
 (enabled by default).
-@item iommu=on|off
-Enables or disables emulated Intel IOMMU (VT-d) support. The default is off.
 @item aes-key-wrap=on|off
 Enables or disables AES key wrapping support on s390-ccw hosts. This feature
 controls whether AES wrapping keys will be created to allow
@@ -572,7 +569,7 @@ These options have the same definition as they have in @option{-hdachs}.
 @var{discard} is one of "ignore" (or "off") or "unmap" (or "on") and controls whether @dfn{discard} (also known as @dfn{trim} or @dfn{unmap}) requests are ignored or passed to the filesystem.  Some machine types may not support discard requests.
 @item format=@var{format}
 Specify which disk @var{format} will be used rather than detecting
-the format.  Can be used to specifiy format=raw to avoid interpreting
+the format.  Can be used to specify format=raw to avoid interpreting
 an untrusted format header.
 @item serial=@var{serial}
 This option specifies the serial number to assign to the device.
@@ -897,7 +894,7 @@ mouse. Also overrides the PS/2 mouse emulation when activated.
 
 @item disk:[format=@var{format}]:@var{file}
 Mass storage device based on file. The optional @var{format} argument
-will be used rather than detecting the format. Can be used to specifiy
+will be used rather than detecting the format. Can be used to specify
 @code{format=raw} to avoid interpreting an untrusted format header.
 
 @item host:@var{bus}.@var{addr}
@@ -933,10 +930,25 @@ ETEXI
 
 DEF("display", HAS_ARG, QEMU_OPTION_display,
     "-display sdl[,frame=on|off][,alt_grab=on|off][,ctrl_grab=on|off]\n"
-    "            [,window_close=on|off]|curses|none|\n"
-    "            gtk[,grab_on_hover=on|off]|\n"
-    "            vnc=<display>[,<optargs>]\n"
-    "                select display type\n", QEMU_ARCH_ALL)
+    "            [,window_close=on|off][,gl=on|off]|curses|none|\n"
+    "-display gtk[,grab_on_hover=on|off][,gl=on|off]|\n"
+    "-display vnc=<display>[,<optargs>]\n"
+    "-display curses\n"
+    "-display none"
+    "                select display type\n"
+    "The default display is equivalent to\n"
+#if defined(CONFIG_GTK)
+            "\t\"-display gtk\"\n"
+#elif defined(CONFIG_SDL)
+            "\t\"-display sdl\"\n"
+#elif defined(CONFIG_COCOA)
+            "\t\"-display cocoa\"\n"
+#elif defined(CONFIG_VNC)
+            "\t\"-vnc localhost:0,to=99,id=default\"\n"
+#else
+            "\t\"-display none\"\n"
+#endif
+    , QEMU_ARCH_ALL)
 STEXI
 @item -display @var{type}
 @findex -display
@@ -983,7 +995,7 @@ the console and monitor.
 ETEXI
 
 DEF("curses", 0, QEMU_OPTION_curses,
-    "-curses         use a curses/ncurses interface instead of SDL\n",
+    "-curses         shorthand for -display curses\n",
     QEMU_ARCH_ALL)
 STEXI
 @item -curses
@@ -1033,7 +1045,7 @@ Disable SDL window close capability.
 ETEXI
 
 DEF("sdl", 0, QEMU_OPTION_sdl,
-    "-sdl            enable SDL\n", QEMU_ARCH_ALL)
+    "-sdl            shorthand for -display sdl\n", QEMU_ARCH_ALL)
 STEXI
 @item -sdl
 @findex -sdl
@@ -1230,7 +1242,7 @@ Set the initial graphical resolution and depth (PPC, SPARC only).
 ETEXI
 
 DEF("vnc", HAS_ARG, QEMU_OPTION_vnc ,
-    "-vnc display    start a VNC server on display\n", QEMU_ARCH_ALL)
+    "-vnc <display>  shorthand for -display vnc=<display>\n", QEMU_ARCH_ALL)
 STEXI
 @item -vnc @var{display}[,@var{option}[,@var{option}[,...]]]
 @findex -vnc
@@ -1243,6 +1255,13 @@ parameter to set the keyboard layout if you are not using en-us. Valid
 syntax for the @var{display} is
 
 @table @option
+
+@item to=@var{L}
+
+With this option, QEMU will try next available VNC @var{display}s, until the
+number @var{L}, if the origianlly defined "-vnc @var{display}" is not
+available, e.g. port 5900+@var{display} is already used by another
+application. By default, to=0.
 
 @item @var{host}:@var{d}
 
@@ -1413,6 +1432,14 @@ everybody else.  'ignore' completely ignores the shared flag and
 allows everybody connect unconditionally.  Doesn't conform to the rfb
 spec but is traditional QEMU behavior.
 
+@item key-delay-ms
+
+Set keyboard delay, for key down and key up events, in milliseconds.
+Default is 1.  Keyboards are low-bandwidth devices, so this slowdown
+can help the device and guest to keep up and not lose events in case
+events are arriving in bulk.  Possible causes for the latter are flaky
+network connections, or scripts for automated testing.
+
 @end table
 ETEXI
 
@@ -1572,6 +1599,7 @@ DEF("netdev", HAS_ARG, QEMU_OPTION_netdev,
     "-netdev tap,id=str[,fd=h][,fds=x:y:...:z][,ifname=name][,script=file][,downscript=dfile]\n"
     "         [,helper=helper][,sndbuf=nbytes][,vnet_hdr=on|off][,vhost=on|off]\n"
     "         [,vhostfd=h][,vhostfds=x:y:...:z][,vhostforce=on|off][,queues=n]\n"
+    "         [,poll-us=n]\n"
     "                configure a host TAP network backend with ID 'str'\n"
     "                use network scripts 'file' (default=" DEFAULT_NETWORK_SCRIPT ")\n"
     "                to configure it and 'dfile' (default=" DEFAULT_NETWORK_DOWN_SCRIPT ")\n"
@@ -1591,6 +1619,8 @@ DEF("netdev", HAS_ARG, QEMU_OPTION_netdev,
     "                use 'vhostfd=h' to connect to an already opened vhost net device\n"
     "                use 'vhostfds=x:y:...:z to connect to multiple already opened vhost net devices\n"
     "                use 'queues=n' to specify the number of queues to be created for multiqueue TAP\n"
+    "                use 'poll-us=n' to speciy the maximum number of microseconds that could be\n"
+    "                spent on busy polling for vhost net\n"
     "-netdev bridge,id=str[,br=bridge][,helper=helper]\n"
     "                configure a host TAP network backend with ID 'str' that is\n"
     "                connected to a bridge (default=" DEFAULT_BRIDGE_INTERFACE ")\n"
@@ -3253,6 +3283,8 @@ STEXI
 @item -L  @var{path}
 @findex -L
 Set the directory for the BIOS, VGA BIOS and keymaps.
+
+To list all the data directories, use @code{-L help}.
 ETEXI
 
 DEF("bios", HAS_ARG, QEMU_OPTION_bios, \
@@ -3719,34 +3751,9 @@ DEF("trace", HAS_ARG, QEMU_OPTION_trace,
 STEXI
 HXCOMM This line is not accurate, as some sub-options are backend-specific but
 HXCOMM HX does not support conditional compilation of text.
-@item -trace [events=@var{file}][,file=@var{file}]
+@item -trace [[enable=]@var{pattern}][,events=@var{file}][,file=@var{file}]
 @findex -trace
-
-Specify tracing options.
-
-@table @option
-@item [enable=]@var{pattern}
-Immediately enable events matching @var{pattern}.
-The file must contain one event name (as listed in the @file{trace-events} file)
-per line; globbing patterns are accepted too.  This option is only
-available if QEMU has been compiled with the @var{simple}, @var{stderr}
-or @var{ftrace} tracing backend.  To specify multiple events or patterns,
-specify the @option{-trace} option multiple times.
-
-Use @code{-trace help} to print a list of names of trace points.
-
-@item events=@var{file}
-Immediately enable events listed in @var{file}.
-The file must contain one event name (as listed in the @file{trace-events} file)
-per line; globbing patterns are accepted too.  This option is only
-available if QEMU has been compiled with the @var{simple}, @var{stderr} or
-@var{ftrace} tracing backend.
-
-@item file=@var{file}
-Log output traces to @var{file}.
-This option is only available if QEMU has been compiled with
-the @var{simple} tracing backend.
-@end table
+@include qemu-option-trace.texi
 ETEXI
 
 HXCOMM Internal use

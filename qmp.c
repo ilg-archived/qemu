@@ -14,6 +14,7 @@
  */
 
 #include "qemu/osdep.h"
+#include "qemu-version.h"
 #include "qemu/cutils.h"
 #include "monitor/monitor.h"
 #include "sysemu/sysemu.h"
@@ -181,6 +182,7 @@ void qmp_cont(Error **errp)
     Error *local_err = NULL;
     BlockBackend *blk;
     BlockDriverState *bs;
+    BdrvNextIterator it;
 
     /* if there is a dump in background, we should wait until the dump
      * finished */
@@ -199,7 +201,8 @@ void qmp_cont(Error **errp)
     for (blk = blk_next(NULL); blk; blk = blk_next(blk)) {
         blk_iostatus_reset(blk);
     }
-    for (bs = bdrv_next(NULL); bs; bs = bdrv_next(bs)) {
+
+    for (bs = bdrv_first(&it); bs; bs = bdrv_next(&it)) {
         bdrv_add_key(bs, NULL, &local_err);
         if (local_err) {
             error_propagate(errp, local_err);
@@ -652,7 +655,7 @@ void qmp_object_add(const char *type, const char *id,
                     bool has_props, QObject *props, Error **errp)
 {
     const QDict *pdict = NULL;
-    QmpInputVisitor *qiv;
+    Visitor *v;
     Object *obj;
 
     if (props) {
@@ -663,10 +666,9 @@ void qmp_object_add(const char *type, const char *id,
         }
     }
 
-    qiv = qmp_input_visitor_new(props);
-    obj = user_creatable_add_type(type, id, pdict,
-                                  qmp_input_get_visitor(qiv), errp);
-    qmp_input_visitor_cleanup(qiv);
+    v = qmp_input_visitor_new(props, true);
+    obj = user_creatable_add_type(type, id, pdict, v, errp);
+    visit_free(v);
     if (obj) {
         object_unref(obj);
     }

@@ -25,16 +25,27 @@
 
 typedef struct StackObject
 {
-    QObject *obj;
-    const QListEntry *entry;
-    GHashTable *h;
+    QObject *obj; /* Object being visited */
+    void *qapi; /* sanity check that caller uses same pointer */
+
+    GHashTable *h;           /* If obj is dict: unvisited keys */
+    const QListEntry *entry; /* If obj is list: unvisited tail */
+
+    QSLIST_ENTRY(StackObject) node;
 } StackObject;
 
 struct QmpInputVisitor
 {
     Visitor visitor;
-    StackObject stack[QIV_STACK_SIZE];
-    int nb_stack;
+
+    /* Root of visit at visitor creation. */
+    QObject *root;
+
+    /* Stack of objects being visited (all entries will be either
+     * QDict or QList). */
+    QSLIST_HEAD(, StackObject) stack;
+
+    /* True to reject parse in visit_end_struct() if unvisited keys remain. */
     bool strict;
 };
 
@@ -47,20 +58,37 @@ static QObject *qmp_input_get_object(QmpInputVisitor *qiv,
                                      const char *name,
                                      bool consume)
 {
-    QObject *qobj = qiv->stack[qiv->nb_stack - 1].obj;
+    StackObject *tos;
+    QObject *qobj;
+    QObject *ret;
 
-    if (qobj) {
-        if (name && qobject_type(qobj) == QTYPE_QDICT) {
-            if (qiv->stack[qiv->nb_stack - 1].h && consume) {
-                g_hash_table_remove(qiv->stack[qiv->nb_stack - 1].h, name);
-            }
-            return qdict_get(qobject_to_qdict(qobj), name);
-        } else if (qiv->stack[qiv->nb_stack - 1].entry) {
-            return qlist_entry_obj(qiv->stack[qiv->nb_stack - 1].entry);
+    if (QSLIST_EMPTY(&qiv->stack)) {
+        /* Starting at root, name is ignored. */
+        return qiv->root;
+    }
+
+    /* We are in a container; find the next element. */
+    tos = QSLIST_FIRST(&qiv->stack);
+    qobj = tos->obj;
+    assert(qobj);
+
+    if (qobject_type(qobj) == QTYPE_QDICT) {
+        assert(name);
+        ret = qdict_get(qobject_to_qdict(qobj), name);
+        if (tos->h && consume && ret) {
+            bool removed = g_hash_table_remove(tos->h, name);
+            assert(removed);
+        }
+    } else {
+        assert(qobject_type(qobj) == QTYPE_QLIST);
+        assert(!name);
+        ret = qlist_entry_obj(tos->entry);
+        if (consume) {
+            tos->entry = qlist_next(tos->entry);
         }
     }
 
-    return qobj;
+    return ret;
 }
 
 static void qdict_add_key(const char *key, QObject *obj, void *opaque)
@@ -69,35 +97,37 @@ static void qdict_add_key(const char *key, QObject *obj, void *opaque)
     g_hash_table_insert(h, (gpointer) key, NULL);
 }
 
-static void qmp_input_push(QmpInputVisitor *qiv, QObject *obj, Error **errp)
+static const QListEntry *qmp_input_push(QmpInputVisitor *qiv, QObject *obj,
+                                        void *qapi, Error **errp)
 {
     GHashTable *h;
+    StackObject *tos = g_new0(StackObject, 1);
 
-    if (qiv->nb_stack >= QIV_STACK_SIZE) {
-        error_setg(errp, "An internal buffer overran");
-        return;
-    }
-
-    qiv->stack[qiv->nb_stack].obj = obj;
-    qiv->stack[qiv->nb_stack].entry = NULL;
-    qiv->stack[qiv->nb_stack].h = NULL;
+    assert(obj);
+    tos->obj = obj;
+    tos->qapi = qapi;
 
     if (qiv->strict && qobject_type(obj) == QTYPE_QDICT) {
         h = g_hash_table_new(g_str_hash, g_str_equal);
         qdict_iter(qobject_to_qdict(obj), qdict_add_key, h);
-        qiv->stack[qiv->nb_stack].h = h;
+        tos->h = h;
+    } else if (qobject_type(obj) == QTYPE_QLIST) {
+        tos->entry = qlist_first(qobject_to_qlist(obj));
     }
 
-    qiv->nb_stack++;
+    QSLIST_INSERT_HEAD(&qiv->stack, tos, node);
+    return tos->entry;
 }
 
 
-static void qmp_input_pop(QmpInputVisitor *qiv, Error **errp)
+static void qmp_input_check_struct(Visitor *v, Error **errp)
 {
-    assert(qiv->nb_stack > 0);
+    QmpInputVisitor *qiv = to_qiv(v);
+    StackObject *tos = QSLIST_FIRST(&qiv->stack);
 
+    assert(tos && !tos->entry);
     if (qiv->strict) {
-        GHashTable * const top_ht = qiv->stack[qiv->nb_stack - 1].h;
+        GHashTable *const top_ht = tos->h;
         if (top_ht) {
             GHashTableIter iter;
             const char *key;
@@ -106,11 +136,27 @@ static void qmp_input_pop(QmpInputVisitor *qiv, Error **errp)
             if (g_hash_table_iter_next(&iter, (void **)&key, NULL)) {
                 error_setg(errp, QERR_QMP_EXTRA_MEMBER, key);
             }
-            g_hash_table_unref(top_ht);
         }
     }
+}
 
-    qiv->nb_stack--;
+static void qmp_input_stack_object_free(StackObject *tos)
+{
+    if (tos->h) {
+        g_hash_table_unref(tos->h);
+    }
+
+    g_free(tos);
+}
+
+static void qmp_input_pop(Visitor *v, void **obj)
+{
+    QmpInputVisitor *qiv = to_qiv(v);
+    StackObject *tos = QSLIST_FIRST(&qiv->stack);
+
+    assert(tos && tos->qapi == obj);
+    QSLIST_REMOVE_HEAD(&qiv->stack, node);
+    qmp_input_stack_object_free(tos);
 }
 
 static void qmp_input_start_struct(Visitor *v, const char *name, void **obj,
@@ -120,13 +166,16 @@ static void qmp_input_start_struct(Visitor *v, const char *name, void **obj,
     QObject *qobj = qmp_input_get_object(qiv, name, true);
     Error *err = NULL;
 
+    if (obj) {
+        *obj = NULL;
+    }
     if (!qobj || qobject_type(qobj) != QTYPE_QDICT) {
         error_setg(errp, QERR_INVALID_PARAMETER_TYPE, name ? name : "null",
                    "QDict");
         return;
     }
 
-    qmp_input_push(qiv, qobj, &err);
+    qmp_input_push(qiv, qobj, obj, &err);
     if (err) {
         error_propagate(errp, err);
         return;
@@ -137,63 +186,46 @@ static void qmp_input_start_struct(Visitor *v, const char *name, void **obj,
     }
 }
 
-static void qmp_input_end_struct(Visitor *v, Error **errp)
-{
-    QmpInputVisitor *qiv = to_qiv(v);
 
-    qmp_input_pop(qiv, errp);
-}
-
-static void qmp_input_start_list(Visitor *v, const char *name, Error **errp)
+static void qmp_input_start_list(Visitor *v, const char *name,
+                                 GenericList **list, size_t size, Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
     QObject *qobj = qmp_input_get_object(qiv, name, true);
+    const QListEntry *entry;
 
     if (!qobj || qobject_type(qobj) != QTYPE_QLIST) {
+        if (list) {
+            *list = NULL;
+        }
         error_setg(errp, QERR_INVALID_PARAMETER_TYPE, name ? name : "null",
                    "list");
         return;
     }
 
-    qmp_input_push(qiv, qobj, errp);
+    entry = qmp_input_push(qiv, qobj, list, errp);
+    if (list) {
+        if (entry) {
+            *list = g_malloc0(size);
+        } else {
+            *list = NULL;
+        }
+    }
 }
 
-static GenericList *qmp_input_next_list(Visitor *v, GenericList **list,
+static GenericList *qmp_input_next_list(Visitor *v, GenericList *tail,
                                         size_t size)
 {
     QmpInputVisitor *qiv = to_qiv(v);
-    GenericList *entry;
-    StackObject *so = &qiv->stack[qiv->nb_stack - 1];
-    bool first;
+    StackObject *so = QSLIST_FIRST(&qiv->stack);
 
-    if (so->entry == NULL) {
-        so->entry = qlist_first(qobject_to_qlist(so->obj));
-        first = true;
-    } else {
-        so->entry = qlist_next(so->entry);
-        first = false;
-    }
-
-    if (so->entry == NULL) {
+    if (!so->entry) {
         return NULL;
     }
-
-    entry = g_malloc0(size);
-    if (first) {
-        *list = entry;
-    } else {
-        (*list)->next = entry;
-    }
-
-    return entry;
+    tail->next = g_malloc0(size);
+    return tail->next;
 }
 
-static void qmp_input_end_list(Visitor *v)
-{
-    QmpInputVisitor *qiv = to_qiv(v);
-
-    qmp_input_pop(qiv, &error_abort);
-}
 
 static void qmp_input_start_alternate(Visitor *v, const char *name,
                                       GenericAlternate **obj, size_t size,
@@ -267,6 +299,7 @@ static void qmp_input_type_str(Visitor *v, const char *name, char **obj,
     QString *qstr = qobject_to_qstring(qmp_input_get_object(qiv, name, true));
 
     if (!qstr) {
+        *obj = NULL;
         error_setg(errp, QERR_INVALID_PARAMETER_TYPE, name ? name : "null",
                    "string");
         return;
@@ -309,10 +342,21 @@ static void qmp_input_type_any(Visitor *v, const char *name, QObject **obj,
     *obj = qobj;
 }
 
-static void qmp_input_optional(Visitor *v, const char *name, bool *present)
+static void qmp_input_type_null(Visitor *v, const char *name, Error **errp)
 {
     QmpInputVisitor *qiv = to_qiv(v);
     QObject *qobj = qmp_input_get_object(qiv, name, true);
+
+    if (qobject_type(qobj) != QTYPE_QNULL) {
+        error_setg(errp, QERR_INVALID_PARAMETER_TYPE, name ? name : "null",
+                   "null");
+    }
+}
+
+static void qmp_input_optional(Visitor *v, const char *name, bool *present)
+{
+    QmpInputVisitor *qiv = to_qiv(v);
+    QObject *qobj = qmp_input_get_object(qiv, name, false);
 
     if (!qobj) {
         *present = false;
@@ -322,50 +366,47 @@ static void qmp_input_optional(Visitor *v, const char *name, bool *present)
     *present = true;
 }
 
-Visitor *qmp_input_get_visitor(QmpInputVisitor *v)
+static void qmp_input_free(Visitor *v)
 {
-    return &v->visitor;
+    QmpInputVisitor *qiv = to_qiv(v);
+    while (!QSLIST_EMPTY(&qiv->stack)) {
+        StackObject *tos = QSLIST_FIRST(&qiv->stack);
+
+        QSLIST_REMOVE_HEAD(&qiv->stack, node);
+        qmp_input_stack_object_free(tos);
+    }
+
+    qobject_decref(qiv->root);
+    g_free(qiv);
 }
 
-void qmp_input_visitor_cleanup(QmpInputVisitor *v)
-{
-    qobject_decref(v->stack[0].obj);
-    g_free(v);
-}
-
-QmpInputVisitor *qmp_input_visitor_new(QObject *obj)
+Visitor *qmp_input_visitor_new(QObject *obj, bool strict)
 {
     QmpInputVisitor *v;
 
     v = g_malloc0(sizeof(*v));
 
+    v->visitor.type = VISITOR_INPUT;
     v->visitor.start_struct = qmp_input_start_struct;
-    v->visitor.end_struct = qmp_input_end_struct;
+    v->visitor.check_struct = qmp_input_check_struct;
+    v->visitor.end_struct = qmp_input_pop;
     v->visitor.start_list = qmp_input_start_list;
     v->visitor.next_list = qmp_input_next_list;
-    v->visitor.end_list = qmp_input_end_list;
+    v->visitor.end_list = qmp_input_pop;
     v->visitor.start_alternate = qmp_input_start_alternate;
-    v->visitor.type_enum = input_type_enum;
     v->visitor.type_int64 = qmp_input_type_int64;
     v->visitor.type_uint64 = qmp_input_type_uint64;
     v->visitor.type_bool = qmp_input_type_bool;
     v->visitor.type_str = qmp_input_type_str;
     v->visitor.type_number = qmp_input_type_number;
     v->visitor.type_any = qmp_input_type_any;
+    v->visitor.type_null = qmp_input_type_null;
     v->visitor.optional = qmp_input_optional;
+    v->visitor.free = qmp_input_free;
+    v->strict = strict;
 
-    qmp_input_push(v, obj, NULL);
+    v->root = obj;
     qobject_incref(obj);
 
-    return v;
-}
-
-QmpInputVisitor *qmp_input_visitor_new_strict(QObject *obj)
-{
-    QmpInputVisitor *v;
-
-    v = qmp_input_visitor_new(obj);
-    v->strict = true;
-
-    return v;
+    return &v->visitor;
 }

@@ -1,5 +1,4 @@
 #include "qemu/osdep.h"
-#include <glib.h>
 #include <windows.h>
 #include <io.h>
 #include "qga/guest-agent-core.h"
@@ -77,7 +76,7 @@ static gboolean ga_channel_prepare(GSource *source, gint *timeout_ms)
     }
 
 out:
-    /* dont block forever, iterate the main loop every once and a while */
+    /* don't block forever, iterate the main loop every once in a while */
     *timeout_ms = 500;
     /* if there's data in the read buffer, or another event is pending,
      * skip polling and issue user cb.

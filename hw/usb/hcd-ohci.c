@@ -1474,7 +1474,7 @@ static uint32_t ohci_get_frame_remaining(OHCIState *ohci)
     if (tks >= usb_frame_time)
         return (ohci->frt << 31);
 
-    tks = muldiv64(1, tks, usb_bit_time);
+    tks = tks / usb_bit_time;
     fr = (uint16_t)(ohci->fi - tks);
 
     return (ohci->frt << 31) | fr;
@@ -1847,6 +1847,12 @@ static void usb_ohci_init(OHCIState *ohci, DeviceState *dev,
     int i;
 
     ohci->as = as;
+
+    if (num_ports > OHCI_MAX_PORTS) {
+        error_setg(errp, "OHCI num-ports=%d is too big (limit is %d ports)",
+                   num_ports, OHCI_MAX_PORTS);
+        return;
+    }
 
     if (usb_frame_time == 0) {
 #ifdef OHCI_TIME_WARP

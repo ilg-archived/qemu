@@ -197,7 +197,7 @@ static void qemu_spice_create_one_update(SimpleSpiceDisplay *ssd,
 static void qemu_spice_create_update(SimpleSpiceDisplay *ssd)
 {
     static const int blksize = 32;
-    int blocks = (surface_width(ssd->ds) + blksize - 1) / blksize;
+    int blocks = DIV_ROUND_UP(surface_width(ssd->ds), blksize);
     int dirty_top[blocks];
     int y, yoff1, yoff2, x, xoff, blk, bw;
     int bpp = surface_bytes_per_pixel(ssd->ds);
@@ -527,11 +527,13 @@ static void interface_set_compression_level(QXLInstance *sin, int level)
     /* nothing to do */
 }
 
+#if SPICE_NEEDS_SET_MM_TIME
 static void interface_set_mm_time(QXLInstance *sin, uint32_t mm_time)
 {
     dprint(3, "%s/%d:\n", __func__, sin->id);
     /* nothing to do */
 }
+#endif
 
 static void interface_get_init_info(QXLInstance *sin, QXLDevInitInfo *info)
 {
@@ -660,6 +662,11 @@ static void interface_async_complete(QXLInstance *sin, uint64_t cookie_token)
         qemu_bh_schedule(ssd->gl_unblock_bh);
         break;
     }
+    case QXL_COOKIE_TYPE_IO:
+        if (cookie->io == QXL_IO_MONITORS_CONFIG_ASYNC) {
+            g_free(cookie->u.data);
+        }
+        break;
 #endif
     default:
         /* should never be called, used in qxl native mode only */
@@ -681,6 +688,7 @@ static int interface_client_monitors_config(QXLInstance *sin,
 {
     SimpleSpiceDisplay *ssd = container_of(sin, SimpleSpiceDisplay, qxl);
     QemuUIInfo info;
+    int head;
 
     if (!dpy_ui_info_supported(ssd->dcl.con)) {
         return 0; /* == not supported by guest */
@@ -690,14 +698,12 @@ static int interface_client_monitors_config(QXLInstance *sin,
         return 1;
     }
 
-    /*
-     * FIXME: multihead is tricky due to the way
-     * spice has multihead implemented.
-     */
     memset(&info, 0, sizeof(info));
-    if (mc->num_of_monitors > 0) {
-        info.width  = mc->monitors[0].width;
-        info.height = mc->monitors[0].height;
+
+    head = qemu_console_get_head(ssd->dcl.con);
+    if (mc->num_of_monitors > head) {
+        info.width  = mc->monitors[head].width;
+        info.height = mc->monitors[head].height;
     }
     dpy_set_ui_info(ssd->dcl.con, &info);
     dprint(1, "%s/%d: size %dx%d\n", __func__, ssd->qxl.id,
@@ -713,7 +719,9 @@ static const QXLInterface dpy_interface = {
 
     .attache_worker          = interface_attach_worker,
     .set_compression_level   = interface_set_compression_level,
+#if SPICE_NEEDS_SET_MM_TIME
     .set_mm_time             = interface_set_mm_time,
+#endif
     .get_init_info           = interface_get_init_info,
 
     /* the callbacks below are called from spice server thread context */
@@ -769,9 +777,7 @@ static void display_mouse_define(DisplayChangeListener *dcl,
     SimpleSpiceDisplay *ssd = container_of(dcl, SimpleSpiceDisplay, dcl);
 
     qemu_mutex_lock(&ssd->lock);
-    if (c) {
-        cursor_get(c);
-    }
+    cursor_get(c);
     cursor_put(ssd->cursor);
     ssd->cursor = c;
     ssd->hot_x = c->hot_x;
@@ -794,6 +800,29 @@ static const DisplayChangeListenerOps display_listener_ops = {
 };
 
 #ifdef HAVE_SPICE_GL
+
+static void qemu_spice_gl_monitor_config(SimpleSpiceDisplay *ssd,
+                                         int x, int y, int w, int h)
+{
+    QXLMonitorsConfig *config;
+    QXLCookie *cookie;
+
+    config = g_malloc0(sizeof(QXLMonitorsConfig) + sizeof(QXLHead));
+    config->count = 1;
+    config->max_allowed = 1;
+    config->heads[0].x = x;
+    config->heads[0].y = y;
+    config->heads[0].width = w;
+    config->heads[0].height = h;
+    cookie = qxl_cookie_new(QXL_COOKIE_TYPE_IO,
+                            QXL_IO_MONITORS_CONFIG_ASYNC);
+    cookie->u.data = config;
+
+    spice_qxl_monitors_config_async(&ssd->qxl,
+                                    (uintptr_t)config,
+                                    MEMSLOT_GROUP_HOST,
+                                    (uintptr_t)cookie);
+}
 
 static void qemu_spice_gl_block(SimpleSpiceDisplay *ssd, bool block)
 {
@@ -832,6 +861,8 @@ static QEMUGLContext qemu_spice_gl_create_context(DisplayChangeListener *dcl,
 static void qemu_spice_gl_scanout(DisplayChangeListener *dcl,
                                   uint32_t tex_id,
                                   bool y_0_top,
+                                  uint32_t backing_width,
+                                  uint32_t backing_height,
                                   uint32_t x, uint32_t y,
                                   uint32_t w, uint32_t h)
 {
@@ -854,10 +885,10 @@ static void qemu_spice_gl_scanout(DisplayChangeListener *dcl,
     assert(!tex_id || fd >= 0);
 
     /* note: spice server will close the fd */
-    spice_qxl_gl_scanout(&ssd->qxl, fd,
-                         surface_width(ssd->ds),
-                         surface_height(ssd->ds),
+    spice_qxl_gl_scanout(&ssd->qxl, fd, backing_width, backing_height,
                          stride, fourcc, y_0_top);
+
+    qemu_spice_gl_monitor_config(ssd, x, y, w, h);
 }
 
 static void qemu_spice_gl_update(DisplayChangeListener *dcl,

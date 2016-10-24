@@ -33,6 +33,7 @@
 #include "hw/ptimer.h"
 #include "etsec.h"
 #include "registers.h"
+#include "qemu/log.h"
 
 /* #define HEX_DUMP */
 /* #define DEBUG_REGISTER */
@@ -370,7 +371,7 @@ static void etsec_set_link_status(NetClientState *nc)
 }
 
 static NetClientInfo net_etsec_info = {
-    .type = NET_CLIENT_OPTIONS_KIND_NIC,
+    .type = NET_CLIENT_DRIVER_NIC,
     .size = sizeof(NICState),
     .receive = etsec_receive,
     .link_status_changed = etsec_set_link_status,

@@ -357,6 +357,10 @@ static void handle_keydown(SDL_Event *ev)
         case SDL_SCANCODE_7:
         case SDL_SCANCODE_8:
         case SDL_SCANCODE_9:
+            if (gui_grab) {
+                sdl_grab_end(scon);
+            }
+
             win = ev->key.keysym.scancode - SDL_SCANCODE_1;
             if (win < sdl2_num_outputs) {
                 sdl2_console[win].hidden = !sdl2_console[win].hidden;
@@ -790,6 +794,9 @@ void sdl_display_init(DisplayState *ds, int full_screen, int no_frame)
         }
     }
     sdl2_num_outputs = i;
+    if (sdl2_num_outputs == 0) {
+        return;
+    }
     sdl2_console = g_new0(struct sdl2_console, sdl2_num_outputs);
     for (i = 0; i < sdl2_num_outputs; i++) {
         QemuConsole *con = qemu_console_lookup_by_index(i);

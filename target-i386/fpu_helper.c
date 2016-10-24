@@ -22,6 +22,7 @@
 #include "cpu.h"
 #include "exec/helper-proto.h"
 #include "qemu/host-utils.h"
+#include "exec/exec-all.h"
 #include "exec/cpu_ldst.h"
 
 #define FPU_RC_MASK         0xc00
@@ -297,18 +298,12 @@ int32_t helper_fistt_ST0(CPUX86State *env)
 
 int32_t helper_fisttl_ST0(CPUX86State *env)
 {
-    int32_t val;
-
-    val = floatx80_to_int32_round_to_zero(ST0, &env->fp_status);
-    return val;
+    return floatx80_to_int32_round_to_zero(ST0, &env->fp_status);
 }
 
 int64_t helper_fisttll_ST0(CPUX86State *env)
 {
-    int64_t val;
-
-    val = floatx80_to_int64_round_to_zero(ST0, &env->fp_status);
-    return val;
+    return floatx80_to_int64_round_to_zero(ST0, &env->fp_status);
 }
 
 void helper_fldt_ST0(CPUX86State *env, target_ulong ptr)

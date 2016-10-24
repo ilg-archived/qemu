@@ -28,7 +28,7 @@
 #include "qemu/osdep.h"
 #include "qapi/error.h"
 #include "hw/scsi/scsi.h"
-#include <block/scsi.h>
+#include "block/scsi.h"
 #include "hw/pci/msi.h"
 #include "vmw_pvscsi.h"
 #include "trace.h"
@@ -63,7 +63,7 @@ typedef struct PVSCSIClass {
 #define PVSCSI_DEVICE_GET_CLASS(obj) \
     OBJECT_GET_CLASS(PVSCSIClass, (obj), TYPE_PVSCSI)
 
-/* Compatability flags for migration */
+/* Compatibility flags for migration */
 #define PVSCSI_COMPAT_OLD_PCI_CONFIGURATION_BIT 0
 #define PVSCSI_COMPAT_OLD_PCI_CONFIGURATION \
     (1 << PVSCSI_COMPAT_OLD_PCI_CONFIGURATION_BIT)
@@ -121,8 +121,7 @@ typedef struct {
     uint8_t msg_ring_info_valid;         /* Whether message ring initialized */
     uint8_t use_msg;                     /* Whether to use message ring      */
 
-    uint8_t msi_used;    /* Whether MSI support was installed successfully   */
-
+    uint8_t msi_used;                    /* For migration compatibility      */
     PVSCSIRingInfo rings;                /* Data transfer rings manager      */
     uint32_t resetting;                  /* Reset in progress                */
 
@@ -153,7 +152,7 @@ pvscsi_log2(uint32_t input)
     return log;
 }
 
-static void
+static int
 pvscsi_ring_init_data(PVSCSIRingInfo *m, PVSCSICmdDescSetupRings *ri)
 {
     int i;
@@ -161,6 +160,10 @@ pvscsi_ring_init_data(PVSCSIRingInfo *m, PVSCSICmdDescSetupRings *ri)
     uint32_t req_ring_size, cmp_ring_size;
     m->rs_pa = ri->ringsStatePPN << VMW_PAGE_SHIFT;
 
+    if ((ri->reqRingNumPages > PVSCSI_SETUP_RINGS_MAX_NUM_PAGES)
+        || (ri->cmpRingNumPages > PVSCSI_SETUP_RINGS_MAX_NUM_PAGES)) {
+        return -1;
+    }
     req_ring_size = ri->reqRingNumPages * PVSCSI_MAX_NUM_REQ_ENTRIES_PER_PAGE;
     cmp_ring_size = ri->cmpRingNumPages * PVSCSI_MAX_NUM_CMP_ENTRIES_PER_PAGE;
     txr_len_log2 = pvscsi_log2(req_ring_size - 1);
@@ -192,15 +195,20 @@ pvscsi_ring_init_data(PVSCSIRingInfo *m, PVSCSICmdDescSetupRings *ri)
 
     /* Flush ring state page changes */
     smp_wmb();
+
+    return 0;
 }
 
-static void
+static int
 pvscsi_ring_init_msg(PVSCSIRingInfo *m, PVSCSICmdDescSetupMsgRing *ri)
 {
     int i;
     uint32_t len_log2;
     uint32_t ring_size;
 
+    if (ri->numPages > PVSCSI_SETUP_MSG_RING_MAX_NUM_PAGES) {
+        return -1;
+    }
     ring_size = ri->numPages * PVSCSI_MAX_NUM_MSG_ENTRIES_PER_PAGE;
     len_log2 = pvscsi_log2(ring_size - 1);
 
@@ -220,6 +228,8 @@ pvscsi_ring_init_msg(PVSCSIRingInfo *m, PVSCSICmdDescSetupMsgRing *ri)
 
     /* Flush ring state page changes */
     smp_wmb();
+
+    return 0;
 }
 
 static void
@@ -351,7 +361,7 @@ pvscsi_update_irq_status(PVSCSIState *s)
     trace_pvscsi_update_irq_level(should_raise, s->reg_interrupt_enabled,
                                   s->reg_interrupt_status);
 
-    if (s->msi_used && msi_enabled(d)) {
+    if (msi_enabled(d)) {
         if (should_raise) {
             trace_pvscsi_update_irq_msi();
             msi_notify(d, PVSCSI_VECTOR_COMPLETION);
@@ -770,7 +780,10 @@ pvscsi_on_cmd_setup_rings(PVSCSIState *s)
     trace_pvscsi_on_cmd_arrived("PVSCSI_CMD_SETUP_RINGS");
 
     pvscsi_dbg_dump_tx_rings_config(rc);
-    pvscsi_ring_init_data(&s->rings, rc);
+    if (pvscsi_ring_init_data(&s->rings, rc) < 0) {
+        return PVSCSI_COMMAND_PROCESSING_FAILED;
+    }
+
     s->rings_info_valid = TRUE;
     return PVSCSI_COMMAND_PROCESSING_SUCCEEDED;
 }
@@ -850,7 +863,9 @@ pvscsi_on_cmd_setup_msg_ring(PVSCSIState *s)
     }
 
     if (s->rings_info_valid) {
-        pvscsi_ring_init_msg(&s->rings, rc);
+        if (pvscsi_ring_init_msg(&s->rings, rc) < 0) {
+            return PVSCSI_COMMAND_PROCESSING_FAILED;
+        }
         s->msg_ring_info_valid = TRUE;
     }
     return sizeof(PVSCSICmdDescSetupMsgRing) / sizeof(uint32_t);
@@ -1040,22 +1055,20 @@ pvscsi_io_read(void *opaque, hwaddr addr, unsigned size)
 }
 
 
-static bool
+static void
 pvscsi_init_msi(PVSCSIState *s)
 {
     int res;
     PCIDevice *d = PCI_DEVICE(s);
 
     res = msi_init(d, PVSCSI_MSI_OFFSET(s), PVSCSI_MSIX_NUM_VECTORS,
-                   PVSCSI_USE_64BIT, PVSCSI_PER_VECTOR_MASK);
+                   PVSCSI_USE_64BIT, PVSCSI_PER_VECTOR_MASK, NULL);
     if (res < 0) {
         trace_pvscsi_init_msi_fail(res);
         s->msi_used = false;
     } else {
         s->msi_used = true;
     }
-
-    return s->msi_used;
 }
 
 static void
@@ -1063,9 +1076,7 @@ pvscsi_cleanup_msi(PVSCSIState *s)
 {
     PCIDevice *d = PCI_DEVICE(s);
 
-    if (s->msi_used) {
-        msi_uninit(d);
-    }
+    msi_uninit(d);
 }
 
 static const MemoryRegionOps pvscsi_ops = {

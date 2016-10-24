@@ -9,8 +9,8 @@
  */
 
 #include "qemu/osdep.h"
-#include <sys/mman.h>
 
+#include "cpu.h"
 #include "hw/pci/pci.h"
 #include "hw/i386/pc.h"
 #include "hw/i386/apic-msidef.h"
@@ -190,6 +190,9 @@ static void xen_ram_init(PCMachineState *pcms,
     /* Handle the machine opt max-ram-below-4g.  It is basically doing
      * min(xen limit, user limit).
      */
+    if (!user_lowmem) {
+        user_lowmem = HVM_BELOW_4G_RAM_END; /* default */
+    }
     if (HVM_BELOW_4G_RAM_END <= user_lowmem) {
         user_lowmem = HVM_BELOW_4G_RAM_END;
     }
@@ -510,8 +513,13 @@ static void xen_io_add(MemoryListener *listener,
                        MemoryRegionSection *section)
 {
     XenIOState *state = container_of(listener, XenIOState, io_listener);
+    MemoryRegion *mr = section->mr;
 
-    memory_region_ref(section->mr);
+    if (mr->ops == &unassigned_io_ops) {
+        return;
+    }
+
+    memory_region_ref(mr);
 
     xen_map_io_section(xen_xc, xen_domid, state->ioservid, section);
 }
@@ -520,10 +528,15 @@ static void xen_io_del(MemoryListener *listener,
                        MemoryRegionSection *section)
 {
     XenIOState *state = container_of(listener, XenIOState, io_listener);
+    MemoryRegion *mr = section->mr;
+
+    if (mr->ops == &unassigned_io_ops) {
+        return;
+    }
 
     xen_unmap_io_section(xen_xc, xen_domid, state->ioservid, section);
 
-    memory_region_unref(section->mr);
+    memory_region_unref(mr);
 }
 
 static void xen_device_realize(DeviceListener *listener,
@@ -556,7 +569,7 @@ static void xen_sync_dirty_bitmap(XenIOState *state,
 {
     hwaddr npages = size >> TARGET_PAGE_BITS;
     const int width = sizeof(unsigned long) * 8;
-    unsigned long bitmap[(npages + width - 1) / width];
+    unsigned long bitmap[DIV_ROUND_UP(npages, width)];
     int rc, i, j;
     const XenPhysmap *physmap = NULL;
 
@@ -725,7 +738,7 @@ static ioreq_t *cpu_get_ioreq(XenIOState *state)
     return NULL;
 }
 
-static uint32_t do_inp(pio_addr_t addr, unsigned long size)
+static uint32_t do_inp(uint32_t addr, unsigned long size)
 {
     switch (size) {
         case 1:
@@ -735,11 +748,11 @@ static uint32_t do_inp(pio_addr_t addr, unsigned long size)
         case 4:
             return cpu_inl(addr);
         default:
-            hw_error("inp: bad size: %04"FMT_pioaddr" %lx", addr, size);
+            hw_error("inp: bad size: %04x %lx", addr, size);
     }
 }
 
-static void do_outp(pio_addr_t addr,
+static void do_outp(uint32_t addr,
         unsigned long size, uint32_t val)
 {
     switch (size) {
@@ -750,7 +763,7 @@ static void do_outp(pio_addr_t addr,
         case 4:
             return cpu_outl(addr, val);
         default:
-            hw_error("outp: bad size: %04"FMT_pioaddr" %lx", addr, size);
+            hw_error("outp: bad size: %04x %lx", addr, size);
     }
 }
 
@@ -1190,11 +1203,7 @@ void xen_hvm_init(PCMachineState *pcms, MemoryRegion **ram_memory)
         goto err;
     }
 
-    rc = xen_create_ioreq_server(xen_xc, xen_domid, &state->ioservid);
-    if (rc < 0) {
-        perror("xen: ioreq server create");
-        goto err;
-    }
+    xen_create_ioreq_server(xen_xc, xen_domid, &state->ioservid);
 
     state->exit.notify = xen_exit_notifier;
     qemu_add_exit_notifier(&state->exit);
@@ -1305,9 +1314,7 @@ void xen_hvm_init(PCMachineState *pcms, MemoryRegion **ram_memory)
         error_report("xen backend core setup failed");
         goto err;
     }
-    xen_be_register("console", &xen_console_ops);
-    xen_be_register("vkbd", &xen_kbdmouse_ops);
-    xen_be_register("qdisk", &xen_blkdev_ops);
+    xen_be_register_common();
     xen_read_physmap(state);
     return;
 

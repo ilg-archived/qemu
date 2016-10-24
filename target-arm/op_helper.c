@@ -20,6 +20,7 @@
 #include "cpu.h"
 #include "exec/helper-proto.h"
 #include "internals.h"
+#include "exec/exec-all.h"
 #include "exec/cpu_ldst.h"
 
 #define SIGNBIT (uint32_t)0x80000000
@@ -75,18 +76,55 @@ uint32_t HELPER(neon_tbl)(CPUARMState *env, uint32_t ireg, uint32_t def,
 
 #if !defined(CONFIG_USER_ONLY)
 
+static inline uint32_t merge_syn_data_abort(uint32_t template_syn,
+                                            unsigned int target_el,
+                                            bool same_el,
+                                            bool s1ptw, bool is_write,
+                                            int fsc)
+{
+    uint32_t syn;
+
+    /* ISV is only set for data aborts routed to EL2 and
+     * never for stage-1 page table walks faulting on stage 2.
+     *
+     * Furthermore, ISV is only set for certain kinds of load/stores.
+     * If the template syndrome does not have ISV set, we should leave
+     * it cleared.
+     *
+     * See ARMv8 specs, D7-1974:
+     * ISS encoding for an exception from a Data Abort, the
+     * ISV field.
+     */
+    if (!(template_syn & ARM_EL_ISV) || target_el != 2 || s1ptw) {
+        syn = syn_data_abort_no_iss(same_el,
+                                    0, 0, s1ptw, is_write, fsc);
+    } else {
+        /* Fields: IL, ISV, SAS, SSE, SRT, SF and AR come from the template
+         * syndrome created at translation time.
+         * Now we create the runtime syndrome with the remaining fields.
+         */
+        syn = syn_data_abort_with_iss(same_el,
+                                      0, 0, 0, 0, 0,
+                                      0, 0, s1ptw, is_write, fsc,
+                                      false);
+        /* Merge the runtime syndrome with the template syndrome.  */
+        syn |= template_syn;
+    }
+    return syn;
+}
+
 /* try to fill the TLB and return an exception if error. If retaddr is
  * NULL, it means that the function was called in C code (i.e. not
  * from generated code or from helper.c)
  */
-void tlb_fill(CPUState *cs, target_ulong addr, int is_write, int mmu_idx,
-              uintptr_t retaddr)
+void tlb_fill(CPUState *cs, target_ulong addr, MMUAccessType access_type,
+              int mmu_idx, uintptr_t retaddr)
 {
     bool ret;
     uint32_t fsr = 0;
     ARMMMUFaultInfo fi = {};
 
-    ret = arm_tlb_fill(cs, addr, is_write, mmu_idx, &fsr, &fi);
+    ret = arm_tlb_fill(cs, addr, access_type, mmu_idx, &fsr, &fi);
     if (unlikely(ret)) {
         ARMCPU *cpu = ARM_CPU(cs);
         CPUARMState *env = &cpu->env;
@@ -111,12 +149,15 @@ void tlb_fill(CPUState *cs, target_ulong addr, int is_write, int mmu_idx,
         /* For insn and data aborts we assume there is no instruction syndrome
          * information; this is always true for exceptions reported to EL1.
          */
-        if (is_write == 2) {
+        if (access_type == MMU_INST_FETCH) {
             syn = syn_insn_abort(same_el, 0, fi.s1ptw, syn);
             exc = EXCP_PREFETCH_ABORT;
         } else {
-            syn = syn_data_abort(same_el, 0, 0, fi.s1ptw, is_write == 1, syn);
-            if (is_write == 1 && arm_feature(env, ARM_FEATURE_V6)) {
+            syn = merge_syn_data_abort(env->exception.syndrome, target_el,
+                                       same_el, fi.s1ptw,
+                                       access_type == MMU_DATA_STORE, syn);
+            if (access_type == MMU_DATA_STORE
+                && arm_feature(env, ARM_FEATURE_V6)) {
                 fsr |= (1 << 11);
             }
             exc = EXCP_DATA_ABORT;
@@ -129,13 +170,15 @@ void tlb_fill(CPUState *cs, target_ulong addr, int is_write, int mmu_idx,
 }
 
 /* Raise a data fault alignment exception for the specified virtual address */
-void arm_cpu_do_unaligned_access(CPUState *cs, vaddr vaddr, int is_write,
-                                 int is_user, uintptr_t retaddr)
+void arm_cpu_do_unaligned_access(CPUState *cs, vaddr vaddr,
+                                 MMUAccessType access_type,
+                                 int mmu_idx, uintptr_t retaddr)
 {
     ARMCPU *cpu = ARM_CPU(cs);
     CPUARMState *env = &cpu->env;
     int target_el;
     bool same_el;
+    uint32_t syn;
 
     if (retaddr) {
         /* now we have a real cpu fault */
@@ -156,13 +199,14 @@ void arm_cpu_do_unaligned_access(CPUState *cs, vaddr vaddr, int is_write,
         env->exception.fsr = 0x1;
     }
 
-    if (is_write == 1 && arm_feature(env, ARM_FEATURE_V6)) {
+    if (access_type == MMU_DATA_STORE && arm_feature(env, ARM_FEATURE_V6)) {
         env->exception.fsr |= (1 << 11);
     }
 
-    raise_exception(env, EXCP_DATA_ABORT,
-                    syn_data_abort(same_el, 0, 0, 0, is_write == 1, 0x21),
-                    target_el);
+    syn = merge_syn_data_abort(env->exception.syndrome, target_el,
+                               same_el, 0, access_type == MMU_DATA_STORE,
+                               0x21);
+    raise_exception(env, EXCP_DATA_ABORT, syn, target_el);
 }
 
 #endif /* !defined(CONFIG_USER_ONLY) */
@@ -434,6 +478,8 @@ void HELPER(cpsr_write)(CPUARMState *env, uint32_t val, uint32_t mask)
 void HELPER(cpsr_write_eret)(CPUARMState *env, uint32_t val)
 {
     cpsr_write(env, val, CPSR_ERET_MASK, CPSRWriteExceptionReturn);
+
+    arm_call_el_change_hook(arm_env_get_cpu(env));
 }
 
 /* Access to user mode registers from privileged modes.  */
@@ -928,6 +974,8 @@ void HELPER(exception_return)(CPUARMState *env)
         aarch64_restore_sp(env, new_el);
         env->pc = env->elr_el[cur_el];
     }
+
+    arm_call_el_change_hook(arm_env_get_cpu(env));
 
     return;
 

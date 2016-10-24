@@ -26,8 +26,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef __hw_sd_h
-#define __hw_sd_h		1
+
+#ifndef HW_SD_H
+#define HW_SD_H
+
+#include "hw/qdev.h"
 
 #define OUT_OF_RANGE		(1 << 31)
 #define ADDRESS_ERROR		(1 << 30)
@@ -142,4 +145,4 @@ bool sdbus_get_readonly(SDBus *sd);
 void sdbus_set_inserted(SDBus *sd, bool inserted);
 void sdbus_set_readonly(SDBus *sd, bool inserted);
 
-#endif	/* __hw_sd_h */
+#endif /* HW_SD_H */

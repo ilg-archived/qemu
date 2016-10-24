@@ -21,6 +21,7 @@
 #include "qemu/host-utils.h"
 #include "cpu.h"
 #include "disas/disas.h"
+#include "exec/exec-all.h"
 #include "tcg-op.h"
 #include "exec/cpu_ldst.h"
 
@@ -2085,20 +2086,25 @@ static inline int insn_const_size(TCGMemOp ot)
     }
 }
 
+static inline bool use_goto_tb(DisasContext *s, target_ulong pc)
+{
+#ifndef CONFIG_USER_ONLY
+    return (pc & TARGET_PAGE_MASK) == (s->tb->pc & TARGET_PAGE_MASK) ||
+           (pc & TARGET_PAGE_MASK) == (s->pc_start & TARGET_PAGE_MASK);
+#else
+    return true;
+#endif
+}
+
 static inline void gen_goto_tb(DisasContext *s, int tb_num, target_ulong eip)
 {
-    TranslationBlock *tb;
-    target_ulong pc;
+    target_ulong pc = s->cs_base + eip;
 
-    pc = s->cs_base + eip;
-    tb = s->tb;
-    /* NOTE: we handle the case where the TB spans two pages here */
-    if ((pc & TARGET_PAGE_MASK) == (tb->pc & TARGET_PAGE_MASK) ||
-        (pc & TARGET_PAGE_MASK) == ((s->pc - 1) & TARGET_PAGE_MASK))  {
+    if (use_goto_tb(s, pc))  {
         /* jump to same page: we can use a direct jump */
         tcg_gen_goto_tb(tb_num);
         gen_jmp_im(eip);
-        tcg_gen_exit_tb((uintptr_t)tb + tb_num);
+        tcg_gen_exit_tb((uintptr_t)s->tb + tb_num);
     } else {
         /* jump to another page: currently not optimized */
         gen_jmp_im(eip);
@@ -7170,7 +7176,7 @@ static target_ulong disas_insn(CPUX86State *env, DisasContext *s,
             tcg_gen_trunc_tl_i32(cpu_tmp2_i32, cpu_regs[R_ECX]);
             gen_helper_xsetbv(cpu_env, cpu_tmp2_i32, cpu_tmp1_i64);
             /* End TB because translation flags may change.  */
-            gen_jmp_im(s->pc - pc_start);
+            gen_jmp_im(s->pc - s->cs_base);
             gen_eob(s);
             break;
 
@@ -8002,6 +8008,11 @@ static target_ulong disas_insn(CPUX86State *env, DisasContext *s,
             }
             /* fallthru */
         case 0xf9 ... 0xff: /* sfence */
+            if (!(s->cpuid_features & CPUID_SSE)
+                || (prefixes & PREFIX_LOCK)) {
+                goto illegal_op;
+            }
+            break;
         case 0xe8 ... 0xef: /* lfence */
         case 0xf0 ... 0xf7: /* mfence */
             if (!(s->cpuid_features & CPUID_SSE2)
@@ -8133,8 +8144,15 @@ void tcg_x86_init(void)
         "bnd0_ub", "bnd1_ub", "bnd2_ub", "bnd3_ub"
     };
     int i;
+    static bool initialized;
+
+    if (initialized) {
+        return;
+    }
+    initialized = true;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
+    tcg_ctx.tcg_env = cpu_env;
     cpu_cc_op = tcg_global_mem_new_i32(cpu_env,
                                        offsetof(CPUX86State, cc_op), "cc_op");
     cpu_cc_dst = tcg_global_mem_new(cpu_env, offsetof(CPUX86State, cc_dst),
@@ -8178,7 +8196,7 @@ void gen_intermediate_code(CPUX86State *env, TranslationBlock *tb)
     CPUState *cs = CPU(cpu);
     DisasContext dc1, *dc = &dc1;
     target_ulong pc_ptr;
-    uint64_t flags;
+    uint32_t flags;
     target_ulong pc_start;
     target_ulong cs_base;
     int num_insns;
@@ -8206,9 +8224,9 @@ void gen_intermediate_code(CPUX86State *env, TranslationBlock *tb)
     dc->popl_esp_hack = 0;
     /* select memory access functions */
     dc->mem_index = 0;
-    if (flags & HF_SOFTMMU_MASK) {
-	dc->mem_index = cpu_mmu_index(env, false);
-    }
+#ifdef CONFIG_SOFTMMU
+    dc->mem_index = cpu_mmu_index(env, false);
+#endif
     dc->cpuid_features = env->features[FEAT_1_EDX];
     dc->cpuid_ext_features = env->features[FEAT_1_ECX];
     dc->cpuid_ext2_features = env->features[FEAT_8000_0001_EDX];
@@ -8221,11 +8239,7 @@ void gen_intermediate_code(CPUX86State *env, TranslationBlock *tb)
 #endif
     dc->flags = flags;
     dc->jmp_opt = !(dc->tf || cs->singlestep_enabled ||
-                    (flags & HF_INHIBIT_IRQ_MASK)
-#ifndef CONFIG_SOFTMMU
-                    || (flags & HF_SOFTMMU_MASK)
-#endif
-                    );
+                    (flags & HF_INHIBIT_IRQ_MASK));
     /* Do not optimize repz jumps at all in icount mode, because
        rep movsS instructions are execured with different paths
        in !repz_opt and repz_opt modes. The first one was used
@@ -8337,7 +8351,8 @@ done_generating:
     gen_tb_end(tb, num_insns);
 
 #ifdef DEBUG_DISAS
-    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)) {
+    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
+        && qemu_log_in_addr_range(pc_start)) {
         int disas_flags;
         qemu_log("----------------\n");
         qemu_log("IN: %s\n", lookup_symbol(pc_start));

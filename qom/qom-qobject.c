@@ -44,11 +44,11 @@ static char *dump_value(QObject *value, char *buf, size_t siz)
 void object_property_set_qobject(Object *obj, QObject *value,
                                  const char *name, Error **errp)
 {
-    QmpInputVisitor *qiv;
-    qiv = qmp_input_visitor_new(value);
-    object_property_set(obj, qmp_input_get_visitor(qiv), name, errp);
-
-    qmp_input_visitor_cleanup(qiv);
+    Visitor *v;
+    /* TODO: Should we reject, rather than ignore, excess input? */
+    v = qmp_input_visitor_new(value, false);
+    object_property_set(obj, v, name, errp);
+    visit_free(v);
 }
 
 QObject *object_property_get_qobject(Object *obj, const char *name,
@@ -56,14 +56,14 @@ QObject *object_property_get_qobject(Object *obj, const char *name,
 {
     QObject *ret = NULL;
     Error *local_err = NULL;
-    QmpOutputVisitor *qov;
+    Visitor *v;
 
-    qov = qmp_output_visitor_new();
-    object_property_get(obj, qmp_output_get_visitor(qov), name, &local_err);
+    v = qmp_output_visitor_new(&ret);
+    object_property_get(obj, v, name, &local_err);
     if (!local_err) {
-        ret = qmp_output_get_qobject(qov);
+        visit_complete(v, &ret);
     }
     error_propagate(errp, local_err);
-    qmp_output_visitor_cleanup(qov);
+    visit_free(v);
     return ret;
 }

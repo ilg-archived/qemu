@@ -41,7 +41,6 @@
 #include "qmp-commands.h"
 #include "qemu/timer.h"
 #include "qapi-event.h"
-#include "block/throttle-groups.h"
 #include "qemu/cutils.h"
 #include "qemu/id.h"
 
@@ -68,15 +67,15 @@ static QTAILQ_HEAD(, BlockDriverState) all_bdrv_states =
 static QLIST_HEAD(, BlockDriver) bdrv_drivers =
     QLIST_HEAD_INITIALIZER(bdrv_drivers);
 
-static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
-                             const char *reference, QDict *options, int flags,
-                             BlockDriverState *parent,
-                             const BdrvChildRole *child_role, Error **errp);
+static BlockDriverState *bdrv_open_inherit(const char *filename,
+                                           const char *reference,
+                                           QDict *options, int flags,
+                                           BlockDriverState *parent,
+                                           const BdrvChildRole *child_role,
+                                           Error **errp);
 
 /* If non-zero, use only whitelisted block drivers */
 static int use_bdrv_whitelist;
-
-static void bdrv_close(BlockDriverState *bs);
 
 #ifdef _WIN32
 static int is_windows_drive_prefix(const char *filename)
@@ -221,14 +220,7 @@ void bdrv_get_full_backing_filename(BlockDriverState *bs, char *dest, size_t sz,
 
 void bdrv_register(BlockDriver *bdrv)
 {
-    bdrv_setup_io_funcs(bdrv);
-
     QLIST_INSERT_HEAD(&bdrv_drivers, bdrv, list);
-}
-
-BlockDriverState *bdrv_new_root(void)
-{
-    return bdrv_new();
 }
 
 BlockDriverState *bdrv_new(void)
@@ -242,10 +234,10 @@ BlockDriverState *bdrv_new(void)
         QLIST_INIT(&bs->op_blockers[i]);
     }
     notifier_with_return_list_init(&bs->before_write_notifiers);
-    qemu_co_queue_init(&bs->throttled_reqs[0]);
-    qemu_co_queue_init(&bs->throttled_reqs[1]);
     bs->refcnt = 1;
     bs->aio_context = qemu_get_aio_context();
+
+    qemu_co_queue_init(&bs->flush_queue);
 
     QTAILQ_INSERT_TAIL(&all_bdrv_states, bs, bs_list);
 
@@ -314,9 +306,7 @@ static void coroutine_fn bdrv_create_co_entry(void *opaque)
     assert(cco->drv);
 
     ret = cco->drv->bdrv_create(cco->filename, cco->opts, &local_err);
-    if (local_err) {
-        error_propagate(&cco->err, local_err);
-    }
+    error_propagate(&cco->err, local_err);
     cco->ret = ret;
 }
 
@@ -344,8 +334,8 @@ int bdrv_create(BlockDriver *drv, const char* filename,
         /* Fast-path if already in coroutine context */
         bdrv_create_co_entry(&cco);
     } else {
-        co = qemu_coroutine_create(bdrv_create_co_entry);
-        qemu_coroutine_enter(co, &cco);
+        co = qemu_coroutine_create(bdrv_create_co_entry, &cco);
+        qemu_coroutine_enter(co);
         while (cco.ret == NOT_DONE) {
             aio_poll(qemu_get_aio_context(), true);
         }
@@ -377,9 +367,7 @@ int bdrv_create_file(const char *filename, QemuOpts *opts, Error **errp)
     }
 
     ret = bdrv_create(drv, filename, opts, &local_err);
-    if (local_err) {
-        error_propagate(errp, local_err);
-    }
+    error_propagate(errp, local_err);
     return ret;
 }
 
@@ -553,9 +541,10 @@ BlockDriver *bdrv_probe_all(const uint8_t *buf, int buf_size,
     return drv;
 }
 
-static int find_image_format(BlockDriverState *bs, const char *filename,
+static int find_image_format(BdrvChild *file, const char *filename,
                              BlockDriver **pdrv, Error **errp)
 {
+    BlockDriverState *bs = file->bs;
     BlockDriver *drv;
     uint8_t buf[BLOCK_PROBE_BUF_SIZE];
     int ret = 0;
@@ -566,7 +555,7 @@ static int find_image_format(BlockDriverState *bs, const char *filename,
         return ret;
     }
 
-    ret = bdrv_pread(bs, 0, buf, sizeof(buf));
+    ret = bdrv_pread(file, 0, buf, sizeof(buf));
     if (ret < 0) {
         error_setg_errno(errp, -ret, "Could not read image for determining its "
                          "format");
@@ -672,6 +661,18 @@ int bdrv_parse_cache_mode(const char *mode, int *flags, bool *writethrough)
     return 0;
 }
 
+static void bdrv_child_cb_drained_begin(BdrvChild *child)
+{
+    BlockDriverState *bs = child->opaque;
+    bdrv_drained_begin(bs);
+}
+
+static void bdrv_child_cb_drained_end(BdrvChild *child)
+{
+    BlockDriverState *bs = child->opaque;
+    bdrv_drained_end(bs);
+}
+
 /*
  * Returns the options and flags that a temporary snapshot should get, based on
  * the originally requested flags (the originally requested image will have
@@ -685,6 +686,10 @@ static void bdrv_temp_snapshot_options(int *child_flags, QDict *child_options,
     /* For temporary files, unconditional cache=unsafe is fine */
     qdict_set_default_str(child_options, BDRV_OPT_CACHE_DIRECT, "off");
     qdict_set_default_str(child_options, BDRV_OPT_CACHE_NO_FLUSH, "on");
+
+    /* aio=native doesn't work for cache.direct=off, so disable it for the
+     * temporary snapshot */
+    *child_flags &= ~BDRV_O_NATIVE_AIO;
 }
 
 /*
@@ -718,6 +723,8 @@ static void bdrv_inherited_options(int *child_flags, QDict *child_options,
 
 const BdrvChildRole child_file = {
     .inherit_options = bdrv_inherited_options,
+    .drained_begin   = bdrv_child_cb_drained_begin,
+    .drained_end     = bdrv_child_cb_drained_end,
 };
 
 /*
@@ -736,6 +743,8 @@ static void bdrv_inherited_fmt_options(int *child_flags, QDict *child_options,
 
 const BdrvChildRole child_format = {
     .inherit_options = bdrv_inherited_fmt_options,
+    .drained_begin   = bdrv_child_cb_drained_begin,
+    .drained_end     = bdrv_child_cb_drained_end,
 };
 
 /*
@@ -763,6 +772,8 @@ static void bdrv_backing_options(int *child_flags, QDict *child_options,
 
 static const BdrvChildRole child_backing = {
     .inherit_options = bdrv_backing_options,
+    .drained_begin   = bdrv_child_cb_drained_begin,
+    .drained_end     = bdrv_child_cb_drained_end,
 };
 
 static int bdrv_open_flags(BlockDriverState *bs, int flags)
@@ -932,8 +943,6 @@ static int bdrv_open_common(BlockDriverState *bs, BdrvChild *file,
         goto fail_opts;
     }
 
-    bs->request_alignment = 512;
-    bs->zero_beyond_eof = true;
     bs->read_only = !(bs->open_flags & BDRV_O_RDWR);
 
     if (use_bdrv_whitelist && !bdrv_is_whitelisted(drv, bs->read_only)) {
@@ -1013,7 +1022,7 @@ static int bdrv_open_common(BlockDriverState *bs, BdrvChild *file,
 
     assert(bdrv_opt_mem_align(bs) != 0);
     assert(bdrv_min_mem_align(bs) != 0);
-    assert((bs->request_alignment != 0) || bdrv_is_sg(bs));
+    assert(is_power_of_2(bs->bl.request_alignment));
 
     qemu_opts_del(opts);
     return 0;
@@ -1163,28 +1172,52 @@ static int bdrv_fill_options(QDict **options, const char *filename,
     return 0;
 }
 
+static void bdrv_replace_child(BdrvChild *child, BlockDriverState *new_bs)
+{
+    BlockDriverState *old_bs = child->bs;
+
+    if (old_bs) {
+        if (old_bs->quiesce_counter && child->role->drained_end) {
+            child->role->drained_end(child);
+        }
+        QLIST_REMOVE(child, next_parent);
+    }
+
+    child->bs = new_bs;
+
+    if (new_bs) {
+        QLIST_INSERT_HEAD(&new_bs->parents, child, next_parent);
+        if (new_bs->quiesce_counter && child->role->drained_begin) {
+            child->role->drained_begin(child);
+        }
+    }
+}
+
 BdrvChild *bdrv_root_attach_child(BlockDriverState *child_bs,
                                   const char *child_name,
-                                  const BdrvChildRole *child_role)
+                                  const BdrvChildRole *child_role,
+                                  void *opaque)
 {
     BdrvChild *child = g_new(BdrvChild, 1);
     *child = (BdrvChild) {
-        .bs     = child_bs,
+        .bs     = NULL,
         .name   = g_strdup(child_name),
         .role   = child_role,
+        .opaque = opaque,
     };
 
-    QLIST_INSERT_HEAD(&child_bs->parents, child, next_parent);
+    bdrv_replace_child(child, child_bs);
 
     return child;
 }
 
-static BdrvChild *bdrv_attach_child(BlockDriverState *parent_bs,
-                                    BlockDriverState *child_bs,
-                                    const char *child_name,
-                                    const BdrvChildRole *child_role)
+BdrvChild *bdrv_attach_child(BlockDriverState *parent_bs,
+                             BlockDriverState *child_bs,
+                             const char *child_name,
+                             const BdrvChildRole *child_role)
 {
-    BdrvChild *child = bdrv_root_attach_child(child_bs, child_name, child_role);
+    BdrvChild *child = bdrv_root_attach_child(child_bs, child_name, child_role,
+                                              parent_bs);
     QLIST_INSERT_HEAD(&parent_bs->children, child, next);
     return child;
 }
@@ -1195,7 +1228,9 @@ static void bdrv_detach_child(BdrvChild *child)
         QLIST_REMOVE(child, next);
         child->next.le_prev = NULL;
     }
-    QLIST_REMOVE(child, next_parent);
+
+    bdrv_replace_child(child, NULL);
+
     g_free(child->name);
     g_free(child);
 }
@@ -1220,6 +1255,27 @@ void bdrv_unref_child(BlockDriverState *parent, BdrvChild *child)
     }
 
     bdrv_root_unref_child(child);
+}
+
+
+static void bdrv_parent_cb_change_media(BlockDriverState *bs, bool load)
+{
+    BdrvChild *c;
+    QLIST_FOREACH(c, &bs->parents, next_parent) {
+        if (c->role->change_media) {
+            c->role->change_media(c, load);
+        }
+    }
+}
+
+static void bdrv_parent_cb_resize(BlockDriverState *bs)
+{
+    BdrvChild *c;
+    QLIST_FOREACH(c, &bs->parents, next_parent) {
+        if (c->role->resize) {
+            c->role->resize(c);
+        }
+    }
 }
 
 /*
@@ -1328,14 +1384,13 @@ int bdrv_open_backing_file(BlockDriverState *bs, QDict *parent_options,
         qdict_put(options, "driver", qstring_from_str(bs->backing_format));
     }
 
-    backing_hd = NULL;
-    ret = bdrv_open_inherit(&backing_hd,
-                            *backing_filename ? backing_filename : NULL,
-                            reference, options, 0, bs, &child_backing,
-                            errp);
-    if (ret < 0) {
+    backing_hd = bdrv_open_inherit(*backing_filename ? backing_filename : NULL,
+                                   reference, options, 0, bs, &child_backing,
+                                   errp);
+    if (!backing_hd) {
         bs->open_flags |= BDRV_O_NO_BACKING;
         error_prepend(errp, "Could not open backing file: ");
+        ret = -EINVAL;
         goto free_exit;
     }
 
@@ -1375,7 +1430,6 @@ BdrvChild *bdrv_open_child(const char *filename,
     BdrvChild *c = NULL;
     BlockDriverState *bs;
     QDict *image_options;
-    int ret;
     char *bdref_key_dot;
     const char *reference;
 
@@ -1395,10 +1449,9 @@ BdrvChild *bdrv_open_child(const char *filename,
         goto done;
     }
 
-    bs = NULL;
-    ret = bdrv_open_inherit(&bs, filename, reference, image_options, 0,
-                            parent, child_role, errp);
-    if (ret < 0) {
+    bs = bdrv_open_inherit(filename, reference, image_options, 0,
+                           parent, child_role, errp);
+    if (!bs) {
         goto done;
     }
 
@@ -1409,15 +1462,16 @@ done:
     return c;
 }
 
-static int bdrv_append_temp_snapshot(BlockDriverState *bs, int flags,
-                                     QDict *snapshot_options, Error **errp)
+static BlockDriverState *bdrv_append_temp_snapshot(BlockDriverState *bs,
+                                                   int flags,
+                                                   QDict *snapshot_options,
+                                                   Error **errp)
 {
     /* TODO: extra byte is a hack to ensure MAX_PATH space on Windows. */
     char *tmp_filename = g_malloc0(PATH_MAX + 1);
     int64_t total_size;
     QemuOpts *opts = NULL;
     BlockDriverState *bs_snapshot;
-    Error *local_err = NULL;
     int ret;
 
     /* if snapshot, we create a temporary backing file and open it
@@ -1426,7 +1480,6 @@ static int bdrv_append_temp_snapshot(BlockDriverState *bs, int flags,
     /* Get the required size from the image */
     total_size = bdrv_getlength(bs);
     if (total_size < 0) {
-        ret = total_size;
         error_setg_errno(errp, -total_size, "Could not get image size");
         goto out;
     }
@@ -1457,22 +1510,26 @@ static int bdrv_append_temp_snapshot(BlockDriverState *bs, int flags,
     qdict_put(snapshot_options, "driver",
               qstring_from_str("qcow2"));
 
-    bs_snapshot = bdrv_new();
-
-    ret = bdrv_open(&bs_snapshot, NULL, NULL, snapshot_options,
-                    flags, &local_err);
+    bs_snapshot = bdrv_open(NULL, NULL, snapshot_options, flags, errp);
     snapshot_options = NULL;
-    if (ret < 0) {
-        error_propagate(errp, local_err);
+    if (!bs_snapshot) {
+        ret = -EINVAL;
         goto out;
     }
 
+    /* bdrv_append() consumes a strong reference to bs_snapshot (i.e. it will
+     * call bdrv_unref() on it), so in order to be able to return one, we have
+     * to increase bs_snapshot's refcount here */
+    bdrv_ref(bs_snapshot);
     bdrv_append(bs_snapshot, bs);
+
+    g_free(tmp_filename);
+    return bs_snapshot;
 
 out:
     QDECREF(snapshot_options);
     g_free(tmp_filename);
-    return ret;
+    return NULL;
 }
 
 /*
@@ -1490,10 +1547,12 @@ out:
  * should be opened. If specified, neither options nor a filename may be given,
  * nor can an existing BDS be reused (that is, *pbs has to be NULL).
  */
-static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
-                             const char *reference, QDict *options, int flags,
-                             BlockDriverState *parent,
-                             const BdrvChildRole *child_role, Error **errp)
+static BlockDriverState *bdrv_open_inherit(const char *filename,
+                                           const char *reference,
+                                           QDict *options, int flags,
+                                           BlockDriverState *parent,
+                                           const BdrvChildRole *child_role,
+                                           Error **errp)
 {
     int ret;
     BdrvChild *file = NULL;
@@ -1505,7 +1564,6 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
     QDict *snapshot_options = NULL;
     int snapshot_flags = 0;
 
-    assert(pbs);
     assert(!child_role || !flags);
     assert(!child_role == !parent);
 
@@ -1513,39 +1571,22 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
         bool options_non_empty = options ? qdict_size(options) : false;
         QDECREF(options);
 
-        if (*pbs) {
-            error_setg(errp, "Cannot reuse an existing BDS when referencing "
-                       "another block device");
-            return -EINVAL;
-        }
-
         if (filename || options_non_empty) {
             error_setg(errp, "Cannot reference an existing block device with "
                        "additional options or a new filename");
-            return -EINVAL;
+            return NULL;
         }
 
         bs = bdrv_lookup_bs(reference, reference, errp);
         if (!bs) {
-            return -ENODEV;
-        }
-
-        if (bs->throttle_state) {
-            error_setg(errp, "Cannot reference an existing block device for "
-                       "which I/O throttling is enabled");
-            return -EINVAL;
+            return NULL;
         }
 
         bdrv_ref(bs);
-        *pbs = bs;
-        return 0;
+        return bs;
     }
 
-    if (*pbs) {
-        bs = *pbs;
-    } else {
-        bs = bdrv_new();
-    }
+    bs = bdrv_new();
 
     /* NULL means an empty set of options */
     if (options == NULL) {
@@ -1555,7 +1596,6 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
     /* json: syntax counts as explicit options, as if in the QDict */
     parse_json_protocol(options, &filename, &local_err);
     if (local_err) {
-        ret = -EINVAL;
         goto fail;
     }
 
@@ -1582,7 +1622,6 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
         drv = bdrv_find_format(drvname);
         if (!drv) {
             error_setg(errp, "Unknown driver: '%s'", drvname);
-            ret = -EINVAL;
             goto fail;
         }
     }
@@ -1612,7 +1651,6 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
         file = bdrv_open_child(filename, options, "file", bs,
                                &child_file, true, &local_err);
         if (local_err) {
-            ret = -EINVAL;
             goto fail;
         }
     }
@@ -1620,7 +1658,7 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
     /* Image format probing */
     bs->probed = !drv;
     if (!drv && file) {
-        ret = find_image_format(file->bs, filename, &drv, &local_err);
+        ret = find_image_format(file, filename, &drv, &local_err);
         if (ret < 0) {
             goto fail;
         }
@@ -1639,7 +1677,6 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
         qdict_put(options, "driver", qstring_from_str(drv->format_name));
     } else if (!drv) {
         error_setg(errp, "Must specify either driver or file");
-        ret = -EINVAL;
         goto fail;
     }
 
@@ -1682,38 +1719,40 @@ static int bdrv_open_inherit(BlockDriverState **pbs, const char *filename,
                        drv->format_name, entry->key);
         }
 
-        ret = -EINVAL;
         goto close_and_fail;
     }
 
     if (!bdrv_key_required(bs)) {
-        if (bs->blk) {
-            blk_dev_change_media_cb(bs->blk, true);
-        }
+        bdrv_parent_cb_change_media(bs, true);
     } else if (!runstate_check(RUN_STATE_PRELAUNCH)
                && !runstate_check(RUN_STATE_INMIGRATE)
                && !runstate_check(RUN_STATE_PAUSED)) { /* HACK */
         error_setg(errp,
                    "Guest must be stopped for opening of encrypted image");
-        ret = -EBUSY;
         goto close_and_fail;
     }
 
     QDECREF(options);
-    *pbs = bs;
 
     /* For snapshot=on, create a temporary qcow2 overlay. bs points to the
      * temporary snapshot afterwards. */
     if (snapshot_flags) {
-        ret = bdrv_append_temp_snapshot(bs, snapshot_flags, snapshot_options,
-                                        &local_err);
+        BlockDriverState *snapshot_bs;
+        snapshot_bs = bdrv_append_temp_snapshot(bs, snapshot_flags,
+                                                snapshot_options, &local_err);
         snapshot_options = NULL;
         if (local_err) {
             goto close_and_fail;
         }
+        /* We are not going to return bs but the overlay on top of it
+         * (snapshot_bs); thus, we have to drop the strong reference to bs
+         * (which we obtained by calling bdrv_new()). bs will not be deleted,
+         * though, because the overlay still has a reference to it. */
+        bdrv_unref(bs);
+        bs = snapshot_bs;
     }
 
-    return 0;
+    return bs;
 
 fail:
     if (file != NULL) {
@@ -1724,36 +1763,22 @@ fail:
     QDECREF(bs->options);
     QDECREF(options);
     bs->options = NULL;
-    if (!*pbs) {
-        /* If *pbs is NULL, a new BDS has been created in this function and
-           needs to be freed now. Otherwise, it does not need to be closed,
-           since it has not really been opened yet. */
-        bdrv_unref(bs);
-    }
-    if (local_err) {
-        error_propagate(errp, local_err);
-    }
-    return ret;
+    bdrv_unref(bs);
+    error_propagate(errp, local_err);
+    return NULL;
 
 close_and_fail:
-    /* See fail path, but now the BDS has to be always closed */
-    if (*pbs) {
-        bdrv_close(bs);
-    } else {
-        bdrv_unref(bs);
-    }
+    bdrv_unref(bs);
     QDECREF(snapshot_options);
     QDECREF(options);
-    if (local_err) {
-        error_propagate(errp, local_err);
-    }
-    return ret;
+    error_propagate(errp, local_err);
+    return NULL;
 }
 
-int bdrv_open(BlockDriverState **pbs, const char *filename,
-              const char *reference, QDict *options, int flags, Error **errp)
+BlockDriverState *bdrv_open(const char *filename, const char *reference,
+                            QDict *options, int flags, Error **errp)
 {
-    return bdrv_open_inherit(pbs, filename, reference, options, flags, NULL,
+    return bdrv_open_inherit(filename, reference, options, flags, NULL,
                              NULL, errp);
 }
 
@@ -2127,11 +2152,7 @@ static void bdrv_close(BlockDriverState *bs)
     BdrvAioNotifier *ban, *ban_next;
 
     assert(!bs->job);
-
-    /* Disable I/O limits and drain all pending throttled requests */
-    if (bs->throttle_state) {
-        bdrv_io_limits_disable(bs);
-    }
+    assert(!bs->refcnt);
 
     bdrv_drained_begin(bs); /* complete I/O */
     bdrv_flush(bs);
@@ -2139,10 +2160,6 @@ static void bdrv_close(BlockDriverState *bs)
 
     bdrv_release_named_dirty_bitmaps(bs);
     assert(QLIST_EMPTY(&bs->dirty_bitmaps));
-
-    if (bs->blk) {
-        blk_dev_change_media_cb(bs->blk, false);
-    }
 
     if (bs->drv) {
         BdrvChild *child, *next;
@@ -2172,10 +2189,9 @@ static void bdrv_close(BlockDriverState *bs)
         bs->backing_file[0] = '\0';
         bs->backing_format[0] = '\0';
         bs->total_sectors = 0;
-        bs->encrypted = 0;
-        bs->valid_key = 0;
-        bs->sg = 0;
-        bs->zero_beyond_eof = false;
+        bs->encrypted = false;
+        bs->valid_key = false;
+        bs->sg = false;
         QDECREF(bs->options);
         QDECREF(bs->explicit_options);
         bs->options = NULL;
@@ -2192,8 +2208,7 @@ static void bdrv_close(BlockDriverState *bs)
 
 void bdrv_close_all(void)
 {
-    BlockDriverState *bs;
-    AioContext *aio_context;
+    block_job_cancel_sync_all();
 
     /* Drop references from requests still in flight, such as canceled block
      * jobs whose AIO context has not been polled yet */
@@ -2202,71 +2217,33 @@ void bdrv_close_all(void)
     blk_remove_all_bs();
     blockdev_close_all_bdrv_states();
 
-    /* Cancel all block jobs */
-    while (!QTAILQ_EMPTY(&all_bdrv_states)) {
-        QTAILQ_FOREACH(bs, &all_bdrv_states, bs_list) {
-            aio_context = bdrv_get_aio_context(bs);
-
-            aio_context_acquire(aio_context);
-            if (bs->job) {
-                block_job_cancel_sync(bs->job);
-                aio_context_release(aio_context);
-                break;
-            }
-            aio_context_release(aio_context);
-        }
-
-        /* All the remaining BlockDriverStates are referenced directly or
-         * indirectly from block jobs, so there needs to be at least one BDS
-         * directly used by a block job */
-        assert(bs);
-    }
-}
-
-/* Fields that need to stay with the top-level BDS */
-static void bdrv_move_feature_fields(BlockDriverState *bs_dest,
-                                     BlockDriverState *bs_src)
-{
-    /* move some fields that need to stay attached to the device */
+    assert(QTAILQ_EMPTY(&all_bdrv_states));
 }
 
 static void change_parent_backing_link(BlockDriverState *from,
                                        BlockDriverState *to)
 {
-    BdrvChild *c, *next;
-
-    if (from->blk) {
-        /* FIXME We bypass blk_set_bs(), so we need to make these updates
-         * manually. The root problem is not in this change function, but the
-         * existence of BlockDriverState.blk. */
-        to->blk = from->blk;
-        from->blk = NULL;
-    }
+    BdrvChild *c, *next, *to_c;
 
     QLIST_FOREACH_SAFE(c, &from->parents, next_parent, next) {
+        if (c->role == &child_backing) {
+            /* @from is generally not allowed to be a backing file, except for
+             * when @to is the overlay. In that case, @from may not be replaced
+             * by @to as @to's backing node. */
+            QLIST_FOREACH(to_c, &to->children, next) {
+                if (to_c == c) {
+                    break;
+                }
+            }
+            if (to_c) {
+                continue;
+            }
+        }
+
         assert(c->role != &child_backing);
-        c->bs = to;
-        QLIST_REMOVE(c, next_parent);
-        QLIST_INSERT_HEAD(&to->parents, c, next_parent);
         bdrv_ref(to);
+        bdrv_replace_child(c, to);
         bdrv_unref(from);
-    }
-}
-
-static void swap_feature_fields(BlockDriverState *bs_top,
-                                BlockDriverState *bs_new)
-{
-    BlockDriverState tmp;
-
-    bdrv_move_feature_fields(&tmp, bs_top);
-    bdrv_move_feature_fields(bs_top, bs_new);
-    bdrv_move_feature_fields(bs_new, &tmp);
-
-    assert(!bs_new->throttle_state);
-    if (bs_top->throttle_state) {
-        assert(bs_top->io_limits_enabled);
-        bdrv_io_limits_enable(bs_new, throttle_group_get_name(bs_top));
-        bdrv_io_limits_disable(bs_top);
     }
 }
 
@@ -2292,11 +2269,8 @@ void bdrv_append(BlockDriverState *bs_new, BlockDriverState *bs_top)
     assert(!bdrv_requests_pending(bs_new));
 
     bdrv_ref(bs_top);
+
     change_parent_backing_link(bs_top, bs_new);
-
-    /* Some fields always stay on top of the backing file chain */
-    swap_feature_fields(bs_top, bs_new);
-
     bdrv_set_backing_hd(bs_new, bs_top);
     bdrv_unref(bs_top);
 
@@ -2312,25 +2286,7 @@ void bdrv_replace_in_backing_chain(BlockDriverState *old, BlockDriverState *new)
 
     bdrv_ref(old);
 
-    if (old->blk) {
-        /* As long as these fields aren't in BlockBackend, but in the top-level
-         * BlockDriverState, it's not possible for a BDS to have two BBs.
-         *
-         * We really want to copy the fields from old to new, but we go for a
-         * swap instead so that pointers aren't duplicated and cause trouble.
-         * (Also, bdrv_swap() used to do the same.) */
-        assert(!new->blk);
-        swap_feature_fields(old, new);
-    }
     change_parent_backing_link(old, new);
-
-    /* Change backing files if a previously independent node is added to the
-     * chain. For active commit, we replace top by its own (indirect) backing
-     * file and don't do anything here so we don't build a loop. */
-    if (new->backing == NULL && !bdrv_chain_contains(backing_bs(old), new)) {
-        bdrv_set_backing_hd(new, backing_bs(old));
-        bdrv_set_backing_hd(old, NULL);
-    }
 
     bdrv_unref(old);
 }
@@ -2370,116 +2326,6 @@ int bdrv_check(BlockDriverState *bs, BdrvCheckResult *res, BdrvCheckMode fix)
 
     memset(res, 0, sizeof(*res));
     return bs->drv->bdrv_check(bs, res, fix);
-}
-
-#define COMMIT_BUF_SECTORS 2048
-
-/* commit COW file into the raw image */
-int bdrv_commit(BlockDriverState *bs)
-{
-    BlockDriver *drv = bs->drv;
-    int64_t sector, total_sectors, length, backing_length;
-    int n, ro, open_flags;
-    int ret = 0;
-    uint8_t *buf = NULL;
-
-    if (!drv)
-        return -ENOMEDIUM;
-
-    if (!bs->backing) {
-        return -ENOTSUP;
-    }
-
-    if (bdrv_op_is_blocked(bs, BLOCK_OP_TYPE_COMMIT_SOURCE, NULL) ||
-        bdrv_op_is_blocked(bs->backing->bs, BLOCK_OP_TYPE_COMMIT_TARGET, NULL)) {
-        return -EBUSY;
-    }
-
-    ro = bs->backing->bs->read_only;
-    open_flags =  bs->backing->bs->open_flags;
-
-    if (ro) {
-        if (bdrv_reopen(bs->backing->bs, open_flags | BDRV_O_RDWR, NULL)) {
-            return -EACCES;
-        }
-    }
-
-    length = bdrv_getlength(bs);
-    if (length < 0) {
-        ret = length;
-        goto ro_cleanup;
-    }
-
-    backing_length = bdrv_getlength(bs->backing->bs);
-    if (backing_length < 0) {
-        ret = backing_length;
-        goto ro_cleanup;
-    }
-
-    /* If our top snapshot is larger than the backing file image,
-     * grow the backing file image if possible.  If not possible,
-     * we must return an error */
-    if (length > backing_length) {
-        ret = bdrv_truncate(bs->backing->bs, length);
-        if (ret < 0) {
-            goto ro_cleanup;
-        }
-    }
-
-    total_sectors = length >> BDRV_SECTOR_BITS;
-
-    /* qemu_try_blockalign() for bs will choose an alignment that works for
-     * bs->backing->bs as well, so no need to compare the alignment manually. */
-    buf = qemu_try_blockalign(bs, COMMIT_BUF_SECTORS * BDRV_SECTOR_SIZE);
-    if (buf == NULL) {
-        ret = -ENOMEM;
-        goto ro_cleanup;
-    }
-
-    for (sector = 0; sector < total_sectors; sector += n) {
-        ret = bdrv_is_allocated(bs, sector, COMMIT_BUF_SECTORS, &n);
-        if (ret < 0) {
-            goto ro_cleanup;
-        }
-        if (ret) {
-            ret = bdrv_read(bs, sector, buf, n);
-            if (ret < 0) {
-                goto ro_cleanup;
-            }
-
-            ret = bdrv_write(bs->backing->bs, sector, buf, n);
-            if (ret < 0) {
-                goto ro_cleanup;
-            }
-        }
-    }
-
-    if (drv->bdrv_make_empty) {
-        ret = drv->bdrv_make_empty(bs);
-        if (ret < 0) {
-            goto ro_cleanup;
-        }
-        bdrv_flush(bs);
-    }
-
-    /*
-     * Make sure all data we wrote to the backing device is actually
-     * stable on disk.
-     */
-    if (bs->backing) {
-        bdrv_flush(bs->backing->bs);
-    }
-
-    ret = 0;
-ro_cleanup:
-    qemu_vfree(buf);
-
-    if (ro) {
-        /* ignoring error return here */
-        bdrv_reopen(bs->backing->bs, open_flags & ~BDRV_O_RDWR, NULL);
-    }
-
-    return ret;
 }
 
 /*
@@ -2630,9 +2476,8 @@ int bdrv_truncate(BlockDriverState *bs, int64_t offset)
     if (ret == 0) {
         ret = refresh_total_sectors(bs, offset >> BDRV_SECTOR_BITS);
         bdrv_dirty_bitmap_truncate(bs);
-        if (bs->blk) {
-            blk_dev_resize_cb(bs->blk);
-        }
+        bdrv_parent_cb_resize(bs);
+        ++bs->write_gen;
     }
     return ret;
 }
@@ -2695,30 +2540,30 @@ void bdrv_get_geometry(BlockDriverState *bs, uint64_t *nb_sectors_ptr)
     *nb_sectors_ptr = nb_sectors < 0 ? 0 : nb_sectors;
 }
 
-int bdrv_is_read_only(BlockDriverState *bs)
+bool bdrv_is_read_only(BlockDriverState *bs)
 {
     return bs->read_only;
 }
 
-int bdrv_is_sg(BlockDriverState *bs)
+bool bdrv_is_sg(BlockDriverState *bs)
 {
     return bs->sg;
 }
 
-int bdrv_is_encrypted(BlockDriverState *bs)
+bool bdrv_is_encrypted(BlockDriverState *bs)
 {
     if (bs->backing && bs->backing->bs->encrypted) {
-        return 1;
+        return true;
     }
     return bs->encrypted;
 }
 
-int bdrv_key_required(BlockDriverState *bs)
+bool bdrv_key_required(BlockDriverState *bs)
 {
     BdrvChild *backing = bs->backing;
 
     if (backing && backing->bs->encrypted && !backing->bs->valid_key) {
-        return 1;
+        return true;
     }
     return (bs->encrypted && !bs->valid_key);
 }
@@ -2740,13 +2585,11 @@ int bdrv_set_key(BlockDriverState *bs, const char *key)
     }
     ret = bs->drv->bdrv_set_key(bs, key);
     if (ret < 0) {
-        bs->valid_key = 0;
+        bs->valid_key = false;
     } else if (!bs->valid_key) {
-        bs->valid_key = 1;
-        if (bs->blk) {
-            /* call the change callback now, we skipped it on open */
-            blk_dev_change_media_cb(bs->blk, true);
-        }
+        /* call the change callback now, we skipped it on open */
+        bs->valid_key = true;
+        bdrv_parent_cb_change_media(bs, true);
     }
     return ret;
 }
@@ -2913,34 +2756,33 @@ BlockDriverState *bdrv_next_node(BlockDriverState *bs)
     return QTAILQ_NEXT(bs, node_list);
 }
 
-/* Iterates over all top-level BlockDriverStates, i.e. BDSs that are owned by
- * the monitor or attached to a BlockBackend */
-BlockDriverState *bdrv_next(BlockDriverState *bs)
-{
-    if (!bs || bs->blk) {
-        bs = blk_next_root_bs(bs);
-        if (bs) {
-            return bs;
-        }
-    }
-
-    /* Ignore all BDSs that are attached to a BlockBackend here; they have been
-     * handled by the above block already */
-    do {
-        bs = bdrv_next_monitor_owned(bs);
-    } while (bs && bs->blk);
-    return bs;
-}
-
 const char *bdrv_get_node_name(const BlockDriverState *bs)
 {
     return bs->node_name;
 }
 
+const char *bdrv_get_parent_name(const BlockDriverState *bs)
+{
+    BdrvChild *c;
+    const char *name;
+
+    /* If multiple parents have a name, just pick the first one. */
+    QLIST_FOREACH(c, &bs->parents, next_parent) {
+        if (c->role->get_name) {
+            name = c->role->get_name(c);
+            if (name && *name) {
+                return name;
+            }
+        }
+    }
+
+    return NULL;
+}
+
 /* TODO check what callers really want: bs->node_name or blk_name() */
 const char *bdrv_get_device_name(const BlockDriverState *bs)
 {
-    return bs->blk ? blk_name(bs->blk) : "";
+    return bdrv_get_parent_name(bs) ?: "";
 }
 
 /* This can be used to identify nodes that might not have a device
@@ -2949,7 +2791,7 @@ const char *bdrv_get_device_name(const BlockDriverState *bs)
  * absent, then this returns an empty (non-null) string. */
 const char *bdrv_get_device_or_node_name(const BlockDriverState *bs)
 {
-    return bs->blk ? blk_name(bs->blk) : bs->node_name;
+    return bdrv_get_parent_name(bs) ?: bs->node_name;
 }
 
 int bdrv_get_flags(BlockDriverState *bs)
@@ -2998,7 +2840,7 @@ bool bdrv_can_write_zeroes_with_unmap(BlockDriverState *bs)
 {
     BlockDriverInfo bdi;
 
-    if (bs->backing || !(bs->open_flags & BDRV_O_UNMAP)) {
+    if (!(bs->open_flags & BDRV_O_UNMAP)) {
         return false;
     }
 
@@ -3204,6 +3046,7 @@ void bdrv_init_with_whitelist(void)
 
 void bdrv_invalidate_cache(BlockDriverState *bs, Error **errp)
 {
+    BdrvChild *child;
     Error *local_err = NULL;
     int ret;
 
@@ -3218,13 +3061,20 @@ void bdrv_invalidate_cache(BlockDriverState *bs, Error **errp)
 
     if (bs->drv->bdrv_invalidate_cache) {
         bs->drv->bdrv_invalidate_cache(bs, &local_err);
-    } else if (bs->file) {
-        bdrv_invalidate_cache(bs->file->bs, &local_err);
+        if (local_err) {
+            bs->open_flags |= BDRV_O_INACTIVE;
+            error_propagate(errp, local_err);
+            return;
+        }
     }
-    if (local_err) {
-        bs->open_flags |= BDRV_O_INACTIVE;
-        error_propagate(errp, local_err);
-        return;
+
+    QLIST_FOREACH(child, &bs->children, next) {
+        bdrv_invalidate_cache(child->bs, &local_err);
+        if (local_err) {
+            bs->open_flags |= BDRV_O_INACTIVE;
+            error_propagate(errp, local_err);
+            return;
+        }
     }
 
     ret = refresh_total_sectors(bs, bs->total_sectors);
@@ -3237,10 +3087,11 @@ void bdrv_invalidate_cache(BlockDriverState *bs, Error **errp)
 
 void bdrv_invalidate_cache_all(Error **errp)
 {
-    BlockDriverState *bs = NULL;
+    BlockDriverState *bs;
     Error *local_err = NULL;
+    BdrvNextIterator it;
 
-    while ((bs = bdrv_next(bs)) != NULL) {
+    for (bs = bdrv_first(&it); bs; bs = bdrv_next(&it)) {
         AioContext *aio_context = bdrv_get_aio_context(bs);
 
         aio_context_acquire(aio_context);
@@ -3253,38 +3104,62 @@ void bdrv_invalidate_cache_all(Error **errp)
     }
 }
 
-static int bdrv_inactivate(BlockDriverState *bs)
+static int bdrv_inactivate_recurse(BlockDriverState *bs,
+                                   bool setting_flag)
 {
+    BdrvChild *child;
     int ret;
 
-    if (bs->drv->bdrv_inactivate) {
+    if (!setting_flag && bs->drv->bdrv_inactivate) {
         ret = bs->drv->bdrv_inactivate(bs);
         if (ret < 0) {
             return ret;
         }
     }
 
-    bs->open_flags |= BDRV_O_INACTIVE;
+    QLIST_FOREACH(child, &bs->children, next) {
+        ret = bdrv_inactivate_recurse(child->bs, setting_flag);
+        if (ret < 0) {
+            return ret;
+        }
+    }
+
+    if (setting_flag) {
+        bs->open_flags |= BDRV_O_INACTIVE;
+    }
     return 0;
 }
 
 int bdrv_inactivate_all(void)
 {
     BlockDriverState *bs = NULL;
-    int ret;
+    BdrvNextIterator it;
+    int ret = 0;
+    int pass;
 
-    while ((bs = bdrv_next(bs)) != NULL) {
-        AioContext *aio_context = bdrv_get_aio_context(bs);
+    for (bs = bdrv_first(&it); bs; bs = bdrv_next(&it)) {
+        aio_context_acquire(bdrv_get_aio_context(bs));
+    }
 
-        aio_context_acquire(aio_context);
-        ret = bdrv_inactivate(bs);
-        aio_context_release(aio_context);
-        if (ret < 0) {
-            return ret;
+    /* We do two passes of inactivation. The first pass calls to drivers'
+     * .bdrv_inactivate callbacks recursively so all cache is flushed to disk;
+     * the second pass sets the BDRV_O_INACTIVE flag so that no further write
+     * is allowed. */
+    for (pass = 0; pass < 2; pass++) {
+        for (bs = bdrv_first(&it); bs; bs = bdrv_next(&it)) {
+            ret = bdrv_inactivate_recurse(bs, pass);
+            if (ret < 0) {
+                goto out;
+            }
         }
     }
 
-    return 0;
+out:
+    for (bs = bdrv_first(&it); bs; bs = bdrv_next(&it)) {
+        aio_context_release(bdrv_get_aio_context(bs));
+    }
+
+    return ret;
 }
 
 /**************************************************************/
@@ -3564,11 +3439,10 @@ void bdrv_img_create(const char *filename, const char *fmt,
                           qstring_from_str(backing_fmt));
             }
 
-            bs = NULL;
-            ret = bdrv_open(&bs, full_backing, NULL, backing_options,
-                            back_flags, &local_err);
+            bs = bdrv_open(full_backing, NULL, backing_options, back_flags,
+                           &local_err);
             g_free(full_backing);
-            if (ret < 0) {
+            if (!bs) {
                 goto out;
             }
             size = bdrv_getlength(bs);
@@ -3613,9 +3487,7 @@ void bdrv_img_create(const char *filename, const char *fmt,
 out:
     qemu_opts_del(opts);
     qemu_opts_free(create_opts);
-    if (local_err) {
-        error_propagate(errp, local_err);
-    }
+    error_propagate(errp, local_err);
 }
 
 AioContext *bdrv_get_aio_context(BlockDriverState *bs)
@@ -3623,29 +3495,40 @@ AioContext *bdrv_get_aio_context(BlockDriverState *bs)
     return bs->aio_context;
 }
 
+static void bdrv_do_remove_aio_context_notifier(BdrvAioNotifier *ban)
+{
+    QLIST_REMOVE(ban, list);
+    g_free(ban);
+}
+
 void bdrv_detach_aio_context(BlockDriverState *bs)
 {
-    BdrvAioNotifier *baf;
+    BdrvAioNotifier *baf, *baf_tmp;
+    BdrvChild *child;
 
     if (!bs->drv) {
         return;
     }
 
-    QLIST_FOREACH(baf, &bs->aio_notifiers, list) {
-        baf->detach_aio_context(baf->opaque);
+    assert(!bs->walking_aio_notifiers);
+    bs->walking_aio_notifiers = true;
+    QLIST_FOREACH_SAFE(baf, &bs->aio_notifiers, list, baf_tmp) {
+        if (baf->deleted) {
+            bdrv_do_remove_aio_context_notifier(baf);
+        } else {
+            baf->detach_aio_context(baf->opaque);
+        }
     }
+    /* Never mind iterating again to check for ->deleted.  bdrv_close() will
+     * remove remaining aio notifiers if we aren't called again.
+     */
+    bs->walking_aio_notifiers = false;
 
-    if (bs->throttle_state) {
-        throttle_timers_detach_aio_context(&bs->throttle_timers);
-    }
     if (bs->drv->bdrv_detach_aio_context) {
         bs->drv->bdrv_detach_aio_context(bs);
     }
-    if (bs->file) {
-        bdrv_detach_aio_context(bs->file->bs);
-    }
-    if (bs->backing) {
-        bdrv_detach_aio_context(bs->backing->bs);
+    QLIST_FOREACH(child, &bs->children, next) {
+        bdrv_detach_aio_context(child->bs);
     }
 
     bs->aio_context = NULL;
@@ -3654,7 +3537,8 @@ void bdrv_detach_aio_context(BlockDriverState *bs)
 void bdrv_attach_aio_context(BlockDriverState *bs,
                              AioContext *new_context)
 {
-    BdrvAioNotifier *ban;
+    BdrvAioNotifier *ban, *ban_tmp;
+    BdrvChild *child;
 
     if (!bs->drv) {
         return;
@@ -3662,22 +3546,23 @@ void bdrv_attach_aio_context(BlockDriverState *bs,
 
     bs->aio_context = new_context;
 
-    if (bs->backing) {
-        bdrv_attach_aio_context(bs->backing->bs, new_context);
-    }
-    if (bs->file) {
-        bdrv_attach_aio_context(bs->file->bs, new_context);
+    QLIST_FOREACH(child, &bs->children, next) {
+        bdrv_attach_aio_context(child->bs, new_context);
     }
     if (bs->drv->bdrv_attach_aio_context) {
         bs->drv->bdrv_attach_aio_context(bs, new_context);
     }
-    if (bs->throttle_state) {
-        throttle_timers_attach_aio_context(&bs->throttle_timers, new_context);
-    }
 
-    QLIST_FOREACH(ban, &bs->aio_notifiers, list) {
-        ban->attached_aio_context(new_context, ban->opaque);
+    assert(!bs->walking_aio_notifiers);
+    bs->walking_aio_notifiers = true;
+    QLIST_FOREACH_SAFE(ban, &bs->aio_notifiers, list, ban_tmp) {
+        if (ban->deleted) {
+            bdrv_do_remove_aio_context_notifier(ban);
+        } else {
+            ban->attached_aio_context(new_context, ban->opaque);
+        }
     }
+    bs->walking_aio_notifiers = false;
 }
 
 void bdrv_set_aio_context(BlockDriverState *bs, AioContext *new_context)
@@ -3719,11 +3604,14 @@ void bdrv_remove_aio_context_notifier(BlockDriverState *bs,
     QLIST_FOREACH_SAFE(ban, &bs->aio_notifiers, list, ban_next) {
         if (ban->attached_aio_context == attached_aio_context &&
             ban->detach_aio_context   == detach_aio_context   &&
-            ban->opaque               == opaque)
+            ban->opaque               == opaque               &&
+            ban->deleted              == false)
         {
-            QLIST_REMOVE(ban, list);
-            g_free(ban);
-
+            if (bs->walking_aio_notifiers) {
+                ban->deleted = true;
+            } else {
+                bdrv_do_remove_aio_context_notifier(ban);
+            }
             return;
         }
     }
@@ -3779,10 +3667,11 @@ bool bdrv_recurse_is_first_non_filter(BlockDriverState *bs,
  */
 bool bdrv_is_first_non_filter(BlockDriverState *candidate)
 {
-    BlockDriverState *bs = NULL;
+    BlockDriverState *bs;
+    BdrvNextIterator it;
 
     /* walk down the bs forest recursively */
-    while ((bs = bdrv_next(bs)) != NULL) {
+    for (bs = bdrv_first(&it); bs; bs = bdrv_next(&it)) {
         bool perm;
 
         /* try to recurse in this top level bs */
@@ -3983,4 +3872,53 @@ void bdrv_refresh_filename(BlockDriverState *bs)
                  qstring_get_str(json));
         QDECREF(json);
     }
+}
+
+/*
+ * Hot add/remove a BDS's child. So the user can take a child offline when
+ * it is broken and take a new child online
+ */
+void bdrv_add_child(BlockDriverState *parent_bs, BlockDriverState *child_bs,
+                    Error **errp)
+{
+
+    if (!parent_bs->drv || !parent_bs->drv->bdrv_add_child) {
+        error_setg(errp, "The node %s does not support adding a child",
+                   bdrv_get_device_or_node_name(parent_bs));
+        return;
+    }
+
+    if (!QLIST_EMPTY(&child_bs->parents)) {
+        error_setg(errp, "The node %s already has a parent",
+                   child_bs->node_name);
+        return;
+    }
+
+    parent_bs->drv->bdrv_add_child(parent_bs, child_bs, errp);
+}
+
+void bdrv_del_child(BlockDriverState *parent_bs, BdrvChild *child, Error **errp)
+{
+    BdrvChild *tmp;
+
+    if (!parent_bs->drv || !parent_bs->drv->bdrv_del_child) {
+        error_setg(errp, "The node %s does not support removing a child",
+                   bdrv_get_device_or_node_name(parent_bs));
+        return;
+    }
+
+    QLIST_FOREACH(tmp, &parent_bs->children, next) {
+        if (tmp == child) {
+            break;
+        }
+    }
+
+    if (!tmp) {
+        error_setg(errp, "The node %s does not have a child named %s",
+                   bdrv_get_device_or_node_name(parent_bs),
+                   bdrv_get_device_or_node_name(child->bs));
+        return;
+    }
+
+    parent_bs->drv->bdrv_del_child(parent_bs, child, errp);
 }

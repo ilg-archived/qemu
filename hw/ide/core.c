@@ -23,10 +23,10 @@
  * THE SOFTWARE.
  */
 #include "qemu/osdep.h"
-#include <hw/hw.h>
-#include <hw/i386/pc.h>
-#include <hw/pci/pci.h>
-#include <hw/isa/isa.h>
+#include "hw/hw.h"
+#include "hw/i386/pc.h"
+#include "hw/pci/pci.h"
+#include "hw/isa/isa.h"
 #include "qemu/error-report.h"
 #include "qemu/timer.h"
 #include "sysemu/sysemu.h"
@@ -35,7 +35,7 @@
 #include "sysemu/block-backend.h"
 #include "qemu/cutils.h"
 
-#include <hw/ide/internal.h>
+#include "hw/ide/internal.h"
 
 /* These values were based on a Seagate ST3500418AS but have been modified
    to make more sense in QEMU */
@@ -423,8 +423,10 @@ static void ide_issue_trim_cb(void *opaque, int ret)
                 }
 
                 /* Got an entry! Submit and exit.  */
-                iocb->aiocb = blk_aio_discard(iocb->blk, sector, count,
-                                              ide_issue_trim_cb, opaque);
+                iocb->aiocb = blk_aio_pdiscard(iocb->blk,
+                                               sector << BDRV_SECTOR_BITS,
+                                               count << BDRV_SECTOR_BITS,
+                                               ide_issue_trim_cb, opaque);
                 return;
             }
 
@@ -441,13 +443,14 @@ static void ide_issue_trim_cb(void *opaque, int ret)
     }
 }
 
-BlockAIOCB *ide_issue_trim(BlockBackend *blk,
-        int64_t sector_num, QEMUIOVector *qiov, int nb_sectors,
-        BlockCompletionFunc *cb, void *opaque)
+BlockAIOCB *ide_issue_trim(
+        int64_t offset, QEMUIOVector *qiov,
+        BlockCompletionFunc *cb, void *cb_opaque, void *opaque)
 {
+    BlockBackend *blk = opaque;
     TrimAIOCB *iocb;
 
-    iocb = blk_aio_get(&trim_aiocb_info, blk, cb, opaque);
+    iocb = blk_aio_get(&trim_aiocb_info, blk, cb, cb_opaque);
     iocb->blk = blk;
     iocb->bh = qemu_bh_new(ide_trim_bh_cb, iocb);
     iocb->ret = 0;
@@ -465,6 +468,20 @@ void ide_abort_command(IDEState *s)
     s->error = ABRT_ERR;
 }
 
+static void ide_set_retry(IDEState *s)
+{
+    s->bus->retry_unit = s->unit;
+    s->bus->retry_sector_num = ide_get_sector(s);
+    s->bus->retry_nsector = s->nsector;
+}
+
+static void ide_clear_retry(IDEState *s)
+{
+    s->bus->retry_unit = -1;
+    s->bus->retry_sector_num = 0;
+    s->bus->retry_nsector = 0;
+}
+
 /* prepare data transfer and tell what to do after */
 void ide_transfer_start(IDEState *s, uint8_t *buf, int size,
                         EndTransferFunc *end_transfer_func)
@@ -472,6 +489,7 @@ void ide_transfer_start(IDEState *s, uint8_t *buf, int size,
     s->end_transfer_func = end_transfer_func;
     s->data_ptr = buf;
     s->data_end = buf + size;
+    ide_set_retry(s);
     if (!(s->status & ERR_STAT)) {
         s->status |= DRQ_STAT;
     }
@@ -616,8 +634,8 @@ BlockAIOCB *ide_buffered_readv(IDEState *s, int64_t sector_num,
     req->iov.iov_len = iov->size;
     qemu_iovec_init_external(&req->qiov, &req->iov, 1);
 
-    aioreq = blk_aio_readv(s->blk, sector_num, &req->qiov, nb_sectors,
-                           ide_buffered_readv_cb, req);
+    aioreq = blk_aio_preadv(s->blk, sector_num << BDRV_SECTOR_BITS,
+                            &req->qiov, 0, ide_buffered_readv_cb, req);
 
     QLIST_INSERT_HEAD(&s->buffered_requests, req, list);
     return aioreq;
@@ -755,9 +773,7 @@ void dma_buf_commit(IDEState *s, uint32_t tx_bytes)
 void ide_set_inactive(IDEState *s, bool more)
 {
     s->bus->dma->aiocb = NULL;
-    s->bus->retry_unit = -1;
-    s->bus->retry_sector_num = 0;
-    s->bus->retry_nsector = 0;
+    ide_clear_retry(s);
     if (s->bus->dma->ops->set_inactive) {
         s->bus->dma->ops->set_inactive(s->bus->dma, more);
     }
@@ -799,6 +815,7 @@ static void ide_dma_cb(void *opaque, int ret)
     IDEState *s = opaque;
     int n;
     int64_t sector_num;
+    uint64_t offset;
     bool stay_active = false;
 
     if (ret == -ECANCELED) {
@@ -806,6 +823,8 @@ static void ide_dma_cb(void *opaque, int ret)
     }
     if (ret < 0) {
         if (ide_handle_rw_error(s, -ret, ide_dma_cmd_to_retry(s->dma_cmd))) {
+            s->bus->dma->aiocb = NULL;
+            dma_buf_commit(s, 0);
             return;
         }
     }
@@ -859,18 +878,20 @@ static void ide_dma_cb(void *opaque, int ret)
         return;
     }
 
+    offset = sector_num << BDRV_SECTOR_BITS;
     switch (s->dma_cmd) {
     case IDE_DMA_READ:
-        s->bus->dma->aiocb = dma_blk_read(s->blk, &s->sg, sector_num,
+        s->bus->dma->aiocb = dma_blk_read(s->blk, &s->sg, offset,
                                           ide_dma_cb, s);
         break;
     case IDE_DMA_WRITE:
-        s->bus->dma->aiocb = dma_blk_write(s->blk, &s->sg, sector_num,
+        s->bus->dma->aiocb = dma_blk_write(s->blk, &s->sg, offset,
                                            ide_dma_cb, s);
         break;
     case IDE_DMA_TRIM:
-        s->bus->dma->aiocb = dma_blk_io(s->blk, &s->sg, sector_num,
-                                        ide_issue_trim, ide_dma_cb, s,
+        s->bus->dma->aiocb = dma_blk_io(blk_get_aio_context(s->blk),
+                                        &s->sg, offset,
+                                        ide_issue_trim, s->blk, ide_dma_cb, s,
                                         DMA_DIRECTION_TO_DEVICE);
         break;
     default:
@@ -910,9 +931,7 @@ static void ide_sector_start_dma(IDEState *s, enum ide_dma_cmd dma_cmd)
 void ide_start_dma(IDEState *s, BlockCompletionFunc *cb)
 {
     s->io_buffer_index = 0;
-    s->bus->retry_unit = s->unit;
-    s->bus->retry_sector_num = ide_get_sector(s);
-    s->bus->retry_nsector = s->nsector;
+    ide_set_retry(s);
     if (s->bus->dma->ops->start_dma) {
         s->bus->dma->ops->start_dma(s->bus->dma, s, cb);
     }
@@ -1006,8 +1025,8 @@ static void ide_sector_write(IDEState *s)
 
     block_acct_start(blk_get_stats(s->blk), &s->acct,
                      n * BDRV_SECTOR_SIZE, BLOCK_ACCT_WRITE);
-    s->pio_aiocb = blk_aio_writev(s->blk, sector_num, &s->qiov, n,
-                                  ide_sector_write_cb, s);
+    s->pio_aiocb = blk_aio_pwritev(s->blk, sector_num << BDRV_SECTOR_BITS,
+                                   &s->qiov, 0, ide_sector_write_cb, s);
 }
 
 static void ide_flush_cb(void *opaque, int ret)
@@ -1042,6 +1061,7 @@ static void ide_flush_cache(IDEState *s)
     }
 
     s->status |= BUSY_STAT;
+    ide_set_retry(s);
     block_acct_start(blk_get_stats(s->blk), &s->acct, 0, BLOCK_ACCT_FLUSH);
     s->pio_aiocb = blk_aio_flush(s->blk, ide_flush_cb, s);
 }

@@ -1,5 +1,5 @@
 #ifndef QEMU_HW_XEN_BACKEND_H
-#define QEMU_HW_XEN_BACKEND_H 1
+#define QEMU_HW_XEN_BACKEND_H
 
 #include "hw/xen/xen_common.h"
 #include "sysemu/sysemu.h"
@@ -28,6 +28,7 @@ struct XenDevOps {
     int       (*free)(struct XenDevice *xendev);
     void      (*backend_changed)(struct XenDevice *xendev, const char *node);
     void      (*frontend_changed)(struct XenDevice *xendev, const char *node);
+    int       (*backend_register)(void);
 };
 
 struct XenDevice {
@@ -60,8 +61,10 @@ extern xc_interface *xen_xc;
 extern xenforeignmemory_handle *xen_fmem;
 extern struct xs_handle *xenstore;
 extern const char *xen_protocol;
+extern DeviceState *xen_sysdev;
 
 /* xenstore helper functions */
+int xenstore_mkdir(char *path, int p);
 int xenstore_write_str(const char *base, const char *node, const char *val);
 int xenstore_write_int(const char *base, const char *node, int ival);
 int xenstore_write_int64(const char *base, const char *node, int64_t ival);
@@ -84,6 +87,7 @@ void xen_be_check_state(struct XenDevice *xendev);
 
 /* xen backend driver bits */
 int xen_be_init(void);
+void xen_be_register_common(void);
 int xen_be_register(const char *type, struct XenDevOps *ops);
 int xen_be_set_state(struct XenDevice *xendev, enum xenbus_state state);
 int xen_be_bind_evtchn(struct XenDevice *xendev);
@@ -98,6 +102,9 @@ extern struct XenDevOps xen_kbdmouse_ops;     /* xen_framebuffer.c */
 extern struct XenDevOps xen_framebuffer_ops;  /* xen_framebuffer.c */
 extern struct XenDevOps xen_blkdev_ops;       /* xen_disk.c        */
 extern struct XenDevOps xen_netdev_ops;       /* xen_nic.c         */
+#ifdef CONFIG_USB_LIBUSB
+extern struct XenDevOps xen_usb_ops;          /* xen-usb.c         */
+#endif
 
 void xen_init_display(int domid);
 

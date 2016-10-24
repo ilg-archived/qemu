@@ -31,7 +31,6 @@
  */
 #include "qemu/osdep.h"
 #include <windows.h>
-#include <glib.h>
 #include "qapi/error.h"
 #include "sysemu/sysemu.h"
 #include "qemu/main-loop.h"
@@ -549,7 +548,7 @@ int getpagesize(void)
     return system_info.dwPageSize;
 }
 
-void os_mem_prealloc(int fd, char *area, size_t memory)
+void os_mem_prealloc(int fd, char *area, size_t memory, Error **errp)
 {
     int i;
     size_t pagesize = getpagesize();

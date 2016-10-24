@@ -1,9 +1,14 @@
 #include "qemu/osdep.h"
+#include "qemu-common.h"
+#include "cpu.h"
+#include "exec/exec-all.h"
 #include "hw/hw.h"
 #include "hw/boards.h"
 #include "sysemu/kvm.h"
 #include "helper_regs.h"
 #include "mmu-hash64.h"
+#include "migration/cpu.h"
+#include "exec/exec-all.h"
 
 static int cpu_load_old(QEMUFile *f, void *opaque, int version_id)
 {
@@ -92,8 +97,11 @@ static int cpu_load_old(QEMUFile *f, void *opaque, int version_id)
     qemu_get_betls(f, &env->nip);
     qemu_get_betls(f, &env->hflags);
     qemu_get_betls(f, &env->hflags_nmsr);
-    qemu_get_sbe32s(f, &env->mmu_idx);
+    qemu_get_sbe32(f); /* Discard unused mmu_idx */
     qemu_get_sbe32(f); /* Discard unused power_mode */
+
+    /* Recompute mmu indices */
+    hreg_compute_mem_idx(env);
 
     return 0;
 }

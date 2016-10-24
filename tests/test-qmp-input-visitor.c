@@ -11,7 +11,6 @@
  */
 
 #include "qemu/osdep.h"
-#include <glib.h>
 
 #include "qemu-common.h"
 #include "qapi/error.h"
@@ -19,10 +18,11 @@
 #include "test-qapi-types.h"
 #include "test-qapi-visit.h"
 #include "qapi/qmp/types.h"
+#include "qapi/qmp/qjson.h"
 
 typedef struct TestInputVisitorData {
     QObject *obj;
-    QmpInputVisitor *qiv;
+    Visitor *qiv;
 } TestInputVisitorData;
 
 static void visitor_input_teardown(TestInputVisitorData *data,
@@ -32,7 +32,7 @@ static void visitor_input_teardown(TestInputVisitorData *data,
     data->obj = NULL;
 
     if (data->qiv) {
-        qmp_input_visitor_cleanup(data->qiv);
+        visit_free(data->qiv);
         data->qiv = NULL;
     }
 }
@@ -44,20 +44,14 @@ static Visitor *visitor_input_test_init_internal(TestInputVisitorData *data,
                                                  const char *json_string,
                                                  va_list *ap)
 {
-    Visitor *v;
-
     visitor_input_teardown(data, NULL);
 
     data->obj = qobject_from_jsonv(json_string, ap);
     g_assert(data->obj);
 
-    data->qiv = qmp_input_visitor_new(data->obj);
+    data->qiv = qmp_input_visitor_new(data->obj, false);
     g_assert(data->qiv);
-
-    v = qmp_input_get_visitor(data->qiv);
-    g_assert(v);
-
-    return v;
+    return data->qiv;
 }
 
 static GCC_FMT_ATTR(2, 3)
@@ -277,6 +271,34 @@ static void test_visitor_in_any(TestInputVisitorData *data,
     g_assert(qstring);
     g_assert_cmpstr(qstring_get_str(qstring), ==, "foo");
     qobject_decref(res);
+}
+
+static void test_visitor_in_null(TestInputVisitorData *data,
+                                 const void *unused)
+{
+    Visitor *v;
+    Error *err = NULL;
+    char *tmp;
+
+    /*
+     * FIXME: Since QAPI doesn't know the 'null' type yet, we can't
+     * test visit_type_null() by reading into a QAPI struct then
+     * checking that it was populated correctly.  The best we can do
+     * for now is ensure that we consumed null from the input, proven
+     * by the fact that we can't re-read the key; and that we detect
+     * when input is not null.
+     */
+
+    v = visitor_input_test_init(data, "{ 'a': null, 'b': '' }");
+    visit_start_struct(v, NULL, NULL, 0, &error_abort);
+    visit_type_null(v, "a", &error_abort);
+    visit_type_str(v, "a", &tmp, &err);
+    g_assert(!tmp);
+    error_free_or_abort(&err);
+    visit_type_null(v, "b", &err);
+    error_free_or_abort(&err);
+    visit_check_struct(v, &error_abort);
+    visit_end_struct(v, NULL);
 }
 
 static void test_visitor_in_union_flat(TestInputVisitorData *data,
@@ -739,24 +761,30 @@ static void test_visitor_in_errors(TestInputVisitorData *data,
     Error *err = NULL;
     Visitor *v;
     strList *q = NULL;
+    UserDefTwo *r = NULL;
+    WrapAlternate *s = NULL;
 
     v = visitor_input_test_init(data, "{ 'integer': false, 'boolean': 'foo', "
                                 "'string': -42 }");
 
     visit_type_TestStruct(v, NULL, &p, &err);
     error_free_or_abort(&err);
-    /* FIXME - a failed parse should not leave a partially-allocated p
-     * for us to clean up; this could cause callers to leak memory. */
-    g_assert(p->string == NULL);
-
-    g_free(p->string);
-    g_free(p);
+    g_assert(!p);
 
     v = visitor_input_test_init(data, "[ '1', '2', false, '3' ]");
     visit_type_strList(v, NULL, &q, &err);
     error_free_or_abort(&err);
-    assert(q);
-    qapi_free_strList(q);
+    assert(!q);
+
+    v = visitor_input_test_init(data, "{ 'str':'hi' }");
+    visit_type_UserDefTwo(v, NULL, &r, &err);
+    error_free_or_abort(&err);
+    assert(!r);
+
+    v = visitor_input_test_init(data, "{ }");
+    visit_type_WrapAlternate(v, NULL, &s, &err);
+    error_free_or_abort(&err);
+    assert(!s);
 }
 
 static void test_visitor_in_wrong_type(TestInputVisitorData *data,
@@ -829,6 +857,8 @@ int main(int argc, char **argv)
                            &in_visitor_data, test_visitor_in_list);
     input_visitor_test_add("/visitor/input/any",
                            &in_visitor_data, test_visitor_in_any);
+    input_visitor_test_add("/visitor/input/null",
+                           &in_visitor_data, test_visitor_in_null);
     input_visitor_test_add("/visitor/input/union-flat",
                            &in_visitor_data, test_visitor_in_union_flat);
     input_visitor_test_add("/visitor/input/alternate",

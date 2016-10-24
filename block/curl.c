@@ -36,10 +36,16 @@
 // #define DEBUG_VERBOSE
 
 #ifdef DEBUG_CURL
-#define DPRINTF(fmt, ...) do { printf(fmt, ## __VA_ARGS__); } while (0)
+#define DEBUG_CURL_PRINT 1
 #else
-#define DPRINTF(fmt, ...) do { } while (0)
+#define DEBUG_CURL_PRINT 0
 #endif
+#define DPRINTF(fmt, ...)                                            \
+    do {                                                             \
+        if (DEBUG_CURL_PRINT) {                                      \
+            fprintf(stderr, fmt, ## __VA_ARGS__);                    \
+        }                                                            \
+    } while (0)
 
 #if LIBCURL_VERSION_NUM >= 0x071000
 /* The multi interface timer callback was introduced in 7.16.0 */
@@ -163,7 +169,7 @@ static int curl_sock_cb(CURL *curl, curl_socket_t fd, int action,
     state->sock_fd = fd;
     s = state->s;
 
-    DPRINTF("CURL (AIO): Sock action %d on fd %d\n", action, fd);
+    DPRINTF("CURL (AIO): Sock action %d on fd %d\n", action, (int)fd);
     switch (action) {
         case CURL_POLL_IN:
             aio_set_fd_handler(s->aio_context, fd, false,

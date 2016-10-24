@@ -14,7 +14,6 @@
 #ifndef QEMU_OBJECT_H
 #define QEMU_OBJECT_H
 
-#include <glib.h>
 #include "qapi-types.h"
 #include "qemu/queue.h"
 
@@ -902,7 +901,7 @@ GSList *object_class_get_list(const char *implements_type,
 void object_ref(Object *obj);
 
 /**
- * qdef_unref:
+ * object_unref:
  * @obj: the object
  *
  * Decrease the reference count of a object.  A object cannot be freed as long
@@ -1608,5 +1607,11 @@ int object_child_foreach_recursive(Object *obj,
  */
 Object *container_get(Object *root, const char *path);
 
-
+/**
+ * object_type_get_instance_size:
+ * @typename: Name of the Type whose instance_size is required
+ *
+ * Returns the instance_size of the given @typename.
+ */
+size_t object_type_get_instance_size(const char *typename);
 #endif

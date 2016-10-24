@@ -11,7 +11,6 @@
  */
 
 #include "qemu/osdep.h"
-#include <glib.h>
 
 #include "qemu/config-file.h"     /* qemu_add_opts() */
 #include "qemu/option.h"          /* qemu_opts_parse() */
@@ -38,16 +37,15 @@ setup_fixture(OptsVisitorFixture *f, gconstpointer test_data)
 {
     const char *opts_string = test_data;
     QemuOpts *opts;
-    OptsVisitor *ov;
+    Visitor *v;
 
     opts = qemu_opts_parse(qemu_find_opts("userdef"), opts_string, false,
                            NULL);
     g_assert(opts != NULL);
 
-    ov = opts_visitor_new(opts);
-    visit_type_UserDefOptions(opts_get_visitor(ov), NULL, &f->userdef,
-                              &f->err);
-    opts_visitor_cleanup(ov);
+    v = opts_visitor_new(opts);
+    visit_type_UserDefOptions(v, NULL, &f->userdef, &f->err);
+    visit_free(v);
     qemu_opts_del(opts);
 }
 

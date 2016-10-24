@@ -710,12 +710,19 @@ static inline void tcg_out_st(TCGContext *s, TCGType type, TCGReg arg,
     tcg_out_modrm_offset(s, opc, arg, arg1, arg2);
 }
 
-static inline void tcg_out_sti(TCGContext *s, TCGType type, TCGReg base,
-                               tcg_target_long ofs, tcg_target_long val)
+static bool tcg_out_sti(TCGContext *s, TCGType type, TCGArg val,
+                        TCGReg base, intptr_t ofs)
 {
-    int opc = OPC_MOVL_EvIz + (type == TCG_TYPE_I64 ? P_REXW : 0);
-    tcg_out_modrm_offset(s, opc, 0, base, ofs);
+    int rexw = 0;
+    if (TCG_TARGET_REG_BITS == 64 && type == TCG_TYPE_I64) {
+        if (val != (int32_t)val) {
+            return false;
+        }
+        rexw = P_REXW;
+    }
+    tcg_out_modrm_offset(s, OPC_MOVL_EvIz | rexw, 0, base, ofs);
     tcg_out32(s, val);
+    return true;
 }
 
 static void tcg_out_shifti(TCGContext *s, int subopc, int reg, int count)
@@ -1123,6 +1130,21 @@ static void tcg_out_jmp(TCGContext *s, tcg_insn_unit *dest)
     tcg_out_branch(s, 0, dest);
 }
 
+static void tcg_out_nopn(TCGContext *s, int n)
+{
+    int i;
+    /* Emit 1 or 2 operand size prefixes for the standard one byte nop,
+     * "xchg %eax,%eax", forming "xchg %ax,%ax". All cores accept the
+     * duplicate prefix, and all of the interesting recent cores can
+     * decode and discard the duplicates in a single cycle.
+     */
+    tcg_debug_assert(n >= 1);
+    for (i = 1; i < n; ++i) {
+        tcg_out8(s, 0x66);
+    }
+    tcg_out8(s, 0x90);
+}
+
 #if defined(CONFIG_SOFTMMU)
 /* helper signature: helper_ret_ld_mmu(CPUState *env, target_ulong addr,
  *                                     int mmu_idx, uintptr_t ra)
@@ -1180,8 +1202,8 @@ static inline void tcg_out_tlb_load(TCGContext *s, TCGReg addrlo, TCGReg addrhi,
     TCGType ttype = TCG_TYPE_I32;
     TCGType tlbtype = TCG_TYPE_I32;
     int trexw = 0, hrexw = 0, tlbrexw = 0;
-    int s_mask = (1 << (opc & MO_SIZE)) - 1;
-    bool aligned = (opc & MO_AMASK) == MO_ALIGN || s_mask == 0;
+    int a_bits = get_alignment_bits(opc);
+    target_ulong tlb_mask;
 
     if (TCG_TARGET_REG_BITS == 64) {
         if (TARGET_LONG_BITS == 64) {
@@ -1198,19 +1220,22 @@ static inline void tcg_out_tlb_load(TCGContext *s, TCGReg addrlo, TCGReg addrhi,
     }
 
     tcg_out_mov(s, tlbtype, r0, addrlo);
-    if (aligned) {
+    if (a_bits >= 0) {
+        /* A byte access or an alignment check required */
         tcg_out_mov(s, ttype, r1, addrlo);
+        tlb_mask = TARGET_PAGE_MASK | ((1 << a_bits) - 1);
     } else {
         /* For unaligned access check that we don't cross pages using
            the page address of the last byte.  */
-        tcg_out_modrm_offset(s, OPC_LEA + trexw, r1, addrlo, s_mask);
+        tcg_out_modrm_offset(s, OPC_LEA + trexw, r1, addrlo,
+                             (1 << (opc & MO_SIZE)) - 1);
+        tlb_mask = TARGET_PAGE_MASK;
     }
 
     tcg_out_shifti(s, SHIFT_SHR + tlbrexw, r0,
                    TARGET_PAGE_BITS - CPU_TLB_ENTRY_BITS);
 
-    tgen_arithi(s, ARITH_AND + trexw, r1,
-                TARGET_PAGE_MASK | (aligned ? s_mask : 0), 0);
+    tgen_arithi(s, ARITH_AND + trexw, r1, tlb_mask, 0);
     tgen_arithi(s, ARITH_AND + tlbrexw, r0,
                 (CPU_TLB_SIZE - 1) << CPU_TLB_ENTRY_BITS, 0);
 
@@ -1306,10 +1331,10 @@ static void tcg_out_qemu_ld_slow_path(TCGContext *s, TCGLabelQemuLdst *l)
             ofs += 4;
         }
 
-        tcg_out_sti(s, TCG_TYPE_I32, TCG_REG_ESP, ofs, oi);
+        tcg_out_sti(s, TCG_TYPE_I32, oi, TCG_REG_ESP, ofs);
         ofs += 4;
 
-        tcg_out_sti(s, TCG_TYPE_PTR, TCG_REG_ESP, ofs, (uintptr_t)l->raddr);
+        tcg_out_sti(s, TCG_TYPE_PTR, (uintptr_t)l->raddr, TCG_REG_ESP, ofs);
     } else {
         tcg_out_mov(s, TCG_TYPE_PTR, tcg_target_call_iarg_regs[0], TCG_AREG0);
         /* The second argument is already loaded with addrlo.  */
@@ -1398,7 +1423,7 @@ static void tcg_out_qemu_st_slow_path(TCGContext *s, TCGLabelQemuLdst *l)
             ofs += 4;
         }
 
-        tcg_out_sti(s, TCG_TYPE_I32, TCG_REG_ESP, ofs, oi);
+        tcg_out_sti(s, TCG_TYPE_I32, oi, TCG_REG_ESP, ofs);
         ofs += 4;
 
         retaddr = TCG_REG_EAX;
@@ -1775,17 +1800,25 @@ static inline void tcg_out_op(TCGContext *s, TCGOpcode opc,
         tcg_out_jmp(s, tb_ret_addr);
         break;
     case INDEX_op_goto_tb:
-        if (s->tb_jmp_offset) {
+        if (s->tb_jmp_insn_offset) {
             /* direct jump method */
+            int gap;
+            /* jump displacement must be aligned for atomic patching;
+             * see if we need to add extra nops before jump
+             */
+            gap = tcg_pcrel_diff(s, QEMU_ALIGN_PTR_UP(s->code_ptr + 1, 4));
+            if (gap != 1) {
+                tcg_out_nopn(s, gap - 1);
+            }
             tcg_out8(s, OPC_JMP_long); /* jmp im */
-            s->tb_jmp_offset[args[0]] = tcg_current_code_size(s);
+            s->tb_jmp_insn_offset[args[0]] = tcg_current_code_size(s);
             tcg_out32(s, 0);
         } else {
             /* indirect jump method */
             tcg_out_modrm_offset(s, OPC_GRP5, EXT5_JMPN_Ev, -1,
-                                 (intptr_t)(s->tb_next + args[0]));
+                                 (intptr_t)(s->tb_jmp_target_addr + args[0]));
         }
-        s->tb_next_offset[args[0]] = tcg_current_code_size(s);
+        s->tb_jmp_reset_offset[args[0]] = tcg_current_code_size(s);
         break;
     case INDEX_op_br:
         tcg_out_jxx(s, JCC_JMP, arg_label(args[0]), 0);

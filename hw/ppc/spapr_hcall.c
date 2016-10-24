@@ -1,12 +1,15 @@
 #include "qemu/osdep.h"
 #include "qapi/error.h"
 #include "sysemu/sysemu.h"
+#include "qemu/log.h"
 #include "cpu.h"
+#include "exec/exec-all.h"
 #include "helper_regs.h"
 #include "hw/ppc/spapr.h"
 #include "mmu-hash64.h"
 #include "cpu-models.h"
 #include "trace.h"
+#include "sysemu/kvm.h"
 #include "kvm_ppc.h"
 
 struct SPRSyncState {
@@ -80,12 +83,12 @@ static target_ulong h_enter(PowerPCCPU *cpu, sPAPRMachineState *spapr,
     target_ulong pte_index = args[1];
     target_ulong pteh = args[2];
     target_ulong ptel = args[3];
-    unsigned apshift, spshift;
+    unsigned apshift;
     target_ulong raddr;
     target_ulong index;
     uint64_t token;
 
-    apshift = ppc_hash64_hpte_page_shift_noslb(cpu, pteh, ptel, &spshift);
+    apshift = ppc_hash64_hpte_page_shift_noslb(cpu, pteh, ptel);
     if (!apshift) {
         /* Bad page size encoding */
         return H_PARAMETER;
@@ -99,11 +102,15 @@ static target_ulong h_enter(PowerPCCPU *cpu, sPAPRMachineState *spapr,
             return H_PARAMETER;
         }
     } else {
+        target_ulong wimg_flags;
         /* Looks like an IO address */
         /* FIXME: What WIMG combinations could be sensible for IO?
          * For now we allow WIMG=010x, but are there others? */
         /* FIXME: Should we check against registered IO addresses? */
-        if ((ptel & (HPTE64_R_W | HPTE64_R_I | HPTE64_R_M)) != HPTE64_R_I) {
+        wimg_flags = (ptel & (HPTE64_R_W | HPTE64_R_I | HPTE64_R_M));
+
+        if (wimg_flags != HPTE64_R_I &&
+            wimg_flags != (HPTE64_R_I | HPTE64_R_M)) {
             return H_PARAMETER;
         }
     }
@@ -183,6 +190,7 @@ static RemoveResult remove_hpte(PowerPCCPU *cpu, target_ulong ptex,
 static target_ulong h_remove(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                              target_ulong opcode, target_ulong *args)
 {
+    CPUPPCState *env = &cpu->env;
     target_ulong flags = args[0];
     target_ulong pte_index = args[1];
     target_ulong avpn = args[2];
@@ -193,6 +201,7 @@ static target_ulong h_remove(PowerPCCPU *cpu, sPAPRMachineState *spapr,
 
     switch (ret) {
     case REMOVE_SUCCESS:
+        check_tlb_flush(env);
         return H_SUCCESS;
 
     case REMOVE_NOT_FOUND:
@@ -229,7 +238,9 @@ static target_ulong h_remove(PowerPCCPU *cpu, sPAPRMachineState *spapr,
 static target_ulong h_bulk_remove(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                                   target_ulong opcode, target_ulong *args)
 {
+    CPUPPCState *env = &cpu->env;
     int i;
+    target_ulong rc = H_SUCCESS;
 
     for (i = 0; i < H_BULK_REMOVE_MAX_BATCH; i++) {
         target_ulong *tsh = &args[i*2];
@@ -262,14 +273,18 @@ static target_ulong h_bulk_remove(PowerPCCPU *cpu, sPAPRMachineState *spapr,
             break;
 
         case REMOVE_PARM:
-            return H_PARAMETER;
+            rc = H_PARAMETER;
+            goto exit;
 
         case REMOVE_HW:
-            return H_HARDWARE;
+            rc = H_HARDWARE;
+            goto exit;
         }
     }
+ exit:
+    check_tlb_flush(env);
 
-    return H_SUCCESS;
+    return rc;
 }
 
 static target_ulong h_protect(PowerPCCPU *cpu, sPAPRMachineState *spapr,
@@ -911,6 +926,41 @@ static void do_set_compat(void *arg)
     ((cpuver) == CPU_POWERPC_LOGICAL_2_06_PLUS) ? 2061 : \
     ((cpuver) == CPU_POWERPC_LOGICAL_2_07) ? 2070 : 0)
 
+static void cas_handle_compat_cpu(PowerPCCPUClass *pcc, uint32_t pvr,
+                                  unsigned max_lvl, unsigned *compat_lvl,
+                                  unsigned *cpu_version)
+{
+    unsigned lvl = get_compat_level(pvr);
+    bool is205, is206, is207;
+
+    if (!lvl) {
+        return;
+    }
+
+    /* If it is a logical PVR, try to determine the highest level */
+    is205 = (pcc->pcr_supported & PCR_COMPAT_2_05) &&
+            (lvl == get_compat_level(CPU_POWERPC_LOGICAL_2_05));
+    is206 = (pcc->pcr_supported & PCR_COMPAT_2_06) &&
+            ((lvl == get_compat_level(CPU_POWERPC_LOGICAL_2_06)) ||
+             (lvl == get_compat_level(CPU_POWERPC_LOGICAL_2_06_PLUS)));
+    is207 = (pcc->pcr_supported & PCR_COMPAT_2_07) &&
+            (lvl == get_compat_level(CPU_POWERPC_LOGICAL_2_07));
+
+    if (is205 || is206 || is207) {
+        if (!max_lvl) {
+            /* User did not set the level, choose the highest */
+            if (*compat_lvl <= lvl) {
+                *compat_lvl = lvl;
+                *cpu_version = pvr;
+            }
+        } else if (max_lvl >= lvl) {
+            /* User chose the level, don't set higher than this */
+            *compat_lvl = lvl;
+            *cpu_version = pvr;
+        }
+    }
+}
+
 #define OV5_DRCONF_MEMORY 0x20
 
 static target_ulong h_client_architecture_support(PowerPCCPU *cpu_,
@@ -920,7 +970,7 @@ static target_ulong h_client_architecture_support(PowerPCCPU *cpu_,
 {
     target_ulong list = ppc64_phys_to_real(args[0]);
     target_ulong ov_table, ov5;
-    PowerPCCPUClass *pcc_ = POWERPC_CPU_GET_CLASS(cpu_);
+    PowerPCCPUClass *pcc = POWERPC_CPU_GET_CLASS(cpu_);
     CPUState *cs;
     bool cpu_match = false, cpu_update = true, memory_update = false;
     unsigned old_cpu_version = cpu_->cpu_version;
@@ -947,29 +997,7 @@ static target_ulong h_client_architecture_support(PowerPCCPU *cpu_,
             cpu_match = true;
             cpu_version = cpu_->cpu_version;
         } else if (!cpu_match) {
-            /* If it is a logical PVR, try to determine the highest level */
-            unsigned lvl = get_compat_level(pvr);
-            if (lvl) {
-                bool is205 = (pcc_->pcr_mask & PCR_COMPAT_2_05) &&
-                     (lvl == get_compat_level(CPU_POWERPC_LOGICAL_2_05));
-                bool is206 = (pcc_->pcr_mask & PCR_COMPAT_2_06) &&
-                    ((lvl == get_compat_level(CPU_POWERPC_LOGICAL_2_06)) ||
-                    (lvl == get_compat_level(CPU_POWERPC_LOGICAL_2_06_PLUS)));
-
-                if (is205 || is206) {
-                    if (!max_lvl) {
-                        /* User did not set the level, choose the highest */
-                        if (compat_lvl <= lvl) {
-                            compat_lvl = lvl;
-                            cpu_version = pvr;
-                        }
-                    } else if (max_lvl >= lvl) {
-                        /* User chose the level, don't set higher than this */
-                        compat_lvl = lvl;
-                        cpu_version = pvr;
-                    }
-                }
-            }
+            cas_handle_compat_cpu(pcc, pvr, max_lvl, &compat_lvl, &cpu_version);
         }
         /* Terminator record */
         if (~pvr_mask & pvr) {
@@ -979,7 +1007,7 @@ static target_ulong h_client_architecture_support(PowerPCCPU *cpu_,
 
     /* Parsing finished */
     trace_spapr_cas_pvr(cpu_->cpu_version, cpu_match,
-                        cpu_version, pcc_->pcr_mask);
+                        cpu_version, pcc->pcr_mask);
 
     /* Update CPUs */
     if (old_cpu_version != cpu_version) {

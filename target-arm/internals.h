@@ -72,21 +72,6 @@ static const char * const excnames[] = {
     [EXCP_SEMIHOST] = "Semihosting call",
 };
 
-static inline void arm_log_exception(int idx)
-{
-    if (qemu_loglevel_mask(CPU_LOG_INT)) {
-        const char *exc = NULL;
-
-        if (idx >= 0 && idx < ARRAY_SIZE(excnames)) {
-            exc = excnames[idx];
-        }
-        if (!exc) {
-            exc = "unknown";
-        }
-        qemu_log_mask(CPU_LOG_INT, "Taking exception %d [%s]\n", idx, exc);
-    }
-}
-
 /* Scale factor for generic timers, ie number of ns per tick.
  * This gives a 62.5MHz timer.
  */
@@ -263,7 +248,9 @@ enum arm_exception_class {
 
 #define ARM_EL_EC_SHIFT 26
 #define ARM_EL_IL_SHIFT 25
+#define ARM_EL_ISV_SHIFT 24
 #define ARM_EL_IL (1 << ARM_EL_IL_SHIFT)
+#define ARM_EL_ISV (1 << ARM_EL_ISV_SHIFT)
 
 /* Utility functions for constructing various kinds of syndrome value.
  * Note that in general we follow the AArch64 syndrome values; in a
@@ -380,26 +367,42 @@ static inline uint32_t syn_fp_access_trap(int cv, int cond, bool is_16bit)
 static inline uint32_t syn_insn_abort(int same_el, int ea, int s1ptw, int fsc)
 {
     return (EC_INSNABORT << ARM_EL_EC_SHIFT) | (same_el << ARM_EL_EC_SHIFT)
-        | (ea << 9) | (s1ptw << 7) | fsc;
+        | ARM_EL_IL | (ea << 9) | (s1ptw << 7) | fsc;
 }
 
-static inline uint32_t syn_data_abort(int same_el, int ea, int cm, int s1ptw,
-                                      int wnr, int fsc)
+static inline uint32_t syn_data_abort_no_iss(int same_el,
+                                             int ea, int cm, int s1ptw,
+                                             int wnr, int fsc)
 {
     return (EC_DATAABORT << ARM_EL_EC_SHIFT) | (same_el << ARM_EL_EC_SHIFT)
-        | (ea << 9) | (cm << 8) | (s1ptw << 7) | (wnr << 6) | fsc;
+           | ARM_EL_IL
+           | (ea << 9) | (cm << 8) | (s1ptw << 7) | (wnr << 6) | fsc;
+}
+
+static inline uint32_t syn_data_abort_with_iss(int same_el,
+                                               int sas, int sse, int srt,
+                                               int sf, int ar,
+                                               int ea, int cm, int s1ptw,
+                                               int wnr, int fsc,
+                                               bool is_16bit)
+{
+    return (EC_DATAABORT << ARM_EL_EC_SHIFT) | (same_el << ARM_EL_EC_SHIFT)
+           | (is_16bit ? 0 : ARM_EL_IL)
+           | ARM_EL_ISV | (sas << 22) | (sse << 21) | (srt << 16)
+           | (sf << 15) | (ar << 14)
+           | (ea << 9) | (cm << 8) | (s1ptw << 7) | (wnr << 6) | fsc;
 }
 
 static inline uint32_t syn_swstep(int same_el, int isv, int ex)
 {
     return (EC_SOFTWARESTEP << ARM_EL_EC_SHIFT) | (same_el << ARM_EL_EC_SHIFT)
-        | (isv << 24) | (ex << 6) | 0x22;
+        | ARM_EL_IL | (isv << 24) | (ex << 6) | 0x22;
 }
 
 static inline uint32_t syn_watchpoint(int same_el, int cm, int wnr)
 {
     return (EC_WATCHPOINT << ARM_EL_EC_SHIFT) | (same_el << ARM_EL_EC_SHIFT)
-        | (cm << 8) | (wnr << 6) | 0x22;
+        | ARM_EL_IL | (cm << 8) | (wnr << 6) | 0x22;
 }
 
 static inline uint32_t syn_breakpoint(int same_el)
@@ -473,7 +476,16 @@ bool arm_tlb_fill(CPUState *cpu, vaddr address, int rw, int mmu_idx,
 bool arm_s1_regime_using_lpae_format(CPUARMState *env, ARMMMUIdx mmu_idx);
 
 /* Raise a data fault alignment exception for the specified virtual address */
-void arm_cpu_do_unaligned_access(CPUState *cs, vaddr vaddr, int is_write,
-                                 int is_user, uintptr_t retaddr);
+void arm_cpu_do_unaligned_access(CPUState *cs, vaddr vaddr,
+                                 MMUAccessType access_type,
+                                 int mmu_idx, uintptr_t retaddr);
+
+/* Call the EL change hook if one has been registered */
+static inline void arm_call_el_change_hook(ARMCPU *cpu)
+{
+    if (cpu->el_change_hook) {
+        cpu->el_change_hook(cpu, cpu->el_change_hook_opaque);
+    }
+}
 
 #endif

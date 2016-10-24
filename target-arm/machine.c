@@ -1,10 +1,13 @@
 #include "qemu/osdep.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "hw/hw.h"
 #include "hw/boards.h"
 #include "qemu/error-report.h"
 #include "sysemu/kvm.h"
 #include "kvm_arm.h"
 #include "internals.h"
+#include "migration/cpu.h"
 
 static bool vfp_needed(void *opaque)
 {
@@ -337,11 +340,9 @@ const char *gicv3_class_name(void)
 #else
         error_report("KVM GICv3 acceleration is not supported on this "
                      "platform");
+        exit(1);
 #endif
     } else {
-        /* TODO: Software emulation is not implemented yet */
-        error_report("KVM is currently required for GICv3 emulation");
+        return "arm-gicv3";
     }
-
-    exit(1);
 }

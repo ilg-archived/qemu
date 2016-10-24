@@ -43,6 +43,7 @@
 #include "hw/acpi/aml-build.h"
 #include "hw/pci/pcie_host.h"
 #include "hw/pci/pci.h"
+#include "sysemu/numa.h"
 
 #define ARM_SPI_BASE 32
 #define ACPI_POWER_BUTTON_DEVICE "PWRB"
@@ -230,7 +231,8 @@ static void acpi_dsdt_add_pci(Aml *scope, const MemMapEntry *memmap,
         aml_append(rbuf,
             aml_qword_memory(AML_POS_DECODE, AML_MIN_FIXED, AML_MAX_FIXED,
                              AML_NON_CACHEABLE, AML_READ_WRITE, 0x0000,
-                             base_mmio_high, base_mmio_high, 0x0000,
+                             base_mmio_high,
+                             base_mmio_high + size_mmio_high - 1, 0x0000,
                              size_mmio_high));
     }
 
@@ -352,11 +354,14 @@ static void acpi_dsdt_add_power_button(Aml *scope)
 
 /* RSDP */
 static GArray *
-build_rsdp(GArray *rsdp_table, GArray *linker, unsigned rsdt)
+build_rsdp(GArray *rsdp_table, BIOSLinker *linker, unsigned rsdt_tbl_offset)
 {
     AcpiRsdpDescriptor *rsdp = acpi_data_push(rsdp_table, sizeof *rsdp);
+    unsigned rsdt_pa_size = sizeof(rsdp->rsdt_physical_address);
+    unsigned rsdt_pa_offset =
+        (char *)&rsdp->rsdt_physical_address - rsdp_table->data;
 
-    bios_linker_loader_alloc(linker, ACPI_BUILD_RSDP_FILE, 16,
+    bios_linker_loader_alloc(linker, ACPI_BUILD_RSDP_FILE, rsdp_table, 16,
                              true /* fseg memory */);
 
     memcpy(&rsdp->signature, "RSD PTR ", sizeof(rsdp->signature));
@@ -364,24 +369,21 @@ build_rsdp(GArray *rsdp_table, GArray *linker, unsigned rsdt)
     rsdp->length = cpu_to_le32(sizeof(*rsdp));
     rsdp->revision = 0x02;
 
-    /* Point to RSDT */
-    rsdp->rsdt_physical_address = cpu_to_le32(rsdt);
     /* Address to be filled by Guest linker */
-    bios_linker_loader_add_pointer(linker, ACPI_BUILD_RSDP_FILE,
-                                   ACPI_BUILD_TABLE_FILE,
-                                   rsdp_table, &rsdp->rsdt_physical_address,
-                                   sizeof rsdp->rsdt_physical_address);
-    rsdp->checksum = 0;
+    bios_linker_loader_add_pointer(linker,
+        ACPI_BUILD_RSDP_FILE, rsdt_pa_offset, rsdt_pa_size,
+        ACPI_BUILD_TABLE_FILE, rsdt_tbl_offset);
+
     /* Checksum to be filled by Guest linker */
     bios_linker_loader_add_checksum(linker, ACPI_BUILD_RSDP_FILE,
-                                    rsdp_table, rsdp, sizeof *rsdp,
-                                    &rsdp->checksum);
+        (char *)rsdp - rsdp_table->data, sizeof *rsdp,
+        (char *)&rsdp->checksum - rsdp_table->data);
 
     return rsdp_table;
 }
 
 static void
-build_spcr(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
+build_spcr(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
 {
     AcpiSerialPortConsoleRedirection *spcr;
     const MemMapEntry *uart_memmap = &guest_info->memmap[VIRT_UART];
@@ -414,7 +416,52 @@ build_spcr(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
 }
 
 static void
-build_mcfg(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
+build_srat(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
+{
+    AcpiSystemResourceAffinityTable *srat;
+    AcpiSratProcessorGiccAffinity *core;
+    AcpiSratMemoryAffinity *numamem;
+    int i, j, srat_start;
+    uint64_t mem_base;
+    uint32_t *cpu_node = g_malloc0(guest_info->smp_cpus * sizeof(uint32_t));
+
+    for (i = 0; i < guest_info->smp_cpus; i++) {
+        for (j = 0; j < nb_numa_nodes; j++) {
+            if (test_bit(i, numa_info[j].node_cpu)) {
+                cpu_node[i] = j;
+                break;
+            }
+        }
+    }
+
+    srat_start = table_data->len;
+    srat = acpi_data_push(table_data, sizeof(*srat));
+    srat->reserved1 = cpu_to_le32(1);
+
+    for (i = 0; i < guest_info->smp_cpus; ++i) {
+        core = acpi_data_push(table_data, sizeof(*core));
+        core->type = ACPI_SRAT_PROCESSOR_GICC;
+        core->length = sizeof(*core);
+        core->proximity = cpu_to_le32(cpu_node[i]);
+        core->acpi_processor_uid = cpu_to_le32(i);
+        core->flags = cpu_to_le32(1);
+    }
+    g_free(cpu_node);
+
+    mem_base = guest_info->memmap[VIRT_MEM].base;
+    for (i = 0; i < nb_numa_nodes; ++i) {
+        numamem = acpi_data_push(table_data, sizeof(*numamem));
+        build_srat_memory(numamem, mem_base, numa_info[i].node_mem, i,
+                          MEM_AFFINITY_ENABLED);
+        mem_base += numa_info[i].node_mem;
+    }
+
+    build_header(linker, table_data, (void *)srat, "SRAT",
+                 table_data->len - srat_start, 3, NULL, NULL);
+}
+
+static void
+build_mcfg(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
 {
     AcpiTableMcfg *mcfg;
     const MemMapEntry *memmap = guest_info->memmap;
@@ -434,7 +481,7 @@ build_mcfg(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
 
 /* GTDT */
 static void
-build_gtdt(GArray *table_data, GArray *linker)
+build_gtdt(GArray *table_data, BIOSLinker *linker)
 {
     int gtdt_start = table_data->len;
     AcpiGenericTimerTable *gtdt;
@@ -460,7 +507,7 @@ build_gtdt(GArray *table_data, GArray *linker)
 
 /* MADT */
 static void
-build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
+build_madt(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
 {
     int madt_start = table_data->len;
     const MemMapEntry *memmap = guest_info->memmap;
@@ -476,6 +523,7 @@ build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
     gicd->type = ACPI_APIC_GENERIC_DISTRIBUTOR;
     gicd->length = sizeof(*gicd);
     gicd->base_address = memmap[VIRT_GIC_DIST].base;
+    gicd->version = guest_info->gic_version;
 
     for (i = 0; i < guest_info->smp_cpus; i++) {
         AcpiMadtGenericInterrupt *gicc = acpi_data_push(table_data,
@@ -491,6 +539,10 @@ build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
         gicc->arm_mpidr = armcpu->mp_affinity;
         gicc->uid = i;
         gicc->flags = cpu_to_le32(ACPI_GICC_ENABLED);
+
+        if (armcpu->has_pmu) {
+            gicc->performance_interrupt = cpu_to_le32(PPI(VIRTUAL_PMU_IRQ));
+        }
     }
 
     if (guest_info->gic_version == 3) {
@@ -519,9 +571,10 @@ build_madt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
 
 /* FADT */
 static void
-build_fadt(GArray *table_data, GArray *linker, unsigned dsdt)
+build_fadt(GArray *table_data, BIOSLinker *linker, unsigned dsdt_tbl_offset)
 {
     AcpiFadtDescriptorRev5_1 *fadt = acpi_data_push(table_data, sizeof(*fadt));
+    unsigned dsdt_entry_offset = (char *)&fadt->dsdt - table_data->data;
 
     /* Hardware Reduced = 1 and use PSCI 0.2+ and with HVC */
     fadt->flags = cpu_to_le32(1 << ACPI_FADT_F_HW_REDUCED_ACPI);
@@ -531,12 +584,10 @@ build_fadt(GArray *table_data, GArray *linker, unsigned dsdt)
     /* ACPI v5.1 (fadt->revision.fadt->minor_revision) */
     fadt->minor_revision = 0x1;
 
-    fadt->dsdt = cpu_to_le32(dsdt);
     /* DSDT address to be filled by Guest linker */
-    bios_linker_loader_add_pointer(linker, ACPI_BUILD_TABLE_FILE,
-                                   ACPI_BUILD_TABLE_FILE,
-                                   table_data, &fadt->dsdt,
-                                   sizeof fadt->dsdt);
+    bios_linker_loader_add_pointer(linker,
+        ACPI_BUILD_TABLE_FILE, dsdt_entry_offset, sizeof(fadt->dsdt),
+        ACPI_BUILD_TABLE_FILE, dsdt_tbl_offset);
 
     build_header(linker, table_data,
                  (void *)fadt, "FACP", sizeof(*fadt), 5, NULL, NULL);
@@ -544,7 +595,7 @@ build_fadt(GArray *table_data, GArray *linker, unsigned dsdt)
 
 /* DSDT */
 static void
-build_dsdt(GArray *table_data, GArray *linker, VirtGuestInfo *guest_info)
+build_dsdt(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
 {
     Aml *scope, *dsdt;
     const MemMapEntry *memmap = guest_info->memmap;
@@ -604,7 +655,8 @@ void virt_acpi_build(VirtGuestInfo *guest_info, AcpiBuildTables *tables)
     table_offsets = g_array_new(false, true /* clear */,
                                         sizeof(uint32_t));
 
-    bios_linker_loader_alloc(tables->linker, ACPI_BUILD_TABLE_FILE,
+    bios_linker_loader_alloc(tables->linker,
+                             ACPI_BUILD_TABLE_FILE, tables_blob,
                              64, false /* high memory */);
 
     /*
@@ -637,6 +689,11 @@ void virt_acpi_build(VirtGuestInfo *guest_info, AcpiBuildTables *tables)
 
     acpi_add_table(table_offsets, tables_blob);
     build_spcr(tables_blob, tables->linker, guest_info);
+
+    if (nb_numa_nodes > 0) {
+        acpi_add_table(table_offsets, tables_blob);
+        build_srat(tables_blob, tables->linker, guest_info);
+    }
 
     /* RSDT is pointed to by RSDP */
     rsdt = tables_blob->len;
@@ -678,7 +735,7 @@ static void virt_acpi_build_update(void *build_opaque)
 
     acpi_ram_update(build_state->table_mr, tables.table_data);
     acpi_ram_update(build_state->rsdp_mr, tables.rsdp);
-    acpi_ram_update(build_state->linker_mr, tables.linker);
+    acpi_ram_update(build_state->linker_mr, tables.linker->cmd_blob);
 
 
     acpi_build_tables_cleanup(&tables, true);
@@ -736,7 +793,8 @@ void virt_acpi_setup(VirtGuestInfo *guest_info)
     assert(build_state->table_mr != NULL);
 
     build_state->linker_mr =
-        acpi_add_rom_blob(build_state, tables.linker, "etc/table-loader", 0);
+        acpi_add_rom_blob(build_state, tables.linker->cmd_blob,
+                          "etc/table-loader", 0);
 
     fw_cfg_add_file(guest_info->fw_cfg, ACPI_BUILD_TPMLOG_FILE,
                     tables.tcpalog->data, acpi_data_len(tables.tcpalog));

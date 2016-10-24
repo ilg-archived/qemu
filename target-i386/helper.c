@@ -19,6 +19,7 @@
 
 #include "qemu/osdep.h"
 #include "cpu.h"
+#include "exec/exec-all.h"
 #include "sysemu/kvm.h"
 #include "kvm_i386.h"
 #ifndef CONFIG_USER_ONLY
@@ -700,6 +701,8 @@ int x86_cpu_handle_mmu_fault(CPUState *cs, vaddr addr,
     env->error_code = (is_write << PG_ERROR_W_BIT);
     env->error_code |= PG_ERROR_U_MASK;
     cs->exception_index = EXCP0E_PAGE;
+    env->exception_is_int = 0;
+    env->exception_next_eip = -1;
     return 1;
 }
 

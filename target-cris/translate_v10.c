@@ -130,7 +130,7 @@ static void cris_set_prefix(DisasContext *dc)
     dc->tb_flags |= PFIX_FLAG;
     tcg_gen_ori_tl(cpu_PR[PR_CCS], cpu_PR[PR_CCS], PFIX_FLAG);
 
-    /* prefix insns dont clear the x flag.  */
+    /* prefix insns don't clear the x flag.  */
     dc->clear_x = 0;
     cris_lock_irq(dc);
 }
@@ -1250,6 +1250,7 @@ void cris_initialize_crisv10_tcg(void)
     int i;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
+    tcg_ctx.tcg_env = cpu_env;
     cc_x = tcg_global_mem_new(cpu_env,
                               offsetof(CPUCRISState, cc_x), "cc_x");
     cc_src = tcg_global_mem_new(cpu_env,

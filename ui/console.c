@@ -1453,9 +1453,13 @@ bool dpy_ui_info_supported(QemuConsole *con)
 int dpy_set_ui_info(QemuConsole *con, QemuUIInfo *info)
 {
     assert(con != NULL);
-    con->ui_info = *info;
+
     if (!dpy_ui_info_supported(con)) {
         return -1;
+    }
+    if (memcmp(&con->ui_info, info, sizeof(con->ui_info)) == 0) {
+        /* nothing changed -- ignore */
+        return 0;
     }
 
     /*
@@ -1463,6 +1467,7 @@ int dpy_set_ui_info(QemuConsole *con, QemuUIInfo *info)
      * Wait until the dust has settled (one second without updates), then
      * go notify the guest.
      */
+    con->ui_info = *info;
     timer_mod(con->ui_timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME) + 1000);
     return 0;
 }
@@ -1704,11 +1709,13 @@ QEMUGLContext dpy_gl_ctx_get_current(QemuConsole *con)
 
 void dpy_gl_scanout(QemuConsole *con,
                     uint32_t backing_id, bool backing_y_0_top,
+                    uint32_t backing_width, uint32_t backing_height,
                     uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 {
     assert(con->gl);
     con->gl->ops->dpy_gl_scanout(con->gl, backing_id,
                                  backing_y_0_top,
+                                 backing_width, backing_height,
                                  x, y, width, height);
 }
 

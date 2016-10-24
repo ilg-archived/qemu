@@ -15,6 +15,8 @@
 
 #include "qemu/osdep.h"
 #include "qapi/error.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "exec/memory.h"
 #include "exec/address-spaces.h"
 #include "exec/ioport.h"
@@ -34,8 +36,6 @@
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 //#define DEBUG_UNASSIGNED
-
-#define RAM_ADDR_INVALID (~(ram_addr_t)0)
 
 static unsigned memory_region_transaction_depth;
 static bool memory_region_update_pending;
@@ -1066,13 +1066,6 @@ static void memory_region_get_priority(Object *obj, Visitor *v,
     visit_type_int32(v, name, &value, errp);
 }
 
-static bool memory_region_get_may_overlap(Object *obj, Error **errp)
-{
-    MemoryRegion *mr = MEMORY_REGION(obj);
-
-    return mr->may_overlap;
-}
-
 static void memory_region_get_size(Object *obj, Visitor *v, const char *name,
                                    void *opaque, Error **errp)
 {
@@ -1110,10 +1103,6 @@ static void memory_region_initfn(Object *obj)
                         memory_region_get_priority,
                         NULL, /* memory_region_set_priority */
                         NULL, NULL, &error_abort);
-    object_property_add_bool(OBJECT(mr), "may-overlap",
-                             memory_region_get_may_overlap,
-                             NULL, /* memory_region_set_may_overlap */
-                             &error_abort);
     object_property_add(OBJECT(mr), "size", "uint64",
                         memory_region_get_size,
                         NULL, /* memory_region_set_size, */
@@ -1398,6 +1387,21 @@ void memory_region_init_alias(MemoryRegion *mr,
     mr->alias_offset = offset;
 }
 
+void memory_region_init_rom(MemoryRegion *mr,
+                            struct Object *owner,
+                            const char *name,
+                            uint64_t size,
+                            Error **errp)
+{
+    memory_region_init(mr, owner, name, size);
+    mr->ram = true;
+    mr->readonly = true;
+    mr->terminates = true;
+    mr->destructor = memory_region_destructor_ram;
+    mr->ram_block = qemu_ram_alloc(size, mr, errp);
+    mr->dirty_log_mask = tcg_enabled() ? (1 << DIRTY_MEMORY_CODE) : 0;
+}
+
 void memory_region_init_rom_device(MemoryRegion *mr,
                                    Object *owner,
                                    const MemoryRegionOps *ops,
@@ -1406,6 +1410,7 @@ void memory_region_init_rom_device(MemoryRegion *mr,
                                    uint64_t size,
                                    Error **errp)
 {
+    assert(ops);
     memory_region_init(mr, owner, name, size);
     mr->ops = ops;
     mr->opaque = opaque;
@@ -1521,14 +1526,28 @@ bool memory_region_is_logging(MemoryRegion *mr, uint8_t client)
 
 void memory_region_register_iommu_notifier(MemoryRegion *mr, Notifier *n)
 {
+    if (mr->iommu_ops->notify_started &&
+        QLIST_EMPTY(&mr->iommu_notify.notifiers)) {
+        mr->iommu_ops->notify_started(mr);
+    }
     notifier_list_add(&mr->iommu_notify, n);
 }
 
-void memory_region_iommu_replay(MemoryRegion *mr, Notifier *n,
-                                hwaddr granularity, bool is_write)
+uint64_t memory_region_iommu_get_min_page_size(MemoryRegion *mr)
 {
-    hwaddr addr;
+    assert(memory_region_is_iommu(mr));
+    if (mr->iommu_ops && mr->iommu_ops->get_min_page_size) {
+        return mr->iommu_ops->get_min_page_size(mr);
+    }
+    return TARGET_PAGE_SIZE;
+}
+
+void memory_region_iommu_replay(MemoryRegion *mr, Notifier *n, bool is_write)
+{
+    hwaddr addr, granularity;
     IOMMUTLBEntry iotlb;
+
+    granularity = memory_region_iommu_get_min_page_size(mr);
 
     for (addr = 0; addr < memory_region_size(mr); addr += granularity) {
         iotlb = mr->iommu_ops->translate(mr, addr, is_write);
@@ -1544,9 +1563,13 @@ void memory_region_iommu_replay(MemoryRegion *mr, Notifier *n,
     }
 }
 
-void memory_region_unregister_iommu_notifier(Notifier *n)
+void memory_region_unregister_iommu_notifier(MemoryRegion *mr, Notifier *n)
 {
     notifier_remove(n);
+    if (mr->iommu_ops->notify_stopped &&
+        QLIST_EMPTY(&mr->iommu_notify.notifiers)) {
+        mr->iommu_ops->notify_stopped(mr);
+    }
 }
 
 void memory_region_notify_iommu(MemoryRegion *mr,
@@ -1646,13 +1669,26 @@ void memory_region_reset_dirty(MemoryRegion *mr, hwaddr addr,
 
 int memory_region_get_fd(MemoryRegion *mr)
 {
-    if (mr->alias) {
-        return memory_region_get_fd(mr->alias);
+    int fd;
+
+    rcu_read_lock();
+    while (mr->alias) {
+        mr = mr->alias;
     }
+    fd = mr->ram_block->fd;
+    rcu_read_unlock();
 
-    assert(mr->ram_block);
+    return fd;
+}
 
-    return qemu_get_ram_fd(memory_region_get_ram_addr(mr) & TARGET_PAGE_MASK);
+void memory_region_set_fd(MemoryRegion *mr, int fd)
+{
+    rcu_read_lock();
+    while (mr->alias) {
+        mr = mr->alias;
+    }
+    mr->ram_block->fd = fd;
+    rcu_read_unlock();
 }
 
 void *memory_region_get_ram_ptr(MemoryRegion *mr)
@@ -1666,11 +1702,22 @@ void *memory_region_get_ram_ptr(MemoryRegion *mr)
         mr = mr->alias;
     }
     assert(mr->ram_block);
-    ptr = qemu_get_ram_ptr(mr->ram_block,
-                           memory_region_get_ram_addr(mr) & TARGET_PAGE_MASK);
+    ptr = qemu_map_ram_ptr(mr->ram_block, offset);
     rcu_read_unlock();
 
-    return ptr + offset;
+    return ptr;
+}
+
+MemoryRegion *memory_region_from_host(void *ptr, ram_addr_t *offset)
+{
+    RAMBlock *block;
+
+    block = qemu_ram_block_from_host(ptr, false, offset);
+    if (!block) {
+        return NULL;
+    }
+
+    return block->mr;
 }
 
 ram_addr_t memory_region_get_ram_addr(MemoryRegion *mr)
@@ -1682,7 +1729,7 @@ void memory_region_ram_resize(MemoryRegion *mr, ram_addr_t newsize, Error **errp
 {
     assert(mr->ram_block);
 
-    qemu_ram_resize(memory_region_get_ram_addr(mr), newsize, errp);
+    qemu_ram_resize(mr->ram_block, newsize, errp);
 }
 
 static void memory_region_update_coalesced_range_as(MemoryRegion *mr, AddressSpace *as)
@@ -1873,34 +1920,12 @@ void memory_region_del_eventfd(MemoryRegion *mr,
 
 static void memory_region_update_container_subregions(MemoryRegion *subregion)
 {
-    hwaddr offset = subregion->addr;
     MemoryRegion *mr = subregion->container;
     MemoryRegion *other;
 
     memory_region_transaction_begin();
 
     memory_region_ref(subregion);
-    QTAILQ_FOREACH(other, &mr->subregions, subregions_link) {
-        if (subregion->may_overlap || other->may_overlap) {
-            continue;
-        }
-        if (int128_ge(int128_make64(offset),
-                      int128_add(int128_make64(other->addr), other->size))
-            || int128_le(int128_add(int128_make64(offset), subregion->size),
-                         int128_make64(other->addr))) {
-            continue;
-        }
-#if 0
-        printf("warning: subregion collision %llx/%llx (%s) "
-               "vs %llx/%llx (%s)\n",
-               (unsigned long long)offset,
-               (unsigned long long)int128_get64(subregion->size),
-               subregion->name,
-               (unsigned long long)other->addr,
-               (unsigned long long)int128_get64(other->size),
-               other->name);
-#endif
-    }
     QTAILQ_FOREACH(other, &mr->subregions, subregions_link) {
         if (subregion->priority >= other->priority) {
             QTAILQ_INSERT_BEFORE(other, subregion, subregions_link);
@@ -1927,7 +1952,6 @@ void memory_region_add_subregion(MemoryRegion *mr,
                                  hwaddr offset,
                                  MemoryRegion *subregion)
 {
-    subregion->may_overlap = false;
     subregion->priority = 0;
     memory_region_add_subregion_common(mr, offset, subregion);
 }
@@ -1937,7 +1961,6 @@ void memory_region_add_subregion_overlap(MemoryRegion *mr,
                                          MemoryRegion *subregion,
                                          int priority)
 {
-    subregion->may_overlap = true;
     subregion->priority = priority;
     memory_region_add_subregion_common(mr, offset, subregion);
 }

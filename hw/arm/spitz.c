@@ -164,9 +164,10 @@ static void sl_flash_register(PXA2xxState *cpu, int size)
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, FLASH_BASE);
 }
 
-static int sl_nand_init(SysBusDevice *dev)
+static void sl_nand_init(Object *obj)
 {
-    SLNANDState *s = SL_NAND(dev);
+    SLNANDState *s = SL_NAND(obj);
+    SysBusDevice *dev = SYS_BUS_DEVICE(obj);
     DriveInfo *nand;
 
     s->ctl = 0;
@@ -175,10 +176,8 @@ static int sl_nand_init(SysBusDevice *dev)
     s->nand = nand_init(nand ? blk_by_legacy_dinfo(nand) : NULL,
                         s->manf_id, s->chip_id);
 
-    memory_region_init_io(&s->iomem, OBJECT(s), &sl_ops, s, "sl", 0x40);
+    memory_region_init_io(&s->iomem, obj, &sl_ops, s, "sl", 0x40);
     sysbus_init_mmio(dev, &s->iomem);
-
-    return 0;
 }
 
 /* Spitz Keyboard */
@@ -501,10 +500,10 @@ static void spitz_keyboard_register(PXA2xxState *cpu)
     qemu_add_kbd_event_handler(spitz_keyboard_handler, s);
 }
 
-static int spitz_keyboard_init(SysBusDevice *sbd)
+static void spitz_keyboard_init(Object *obj)
 {
-    DeviceState *dev = DEVICE(sbd);
-    SpitzKeyboardState *s = SPITZ_KEYBOARD(dev);
+    DeviceState *dev = DEVICE(obj);
+    SpitzKeyboardState *s = SPITZ_KEYBOARD(obj);
     int i, j;
 
     for (i = 0; i < 0x80; i ++)
@@ -519,8 +518,6 @@ static int spitz_keyboard_init(SysBusDevice *sbd)
     s->kbdtimer = timer_new_ns(QEMU_CLOCK_VIRTUAL, spitz_keyboard_tick, s);
     qdev_init_gpio_in(dev, spitz_keyboard_strobe, SPITZ_KEY_STROBE_NUM);
     qdev_init_gpio_out(dev, s->sense, SPITZ_KEY_SENSE_NUM);
-
-    return 0;
 }
 
 /* LCD backlight controller */
@@ -601,15 +598,13 @@ static uint32_t spitz_lcdtg_transfer(SSISlave *dev, uint32_t value)
     return 0;
 }
 
-static int spitz_lcdtg_init(SSISlave *dev)
+static void spitz_lcdtg_realize(SSISlave *dev, Error **errp)
 {
     SpitzLCDTG *s = FROM_SSI_SLAVE(SpitzLCDTG, dev);
 
     spitz_lcdtg = s;
     s->bl_power = 0;
     s->bl_intensity = 0x20;
-
-    return 0;
 }
 
 /* SSP devices */
@@ -669,7 +664,7 @@ static void spitz_adc_temp_on(void *opaque, int line, int level)
         max111x_set_input(max1111, MAX1111_BATT_TEMP, 0);
 }
 
-static int corgi_ssp_init(SSISlave *d)
+static void corgi_ssp_realize(SSISlave *d, Error **errp)
 {
     DeviceState *dev = DEVICE(d);
     CorgiSSPState *s = FROM_SSI_SLAVE(CorgiSSPState, d);
@@ -678,8 +673,6 @@ static int corgi_ssp_init(SSISlave *d)
     s->bus[0] = ssi_create_bus(dev, "ssi0");
     s->bus[1] = ssi_create_bus(dev, "ssi1");
     s->bus[2] = ssi_create_bus(dev, "ssi2");
-
-    return 0;
 }
 
 static void spitz_ssp_attach(PXA2xxState *cpu)
@@ -1065,9 +1058,7 @@ static Property sl_nand_properties[] = {
 static void sl_nand_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    SysBusDeviceClass *k = SYS_BUS_DEVICE_CLASS(klass);
 
-    k->init = sl_nand_init;
     dc->vmsd = &vmstate_sl_nand_info;
     dc->props = sl_nand_properties;
     /* Reason: init() method uses drive_get() */
@@ -1078,6 +1069,7 @@ static const TypeInfo sl_nand_info = {
     .name          = TYPE_SL_NAND,
     .parent        = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(SLNANDState),
+    .instance_init = sl_nand_init,
     .class_init    = sl_nand_class_init,
 };
 
@@ -1097,9 +1089,7 @@ static VMStateDescription vmstate_spitz_kbd = {
 static void spitz_keyboard_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    SysBusDeviceClass *k = SYS_BUS_DEVICE_CLASS(klass);
 
-    k->init = spitz_keyboard_init;
     dc->vmsd = &vmstate_spitz_kbd;
 }
 
@@ -1107,6 +1097,7 @@ static const TypeInfo spitz_keyboard_info = {
     .name          = TYPE_SPITZ_KEYBOARD,
     .parent        = TYPE_SYS_BUS_DEVICE,
     .instance_size = sizeof(SpitzKeyboardState),
+    .instance_init = spitz_keyboard_init,
     .class_init    = spitz_keyboard_class_init,
 };
 
@@ -1126,7 +1117,7 @@ static void corgi_ssp_class_init(ObjectClass *klass, void *data)
     DeviceClass *dc = DEVICE_CLASS(klass);
     SSISlaveClass *k = SSI_SLAVE_CLASS(klass);
 
-    k->init = corgi_ssp_init;
+    k->realize = corgi_ssp_realize;
     k->transfer = corgi_ssp_transfer;
     dc->vmsd = &vmstate_corgi_ssp_regs;
 }
@@ -1155,7 +1146,7 @@ static void spitz_lcdtg_class_init(ObjectClass *klass, void *data)
     DeviceClass *dc = DEVICE_CLASS(klass);
     SSISlaveClass *k = SSI_SLAVE_CLASS(klass);
 
-    k->init = spitz_lcdtg_init;
+    k->realize = spitz_lcdtg_realize;
     k->transfer = spitz_lcdtg_transfer;
     dc->vmsd = &vmstate_spitz_lcdtg_regs;
 }

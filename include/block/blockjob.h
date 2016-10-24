@@ -22,8 +22,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 #ifndef BLOCKJOB_H
-#define BLOCKJOB_H 1
+#define BLOCKJOB_H
 
 #include "block/block.h"
 
@@ -70,6 +71,27 @@ typedef struct BlockJobDriver {
      * never both.
      */
     void (*abort)(BlockJob *job);
+
+    /**
+     * If the callback is not NULL, it will be invoked when the job transitions
+     * into the paused state.  Paused jobs must not perform any asynchronous
+     * I/O or event loop activity.  This callback is used to quiesce jobs.
+     */
+    void coroutine_fn (*pause)(BlockJob *job);
+
+    /**
+     * If the callback is not NULL, it will be invoked when the job transitions
+     * out of the paused state.  Any asynchronous I/O or event loop activity
+     * should be restarted from this callback.
+     */
+    void coroutine_fn (*resume)(BlockJob *job);
+
+    /*
+     * If the callback is not NULL, it will be invoked before the job is
+     * resumed in a new AioContext.  This is the place to move any resources
+     * besides job->blk to the new AioContext.
+     */
+    void (*attached_aio_context)(BlockJob *job, AioContext *new_context);
 } BlockJobDriver;
 
 /**
@@ -82,13 +104,10 @@ struct BlockJob {
     const BlockJobDriver *driver;
 
     /** The block device on which the job is operating.  */
-    BlockDriverState *bs;
+    BlockBackend *blk;
 
     /**
-     * The ID of the block job. Currently the BlockBackend name of the BDS
-     * owning the job at the time when the job is started.
-     *
-     * TODO Decouple block job IDs from BlockBackend names
+     * The ID of the block job.
      */
     char *id;
 
@@ -119,11 +138,17 @@ struct BlockJob {
     bool user_paused;
 
     /**
-     * Set to false by the job while it is in a quiescent state, where
-     * no I/O is pending and the job has yielded on any condition
-     * that is not detected by #aio_poll, such as a timer.
+     * Set to false by the job while the coroutine has yielded and may be
+     * re-entered by block_job_enter().  There may still be I/O or event loop
+     * activity pending.
      */
     bool busy;
+
+    /**
+     * Set to true by the job while it is in a quiescent state, where
+     * no I/O or event loop activity is pending.
+     */
+    bool paused;
 
     /**
      * Set to true when the job is ready to be completed.
@@ -134,6 +159,9 @@ struct BlockJob {
      * Set to true when the job has deferred work to the main loop.
      */
     bool deferred_to_main_loop;
+
+    /** Element of the list of block jobs */
+    QLIST_ENTRY(BlockJob) job_list;
 
     /** Status that is published by the query-block-jobs QMP API */
     BlockDeviceIoStatus iostatus;
@@ -173,7 +201,30 @@ struct BlockJob {
 };
 
 /**
+ * block_job_next:
+ * @job: A block job, or %NULL.
+ *
+ * Get the next element from the list of block jobs after @job, or the
+ * first one if @job is %NULL.
+ *
+ * Returns the requested job, or %NULL if there are no more jobs left.
+ */
+BlockJob *block_job_next(BlockJob *job);
+
+/**
+ * block_job_get:
+ * @id: The id of the block job.
+ *
+ * Get the block job identified by @id (which must not be %NULL).
+ *
+ * Returns the requested job, or %NULL if it doesn't exist.
+ */
+BlockJob *block_job_get(const char *id);
+
+/**
  * block_job_create:
+ * @job_id: The id of the newly-created job, or %NULL to have one
+ * generated automatically.
  * @job_type: The class object for the newly-created job.
  * @bs: The block
  * @speed: The maximum speed, in bytes per second, or 0 for unlimited.
@@ -190,9 +241,9 @@ struct BlockJob {
  * This function is not part of the public job interface; it should be
  * called from a wrapper that is specific to the job type.
  */
-void *block_job_create(const BlockJobDriver *driver, BlockDriverState *bs,
-                       int64_t speed, BlockCompletionFunc *cb,
-                       void *opaque, Error **errp);
+void *block_job_create(const char *job_id, const BlockJobDriver *driver,
+                       BlockDriverState *bs, int64_t speed,
+                       BlockCompletionFunc *cb, void *opaque, Error **errp);
 
 /**
  * block_job_sleep_ns:
@@ -285,6 +336,15 @@ bool block_job_is_cancelled(BlockJob *job);
 BlockJobInfo *block_job_query(BlockJob *job);
 
 /**
+ * block_job_pause_point:
+ * @job: The job that is ready to pause.
+ *
+ * Pause now if block_job_pause() has been called.  Block jobs that perform
+ * lots of I/O must call this between requests so that the job can be paused.
+ */
+void coroutine_fn block_job_pause_point(BlockJob *job);
+
+/**
  * block_job_pause:
  * @job: The job to be paused.
  *
@@ -334,15 +394,6 @@ void block_job_event_completed(BlockJob *job, const char *msg);
 void block_job_event_ready(BlockJob *job);
 
 /**
- * block_job_is_paused:
- * @job: The job being queried.
- *
- * Returns whether the job is currently paused, or will pause
- * as soon as it reaches a sleeping point.
- */
-bool block_job_is_paused(BlockJob *job);
-
-/**
  * block_job_cancel_sync:
  * @job: The job to be canceled.
  *
@@ -355,6 +406,13 @@ bool block_job_is_paused(BlockJob *job);
  * during the call, or -ECANCELED if it was canceled.
  */
 int block_job_cancel_sync(BlockJob *job);
+
+/**
+ * block_job_cancel_sync_all:
+ *
+ * Synchronously cancels all jobs using block_job_cancel_sync().
+ */
+void block_job_cancel_sync_all(void);
 
 /**
  * block_job_complete_sync:
@@ -376,14 +434,13 @@ int block_job_complete_sync(BlockJob *job, Error **errp);
  * @job: The job whose I/O status should be reset.
  *
  * Reset I/O status on @job and on BlockDriverState objects it uses,
- * other than job->bs.
+ * other than job->blk.
  */
 void block_job_iostatus_reset(BlockJob *job);
 
 /**
  * block_job_error_action:
  * @job: The job to signal an error for.
- * @bs: The block device on which to set an I/O error.
  * @on_err: The error action setting.
  * @is_read: Whether the operation was a read.
  * @error: The error that was reported.
@@ -391,8 +448,7 @@ void block_job_iostatus_reset(BlockJob *job);
  * Report an I/O error for a block job and possibly stop the VM.  Return the
  * action that was selected based on @on_err and @error.
  */
-BlockErrorAction block_job_error_action(BlockJob *job, BlockDriverState *bs,
-                                        BlockdevOnError on_err,
+BlockErrorAction block_job_error_action(BlockJob *job, BlockdevOnError on_err,
                                         int is_read, int error);
 
 typedef void BlockJobDeferToMainLoopFn(BlockJob *job, void *opaque);

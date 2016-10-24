@@ -26,19 +26,6 @@
  * THE SOFTWARE.
  */
 
-#if defined(__linux__) && \
-    (defined(__x86_64__) || defined(__arm__) || defined(__aarch64__))
-   /* Use 2 MiB alignment so transparent hugepages can be used by KVM.
-      Valgrind does not support alignments larger than 1 MiB,
-      therefore we need special code which handles running on Valgrind. */
-#  define QEMU_VMALLOC_ALIGN (512 * 4096)
-#elif defined(__linux__) && defined(__s390x__)
-   /* Use 1 MiB (segment size) alignment so gmap can be used by KVM. */
-#  define QEMU_VMALLOC_ALIGN (256 * 4096)
-#else
-#  define QEMU_VMALLOC_ALIGN getpagesize()
-#endif
-
 #include "qemu/osdep.h"
 #include <termios.h>
 #include <termios.h>
@@ -49,7 +36,6 @@
 #include "trace.h"
 #include "qapi/error.h"
 #include "qemu/sockets.h"
-#include <sys/mman.h>
 #include <libgen.h>
 #include <sys/signal.h>
 #include "qemu/cutils.h"
@@ -62,7 +48,7 @@
 #include <sys/sysctl.h>
 #endif
 
-#include <qemu/mmap-alloc.h>
+#include "qemu/mmap-alloc.h"
 
 int qemu_get_thread_id(void)
 {
@@ -313,9 +299,11 @@ void qemu_init_exec_dir(const char *argv0)
             return;
         }
     }
-    dir = dirname(p);
+    dir = g_path_get_dirname(p);
 
     pstrcpy(exec_dir, sizeof(exec_dir), dir);
+
+    g_free(dir);
 }
 
 char *qemu_get_exec_dir(void)
@@ -330,7 +318,7 @@ static void sigbus_handler(int signal)
     siglongjmp(sigjump, 1);
 }
 
-void os_mem_prealloc(int fd, char *area, size_t memory)
+void os_mem_prealloc(int fd, char *area, size_t memory, Error **errp)
 {
     int ret;
     struct sigaction act, oldact;
@@ -342,8 +330,9 @@ void os_mem_prealloc(int fd, char *area, size_t memory)
 
     ret = sigaction(SIGBUS, &act, &oldact);
     if (ret) {
-        perror("os_mem_prealloc: failed to install signal handler");
-        exit(1);
+        error_setg_errno(errp, errno,
+            "os_mem_prealloc: failed to install signal handler");
+        return;
     }
 
     /* unblock SIGBUS */
@@ -352,9 +341,8 @@ void os_mem_prealloc(int fd, char *area, size_t memory)
     pthread_sigmask(SIG_UNBLOCK, &set, &oldset);
 
     if (sigsetjmp(sigjump, 1)) {
-        fprintf(stderr, "os_mem_prealloc: Insufficient free host memory "
-                        "pages available to allocate guest RAM\n");
-        exit(1);
+        error_setg(errp, "os_mem_prealloc: Insufficient free host memory "
+            "pages available to allocate guest RAM\n");
     } else {
         int i;
         size_t hpagesize = qemu_fd_getpagesize(fd);
@@ -364,15 +352,15 @@ void os_mem_prealloc(int fd, char *area, size_t memory)
         for (i = 0; i < numpages; i++) {
             memset(area + (hpagesize * i), 0, 1);
         }
-
-        ret = sigaction(SIGBUS, &oldact, NULL);
-        if (ret) {
-            perror("os_mem_prealloc: failed to reinstall signal handler");
-            exit(1);
-        }
-
-        pthread_sigmask(SIG_SETMASK, &oldset, NULL);
     }
+
+    ret = sigaction(SIGBUS, &oldact, NULL);
+    if (ret) {
+        /* Terminate QEMU since it can't recover from error */
+        perror("os_mem_prealloc: failed to reinstall signal handler");
+        exit(1);
+    }
+    pthread_sigmask(SIG_SETMASK, &oldset, NULL);
 }
 
 

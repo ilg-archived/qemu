@@ -26,6 +26,7 @@
 #include "qemu/osdep.h"
 #include "cpu.h"
 #include "disas/disas.h"
+#include "exec/exec-all.h"
 #include "tcg-op.h"
 #include "exec/helper-proto.h"
 #include "mmu.h"
@@ -520,14 +521,22 @@ static void t_gen_cc_jmp(TCGv pc_true, TCGv pc_false)
     gen_set_label(l1);
 }
 
+static inline bool use_goto_tb(DisasContext *dc, target_ulong dest)
+{
+#ifndef CONFIG_USER_ONLY
+    return (dc->tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK) ||
+           (dc->ppc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
+#else
+    return true;
+#endif
+}
+
 static void gen_goto_tb(DisasContext *dc, int n, target_ulong dest)
 {
-    TranslationBlock *tb;
-    tb = dc->tb;
-    if ((tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK)) {
+    if (use_goto_tb(dc, dest)) {
         tcg_gen_goto_tb(n);
         tcg_gen_movi_tl(env_pc, dest);
-                tcg_gen_exit_tb((uintptr_t)tb + n);
+                tcg_gen_exit_tb((uintptr_t)dc->tb + n);
     } else {
         tcg_gen_movi_tl(env_pc, dest);
         tcg_gen_exit_tb(0);
@@ -3049,7 +3058,7 @@ static unsigned int crisv32_decoder(CPUCRISState *env, DisasContext *dc)
  *
  * When the software returns from an exception, the branch will re-execute.
  * On QEMU care needs to be taken when a branch+delayslot sequence is broken
- * and the branch and delayslot dont share pages.
+ * and the branch and delayslot don't share pages.
  *
  * The TB contaning the branch insn will set up env->btarget and evaluate 
  * env->btaken. When the translation loop exits we will note that the branch 
@@ -3238,7 +3247,7 @@ void gen_intermediate_code(CPUCRISState *env, struct TranslationBlock *tb)
         }
 
         /* If we are rexecuting a branch due to exceptions on
-           delay slots dont break.  */
+           delay slots don't break.  */
         if (!(tb->pc & 1) && cs->singlestep_enabled) {
             break;
         }
@@ -3302,7 +3311,8 @@ void gen_intermediate_code(CPUCRISState *env, struct TranslationBlock *tb)
 
 #ifdef DEBUG_DISAS
 #if !DISAS_CRIS
-    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)) {
+    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
+        && qemu_log_in_addr_range(pc_start)) {
         log_target_disas(cs, pc_start, dc->pc - pc_start,
                          env->pregs[PR_VR]);
         qemu_log("\nisize=%d osize=%d\n",
@@ -3364,6 +3374,7 @@ void cris_initialize_tcg(void)
     int i;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
+    tcg_ctx.tcg_env = cpu_env;
     cc_x = tcg_global_mem_new(cpu_env,
                               offsetof(CPUCRISState, cc_x), "cc_x");
     cc_src = tcg_global_mem_new(cpu_env,

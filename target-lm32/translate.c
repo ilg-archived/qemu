@@ -21,6 +21,7 @@
 #include "cpu.h"
 #include "disas/disas.h"
 #include "exec/helper-proto.h"
+#include "exec/exec-all.h"
 #include "tcg-op.h"
 
 #include "exec/cpu_ldst.h"
@@ -133,16 +134,25 @@ static inline void t_gen_illegal_insn(DisasContext *dc)
     gen_helper_ill(cpu_env);
 }
 
+static inline bool use_goto_tb(DisasContext *dc, target_ulong dest)
+{
+    if (unlikely(dc->singlestep_enabled)) {
+        return false;
+    }
+
+#ifndef CONFIG_USER_ONLY
+    return (dc->tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK);
+#else
+    return true;
+#endif
+}
+
 static void gen_goto_tb(DisasContext *dc, int n, target_ulong dest)
 {
-    TranslationBlock *tb;
-
-    tb = dc->tb;
-    if ((tb->pc & TARGET_PAGE_MASK) == (dest & TARGET_PAGE_MASK) &&
-            likely(!dc->singlestep_enabled)) {
+    if (use_goto_tb(dc, dest)) {
         tcg_gen_goto_tb(n);
         tcg_gen_movi_tl(cpu_pc, dest);
-        tcg_gen_exit_tb((uintptr_t)tb + n);
+        tcg_gen_exit_tb((uintptr_t)dc->tb + n);
     } else {
         tcg_gen_movi_tl(cpu_pc, dest);
         if (dc->singlestep_enabled) {
@@ -1137,7 +1147,8 @@ void gen_intermediate_code(CPULM32State *env, struct TranslationBlock *tb)
     tb->icount = num_insns;
 
 #ifdef DEBUG_DISAS
-    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)) {
+    if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
+        && qemu_log_in_addr_range(pc_start)) {
         qemu_log("\n");
         log_target_disas(cs, pc_start, dc->pc - pc_start, 0);
         qemu_log("\nisize=%d osize=%d\n",
@@ -1191,6 +1202,7 @@ void lm32_translate_init(void)
     int i;
 
     cpu_env = tcg_global_reg_new_ptr(TCG_AREG0, "env");
+    tcg_ctx.tcg_env = cpu_env;
 
     for (i = 0; i < ARRAY_SIZE(cpu_R); i++) {
         cpu_R[i] = tcg_global_mem_new(cpu_env,

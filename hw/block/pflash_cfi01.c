@@ -45,6 +45,7 @@
 #include "qemu/bitops.h"
 #include "exec/address-spaces.h"
 #include "qemu/host-utils.h"
+#include "qemu/log.h"
 #include "hw/sysbus.h"
 #include "sysemu/sysemu.h"
 
@@ -64,7 +65,6 @@ do {                                                        \
 #define DPRINTF(fmt, ...) do { } while (0)
 #endif
 
-#define TYPE_CFI_PFLASH01 "cfi.pflash01"
 #define CFI_PFLASH01(obj) OBJECT_CHECK(pflash_t, (obj), TYPE_CFI_PFLASH01)
 
 #define PFLASH_BE          0
@@ -413,11 +413,11 @@ static void pflash_update(pflash_t *pfl, int offset,
     int offset_end;
     if (pfl->blk) {
         offset_end = offset + size;
-        /* round to sectors */
-        offset = offset >> 9;
-        offset_end = (offset_end + 511) >> 9;
-        blk_write(pfl->blk, offset, pfl->storage + (offset << 9),
-                  offset_end - offset);
+        /* widen to sector boundaries */
+        offset = QEMU_ALIGN_DOWN(offset, BDRV_SECTOR_SIZE);
+        offset_end = QEMU_ALIGN_UP(offset_end, BDRV_SECTOR_SIZE);
+        blk_pwrite(pfl->blk, offset, pfl->storage + offset,
+                   offset_end - offset, 0);
     }
 }
 
@@ -739,7 +739,7 @@ static void pflash_cfi01_realize(DeviceState *dev, Error **errp)
 
     if (pfl->blk) {
         /* read the initial flash content */
-        ret = blk_read(pfl->blk, 0, pfl->storage, total_len >> 9);
+        ret = blk_pread(pfl->blk, 0, pfl->storage, total_len);
 
         if (ret < 0) {
             vmstate_unregister_ram(&pfl->mem, DEVICE(pfl));

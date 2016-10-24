@@ -19,6 +19,7 @@
 #include "qemu/osdep.h"
 #include "cpu.h"
 #include "exec/helper-proto.h"
+#include "qemu/log.h"
 
 /*****************************************************************************/
 /* SPR accesses */
@@ -99,6 +100,16 @@ target_ulong helper_load_decr(CPUPPCState *env)
 void helper_store_decr(CPUPPCState *env, target_ulong val)
 {
     cpu_ppc_store_decr(env, val);
+}
+
+target_ulong helper_load_hdecr(CPUPPCState *env)
+{
+    return cpu_ppc_load_hdecr(env);
+}
+
+void helper_store_hdecr(CPUPPCState *env, target_ulong val)
+{
+    cpu_ppc_store_hdecr(env, val);
 }
 
 target_ulong helper_load_40x_pit(CPUPPCState *env)

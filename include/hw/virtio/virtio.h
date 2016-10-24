@@ -11,8 +11,8 @@
  *
  */
 
-#ifndef _QEMU_VIRTIO_H
-#define _QEMU_VIRTIO_H
+#ifndef QEMU_VIRTIO_H
+#define QEMU_VIRTIO_H
 
 #include "hw/hw.h"
 #include "net/net.h"
@@ -138,9 +138,13 @@ void virtio_cleanup(VirtIODevice *vdev);
 /* Set the child bus name. */
 void virtio_device_set_child_bus_name(VirtIODevice *vdev, char *bus_name);
 
+typedef void (*VirtIOHandleOutput)(VirtIODevice *, VirtQueue *);
+
 VirtQueue *virtio_add_queue(VirtIODevice *vdev, int queue_size,
-                            void (*handle_output)(VirtIODevice *,
-                                                  VirtQueue *));
+                            VirtIOHandleOutput handle_output);
+
+VirtQueue *virtio_add_queue_aio(VirtIODevice *vdev, int queue_size,
+                                VirtIOHandleOutput handle_output);
 
 void virtio_del_queue(VirtIODevice *vdev, int n);
 
@@ -167,6 +171,26 @@ bool virtio_should_notify(VirtIODevice *vdev, VirtQueue *vq);
 void virtio_notify(VirtIODevice *vdev, VirtQueue *vq);
 
 void virtio_save(VirtIODevice *vdev, QEMUFile *f);
+void virtio_vmstate_save(QEMUFile *f, void *opaque, size_t size);
+
+#define VMSTATE_VIRTIO_DEVICE(devname, v, getf, putf) \
+    static const VMStateDescription vmstate_virtio_ ## devname = { \
+        .name = "virtio-" #devname ,          \
+        .minimum_version_id = v,              \
+        .version_id = v,                      \
+        .fields = (VMStateField[]) {          \
+            {                                 \
+                .name = "virtio",             \
+                .info = &(const VMStateInfo) {\
+                        .name = "virtio",     \
+                        .get = getf,          \
+                        .put = putf,          \
+                    },                        \
+                .flags = VMS_SINGLE,          \
+            },                                \
+            VMSTATE_END_OF_LIST()             \
+        }                                     \
+    }
 
 int virtio_load(VirtIODevice *vdev, QEMUFile *f, int version_id);
 
@@ -243,7 +267,6 @@ void virtio_queue_set_last_avail_idx(VirtIODevice *vdev, int n, uint16_t idx);
 void virtio_queue_invalidate_signalled_used(VirtIODevice *vdev, int n);
 VirtQueue *virtio_get_queue(VirtIODevice *vdev, int n);
 uint16_t virtio_get_queue_index(VirtQueue *vq);
-int virtio_queue_get_id(VirtQueue *vq);
 EventNotifier *virtio_queue_get_guest_notifier(VirtQueue *vq);
 void virtio_queue_set_guest_notifier_fd_handler(VirtQueue *vq, bool assign,
                                                 bool with_irqfd);

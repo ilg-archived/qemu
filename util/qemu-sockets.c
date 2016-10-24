@@ -96,7 +96,7 @@ NetworkAddressFamily inet_netfamily(int family)
  *   t     f       PF_INET
  *   t     t       PF_INET6
  *
- * NB, this matrix is only about getting the neccessary results
+ * NB, this matrix is only about getting the necessary results
  * from getaddrinfo(). Some of the cases require further work
  * after reading results from getaddrinfo in order to fully
  * apply the logic the end user wants. eg with the last case
@@ -627,34 +627,6 @@ fail:
     return NULL;
 }
 
-int inet_listen(const char *str, char *ostr, int olen,
-                int socktype, int port_offset, Error **errp)
-{
-    char *optstr;
-    int sock = -1;
-    InetSocketAddress *addr;
-
-    addr = inet_parse(str, errp);
-    if (addr != NULL) {
-        sock = inet_listen_saddr(addr, port_offset, true, errp);
-        if (sock != -1 && ostr) {
-            optstr = strchr(str, ',');
-            if (addr->ipv6) {
-                snprintf(ostr, olen, "[%s]:%s%s",
-                         addr->host,
-                         addr->port,
-                         optstr ? optstr : "");
-            } else {
-                snprintf(ostr, olen, "%s:%s%s",
-                         addr->host,
-                         addr->port,
-                         optstr ? optstr : "");
-            }
-        }
-        qapi_free_InetSocketAddress(addr);
-    }
-    return sock;
-}
 
 /**
  * Create a blocking socket and connect it to an address.
@@ -672,36 +644,6 @@ int inet_connect(const char *str, Error **errp)
     addr = inet_parse(str, errp);
     if (addr != NULL) {
         sock = inet_connect_saddr(addr, errp, NULL, NULL);
-        qapi_free_InetSocketAddress(addr);
-    }
-    return sock;
-}
-
-/**
- * Create a non-blocking socket and connect it to an address.
- * Calls the callback function with fd in case of success or -1 in case of
- * error.
- *
- * @str: address string
- * @callback: callback function that is called when connect completes,
- *            cannot be NULL.
- * @opaque: opaque for callback function
- * @errp: set in case of an error
- *
- * Returns: -1 on immediate error, file descriptor on success.
- **/
-int inet_nonblocking_connect(const char *str,
-                             NonBlockingConnectHandler *callback,
-                             void *opaque, Error **errp)
-{
-    int sock = -1;
-    InetSocketAddress *addr;
-
-    g_assert(callback != NULL);
-
-    addr = inet_parse(str, errp);
-    if (addr != NULL) {
-        sock = inet_connect_saddr(addr, errp, callback, opaque);
         qapi_free_InetSocketAddress(addr);
     }
     return sock;
@@ -896,22 +838,6 @@ int unix_connect(const char *path, Error **errp)
 }
 
 
-int unix_nonblocking_connect(const char *path,
-                             NonBlockingConnectHandler *callback,
-                             void *opaque, Error **errp)
-{
-    UnixSocketAddress *saddr;
-    int sock = -1;
-
-    g_assert(callback != NULL);
-
-    saddr = g_new0(UnixSocketAddress, 1);
-    saddr->path = g_strdup(path);
-    sock = unix_connect_saddr(saddr, errp, callback, opaque);
-    qapi_free_UnixSocketAddress(saddr);
-    return sock;
-}
-
 SocketAddress *socket_parse(const char *str, Error **errp)
 {
     SocketAddress *addr;
@@ -998,6 +924,24 @@ int socket_listen(SocketAddress *addr, Error **errp)
         abort();
     }
     return fd;
+}
+
+void socket_listen_cleanup(int fd, Error **errp)
+{
+    SocketAddress *addr;
+
+    addr = socket_local_address(fd, errp);
+
+    if (addr->type == SOCKET_ADDRESS_KIND_UNIX
+        && addr->u.q_unix.data->path) {
+        if (unlink(addr->u.q_unix.data->path) < 0 && errno != ENOENT) {
+            error_setg_errno(errp, errno,
+                             "Failed to unlink socket %s",
+                             addr->u.q_unix.data->path);
+        }
+    }
+
+    qapi_free_SocketAddress(addr);
 }
 
 int socket_dgram(SocketAddress *remote, SocketAddress *local, Error **errp)
@@ -1128,29 +1072,38 @@ SocketAddress *socket_remote_address(int fd, Error **errp)
     return socket_sockaddr_to_address(&ss, sslen, errp);
 }
 
-
-void qapi_copy_SocketAddress(SocketAddress **p_dest,
-                             SocketAddress *src)
+char *socket_address_to_string(struct SocketAddress *addr, Error **errp)
 {
-    QmpOutputVisitor *qov;
-    QmpInputVisitor *qiv;
-    Visitor *ov, *iv;
-    QObject *obj;
+    char *buf;
+    InetSocketAddress *inet;
+    char host_port[INET6_ADDRSTRLEN + 5 + 4];
 
-    *p_dest = NULL;
+    switch (addr->type) {
+    case SOCKET_ADDRESS_KIND_INET:
+        inet = addr->u.inet.data;
+        if (strchr(inet->host, ':') == NULL) {
+            snprintf(host_port, sizeof(host_port), "%s:%s", inet->host,
+                    inet->port);
+            buf = g_strdup(host_port);
+        } else {
+            snprintf(host_port, sizeof(host_port), "[%s]:%s", inet->host,
+                    inet->port);
+            buf = g_strdup(host_port);
+        }
+        break;
 
-    qov = qmp_output_visitor_new();
-    ov = qmp_output_get_visitor(qov);
-    visit_type_SocketAddress(ov, NULL, &src, &error_abort);
-    obj = qmp_output_get_qobject(qov);
-    qmp_output_visitor_cleanup(qov);
-    if (!obj) {
-        return;
+    case SOCKET_ADDRESS_KIND_UNIX:
+        buf = g_strdup(addr->u.q_unix.data->path);
+        break;
+
+    case SOCKET_ADDRESS_KIND_FD:
+        buf = g_strdup(addr->u.fd.data->str);
+        break;
+
+    default:
+        error_setg(errp, "socket family %d unsupported",
+                   addr->type);
+        return NULL;
     }
-
-    qiv = qmp_input_visitor_new(obj);
-    iv = qmp_input_get_visitor(qiv);
-    visit_type_SocketAddress(iv, NULL, p_dest, &error_abort);
-    qmp_input_visitor_cleanup(qiv);
-    qobject_decref(obj);
+    return buf;
 }

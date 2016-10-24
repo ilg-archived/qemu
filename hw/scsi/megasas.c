@@ -29,7 +29,7 @@
 #include "hw/scsi/scsi.h"
 #include "block/scsi.h"
 #include "trace.h"
-
+#include "qapi/error.h"
 #include "mfi.h"
 
 #define MEGASAS_VERSION_GEN1 "1.70"
@@ -48,11 +48,7 @@
 
 #define MEGASAS_FLAG_USE_JBOD      0
 #define MEGASAS_MASK_USE_JBOD      (1 << MEGASAS_FLAG_USE_JBOD)
-#define MEGASAS_FLAG_USE_MSI       1
-#define MEGASAS_MASK_USE_MSI       (1 << MEGASAS_FLAG_USE_MSI)
-#define MEGASAS_FLAG_USE_MSIX      2
-#define MEGASAS_MASK_USE_MSIX      (1 << MEGASAS_FLAG_USE_MSIX)
-#define MEGASAS_FLAG_USE_QUEUE64   3
+#define MEGASAS_FLAG_USE_QUEUE64   1
 #define MEGASAS_MASK_USE_QUEUE64   (1 << MEGASAS_FLAG_USE_QUEUE64)
 
 static const char *mfi_frame_desc[] = {
@@ -96,6 +92,8 @@ typedef struct MegasasState {
     int busy;
     int diag;
     int adp_reset;
+    OnOffAuto msi;
+    OnOffAuto msix;
 
     MegasasCmd *event_cmd;
     int event_locale;
@@ -157,14 +155,9 @@ static bool megasas_use_queue64(MegasasState *s)
     return s->flags & MEGASAS_MASK_USE_QUEUE64;
 }
 
-static bool megasas_use_msi(MegasasState *s)
-{
-    return s->flags & MEGASAS_MASK_USE_MSI;
-}
-
 static bool megasas_use_msix(MegasasState *s)
 {
-    return s->flags & MEGASAS_MASK_USE_MSIX;
+    return s->msix != ON_OFF_AUTO_OFF;
 }
 
 static bool megasas_is_jbod(MegasasState *s)
@@ -410,17 +403,14 @@ static void megasas_encode_lba(uint8_t *cdb, uint64_t lba,
 static uint64_t megasas_fw_time(void)
 {
     struct tm curtime;
-    uint64_t bcd_time;
 
     qemu_get_timedate(&curtime, 0);
-    bcd_time = ((uint64_t)curtime.tm_sec & 0xff) << 48 |
+    return ((uint64_t)curtime.tm_sec & 0xff) << 48 |
         ((uint64_t)curtime.tm_min & 0xff)  << 40 |
         ((uint64_t)curtime.tm_hour & 0xff) << 32 |
         ((uint64_t)curtime.tm_mday & 0xff) << 24 |
         ((uint64_t)curtime.tm_mon & 0xff)  << 16 |
         ((uint64_t)(curtime.tm_year + 1900) & 0xffff);
-
-    return bcd_time;
 }
 
 /*
@@ -650,7 +640,9 @@ static int megasas_init_firmware(MegasasState *s, MegasasCmd *cmd)
     pa_hi = le32_to_cpu(initq->pi_addr_hi);
     s->producer_pa = ((uint64_t) pa_hi << 32) | pa_lo;
     s->reply_queue_head = ldl_le_pci_dma(pcid, s->producer_pa);
+    s->reply_queue_head %= MEGASAS_MAX_FRAMES;
     s->reply_queue_tail = ldl_le_pci_dma(pcid, s->consumer_pa);
+    s->reply_queue_tail %= MEGASAS_MAX_FRAMES;
     flags = le32_to_cpu(initq->flags);
     if (flags & MFI_QUEUE_FLAG_CONTEXT64) {
         s->flags |= MEGASAS_MASK_USE_QUEUE64;
@@ -771,6 +763,7 @@ static int megasas_ctrl_get_info(MegasasState *s, MegasasCmd *cmd)
 
         ptr = memory_region_get_ram_ptr(&pci_dev->rom);
         memcpy(biosver, ptr + 0x41, 31);
+        biosver[31] = 0;
         memcpy(info.image_component[1].name, "BIOS", 4);
         memcpy(info.image_component[1].version, biosver,
                strlen((const char *)biosver));
@@ -1293,7 +1286,7 @@ static int megasas_dcmd_ld_get_info(MegasasState *s, MegasasCmd *cmd)
 
 static int megasas_dcmd_cfg_read(MegasasState *s, MegasasCmd *cmd)
 {
-    uint8_t data[4096];
+    uint8_t data[4096] = { 0 };
     struct mfi_config_data *info;
     int num_pd_disks = 0, array_offset, ld_offset;
     BusChild *kid;
@@ -1446,7 +1439,7 @@ static int megasas_dcmd_set_properties(MegasasState *s, MegasasCmd *cmd)
                                             dcmd_size);
         return MFI_STAT_INVALID_PARAMETER;
     }
-    dma_buf_write((uint8_t *)&info, cmd->iov_size, &cmd->qsg);
+    dma_buf_write((uint8_t *)&info, dcmd_size, &cmd->qsg);
     trace_megasas_dcmd_unsupported(cmd->index, cmd->iov_size);
     return MFI_STAT_OK;
 }
@@ -1988,11 +1981,7 @@ static void megasas_handle_frame(MegasasState *s, uint64_t frame_addr,
         break;
     }
     if (frame_status != MFI_STAT_INVALID_STATUS) {
-        if (cmd->frame) {
-            cmd->frame->header.cmd_status = frame_status;
-        } else {
-            megasas_frame_set_cmd_status(s, frame_addr, frame_status);
-        }
+        cmd->frame->header.cmd_status = frame_status;
         megasas_unmap_frame(s, cmd);
         megasas_complete_frame(s, cmd->context);
     }
@@ -2309,9 +2298,7 @@ static void megasas_scsi_uninit(PCIDevice *d)
     if (megasas_use_msix(s)) {
         msix_uninit(d, &s->mmio_io, &s->mmio_io);
     }
-    if (megasas_use_msi(s)) {
-        msi_uninit(d);
-    }
+    msi_uninit(d);
 }
 
 static const struct SCSIBusInfo megasas_scsi_info = {
@@ -2332,6 +2319,8 @@ static void megasas_scsi_realize(PCIDevice *dev, Error **errp)
     MegasasBaseClass *b = MEGASAS_DEVICE_GET_CLASS(s);
     uint8_t *pci_conf;
     int i, bar_type;
+    Error *err = NULL;
+    int ret;
 
     pci_conf = dev->config;
 
@@ -2340,6 +2329,24 @@ static void megasas_scsi_realize(PCIDevice *dev, Error **errp)
     /* Interrupt pin 1 */
     pci_conf[PCI_INTERRUPT_PIN] = 0x01;
 
+    if (s->msi != ON_OFF_AUTO_OFF) {
+        ret = msi_init(dev, 0x50, 1, true, false, &err);
+        /* Any error other than -ENOTSUP(board's MSI support is broken)
+         * is a programming error */
+        assert(!ret || ret == -ENOTSUP);
+        if (ret && s->msi == ON_OFF_AUTO_ON) {
+            /* Can't satisfy user's explicit msi=on request, fail */
+            error_append_hint(&err, "You have to use msi=auto (default) or "
+                    "msi=off with this machine type.\n");
+            error_propagate(errp, err);
+            return;
+        } else if (ret) {
+            /* With msi=auto, we fall back to MSI off silently */
+            s->msi = ON_OFF_AUTO_OFF;
+            error_free(err);
+        }
+    }
+
     memory_region_init_io(&s->mmio_io, OBJECT(s), &megasas_mmio_ops, s,
                           "megasas-mmio", 0x4000);
     memory_region_init_io(&s->port_io, OBJECT(s), &megasas_port_ops, s,
@@ -2347,14 +2354,10 @@ static void megasas_scsi_realize(PCIDevice *dev, Error **errp)
     memory_region_init_io(&s->queue_io, OBJECT(s), &megasas_queue_ops, s,
                           "megasas-queue", 0x40000);
 
-    if (megasas_use_msi(s) &&
-        msi_init(dev, 0x50, 1, true, false)) {
-        s->flags &= ~MEGASAS_MASK_USE_MSI;
-    }
     if (megasas_use_msix(s) &&
         msix_init(dev, 15, &s->mmio_io, b->mmio_bar, 0x2000,
                   &s->mmio_io, b->mmio_bar, 0x3800, 0x68)) {
-        s->flags &= ~MEGASAS_MASK_USE_MSIX;
+        s->msix = ON_OFF_AUTO_OFF;
     }
     if (pci_is_express(dev)) {
         pcie_endpoint_cap_init(dev, 0xa0);
@@ -2422,10 +2425,8 @@ static Property megasas_properties_gen1[] = {
                        MEGASAS_DEFAULT_FRAMES),
     DEFINE_PROP_STRING("hba_serial", MegasasState, hba_serial),
     DEFINE_PROP_UINT64("sas_address", MegasasState, sas_addr, 0),
-    DEFINE_PROP_BIT("use_msi", MegasasState, flags,
-                    MEGASAS_FLAG_USE_MSI, false),
-    DEFINE_PROP_BIT("use_msix", MegasasState, flags,
-                    MEGASAS_FLAG_USE_MSIX, false),
+    DEFINE_PROP_ON_OFF_AUTO("msi", MegasasState, msi, ON_OFF_AUTO_AUTO),
+    DEFINE_PROP_ON_OFF_AUTO("msix", MegasasState, msix, ON_OFF_AUTO_AUTO),
     DEFINE_PROP_BIT("use_jbod", MegasasState, flags,
                     MEGASAS_FLAG_USE_JBOD, false),
     DEFINE_PROP_END_OF_LIST(),
@@ -2438,10 +2439,8 @@ static Property megasas_properties_gen2[] = {
                        MEGASAS_GEN2_DEFAULT_FRAMES),
     DEFINE_PROP_STRING("hba_serial", MegasasState, hba_serial),
     DEFINE_PROP_UINT64("sas_address", MegasasState, sas_addr, 0),
-    DEFINE_PROP_BIT("use_msi", MegasasState, flags,
-                    MEGASAS_FLAG_USE_MSI, true),
-    DEFINE_PROP_BIT("use_msix", MegasasState, flags,
-                    MEGASAS_FLAG_USE_MSIX, true),
+    DEFINE_PROP_ON_OFF_AUTO("msi", MegasasState, msi, ON_OFF_AUTO_AUTO),
+    DEFINE_PROP_ON_OFF_AUTO("msix", MegasasState, msix, ON_OFF_AUTO_AUTO),
     DEFINE_PROP_BIT("use_jbod", MegasasState, flags,
                     MEGASAS_FLAG_USE_JBOD, false),
     DEFINE_PROP_END_OF_LIST(),

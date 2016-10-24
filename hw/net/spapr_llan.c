@@ -28,6 +28,7 @@
 #include "qemu-common.h"
 #include "cpu.h"
 #include "hw/hw.h"
+#include "qemu/log.h"
 #include "net/net.h"
 #include "hw/qdev.h"
 #include "hw/ppc/spapr.h"
@@ -106,9 +107,10 @@ typedef struct VIOsPAPRVLANDevice {
     NICConf nicconf;
     NICState *nic;
     bool isopen;
-    target_ulong buf_list;
+    hwaddr buf_list;
     uint32_t add_buf_ptr, use_buf_ptr, rx_bufs;
-    target_ulong rxq_ptr;
+    hwaddr rxq_ptr;
+    QEMUTimer *rxp_timer;
     uint32_t compat_flags;             /* Compatability flags for migration */
     RxBufPool *rx_pool[RX_MAX_POOLS];  /* Receive buffer descriptor pools */
 } VIOsPAPRVLANDevice;
@@ -118,6 +120,21 @@ static int spapr_vlan_can_receive(NetClientState *nc)
     VIOsPAPRVLANDevice *dev = qemu_get_nic_opaque(nc);
 
     return (dev->isopen && dev->rx_bufs > 0);
+}
+
+/**
+ * The last 8 bytes of the receive buffer list page (that has been
+ * supplied by the guest with the H_REGISTER_LOGICAL_LAN call) contain
+ * a counter for frames that have been dropped because there was no
+ * suitable receive buffer available. This function is used to increase
+ * this counter by one.
+ */
+static void spapr_vlan_record_dropped_rx_frame(VIOsPAPRVLANDevice *dev)
+{
+    uint64_t cnt;
+
+    cnt = vio_ldq(&dev->sdev, dev->buf_list + 4096 - 8);
+    vio_stq(&dev->sdev, dev->buf_list + 4096 - 8, cnt + 1);
 }
 
 /**
@@ -205,7 +222,8 @@ static ssize_t spapr_vlan_receive(NetClientState *nc, const uint8_t *buf,
     }
 
     if (!dev->rx_bufs) {
-        return -1;
+        spapr_vlan_record_dropped_rx_frame(dev);
+        return 0;
     }
 
     if (dev->compat_flags & SPAPRVLAN_FLAG_RX_BUF_POOLS) {
@@ -214,7 +232,8 @@ static ssize_t spapr_vlan_receive(NetClientState *nc, const uint8_t *buf,
         bd = spapr_vlan_get_rx_bd_from_page(dev, size);
     }
     if (!bd) {
-        return -1;
+        spapr_vlan_record_dropped_rx_frame(dev);
+        return 0;
     }
 
     dev->rx_bufs--;
@@ -259,11 +278,18 @@ static ssize_t spapr_vlan_receive(NetClientState *nc, const uint8_t *buf,
 }
 
 static NetClientInfo net_spapr_vlan_info = {
-    .type = NET_CLIENT_OPTIONS_KIND_NIC,
+    .type = NET_CLIENT_DRIVER_NIC,
     .size = sizeof(NICState),
     .can_receive = spapr_vlan_can_receive,
     .receive = spapr_vlan_receive,
 };
+
+static void spapr_vlan_flush_rx_queue(void *opaque)
+{
+    VIOsPAPRVLANDevice *dev = opaque;
+
+    qemu_flush_queued_packets(qemu_get_queue(dev->nic));
+}
 
 static void spapr_vlan_reset_rx_pool(RxBufPool *rxp)
 {
@@ -301,6 +327,9 @@ static void spapr_vlan_realize(VIOsPAPRDevice *sdev, Error **errp)
     dev->nic = qemu_new_nic(&net_spapr_vlan_info, &dev->nicconf,
                             object_get_typename(OBJECT(sdev)), sdev->qdev.id, dev);
     qemu_format_nic_info_str(qemu_get_queue(dev->nic), dev->nicconf.macaddr.a);
+
+    dev->rxp_timer = timer_new_us(QEMU_CLOCK_VIRTUAL, spapr_vlan_flush_rx_queue,
+                                  dev);
 }
 
 static void spapr_vlan_instance_init(Object *obj)
@@ -330,6 +359,11 @@ static void spapr_vlan_instance_finalize(Object *obj)
             g_free(dev->rx_pool[i]);
             dev->rx_pool[i] = NULL;
         }
+    }
+
+    if (dev->rxp_timer) {
+        timer_del(dev->rxp_timer);
+        timer_free(dev->rxp_timer);
     }
 }
 
@@ -628,7 +662,13 @@ static target_ulong h_add_logical_lan_buffer(PowerPCCPU *cpu,
 
     dev->rx_bufs++;
 
-    qemu_flush_queued_packets(qemu_get_queue(dev->nic));
+    /*
+     * Give guest some more time to add additional RX buffers before we
+     * flush the receive queue, so that e.g. fragmented IP packets can
+     * be passed to the guest in one go later (instead of passing single
+     * fragments if there is only one receive buffer available).
+     */
+    timer_mod(dev->rxp_timer, qemu_clock_get_us(QEMU_CLOCK_VIRTUAL) + 500);
 
     return H_SUCCESS;
 }
@@ -765,11 +805,11 @@ static const VMStateDescription vmstate_spapr_llan = {
         VMSTATE_SPAPR_VIO(sdev, VIOsPAPRVLANDevice),
         /* LLAN state */
         VMSTATE_BOOL(isopen, VIOsPAPRVLANDevice),
-        VMSTATE_UINTTL(buf_list, VIOsPAPRVLANDevice),
+        VMSTATE_UINT64(buf_list, VIOsPAPRVLANDevice),
         VMSTATE_UINT32(add_buf_ptr, VIOsPAPRVLANDevice),
         VMSTATE_UINT32(use_buf_ptr, VIOsPAPRVLANDevice),
         VMSTATE_UINT32(rx_bufs, VIOsPAPRVLANDevice),
-        VMSTATE_UINTTL(rxq_ptr, VIOsPAPRVLANDevice),
+        VMSTATE_UINT64(rxq_ptr, VIOsPAPRVLANDevice),
 
         VMSTATE_END_OF_LIST()
     },

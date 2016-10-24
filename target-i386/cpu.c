@@ -20,6 +20,7 @@
 #include "qemu/cutils.h"
 
 #include "cpu.h"
+#include "exec/exec-all.h"
 #include "sysemu/kvm.h"
 #include "sysemu/cpus.h"
 #include "kvm_i386.h"
@@ -34,15 +35,16 @@
 #include "qapi/visitor.h"
 #include "sysemu/arch_init.h"
 
-#include "hw/hw.h"
 #if defined(CONFIG_KVM)
 #include <linux/kvm_para.h>
 #endif
 
 #include "sysemu/sysemu.h"
 #include "hw/qdev-properties.h"
+#include "hw/i386/topology.h"
 #ifndef CONFIG_USER_ONLY
 #include "exec/address-spaces.h"
+#include "hw/hw.h"
 #include "hw/xen/xen.h"
 #include "hw/i386/apic_internal.h"
 #endif
@@ -243,6 +245,47 @@ static const char *kvm_feature_name[] = {
     NULL, NULL, NULL, NULL,
 };
 
+static const char *hyperv_priv_feature_name[] = {
+    NULL /* hv_msr_vp_runtime_access */, NULL /* hv_msr_time_refcount_access */,
+    NULL /* hv_msr_synic_access */, NULL /* hv_msr_stimer_access */,
+    NULL /* hv_msr_apic_access */, NULL /* hv_msr_hypercall_access */,
+    NULL /* hv_vpindex_access */, NULL /* hv_msr_reset_access */,
+    NULL /* hv_msr_stats_access */, NULL /* hv_reftsc_access */,
+    NULL /* hv_msr_idle_access */, NULL /* hv_msr_frequency_access */,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+};
+
+static const char *hyperv_ident_feature_name[] = {
+    NULL /* hv_create_partitions */, NULL /* hv_access_partition_id */,
+    NULL /* hv_access_memory_pool */, NULL /* hv_adjust_message_buffers */,
+    NULL /* hv_post_messages */, NULL /* hv_signal_events */,
+    NULL /* hv_create_port */, NULL /* hv_connect_port */,
+    NULL /* hv_access_stats */, NULL, NULL, NULL /* hv_debugging */,
+    NULL /* hv_cpu_power_management */, NULL /* hv_configure_profiler */,
+    NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+};
+
+static const char *hyperv_misc_feature_name[] = {
+    NULL /* hv_mwait */, NULL /* hv_guest_debugging */,
+    NULL /* hv_perf_monitor */, NULL /* hv_cpu_dynamic_part */,
+    NULL /* hv_hypercall_params_xmm */, NULL /* hv_guest_idle_state */,
+    NULL, NULL,
+    NULL, NULL, NULL /* hv_guest_crash_msr */, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+};
+
 static const char *svm_feature_name[] = {
     "npt", "lbrv", "svm_lock", "nrip_save",
     "tsc_scale", "vmcb_clean",  "flushbyasid", "decodeassists",
@@ -262,12 +305,12 @@ static const char *cpuid_7_0_ebx_feature_name[] = {
 };
 
 static const char *cpuid_7_0_ecx_feature_name[] = {
-    NULL, NULL, NULL, "pku",
+    NULL, NULL, "umip", "pku",
     "ospke", NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
-    NULL, NULL, NULL, NULL,
+    NULL, NULL, "rdpid", NULL,
     NULL, NULL, NULL, NULL,
     NULL, NULL, NULL, NULL,
 };
@@ -356,10 +399,11 @@ static const char *cpuid_6_feature_name[] = {
 #define TCG_7_0_EBX_FEATURES (CPUID_7_0_EBX_SMEP | CPUID_7_0_EBX_SMAP | \
           CPUID_7_0_EBX_BMI1 | CPUID_7_0_EBX_BMI2 | CPUID_7_0_EBX_ADX | \
           CPUID_7_0_EBX_PCOMMIT | CPUID_7_0_EBX_CLFLUSHOPT |            \
-          CPUID_7_0_EBX_CLWB | CPUID_7_0_EBX_MPX | CPUID_7_0_EBX_FSGSBASE)
+          CPUID_7_0_EBX_CLWB | CPUID_7_0_EBX_MPX | CPUID_7_0_EBX_FSGSBASE | \
+          CPUID_7_0_EBX_ERMS)
           /* missing:
           CPUID_7_0_EBX_HLE, CPUID_7_0_EBX_AVX2,
-          CPUID_7_0_EBX_ERMS, CPUID_7_0_EBX_INVPCID, CPUID_7_0_EBX_RTM,
+          CPUID_7_0_EBX_INVPCID, CPUID_7_0_EBX_RTM,
           CPUID_7_0_EBX_RDSEED */
 #define TCG_7_0_ECX_FEATURES (CPUID_7_0_ECX_PKU | CPUID_7_0_ECX_OSPKE)
 #define TCG_APM_FEATURES 0
@@ -408,6 +452,18 @@ static FeatureWordInfo feature_word_info[FEATURE_WORDS] = {
         .feat_names = kvm_feature_name,
         .cpuid_eax = KVM_CPUID_FEATURES, .cpuid_reg = R_EAX,
         .tcg_features = TCG_KVM_FEATURES,
+    },
+    [FEAT_HYPERV_EAX] = {
+        .feat_names = hyperv_priv_feature_name,
+        .cpuid_eax = 0x40000003, .cpuid_reg = R_EAX,
+    },
+    [FEAT_HYPERV_EBX] = {
+        .feat_names = hyperv_ident_feature_name,
+        .cpuid_eax = 0x40000003, .cpuid_reg = R_EBX,
+    },
+    [FEAT_HYPERV_EDX] = {
+        .feat_names = hyperv_misc_feature_name,
+        .cpuid_eax = 0x40000003, .cpuid_reg = R_EDX,
     },
     [FEAT_SVM] = {
         .feat_names = svm_feature_name,
@@ -473,25 +529,32 @@ static const X86RegisterInfo32 x86_reg_info_32[CPU_NB_REGS32] = {
 const ExtSaveArea x86_ext_save_areas[] = {
     [XSTATE_YMM_BIT] =
           { .feature = FEAT_1_ECX, .bits = CPUID_EXT_AVX,
-            .offset = 0x240, .size = 0x100 },
+            .offset = offsetof(X86XSaveArea, avx_state),
+            .size = sizeof(XSaveAVX) },
     [XSTATE_BNDREGS_BIT] =
           { .feature = FEAT_7_0_EBX, .bits = CPUID_7_0_EBX_MPX,
-            .offset = 0x3c0, .size = 0x40  },
+            .offset = offsetof(X86XSaveArea, bndreg_state),
+            .size = sizeof(XSaveBNDREG)  },
     [XSTATE_BNDCSR_BIT] =
           { .feature = FEAT_7_0_EBX, .bits = CPUID_7_0_EBX_MPX,
-            .offset = 0x400, .size = 0x40  },
+            .offset = offsetof(X86XSaveArea, bndcsr_state),
+            .size = sizeof(XSaveBNDCSR)  },
     [XSTATE_OPMASK_BIT] =
           { .feature = FEAT_7_0_EBX, .bits = CPUID_7_0_EBX_AVX512F,
-            .offset = 0x440, .size = 0x40 },
+            .offset = offsetof(X86XSaveArea, opmask_state),
+            .size = sizeof(XSaveOpmask) },
     [XSTATE_ZMM_Hi256_BIT] =
           { .feature = FEAT_7_0_EBX, .bits = CPUID_7_0_EBX_AVX512F,
-            .offset = 0x480, .size = 0x200 },
+            .offset = offsetof(X86XSaveArea, zmm_hi256_state),
+            .size = sizeof(XSaveZMM_Hi256) },
     [XSTATE_Hi16_ZMM_BIT] =
           { .feature = FEAT_7_0_EBX, .bits = CPUID_7_0_EBX_AVX512F,
-            .offset = 0x680, .size = 0x400 },
+            .offset = offsetof(X86XSaveArea, hi16_zmm_state),
+            .size = sizeof(XSaveHi16_ZMM) },
     [XSTATE_PKRU_BIT] =
           { .feature = FEAT_7_0_ECX, .bits = CPUID_7_0_ECX_PKU,
-            .offset = 0xA80, .size = 0x8 },
+            .offset = offsetof(X86XSaveArea, pkru_state),
+            .size = sizeof(XSavePKRU) },
 };
 
 const char *get_register_name_32(unsigned int reg)
@@ -669,6 +732,14 @@ static ObjectClass *x86_cpu_class_by_name(const char *cpu_model)
     return oc;
 }
 
+static char *x86_cpu_class_get_model_name(X86CPUClass *cc)
+{
+    const char *class_name = object_class_get_name(OBJECT_CLASS(cc));
+    assert(g_str_has_suffix(class_name, X86_CPU_TYPE_SUFFIX));
+    return g_strndup(class_name,
+                     strlen(class_name) - strlen(X86_CPU_TYPE_SUFFIX));
+}
+
 struct X86CPUDefinition {
     const char *name;
     uint32_t level;
@@ -702,6 +773,7 @@ static X86CPUDefinition builtin_x86_defs[] = {
         .features[FEAT_8000_0001_ECX] =
             CPUID_EXT3_LAHF_LM | CPUID_EXT3_SVM,
         .xlevel = 0x8000000A,
+        .model_id = "QEMU Virtual CPU version " QEMU_HW_VERSION,
     },
     {
         .name = "phenom",
@@ -798,6 +870,7 @@ static X86CPUDefinition builtin_x86_defs[] = {
         .features[FEAT_1_ECX] =
             CPUID_EXT_SSE3,
         .xlevel = 0x80000004,
+        .model_id = "QEMU Virtual CPU version " QEMU_HW_VERSION,
     },
     {
         .name = "kvm32",
@@ -894,6 +967,7 @@ static X86CPUDefinition builtin_x86_defs[] = {
         .features[FEAT_8000_0001_EDX] =
             CPUID_EXT2_MMXEXT | CPUID_EXT2_3DNOW | CPUID_EXT2_3DNOWEXT,
         .xlevel = 0x80000008,
+        .model_id = "QEMU Virtual CPU version " QEMU_HW_VERSION,
     },
     {
         .name = "n270",
@@ -1228,6 +1302,51 @@ static X86CPUDefinition builtin_x86_defs[] = {
         .model_id = "Intel Core Processor (Broadwell)",
     },
     {
+        .name = "Skylake-Client",
+        .level = 0xd,
+        .vendor = CPUID_VENDOR_INTEL,
+        .family = 6,
+        .model = 94,
+        .stepping = 3,
+        .features[FEAT_1_EDX] =
+            CPUID_VME | CPUID_SSE2 | CPUID_SSE | CPUID_FXSR | CPUID_MMX |
+            CPUID_CLFLUSH | CPUID_PSE36 | CPUID_PAT | CPUID_CMOV | CPUID_MCA |
+            CPUID_PGE | CPUID_MTRR | CPUID_SEP | CPUID_APIC | CPUID_CX8 |
+            CPUID_MCE | CPUID_PAE | CPUID_MSR | CPUID_TSC | CPUID_PSE |
+            CPUID_DE | CPUID_FP87,
+        .features[FEAT_1_ECX] =
+            CPUID_EXT_AVX | CPUID_EXT_XSAVE | CPUID_EXT_AES |
+            CPUID_EXT_POPCNT | CPUID_EXT_X2APIC | CPUID_EXT_SSE42 |
+            CPUID_EXT_SSE41 | CPUID_EXT_CX16 | CPUID_EXT_SSSE3 |
+            CPUID_EXT_PCLMULQDQ | CPUID_EXT_SSE3 |
+            CPUID_EXT_TSC_DEADLINE_TIMER | CPUID_EXT_FMA | CPUID_EXT_MOVBE |
+            CPUID_EXT_PCID | CPUID_EXT_F16C | CPUID_EXT_RDRAND,
+        .features[FEAT_8000_0001_EDX] =
+            CPUID_EXT2_LM | CPUID_EXT2_RDTSCP | CPUID_EXT2_NX |
+            CPUID_EXT2_SYSCALL,
+        .features[FEAT_8000_0001_ECX] =
+            CPUID_EXT3_ABM | CPUID_EXT3_LAHF_LM | CPUID_EXT3_3DNOWPREFETCH,
+        .features[FEAT_7_0_EBX] =
+            CPUID_7_0_EBX_FSGSBASE | CPUID_7_0_EBX_BMI1 |
+            CPUID_7_0_EBX_HLE | CPUID_7_0_EBX_AVX2 | CPUID_7_0_EBX_SMEP |
+            CPUID_7_0_EBX_BMI2 | CPUID_7_0_EBX_ERMS | CPUID_7_0_EBX_INVPCID |
+            CPUID_7_0_EBX_RTM | CPUID_7_0_EBX_RDSEED | CPUID_7_0_EBX_ADX |
+            CPUID_7_0_EBX_SMAP | CPUID_7_0_EBX_MPX,
+        /* Missing: XSAVES (not supported by some Linux versions,
+         * including v4.1 to v4.6).
+         * KVM doesn't yet expose any XSAVES state save component,
+         * and the only one defined in Skylake (processor tracing)
+         * probably will block migration anyway.
+         */
+        .features[FEAT_XSAVE] =
+            CPUID_XSAVE_XSAVEOPT | CPUID_XSAVE_XSAVEC |
+            CPUID_XSAVE_XGETBV1,
+        .features[FEAT_6_EAX] =
+            CPUID_6_EAX_ARAT,
+        .xlevel = 0x80000008,
+        .model_id = "Intel Core Processor (Skylake)",
+    },
+    {
         .name = "Opteron_G1",
         .level = 5,
         .vendor = CPUID_VENDOR_AMD,
@@ -1428,6 +1547,17 @@ static uint32_t x86_cpu_get_supported_feature_word(FeatureWord w,
 
 #ifdef CONFIG_KVM
 
+static bool lmce_supported(void)
+{
+    uint64_t mce_cap;
+
+    if (kvm_ioctl(kvm_state, KVM_X86_GET_MCE_CAP_SUPPORTED, &mce_cap) < 0) {
+        return false;
+    }
+
+    return !!(mce_cap & MCG_LMCE_P);
+}
+
 static int cpu_x86_fill_model_id(char *str)
 {
     uint32_t eax = 0, ebx = 0, ecx = 0, edx = 0;
@@ -1490,16 +1620,21 @@ static void host_x86_cpu_initfn(Object *obj)
     CPUX86State *env = &cpu->env;
     KVMState *s = kvm_state;
 
-    assert(kvm_enabled());
-
     /* We can't fill the features array here because we don't know yet if
      * "migratable" is true or false.
      */
     cpu->host_features = true;
 
-    env->cpuid_level = kvm_arch_get_supported_cpuid(s, 0x0, 0, R_EAX);
-    env->cpuid_xlevel = kvm_arch_get_supported_cpuid(s, 0x80000000, 0, R_EAX);
-    env->cpuid_xlevel2 = kvm_arch_get_supported_cpuid(s, 0xC0000000, 0, R_EAX);
+    /* If KVM is disabled, x86_cpu_realizefn() will report an error later */
+    if (kvm_enabled()) {
+        env->cpuid_level = kvm_arch_get_supported_cpuid(s, 0x0, 0, R_EAX);
+        env->cpuid_xlevel = kvm_arch_get_supported_cpuid(s, 0x80000000, 0, R_EAX);
+        env->cpuid_xlevel2 = kvm_arch_get_supported_cpuid(s, 0xC0000000, 0, R_EAX);
+
+        if (lmce_supported()) {
+            object_property_set_bool(OBJECT(cpu), true, "lmce", &error_abort);
+        }
+    }
 
     object_property_set_bool(OBJECT(cpu), true, "pmu", &error_abort);
 }
@@ -1758,50 +1893,6 @@ static void x86_cpuid_set_tsc_freq(Object *obj, Visitor *v, const char *name,
     cpu->env.tsc_khz = cpu->env.user_tsc_khz = value / 1000;
 }
 
-static void x86_cpuid_get_apic_id(Object *obj, Visitor *v, const char *name,
-                                  void *opaque, Error **errp)
-{
-    X86CPU *cpu = X86_CPU(obj);
-    int64_t value = cpu->apic_id;
-
-    visit_type_int(v, name, &value, errp);
-}
-
-static void x86_cpuid_set_apic_id(Object *obj, Visitor *v, const char *name,
-                                  void *opaque, Error **errp)
-{
-    X86CPU *cpu = X86_CPU(obj);
-    DeviceState *dev = DEVICE(obj);
-    const int64_t min = 0;
-    const int64_t max = UINT32_MAX;
-    Error *error = NULL;
-    int64_t value;
-
-    if (dev->realized) {
-        error_setg(errp, "Attempt to set property '%s' on '%s' after "
-                   "it was realized", name, object_get_typename(obj));
-        return;
-    }
-
-    visit_type_int(v, name, &value, &error);
-    if (error) {
-        error_propagate(errp, error);
-        return;
-    }
-    if (value < min || value > max) {
-        error_setg(errp, "Property %s.%s doesn't take value %" PRId64
-                   " (minimum: %" PRId64 ", maximum: %" PRId64 ")" ,
-                   object_get_typename(obj), name, value, min, max);
-        return;
-    }
-
-    if ((value != cpu->apic_id) && cpu_exists(value)) {
-        error_setg(errp, "CPU with APIC ID %" PRIi64 " exists", value);
-        return;
-    }
-    cpu->apic_id = value;
-}
-
 /* Generic getter for "feature-words" and "filtered-features" properties */
 static void x86_cpu_get_feature_words(Object *obj, Visitor *v,
                                       const char *name, void *opaque,
@@ -1809,7 +1900,6 @@ static void x86_cpu_get_feature_words(Object *obj, Visitor *v,
 {
     uint32_t *array = (uint32_t *)opaque;
     FeatureWord w;
-    Error *err = NULL;
     X86CPUFeatureWordInfo word_infos[FEATURE_WORDS] = { };
     X86CPUFeatureWordInfoList list_entries[FEATURE_WORDS] = { };
     X86CPUFeatureWordInfoList *list = NULL;
@@ -1829,8 +1919,7 @@ static void x86_cpu_get_feature_words(Object *obj, Visitor *v,
         list = &list_entries[w];
     }
 
-    visit_type_X86CPUFeatureWordInfoList(v, "feature-words", &list, &err);
-    error_propagate(errp, err);
+    visit_type_X86CPUFeatureWordInfoList(v, "feature-words", &list, errp);
 }
 
 static void x86_get_hv_spinlocks(Object *obj, Visitor *v, const char *name,
@@ -1883,104 +1972,87 @@ static inline void feat2prop(char *s)
     }
 }
 
+/* Compatibily hack to maintain legacy +-feat semantic,
+ * where +-feat overwrites any feature set by
+ * feat=on|feat even if the later is parsed after +-feat
+ * (i.e. "-x2apic,x2apic=on" will result in x2apic disabled)
+ */
+static FeatureWordArray plus_features = { 0 };
+static FeatureWordArray minus_features = { 0 };
+
 /* Parse "+feature,-feature,feature=foo" CPU feature string
  */
-static void x86_cpu_parse_featurestr(CPUState *cs, char *features,
+static void x86_cpu_parse_featurestr(const char *typename, char *features,
                                      Error **errp)
 {
-    X86CPU *cpu = X86_CPU(cs);
     char *featurestr; /* Single 'key=value" string being parsed */
-    FeatureWord w;
-    /* Features to be added */
-    FeatureWordArray plus_features = { 0 };
-    /* Features to be removed */
-    FeatureWordArray minus_features = { 0 };
-    uint32_t numvalue;
-    CPUX86State *env = &cpu->env;
     Error *local_err = NULL;
+    static bool cpu_globals_initialized;
 
-    featurestr = features ? strtok(features, ",") : NULL;
+    if (cpu_globals_initialized) {
+        return;
+    }
+    cpu_globals_initialized = true;
 
-    while (featurestr) {
-        char *val;
+    if (!features) {
+        return;
+    }
+
+    for (featurestr = strtok(features, ",");
+         featurestr  && !local_err;
+         featurestr = strtok(NULL, ",")) {
+        const char *name;
+        const char *val = NULL;
+        char *eq = NULL;
+        char num[32];
+        GlobalProperty *prop;
+
+        /* Compatibility syntax: */
         if (featurestr[0] == '+') {
             add_flagname_to_bitmaps(featurestr + 1, plus_features, &local_err);
+            continue;
         } else if (featurestr[0] == '-') {
             add_flagname_to_bitmaps(featurestr + 1, minus_features, &local_err);
-        } else if ((val = strchr(featurestr, '='))) {
-            *val = 0; val++;
-            feat2prop(featurestr);
-            if (!strcmp(featurestr, "xlevel")) {
-                char *err;
-                char num[32];
+            continue;
+        }
 
-                numvalue = strtoul(val, &err, 0);
-                if (!*val || *err) {
-                    error_setg(errp, "bad numerical value %s", val);
-                    return;
-                }
-                if (numvalue < 0x80000000) {
-                    error_report("xlevel value shall always be >= 0x80000000"
-                                 ", fixup will be removed in future versions");
-                    numvalue += 0x80000000;
-                }
-                snprintf(num, sizeof(num), "%" PRIu32, numvalue);
-                object_property_parse(OBJECT(cpu), num, featurestr, &local_err);
-            } else if (!strcmp(featurestr, "tsc-freq")) {
-                int64_t tsc_freq;
-                char *err;
-                char num[32];
-
-                tsc_freq = qemu_strtosz_suffix_unit(val, &err,
-                                               QEMU_STRTOSZ_DEFSUFFIX_B, 1000);
-                if (tsc_freq < 0 || *err) {
-                    error_setg(errp, "bad numerical value %s", val);
-                    return;
-                }
-                snprintf(num, sizeof(num), "%" PRId64, tsc_freq);
-                object_property_parse(OBJECT(cpu), num, "tsc-frequency",
-                                      &local_err);
-            } else if (!strcmp(featurestr, "hv-spinlocks")) {
-                char *err;
-                const int min = 0xFFF;
-                char num[32];
-                numvalue = strtoul(val, &err, 0);
-                if (!*val || *err) {
-                    error_setg(errp, "bad numerical value %s", val);
-                    return;
-                }
-                if (numvalue < min) {
-                    error_report("hv-spinlocks value shall always be >= 0x%x"
-                                 ", fixup will be removed in future versions",
-                                 min);
-                    numvalue = min;
-                }
-                snprintf(num, sizeof(num), "%" PRId32, numvalue);
-                object_property_parse(OBJECT(cpu), num, featurestr, &local_err);
-            } else {
-                object_property_parse(OBJECT(cpu), val, featurestr, &local_err);
-            }
+        eq = strchr(featurestr, '=');
+        if (eq) {
+            *eq++ = 0;
+            val = eq;
         } else {
-            feat2prop(featurestr);
-            object_property_parse(OBJECT(cpu), "on", featurestr, &local_err);
+            val = "on";
         }
-        if (local_err) {
-            error_propagate(errp, local_err);
-            return;
+
+        feat2prop(featurestr);
+        name = featurestr;
+
+        /* Special case: */
+        if (!strcmp(name, "tsc-freq")) {
+            int64_t tsc_freq;
+            char *err;
+
+            tsc_freq = qemu_strtosz_suffix_unit(val, &err,
+                                           QEMU_STRTOSZ_DEFSUFFIX_B, 1000);
+            if (tsc_freq < 0 || *err) {
+                error_setg(errp, "bad numerical value %s", val);
+                return;
+            }
+            snprintf(num, sizeof(num), "%" PRId64, tsc_freq);
+            val = num;
+            name = "tsc-frequency";
         }
-        featurestr = strtok(NULL, ",");
+
+        prop = g_new0(typeof(*prop), 1);
+        prop->driver = typename;
+        prop->property = g_strdup(name);
+        prop->value = g_strdup(val);
+        prop->errp = &error_fatal;
+        qdev_prop_register_global(prop);
     }
 
-    if (cpu->host_features) {
-        for (w = 0; w < FEATURE_WORDS; w++) {
-            env->features[w] =
-                x86_cpu_get_supported_feature_word(w, cpu->migratable);
-        }
-    }
-
-    for (w = 0; w < FEATURE_WORDS; w++) {
-        env->features[w] |= plus_features[w];
-        env->features[w] &= ~minus_features[w];
+    if (local_err) {
+        error_propagate(errp, local_err);
     }
 }
 
@@ -2161,75 +2233,9 @@ static void x86_cpu_load_def(X86CPU *cpu, X86CPUDefinition *def, Error **errp)
 
 }
 
-X86CPU *cpu_x86_create(const char *cpu_model, Error **errp)
-{
-    X86CPU *cpu = NULL;
-    X86CPUClass *xcc;
-    ObjectClass *oc;
-    gchar **model_pieces;
-    char *name, *features;
-    Error *error = NULL;
-
-    model_pieces = g_strsplit(cpu_model, ",", 2);
-    if (!model_pieces[0]) {
-        error_setg(&error, "Invalid/empty CPU model name");
-        goto out;
-    }
-    name = model_pieces[0];
-    features = model_pieces[1];
-
-    oc = x86_cpu_class_by_name(name);
-    if (oc == NULL) {
-        error_setg(&error, "Unable to find CPU definition: %s", name);
-        goto out;
-    }
-    xcc = X86_CPU_CLASS(oc);
-
-    if (xcc->kvm_required && !kvm_enabled()) {
-        error_setg(&error, "CPU model '%s' requires KVM", name);
-        goto out;
-    }
-
-    cpu = X86_CPU(object_new(object_class_get_name(oc)));
-
-    x86_cpu_parse_featurestr(CPU(cpu), features, &error);
-    if (error) {
-        goto out;
-    }
-
-out:
-    if (error != NULL) {
-        error_propagate(errp, error);
-        if (cpu) {
-            object_unref(OBJECT(cpu));
-            cpu = NULL;
-        }
-    }
-    g_strfreev(model_pieces);
-    return cpu;
-}
-
 X86CPU *cpu_x86_init(const char *cpu_model)
 {
-    Error *error = NULL;
-    X86CPU *cpu;
-
-    cpu = cpu_x86_create(cpu_model, &error);
-    if (error) {
-        goto out;
-    }
-
-    object_property_set_bool(OBJECT(cpu), true, "realized", &error);
-
-out:
-    if (error) {
-        error_report_err(error);
-        if (cpu != NULL) {
-            object_unref(OBJECT(cpu));
-            cpu = NULL;
-        }
-    }
-    return cpu;
+    return X86_CPU(cpu_generic_init(TYPE_X86_CPU, cpu_model));
 }
 
 static void x86_cpu_cpudef_class_init(ObjectClass *oc, void *data)
@@ -2262,30 +2268,6 @@ void cpu_clear_apic_feature(CPUX86State *env)
 }
 
 #endif /* !CONFIG_USER_ONLY */
-
-/* Initialize list of CPU models, filling some non-static fields if necessary
- */
-void x86_cpudef_setup(void)
-{
-    int i, j;
-    static const char *model_with_versions[] = { "qemu32", "qemu64", "athlon" };
-
-    for (i = 0; i < ARRAY_SIZE(builtin_x86_defs); ++i) {
-        X86CPUDefinition *def = &builtin_x86_defs[i];
-
-        /* Look for specific "cpudef" models that */
-        /* have the QEMU version in .model_id */
-        for (j = 0; j < ARRAY_SIZE(model_with_versions); j++) {
-            if (strcmp(model_with_versions[j], def->name) == 0) {
-                pstrcpy(def->model_id, sizeof(def->model_id),
-                        "QEMU Virtual CPU version ");
-                pstrcat(def->model_id, sizeof(def->model_id),
-                        qemu_hw_version());
-                break;
-            }
-        }
-    }
-}
 
 void cpu_x86_cpuid(CPUX86State *env, uint32_t index, uint32_t count,
                    uint32_t *eax, uint32_t *ebx,
@@ -2460,6 +2442,36 @@ void cpu_x86_cpuid(CPUX86State *env, uint32_t index, uint32_t count,
             *edx = 0;
         }
         break;
+    case 0xB:
+        /* Extended Topology Enumeration Leaf */
+        if (!cpu->enable_cpuid_0xb) {
+                *eax = *ebx = *ecx = *edx = 0;
+                break;
+        }
+
+        *ecx = count & 0xff;
+        *edx = cpu->apic_id;
+
+        switch (count) {
+        case 0:
+            *eax = apicid_core_offset(smp_cores, smp_threads);
+            *ebx = smp_threads;
+            *ecx |= CPUID_TOPOLOGY_LEVEL_SMT;
+            break;
+        case 1:
+            *eax = apicid_pkg_offset(smp_cores, smp_threads);
+            *ebx = smp_cores * smp_threads;
+            *ecx |= CPUID_TOPOLOGY_LEVEL_CORE;
+            break;
+        default:
+            *eax = 0;
+            *ebx = 0;
+            *ecx |= CPUID_TOPOLOGY_LEVEL_INVALID;
+        }
+
+        assert(!(*eax & ~0x1f));
+        *ebx &= 0xffff; /* The count doesn't need to be reliable. */
+        break;
     case 0xD: {
         KVMState *s = cs->kvm_state;
         uint64_t ena_mask;
@@ -2523,7 +2535,7 @@ void cpu_x86_cpuid(CPUX86State *env, uint32_t index, uint32_t count,
 
         /* The Linux kernel checks for the CMPLegacy bit and
          * discards multiple thread information if it is set.
-         * So dont set it here for Intel to make Linux guests happy.
+         * So don't set it here for Intel to make Linux guests happy.
          */
         if (cs->nr_cores * cs->nr_threads > 1) {
             if (env->cpuid_vendor1 != CPUID_VENDOR_INTEL_1 ||
@@ -2585,17 +2597,13 @@ void cpu_x86_cpuid(CPUX86State *env, uint32_t index, uint32_t count,
         break;
     case 0x80000008:
         /* virtual & phys address size in low 2 bytes. */
-/* XXX: This value must match the one used in the MMU code. */
         if (env->features[FEAT_8000_0001_EDX] & CPUID_EXT2_LM) {
-            /* 64 bit processor */
-/* XXX: The physical address space is limited to 42 bits in exec.c. */
-            *eax = 0x00003028; /* 48 bits virtual, 40 bits physical */
+            /* 64 bit processor, 48 bits virtual, configurable
+             * physical bits.
+             */
+            *eax = 0x00003000 + cpu->phys_bits;
         } else {
-            if (env->features[FEAT_1_EDX] & CPUID_PSE36) {
-                *eax = 0x00000024; /* 36 bits physical */
-            } else {
-                *eax = 0x00000020; /* 32 bits physical */
-            }
+            *eax = cpu->phys_bits;
         }
         *ebx = 0;
         *ecx = 0;
@@ -2669,9 +2677,6 @@ static void x86_cpu_reset(CPUState *s)
 
     /* init to reset state */
 
-#ifdef CONFIG_SOFTMMU
-    env->hflags |= HF_SOFTMMU_MASK;
-#endif
     env->hflags2 |= HF2_GIF_MASK;
 
     cpu_x86_update_cr0(env, 0x60000010);
@@ -2798,7 +2803,8 @@ static void mce_init(X86CPU *cpu)
     if (((cenv->cpuid_version >> 8) & 0xf) >= 6
         && (cenv->features[FEAT_1_EDX] & (CPUID_MCE | CPUID_MCA)) ==
             (CPUID_MCE | CPUID_MCA)) {
-        cenv->mcg_cap = MCE_CAP_DEF | MCE_BANKS_DEF;
+        cenv->mcg_cap = MCE_CAP_DEF | MCE_BANKS_DEF |
+                        (cpu->enable_lmce ? MCG_LMCE_P : 0);
         cenv->mcg_ctl = ~(uint64_t)0;
         for (bank = 0; bank < MCE_BANKS_DEF; bank++) {
             cenv->mce_banks[bank * 4] = ~(uint64_t)0;
@@ -2820,8 +2826,10 @@ static void x86_cpu_apic_create(X86CPU *cpu, Error **errp)
 
     cpu->apic_state = DEVICE(object_new(apic_type));
 
-    object_property_add_child(OBJECT(cpu), "apic",
-                              OBJECT(cpu->apic_state), NULL);
+    object_property_add_child(OBJECT(cpu), "lapic",
+                              OBJECT(cpu->apic_state), &error_abort);
+    object_unref(OBJECT(cpu->apic_state));
+
     qdev_prop_set_uint8(cpu->apic_state, "id", cpu->apic_id);
     /* TODO: convert to link<> */
     apic = APIC_COMMON(cpu->apic_state);
@@ -2872,6 +2880,31 @@ static void x86_cpu_apic_realize(X86CPU *cpu, Error **errp)
 }
 #endif
 
+/* Note: Only safe for use on x86(-64) hosts */
+static uint32_t x86_host_phys_bits(void)
+{
+    uint32_t eax;
+    uint32_t host_phys_bits;
+
+    host_cpuid(0x80000000, 0, &eax, NULL, NULL, NULL);
+    if (eax >= 0x80000008) {
+        host_cpuid(0x80000008, 0, &eax, NULL, NULL, NULL);
+        /* Note: According to AMD doc 25481 rev 2.34 they have a field
+         * at 23:16 that can specify a maximum physical address bits for
+         * the guest that can override this value; but I've not seen
+         * anything with that set.
+         */
+        host_phys_bits = eax & 0xff;
+    } else {
+        /* It's an odd 64 bit machine that doesn't have the leaf for
+         * physical address bits; fall back to 36 that's most older
+         * Intel.
+         */
+        host_phys_bits = 36;
+    }
+
+    return host_phys_bits;
+}
 
 #define IS_INTEL_CPU(env) ((env)->cpuid_vendor1 == CPUID_VENDOR_INTEL_1 && \
                            (env)->cpuid_vendor2 == CPUID_VENDOR_INTEL_2 && \
@@ -2887,10 +2920,35 @@ static void x86_cpu_realizefn(DeviceState *dev, Error **errp)
     CPUX86State *env = &cpu->env;
     Error *local_err = NULL;
     static bool ht_warned;
+    FeatureWord w;
 
-    if (cpu->apic_id < 0) {
+    if (xcc->kvm_required && !kvm_enabled()) {
+        char *name = x86_cpu_class_get_model_name(xcc);
+        error_setg(&local_err, "CPU model '%s' requires KVM", name);
+        g_free(name);
+        goto out;
+    }
+
+    if (cpu->apic_id == UNASSIGNED_APIC_ID) {
         error_setg(errp, "apic-id property was not initialized properly");
         return;
+    }
+
+    /*TODO: cpu->host_features incorrectly overwrites features
+     * set using "feat=on|off". Once we fix this, we can convert
+     * plus_features & minus_features to global properties
+     * inside x86_cpu_parse_featurestr() too.
+     */
+    if (cpu->host_features) {
+        for (w = 0; w < FEATURE_WORDS; w++) {
+            env->features[w] =
+                x86_cpu_get_supported_feature_word(w, cpu->migratable);
+        }
+    }
+
+    for (w = 0; w < FEATURE_WORDS; w++) {
+        cpu->env.features[w] |= plus_features[w];
+        cpu->env.features[w] &= ~minus_features[w];
     }
 
     if (env->features[FEAT_7_0_EBX] && env->cpuid_level < 7) {
@@ -2914,6 +2972,75 @@ static void x86_cpu_realizefn(DeviceState *dev, Error **errp)
            & CPUID_EXT2_AMD_ALIASES);
     }
 
+    /* For 64bit systems think about the number of physical bits to present.
+     * ideally this should be the same as the host; anything other than matching
+     * the host can cause incorrect guest behaviour.
+     * QEMU used to pick the magic value of 40 bits that corresponds to
+     * consumer AMD devices but nothing else.
+     */
+    if (env->features[FEAT_8000_0001_EDX] & CPUID_EXT2_LM) {
+        if (kvm_enabled()) {
+            uint32_t host_phys_bits = x86_host_phys_bits();
+            static bool warned;
+
+            if (cpu->host_phys_bits) {
+                /* The user asked for us to use the host physical bits */
+                cpu->phys_bits = host_phys_bits;
+            }
+
+            /* Print a warning if the user set it to a value that's not the
+             * host value.
+             */
+            if (cpu->phys_bits != host_phys_bits && cpu->phys_bits != 0 &&
+                !warned) {
+                error_report("Warning: Host physical bits (%u)"
+                                 " does not match phys-bits property (%u)",
+                                 host_phys_bits, cpu->phys_bits);
+                warned = true;
+            }
+
+            if (cpu->phys_bits &&
+                (cpu->phys_bits > TARGET_PHYS_ADDR_SPACE_BITS ||
+                cpu->phys_bits < 32)) {
+                error_setg(errp, "phys-bits should be between 32 and %u "
+                                 " (but is %u)",
+                                 TARGET_PHYS_ADDR_SPACE_BITS, cpu->phys_bits);
+                return;
+            }
+        } else {
+            if (cpu->phys_bits && cpu->phys_bits != TCG_PHYS_ADDR_BITS) {
+                error_setg(errp, "TCG only supports phys-bits=%u",
+                                  TCG_PHYS_ADDR_BITS);
+                return;
+            }
+        }
+        /* 0 means it was not explicitly set by the user (or by machine
+         * compat_props or by the host code above). In this case, the default
+         * is the value used by TCG (40).
+         */
+        if (cpu->phys_bits == 0) {
+            cpu->phys_bits = TCG_PHYS_ADDR_BITS;
+        }
+    } else {
+        /* For 32 bit systems don't use the user set value, but keep
+         * phys_bits consistent with what we tell the guest.
+         */
+        if (cpu->phys_bits != 0) {
+            error_setg(errp, "phys-bits is not user-configurable in 32 bit");
+            return;
+        }
+
+        if (env->features[FEAT_1_EDX] & CPUID_PSE36) {
+            cpu->phys_bits = 36;
+        } else {
+            cpu->phys_bits = 32;
+        }
+    }
+    cpu_exec_init(cs, &error_abort);
+
+    if (tcg_enabled()) {
+        tcg_x86_init();
+    }
 
 #ifndef CONFIG_USER_ONLY
     qemu_register_reset(x86_cpu_machine_reset_cb, cpu);
@@ -2984,6 +3111,21 @@ out:
     if (local_err != NULL) {
         error_propagate(errp, local_err);
         return;
+    }
+}
+
+static void x86_cpu_unrealizefn(DeviceState *dev, Error **errp)
+{
+    X86CPU *cpu = X86_CPU(dev);
+
+#ifndef CONFIG_USER_ONLY
+    cpu_remove_sync(CPU(dev));
+    qemu_unregister_reset(x86_cpu_machine_reset_cb, dev);
+#endif
+
+    if (cpu->apic_state) {
+        object_unparent(OBJECT(cpu->apic_state));
+        cpu->apic_state = NULL;
     }
 }
 
@@ -3101,10 +3243,8 @@ static void x86_cpu_initfn(Object *obj)
     X86CPUClass *xcc = X86_CPU_GET_CLASS(obj);
     CPUX86State *env = &cpu->env;
     FeatureWord w;
-    static int inited;
 
     cs->env_ptr = env;
-    cpu_exec_init(cs, &error_abort);
 
     object_property_add(obj, "family", "int",
                         x86_cpuid_version_get_family,
@@ -3124,9 +3264,6 @@ static void x86_cpu_initfn(Object *obj)
     object_property_add(obj, "tsc-frequency", "int",
                         x86_cpuid_get_tsc_freq,
                         x86_cpuid_set_tsc_freq, NULL, NULL, NULL);
-    object_property_add(obj, "apic-id", "int",
-                        x86_cpuid_get_apic_id,
-                        x86_cpuid_set_apic_id, NULL, NULL, NULL);
     object_property_add(obj, "feature-words", "X86CPUFeatureWordInfo",
                         x86_cpu_get_feature_words,
                         NULL, NULL, (void *)env->features, NULL);
@@ -3135,11 +3272,6 @@ static void x86_cpu_initfn(Object *obj)
                         NULL, NULL, (void *)cpu->filtered_features, NULL);
 
     cpu->hyperv_spinlock_attempts = HYPERV_SPINLOCK_NEVER_RETRY;
-
-#ifndef CONFIG_USER_ONLY
-    /* Any code creating new X86CPU objects have to set apic-id explicitly */
-    cpu->apic_id = -1;
-#endif
 
     for (w = 0; w < FEATURE_WORDS; w++) {
         int bitnr;
@@ -3150,12 +3282,6 @@ static void x86_cpu_initfn(Object *obj)
     }
 
     x86_cpu_load_def(cpu, xcc->cpu_def, &error_abort);
-
-    /* init various static tables used in TCG mode */
-    if (tcg_enabled() && !inited) {
-        inited = 1;
-        tcg_x86_init();
-    }
 }
 
 static int64_t x86_cpu_get_arch_id(CPUState *cs)
@@ -3203,6 +3329,18 @@ static bool x86_cpu_has_work(CPUState *cs)
 }
 
 static Property x86_cpu_properties[] = {
+#ifdef CONFIG_USER_ONLY
+    /* apic_id = 0 by default for *-user, see commit 9886e834 */
+    DEFINE_PROP_UINT32("apic-id", X86CPU, apic_id, 0),
+    DEFINE_PROP_INT32("thread-id", X86CPU, thread_id, 0),
+    DEFINE_PROP_INT32("core-id", X86CPU, core_id, 0),
+    DEFINE_PROP_INT32("socket-id", X86CPU, socket_id, 0),
+#else
+    DEFINE_PROP_UINT32("apic-id", X86CPU, apic_id, UNASSIGNED_APIC_ID),
+    DEFINE_PROP_INT32("thread-id", X86CPU, thread_id, -1),
+    DEFINE_PROP_INT32("core-id", X86CPU, core_id, -1),
+    DEFINE_PROP_INT32("socket-id", X86CPU, socket_id, -1),
+#endif
     DEFINE_PROP_BOOL("pmu", X86CPU, enable_pmu, false),
     { .name  = "hv-spinlocks", .info  = &qdev_prop_spinlocks },
     DEFINE_PROP_BOOL("hv-relaxed", X86CPU, hyperv_relaxed_timing, false),
@@ -3217,10 +3355,15 @@ static Property x86_cpu_properties[] = {
     DEFINE_PROP_BOOL("check", X86CPU, check_cpuid, true),
     DEFINE_PROP_BOOL("enforce", X86CPU, enforce_cpuid, false),
     DEFINE_PROP_BOOL("kvm", X86CPU, expose_kvm, true),
+    DEFINE_PROP_UINT32("phys-bits", X86CPU, phys_bits, 0),
+    DEFINE_PROP_BOOL("host-phys-bits", X86CPU, host_phys_bits, false),
+    DEFINE_PROP_BOOL("fill-mtrr-mask", X86CPU, fill_mtrr_mask, true),
     DEFINE_PROP_UINT32("level", X86CPU, env.cpuid_level, 0),
     DEFINE_PROP_UINT32("xlevel", X86CPU, env.cpuid_xlevel, 0),
     DEFINE_PROP_UINT32("xlevel2", X86CPU, env.cpuid_xlevel2, 0),
     DEFINE_PROP_STRING("hv-vendor-id", X86CPU, hyperv_vendor_id),
+    DEFINE_PROP_BOOL("cpuid-0xb", X86CPU, enable_cpuid_0xb, true),
+    DEFINE_PROP_BOOL("lmce", X86CPU, enable_lmce, false),
     DEFINE_PROP_END_OF_LIST()
 };
 
@@ -3232,6 +3375,7 @@ static void x86_cpu_common_class_init(ObjectClass *oc, void *data)
 
     xcc->parent_realize = dc->realize;
     dc->realize = x86_cpu_realizefn;
+    dc->unrealize = x86_cpu_unrealizefn;
     dc->props = x86_cpu_properties;
 
     xcc->parent_reset = cc->reset;
@@ -3268,6 +3412,7 @@ static void x86_cpu_common_class_init(ObjectClass *oc, void *data)
     cc->cpu_exec_enter = x86_cpu_exec_enter;
     cc->cpu_exec_exit = x86_cpu_exec_exit;
 
+    dc->cannot_instantiate_with_device_add_yet = false;
     /*
      * Reason: x86_cpu_initfn() calls cpu_exec_init(), which saves the
      * object in cpus -> dangling pointer after final object_unref().

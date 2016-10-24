@@ -857,6 +857,12 @@ static inline void tcg_out_st(TCGContext *s, TCGType type, TCGReg arg,
     tcg_out_mem_long(s, opi, opx, arg, arg1, arg2);
 }
 
+static inline bool tcg_out_sti(TCGContext *s, TCGType type, TCGArg val,
+                               TCGReg base, intptr_t ofs)
+{
+    return false;
+}
+
 static void tcg_out_cmp(TCGContext *s, int cond, TCGArg arg1, TCGArg arg2,
                         int const_arg2, int cr, TCGType type)
 {
@@ -1237,6 +1243,7 @@ static void tcg_out_brcond2 (TCGContext *s, const TCGArg *args,
     tcg_out_bc(s, BC | BI(7, CR_EQ) | BO_COND_TRUE, arg_label(args[5]));
 }
 
+#ifdef __powerpc64__
 void ppc_tb_set_jmp_target(uintptr_t jmp_addr, uintptr_t addr)
 {
     tcg_insn_unit i1, i2;
@@ -1265,11 +1272,18 @@ void ppc_tb_set_jmp_target(uintptr_t jmp_addr, uintptr_t addr)
     pair = (uint64_t)i2 << 32 | i1;
 #endif
 
-    /* ??? __atomic_store_8, presuming there's some way to do that
-       for 32-bit, otherwise this is good enough for 64-bit.  */
-    *(uint64_t *)jmp_addr = pair;
+    atomic_set((uint64_t *)jmp_addr, pair);
     flush_icache_range(jmp_addr, jmp_addr + 8);
 }
+#else
+void ppc_tb_set_jmp_target(uintptr_t jmp_addr, uintptr_t addr)
+{
+    intptr_t diff = addr - jmp_addr;
+    tcg_debug_assert(in_range_b(diff));
+    atomic_set((uint32_t *)jmp_addr, B | (diff & 0x3fffffc));
+    flush_icache_range(jmp_addr, jmp_addr + 4);
+}
+#endif
 
 static void tcg_out_call(TCGContext *s, tcg_insn_unit *target)
 {
@@ -1391,6 +1405,7 @@ static TCGReg tcg_out_tlb_read(TCGContext *s, TCGMemOp opc,
     int add_off = offsetof(CPUArchState, tlb_table[mem_index][0].addend);
     TCGReg base = TCG_AREG0;
     TCGMemOp s_bits = opc & MO_SIZE;
+    int a_bits = get_alignment_bits(opc);
 
     /* Extract the page index, shifted into place for tlb index.  */
     if (TCG_TARGET_REG_BITS == 64) {
@@ -1448,14 +1463,17 @@ static TCGReg tcg_out_tlb_read(TCGContext *s, TCGMemOp opc,
          * the bottom bits and thus trigger a comparison failure on
          * unaligned accesses
          */
+        if (a_bits < 0) {
+            a_bits = s_bits;
+        }
         tcg_out_rlw(s, RLWINM, TCG_REG_R0, addrlo, 0,
-                    (32 - s_bits) & 31, 31 - TARGET_PAGE_BITS);
-    } else if (s_bits) {
-        /* > byte access, we need to handle alignment */
-        if ((opc & MO_AMASK) == MO_ALIGN) {
+                    (32 - a_bits) & 31, 31 - TARGET_PAGE_BITS);
+    } else if (a_bits) {
+        /* More than byte access, we need to handle alignment */
+        if (a_bits > 0) {
             /* Alignment required by the front-end, same as 32-bits */
             tcg_out_rld(s, RLDICL, TCG_REG_R0, addrlo,
-                        64 - TARGET_PAGE_BITS, TARGET_PAGE_BITS - s_bits);
+                        64 - TARGET_PAGE_BITS, TARGET_PAGE_BITS - a_bits);
             tcg_out_rld(s, RLDICL, TCG_REG_R0, TCG_REG_R0, TARGET_PAGE_BITS, 0);
        } else {
            /* We support unaligned accesses, we need to make sure we fail
@@ -1894,17 +1912,23 @@ static void tcg_out_op(TCGContext *s, TCGOpcode opc, const TCGArg *args,
         tcg_out_b(s, 0, tb_ret_addr);
         break;
     case INDEX_op_goto_tb:
-        tcg_debug_assert(s->tb_jmp_offset);
-        /* Direct jump.  Ensure the next insns are 8-byte aligned. */
+        tcg_debug_assert(s->tb_jmp_insn_offset);
+        /* Direct jump. */
+#ifdef __powerpc64__
+        /* Ensure the next insns are 8-byte aligned. */
         if ((uintptr_t)s->code_ptr & 7) {
             tcg_out32(s, NOP);
         }
-        s->tb_jmp_offset[args[0]] = tcg_current_code_size(s);
+        s->tb_jmp_insn_offset[args[0]] = tcg_current_code_size(s);
         /* To be replaced by either a branch+nop or a load into TMP1.  */
         s->code_ptr += 2;
         tcg_out32(s, MTSPR | RS(TCG_REG_TMP1) | CTR);
         tcg_out32(s, BCCTR | BO_ALWAYS);
-        s->tb_next_offset[args[0]] = tcg_current_code_size(s);
+#else
+        /* To be replaced by a branch.  */
+        s->code_ptr++;
+#endif
+        s->tb_jmp_reset_offset[args[0]] = tcg_current_code_size(s);
         break;
     case INDEX_op_br:
         {

@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 #include "qemu/osdep.h"
+#include "qemu-common.h"
+#include "cpu.h"
 #include "sysemu/sysemu.h"
 #include "sysemu/arch_init.h"
 #include "hw/pci/pci.h"
@@ -277,13 +279,6 @@ void do_smbios_option(QemuOpts *opts)
 {
 #ifdef TARGET_I386
     smbios_entry_add(opts);
-#endif
-}
-
-void cpudef_init(void)
-{
-#if defined(cpudef_setup)
-    cpudef_setup(); /* parse cpu definitions in target config file */
 #endif
 }
 

@@ -33,11 +33,8 @@
 #include "sysemu/hostmem.h"
 #include "sysemu/qtest.h"
 #include "qapi/visitor.h"
-#include "exec/ram_addr.h"
 
 #include "hw/misc/ivshmem.h"
-
-#include <sys/mman.h>
 
 #define PCI_VENDOR_ID_IVSHMEM   PCI_VENDOR_ID_REDHAT_QUMRANET
 #define PCI_DEVICE_ID_IVSHMEM   0x1110
@@ -325,6 +322,7 @@ static int ivshmem_vector_unmask(PCIDevice *dev, unsigned vector,
     if (ret < 0) {
         return ret;
     }
+    kvm_irqchip_commit_routes(kvm_state);
 
     return kvm_irqchip_add_irqfd_notifier_gsi(kvm_state, n, NULL, v->virq);
 }
@@ -444,13 +442,12 @@ static void ivshmem_add_kvm_msi_virq(IVShmemState *s, int vector,
                                      Error **errp)
 {
     PCIDevice *pdev = PCI_DEVICE(s);
-    MSIMessage msg = msix_get_message(pdev, vector);
     int ret;
 
     IVSHMEM_DPRINTF("ivshmem_add_kvm_msi_virq vector:%d\n", vector);
     assert(!s->msi_vectors[vector].pdev);
 
-    ret = kvm_irqchip_add_msi_route(kvm_state, msg, pdev);
+    ret = kvm_irqchip_add_msi_route(kvm_state, vector, pdev);
     if (ret < 0) {
         error_setg(errp, "kvm_irqchip_add_msi_route failed");
         return;
@@ -533,7 +530,7 @@ static void process_msg_shmem(IVShmemState *s, int fd, Error **errp)
     }
     memory_region_init_ram_ptr(&s->server_bar2, OBJECT(s),
                                "ivshmem.bar2", size, ptr);
-    qemu_set_ram_fd(memory_region_get_ram_addr(&s->server_bar2), fd);
+    memory_region_set_fd(&s->server_bar2, fd);
     s->ivshmem_bar2 = &s->server_bar2;
 }
 
@@ -940,7 +937,7 @@ static void ivshmem_exit(PCIDevice *dev)
                              strerror(errno));
             }
 
-            fd = qemu_get_ram_fd(memory_region_get_ram_addr(s->ivshmem_bar2));
+            fd = memory_region_get_fd(s->ivshmem_bar2);
             close(fd);
         }
 
@@ -1011,10 +1008,7 @@ static const TypeInfo ivshmem_common_info = {
 static void ivshmem_check_memdev_is_busy(Object *obj, const char *name,
                                          Object *val, Error **errp)
 {
-    MemoryRegion *mr;
-
-    mr = host_memory_backend_get_memory(MEMORY_BACKEND(val), &error_abort);
-    if (memory_region_is_mapped(mr)) {
+    if (host_memory_backend_is_mapped(MEMORY_BACKEND(val))) {
         char *path = object_get_canonical_path_component(val);
         error_setg(errp, "can't use already busy memdev: %s", path);
         g_free(path);
@@ -1063,6 +1057,14 @@ static void ivshmem_plain_realize(PCIDevice *dev, Error **errp)
     }
 
     ivshmem_common_realize(dev, errp);
+    host_memory_backend_set_mapped(s->hostmem, true);
+}
+
+static void ivshmem_plain_exit(PCIDevice *pci_dev)
+{
+    IVShmemState *s = IVSHMEM_COMMON(pci_dev);
+
+    host_memory_backend_set_mapped(s->hostmem, false);
 }
 
 static void ivshmem_plain_class_init(ObjectClass *klass, void *data)
@@ -1071,6 +1073,7 @@ static void ivshmem_plain_class_init(ObjectClass *klass, void *data)
     PCIDeviceClass *k = PCI_DEVICE_CLASS(klass);
 
     k->realize = ivshmem_plain_realize;
+    k->exit = ivshmem_plain_exit;
     dc->props = ivshmem_plain_properties;
     dc->vmsd = &ivshmem_plain_vmsd;
 }

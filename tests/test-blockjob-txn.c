@@ -11,10 +11,10 @@
  */
 
 #include "qemu/osdep.h"
-#include <glib.h>
 #include "qapi/error.h"
 #include "qemu/main-loop.h"
 #include "block/blockjob.h"
+#include "sysemu/block-backend.h"
 
 typedef struct {
     BlockJob common;
@@ -30,7 +30,7 @@ static const BlockJobDriver test_block_job_driver = {
 
 static void test_block_job_complete(BlockJob *job, void *opaque)
 {
-    BlockDriverState *bs = job->bs;
+    BlockDriverState *bs = blk_bs(job->blk);
     int rc = (intptr_t)opaque;
 
     if (block_job_is_cancelled(job)) {
@@ -91,19 +91,22 @@ static BlockJob *test_block_job_start(unsigned int iterations,
     BlockDriverState *bs;
     TestBlockJob *s;
     TestBlockJobCBData *data;
+    static unsigned counter;
+    char job_id[24];
 
     data = g_new0(TestBlockJobCBData, 1);
     bs = bdrv_new();
-    s = block_job_create(&test_block_job_driver, bs, 0, test_block_job_cb,
-                         data, &error_abort);
+    snprintf(job_id, sizeof(job_id), "job%u", counter++);
+    s = block_job_create(job_id, &test_block_job_driver, bs, 0,
+                         test_block_job_cb, data, &error_abort);
     s->iterations = iterations;
     s->use_timer = use_timer;
     s->rc = rc;
     s->result = result;
-    s->common.co = qemu_coroutine_create(test_block_job_run);
+    s->common.co = qemu_coroutine_create(test_block_job_run, s);
     data->job = s;
     data->result = result;
-    qemu_coroutine_enter(s->common.co, s);
+    qemu_coroutine_enter(s->common.co);
     return &s->common;
 }
 

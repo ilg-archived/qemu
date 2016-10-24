@@ -7,7 +7,7 @@
 
 #include "qemu/osdep.h"
 #include "qemu-common.h"
-#include <slirp.h>
+#include "slirp.h"
 #include "ip_icmp.h"
 #ifdef __sun__
 #include <sys/filio.h>
@@ -206,7 +206,7 @@ soread(struct socket *so)
 	 * We don't test for <= 0 this time, because there legitimately
 	 * might not be any more data (since the socket is non-blocking),
 	 * a close will be detected on next iteration.
-	 * A return of -1 wont (shouldn't) happen, since it didn't happen above
+	 * A return of -1 won't (shouldn't) happen, since it didn't happen above
 	 */
 	if (n == 2 && nn == iov[0].iov_len) {
             int ret;
@@ -816,9 +816,12 @@ void sotranslate_out(struct socket *so, struct sockaddr_storage *addr)
         if (in6_equal_net(&so->so_faddr6, &slirp->vprefix_addr6,
                     slirp->vprefix_len)) {
             if (in6_equal(&so->so_faddr6, &slirp->vnameserver_addr6)) {
-                /*if (get_dns_addr(&addr) < 0) {*/ /* TODO */
+                uint32_t scope_id;
+                if (get_dns6_addr(&sin6->sin6_addr, &scope_id) >= 0) {
+                    sin6->sin6_scope_id = scope_id;
+                } else {
                     sin6->sin6_addr = in6addr_loopback;
-                /*}*/
+                }
             } else {
                 sin6->sin6_addr = in6addr_loopback;
             }

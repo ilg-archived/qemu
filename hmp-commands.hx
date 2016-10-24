@@ -281,9 +281,10 @@ ETEXI
 
     {
         .name       = "trace-event",
-        .args_type  = "name:s,option:b",
-        .params     = "name on|off",
-        .help       = "changes status of a specific trace event",
+        .args_type  = "name:s,option:b,vcpu:i?",
+        .params     = "name on|off [vcpu]",
+        .help       = "changes status of a specific trace event "
+                      "(vcpu: vCPU to set, default is all)",
         .mhandler.cmd = hmp_trace_event,
         .command_completion = trace_event_completion,
     },
@@ -1008,7 +1009,7 @@ ETEXI
 
     {
         .name       = "migrate_set_parameter",
-        .args_type  = "parameter:s,value:i",
+        .args_type  = "parameter:s,value:s",
         .params     = "parameter value",
         .help       = "Set the parameter for migration",
         .mhandler.cmd = hmp_migrate_set_parameter,
