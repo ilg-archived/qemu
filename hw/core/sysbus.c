@@ -22,6 +22,10 @@
 #include "monitor/monitor.h"
 #include "exec/address-spaces.h"
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "qemu/log.h"
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 static void sysbus_dev_print(Monitor *mon, DeviceState *dev, int indent);
 static char *sysbus_get_fw_dev_path(DeviceState *dev);
 

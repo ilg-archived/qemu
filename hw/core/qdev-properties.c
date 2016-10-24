@@ -11,6 +11,10 @@
 #include "qapi/visitor.h"
 #include "sysemu/char.h"
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "qemu/log.h"
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 void qdev_prop_set_after_realize(DeviceState *dev, const char *name,
                                   Error **errp)
 {

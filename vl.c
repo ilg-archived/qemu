@@ -139,12 +139,6 @@ static int data_dir_idx;
 const char *bios_name = NULL;
 enum vga_retrace_method vga_retrace_method = VGA_RETRACE_DUMB;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-DisplayType display_type = DT_NONE;
-#else
-DisplayType display_type = DT_DEFAULT;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
-
 int request_opengl = -1;
 int display_opengl;
 const char* keyboard_layout = NULL;
@@ -621,10 +615,6 @@ static const RunStateTransition runstate_transitions_def[] = {
     { RUN_STATE_POSTMIGRATE, RUN_STATE_RUNNING },
     { RUN_STATE_POSTMIGRATE, RUN_STATE_FINISH_MIGRATE },
     { RUN_STATE_POSTMIGRATE, RUN_STATE_PRELAUNCH },
-
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
-    { RUN_STATE_PRELAUNCH, RUN_STATE_PRELAUNCH },
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     { RUN_STATE_PRELAUNCH, RUN_STATE_RUNNING },
     { RUN_STATE_PRELAUNCH, RUN_STATE_FINISH_MIGRATE },
@@ -3134,7 +3124,13 @@ int main(int argc, char **argv, char **envp)
     bool defconfig = true;
     bool userconfig = true;
     bool nographic = false;
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    DisplayType display_type = DT_NONE;
+#else
     DisplayType display_type = DT_DEFAULT;
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     int display_remote = 0;
     const char *log_mask = NULL;
     const char *log_file = NULL;
@@ -4248,7 +4244,7 @@ int main(int argc, char **argv, char **envp)
     /* Open the logfile at this point and set the log mask if necessary.
      */
     if (log_file) {
-        qemu_set_log_filename(log_file);
+        qemu_set_log_filename(log_file, &error_fatal);
     }
 
     if (log_mask) {

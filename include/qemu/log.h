@@ -45,7 +45,8 @@ static inline bool qemu_log_separate(void)
 #define CPU_LOG_TB_OP_IND  (1 << 16)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-#define LOG_TRACE_MR       (1 << 16)
+// Leave some space to avoid overlapping.
+#define LOG_TRACE_MR       (1 << 100)
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /* Returns true if a bit is set in the current loglevel mask

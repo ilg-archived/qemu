@@ -88,8 +88,7 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32F4-Discovery.jpg",
-            cm_board_get_desc(machine));
+    void *board_surface = cm_board_init_image(machine, "STM32F4-Discovery.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
@@ -125,8 +124,7 @@ static void stm32f4_discovery2_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32F4-Discovery.png",
-            cm_board_get_desc(machine));
+    void *board_surface = cm_board_init_image(machine, "STM32F4-Discovery.png");
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
             board_surface);
@@ -187,8 +185,7 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("STM32F429I-Discovery.jpg",
-            cm_board_get_desc(machine));
+    void *board_surface = cm_board_init_image(machine, "STM32F429I-Discovery.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info,

@@ -75,8 +75,7 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("NetduinoPlus2.jpg",
-            "NetduinoPlus2");
+    void *board_surface = cm_board_init_image(machine, "NetduinoPlus2.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, netduinoplus2_leds_info,
@@ -213,8 +212,7 @@ static void netduinogo_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("NetduinoGo.jpg",
-            cm_board_get_desc(machine));
+    void *board_surface = cm_board_init_image(machine, "NetduinoGo.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, netduinogo_leds_info, board_surface);
@@ -264,8 +262,7 @@ static void maple_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("Maple.jpg",
-            cm_board_get_desc(machine));
+    void *board_surface = cm_board_init_image(machine, "Maple.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, maple_leds_info, board_surface);

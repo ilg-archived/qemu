@@ -59,6 +59,9 @@
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
 #endif
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#include "qemu/log.h"
+#endif
 
 #include <zlib.h>
 

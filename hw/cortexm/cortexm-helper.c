@@ -21,6 +21,7 @@
 #include "hw/cortexm/cortexm-mcu.h"
 
 #include "qemu/help_option.h"
+#include "qemu/config-file.h"
 #include "qapi/error.h"
 
 #include "hw/boards.h"
@@ -28,6 +29,7 @@
 #include "cpu-qom.h"
 #include "qemu/error-report.h"
 #include "qapi/visitor.h"
+
 
 #include "sysemu/sysemu.h"
 #if defined(CONFIG_SDL)
@@ -84,11 +86,12 @@ static void sdl_event_loop(void *p)
 /**
  * Initialise SDL and display the board image.
  */
-void *cm_board_init_image(const char *file_name, const char *caption)
+void *cm_board_init_image(MachineState *machine, const char *file_name)
 {
     void *board_surface = NULL;
+    const char *caption = cm_board_get_desc(machine);
 #if defined(CONFIG_SDL)
-    if (display_type != DT_NOGRAPHIC) {
+    if (machine->enable_graphics) {
         // Start SDL, if needed.
         if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
             SDL_Init(SDL_INIT_VIDEO);

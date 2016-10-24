@@ -20,9 +20,11 @@
 #ifndef CORTEXM_HELPER_H_
 #define CORTEXM_HELPER_H_
 
-#include "qemu/osdep.h"
+#include "config-host.h"
 
+#include "qemu/osdep.h"
 #include "hw/qdev-properties.h"
+#include "qemu/log.h"
 
 /* ------------------------------------------------------------------------- */
 
@@ -46,7 +48,7 @@ typedef uint64_t peripheral_register_t;
 /* ------------------------------------------------------------------------- */
 
 void cm_board_greeting(MachineState *machine);
-void *cm_board_init_image(const char *file_name, const char *caption);
+void *cm_board_init_image(MachineState *machine, const char *file_name);
 const char *cm_board_get_name(MachineState *machine);
 const char *cm_board_get_desc(MachineState *machine);
 

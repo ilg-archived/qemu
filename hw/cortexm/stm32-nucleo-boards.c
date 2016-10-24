@@ -56,8 +56,7 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("NUCLEO-F103RB.jpg",
-            cm_board_get_desc(machine));
+    void *board_surface = cm_board_init_image(machine, "NUCLEO-F103RB.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info,
@@ -125,8 +124,7 @@ static void nucleo_f411re_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image("NUCLEO-F411RE.jpg",
-            cm_board_get_desc(machine));
+    void *board_surface = cm_board_init_image(machine, "NUCLEO-F411RE.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, nucleo_f411re_leds_info,
