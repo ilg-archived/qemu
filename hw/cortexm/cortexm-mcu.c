@@ -35,6 +35,7 @@
 #include "hw/cortexm/cortexm-nvic.h"
 #include "hw/cortexm/cortexm-helper.h"
 #include "qapi/error.h"
+#include "hw/cortexm/cortexm-bitband.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -42,31 +43,7 @@
 
 #define DEFAULT_NUM_IRQ		256
 
-/* TODO: check if this really needs to be a callback. */
-static void cortexm_mcu_image_load_callback(DeviceState *dev);
-
-/* ------------------------------------------------------------------------- */
-
-/* TODO: define a separate bitband object. */
-#define BITBAND_OFFSET (0x02000000)
-/* Redefined from armv7m.c */
-#define TYPE_BITBAND "ARM,bitband-memory"
-
-void cortexm_bitband_init(Object *parent, const char *node_name,
-        uint32_t address)
-{
-    DeviceState *dev;
-
-    /* Make address a multiple of 32MB */
-    address &= ~(BITBAND_OFFSET - 1);
-    dev = qdev_create(NULL, TYPE_BITBAND);
-    cm_object_property_add_child(parent, node_name, OBJECT(dev));
-    qdev_prop_set_uint32(dev, "base", address);
-    qdev_init_nofail(dev);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address + BITBAND_OFFSET);
-}
-
-/* ------------------------------------------------------------------------- */
+/* ===== Private class implementation ====================================== */
 
 static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
         hwaddr addr,
@@ -461,6 +438,7 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
     memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);
 }
 
+/* TODO: check if this really needs to be a callback. */
 static void cortexm_mcu_image_load_callback(DeviceState *dev)
 {
     qemu_log_function_name();
