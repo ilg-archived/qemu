@@ -28,6 +28,8 @@
 //    stellaris_init(kernel_filename, cpu_model, &stellaris_boards[1]);
 //}
 
+/* ===== Private class implementation ====================================== */
+
 static void cortexm_board_init_callback(MachineState *machine)
 {
     cm_board_greeting(machine);

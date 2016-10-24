@@ -24,7 +24,7 @@
  * the trace messages sent via byte writes to stimulus port 0.
  */
 
-/* ------------------------------------------------------------------------- */
+/* ===== Private class implementation ====================================== */
 
 /**
  * Read from ITM registers.
