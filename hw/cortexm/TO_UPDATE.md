@@ -8,6 +8,7 @@ Must follow `hw/intc/armv7m_nvic.c`.
 
 * 20160402: patches from 2.5.1
 * 20160727: checked for 2.6.0
+* 20161024: patched from 2.7.0 (use `qemu_get_cpu(0)`)
 
 ## cortexm-mcu.c
 
