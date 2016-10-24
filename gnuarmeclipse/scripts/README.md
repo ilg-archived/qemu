@@ -1,11 +1,5 @@
 These are the scripts used to build QEMU.
 
-# build-qemu.sh
-
-This is the main script used to build the **GNU ARM Eclipse QEMU** distribution packages.
-
-It runs on OS X, most GNU/Linux distributions and in Docker containers.
-
 # build-orig-qemu.sh
 
 This is a script to build the original QEMU, from the public repository or from Stefan Weil's repository.
