@@ -14,6 +14,7 @@ Must follow `hw/intc/armv7m_nvic.c`.
 
 Some updates in `hw/arm/armv7m.c`
 
+* 20161024: checked for 2.7.0
 
 # Other files
 
@@ -23,6 +24,8 @@ Follow `gdb-xml/arm-core.xml`.
 
 
 # Check for changes
+
+* 20161024: checked for 2.7.0
 
 ## hw/arm/netduino2.c
 
@@ -34,7 +37,7 @@ Follow `gdb-xml/arm-core.xml`.
 
 ## hw/core/machine.c
 
-## hw/misc/stm32f2xx_syscfg.h
+## hw/misc/stm32f2xx_syscfg.c
 
 ## hw/timer/stm32f2xx_timer.c
 
