@@ -50,7 +50,9 @@ int use_rt_clock;
 static void __attribute__((constructor)) init_get_clock(void)
 {
     use_rt_clock = 0;
-#ifdef CLOCK_MONOTONIC
+// [ILG]
+//#ifdef CLOCK_MONOTONIC
+#if defined(CLOCK_MONOTONIC) && !defined(__APPLE__)
     {
         struct timespec ts;
         if (clock_gettime(CLOCK_MONOTONIC, &ts) == 0) {
