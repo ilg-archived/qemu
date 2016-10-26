@@ -20,6 +20,7 @@
 
 #include "hw/cortexm/stm32-mcu.h"
 #include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/cortexm-bitband.h"
 #include "sysemu/sysemu.h"
 
 #if defined(CONFIG_VERBOSE)

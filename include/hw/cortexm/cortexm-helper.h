@@ -57,9 +57,6 @@ bool cm_board_help_func(const char *name);
 
 /* ------------------------------------------------------------------------- */
 
-void cortexm_bitband_init(Object *parent, const char *node_name,
-        uint32_t address);
-
 void *cm_cpu_arm_create(Object *parent, const char *cpu_model);
 
 Object *cm_object_new(Object *parent, const char *name, const char *type_name);

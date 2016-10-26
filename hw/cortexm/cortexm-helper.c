@@ -222,32 +222,41 @@ static CPUState *cm_cpu_generic_create(const char *typename,
         const char *cpu_model)
 {
     char *str, *name, *featurestr;
-    CPUState *cpu;
+    CPUState *cpu = NULL;
     ObjectClass *oc;
     CPUClass *cc;
     Error *err = NULL;
-
+    
     str = g_strdup(cpu_model);
     name = strtok(str, ",");
-
+    
     oc = cpu_class_by_name(typename, name);
     if (oc == NULL) {
         g_free(str);
         return NULL;
     }
-
-    cpu = CPU(object_new(object_class_get_name(oc)));
-    cc = CPU_GET_CLASS(cpu);
-
+    
+    cc = CPU_CLASS(oc);
     featurestr = strtok(NULL, ",");
-    cc->parse_features(cpu, featurestr, &err);
+    /* TODO: all callers of cpu_generic_init() need to be converted to
+     * call parse_features() only once, before calling cpu_generic_init().
+     */
+    cc->parse_features(object_class_get_name(oc), featurestr, &err);
     g_free(str);
+    if (err != NULL) {
+        goto out;
+    }
+    
+    cpu = CPU(object_new(object_class_get_name(oc)));
+    // object_property_set_bool(OBJECT(cpu), true, "realized", &err);
+    
+out:
     if (err != NULL) {
         error_report_err(err);
         object_unref(OBJECT(cpu));
         return NULL;
     }
-
+    
     return cpu;
 }
 
