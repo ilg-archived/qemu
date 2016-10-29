@@ -31,9 +31,24 @@ Supported MCUs:
 
 The following changes (in reverse order) were applied to the QEMU master branch:
 
+[2016-10-29]
+
+- version 2.7.0-20161029 released on GitHub
+- gnuarmeclipse-dev merged to gnuarmeclipse
+
+[2016-10-26]
+
+- avoid `clock_gettime()` on Apple
+- fix `fix cm_cpu_generic_create()` bug
+
 [2016-10-24]
 
-- version 2.7.0 merged released
+- original version 2.7.0 merged to gnuarmeclipse-dev
+- add separate cortexm-bitband implementation
+
+[2016-10-20]
+
+- nsi file: add InstallDir
 
 [2016-07-28]
 
