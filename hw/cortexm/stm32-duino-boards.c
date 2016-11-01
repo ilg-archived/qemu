@@ -17,9 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/stm32-mcus.h"
-#include "hw/display/gpio-led.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/stm32-mcus.h>
+#include <hw/display/gpio-led.h>
+#include <hw/cortexm/cortexm-helper.h>
 
 /*
  * This file defines several Arduino-like STM32 boards.
@@ -62,7 +63,9 @@ static GPIOLEDInfo netduinoplus2_leds_info[] = {
 
 static void netduinoplus2_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -75,11 +78,11 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "NetduinoPlus2.jpg");
+    cortexm_board_init_graphic_image(board, "NetduinoPlus2.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, netduinoplus2_leds_info,
-            board_surface);
+            &(board->graphic_context));
 }
 
 static void netduinoplus2_board_class_init_callback(ObjectClass *oc, void *data)
@@ -91,8 +94,8 @@ static void netduinoplus2_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo netduinoplus2_machine = {
-    .name = MACHINE_TYPE_NAME("NetduinoPlus2"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("NetduinoPlus2"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = netduinoplus2_board_class_init_callback };
 
 /* ----- Netduino Go ----- */
@@ -199,7 +202,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
 
 static void netduinogo_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -212,10 +217,11 @@ static void netduinogo_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "NetduinoGo.jpg");
+    cortexm_board_init_graphic_image(board, "NetduinoGo.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, netduinogo_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, netduinogo_leds_info,
+            &(board->graphic_context));
 }
 
 static void netduinogo_board_class_init_callback(ObjectClass *oc, void *data)
@@ -227,8 +233,8 @@ static void netduinogo_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo netduinogo_machine = {
-    .name = MACHINE_TYPE_NAME("NetduinoGo"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("NetduinoGo"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = netduinogo_board_class_init_callback };
 
 /* ----- Maple r5 ----- */
@@ -249,7 +255,9 @@ static GPIOLEDInfo maple_leds_info[] = {
 
 static void maple_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -262,10 +270,11 @@ static void maple_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "Maple.jpg");
+    cortexm_board_init_graphic_image(board, "Maple.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, maple_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, maple_leds_info,
+            &(board->graphic_context));
 }
 
 static void maple_board_class_init_callback(ObjectClass *oc, void *data)
@@ -277,8 +286,8 @@ static void maple_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo maple_machine = {
-    .name = MACHINE_TYPE_NAME("Maple"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("Maple"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = maple_board_class_init_callback };
 
 /* ----- Boards inits ----- */

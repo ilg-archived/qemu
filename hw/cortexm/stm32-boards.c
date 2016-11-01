@@ -17,10 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/stm32-mcus.h"
-#include "hw/display/gpio-led.h"
-#include "hw/cortexm/cortexm-helper.h"
-#include "sysemu/sysemu.h"
+#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/stm32-mcus.h>
+#include <hw/display/gpio-led.h>
+#include <hw/cortexm/cortexm-helper.h>
 
 /*
  * This file defines several STM32 boards.
@@ -75,7 +75,9 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
 
 static void stm32f4_discovery_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -88,11 +90,11 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "STM32F4-Discovery.jpg");
+    cortexm_board_init_graphic_image(board, "STM32F4-Discovery.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
-            board_surface);
+            &(board->graphic_context));
 }
 
 static void stm32f4_discovery_board_class_init_callback(ObjectClass *oc,
@@ -105,13 +107,17 @@ static void stm32f4_discovery_board_class_init_callback(ObjectClass *oc,
 }
 
 static const TypeInfo stm32f4_discovery_machine = {
-    .name = MACHINE_TYPE_NAME("STM32F4-Discovery"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("STM32F4-Discovery"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = stm32f4_discovery_board_class_init_callback, };
+
+#if 0
 
 static void stm32f4_discovery2_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -124,10 +130,10 @@ static void stm32f4_discovery2_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "STM32F4-Discovery.png");
+    cortexm_board_init_graphic_image(board, "STM32F4-Discovery.png");
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
-            board_surface);
+            &(board->graphic_context));
 }
 
 static void stm32f4_discovery2_board_class_init_callback(ObjectClass *oc,
@@ -140,9 +146,11 @@ static void stm32f4_discovery2_board_class_init_callback(ObjectClass *oc,
 }
 
 static const TypeInfo stm32f4_discovery2_machine = {
-    .name = MACHINE_TYPE_NAME("STM32F4-Discovery2"),
-    .parent = TYPE_MACHINE,
-    .class_init = stm32f4_discovery2_board_class_init_callback, };
+    .name = BOARD_TYPE_NAME("STM32F4-Discovery2"),
+    .parent = TYPE_CORTEXM_BOARD,
+    .class_init = stm32f4_discovery2_board_class_init_callback,};
+
+#endif
 
 /* ----- ST STM32F429I-Discovery ----- */
 
@@ -172,7 +180,9 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
 
 static void stm32f429i_discovery_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -185,11 +195,11 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "STM32F429I-Discovery.jpg");
+    cortexm_board_init_graphic_image(board, "STM32F429I-Discovery.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info,
-            board_surface);
+            &(board->graphic_context));
 }
 
 static void stm32f429i_discovery_board_class_init_callback(ObjectClass *oc,
@@ -202,8 +212,8 @@ static void stm32f429i_discovery_board_class_init_callback(ObjectClass *oc,
 }
 
 static const TypeInfo stm32f429i_discovery_machine = {
-    .name = MACHINE_TYPE_NAME("STM32F429I-Discovery"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("STM32F429I-Discovery"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = stm32f429i_discovery_board_class_init_callback };
 
 #if 0
@@ -263,7 +273,7 @@ static void stm32vl_discovery_init_callback(MachineState *machine)
 static void stm32_machines_init(void)
 {
     type_register_static(&stm32f4_discovery_machine);
-    type_register_static(&stm32f4_discovery2_machine);
+    // type_register_static(&stm32f4_discovery2_machine);
     type_register_static(&stm32f429i_discovery_machine);
 #if 0
     qemu_register_machine(&stm32f3_discovery_machine);

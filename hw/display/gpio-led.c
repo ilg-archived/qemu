@@ -19,8 +19,8 @@
 
 #include "qemu/osdep.h"
 
-#include "hw/display/gpio-led.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include <hw/display/gpio-led.h>
+#include <hw/cortexm/cortexm-helper.h>
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -36,7 +36,7 @@
  * Create a number of LEDs, using details from an array of Info structures.
  */
 Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
-        void* board_surface)
+        BoardGraphicContext *graphic_context)
 {
     GPIOLEDInfo *info;
 
@@ -51,7 +51,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
     Object **p = arr;
 
     for (info = info_array; info->name; info++) {
-        /* Create the board LED1 */
+        /* Create the board LED */
         Object *led = cm_object_new(parent, info->name, TYPE_GPIO_LED);
 
         cm_object_property_set_bool(led, info->active_low, "active-low");
@@ -89,6 +89,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         }
 
 #if defined(CONFIG_SDL)
+
         if (info->w && info->h) {
             /* Compute corner coordinate from centre coordinate. */
             cm_object_property_set_int(led, info->x - (info->w / 2), "x");
@@ -122,7 +123,11 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             }
 
         }
-        GPIO_LED_STATE(led)->board_surface = (SDL_Surface *) board_surface;
+        /* Remember the graphic context in each LED */
+        if (graphic_context->surface != NULL) {
+            GPIO_LED_STATE(led)->board_graphic_context = graphic_context;
+        }
+
 #endif /* defined(CONFIG_SDL) */
 
         cm_object_realize(led);
@@ -170,30 +175,21 @@ void gpio_led_connect(Object *obj, const char *port_name, int port_bit)
 
 /* ----- Private ----------------------------------------------------------- */
 
-static void gpio_led_turn_on(GPIOLEDState *state)
+#define LED_ON true
+#define LED_OFF false
+
+static void gpio_led_turn(GPIOLEDState *state, bool is_on)
 {
-    fprintf(stderr, "%s", state->on_message);
+    fprintf(stderr, "%s", is_on ? state->on_message : state->off_message);
 
 #if defined(CONFIG_SDL)
-    if (state->board_surface) {
-        SDL_BlitSurface(state->crop_on, NULL, state->board_surface,
-                &state->rectangle);
-        SDL_Flip(state->board_surface);
-    }
-#endif
-}
 
-static void gpio_led_turn_off(GPIOLEDState *state)
-{
-    fprintf(stderr, "%s", state->off_message);
-
-#if defined(CONFIG_SDL)
-    if (state->board_surface) {
-        SDL_BlitSurface(state->crop_off, NULL, state->board_surface,
-                &state->rectangle);
-        SDL_Flip(state->board_surface);
+    if (state->board_graphic_context) {
+        cortexm_graphic_led_turn(state->board_graphic_context,
+                &state->led_graphic_context, is_on);
     }
-#endif
+
+#endif /* defined(CONFIG_SDL) */
 }
 
 /**
@@ -214,17 +210,17 @@ static void gpio_led_irq_handler(void *opaque, int n, int level)
     case 0:
 
         if (state->active_low) {
-            gpio_led_turn_on(state);
+            gpio_led_turn(state, LED_ON);
         } else {
-            gpio_led_turn_off(state);
+            gpio_led_turn(state, LED_OFF);
         }
         break;
 
     case 1:
         if (state->active_low) {
-            gpio_led_turn_off(state);
+            gpio_led_turn(state, LED_OFF);
         } else {
-            gpio_led_turn_on(state);
+            gpio_led_turn(state, LED_ON);
         }
         break;
     }
@@ -244,14 +240,20 @@ static void gpio_led_instance_init_callback(Object *obj)
     cm_object_property_set_str(obj, "[LED Off]\n", "off-message");
 
 #if defined(CONFIG_SDL)
-    cm_object_property_add_int16(obj, "x", &state->rectangle.x);
-    cm_object_property_add_int16(obj, "y", &state->rectangle.y);
-    cm_object_property_add_uint16(obj, "w", &state->rectangle.w);
-    cm_object_property_add_uint16(obj, "h", &state->rectangle.h);
+
+    cm_object_property_add_int16(obj, "x",
+            (const int16_t*) &state->led_graphic_context.rectangle.x);
+    cm_object_property_add_int16(obj, "y",
+            (const int16_t*) &state->led_graphic_context.rectangle.y);
+    cm_object_property_add_uint16(obj, "w",
+            (const uint16_t*) &state->led_graphic_context.rectangle.w);
+    cm_object_property_add_uint16(obj, "h",
+            (const uint16_t*) &state->led_graphic_context.rectangle.h);
 
     cm_object_property_add_uint8(obj, "colour.red", &state->colour.red);
     cm_object_property_add_uint8(obj, "colour.green", &state->colour.green);
     cm_object_property_add_uint8(obj, "colour.blue", &state->colour.blue);
+
 #endif
 
     /*
@@ -268,34 +270,20 @@ static void gpio_led_instance_init_callback(Object *obj)
      */
 }
 
-#if defined(CONFIG_SDL)
-static SDL_Surface* crop_surface(SDL_Surface* sprite_sheet, SDL_Rect *rectangle)
-{
-    SDL_Surface* surface = SDL_CreateRGBSurface(sprite_sheet->flags,
-            rectangle->w, rectangle->h, sprite_sheet->format->BitsPerPixel,
-            sprite_sheet->format->Rmask, sprite_sheet->format->Gmask,
-            sprite_sheet->format->Bmask, sprite_sheet->format->Amask);
-    SDL_BlitSurface(sprite_sheet, rectangle, surface, 0);
-    return surface;
-}
-#endif /* defined(CONFIG_SDL) */
-
 static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
 #if defined(CONFIG_SDL)
+
     GPIOLEDState *state = GPIO_LED_STATE(dev);
 
-    if (state->board_surface) {
-
-        state->crop_off = crop_surface(state->board_surface, &state->rectangle);
-        state->crop_on = crop_surface(state->board_surface, &state->rectangle);
-
-        Uint32 colour = SDL_MapRGB(state->crop_off->format, state->colour.red,
+    if (state->board_graphic_context) {
+        cortexm_graphic_led_init_context(state->board_graphic_context,
+                &state->led_graphic_context, state->colour.red,
                 state->colour.green, state->colour.blue);
-        SDL_FillRect(state->crop_on, NULL, colour);
     }
+
 #endif /* defined(CONFIG_SDL) */
 }
 

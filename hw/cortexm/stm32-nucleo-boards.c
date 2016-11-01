@@ -17,9 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/stm32-mcus.h"
-#include "hw/display/gpio-led.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/stm32-mcus.h>
+#include <hw/display/gpio-led.h>
+#include <hw/cortexm/cortexm-helper.h>
 
 /*
  * This file defines several STM32 Nucleo boards.
@@ -43,7 +44,9 @@ static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
 
 static void nucleo_f103rb_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -56,11 +59,11 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "NUCLEO-F103RB.jpg");
+    cortexm_board_init_graphic_image(board, "NUCLEO-F103RB.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info,
-            board_surface);
+            &(board->graphic_context));
 }
 
 static void nucleo_f103rb_board_class_init_callback(ObjectClass *oc, void *data)
@@ -72,8 +75,8 @@ static void nucleo_f103rb_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo nucleo_f103rb_machine = {
-    .name = MACHINE_TYPE_NAME("NUCLEO-F103RB"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("NUCLEO-F103RB"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = nucleo_f103rb_board_class_init_callback };
 
 #if 0
@@ -111,7 +114,9 @@ static GPIOLEDInfo nucleo_f411re_leds_info[] = {
 
 static void nucleo_f411re_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -124,11 +129,11 @@ static void nucleo_f411re_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "NUCLEO-F411RE.jpg");
+    cortexm_board_init_graphic_image(board, "NUCLEO-F411RE.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, nucleo_f411re_leds_info,
-            board_surface);
+            &(board->graphic_context));
 }
 
 static void nucleo_f411re_board_class_init_callback(ObjectClass *oc, void *data)
@@ -140,8 +145,8 @@ static void nucleo_f411re_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo nucleo_f411re_machine = {
-    .name = MACHINE_TYPE_NAME("NUCLEO-F411RE"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("NUCLEO-F411RE"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = nucleo_f411re_board_class_init_callback };
 
 #if 0
