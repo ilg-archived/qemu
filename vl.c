@@ -915,6 +915,7 @@ static void configure_rtc(QemuOpts *opts)
     }
 }
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
 /***********************************************************/
 /* Bluetooth support */
 static int nb_hcis;
@@ -991,9 +992,11 @@ static struct bt_device_s *bt_device_add(const char *opt)
         error_report("warning: adding a slave device to an empty scatternet %i",
                      vlan_id);
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     if (!strcmp(devname, "keyboard"))
         return bt_keyboard_init(vlan);
-
+#endif
+    
     error_report("unsupported bluetooth device '%s'", devname);
     return 0;
 }
@@ -1036,6 +1039,8 @@ static int bt_parse(const char *opt)
     error_report("bad bluetooth parameter '%s'", opt);
     return 1;
 }
+#endif
+
 
 static int parse_sandbox(void *opaque, QemuOpts *opts, Error **errp)
 {
@@ -3543,10 +3548,12 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_bt:
                 add_device_config(DEV_BT, optarg);
                 break;
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
             case QEMU_OPTION_audio_help:
                 AUD_help ();
                 exit (0);
                 break;
+#endif
             case QEMU_OPTION_soundhw:
                 select_soundhw (optarg);
                 break;
@@ -4679,10 +4686,12 @@ int main(int argc, char **argv, char **envp)
     }
 #endif
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     /* init the bluetooth world */
     if (foreach_device_config(DEV_BT, bt_parse))
         exit(1);
-
+#endif
+    
     if (!xen_enabled()) {
         /* On 32-bit hosts, QEMU is limited by virtual address space */
         if (ram_size > (2047 << 20) && HOST_LONG_BITS == 32) {
@@ -4780,8 +4789,10 @@ int main(int argc, char **argv, char **envp)
 
     realtime_init();
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     audio_init();
-
+#endif
+    
     cpu_synchronize_all_post_init();
 
     numa_post_machine_init();
@@ -4932,7 +4943,9 @@ int main(int argc, char **argv, char **envp)
 
     /* vhost-user must be cleaned up before chardevs.  */
     net_cleanup();
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     audio_cleanup();
+#endif
     monitor_cleanup();
     qemu_chr_cleanup();
 

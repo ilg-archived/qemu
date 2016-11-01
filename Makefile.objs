@@ -9,6 +9,7 @@ util-obj-y += qmp-introspect.o qapi-types.o qapi-visit.o qapi-event.o
 
 block-obj-y = async.o thread-pool.o
 block-obj-y += nbd/
+
 block-obj-y += block.o blockjob.o
 block-obj-y += main-loop.o iohandler.o qemu-timer.o
 block-obj-$(CONFIG_POSIX) += aio-posix.o
@@ -55,14 +56,22 @@ common-obj-y += page_cache.o
 
 common-obj-$(CONFIG_SPICE) += spice-qemu-char.o
 
+# [GNU ARM Eclipse]
+ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
 common-obj-y += audio/
+endif
 common-obj-y += hw/
 common-obj-y += accel.o
 
 common-obj-y += replay/
 
 common-obj-y += ui/
+
+# [GNU ARM Eclipse]
+ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
 common-obj-y += bt-host.o bt-vhci.o
+endif
+
 bt-host.o-cflags := $(BLUEZ_CFLAGS)
 
 common-obj-y += dma-helpers.o

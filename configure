@@ -766,6 +766,7 @@ case $target_list in
     libusb="no"
     kvm="no"
     trace_backends="log"
+    slirp="no"
     # fdt="no" # it fails
     ;;
 esac
@@ -5918,8 +5919,10 @@ for i in $ARCH $TARGET_BASE_ARCH ; do
   ;;
   arm)
     disas_config "ARM"
+    if test "$gnuarmeclipse" != "yes"; then
     if test -n "${cxx}"; then
       disas_config "ARM_A64"
+    fi
     fi
   ;;
   cris)

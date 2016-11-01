@@ -151,7 +151,10 @@ static void gicv2m_realize(DeviceState *dev, Error **errp)
         sysbus_init_irq(SYS_BUS_DEVICE(dev), &s->spi[i]);
     }
 
+// [GNU ARM Eclipse]
+#if defined(CONFIG_PCI)
     msi_nonbroken = true;
+#endif
     kvm_gsi_direct_mapping = true;
     kvm_msi_via_irqfd_allowed = kvm_irqfds_enabled();
 }

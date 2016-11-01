@@ -1610,6 +1610,7 @@ static void hmp_stopcapture(Monitor *mon, const QDict *qdict)
 
 static void hmp_wavcapture(Monitor *mon, const QDict *qdict)
 {
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     const char *path = qdict_get_str(qdict, "path");
     int has_freq = qdict_haskey(qdict, "freq");
     int freq = qdict_get_try_int(qdict, "freq", -1);
@@ -1631,6 +1632,9 @@ static void hmp_wavcapture(Monitor *mon, const QDict *qdict)
         return;
     }
     QLIST_INSERT_HEAD (&capture_head, s, entries);
+#else
+    monitor_printf(mon, "wave capture disabled\n");
+#endif
 }
 
 static qemu_acl *find_acl(Monitor *mon, const char *name)
