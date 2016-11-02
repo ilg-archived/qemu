@@ -161,11 +161,11 @@ void cortexm_graphic_led_init_context(
 
 #if defined(CONFIG_SDLABI_2_0)
 
-    led_graphic_context->crop_off = SDL_ConvertSurfaceFormat(
-            surface, SDL_PIXELFORMAT_RGB888, 0);
+    led_graphic_context->crop_off = SDL_ConvertSurfaceFormat(surface,
+            SDL_PIXELFORMAT_RGB888, 0);
 
-    led_graphic_context->crop_on = SDL_ConvertSurfaceFormat(
-            surface, SDL_PIXELFORMAT_RGB888, 0);
+    led_graphic_context->crop_on = SDL_ConvertSurfaceFormat(surface,
+            SDL_PIXELFORMAT_RGB888, 0);
 
 #elif defined(CONFIG_SDLABI_1_2)
 
