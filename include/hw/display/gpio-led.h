@@ -24,9 +24,7 @@
 #include "qemu/typedefs.h"
 #include "hw/sysbus.h"
 
-#if defined(CONFIG_SDL)
-#include "SDL/SDL.h"
-#endif
+#include <hw/cortexm/cortexm-graphic.h>
 
 /* ------------------------------------------------------------------------- */
 
@@ -100,16 +98,14 @@ typedef struct {
     const char *off_message;
 
 #if defined(CONFIG_SDL)
-    SDL_Rect rectangle;
     struct {
         uint8_t red;
         uint8_t green;
         uint8_t blue;
     } colour;
-    SDL_Surface *crop_off;
-    SDL_Surface *crop_on;
-    SDL_Surface *board_surface;
-#endif
+    LEDGraphicContext led_graphic_context;
+    BoardGraphicContext *board_graphic_context;
+#endif /* defined(CONFIG_SDL) */
 
     /**
      * The actual irq used to blink the LED. It works connected to
@@ -120,7 +116,7 @@ typedef struct {
 } GPIOLEDState;
 
 Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
-        void* board_surface);
+        BoardGraphicContext *graphic_context);
 void gpio_led_connect(Object *obj, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */

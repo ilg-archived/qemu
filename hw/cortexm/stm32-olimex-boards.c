@@ -17,9 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/stm32-mcus.h"
-#include "hw/display/gpio-led.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/stm32-mcus.h>
+#include <hw/display/gpio-led.h>
+#include <hw/cortexm/cortexm-helper.h>
 
 /*
  * This file defines several Olimex STM32 boards.
@@ -43,7 +44,9 @@ static GPIOLEDInfo stm32_h103_leds_info[] = {
 
 static void stm32_h103_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -56,10 +59,11 @@ static void stm32_h103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "STM32-H103.jpg");
+    cortexm_board_init_graphic_image(board, "STM32-H103.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_h103_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, stm32_h103_leds_info,
+            &(board->graphic_context));
 }
 
 static void stm32_h103_board_class_init_callback(ObjectClass *oc, void *data)
@@ -71,8 +75,8 @@ static void stm32_h103_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo stm32_h103_machine = {
-    .name = MACHINE_TYPE_NAME("STM32-H103"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("STM32-H103"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = stm32_h103_board_class_init_callback };
 
 /* ----- Olimex STM32-P103 ----- */
@@ -93,7 +97,9 @@ static GPIOLEDInfo stm32_p103_leds_info[] = {
 
 static void stm32_p103_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -106,10 +112,11 @@ static void stm32_p103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "STM32-P103.jpg");
+    cortexm_board_init_graphic_image(board, "STM32-P103.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_p103_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, stm32_p103_leds_info,
+            &(board->graphic_context));
 }
 
 static void stm32_p103_board_class_init_callback(ObjectClass *oc, void *data)
@@ -121,8 +128,8 @@ static void stm32_p103_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo stm32_p103_machine = {
-    .name = MACHINE_TYPE_NAME("STM32-P103"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("STM32-P103"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = stm32_p103_board_class_init_callback };
 
 /* ----- Olimex OLIMEXINO-STM32 ----- */
@@ -153,7 +160,9 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
 
 static void olimexino_stm32_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -166,11 +175,11 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "OLIMEXINO-STM32.jpg");
+    cortexm_board_init_graphic_image(board, "OLIMEXINO-STM32.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info,
-            board_surface);
+            &(board->graphic_context));
 }
 
 static void olimexino_stm32_board_class_init_callback(ObjectClass *oc,
@@ -183,8 +192,8 @@ static void olimexino_stm32_board_class_init_callback(ObjectClass *oc,
 }
 
 static const TypeInfo olimexino_stm32_machine = {
-    .name = MACHINE_TYPE_NAME("OLIMEXINO-STM32"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("OLIMEXINO-STM32"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = olimexino_stm32_board_class_init_callback };
 
 /* ----- Olimex STM32-P107 ----- */
@@ -215,7 +224,9 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
 
 static void stm32_p107_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
 
     {
         /* Create the MCU */
@@ -228,10 +239,11 @@ static void stm32_p107_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "STM32-P107.jpg");
+    cortexm_board_init_graphic_image(board, "STM32-P107.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_p107_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, stm32_p107_leds_info,
+            &(board->graphic_context));
 }
 
 static void stm32_p107_board_class_init_callback(ObjectClass *oc, void *data)
@@ -243,8 +255,8 @@ static void stm32_p107_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo stm32_p107_machine = {
-    .name = MACHINE_TYPE_NAME("STM32-P107"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("STM32-P107"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = stm32_p107_board_class_init_callback };
 
 /* ----- Olimex STM32-P407 ----- */
@@ -265,7 +277,10 @@ static GPIOLEDInfo stm32_e407_leds_info[] = {
 
 static void stm32_e407_board_init_callback(MachineState *machine)
 {
-    cm_board_greeting(machine);
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
+
     {
         /* Create the MCU */
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F407ZG);
@@ -277,10 +292,11 @@ static void stm32_e407_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    void *board_surface = cm_board_init_image(machine, "STM32-E407.jpg");
+    cortexm_board_init_graphic_image(board, "STM32-E407.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32_e407_leds_info, board_surface);
+    gpio_led_create_from_info(peripheral, stm32_e407_leds_info,
+            &(board->graphic_context));
 }
 
 static void stm32_e407_board_class_init_callback(ObjectClass *oc, void *data)
@@ -292,8 +308,8 @@ static void stm32_e407_board_class_init_callback(ObjectClass *oc, void *data)
 }
 
 static const TypeInfo stm32_e407_machine = {
-    .name = MACHINE_TYPE_NAME("STM32-E407"),
-    .parent = TYPE_MACHINE,
+    .name = BOARD_TYPE_NAME("STM32-E407"),
+    .parent = TYPE_CORTEXM_BOARD,
     .class_init = stm32_e407_board_class_init_callback };
 
 /* ----- Boards inits ----- */

@@ -2,7 +2,10 @@
 
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += register-bitfield.o peripheral-register.o peripheral.o
 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-mcu.o cortexm-helper.o cortexm-board.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-helper.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-mcu.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-board.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-graphic.o
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-nvic.o
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-itm.o
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm-bitband.o

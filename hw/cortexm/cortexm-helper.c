@@ -17,6 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <hw/cortexm/cortexm-graphic.h>
 #include "hw/cortexm/cortexm-helper.h"
 #include "hw/cortexm/cortexm-mcu.h"
 
@@ -30,120 +31,13 @@
 #include "qemu/error-report.h"
 #include "qapi/visitor.h"
 
-
 #include "sysemu/sysemu.h"
-#if defined(CONFIG_SDL)
-#include "SDL/SDL.h"
-#include "SDL/SDL_image.h"
-#endif
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
 #endif
 
 /* ------------------------------------------------------------------------- */
-
-/**
- * When verbose, display a line to identify the board (name, description).
- *
- * Does not really depend on Cortex-M, but I could not find a better place.
- */
-void cm_board_greeting(MachineState *machine)
-{
-#if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        MachineClass *mc = MACHINE_GET_CLASS(machine);
-        printf("Board: '%s' (%s).\n", mc->name, mc->desc);
-    }
-#endif
-}
-
-/* ------------------------------------------------------------------------- */
-
-#if defined(CONFIG_SDL)
-static QEMUTimer *timer;
-
-/**
- * SDL event loop, called every 10 ms by the timer.
- */
-static void sdl_event_loop(void *p)
-{
-    SDL_Event event;
-
-    while (SDL_PollEvent(&event)) {
-        //If the user has Xed out the window
-        if (event.type == SDL_QUIT) {
-            //Quit the program
-            fprintf(stderr, "Quit.\n");
-            exit(1);
-        }
-    }
-
-    timer_mod(timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME) + 10);
-}
-#endif /* defined(CONFIG_SDL) */
-
-/**
- * Initialise SDL and display the board image.
- */
-void *cm_board_init_image(MachineState *machine, const char *file_name)
-{
-    void *board_surface = NULL;
-    const char *caption = cm_board_get_desc(machine);
-#if defined(CONFIG_SDL)
-    if (machine->enable_graphics) {
-        // Start SDL, if needed.
-        if (SDL_WasInit(SDL_INIT_VIDEO) == 0) {
-            SDL_Init(SDL_INIT_VIDEO);
-        }
-
-        const char *fullname = qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name);
-        if (fullname == NULL) {
-            error_printf("Image file '%s' not found.\n", file_name);
-            exit(1);
-        }
-
-        int res = IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
-        if ((res & (IMG_INIT_JPG | IMG_INIT_PNG))
-                != (IMG_INIT_JPG | IMG_INIT_PNG)) {
-            error_printf("IMG_init failed (%s).\n", IMG_GetError());
-            exit(1);
-        }
-        /* A better SDL_LoadBMP(). */
-        SDL_Surface* board_bitmap = IMG_Load(fullname);
-        if (board_bitmap == NULL) {
-            error_printf("Cannot load image file '%s' (%s).\n", fullname,
-                    IMG_GetError());
-            exit(1);
-        }
-
-#if defined(CONFIG_VERBOSE)
-        if (verbosity_level >= VERBOSITY_DETAILED) {
-            printf("Board picture: '%s'.\n", fullname);
-        }
-#endif
-
-        SDL_WM_SetCaption(caption, NULL);
-        SDL_Surface* screen = SDL_SetVideoMode(board_bitmap->w, board_bitmap->h,
-                32, SDL_DOUBLEBUF);
-
-        SDL_Surface* board = SDL_DisplayFormat(board_bitmap);
-        SDL_FreeSurface(board_bitmap);
-
-        /* Apply image to screen */
-        SDL_BlitSurface(board, NULL, screen, NULL);
-        /* Update screen */
-        SDL_Flip(screen);
-        board_surface = screen;
-
-        /* The event loop will be processed from time to time. */
-        timer = timer_new_ms(QEMU_CLOCK_REALTIME, sdl_event_loop, &timer);
-        timer_mod(timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME));
-    }
-
-#endif
-    return board_surface;
-}
 
 static void cm_mcu_help_foreach(gpointer data, gpointer user_data)
 {
@@ -202,16 +96,6 @@ bool cm_board_help_func(const char *name)
     return true;
 }
 
-const char *cm_board_get_name(MachineState *machine)
-{
-    return object_class_get_name(OBJECT_CLASS(machine));
-}
-
-const char *cm_board_get_desc(MachineState *machine)
-{
-    return MACHINE_GET_CLASS(machine)->desc;
-}
-
 /* ------------------------------------------------------------------------- */
 
 /**
@@ -226,16 +110,16 @@ static CPUState *cm_cpu_generic_create(const char *typename,
     ObjectClass *oc;
     CPUClass *cc;
     Error *err = NULL;
-    
+
     str = g_strdup(cpu_model);
     name = strtok(str, ",");
-    
+
     oc = cpu_class_by_name(typename, name);
     if (oc == NULL) {
         g_free(str);
         return NULL;
     }
-    
+
     cc = CPU_CLASS(oc);
     featurestr = strtok(NULL, ",");
     /* TODO: all callers of cpu_generic_init() need to be converted to
@@ -246,17 +130,16 @@ static CPUState *cm_cpu_generic_create(const char *typename,
     if (err != NULL) {
         goto out;
     }
-    
+
     cpu = CPU(object_new(object_class_get_name(oc)));
     // object_property_set_bool(OBJECT(cpu), true, "realized", &err);
-    
-out:
-    if (err != NULL) {
+
+    out: if (err != NULL) {
         error_report_err(err);
         object_unref(OBJECT(cpu));
         return NULL;
     }
-    
+
     return cpu;
 }
 
