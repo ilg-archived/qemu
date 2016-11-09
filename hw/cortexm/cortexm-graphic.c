@@ -46,7 +46,7 @@ static void cortexm_graphic_led_turn(BoardGraphicContext *board_graphic_context,
 
 /* ------------------------------------------------------------------------- */
 
-static bool nographic = false;
+static bool is_not_nographic = false;
 static bool is_terminated = false;
 
 /* ------------------------------------------------------------------------- */
@@ -161,7 +161,7 @@ static QEMUTimer *event_loop_timer;
 #if defined(USE_GRAPHIC_POLL_EVENT)
 void cortexm_graphic_init_timer(void)
 {
-    if (nographic) {
+    if (is_not_nographic) {
         return;
     }
 
@@ -226,6 +226,7 @@ int cortexm_graphic_push_event(int code, void *data1, void *data2)
     int ret = SDL_PushEvent(&event);
 
 #if defined(CONFIG_SDLABI_2_0)
+    // Used to give the scheduler a chance to yield.
     SDL_Delay(1);
 #endif
 
@@ -247,7 +248,7 @@ void cortexm_graphic_quit(void)
 {
     qemu_log_function_name();
 
-    if (nographic || is_terminated) {
+    if (is_not_nographic || is_terminated) {
         return;
     }
 
@@ -329,23 +330,13 @@ static void cortexm_graphic_atexit(void)
  * must be available to enqueue requests, even if the requests will
  * be processed when the event loop is entered (at the end of main()).
  */
-void cortexm_graphic_start(int argc, char *argv[])
+void cortexm_graphic_start(bool nographic)
 {
     qemu_log_function_name();
 
-    int i;
-    for (i = 1; i < argc; ++i) {
+    is_not_nographic = nographic;
 
-        if (strcmp("--nographic", argv[i]) == 0) {
-            nographic = true;
-            break;
-        }
-        if (strcmp("--semihosting-cmdline", argv[i]) == 0) {
-            break;
-        }
-    }
-
-    if (nographic) {
+    if (is_not_nographic) {
         return;
     }
 

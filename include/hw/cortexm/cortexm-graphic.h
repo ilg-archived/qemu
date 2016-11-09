@@ -35,7 +35,7 @@
 /* ------------------------------------------------------------------------- */
 
 // Use polling on the QEMU I/O thread instead of a separate thread.
-//#define USE_GRAPHIC_POLL_EVENT
+#define USE_GRAPHIC_POLL_EVENT
 // On windows always use polling.
 #if !defined(USE_GRAPHIC_POLL_EVENT) && defined(WIN32)
 #define USE_GRAPHIC_POLL_EVENT
@@ -85,7 +85,7 @@ enum {
 
 /* ------------------------------------------------------------------------- */
 
-void cortexm_graphic_start(int argc, char *argv[]);
+void cortexm_graphic_start(bool nographic);
 
 #if defined(USE_GRAPHIC_POLL_EVENT)
 void cortexm_graphic_init_timer(void);

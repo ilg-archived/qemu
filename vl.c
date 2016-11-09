@@ -75,8 +75,6 @@ int main(int argc, char **argv)
     args.argc = argc;
     args.argv = argv;
 
-    cortexm_graphic_start(argc, argv);
-
 #if !defined(USE_GRAPHIC_POLL_EVENT)
 
     // On POSIX, create a separate thread for all initialisations and
@@ -4639,6 +4637,10 @@ int main(int argc, char **argv, char **envp)
 #endif
         exit(1);
     }
+
+#else
+
+    cortexm_graphic_start(nographic);
 
 #endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
