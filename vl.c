@@ -34,6 +34,84 @@
 #include <libvdeplug.h>
 #endif
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+#include "qemu/thread.h"
+#include "qemu/log.h"
+
+#include <SDL.h>
+int qemu_main(int argc, char **argv, char **envp);
+
+#include <hw/cortexm/cortexm-graphic.h>
+
+typedef struct args_s {
+    int argc;
+    char **argv;
+} args_t;
+
+static args_t args;
+
+#if !defined(USE_GRAPHIC_POLL_EVENT)
+
+static int app_main(void)
+{
+    int code;
+
+    // Run the existing main initialisation code on a separate thread.
+    code = qemu_main(args.argc, args.argv, NULL);
+    exit(code);
+}
+
+#endif
+
+#if !defined(USE_GRAPHIC_POLL_EVENT)
+static QemuThread app_main_thread;
+#endif
+
+int main(int argc, char **argv)
+{
+    int code;
+
+    args.argc = argc;
+    args.argv = argv;
+
+    cortexm_graphic_start(argc, argv);
+
+#if !defined(USE_GRAPHIC_POLL_EVENT)
+
+    // On POSIX, create a separate thread for all initialisations and
+    // the I/O event loop (does not work on windows).
+    qemu_thread_create(&app_main_thread, "app-main",
+            (void *(*)(void*)) app_main, NULL, 0);
+
+    // As SDL requires, run the graphic event loop on the main thread.
+    // (tests showed that calling SDL_WaitEvent() on a different thread
+    // fails on macOS and GNU/Linux.
+    cortexm_graphic_event_loop();
+
+    // The event loop terminates if SDL_Quit() was called.
+    code = 0;
+
+#else
+
+    // On Windows, the I/O event loop fails if moved to another thread,
+    // so compromise on polling the graphic event loop.
+    code = qemu_main(args.argc, args.argv, NULL);
+
+#endif /* !defined(USE_GRAPHIC_POLL_EVENT) */
+
+    cortexm_graphic_quit();
+
+    qemu_log_mask(LOG_TRACE, "%s() done.\n", __FUNCTION__);
+
+    exit(code);
+}
+
+#undef main
+#define main qemu_main
+
+#else
+
 #ifdef CONFIG_SDL
 #if defined(__APPLE__) || defined(main)
 #include <SDL.h>
@@ -47,11 +125,12 @@ int main(int argc, char **argv)
 #endif
 #endif /* CONFIG_SDL */
 
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 #ifdef CONFIG_COCOA
 #undef main
 #define main qemu_main
 #endif /* CONFIG_COCOA */
-
 
 #include "qemu/error-report.h"
 #include "qemu/sockets.h"
@@ -103,7 +182,6 @@ int main(int argc, char **argv)
 
 #include "disas/disas.h"
 
-
 #include "slirp/libslirp.h"
 
 #include "trace.h"
@@ -124,7 +202,7 @@ int main(int argc, char **argv)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include <strings.h>
-#include "hw/cortexm/cortexm-helper.h"
+#include <hw/cortexm/cortexm-helper.h>
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #if defined(CONFIG_VERBOSE)
@@ -172,7 +250,9 @@ int vga_interface_type = VGA_NONE;
 static int full_screen = 0;
 static int no_frame = 0;
 int no_quit = 0;
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
 static bool grab_on_hover;
+#endif
 CharDriverState *serial_hds[MAX_SERIAL_PORTS];
 CharDriverState *parallel_hds[MAX_PARALLEL_PORTS];
 CharDriverState *virtcon_hds[MAX_VIRTIO_CONSOLES];
@@ -2165,6 +2245,8 @@ static void select_vgahw(const char *p)
     }
 }
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
 typedef enum DisplayType {
     DT_DEFAULT,
     DT_CURSES,
@@ -2299,6 +2381,8 @@ static DisplayType select_display(const char *p)
 
     return display;
 }
+
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 static int balloon_parse(const char *arg)
 {
@@ -3112,7 +3196,9 @@ int main(int argc, char **argv, char **envp)
     const char *kernel_filename, *kernel_cmdline;
     const char *boot_order = NULL;
     const char *boot_once = NULL;
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
     DisplayState *ds;
+#endif
     int cyls, heads, secs, translation;
     QemuOpts *hda_opts = NULL, *opts, *machine_opts, *icount_opts = NULL;
     QemuOptsList *olist;
@@ -3131,7 +3217,7 @@ int main(int argc, char **argv, char **envp)
     bool nographic = false;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    DisplayType display_type = DT_NONE;
+    // DisplayType display_type = DT_NONE;
 #else
     DisplayType display_type = DT_DEFAULT;
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
@@ -3437,13 +3523,17 @@ int main(int argc, char **argv, char **envp)
                 }
                 break;
             case QEMU_OPTION_display:
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
                 display_type = select_display(optarg);
+#endif
                 break;
             case QEMU_OPTION_nographic:
                 olist = qemu_find_opts("machine");
                 qemu_opts_parse_noisily(olist, "graphics=off", false);
                 nographic = true;
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
                 display_type = DT_NONE;
+#endif
                 break;
             case QEMU_OPTION_curses:
 #ifdef CONFIG_CURSES
@@ -3861,7 +3951,9 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_sdl:
 #ifdef CONFIG_SDL
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
                 display_type = DT_SDL;
+#endif
                 break;
 #else
                 error_report("SDL support is disabled");
@@ -4501,6 +4593,8 @@ int main(int argc, char **argv, char **envp)
         }
     }
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
 #if defined(CONFIG_VNC)
     if (!QTAILQ_EMPTY(&(qemu_find_opts("vnc")->head))) {
         display_remote++;
@@ -4545,6 +4639,8 @@ int main(int argc, char **argv, char **envp)
 #endif
         exit(1);
     }
+
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     page_size_init();
     socket_init();
@@ -4840,6 +4936,8 @@ int main(int argc, char **argv, char **envp)
         qemu_register_reset(restore_boot_order, g_strdup(boot_order));
     }
 
+#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+
     ds = init_displaystate();
 
     /* init local displays */
@@ -4859,6 +4957,8 @@ int main(int argc, char **argv, char **envp)
     default:
         break;
     }
+
+#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     /* must be after terminal init, SDL library changes signal handlers */
     os_setup_signal_handling();

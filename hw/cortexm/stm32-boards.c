@@ -78,6 +78,8 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "STM32F4-Discovery.jpg");
 
     {
         /* Create the MCU */
@@ -90,11 +92,9 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "STM32F4-Discovery.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
 }
 
 static void stm32f4_discovery_board_class_init_callback(ObjectClass *oc,

@@ -38,6 +38,8 @@
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "sysemu/sysemu.h"
+#include <hw/cortexm/cortexm-graphic.h>
+#include <hw/cortexm/cortexm-board.h>
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #endif
@@ -661,13 +663,42 @@ target_ulong do_arm_semihosting(CPUARMState *env)
         gdb_exit(env, ret);
 
 #if defined(CONFIG_VERBOSE)
-    if (verbosity_level >= VERBOSITY_COMMON) {
-        fsync(STDERR_FILENO);
-        printf("QEMU exit(%d)\n", ret);
-    }
+        if (verbosity_level >= VERBOSITY_COMMON) {
+            fsync(STDERR_FILENO);
+            printf("\nQEMU semihosting exit(%d)\n", ret);
+        }
+#endif
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+        CortexMBoardState *board = cortexm_board_get();
+        if (board != NULL) {
+            BoardGraphicContext *board_graphic_context =
+                    &(board->graphic_context);
+
+            if (cortexm_graphic_board_is_graphic_context_initialised(
+                    board_graphic_context)) {
+
+#pragma GCC diagnostic push
+#pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
+#pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
+                cortexm_graphic_push_event(GRAPHIC_EVENT_EXIT, (void*) ret,
+                        NULL);
+#pragma GCC diagnostic pop
+
+                // Unlock the I/O loop, to process the graphic event.
+                qemu_mutex_unlock_iothread();
+                while (1) {
+                    sleep(1);
+                    fprintf(stderr, "*");
+                }
+            }
+        }
+
 #endif
 
         exit(ret);
+
     case TARGET_SYS_SYNCCACHE:
         /* Clean the D-cache and invalidate the I-cache for the specified
          * virtual address range. This is a nop for us since we don't

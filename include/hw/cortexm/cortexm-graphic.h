@@ -34,8 +34,21 @@
 
 /* ------------------------------------------------------------------------- */
 
+// Use polling on the QEMU I/O thread instead of a separate thread.
+//#define USE_GRAPHIC_POLL_EVENT
+// On windows always use polling.
+#if !defined(USE_GRAPHIC_POLL_EVENT) && defined(WIN32)
+#define USE_GRAPHIC_POLL_EVENT
+#endif
+
+/* ------------------------------------------------------------------------- */
+
 /* Storage for board graphic context, stored in CortexMBoardState */
 typedef struct {
+
+    const char *picture_file_name;
+    const char *picture_file_absolute_path;
+    const char *window_caption;
 
 #if defined(CONFIG_SDL)
 #if defined(CONFIG_SDLABI_2_0)
@@ -61,19 +74,44 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
+enum {
+    GRAPHIC_EVENT_NONE = 0,
+    GRAPHIC_EVENT_QUIT,
+    GRAPHIC_EVENT_EXIT,
+    GRAPHIC_EVENT_BOARD_INIT,
+    GRAPHIC_EVENT_LED_INIT,
+    GRAPHIC_EVENT_LED_TURN,
+};
+
+/* ------------------------------------------------------------------------- */
+
+void cortexm_graphic_start(int argc, char *argv[]);
+
+#if defined(USE_GRAPHIC_POLL_EVENT)
 void cortexm_graphic_init_timer(void);
+#endif
 
-void cortexm_graphic_board_init_graphic_context(
-        BoardGraphicContext *board_graphic_context, const char *file_name,
-        const char *caption);
+void cortexm_graphic_quit(void);
 
-void cortexm_graphic_led_init_context(
-        BoardGraphicContext *board_graphic_context,
-        LEDGraphicContext *led_graphic_context, uint8_t red, uint8_t green,
-        uint8_t blue);
+int cortexm_graphic_push_event(int code, void *data1, void *data2);
 
-void cortexm_graphic_led_turn(BoardGraphicContext *board_graphic_context,
-        LEDGraphicContext *led_graphic_context, bool is_on);
+void cortexm_graphic_event_loop(void);
+
+//void cortexm_graphic_init_timer(void);
+
+/* ----- Board graphic functions ----- */
+void cortexm_graphic_board_clear_graphic_context(
+        BoardGraphicContext *board_graphic_context);
+
+bool cortexm_graphic_board_is_graphic_context_initialised(
+        BoardGraphicContext *board_graphic_context);
+
+/* ----- LED graphic function ----- */
+void cortexm_graphic_led_clear_graphic_context(
+        LEDGraphicContext *led_graphic_context);
+
+bool cortexm_graphic_led_is_graphic_context_initialised(
+        LEDGraphicContext *led_graphic_context);
 
 /* ------------------------------------------------------------------------- */
 

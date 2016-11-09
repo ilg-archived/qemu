@@ -124,9 +124,8 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
 
         }
         /* Remember the graphic context in each LED */
-        if (graphic_context->surface != NULL) {
-            GPIO_LED_STATE(led)->board_graphic_context = graphic_context;
-        }
+        /* Remember the board graphic context in each LED. */
+        GPIO_LED_STATE(led)->board_graphic_context = graphic_context;
 
 #endif /* defined(CONFIG_SDL) */
 
@@ -184,9 +183,9 @@ static void gpio_led_turn(GPIOLEDState *state, bool is_on)
 
 #if defined(CONFIG_SDL)
 
-    if (state->board_graphic_context) {
-        cortexm_graphic_led_turn(state->board_graphic_context,
-                &state->led_graphic_context, is_on);
+    if (state->board_graphic_context != NULL) {
+        cortexm_graphic_push_event(GRAPHIC_EVENT_LED_TURN, state,
+                (void*) is_on);
     }
 
 #endif /* defined(CONFIG_SDL) */
@@ -268,6 +267,9 @@ static void gpio_led_instance_init_callback(Object *obj)
      * The connection will be done by the machine.
      * A helper class is gpio_led_connect().
      */
+
+    // Explicitly start with the graphic context cleared.
+    cortexm_graphic_led_clear_graphic_context(&(state->led_graphic_context));
 }
 
 static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
@@ -279,9 +281,8 @@ static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
     GPIOLEDState *state = GPIO_LED_STATE(dev);
 
     if (state->board_graphic_context) {
-        cortexm_graphic_led_init_context(state->board_graphic_context,
-                &state->led_graphic_context, state->colour.red,
-                state->colour.green, state->colour.blue);
+
+        cortexm_graphic_push_event(GRAPHIC_EVENT_LED_INIT, state, NULL);
     }
 
 #endif /* defined(CONFIG_SDL) */

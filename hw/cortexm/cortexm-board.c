@@ -26,11 +26,45 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
+static Object *board;
+
+bool cortexm_board_is_initialized(void)
+{
+    return (board != NULL);
+}
+
+void cortexm_board_clear(void)
+{
+    board = NULL;
+}
+
+/*
+ * Return a pointer to the current board.
+ */
+CortexMBoardState *cortexm_board_get(void)
+{
+    if (board == NULL) {
+        board = container_get(object_get_root(), "/machine");
+    }
+
+    if (board == NULL) {
+        return NULL;
+    }
+
+    return CORTEXM_BOARD_STATE(board);
+}
+
+/*
+ * Return the board name.
+ */
 const char *cortexm_board_get_name(CortexMBoardState *board)
 {
     return object_class_get_name(OBJECT_CLASS(board));
 }
 
+/*
+ * Return the board description.
+ */
 const char *cortexm_board_get_desc(CortexMBoardState *board)
 {
     return MACHINE_GET_CLASS(board)->desc;
@@ -49,7 +83,7 @@ void cortexm_board_greeting(CortexMBoardState *board)
 #endif
 }
 
-void cortexm_board_init_graphic_image(CortexMBoardState *board,
+BoardGraphicContext *cortexm_board_init_graphic_image(CortexMBoardState *board,
         const char *file_name)
 {
 #if defined(CONFIG_SDL)
@@ -57,10 +91,44 @@ void cortexm_board_init_graphic_image(CortexMBoardState *board,
     const char *caption = cortexm_board_get_desc(board);
     MachineState *machine = MACHINE(board);
 
-    cortexm_graphic_board_init_graphic_context(&(board->graphic_context),
-            machine->enable_graphics ? file_name : NULL, caption);
+    // Always clear, even if graphic mode is not enabled.
+    cortexm_graphic_board_clear_graphic_context(&(board->graphic_context));
 
+    if (!machine->enable_graphics || file_name == NULL) {
+        return NULL;
+    }
+
+    board->graphic_context.picture_file_name = file_name;
+    board->graphic_context.window_caption = caption;
+
+    const char *fullname = qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name);
+    if (fullname == NULL) {
+        error_printf("Image file '%s' not found.\n", file_name);
+        exit(1);
+    }
+
+    board->graphic_context.picture_file_absolute_path = fullname;
+
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_DETAILED) {
+        printf("Board picture: '%s'.\n", fullname);
+    }
+#endif
+
+#if defined(USE_GRAPHIC_POLL_EVENT)
+    // The timer must be active before the first push.
     cortexm_graphic_init_timer();
+#endif
+
+    cortexm_graphic_push_event(GRAPHIC_EVENT_BOARD_INIT,
+            &(board->graphic_context),
+            NULL);
+
+    return &(board->graphic_context);
+
+#else
+
+    return NULL;
 
 #endif /* defined(CONFIG_SDL) */
 }
