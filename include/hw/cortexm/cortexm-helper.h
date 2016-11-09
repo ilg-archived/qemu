@@ -23,6 +23,7 @@
 #include "config-host.h"
 
 #include "qemu/osdep.h"
+#include "hw/boards.h"
 #include "hw/qdev-properties.h"
 #include "qemu/log.h"
 
@@ -71,8 +72,6 @@ bool cm_device_by_name_realize(DeviceState *dev, Error **errp,
         const char *type_name);
 void cm_device_parent_reset(DeviceState *dev, const char *type_name);
 void cm_device_by_name_reset(DeviceState *dev, const char *type_name);
-
-Object *cm_object_get_machine(void);
 
 void cm_object_property_set_int(Object *obj, int64_t value, const char *name);
 void cm_object_property_set_bool(Object *obj, bool value, const char *name);

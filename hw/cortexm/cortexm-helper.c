@@ -17,6 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <hw/cortexm/cortexm-board.h>
 #include <hw/cortexm/cortexm-graphic.h>
 #include "hw/cortexm/cortexm-helper.h"
 #include "hw/cortexm/cortexm-mcu.h"
@@ -25,7 +26,6 @@
 #include "qemu/config-file.h"
 #include "qapi/error.h"
 
-#include "hw/boards.h"
 #include "qom/object.h"
 #include "cpu-qom.h"
 #include "qemu/error-report.h"
@@ -264,7 +264,7 @@ Object *cm_object_new_mcu(MachineState *machine, const char *board_device_name)
         device_name = machine->mcu_device;
     }
 
-    return cm_object_new(cm_object_get_machine(), "mcu", device_name);
+    return cm_object_new((Object*) cortexm_board_get(), "mcu", device_name);
 }
 
 /**
@@ -343,17 +343,6 @@ void cm_device_by_name_reset(DeviceState *dev, const char *type_name)
     if (klass->reset) {
         klass->reset(dev);
     }
-}
-
-Object *cm_object_get_machine(void)
-{
-    static Object *obj;
-
-    if (obj == NULL) {
-        obj = container_get(object_get_root(), "/machine");
-    }
-
-    return obj;
 }
 
 void cm_object_property_set_int(Object *obj, int64_t value, const char *name)
