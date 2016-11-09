@@ -2954,7 +2954,7 @@ static void handle_hmp_command(Monitor *mon, const char *cmdline)
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level >= VERBOSITY_COMMON) {
             if (mon->flags == 0) {
-                printf("Execute 'mon %s'.\n\n", cmdline);
+                printf("Execute 'mon %s'.\n", cmdline);
             }
         }
 #endif
