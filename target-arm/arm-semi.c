@@ -680,7 +680,9 @@ target_ulong do_arm_semihosting(CPUARMState *env)
                     board_graphic_context)) {
 
 #pragma GCC diagnostic push
+#if defined(__clang__)
 #pragma clang diagnostic ignored "-Wint-to-void-pointer-cast"
+#endif
 #pragma GCC diagnostic ignored "-Wint-to-pointer-cast"
                 cortexm_graphic_push_event(GRAPHIC_EVENT_EXIT, (void*) ret,
                         NULL);
