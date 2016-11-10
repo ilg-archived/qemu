@@ -21,7 +21,7 @@
 #include <hw/cortexm/helper.h>
 #include <hw/cortexm/board.h>
 
-#include <hw/display/gpio-led.h>
+#include <hw/cortexm/gpio-led.h>
 
 #include "qemu/osdep.h"
 #include "qemu/timer.h"

@@ -19,7 +19,7 @@
 
 #include <hw/cortexm/board.h>
 #include <hw/cortexm/stm32-mcus.h>
-#include <hw/display/gpio-led.h>
+#include <hw/cortexm/gpio-led.h>
 #include <hw/cortexm/helper.h>
 
 /*

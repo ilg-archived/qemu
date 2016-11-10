@@ -19,7 +19,7 @@
 
 #include "qemu/osdep.h"
 
-#include <hw/display/gpio-led.h>
+#include <hw/cortexm/gpio-led.h>
 #include <hw/cortexm/helper.h>
 
 #if defined(CONFIG_VERBOSE)
