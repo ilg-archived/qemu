@@ -24,7 +24,7 @@
 #include "qemu/typedefs.h"
 #include "hw/sysbus.h"
 
-#include <hw/cortexm/cortexm-graphic.h>
+#include <hw/cortexm/graphic.h>
 
 /* ------------------------------------------------------------------------- */
 

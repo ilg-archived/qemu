@@ -21,7 +21,7 @@
 #define HW_ARM_TIVA_H 1
 
 #include "hw/boards.h"
-#include "hw/cortexm/cortexm-mcu.h"
+#include "hw/cortexm/mcu.h"
 
 void tiva_board_init(MachineState *machine, QEMUMachine *qm);
 

@@ -17,7 +17,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/board.h>
 #include "qemu/error-report.h"
 
 #if defined(CONFIG_VERBOSE)

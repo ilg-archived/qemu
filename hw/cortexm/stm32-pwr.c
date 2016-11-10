@@ -18,7 +18,7 @@
  */
 
 #include "hw/cortexm/stm32-pwr.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 
 /**
  * This file implements the STM32 PWR.

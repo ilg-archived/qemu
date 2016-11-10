@@ -19,7 +19,7 @@
 
 #include "hw/cortexm/peripheral-register.h"
 #include "hw/cortexm/register-bitfield.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 
 /**
  * This file implements a register bitfield.

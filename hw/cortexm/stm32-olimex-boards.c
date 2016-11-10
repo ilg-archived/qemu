@@ -17,10 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/board.h>
 #include <hw/cortexm/stm32-mcus.h>
 #include <hw/display/gpio-led.h>
-#include <hw/cortexm/cortexm-helper.h>
+#include <hw/cortexm/helper.h>
 
 /*
  * This file defines several Olimex STM32 boards.

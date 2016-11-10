@@ -33,7 +33,7 @@
 #include "hw/cortexm/stm32-sys-bus-device.h"
 #include "exec/address-spaces.h"
 #include "hw/cortexm/stm32-rcc.h"
-#include "hw/cortexm/cortexm-nvic.h"
+#include "hw/cortexm/nvic.h"
 #include "hw/cortexm/peripheral.h"
 
 #include "sysemu/char.h"

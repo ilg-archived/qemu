@@ -20,7 +20,7 @@
 #include "qemu/osdep.h"
 
 #include <hw/display/gpio-led.h>
-#include <hw/cortexm/cortexm-helper.h>
+#include <hw/cortexm/helper.h>
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

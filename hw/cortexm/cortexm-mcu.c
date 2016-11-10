@@ -20,7 +20,7 @@
 #include "qemu/osdep.h"
 
 #include "sysemu/sysemu.h"
-#include "hw/cortexm/cortexm-mcu.h"
+#include "hw/cortexm/mcu.h"
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "hw/arm/arm.h"
@@ -34,10 +34,10 @@
 #include "exec/semihost.h"
 #include "qapi/error.h"
 
-#include <hw/cortexm/cortexm-nvic.h>
-#include <hw/cortexm/cortexm-helper.h>
-#include <hw/cortexm/cortexm-bitband.h>
-#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/nvic.h>
+#include <hw/cortexm/helper.h>
+#include <hw/cortexm/bitband.h>
+#include <hw/cortexm/board.h>
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

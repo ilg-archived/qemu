@@ -38,8 +38,8 @@
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "sysemu/sysemu.h"
-#include <hw/cortexm/cortexm-graphic.h>
-#include <hw/cortexm/cortexm-board.h>
+#include <hw/cortexm/graphic.h>
+#include <hw/cortexm/board.h>
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #endif

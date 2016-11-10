@@ -18,7 +18,7 @@
  */
 
 #include "hw/cortexm/stm32-flash.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 
 /**
  * This file implements the STM32 flash control.

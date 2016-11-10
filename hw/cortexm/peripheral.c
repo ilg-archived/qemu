@@ -18,7 +18,7 @@
  */
 
 #include "hw/cortexm/peripheral.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 #include "qemu/error-report.h"
 
 /* ----- Public ------------------------------------------------------------ */

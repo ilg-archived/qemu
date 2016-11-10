@@ -19,7 +19,7 @@
 
 #include "hw/cortexm/peripheral-register.h"
 #include "hw/cortexm/peripheral.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 
 /**
  * This file implements a peripheral register. It extends all shorter accesses

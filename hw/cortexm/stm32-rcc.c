@@ -18,7 +18,7 @@
  */
 
 #include "hw/cortexm/stm32-rcc.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 
 #include "qemu/timer.h"
 

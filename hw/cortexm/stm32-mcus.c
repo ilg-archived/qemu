@@ -19,11 +19,11 @@
  */
 
 #include "hw/cortexm/stm32-mcus.h"
-#include "hw/cortexm/cortexm-mcu.h"
+#include "hw/cortexm/mcu.h"
 #include "exec/address-spaces.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

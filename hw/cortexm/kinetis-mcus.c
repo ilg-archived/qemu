@@ -18,7 +18,7 @@
  */
 
 #include "hw/cortexm/kinetis.h"
-#include "hw/cortexm/cortexm-mcu.h"
+#include "hw/cortexm/mcu.h"
 
 /*
  Package identifier:

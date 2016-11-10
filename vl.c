@@ -42,7 +42,7 @@
 #include <SDL.h>
 int qemu_main(int argc, char **argv, char **envp);
 
-#include <hw/cortexm/cortexm-graphic.h>
+#include <hw/cortexm/graphic.h>
 
 typedef struct args_s {
     int argc;
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include <strings.h>
-#include <hw/cortexm/cortexm-helper.h>
+#include <hw/cortexm/helper.h>
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #if defined(CONFIG_VERBOSE)

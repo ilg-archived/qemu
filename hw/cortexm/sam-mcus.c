@@ -18,7 +18,7 @@
  */
 
 #include "hw/cortexm/sam.h"
-#include "hw/cortexm/cortexm-mcu.h"
+#include "hw/cortexm/mcu.h"
 
 /* ----- SAM3S4B ----- */
 static CortexMCoreCapabilities sam3s4b_core_info = {

@@ -25,7 +25,7 @@
 #include "qapi/error.h"
 
 #include "hw/sysbus.h"
-#include "hw/cortexm/cortexm-helper.h"
+#include "hw/cortexm/helper.h"
 
 /**
  * Emulates the behaviour of a register bitfield.

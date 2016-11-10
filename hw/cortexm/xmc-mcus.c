@@ -20,7 +20,7 @@
 #include "qemu/osdep.h"
 
 #include "hw/cortexm/xmc.h"
-#include "hw/cortexm/cortexm-mcu.h"
+#include "hw/cortexm/mcu.h"
 
 /* ----- XMC4500-F144K1024 ----- */
 static CortexMCoreCapabilities xmc4500_f144k1024_core_info = {
