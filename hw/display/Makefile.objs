@@ -45,7 +45,3 @@ virtio-gpu-3d.o-cflags := $(VIRGL_CFLAGS)
 virtio-gpu-3d.o-libs += $(VIRGL_LIBS)
 obj-$(CONFIG_DPCD) += dpcd.o
 obj-$(CONFIG_XLNX_ZYNQMP) += xlnx_dp.o
-
-# [GNU ARM Eclipse]
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += gpio-led.o
-# [GNU ARM Eclipse]
