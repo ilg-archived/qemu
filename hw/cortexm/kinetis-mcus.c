@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/kinetis.h"
-#include "hw/cortexm/mcu.h"
+#include <hw/cortexm/kinetis.h>
+#include <hw/cortexm/mcu.h>
 
 /*
  Package identifier:

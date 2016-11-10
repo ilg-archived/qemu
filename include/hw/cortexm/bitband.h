@@ -20,7 +20,7 @@
 #ifndef CORTEXM_BITBAND_H_
 #define CORTEXM_BITBAND_H_
 
-#include "hw/cortexm/helper.h"
+#include <hw/cortexm/helper.h>
 
 #include "hw/sysbus.h"
 

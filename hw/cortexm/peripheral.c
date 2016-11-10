@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/peripheral.h"
-#include "hw/cortexm/helper.h"
+#include <hw/cortexm/peripheral.h>
+#include <hw/cortexm/helper.h>
 #include "qemu/error-report.h"
 
 /* ----- Public ------------------------------------------------------------ */

@@ -18,9 +18,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/stm32-mcu.h"
-#include "hw/cortexm/helper.h"
-#include "hw/cortexm/bitband.h"
+#include <hw/cortexm/stm32-mcu.h>
+#include <hw/cortexm/helper.h>
+#include <hw/cortexm/bitband.h>
 #include "sysemu/sysemu.h"
 
 #if defined(CONFIG_VERBOSE)

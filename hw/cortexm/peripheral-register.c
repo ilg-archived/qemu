@@ -17,9 +17,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/peripheral-register.h"
-#include "hw/cortexm/peripheral.h"
-#include "hw/cortexm/helper.h"
+#include <hw/cortexm/peripheral-register.h>
+#include <hw/cortexm/peripheral.h>
+#include <hw/cortexm/helper.h>
 
 /**
  * This file implements a peripheral register. It extends all shorter accesses

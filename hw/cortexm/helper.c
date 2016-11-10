@@ -19,8 +19,8 @@
 
 #include <hw/cortexm/board.h>
 #include <hw/cortexm/graphic.h>
-#include "hw/cortexm/helper.h"
-#include "hw/cortexm/mcu.h"
+#include <hw/cortexm/helper.h>
+#include <hw/cortexm/mcu.h>
 
 #include "qemu/help_option.h"
 #include "qemu/config-file.h"

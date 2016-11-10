@@ -20,7 +20,7 @@
 #include "qemu/osdep.h"
 
 #include "sysemu/sysemu.h"
-#include "hw/cortexm/mcu.h"
+#include <hw/cortexm/mcu.h>
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "hw/arm/arm.h"

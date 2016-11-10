@@ -22,7 +22,7 @@
 
 #include "qemu/osdep.h"
 
-#include "hw/cortexm/peripheral-register.h"
+#include <hw/cortexm/peripheral-register.h>
 
 /**
  * Parent type for peripherals.

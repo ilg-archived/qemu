@@ -23,7 +23,7 @@
 #include "qemu/osdep.h"
 
 #include "hw/boards.h"
-#include "hw/cortexm/mcu.h"
+#include <hw/cortexm/mcu.h>
 
 void sam_board_init(MachineState *machine, QEMUMachine *qm);
 

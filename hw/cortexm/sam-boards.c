@@ -17,9 +17,9 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/sam.h"
+#include <hw/cortexm/sam.h>
 #include "qemu/module.h"
-#include "hw/cortexm/helper.h"
+#include <hw/cortexm/helper.h>
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"

@@ -24,7 +24,7 @@
 #include "qemu/typedefs.h"
 #include "qapi/error.h"
 
-#include "hw/cortexm/register-bitfield.h"
+#include <hw/cortexm/register-bitfield.h>
 
 /**
  * Emulates the behaviour of a peripheral register.

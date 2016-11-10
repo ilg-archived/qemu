@@ -19,7 +19,7 @@
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #include "hw/intc/gic_internal.h"
-#include "hw/cortexm/nvic.h"
+#include <hw/cortexm/nvic.h>
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #define ARM_CPU_FREQ 1000000000 /* FIXME: 1 GHz, should be configurable */

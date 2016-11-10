@@ -21,7 +21,7 @@
 #define CORTEXM_BOARD_H_
 
 #include <hw/cortexm/graphic.h>
-#include "hw/cortexm/helper.h"
+#include <hw/cortexm/helper.h>
 #include "hw/boards.h"
 
 /* ------------------------------------------------------------------------- */

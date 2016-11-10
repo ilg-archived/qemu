@@ -18,7 +18,7 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "hw/cortexm/bitband.h"
+#include <hw/cortexm/bitband.h>
 #include "cpu.h"
 
 /* Bitbanded IO.  Each word corresponds to a single bit.  */

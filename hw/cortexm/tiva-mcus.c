@@ -19,8 +19,8 @@
 
 #include "qemu/osdep.h"
 
-#include "hw/cortexm/tiva.h"
-#include "hw/cortexm/mcu.h"
+#include <hw/cortexm/tiva.h>
+#include <hw/cortexm/mcu.h>
 
 /* ----- TM4C123GH6PM ----- */
 static CortexMCoreCapabilities tm4c123gh6pm_core_info = {
