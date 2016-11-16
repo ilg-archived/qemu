@@ -403,6 +403,26 @@ Object *cm_container_get_peripheral(void)
 
 /* ------------------------------------------------------------------------- */
 
+ObjectProperty *
+cm_object_property_add(Object *obj, const char *name, const char *type,
+        ObjectPropertyAccessor *get, ObjectPropertyAccessor *set,
+        ObjectPropertyRelease *release, void *opaque)
+{
+    Error *local_err = NULL;
+    ObjectProperty *prop;
+    prop = object_property_add(obj, name, type, get, set, release, opaque,
+            &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+
+    return prop;
+}
+
+/* ------------------------------------------------------------------------- */
+
 static void cm_property_get_str(Object *obj, Visitor *v, const char *name,
         void *opaque, Error **errp)
 {
@@ -449,6 +469,8 @@ void cm_object_property_add_const_str(Object *obj, const char *name,
     }
 }
 
+/* ------------------------------------------------------------------------- */
+
 static void cm_property_get_bool(Object *obj, Visitor *v, const char *name,
         void *opaque, Error **errp)
 {
@@ -469,24 +491,6 @@ static void cm_property_set_bool(Object *obj, Visitor *v, const char *name,
     error_propagate(errp, local_err);
 }
 
-ObjectProperty *
-cm_object_property_add(Object *obj, const char *name, const char *type,
-        ObjectPropertyAccessor *get, ObjectPropertyAccessor *set,
-        ObjectPropertyRelease *release, void *opaque)
-{
-    Error *local_err = NULL;
-    ObjectProperty *prop;
-    prop = object_property_add(obj, name, type, get, set, release, opaque,
-            &local_err);
-    if (local_err) {
-        error_report("Adding property %s for %s failed: %s.", name,
-                object_get_typename(obj), error_get_pretty(local_err));
-        exit(1);
-    }
-
-    return prop;
-}
-
 void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
 {
     Error *local_err = NULL;
@@ -499,6 +503,9 @@ void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
         exit(1);
     }
 }
+
+/* ------------------------------------------------------------------------- */
+
 static void cm_property_get_uint64_ptr(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
@@ -530,6 +537,8 @@ void cm_object_property_add_uint64(Object *obj, const char *name,
         exit(1);
     }
 }
+
+/* ------------------------------------------------------------------------- */
 
 static void cm_property_get_uint32_ptr(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -563,6 +572,8 @@ void cm_object_property_add_uint32(Object *obj, const char *name,
     }
 }
 
+/* ------------------------------------------------------------------------- */
+
 static void cm_property_get_uint16_ptr(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
@@ -594,6 +605,8 @@ void cm_object_property_add_uint16(Object *obj, const char *name,
         exit(1);
     }
 }
+
+/* ------------------------------------------------------------------------- */
 
 static void cm_property_get_uint8_ptr(Object *obj, Visitor *v, const char *name,
         void *opaque, Error **errp)
@@ -627,6 +640,8 @@ void cm_object_property_add_uint8(Object *obj, const char *name,
     }
 }
 
+/* ------------------------------------------------------------------------- */
+
 static void cm_property_get_int16_ptr(Object *obj, Visitor *v, const char *name,
         void *opaque, Error **errp)
 {
@@ -652,6 +667,51 @@ void cm_object_property_add_int16(Object *obj, const char *name,
     Error *local_err = NULL;
     object_property_add(obj, name, "int16", cm_property_get_int16_ptr,
             cm_property_set_int16_ptr, NULL, (void *) v, &local_err);
+    if (local_err) {
+        error_report("Adding property %s for %s failed: %s.", name,
+                object_get_typename(obj), error_get_pretty(local_err));
+        exit(1);
+    }
+}
+
+/* ------------------------------------------------------------------------- */
+
+static void cm_property_get_int_ptr(Object *obj, Visitor *v, const char *name,
+        void *opaque, Error **errp)
+{
+    int value = *(int *) opaque;
+#if (__SIZEOF_INT__ == 4)
+    visit_type_int32(v, name, &value, errp);
+#elif (__SIZEOF_INT__ == 8)
+    visit_type_int64(v, name, &value, errp);
+#else
+#error INT_MAX
+#endif
+}
+
+static void cm_property_set_int_ptr(Object *obj, struct Visitor *v,
+        const char *name, void *opaque, Error **errp)
+{
+    Error *local_err = NULL;
+    int value;
+#if (__SIZEOF_INT__ == 4)
+    visit_type_int32(v, name, &value, &local_err);
+#elif (__SIZEOF_INT__ == 8)
+    visit_type_int64(v, name, &value, &local_err);
+#else
+#error INT_MAX
+#endif
+    if (!local_err) {
+        *((int *) opaque) = value;
+    }
+    error_propagate(errp, local_err);
+}
+
+void cm_object_property_add_int(Object *obj, const char *name, const int *v)
+{
+    Error *local_err = NULL;
+    object_property_add(obj, name, "int", cm_property_get_int_ptr,
+            cm_property_set_int_ptr, NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
                 object_get_typename(obj), error_get_pretty(local_err));

@@ -20,8 +20,6 @@
 #ifndef CORTEXM_HELPER_H_
 #define CORTEXM_HELPER_H_
 
-#include "config-host.h"
-
 #include "qemu/osdep.h"
 #include "hw/boards.h"
 #include "hw/qdev-properties.h"
@@ -109,6 +107,8 @@ void cm_object_property_add_uint8(Object *obj, const char *name,
 
 void cm_object_property_add_int16(Object *obj, const char *name,
         const int16_t *v);
+
+void cm_object_property_add_int(Object *obj, const char *name, const int *v);
 
 /* ------------------------------------------------------------------------- */
 
