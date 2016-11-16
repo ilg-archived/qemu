@@ -22,6 +22,7 @@
 #include <hw/cortexm/board.h>
 
 #include <hw/cortexm/gpio-led.h>
+#include <hw/cortexm/button.h>
 
 #include "qemu/osdep.h"
 #include "qemu/timer.h"
@@ -44,18 +45,34 @@ static void cortexm_graphic_led_init_graphic_context(
 static void cortexm_graphic_led_turn(BoardGraphicContext *board_graphic_context,
         LEDGraphicContext *led_graphic_context, bool is_on);
 
+static void cortexm_graphic_process_mouse_motion(void);
+
+static void cortexm_graphic_process_mouse_button_down(void);
+
+static void cortexm_graphic_process_mouse_button_up(void);
+
 /* ------------------------------------------------------------------------- */
 
 static bool is_not_nographic = false;
 static bool is_terminated = false;
+static SDL_Cursor *saved_cursor = NULL;
+static SDL_Cursor *button_cursor = NULL;
+static ButtonState *current_button = NULL;
+static ButtonState *pushed_button = NULL;
 
 /* ------------------------------------------------------------------------- */
+
+typedef struct {
+    int x;
+    int y;
+} MousePosition;
+
+static BoardGraphicContext *board_graphic_context;
 
 static void cortexm_graphic_process_event(SDL_Event* event)
 {
     GPIOLEDState *state;
     bool is_on;
-    BoardGraphicContext *board_graphic_context;
     int exit_code;
 
     switch (event->type) {
@@ -78,8 +95,23 @@ static void cortexm_graphic_process_event(SDL_Event* event)
         break;
 
     case SDL_MOUSEMOTION:
+        if (board_graphic_context != NULL) {
+            cortexm_graphic_process_mouse_motion();
+        }
+        break;
+
     case SDL_MOUSEBUTTONDOWN:
+        if (board_graphic_context != NULL) {
+            cortexm_graphic_process_mouse_button_down();
+        }
+        break;
+
     case SDL_MOUSEBUTTONUP:
+        if (board_graphic_context != NULL) {
+            cortexm_graphic_process_mouse_button_up();
+        }
+        break;
+
     case SDL_FINGERDOWN:
     case SDL_FINGERUP:
     case SDL_FINGERMOTION:
@@ -91,7 +123,11 @@ static void cortexm_graphic_process_event(SDL_Event* event)
 
     case SDL_QUIT:
         // Quit the program
-        fprintf(stderr, "Graphic window closed. Quit.\n");
+#if defined(CONFIG_VERBOSE)
+        if (verbosity_level >= VERBOSITY_COMMON) {
+            printf("Graphic window closed. Quit.\n");
+        }
+#endif /* defined(CONFIG_VERBOSE) */
         cortexm_graphic_quit();
         exit(1);
 
@@ -166,7 +202,8 @@ void cortexm_graphic_init_timer(void)
     }
 
     /* The event loop will be processed from time to time. */
-    event_loop_timer = timer_new_ms(QEMU_CLOCK_REALTIME, (void (*)(void *))cortexm_graphic_event_loop, &event_loop_timer);
+    event_loop_timer = timer_new_ms(QEMU_CLOCK_REALTIME,
+            (void (*)(void *)) cortexm_graphic_event_loop, &event_loop_timer);
     timer_mod(event_loop_timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME));
 }
 #endif /* defined(USE_GRAPHIC_POLL_EVENT) */
@@ -237,6 +274,77 @@ int cortexm_graphic_push_event(int code, void *data1, void *data2)
     return 0;
 
 #endif /* defined(CONFIG_SDL) */
+}
+
+/* ------------------------------------------------------------------------- */
+
+static inline bool cortexm_graphic_mouse_is_in_button(MousePosition *mp,
+        ButtonState *button_state)
+{
+    if ((mp->x >= button_state->position.x_left)
+            && (mp->x <= button_state->position.x_right)
+            && (mp->y >= button_state->position.y_top)
+            && (mp->y <= button_state->position.y_bottom)) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+static void cortexm_graphic_process_mouse_motion(void)
+{
+    MousePosition mp;
+
+    SDL_GetMouseState(&mp.x, &mp.y);
+
+    if (current_button == NULL) {
+        // Previously not in a button, enumerate all, maybe one matches.
+        for (int i = 0; i < board_graphic_context->buttons_array_length; ++i) {
+            if (cortexm_graphic_mouse_is_in_button(&mp,
+                    board_graphic_context->buttons[i])) {
+                // Mouse entered the button.
+                current_button = board_graphic_context->buttons[i];
+
+                saved_cursor = SDL_GetCursor();
+                SDL_SetCursor(button_cursor);
+
+                break;
+            }
+        }
+    } else {
+        // Previously in a button, check if still in.
+        if (!cortexm_graphic_mouse_is_in_button(&mp, current_button)) {
+            // Mouse exited the button.
+            current_button = NULL;
+
+            SDL_SetCursor(saved_cursor);
+            saved_cursor = NULL;
+        }
+    }
+}
+
+static void cortexm_graphic_process_mouse_button_down(void)
+{
+    if (current_button != NULL) {
+
+        ButtonClass *klass = BUTTON_GET_CLASS(current_button);
+
+        // Perform the down() action associated with the current button.
+        klass->down(current_button);
+        pushed_button = current_button;
+    }
+}
+
+static void cortexm_graphic_process_mouse_button_up(void)
+{
+    if (pushed_button != NULL) {
+
+        ButtonClass *klass = BUTTON_GET_CLASS(pushed_button);
+
+        // Perform the up() action associated with the previously pushed button.
+        klass->up(pushed_button);
+        pushed_button = NULL;
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -365,6 +473,10 @@ void cortexm_graphic_board_clear_graphic_context(
     board_graphic_context->picture_file_absolute_path = NULL;
     board_graphic_context->window_caption = NULL;
 
+    board_graphic_context->buttons = NULL;
+    board_graphic_context->buttons_array_capacity = 0;
+    board_graphic_context->buttons_array_length = 0;
+
 #if defined(CONFIG_SDL)
 
 #if defined(CONFIG_SDLABI_2_0)
@@ -473,7 +585,44 @@ static void cortexm_graphic_board_init_graphic_context(
 
     SDL_FreeSurface(board_bitmap);
 
+    button_cursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+    if (button_cursor == NULL) {
+        error_printf("Could not create cursor: %s\n", SDL_GetError());
+        exit(1);
+    }
 #endif /* defined(CONFIG_SDL) */
+}
+
+#define DEFAULT_BUTTONS_CAPACITY (2)
+
+void cortexm_graphic_board_add_button(
+        BoardGraphicContext *board_graphic_context, ButtonState *button_state)
+{
+
+    if (board_graphic_context->buttons_array_length
+            >= board_graphic_context->buttons_array_capacity) {
+        if (board_graphic_context->buttons_array_capacity == 0) {
+            // Allocate initial array of pointers to buttons.
+            board_graphic_context->buttons = g_malloc0_n(
+            DEFAULT_BUTTONS_CAPACITY, sizeof(Object*));
+            board_graphic_context->buttons_array_capacity =
+            DEFAULT_BUTTONS_CAPACITY;
+        } else {
+            // Double the size of the array of pointers to buttons.
+            board_graphic_context->buttons = g_realloc_n(
+                    board_graphic_context->buttons,
+                    2 * board_graphic_context->buttons_array_capacity,
+                    sizeof(Object*));
+            board_graphic_context->buttons_array_capacity *= 2;
+        }
+    }
+
+    assert(
+            board_graphic_context->buttons_array_length
+                    < board_graphic_context->buttons_array_capacity);
+
+    board_graphic_context->buttons[board_graphic_context->buttons_array_length++] =
+            button_state;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -556,7 +705,8 @@ static void cortexm_graphic_led_turn(BoardGraphicContext *board_graphic_context,
     SDL_UpdateTexture(board_graphic_context->texture,
             &(led_graphic_context->rectangle), crop->pixels, crop->pitch);
     SDL_RenderCopy(board_graphic_context->renderer,
-            board_graphic_context->texture, NULL, NULL);
+            board_graphic_context->texture,
+            NULL, NULL);
     SDL_RenderPresent(board_graphic_context->renderer);
 #elif defined(CONFIG_SDLABI_1_2)
     SDL_BlitSurface(crop, NULL, board_graphic_context->surface,

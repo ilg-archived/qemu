@@ -137,12 +137,12 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             if (info->colour_message) {
                 printf(" %s", info->colour_message);
             }
-            printf(" active %s", info->active_low ? "low" : "high");
             if (info->w && info->h) {
                 printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
             }
+            printf(" active %s", info->active_low ? "low" : "high");
             if (info->gpio_path) {
-                printf(" %s,%d", info->gpio_path, info->port_bit);
+                printf(" '%s',%d", info->gpio_path, info->port_bit);
             }
             printf("\n");
         }
@@ -253,7 +253,7 @@ static void gpio_led_instance_init_callback(Object *obj)
     cm_object_property_add_uint8(obj, "colour.green", &state->colour.green);
     cm_object_property_add_uint8(obj, "colour.blue", &state->colour.blue);
 
-#endif
+#endif /* defined(CONFIG_SDL) */
 
     /*
      * Allocate 1 single incoming irq, and fill it with

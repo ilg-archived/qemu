@@ -20,6 +20,8 @@
 #include <hw/cortexm/board.h>
 #include <hw/cortexm/stm32-mcus.h>
 #include <hw/cortexm/gpio-led.h>
+#include <hw/cortexm/button-gpio.h>
+#include <hw/cortexm/button-reset.h>
 #include <hw/cortexm/helper.h>
 
 /*
@@ -73,6 +75,26 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
     { }, /**/
 };
 
+static ButtonGPIOInfo stm32f4_discovery_buttons_user_info[] = {
+    {
+        .name = "user",
+        .x = 262,
+        .y = 164,
+        .w = 40,
+        .h = 40,
+
+        .active_low = true,
+        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .port_bit = 0, },
+    { }, /**/
+};
+
+static ButtonResetInfo stm32f4_discovery_button_reset_info = {
+    .x = 262,
+    .y = 324,
+    .w = 40,
+    .h = 40 };
+
 static void stm32f4_discovery_board_init_callback(MachineState *machine)
 {
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
@@ -82,7 +104,7 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
             cortexm_board_init_graphic_image(board, "STM32F4-Discovery.jpg");
 
     {
-        /* Create the MCU */
+        /* Create the MCU. */
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F407VG);
 
         /* Set the board specific oscillator frequencies. */
@@ -92,9 +114,16 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    Object *peripheral = cm_container_get_peripheral();
-    gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
-            board_graphic_context);
+    if (board_graphic_context != NULL) {
+        /* Create board LEDs and buttons. */
+        Object *peripheral = cm_container_get_peripheral();
+        gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
+                board_graphic_context);
+        button_reset_create_from_info(peripheral,
+                &stm32f4_discovery_button_reset_info, board_graphic_context);
+        button_gpio_create_from_info(peripheral,
+                stm32f4_discovery_buttons_user_info, board_graphic_context);
+    }
 }
 
 static void stm32f4_discovery_board_class_init_callback(ObjectClass *oc,

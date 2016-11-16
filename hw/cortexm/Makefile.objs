@@ -12,6 +12,8 @@ obj-$(CONFIG_GNU_ARM_ECLIPSE) += bitband.o
 
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += gpio-led.o
 
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += button.o button-gpio.o button-reset.o
+
 obj-$(CONFIG_STM32) += stm32-sys-bus-device.o stm32-rcc.o stm32-flash.o stm32-pwr.o
 obj-$(CONFIG_STM32) += stm32-mcu.o stm32-mcus.o stm32-boards.o stm32-olimex-boards.o
 obj-$(CONFIG_STM32) += stm32-duino-boards.o stm32-nucleo-boards.o

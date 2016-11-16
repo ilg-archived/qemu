@@ -43,12 +43,19 @@
 
 /* ------------------------------------------------------------------------- */
 
+typedef struct ButtonState ButtonState;
+
 /* Storage for board graphic context, stored in CortexMBoardState */
-typedef struct {
+typedef struct BoardGraphicContext {
 
     const char *picture_file_name;
     const char *picture_file_absolute_path;
     const char *window_caption;
+
+    // Array of pointers to button states.
+    ButtonState **buttons;
+    size_t buttons_array_capacity;
+    size_t buttons_array_length;
 
 #if defined(CONFIG_SDL)
 #if defined(CONFIG_SDLABI_2_0)
@@ -62,6 +69,26 @@ typedef struct {
 #endif /* defined(CONFIG_SDL) */
 
 } BoardGraphicContext;
+
+/* ------------------------------------------------------------------------- */
+
+typedef struct {
+
+    const char *name; /* NULL for table end. */
+
+    bool active_low;
+
+    /* Centre of the button. */
+    uint32_t x;
+    uint32_t y;
+    /* Size of the rectangle where the button is active. */
+    uint32_t w;
+    uint32_t h;
+
+    const char *gpio_path;
+    int port_bit;
+
+} GraphicButtonInfo;
 
 /* ------------------------------------------------------------------------- */
 
@@ -105,6 +132,9 @@ void cortexm_graphic_board_clear_graphic_context(
 
 bool cortexm_graphic_board_is_graphic_context_initialised(
         BoardGraphicContext *board_graphic_context);
+
+void cortexm_graphic_board_add_button(
+        BoardGraphicContext *board_graphic_context, ButtonState *button_state);
 
 /* ----- LED graphic function ----- */
 void cortexm_graphic_led_clear_graphic_context(
