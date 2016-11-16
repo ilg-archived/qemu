@@ -246,7 +246,7 @@ void cortexm_graphic_event_loop(void)
  * Called from different threads to enqueue jobs via the event loop.
  * This ensures all graphic primitives are executed on the allowed thread.
  */
-int cortexm_graphic_push_event(int code, void *data1, void *data2)
+int cortexm_graphic_enqueue_event(int code, void *data1, void *data2)
 {
     qemu_log_mask(LOG_TRACE, "%s(%d)\n", __FUNCTION__, code);
 
@@ -424,7 +424,7 @@ static void cortexm_graphic_atexit(void)
         cortexm_graphic_quit();
     } else {
         // If on another thread, defer to main thread and wait.
-        cortexm_graphic_push_event(GRAPHIC_EVENT_QUIT, NULL, NULL);
+        cortexm_graphic_enqueue_event(GRAPHIC_EVENT_QUIT, NULL, NULL);
 
         while (!is_terminated) {
             qemu_log_mask(LOG_TRACE, "%s() wait\n", __FUNCTION__);

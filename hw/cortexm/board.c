@@ -120,7 +120,7 @@ BoardGraphicContext *cortexm_board_init_graphic_image(CortexMBoardState *board,
     cortexm_graphic_init_timer();
 #endif
 
-    cortexm_graphic_push_event(GRAPHIC_EVENT_BOARD_INIT,
+    cortexm_graphic_enqueue_event(GRAPHIC_EVENT_BOARD_INIT,
             &(board->graphic_context),
             NULL);
 

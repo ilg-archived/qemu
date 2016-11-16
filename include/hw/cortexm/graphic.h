@@ -120,7 +120,7 @@ void cortexm_graphic_init_timer(void);
 
 void cortexm_graphic_quit(void);
 
-int cortexm_graphic_push_event(int code, void *data1, void *data2);
+int cortexm_graphic_enqueue_event(int code, void *data1, void *data2);
 
 void cortexm_graphic_event_loop(void);
 

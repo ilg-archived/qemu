@@ -184,7 +184,7 @@ static void gpio_led_turn(GPIOLEDState *state, bool is_on)
 #if defined(CONFIG_SDL)
 
     if (state->board_graphic_context != NULL) {
-        cortexm_graphic_push_event(GRAPHIC_EVENT_LED_TURN, state,
+        cortexm_graphic_enqueue_event(GRAPHIC_EVENT_LED_TURN, state,
                 (void*) is_on);
     }
 
@@ -282,7 +282,7 @@ static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
 
     if (state->board_graphic_context) {
 
-        cortexm_graphic_push_event(GRAPHIC_EVENT_LED_INIT, state, NULL);
+        cortexm_graphic_enqueue_event(GRAPHIC_EVENT_LED_INIT, state, NULL);
     }
 
 #endif /* defined(CONFIG_SDL) */
