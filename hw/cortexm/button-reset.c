@@ -19,6 +19,7 @@
 
 #include "qemu/osdep.h"
 #include "qemu/log.h"
+#include "sysemu/sysemu.h"
 
 #include <hw/cortexm/button-reset.h>
 #include <hw/cortexm/helper.h>
@@ -64,6 +65,7 @@ static void button_reset_down_callback(ButtonState *dev)
 {
     qemu_log_function_name();
 
+    qemu_reset_halt_request();
 }
 
 /* Action when the button is released. */
@@ -71,6 +73,7 @@ static void button_reset_up_callback(ButtonState *dev)
 {
     qemu_log_function_name();
 
+    qemu_resume_request();
 }
 
 static void button_reset_instance_init_callback(Object *obj)
@@ -78,6 +81,7 @@ static void button_reset_instance_init_callback(Object *obj)
     qemu_log_function_name();
 }
 
+// Currently not used.
 static void button_reset_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();

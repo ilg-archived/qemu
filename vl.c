@@ -2011,6 +2011,49 @@ void qemu_system_debug_request(void)
     qemu_notify_event();
 }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+// These functions are used in the graphical reset button implementation.
+
+// For more accuracy, the reset actions were split in two:
+// - reset & halt, when the reset button is pushed, and
+// - resume, when the reset button is released.
+
+static int reset_halt_requested = 0;
+
+void qemu_reset_halt_request(void)
+{
+    reset_halt_requested = 1;
+    qemu_notify_event();
+}
+
+static int qemu_reset_halt_requested(void)
+{
+    int r = reset_halt_requested;
+    if (r && replay_checkpoint(CHECKPOINT_RESET_REQUESTED)) {
+        reset_halt_requested = 0;
+        return r;
+    }
+    return false;
+}
+
+static int resume_requested = 0;
+
+void qemu_resume_request(void)
+{
+    resume_requested = 1;
+    qemu_notify_event();
+}
+
+static int qemu_resume_requested(void)
+{
+    int r = resume_requested;
+    resume_requested = 0;
+    return r;
+}
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 static bool main_loop_should_exit(void)
 {
     RunState r;
@@ -2052,6 +2095,24 @@ static bool main_loop_should_exit(void)
     if (qemu_vmstop_requested(&r)) {
         vm_stop(r);
     }
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+
+    if (qemu_reset_halt_requested()) {
+        pause_all_vcpus();
+        qemu_system_reset(VMRESET_REPORT);
+    }
+
+    if (qemu_resume_requested()) {
+        resume_all_vcpus();
+        if (!runstate_check(RUN_STATE_RUNNING) &&
+                !runstate_check(RUN_STATE_INMIGRATE)) {
+            runstate_set(RUN_STATE_PRELAUNCH);
+        }
+    }
+
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     return false;
 }
 

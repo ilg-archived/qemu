@@ -74,6 +74,12 @@ int qemu_reset_requested_get(void);
 void qemu_system_killed(int signal, pid_t pid);
 void qemu_devices_reset(void);
 void qemu_system_reset(bool report);
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+void qemu_reset_halt_request(void);
+void qemu_resume_request(void);
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
 void qemu_system_guest_panicked(void);
 size_t qemu_target_page_bits(void);
 

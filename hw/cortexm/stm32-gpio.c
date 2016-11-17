@@ -810,10 +810,32 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
     const STM32Capabilities *capabilities =
     STM32_GPIO_STATE(state)->capabilities;
 
-    state->dir_mask = 0;
+    Object *odr = NULL;
+    switch (capabilities->family) {
+    case STM32_FAMILY_F1:
+        odr = state->f1.reg.odr;
+        break;
+
+    case STM32_FAMILY_F4:
+        odr = state->f4.reg.odr;
+        break;
+
+    default:
+        break;
+    }
+
+    assert(odr);
+    uint16_t prev_odr = peripheral_register_get_raw_value(odr);
 
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_STM32_GPIO);
+
+    uint16_t new_odr = peripheral_register_get_raw_value(odr);
+
+    /* Update connected devices, like LEDs, to new ODR. */
+    stm32_gpio_set_odr_irqs(state, prev_odr, new_odr);
+
+    state->dir_mask = 0;
 
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
@@ -830,6 +852,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
     default:
         break;
     }
+
 }
 
 static Property stm32_gpio_properties[] = {
