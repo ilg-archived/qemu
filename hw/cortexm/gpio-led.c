@@ -203,7 +203,7 @@ static void gpio_led_irq_handler(void *opaque, int n, int level)
 
     /*
      * Assume that the IRQ is only triggered if the LED has changed state.
-     * If this is not correct, we may get multiple LED Offs or Ons in a row.
+     * If this is not correct, we may get multiple LED Off's or On's in a row.
      */
     switch (level) {
     case 0:

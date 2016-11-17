@@ -113,6 +113,7 @@ static void button_gpio_instance_init_callback(Object *obj)
     state->active_low = true;
 }
 
+// Currently not used.
 static void button_gpio_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
