@@ -254,7 +254,6 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
     }
 
     PeripheralState *state = PERIPHERAL_STATE(dev);
-
     const char *node_name = state->mmio_node_name;
     if (node_name == NULL) {
         node_name = "mmio";
@@ -290,16 +289,22 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
     /* Fill in the array with pointers to registers. */
     object_child_foreach(OBJECT(dev),
             peripheral_populate_registers_array_foreach, (void *) dev);
+
+    qemu_log_mask(LOG_TRACE,
+            "%s() '%s', address: 0x%08"PRIX64", size: 0x%08"PRIX32"\n",
+            __FUNCTION__, node_name, state->mmio_address,
+            state->mmio_size_bytes);
 }
 
 static void peripheral_reset_callback(DeviceState *dev)
 {
-    qemu_log_function_name();
+    PeripheralState *state = PERIPHERAL_STATE(dev);
+
+    qemu_log_mask(LOG_TRACE, "%s() address: 0x%08"PRIX64"\n", __FUNCTION__,
+            state->mmio_address);
 
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_PERIPHERAL);
-
-    PeripheralState *state = PERIPHERAL_STATE(dev);
 
     /* No bus used, explicitly reset all children registers. */
     int i;

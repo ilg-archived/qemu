@@ -878,12 +878,13 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
 
 static void peripheral_register_reset_callback(DeviceState *dev)
 {
-    qemu_log_function_name();
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
+
+    qemu_log_mask(LOG_TRACE, "%s() '%s', reset: 0x%08"PRIX64"\n", __FUNCTION__,
+            state->name, state->reset_value);
 
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_PERIPHERAL_REGISTER);
-
-    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
     /* Clear the value according to the reset mask. */
     state->value &= ~(state->reset_mask);
