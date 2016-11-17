@@ -692,7 +692,7 @@ static void cortexm_graphic_led_init_graphic_context(
 static void cortexm_graphic_led_turn(BoardGraphicContext *board_graphic_context,
         LEDGraphicContext *led_graphic_context, bool is_on)
 {
-    qemu_log_function_name();
+    qemu_log_mask(LOG_TRACE, "%s(%s)\n", __FUNCTION__, is_on ? "on" : "off");
 
 #if defined(CONFIG_SDL)
 
