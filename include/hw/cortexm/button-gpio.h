@@ -76,6 +76,7 @@ typedef struct ButtonGPIOState {
     /*< public >*/
 
     bool active_low;
+    qemu_irq irq;
 
 } ButtonGPIOState;
 
@@ -83,6 +84,8 @@ typedef struct ButtonGPIOState {
 
 void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
         BoardGraphicContext *graphic_context);
+
+void button_gpio_connect(Object *obj, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */
 

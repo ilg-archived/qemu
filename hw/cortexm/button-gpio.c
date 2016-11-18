@@ -54,7 +54,10 @@ void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
                     "y-bottom");
         }
 
-        // TODO: connect to GPIO? Find the proper place.
+        if (info->gpio_path) {
+            button_gpio_connect(button, info->gpio_path, info->port_bit);
+        }
+
         cm_object_realize(button);
 
         cortexm_graphic_board_add_button(graphic_context, BUTTON_STATE(button));
@@ -76,6 +79,24 @@ void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
     }
 }
 
+/**
+ * Connect this button to the named GPIO port pin.
+ * The port name is the full path to the GPIO port,
+ * something like "/machine/stm32/gpio[c]"; the first
+ * port bit has index 0.
+ */
+void button_gpio_connect(Object *obj, const char *port_name, int port_bit)
+{
+    ButtonGPIOState *state = BUTTON_GPIO_STATE(obj);
+
+    /**
+     * Connect the incoming port pin irq (the GPIO port has incoming
+     * irq's for all bits) to this local outgoing irq.
+     */
+    state->irq = qdev_get_gpio_in(DEVICE(object_resolve_path(port_name, NULL)),
+            port_bit);
+}
+
 /* ----- Private ----------------------------------------------------------- */
 
 /* Action when the button is pushed down. */
@@ -87,7 +108,7 @@ static void button_gpio_down_callback(ButtonState *button)
 
     button->value = state->active_low ? 0 : 1;
 
-    // TODO: trigger interrupt.
+    qemu_set_irq(state->irq, button->value);
 }
 
 /* Action when the button is released. */
@@ -99,7 +120,7 @@ static void button_gpio_up_callback(ButtonState *button)
 
     button->value = state->active_low ? 1 : 0;
 
-    // TODO: trigger interrupt.
+    qemu_set_irq(state->irq, button->value);
 }
 
 static void button_gpio_instance_init_callback(Object *obj)
@@ -111,6 +132,7 @@ static void button_gpio_instance_init_callback(Object *obj)
     cm_object_property_add_bool(obj, "active-low", &state->active_low);
 
     state->active_low = true;
+    state->irq = NULL;
 }
 
 // Currently not used.

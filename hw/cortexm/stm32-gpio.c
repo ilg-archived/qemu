@@ -629,7 +629,7 @@ static void stm32_gpio_update_idr(STM32GPIOState *state, Object *idr,
  */
 static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
 {
-    qemu_log_function_name();
+    qemu_log_mask(LOG_TRACE, "%s(%d,%d) \n", __FUNCTION__, n, level);
 
     STM32GPIOState *state = STM32_GPIO_STATE(opaque);
     unsigned pin = n;
@@ -657,6 +657,8 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
         return;
     }
 
+    // TODO: check if a mutex is needed,
+    // this can be called from the graphic thread.
     if (level == 0) {
         /* Clear the IDR bit. */
         peripheral_register_and_raw_value(idr, ~(1 << pin));

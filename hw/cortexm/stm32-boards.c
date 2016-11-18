@@ -83,7 +83,7 @@ static ButtonGPIOInfo stm32f4_discovery_buttons_user_info[] = {
         .w = 40,
         .h = 40,
 
-        .active_low = true,
+        .active_low = false,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .port_bit = 0, },
     { }, /**/
@@ -114,11 +114,13 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
+    Object *peripheral = cm_container_get_peripheral();
+    /* Create board LEDs. */
+    gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
+            board_graphic_context);
+
     if (board_graphic_context != NULL) {
-        /* Create board LEDs and buttons. */
-        Object *peripheral = cm_container_get_peripheral();
-        gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
-                board_graphic_context);
+        /* Create board buttons. */
         button_reset_create_from_info(peripheral,
                 &stm32f4_discovery_button_reset_info, board_graphic_context);
         button_gpio_create_from_info(peripheral,
