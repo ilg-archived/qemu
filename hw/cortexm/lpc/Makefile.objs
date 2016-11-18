@@ -1,0 +1,5 @@
+# [GNU ARM Eclipse]
+
+obj-$(CONFIG_LPC) += mcus.o boards.o
+
+# [GNU ARM Eclipse]
