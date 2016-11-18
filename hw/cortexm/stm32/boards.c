@@ -18,7 +18,7 @@
  */
 
 #include <hw/cortexm/board.h>
-#include <hw/cortexm/stm32-mcus.h>
+#include <hw/cortexm/stm32/mcus.h>
 #include <hw/cortexm/gpio-led.h>
 #include <hw/cortexm/button-gpio.h>
 #include <hw/cortexm/button-reset.h>

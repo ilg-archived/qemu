@@ -23,7 +23,7 @@
 #include "qemu/osdep.h"
 
 #include <hw/cortexm/peripheral.h>
-#include <hw/cortexm/stm32-capabilities.h>
+#include <hw/cortexm/stm32/capabilities.h>
 
 /* ------------------------------------------------------------------------- */
 

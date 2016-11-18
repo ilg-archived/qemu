@@ -24,11 +24,11 @@
 
 #include "hw/boards.h"
 #include <hw/cortexm/mcu.h>
-#include <hw/cortexm/stm32-rcc.h>
-#include <hw/cortexm/stm32-flash.h>
-#include <hw/cortexm/stm32-pwr.h>
-#include <hw/cortexm/stm32-gpio.h>
-#include <hw/cortexm/stm32-usart.h>
+#include <hw/cortexm/stm32/rcc.h>
+#include <hw/cortexm/stm32/flash.h>
+#include <hw/cortexm/stm32/pwr.h>
+#include <hw/cortexm/stm32/gpio.h>
+#include <hw/cortexm/stm32/usart.h>
 
 /* ------------------------------------------------------------------------- */
 

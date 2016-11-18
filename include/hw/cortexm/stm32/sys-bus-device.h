@@ -22,7 +22,7 @@
 
 #include "qemu/osdep.h"
 
-#include <hw/cortexm/stm32-capabilities.h>
+#include <hw/cortexm/stm32/capabilities.h>
 #include "hw/sysbus.h"
 
 /**
