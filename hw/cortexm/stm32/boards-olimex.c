@@ -38,7 +38,7 @@ static GPIOLEDInfo stm32_h103_leds_info[] = {
         .w = 14,
         .h = 12,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .port_bit = 12, },
+        .gpio_bit = 12, },
     { }, /**/
 };
 
@@ -91,7 +91,7 @@ static GPIOLEDInfo stm32_p103_leds_info[] = {
         .w = 12,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .port_bit = 12, },
+        .gpio_bit = 12, },
     { }, /**/
 };
 
@@ -144,7 +144,7 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
         .w = 10,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .port_bit = 5, },
+        .gpio_bit = 5, },
     {
         .name = "yellow-led",
         .active_low = false,
@@ -154,7 +154,7 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
         .w = 10,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .port_bit = 1, },
+        .gpio_bit = 1, },
     { }, /**/
 };
 
@@ -208,7 +208,7 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
         .w = 6,
         .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .port_bit = 6, },
+        .gpio_bit = 6, },
     {
         .name = "yellow-led",
         .active_low = false,
@@ -218,7 +218,7 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
         .w = 6,
         .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .port_bit = 7, },
+        .gpio_bit = 7, },
     { }, /**/
 };
 
@@ -271,7 +271,7 @@ static GPIOLEDInfo stm32_e407_leds_info[] = {
         .w = 8,
         .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .port_bit = 13, },
+        .gpio_bit = 13, },
     { }, /**/
 };
 

@@ -42,6 +42,11 @@
 
 /* ------------------------------------------------------------------------- */
 
+#define CORTEXM_IRQ_IN      "irq-in"
+#define CORTEXM_IRQ_OUT     "irq-out"
+
+/* ------------------------------------------------------------------------- */
+
 typedef uint64_t peripheral_register_t;
 
 /* ------------------------------------------------------------------------- */
@@ -61,6 +66,8 @@ bool cm_object_is_instance_of_typename(Object *obj, const char *type_name);
 Object *cm_object_get_child_by_name(Object *obj, const char *name);
 
 void cm_object_realize(Object *dev);
+
+DeviceState *cm_device_by_name(const char *type_name);
 
 void cm_device_reset(DeviceState *dev);
 
@@ -109,6 +116,27 @@ void cm_object_property_add_int16(Object *obj, const char *name,
         const int16_t *v);
 
 void cm_object_property_add_int(Object *obj, const char *name, const int *v);
+
+void cm_irq_init_in(DeviceState *dev, qemu_irq_handler handler,
+        const char *name, int num);
+
+qemu_irq cm_irq_get_in(DeviceState *dev, const char *name, int index);
+
+void cm_irq_init_out(DeviceState *dev, qemu_irq *pins, const char *name,
+        int num);
+
+void cm_irq_connect(DeviceState *dev_out, const char *name_out, int index_out,
+        DeviceState *dev_in, const char *name_in, int index_in);
+
+void cm_irq_connect_out(DeviceState *dev, const char *name, int index,
+        qemu_irq in_irq);
+
+qemu_irq cm_irq_create_in(qemu_irq_handler handler, void *opaque, int index);
+
+void cm_irq_set(qemu_irq irq, int level);
+
+void cm_irq_raise(qemu_irq irq);
+void cm_irq_lower(qemu_irq irq);
 
 /* ------------------------------------------------------------------------- */
 

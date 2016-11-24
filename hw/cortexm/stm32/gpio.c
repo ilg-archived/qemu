@@ -19,8 +19,12 @@
  */
 
 #include <hw/cortexm/stm32/gpio.h>
-#include "qemu/bitops.h"
+#include <hw/cortexm/stm32/exti.h>
+#include <hw/cortexm/stm32/syscfg.h>
+#include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
+
+#include "qemu/bitops.h"
 
 /**
  * This file implements the STM32 GPIO device.
@@ -46,12 +50,46 @@
  * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
  * STM32F411xC/E advanced ARM-based 32-bit MCUs"
  *
- * All STM32 reference manuals available from:
- * http://www.st.com/stonline/stappl/resourceSelector/\
- * app?page=fullResourceSelector&doctype=reference_manual&FamilyID=141
+ * All STM32 reference manuals are available from:
+ * http://www.st.com/content/st_com/en/support/resources/resource-selector.html?querycriteria=productId=SC1169$$resourceCategory=technical_literature$$resourceType=reference_manual
  */
 
-/* ------------------------------------------------------------------------- */
+/* ----- Public ------------------------------------------------------------ */
+
+/*
+ * Create GPIO[i] and return it.
+ */
+Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
+{
+    char child_name[10];
+    snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
+    Object *gpio = cm_object_new(parent, child_name, TYPE_STM32_GPIO);
+
+    object_property_set_int(gpio, index, "port-index", NULL);
+
+    cm_object_realize(gpio);
+
+    for (int i = 0; i < STM32_GPIO_PIN_COUNT; ++i) {
+        /* Connect GPIO outgoing to EXTI incoming. */
+        cm_irq_connect(DEVICE(gpio), IRQ_GPIO_EXTI_OUT, i,
+                cm_device_by_name(DEVICE_PATH_STM32_EXTI), IRQ_EXTI_IN, i);
+    }
+
+    return gpio;
+}
+
+/*
+ * Return a pointer to the gpio[n] object, or null if not found.
+ */
+Object* stm32_gpio_get(int index)
+{
+    char gpio_name[40];
+    snprintf(gpio_name, sizeof(gpio_name), "/machine/mcu/stm32/gpio[%c]",
+            'a' + index);
+    return object_resolve_path(gpio_name, NULL);
+}
+
+/* ------ Private ---------------------------------------------------------- */
 
 static void stm32_gpio_update_idr(STM32GPIOState *state, Object *idr,
         uint16_t new_odr);
@@ -64,7 +102,6 @@ static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state, Object *odr,
 
 /* ------------------------------------------------------------------------- */
 
-// TODO: rework reference to RCC to use links.
 static bool stm32_gpio_is_enabled(Object *obj)
 {
 #if 1
@@ -96,6 +133,7 @@ static bool stm32_gpio_is_enabled(Object *obj)
 
     return false;
 #else
+    /* Always enabled. Used during tests. */
     return true;
 #endif
 }
@@ -586,22 +624,19 @@ static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
              * If the value of this pin has changed, then update
              * the output IRQ.
              */
-            if (changed_out & mask) {
-                qemu_set_irq(state->out_irq[pin], (new_odr & mask) ? 1 : 0);
+            if ((changed_out & mask) != 0) {
+                int level = (new_odr & mask) ? 1 : 0;
+
+                cm_irq_set(state->odr_irq[pin], level);
 
                 /*
-                 * Andre Beckus used:
-                 * state->busdev.parent_obj.gpios.lh_first->out[pin]
-                 *
-                 * The "irq_intercept_out" command in the qtest
-                 * framework overwrites the out IRQ array in the
-                 * NamedGPIOList structure (via the
-                 * qemu_irq_intercept_out procedure).  So we need
-                 * to reference this structure directly (rather than
-                 * use our local state->out_irq array) in order for
-                 * the unit tests to work. This is something of a hack,
-                 * but I don't have a solution yet.
+                 * Implement the SYSCFG multiplexers at origin, in GPIO.
                  */
+                // TODO: on F1, use AFIO.
+                if (register_bitfield_read_value(
+                        state->syscfg->exticr.exti[pin]) == pin) {
+                    cm_irq_set(state->exti_irq[pin], level);
+                }
             }
         }
     }
@@ -667,8 +702,18 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
         peripheral_register_or_raw_value(idr, (1 << pin));
     }
 
-    /* Propagate the pin level to the input IRQs. */
-    qemu_set_irq(state->in_irq[pin], level);
+    if (pin < 16) {
+        /*
+         * Implement the SYSCFG multiplexers at origin, in GPIO.
+         */
+        // TODO: on F1, use AFIO.
+        if (register_bitfield_read_value(state->syscfg->exticr.exti[pin])
+                == pin) {
+            cm_irq_set(state->exti_irq[pin], level);
+        }
+    } else {
+        cm_irq_set(state->exti_irq[pin], level);
+    }
 }
 
 /* ------------------------------------------------------------------------- */
@@ -679,39 +724,53 @@ static void stm32_gpio_instance_init_callback(Object *obj)
 
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    /*
-     * Initialise incoming interrupts, received from machine
-     * devices, like buttons.
-     */
-    SysBusDevice *sbd = SYS_BUS_DEVICE(obj);
-    int pin;
-    for (pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++) {
-        sysbus_init_irq(sbd, &state->in_irq[pin]);
-    }
-    /* Handler for incoming interrupts */
-    qdev_init_gpio_in(DEVICE(obj), stm32_gpio_in_irq_handler,
+    cm_object_property_add_int(obj, "port-index",
+            (const int *) &state->port_index);
+    state->port_index = STM32_GPIO_PORT_UNDEFINED;
+
+    cm_irq_init_in(DEVICE(obj), stm32_gpio_in_irq_handler, IRQ_GPIO_IDR_IN,
     STM32_GPIO_PIN_COUNT);
 
     /*
-     * Initialise outgoing interrupts, propagated to exceptions
-     * or machine devices like LEDs
+     * Outgoing interrupts, will be later connected to EXTI.
      */
-    qdev_init_gpio_out(DEVICE(obj), state->out_irq, STM32_GPIO_PIN_COUNT);
+    cm_irq_init_out(DEVICE(obj), state->exti_irq, IRQ_GPIO_EXTI_OUT,
+    STM32_GPIO_PIN_COUNT);
+
+    /*
+     * Outgoing interrupts, machine devices like LEDs might
+     * be connected here.
+     */
+    cm_irq_init_out(DEVICE(obj), state->odr_irq, IRQ_GPIO_ODR_OUT,
+    STM32_GPIO_PIN_COUNT);
+
 }
 
 static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* No need to call parent realize(). */
+    /*
+     * Parent realize() is called after setting properties and creating
+     * registers.
+     */
+
+    STM32MCUState *mcu = stm32_mcu_get();
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
+    /* First thing first: get capabilities from MCU, needed everywhere. */
+    state->capabilities = mcu->capabilities;
 
-    const STM32Capabilities *capabilities =
-    STM32_GPIO_STATE(state)->capabilities;
+    const STM32Capabilities *capabilities = state->capabilities;
     assert(capabilities != NULL);
 
     Object *obj = OBJECT(dev);
+
+    // TODO: use links
+    state->rcc = STM32_RCC_STATE(cm_device_by_name(DEVICE_PATH_STM32_RCC));
+    // qdev_prop_set_ptr(dev, "syscfg", cm_device_by_name(DEVICE_PATH_STM32_SYSCFG));
+    state->syscfg = STM32_SYSCFG_STATE(
+            cm_device_by_name(DEVICE_PATH_STM32_SYSCFG));
 
     /* Must be defined before creating registers. */
     cm_object_property_set_int(obj, 4, "register-size-bytes");
@@ -795,6 +854,10 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
+    char name[10];
+    snprintf(name, sizeof(name), "gpio[%c]", 'a' + state->port_index);
+    cm_object_property_set_str(obj, name, "name");
+
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_GPIO)) {
         return;
@@ -854,16 +917,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
     default:
         break;
     }
-
 }
-
-static Property stm32_gpio_properties[] = {
-        DEFINE_PROP_INT32_TYPE("port-index", STM32GPIOState, port_index,
-                STM32_GPIO_PORT_UNDEFINED, stm32_gpio_index_t),
-        DEFINE_PROP_NON_VOID_PTR("rcc", STM32GPIOState, rcc, STM32RCCState *),
-        DEFINE_PROP_NON_VOID_PTR("capabilities", STM32GPIOState,
-                capabilities, const STM32Capabilities *),
-    DEFINE_PROP_END_OF_LIST() };
 
 static void stm32_gpio_class_init_callback(ObjectClass *klass, void *data)
 {
@@ -871,8 +925,6 @@ static void stm32_gpio_class_init_callback(ObjectClass *klass, void *data)
 
     dc->reset = stm32_gpio_reset_callback;
     dc->realize = stm32_gpio_realize_callback;
-
-    dc->props = stm32_gpio_properties;
 
     PeripheralClass *per_class = PERIPHERAL_CLASS(klass);
     per_class->is_enabled = stm32_gpio_is_enabled;

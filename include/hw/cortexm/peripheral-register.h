@@ -58,15 +58,20 @@
 #define PERIPHERAL_REGISTER_64BITS_ALL                  (0xFFFFFFFFFFFFFFFF)
 #define PERIPHERAL_REGISTER_32BITS_ALL                  (0x0F0F0F0F)
 
+/* ------------------------------------------------------------------------- */
+
 /* Allow word access aligned at 4 byte margin (reg-offset 0) */
 #define PERIPHERAL_REGISTER_32BITS_WORD                 (0x01000000)
 /* Allow word access aligned at 4 byte margin and half word access
  * aligned at 2 and 4 byte margin  (reg-offset 0 or 2) */
 #define PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD        (0x01000500)
 
-/* --- */
+/* ------------------------------------------------------------------------- */
+
 #define PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES          (4)
 #define PERIPHERAL_REGISTER_MAX_SIZE_BITS               (64)
+
+/* ------------------------------------------------------------------------- */
 
 #define REGISTER_RW_MODE_READ          (0x01)
 #define REGISTER_RW_MODE_WRITE         (0x02)
@@ -82,12 +87,19 @@
 typedef peripheral_register_t (*register_read_callback_t)(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size);
 
-typedef void (*register_post_read_callback_t)(Object *reg, Object *periph,
-        uint32_t addr, uint32_t offset, unsigned size);
-
 typedef void (*register_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value);
+
+typedef peripheral_register_t (*register_pre_read_callback_t)(Object *reg,
+        Object *periph, uint32_t addr, uint32_t offset, unsigned size);
+
+typedef void (*register_post_read_callback_t)(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size);
+
+typedef peripheral_register_t (*register_pre_write_callback_t)(Object *reg,
+        Object *periph, uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value, peripheral_register_t full_value);
 
 typedef void (*register_post_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
@@ -97,18 +109,34 @@ typedef void (*register_post_write_callback_t)(Object *reg, Object *periph,
  * Info structure used to create new register types.
  */
 typedef struct {
+    /* Register description; copied from reference manual. */
     const char *desc;
+
+    /* Register abbreviation; lower case, short word. */
     const char *name;
 
+    /* Register offset inside peripheral, in bytes. */
     uint32_t offset_bytes;
+
+    /* Register value at reset. */
     peripheral_register_t reset_value;
+    /* Mask with the bits affected by reset; default all. */
     peripheral_register_t reset_mask;
+    /* Mask with the bits that can be read; the other return 0. */
     peripheral_register_t readable_bits;
+    /* mask with the bits that can be written; the other are unchanged. */
     peripheral_register_t writable_bits;
+
+    /* Each byte encodes which accesses are allowed, for different alignments. */
     uint64_t access_flags;
+
+    /* Register size in bits; default is inherited from peripheral. */
     uint32_t size_bits;
+
+    /* Read, write or read & write; default both. */
     uint32_t rw_mode;
 
+    /* Pointer to array of bitfields. */
     RegisterBitfieldInfo *bitfields;
 
     /* Copied to instance. */
@@ -136,6 +164,7 @@ typedef enum {
 typedef struct {
     peripheral_register_t mask;
     int shift;
+    /* follows, cleared by, set by */
     peripheral_register_auto_bits_type_t type;
 } PeripheralRegisterAutoBits;
 
@@ -165,11 +194,9 @@ typedef struct {
     PeripheralRegisterParentClass parent_class;
     /*< public >*/
 
-    register_read_callback_t pre_read;
     register_read_callback_t read;
-    register_post_read_callback_t post_read;
     register_write_callback_t write;
-    register_post_write_callback_t post_write;
+
 } PeripheralRegisterClass;
 
 /* ------------------------------------------------------------------------- */
@@ -207,12 +234,22 @@ typedef struct {
 
     /*
      * Placing pointers to functions in the instance data is not very
-     * nice, but the alternative to create new times(???) and make these
+     * nice, but the alternative to create new classes and make these
      * functions virtuals is not very practical, since there are
      * hundreds of such objects, mostly used only once.
      */
-    register_read_callback_t pre_read;
+
+    /* Called to retrieve the value before read.
+     * Name the function xxx_pre_read_callback(). */
+    register_pre_read_callback_t pre_read;
+    /* Called for further processing after read.
+     * Name the function xxx_post_read_callback(). */
     register_post_read_callback_t post_read;
+
+    /* Called for further processing before write. */
+    register_pre_write_callback_t pre_write;
+    /* Called after storing the new value in the write callback.
+     * Name the function xxx_post_write_callback(). */
     register_post_write_callback_t post_write;
 } PeripheralRegisterState;
 
@@ -245,6 +282,9 @@ peripheral_register_t peripheral_register_shorten(peripheral_register_t value,
 peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
         peripheral_register_t value, uint32_t offset, unsigned size,
         bool is_little_endian);
+
+void peripheral_register_set_pre_write(Object* obj,
+        register_pre_write_callback_t ptr);
 
 void peripheral_register_set_post_write(Object* obj,
         register_post_write_callback_t ptr);

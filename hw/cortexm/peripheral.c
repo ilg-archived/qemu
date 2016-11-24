@@ -179,6 +179,7 @@ static void peripheral_instance_init_callback(Object *obj)
 
     cm_object_property_add_const_str(obj, "mmio-node-name",
             &state->mmio_node_name);
+    cm_object_property_add_const_str(obj, "name", &state->mmio_node_name);
     state->mmio_node_name = NULL;
 
     cm_object_property_add_uint64(obj, "mmio-address", &state->mmio_address);

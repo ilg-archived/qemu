@@ -107,6 +107,8 @@ static const STM32Capabilities stm32f103x8b = {
 
     .has_crc = true,
     .has_exti = true,
+    .has_afio = true,
+
     .has_dma1 = true,
     .num_dma1 = 7,
     .has_ac_tim1 = true,
@@ -154,6 +156,8 @@ static const STM32Capabilities stm32f10_57_xx = {
     .has_crc = true,
     .has_exti = true,
     .num_exti = 20,
+    .has_afio = true,
+
     .has_dma1 = true,
     .num_dma1 = 7,
     .has_dma2 = true,
@@ -286,6 +290,7 @@ static const STM32Capabilities stm32f405xx = {
     .has_fsmc = true,
     .has_exti = true,
     .num_exti = 23,
+    .has_syscfg = true,
 
     .has_ac_tim1 = true,
     .has_ac_tim8 = true,
@@ -343,7 +348,9 @@ static const STM32Capabilities stm32f405xx = {
     .has_ts = true, /* ADC1_IN16 */
 
     .has_dac1 = true, /* 12-bits */
-    .has_dac2 = true, };
+    .has_dac2 = true,
+/**/
+};
 
 static const STM32Capabilities stm32f407xx = {
 
@@ -370,6 +377,7 @@ static const STM32Capabilities stm32f407xx = {
     .has_fsmc = true,
     .has_exti = true,
     .num_exti = 23,
+    .has_syscfg = true,
 
     .has_ac_tim1 = true,
     .has_ac_tim8 = true,
@@ -451,7 +459,8 @@ static const STM32Capabilities stm32f411xx = {
     .num_dma2 = 8,
     //.has_fsmc = true,
     .has_exti = true,
-    .num_exti = 21,
+    .num_exti = 23, // actually 21, but the missing ones are 19 & 20.
+    .has_syscfg = true,
 
     .has_ac_tim1 = true,
     .has_gp_tim2 = true,
@@ -520,6 +529,7 @@ static const STM32Capabilities stm32f429xx = {
     .has_fsmc = true,
     .has_exti = true,
     .num_exti = 23,
+    .has_syscfg = true,
 
     .has_ac_tim1 = true,
     .has_ac_tim8 = true,
@@ -578,7 +588,9 @@ static const STM32Capabilities stm32f429xx = {
     .has_ts = true, /* ADC1_IN16 */
 
     .has_dac1 = true, /* 12-bits */
-    .has_dac2 = true, };
+    .has_dac2 = true,
+/**/
+};
 
 /* ------------------------------------------------------------------------- */
 

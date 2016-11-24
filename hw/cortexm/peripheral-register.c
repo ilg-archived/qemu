@@ -244,6 +244,9 @@ void peripheral_register_compute_auto_bits(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+/*
+ * Return the readable bits of the register.
+ */
 peripheral_register_t peripheral_register_read_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
@@ -258,6 +261,9 @@ void peripheral_register_write_value(Object* obj, peripheral_register_t value)
     state->value = value & state->writable_bits;
 }
 
+/*
+ * Return the full register, as is.
+ */
 peripheral_register_t peripheral_register_get_raw_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
@@ -291,6 +297,14 @@ peripheral_register_t peripheral_register_get_raw_prev_value(Object* obj)
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
     return state->prev_value;
+}
+
+void peripheral_register_set_pre_write(Object* obj,
+        register_pre_write_callback_t ptr)
+{
+    PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
+
+    state->pre_write = ptr;
 }
 
 void peripheral_register_set_post_write(Object* obj,
@@ -497,6 +511,12 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
         state->post_read(reg, periph, addr, offset, size);
     }
 
+#if 0
+    qemu_log_mask(LOG_TRACE, "%s('%s','%s',0x%04X,%u,%u)=0x%"PRIX64"\n",
+            __func__, state->name, periph_state->mmio_node_name, addr, offset,
+            size, ret);
+#endif
+
     return ret;
 }
 
@@ -506,6 +526,10 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
     PeripheralState *periph_state = PERIPHERAL_STATE(periph);
+
+    qemu_log_mask(LOG_TRACE, "%s('%s','%s',0x%04X,%u,%u,0x%"PRIX64")\n",
+            __func__, state->name, periph_state->mmio_node_name, addr, offset,
+            size, value);
 
     /* Validate alignment */
     if (!peripheral_register_check_access(size, offset, state->access_flags)) {
@@ -562,7 +586,13 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
     }
 
     state->prev_value = state->value;
-    state->value = full_value;
+
+    if (state->pre_write) {
+        state->value = state->pre_write(reg, periph, addr, offset, size, value,
+                full_value);
+    } else {
+        state->value = full_value;
+    }
 
     /*
      * Actions associated with registers are implemented with post write
@@ -620,6 +650,11 @@ static void peripheral_register_instance_init_callback(Object *obj)
     state->value = state->reset_value;
 
     state->auto_bits = NULL;
+
+    state->pre_read = NULL;
+    state->post_read = NULL;
+    state->pre_write = NULL;
+    state->post_write = NULL;
 }
 
 typedef struct {

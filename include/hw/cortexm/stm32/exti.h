@@ -1,7 +1,7 @@
 /*
- * STM32 MCU - flash control.
+ * STM32 MCU - EXTI (external interrupts controller) emulation.
  *
- * Copyright (c) 2015 Liviu Ionescu.
+ * Copyright (c) 2016 Liviu Ionescu.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef STM32_FLASH_H_
-#define STM32_FLASH_H_
+#ifndef STM32_EXTI_H_
+#define STM32_EXTI_H_
 
 #include "qemu/osdep.h"
 
@@ -27,78 +27,80 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define DEVICE_PATH_STM32_FLASH "/machine/mcu/stm32/flash"
+#define DEVICE_PATH_STM32_EXTI "/machine/mcu/stm32/exti"
+
+/*
+ * The maximum number of EXTIs for all families.
+ * Used to statically allocate the irqs.
+ */
+#define STM32_EXTI_MAX_NUM  (23)
+
+#define IRQ_EXTI_IN     "exti-in"
+#define IRQ_EXTI_OUT    "nvic-out"
 
 /* ------------------------------------------------------------------------- */
 
-#define TYPE_STM32_FLASH TYPE_STM32_PREFIX "flash" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_EXTI TYPE_STM32_PREFIX "exti" TYPE_PERIPHERAL_SUFFIX
 
 /* ------------------------------------------------------------------------- */
 
 /* Parent definitions. */
-#define TYPE_STM32_FLASH_PARENT TYPE_PERIPHERAL
-typedef PeripheralClass STM32FlashParentClass;
-typedef PeripheralState STM32FlashParentState;
+#define TYPE_STM32_EXTI_PARENT TYPE_PERIPHERAL
+typedef PeripheralClass STM32EXTIParentClass;
+typedef PeripheralState STM32EXTIParentState;
 
 /* ------------------------------------------------------------------------- */
 
 /* Class definitions. */
-#define STM32_FLASH_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(STM32FlashClass, (obj), TYPE_STM32_FLASH)
-#define STM32_FLASH_CLASS(klass) \
-    OBJECT_CLASS_CHECK(STM32FlashClass, (klass), TYPE_STM32_FLASH)
+#define STM32_EXTI_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(STM32EXTIClass, (obj), TYPE_STM32_EXTI)
+#define STM32_EXTI_CLASS(klass) \
+    OBJECT_CLASS_CHECK(STM32EXTIClass, (klass), TYPE_STM32_EXTI)
 
 typedef struct {
     /*< private >*/
-    STM32FlashParentClass parent_class;
+    STM32EXTIParentClass parent_class;
     /*< public >*/
 
     /* None, so far. */
-} STM32FlashClass;
+} STM32EXTIClass;
 
 /* ------------------------------------------------------------------------- */
 
 /* Instance definitions. */
-#define STM32_FLASH_STATE(obj) \
-    OBJECT_CHECK(STM32FlashState, (obj), TYPE_STM32_FLASH)
+#define STM32_EXTI_STATE(obj) \
+    OBJECT_CHECK(STM32EXTIState, (obj), TYPE_STM32_EXTI)
 
 typedef struct {
     /*< private >*/
-    STM32FlashParentState parent_obj;
+    STM32EXTIParentState parent_obj;
     /*< public >*/
 
-    const STM32Capabilities *capabilities;
+    MemoryRegion mmio;
+    uint32_t num_exti;
+
+    /* Output IRQs, connected to NVIC interrupts. */
+    qemu_irq irq_out[STM32_EXTI_MAX_NUM];
+
+    struct {
+        Object *imr;
+        Object *emr;
+        Object *rtsr;
+        Object *ftsr;
+        Object *swier;
+        Object *pr; /* rc_w1 */
+    } reg;
 
     struct {
         /* F1 specific registers */
-        struct {
-            Object *acr; /* 0x00 */
-            Object *keyr; /* 0x04 */
-            Object *optkeyr; /* 0x08 */
-            Object *sr; /* 0x0C */
-            Object *cr; /* 0x10 */
-            Object *ar; /* 0x14 */
-            Object *obr; /* 0x1C */
-            Object *wrpr; /* 0x20 */
-
-            /* XL only */
-            Object *keyr2; /* 0x44 */
-            Object *sr2; /* 0x4C */
-            Object *cr2; /* 0x50 */
-            Object *ar2; /* 0x54 */
-        } reg;
-        struct {
-            Object *prftbs;
-        } acr;
     } f1;
     struct {
         /* F4 specific registers */
-        struct {
-            // TODO: add them
-        } reg;
     } f4;
-} STM32FlashState;
+
+    const STM32Capabilities *capabilities;
+} STM32EXTIState;
 
 /* ------------------------------------------------------------------------- */
 
-#endif /* STM32_FLASH_H_ */
+#endif /* STM32_EXTI_H_ */

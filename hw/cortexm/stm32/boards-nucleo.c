@@ -38,7 +38,7 @@ static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
         .w = 8,
         .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .port_bit = 5, },
+        .gpio_bit = 5, },
     { }, /**/
 };
 
@@ -108,7 +108,7 @@ static GPIOLEDInfo nucleo_f411re_leds_info[] = {
         .w = 8,
         .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .port_bit = 5, },
+        .gpio_bit = 5, },
     { }, /**/
 };
 

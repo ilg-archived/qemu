@@ -29,6 +29,8 @@
 #include <hw/cortexm/stm32/pwr.h>
 #include <hw/cortexm/stm32/gpio.h>
 #include <hw/cortexm/stm32/usart.h>
+#include <hw/cortexm/stm32/exti.h>
+#include <hw/cortexm/stm32/syscfg.h>
 
 /* ------------------------------------------------------------------------- */
 
@@ -84,7 +86,10 @@ typedef struct STM32MCUState {
 
     DeviceState *flash;
     DeviceState *pwr;
+    DeviceState *exti;
+    DeviceState *syscfg;
     DeviceState *gpio[STM32_MAX_GPIO];
+    int num_gpio;
     DeviceState *usart[STM32_MAX_USART];
 } STM32MCUState;
 
@@ -105,6 +110,11 @@ G_INLINE_FUNC DeviceState *stm32_mcu_get_gpio_dev(DeviceState *dev,
 {
     assert(port_index < STM32_MAX_GPIO);
     return DEVICE((STM32_MCU_STATE(dev)->gpio[port_index]));
+}
+
+G_INLINE_FUNC STM32MCUState *stm32_mcu_get(void)
+{
+    return STM32_MCU_STATE(object_resolve_path("/machine/mcu", NULL));
 }
 
 /* ------------------------------------------------------------------------- */

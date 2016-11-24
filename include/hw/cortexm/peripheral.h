@@ -31,7 +31,6 @@
 
 typedef struct {
     const char *desc;
-    // const char *name;
 
     PeripheralRegisterInfo *registers;
 } PeripheralInfo;

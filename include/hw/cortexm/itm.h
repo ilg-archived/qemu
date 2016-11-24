@@ -29,6 +29,8 @@
 
 /* ------------------------------------------------------------------------- */
 
+#define DEVICE_PATH_CORTEXM_ITM "/machine/mcu/cortexm/itm"
+
 #define CORTEXM_ITM_DEFAULT_NUM_PORTS	32
 #define CORTEXM_ITM_MAX_NUM_PORTS		256
 

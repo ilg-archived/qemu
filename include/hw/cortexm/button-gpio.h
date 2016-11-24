@@ -25,6 +25,10 @@
 
 /* ------------------------------------------------------------------------- */
 
+#define IRQ_BUTTON_GPIO_OUT     "button-out"
+
+/* ------------------------------------------------------------------------- */
+
 typedef struct {
 
     const char *name; /* NULL for table end. */
@@ -39,7 +43,8 @@ typedef struct {
     bool active_low;
 
     const char *gpio_path;
-    int port_bit;
+    const char *irq_name;
+    int gpio_bit;
 
 } ButtonGPIOInfo;
 
@@ -76,7 +81,7 @@ typedef struct ButtonGPIOState {
     /*< public >*/
 
     bool active_low;
-    qemu_irq irq;
+    qemu_irq irq_out;
 
 } ButtonGPIOState;
 
@@ -84,8 +89,6 @@ typedef struct ButtonGPIOState {
 
 void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
         BoardGraphicContext *graphic_context);
-
-void button_gpio_connect(Object *obj, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */
 

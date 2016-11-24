@@ -38,10 +38,40 @@
 #include "sysemu/sysemu.h"
 #include "exec/gdbstub.h"
 
+/*
+ * The interrupts numbering is a confusing issue. Cortex-M has 16 system
+ * interrupts and a vendor specific number of peripheral interrupts
+ * (internally rounded up to multiples of 32, since the NVIC registers
+ * are 32 bits wide).
+ *
+ * Preferably keep them apart and number each from 0.
+ *
+ * GIC interrupts are numbered differently, the first 32 are for the system
+ * and the higher ones are for the user, so gic->num_irq = nvic->num_irq+32.
+ */
+
 /* ----- Public ------------------------------------------------------------ */
 
 /* TODO: use these instead of armv7m_nvic_*(). */
 
+/* Exceptions are 0-15 */
+void cortexm_nvic_set_pending_exception(void *opaque, int exception)
+{
+    CortexMNVICState *s = (CortexMNVICState *) opaque;
+    assert(exception >= 0 && exception < 16);
+    gic_set_pending_private(&s->gic, 0, exception);
+}
+
+/* Interrupt numbers reflect CMSIS IRQn values;
+ * locally are defined in the capabilities file. */
+void cortexm_nvic_set_pending_interrupt(void *opaque, int interrupt)
+{
+    CortexMNVICState *s = (CortexMNVICState *) opaque;
+    assert(interrupt >= 0);
+    gic_set_pending_private(&s->gic, 0, interrupt + 32);
+}
+
+#if 0
 /* The external routines use the hardware vector numbering, ie. the first
  IRQ is #16.  The internal GIC routines use #32 as the first IRQ.  */
 void cortexm_nvic_set_pending(void *opaque, int irq)
@@ -52,6 +82,7 @@ void cortexm_nvic_set_pending(void *opaque, int irq)
     }
     gic_set_pending_private(&s->gic, 0, irq);
 }
+#endif
 
 /* Make pending IRQ active.  */
 int cortexm_nvic_acknowledge_irq(void *opaque)
@@ -135,7 +166,7 @@ static void systick_timer_tick(void * opaque)
     s->systick.control |= SYSTICK_COUNTFLAG;
     if (s->systick.control & SYSTICK_TICKINT) {
         /* Trigger the interrupt.  */
-        cortexm_nvic_set_pending(s, ARMV7M_EXCP_SYSTICK);
+        cortexm_nvic_set_pending_exception(s, NVIC_EXCEPTION_SYSTICK);
     }
     if (s->systick.reload == 0) {
         s->systick.control &= ~SYSTICK_ENABLE;
@@ -160,9 +191,12 @@ static uint32_t nvic_readl(CortexMNVICState *s, uint32_t offset)
     uint32_t val;
     int irq;
 
+    /* Relative to System control registers (0xE000E000) */
     switch (offset) {
     case 4: /* Interrupt Control Type.  */
         return (s->num_irq / 32) - 1;
+
+        /* ----- SysTick registers ----- */
     case 0x10: /* SysTick Control and Status.  */
         val = s->systick.control;
         s->systick.control &= ~SYSTICK_COUNTFLAG;
@@ -376,16 +410,16 @@ static void nvic_writel(CortexMNVICState *s, uint32_t offset, uint32_t value)
         // System Control Block 0xE000ED00 - 0xE000ED8C
     case 0xd04: /* Interrupt Control State.  */
         if (value & (1 << 31)) {
-            cortexm_nvic_set_pending(s, ARMV7M_EXCP_NMI);
+            cortexm_nvic_set_pending_exception(s, NVIC_EXCEPTION_NMI);
         }
         if (value & (1 << 28)) {
-            cortexm_nvic_set_pending(s, ARMV7M_EXCP_PENDSV);
+            cortexm_nvic_set_pending_exception(s, NVIC_EXCEPTION_PENDSV);
         } else if (value & (1 << 27)) {
             s->gic.irq_state[ARMV7M_EXCP_PENDSV].pending = 0;
             gic_update(&s->gic);
         }
         if (value & (1 << 26)) {
-            cortexm_nvic_set_pending(s, ARMV7M_EXCP_SYSTICK);
+            cortexm_nvic_set_pending_exception(s, NVIC_EXCEPTION_SYSTICK);
         } else if (value & (1 << 25)) {
             s->gic.irq_state[ARMV7M_EXCP_SYSTICK].pending = 0;
             gic_update(&s->gic);
@@ -556,7 +590,7 @@ static void cortexm_nvic_instance_init_callback(Object *obj)
      * any user-specified property setting, so just modify the
      * value in the GICState struct.
      */
-    GICState *s = ARM_GIC_COMMON(obj);
+    GICState *gic = ARM_GIC_COMMON(obj);
     DeviceState *dev = DEVICE(obj);
     CortexMNVICState *nvic = CORTEXM_NVIC_STATE(obj);
     /*
@@ -564,7 +598,7 @@ static void cortexm_nvic_instance_init_callback(Object *obj)
      * IRQ lines. We default to 64. Other boards may differ and should
      * set the num-irq property appropriately.
      */
-    s->num_irq = 64;
+    gic->num_irq = 64;
     qdev_init_gpio_out_named(dev, &nvic->sysresetreq, "SYSRESETREQ", 1);
 }
 
@@ -582,7 +616,9 @@ static void cortexm_nvic_realize_callback(DeviceState *dev, Error **errp)
     s->gic.num_cpu = 1;
     /* Tell the common code we're an NVIC */
     s->gic.revision = 0xffffffff;
-    s->num_irq = s->gic.num_irq;
+
+    /* Adjust back, GIC uses a different numbering scheme. */
+    s->num_irq = s->gic.num_irq - 32;
 
     qemu_log_mask(LOG_TRACE, "NVIC: %d irqs\n", s->num_irq);
 

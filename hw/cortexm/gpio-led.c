@@ -84,10 +84,6 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
         }
 
-        if (info->gpio_path) {
-            gpio_led_connect(led, info->gpio_path, info->port_bit);
-        }
-
 #if defined(CONFIG_SDL)
 
         if (info->w && info->h) {
@@ -131,6 +127,15 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
 
         cm_object_realize(led);
 
+        if (info->gpio_path) {
+            /**
+             * Connect the outgoing interrupt of the GPIO bit to the (only)
+             * incoming interrupt of this LED.
+             */
+            cm_irq_connect(cm_device_by_name(info->gpio_path), info->irq_name,
+                    info->gpio_bit, DEVICE(led), IRQ_GPIO_LED_IN, 0);
+        }
+
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level >= VERBOSITY_DETAILED) {
             printf("LED:");
@@ -142,7 +147,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
             }
             printf(" active %s", info->active_low ? "low" : "high");
             if (info->gpio_path) {
-                printf(" '%s',%d", info->gpio_path, info->port_bit);
+                printf(" '%s',%d", info->gpio_path, info->gpio_bit);
             }
             printf("\n");
         }
@@ -152,24 +157,6 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
     }
 
     return arr;
-}
-
-/**
- * Connect this LED to the named GPIO port pin.
- * The port name is the full path to the GPIO port,
- * something like "/machine/stm32/gpio[c]"; the first
- * port bit has index 0.
- */
-void gpio_led_connect(Object *obj, const char *port_name, int port_bit)
-{
-    GPIOLEDState *state = GPIO_LED_STATE(obj);
-
-    /**
-     * Connect the outgoing port pin irq (the GPIO port has outgoing
-     * irq's for all bits) to this local incoming irq.
-     */
-    qdev_connect_gpio_out(DEVICE(object_resolve_path(port_name, NULL)),
-            port_bit, state->irq);
 }
 
 /* ----- Private ----------------------------------------------------------- */
@@ -256,12 +243,9 @@ static void gpio_led_instance_init_callback(Object *obj)
 #endif /* defined(CONFIG_SDL) */
 
     /*
-     * Allocate 1 single incoming irq, and fill it with
-     * [handler, this device, n=0]. (n==0 is checked in the
-     * handler by an assert).
+     * Create a single incoming irq.
      */
-    state->irq = qemu_allocate_irq(gpio_led_irq_handler, obj, 0);
-    // qdev_init_gpio_in(DEVICE(obj), gpio_led_irq_handler, 1);
+    cm_irq_init_in(DEVICE(obj), gpio_led_irq_handler, IRQ_GPIO_LED_IN, 1);
 
     /*
      * The connection will be done by the machine.

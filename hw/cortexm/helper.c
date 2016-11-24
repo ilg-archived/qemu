@@ -298,6 +298,15 @@ bool cm_device_parent_realize(DeviceState *dev, Error **errp,
     return true;
 }
 
+/*
+ * Return a device pointer for a fully qualified path, like
+ * "/machine/mcu/stm32/gpio[a]".
+ */
+DeviceState *cm_device_by_name(const char *type_name)
+{
+    return DEVICE(object_resolve_path(type_name, NULL));
+}
+
 /**
  *  Call the realize() of a given type.
  */
@@ -345,6 +354,9 @@ void cm_device_by_name_reset(DeviceState *dev, const char *type_name)
     }
 }
 
+/*
+ * Setter for any integer property (uint*, int).
+ */
 void cm_object_property_set_int(Object *obj, int64_t value, const char *name)
 {
     Error *err = NULL;
@@ -356,6 +368,9 @@ void cm_object_property_set_int(Object *obj, int64_t value, const char *name)
     }
 }
 
+/*
+ * Setter for boolean properties.
+ */
 void cm_object_property_set_bool(Object *obj, bool value, const char *name)
 {
     Error *err = NULL;
@@ -367,6 +382,9 @@ void cm_object_property_set_bool(Object *obj, bool value, const char *name)
     }
 }
 
+/*
+ * Setter for string properties.
+ */
 void cm_object_property_set_str(Object *obj, const char *value,
         const char *name)
 {
@@ -721,3 +739,73 @@ void cm_object_property_add_int(Object *obj, const char *name, const int *v)
 
 /* ------------------------------------------------------------------------- */
 
+/*
+ * Initialise `num` incoming interrupts in the device lists
+ * and assign the same handler to all.
+ * Incoming interrupts are usually named "irq-in".
+ */
+void cm_irq_init_in(DeviceState *dev, qemu_irq_handler handler,
+        const char *name, int num)
+{
+    assert(name != NULL);
+    assert(num > 0);
+    qdev_init_gpio_in_named(dev, handler, name, num);
+}
+
+qemu_irq cm_irq_get_in(DeviceState *dev, const char *name, int index)
+{
+    return qdev_get_gpio_in_named(dev, name, index);
+}
+
+/*
+ * Initialise `num` outgoing interrupts in the device lists.
+ * Outgoing interrupts are usually named "irq-out".
+ */
+void cm_irq_init_out(DeviceState *dev, qemu_irq *irqs, const char *name,
+        int num)
+{
+    qdev_init_gpio_out_named(dev, irqs, name, num);
+}
+
+/*
+ * Connect the outgoing interrupt of one device to the incoming interrupt
+ * of the other.
+ */
+void cm_irq_connect(DeviceState *dev_out, const char *name_out, int index_out,
+        DeviceState *dev_in, const char *name_in, int index_in)
+{
+    qemu_irq irq_in = qdev_get_gpio_in_named(dev_in, name_in, index_in);
+    qdev_connect_gpio_out_named(dev_out, name_out, index_out, irq_in);
+}
+
+/*
+ * Connect the device outgoing irq to the local incoming irq.
+ */
+void cm_irq_connect_out(DeviceState *dev, const char *name_out, int index_out,
+        qemu_irq irq_in)
+{
+    qdev_connect_gpio_out_named(dev, name_out, index_out, irq_in);
+}
+
+/*
+ * Create a new incoming irq, using the given handler.
+ */
+qemu_irq cm_irq_create_in(qemu_irq_handler handler, void *opaque, int index)
+{
+    return qemu_allocate_irq(handler, opaque, index);
+}
+
+void cm_irq_set(qemu_irq irq, int level)
+{
+    qemu_set_irq(irq, level);
+}
+
+void cm_irq_raise(qemu_irq irq)
+{
+    qemu_set_irq(irq, 1);
+}
+
+void cm_irq_lower(qemu_irq irq)
+{
+    qemu_set_irq(irq, 0);
+}

@@ -28,6 +28,10 @@
 
 /* ------------------------------------------------------------------------- */
 
+#define IRQ_GPIO_LED_IN     "led-in"
+
+/* ------------------------------------------------------------------------- */
+
 #define DEFINE_PROP_GPIO_LED_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, GPIOLEDInfo*)
 
@@ -56,7 +60,8 @@ typedef struct {
     } colour;
 
     const char *gpio_path;
-    int port_bit;
+    const char *irq_name;
+    int gpio_bit;
 
 } GPIOLEDInfo;
 
@@ -88,6 +93,17 @@ typedef struct {
 #define GPIO_LED_STATE(obj) \
     OBJECT_CHECK(GPIOLEDState, (obj), TYPE_GPIO_LED)
 
+/*
+ * The LED has a single incoming interrupt; connect the source,
+ * usually a GPIO outgoing interrupt, to it.
+ *
+ * Properties:
+ * - active-low (bool)
+ * - on-message (string)
+ * - off-message (string)
+ * - x,y,w,h (int)
+ * - colour.red, colour.green, colour.blue (int)
+ */
 typedef struct {
     /*< private >*/
     GPIOLEDParentState parent_obj;
@@ -107,17 +123,10 @@ typedef struct {
     BoardGraphicContext *board_graphic_context;
 #endif /* defined(CONFIG_SDL) */
 
-    /**
-     * The actual irq used to blink the LED. It works connected to
-     * a GPIO device outgoing irq.
-     */
-    qemu_irq irq;
-
 } GPIOLEDState;
 
 Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         BoardGraphicContext *graphic_context);
-void gpio_led_connect(Object *obj, const char *port_name, int port_bit);
 
 /* ------------------------------------------------------------------------- */
 

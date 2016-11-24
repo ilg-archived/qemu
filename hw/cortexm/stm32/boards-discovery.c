@@ -41,7 +41,10 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .w = 8,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .port_bit = 12, },
+        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 12,
+    /**/
+    },
     {
         .name = "orange-led",
         .active_low = false,
@@ -51,7 +54,10 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .w = 8,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .port_bit = 13, },
+        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 13,
+    /**/
+    },
     {
         .name = "red-led",
         .active_low = false,
@@ -61,7 +67,10 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .w = 8,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .port_bit = 14, },
+        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 14,
+    /**/
+    },
     {
         .name = "blue-led",
         .active_low = false,
@@ -71,7 +80,10 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .w = 8,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .port_bit = 15, },
+        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 15,
+    /**/
+    },
     { }, /**/
 };
 
@@ -85,7 +97,10 @@ static ButtonGPIOInfo stm32f4_discovery_buttons_user_info[] = {
 
         .active_low = false,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .port_bit = 0, },
+        .irq_name = IRQ_GPIO_IDR_IN,
+        .gpio_bit = 0,
+    /**/
+    },
     { }, /**/
 };
 
@@ -93,7 +108,9 @@ static ButtonResetInfo stm32f4_discovery_button_reset_info = {
     .x = 262,
     .y = 324,
     .w = 40,
-    .h = 40 };
+    .h = 40,
+/**/
+};
 
 static void stm32f4_discovery_board_init_callback(MachineState *machine)
 {
@@ -195,7 +212,7 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .w = 10,
         .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[g]",
-        .port_bit = 13, },
+        .gpio_bit = 13, },
     {
         .name = "red-led",
         .active_low = false,
@@ -205,7 +222,7 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .w = 10,
         .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[g]",
-        .port_bit = 14, },
+        .gpio_bit = 14, },
     { }, /**/
 };
 

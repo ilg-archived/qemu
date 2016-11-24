@@ -27,6 +27,32 @@
 
 /* ------------------------------------------------------------------------- */
 
+#define DEVICE_PATH_CORTEXM_NVIC "/machine/mcu/cortexm/nvic"
+
+/* The GIC incoming interrupts are currently unnamed. */
+#define IRQ_NVIC_IN     NULL
+
+/*
+ * System exceptions numbers.
+ */
+#define NVIC_EXCEPTION_RESET            1
+#define NVIC_EXCEPTION_NMI              2
+#define NVIC_EXCEPTION_HARD_FAULT       3
+#define NVIC_EXCEPTION_MEM_MANAGE       4
+#define NVIC_EXCEPTION_BUS_FAULT        5
+#define NVIC_EXCEPTION_USAGE_FAULT      6
+#define NVIC_EXCEPTION_SVCALL           11
+#define NVIC_EXCEPTION_DEBUG_MONITOR    12
+#define NVIC_EXCEPTION_PENDSV           14
+#define NVIC_EXCEPTION_SYSTICK          15
+
+/*
+ * In addition to these 16 exceptions, each device also has a vendor specific
+ * number of peripheral interrupts (`num_irq`).
+ */
+
+/* ------------------------------------------------------------------------- */
+
 #define TYPE_CORTEXM_NVIC TYPE_CORTEXM_PREFIX "nvic" TYPE_PERIPHERAL_SUFFIX
 
 /* ------------------------------------------------------------------------- */
@@ -76,14 +102,17 @@ typedef struct {
     MemoryRegion sysregmem;
     MemoryRegion gic_iomem_alias;
     MemoryRegion container;
+
+    /* Number of vendor specific interrupts, multiple of 32. */
     uint32_t num_irq;
+
     qemu_irq sysresetreq;
 
     // System Control Block 0xE000ED00 - 0xE000ED8C
     struct {
         uint32_t scr; // 0xE000ED10, RW, 0x00000000, System Control Block
         uint32_t ccr; // 0xE000ED14, RW, IMPL, Configuration & Control Register
-                        // 0xE000ED24, RW, System Handler Control and State Register
+                      // 0xE000ED24, RW, System Handler Control and State Register
         uint32_t cfsr; // 0xE000ED28, RW, 0x00000000, Configurable Fault Status Register
         uint32_t hfsr; // 0xE000ED2C, RW, 0x00000000, Hard Fault Status Register
         uint32_t dfsr; // 0xE000ED30, RW, 0x00000000, Debug Fault Status Register
@@ -105,7 +134,10 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
-void cortexm_nvic_set_pending(void *opaque, int irq);
+void cortexm_nvic_set_pending_exception(void *opaque, int exception);
+void cortexm_nvic_set_pending_interrupt(void *opaque, int irq);
+
+//void cortexm_nvic_set_pending(void *opaque, int irq);
 int cortexm_nvic_acknowledge_irq(void *opaque);
 void cortexm_nvic_complete_irq(void *opaque, int irq);
 

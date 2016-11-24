@@ -262,12 +262,12 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* ----- Construct the NVIC object. ----- */
     {
-        /* The NVIC will be available via "/machine/cortexm/nvic" */
+        /* The NVIC will be available via "/machine/mcu/cortexm/nvic" */
         Object *nvic = cm_object_new(cm_state->container, "nvic",
         TYPE_CORTEXM_NVIC);
 
         int num_irq;
-        if (capabilities->core->num_irq) {
+        if (capabilities->core->num_irq != 0) {
             num_irq = capabilities->core->num_irq;
         } else {
             num_irq = DEFAULT_NUM_IRQ;
@@ -280,19 +280,22 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         num_irq = (num_irq + 31) & (~31);
         cm_state->num_irq = num_irq;
 
-        object_property_set_int(nvic, num_irq, "num-irq", NULL);
+        /* This currently goes to GIC, which uses a different numbering. */
+        object_property_set_int(nvic, num_irq + 32, "num-irq", NULL);
 
         cm_object_realize(nvic);
         cm_state->nvic = DEVICE(nvic);
 
         env->nvic = nvic;
 
+        /* Route the ARM CPU_INTERRUPT_HARD to NVIC 0 */
         sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
                 qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
 
         GICState *gs = ARM_GIC_COMMON(nvic);
         gs->basepri_ptr = &env->v7m.basepri;
 
+#if 0
         /*
          * Create the CPU exception handler interrupts. Peripherals
          * will connect to them and set interrupts to be delivered to
@@ -304,6 +307,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
             pic[i] = qdev_get_gpio_in(DEVICE(cm_state->nvic), i);
         }
         cm_state->pic = pic;
+#endif
     }
 
     /* ----- Construct the ITM object. ----- */
@@ -321,6 +325,11 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     {
         CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(dev);
         (*cm_class->memory_regions_create)(dev);
+    }
+
+    /* ----- Connect peripheral interrupts to NVIC ----- */
+    {
+
     }
 
     /* ----- Load image. ----- */

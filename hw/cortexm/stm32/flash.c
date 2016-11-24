@@ -18,6 +18,7 @@
  */
 
 #include <hw/cortexm/stm32/flash.h>
+#include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
 
 /**
@@ -38,9 +39,8 @@
  * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
  * STM32F411xC/E advanced ARM-based 32-bit MCUs"
  *
- * All STM32 reference manuals available from:
- * http://www.st.com/stonline/stappl/resourceSelector/\
- * app?page=fullResourceSelector&doctype=reference_manual&FamilyID=141
+ * All STM32 reference manuals are available from:
+ * http://www.st.com/content/st_com/en/support/resources/resource-selector.html?querycriteria=productId=SC1169$$resourceCategory=technical_literature$$resourceType=reference_manual
  */
 
 /* ------------------------------------------------------------------------- */
@@ -479,7 +479,12 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
      * Parent realize() is called after setting properties and creating
      * registers.
      */
+
+    STM32MCUState *mcu = stm32_mcu_get();
+
     STM32FlashState *state = STM32_FLASH_STATE(dev);
+    /* First thing first: get capabilities from MCU, needed everywhere. */
+    state->capabilities = mcu->capabilities;
 
     const STM32Capabilities *capabilities = state->capabilities;
     assert(capabilities != NULL);
@@ -551,6 +556,8 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     default:
         break;
     }
+
+    cm_object_property_set_str(obj, "flash", "name");
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_FLASH)) {

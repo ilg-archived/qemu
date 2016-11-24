@@ -27,6 +27,7 @@
  */
 
 #include <hw/cortexm/stm32/usart.h>
+#include <hw/cortexm/stm32/mcu.h>
 
 #define USART_SR_TXE        (1 << 7)
 #define USART_SR_TC         (1 << 6)
@@ -83,6 +84,7 @@ static bool stm32_usart_is_enabled(Object *obj)
 static PeripheralInfo stm32f4_usart_info =
         {
             .desc = "Universal synch asynch receiver transmitter (USART)",
+
             .registers =
                     (PeripheralRegisterInfo[] ) {
                                 {
@@ -177,19 +179,22 @@ static void stm32f4_usart_create_objects(Object *obj)
 
 static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
 {
+    /* TODO: use capabilities to select interrupt numbers
+     * for different variants.
+     */
     switch (state->port_index) {
     case STM32_USART_1:
-        return STM32_EXCP_USART_1;
+        return STM32F4_01_57_XX_USART1_IRQn;
     case STM32_USART_2:
-        return STM32_EXCP_USART_2;
+        return STM32F4_01_57_XX_USART2_IRQn;
     case STM32_USART_3:
-        return STM32_EXCP_USART_3;
+        return STM32F4_01_57_XX_USART3_IRQn;
     case STM32_UART_4:
-        return STM32_EXCP_UART_4;
+        return STM32F4_01_57_XX_UART4_IRQn;
     case STM32_UART_5:
-        return STM32_EXCP_UART_5;
+        return STM32F4_01_57_XX_UART5_IRQn;
     case STM32_USART_6:
-        return STM32_EXCP_USART_6;
+        return STM32F4_01_57_XX_USART6_IRQn;
     default:
         return 1023; /* Whatever... */
     }
@@ -223,7 +228,7 @@ static void stm32f4_usart_receive(void *obj, const uint8_t *buf, int size)
     peripheral_register_or_raw_value(state->reg.sr, USART_SR_RXNE);
 
     if (cr1 & USART_CR1_RXNEIE) {
-        cortexm_nvic_set_pending(state->nvic,
+        cortexm_nvic_set_pending_interrupt(state->nvic,
                 smt32f4_usart_get_irq_vector(state));
     }
 }
@@ -258,7 +263,7 @@ static void stm32f4_usart_dr_post_write_callback(Object *reg, Object *periph,
         peripheral_register_or_raw_value(state->reg.sr,
         USART_SR_TC | USART_SR_TXE);
         if ((cr1 & USART_CR1_TXEIE) || (cr1 & USART_CR1_TCIE)) {
-            cortexm_nvic_set_pending(state->nvic,
+            cortexm_nvic_set_pending_interrupt(state->nvic,
                     smt32f4_usart_get_irq_vector(state));
         }
     }
@@ -276,7 +281,7 @@ static void stm32f4_usart_cr1_post_write_callback(Object *reg, Object *periph,
     if (((full_value & USART_CR1_RXNEIE) && (sr & USART_SR_RXNE))
             || ((full_value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))
             || ((full_value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
-        cortexm_nvic_set_pending(state->nvic,
+        cortexm_nvic_set_pending_interrupt(state->nvic,
                 smt32f4_usart_get_irq_vector(state));
     }
 }
@@ -299,7 +304,11 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     /* No need to call parent realize(). */
 
+    STM32MCUState *mcu = stm32_mcu_get();
+
     STM32USARTState *state = STM32_USART_STATE(dev);
+    /* First thing first: get capabilities from MCU, needed everywhere. */
+    state->capabilities = mcu->capabilities;
 
     Object *obj = OBJECT(dev);
 
@@ -371,6 +380,9 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     default:
         break;
     }
+
+    // TODO: add index
+    cm_object_property_set_str(obj, "usart", "name");
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_USART)) {

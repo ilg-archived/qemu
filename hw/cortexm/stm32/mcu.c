@@ -27,6 +27,8 @@
 #include "verbosity.h"
 #endif
 
+/* ----- Public ------------------------------------------------------------ */
+
 /* ----- Private ----------------------------------------------------------- */
 
 /**
@@ -35,19 +37,7 @@
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
         const STM32Capabilities *capabilities)
 {
-    char child_name[10];
-    snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
-    Object *gpio = cm_object_new(state->container, child_name, TYPE_STM32_GPIO);
-
-    object_property_set_int(gpio, index, "port-index", NULL);
-
-    // TODO: get rid of pointers
-    qdev_prop_set_ptr(DEVICE(gpio), "capabilities", (void *) capabilities);
-    qdev_prop_set_ptr(DEVICE(gpio), "rcc", state->rcc);
-
-    cm_object_realize(gpio);
-
-    state->gpio[index] = DEVICE(gpio);
+    state->gpio[index] = DEVICE(stm32_gpio_create(state->container, index));
 }
 
 /**
@@ -182,10 +172,6 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         /* RCC will be named "/machine/mcu/stm32/rcc" */
         Object *rcc = cm_object_new(state->container, "rcc", TYPE_STM32_RCC);
 
-        // TODO: get rid of pointers
-        /* Copy capabilities into internal objects. */
-        qdev_prop_set_ptr(DEVICE(rcc), "capabilities", (void *) capabilities);
-
         /* Copy internal oscillator frequencies from capabilities. */
         cm_object_property_set_int(rcc, capabilities->hsi_freq_hz,
                 "hsi-freq-hz");
@@ -207,59 +193,116 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         Object *flash = cm_object_new(state->container, "flash",
         TYPE_STM32_FLASH);
 
-        // TODO: get rid of pointers
-        qdev_prop_set_ptr(DEVICE(flash), "capabilities", (void *) capabilities);
-
         cm_object_realize(flash);
 
         state->flash = DEVICE(flash);
     }
 
+    /* PWR */
     if (capabilities->has_pwr) {
+        /* PWRR will be named "/machine/mcu/stm32/pwr". */
         Object *pwr = cm_object_new(state->container, "pwr",
         TYPE_STM32_PWR);
-
-        // TODO: get rid of pointers
-        qdev_prop_set_ptr(DEVICE(pwr), "capabilities", (void *) capabilities);
 
         cm_object_realize(pwr);
 
         state->pwr = DEVICE(pwr);
     }
 
+    /* SYSCFG */
+    if (capabilities->has_syscfg) {
+        /*
+         * SYSCFG will be named "/machine/mcu/stm32/syscfg".
+         * It controls, among other, which GPIO pins are
+         * connected to EXTI.
+         */
+        Object *pwr = cm_object_new(state->container, "syscfg",
+        TYPE_STM32_SYSCFG);
+
+        cm_object_realize(pwr);
+
+        state->syscfg = DEVICE(pwr);
+    }
+
+    /* EXTI */
+    {
+        /* EXTI will be named "/machine/mcu/stm32/exti".
+         * It is referred by the GPIOs, to forward interrupts, so
+         * it must be constructed before the GPIOs. */
+        Object *exti = cm_object_new(state->container, "exti",
+        TYPE_STM32_EXTI);
+
+        cm_object_realize(exti);
+
+        state->exti = DEVICE(exti);
+    }
+
+    state->num_gpio = 0;
+
     /* GPIOA */
     if (capabilities->has_gpioa) {
         create_gpio(state, STM32_GPIO_PORT_A, capabilities);
+        state->num_gpio = 1;
     }
 
     /* GPIOB */
     if (capabilities->has_gpiob) {
         create_gpio(state, STM32_GPIO_PORT_B, capabilities);
+        state->num_gpio = 2;
     }
 
     /* GPIOC */
     if (capabilities->has_gpioc) {
         create_gpio(state, STM32_GPIO_PORT_C, capabilities);
+        state->num_gpio = 3;
     }
 
     /* GPIOD */
     if (capabilities->has_gpiod) {
         create_gpio(state, STM32_GPIO_PORT_D, capabilities);
+        state->num_gpio = 4;
     }
 
     /* GPIOE */
     if (capabilities->has_gpioe) {
         create_gpio(state, STM32_GPIO_PORT_E, capabilities);
+        state->num_gpio = 5;
     }
 
     /* GPIOF */
     if (capabilities->has_gpiof) {
         create_gpio(state, STM32_GPIO_PORT_F, capabilities);
+        state->num_gpio = 6;
     }
 
     /* GPIOG */
     if (capabilities->has_gpiog) {
         create_gpio(state, STM32_GPIO_PORT_G, capabilities);
+        state->num_gpio = 7;
+    }
+
+    /* GPIOH */
+    if (capabilities->has_gpioh) {
+        create_gpio(state, STM32_GPIO_PORT_H, capabilities);
+        state->num_gpio = 8;
+    }
+
+    /* GPIOI */
+    if (capabilities->has_gpioi) {
+        create_gpio(state, STM32_GPIO_PORT_I, capabilities);
+        state->num_gpio = 9;
+    }
+
+    /* GPIOJ */
+    if (capabilities->has_gpioj) {
+        create_gpio(state, STM32_GPIO_PORT_J, capabilities);
+        state->num_gpio = 10;
+    }
+
+    /* GPIOK */
+    if (capabilities->has_gpiok) {
+        create_gpio(state, STM32_GPIO_PORT_K, capabilities);
+        state->num_gpio = 11;
     }
 
     /* USART1 */

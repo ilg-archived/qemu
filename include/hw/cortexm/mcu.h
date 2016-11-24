@@ -144,8 +144,13 @@ typedef struct {
     const char *cpu_model;
     const char *display_model;
 
+    /* Internal RAM size, in KB. */
     uint32_t sram_size_kb;
+
+    /* Internal flash size, in KB. */
     uint32_t flash_size_kb;
+
+    /* The number of vendor specific interrupts. */
     uint32_t num_irq;
 
     Object *container;
@@ -162,8 +167,6 @@ typedef struct {
     /**
      * Pointer to array of num-irq elements. Does not include system interrupts.
      */
-    qemu_irq *pic; /* pointer to array of num-irq elements */
-
     DeviceState *nvic;
 
     /* Optional */
