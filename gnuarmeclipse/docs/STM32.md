@@ -18,4 +18,21 @@ The FLASH device is used during the CMSIS initialisation to configure some wait 
 
 Using this device to reprogram the flash will be implemented at a later date, since it will require the flash region to be persistent.
 
+## PWR
+
+The PWR device is used during the CMSIS initialisation and as such it is mandatory for the emulator.
+
+## EXTI
+
+The EXTI device is used to route external interrupts to NVIC, and was added when support for the push buttons was needed.
+
+Support for events is currently not provided.
+
+## SYSCFG
+
+The SYSCFG device is used for devices rom the F4 family, among other things, to configure which GPIO bits are connected to EXTI interrupts.
+
+## USART
+
+Support for USART is currently experimental, and incomplete.
 
