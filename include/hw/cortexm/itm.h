@@ -74,13 +74,13 @@ typedef struct {
     /* Must be a multiple of 8 */
     int num_ports;
 
-    /**
+    /*
      * The memory area 0xE0000000-0xE0000FFF.
      */
     MemoryRegion mmio;
 
     struct {
-        /**
+        /*
          * Stimulus Ports.	(UNKNOWN)
          * [31:0] STIMULUS 	WO 	Data write
          * [31:1] RESERVED 	RO
@@ -93,7 +93,7 @@ typedef struct {
          */
         uint32_t stim[CORTEXM_ITM_MAX_NUM_PORTS];
 
-        /**
+        /*
          * Trace Enable.	(0x0)
          * [31:0] STIMENA	RW	For bit STIMENA[n], in register TERx
          * 						0 = Port (32x+n) disabled
@@ -101,7 +101,7 @@ typedef struct {
          */
         uint32_t ter[CORTEXM_ITM_MAX_NUM_PORTS / 32];
 
-        /**
+        /*
          * Trace Privilege.	(0x0)
          * [31:0] PRIVMASK	RW	Bit [n] controls stimulus port 8n to 8n+7
          * 						0 = Unprivileged access permitted
@@ -111,12 +111,12 @@ typedef struct {
          */
         uint32_t tpr;		// RW, 0
 
-        /**
+        /*
          * Trace Control.	RW 	(0x0) See C1.7.6
          */
         uint32_t tcr;
 
-        /**
+        /*
          * Lock Status.		RO	(0x0)
          *
          * Currently ignored.

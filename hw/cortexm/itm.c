@@ -19,14 +19,14 @@
 
 #include <hw/cortexm/itm.h>
 
-/**
+/*
  * This file implements a minimal ITM peripheral, intended to display
  * the trace messages sent via byte writes to stimulus port 0.
  */
 
 /* ===== Private class implementation ====================================== */
 
-/**
+/*
  * Read from ITM registers.
  *
  * Only word operations are currently supported.
@@ -68,7 +68,7 @@ static uint64_t cortexm_itm_read_callback(void *opaque, hwaddr addr,
     }
 }
 
-/**
+/*
  * Write to ITM registers.
  *
  * Byte writes to stimulus port 0 are forwarded to stderr.

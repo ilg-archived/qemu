@@ -21,7 +21,7 @@
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/helper.h>
 
-/**
+/*
  * This file implements a peripheral register. It extends all shorter accesses
  * to register size and uses the defined masks to write/read the register.
  *
@@ -35,19 +35,17 @@ static int peripheral_register_check_access(unsigned size, unsigned offset,
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *peripheral_register_new_with_info(Object *parent_obj,
-        const char *node_name, PeripheralRegisterInfo *info)
+/*
+ * Set the register properties and add children bitfields from the
+ * info structure.
+ */
+Object *peripheral_register_add_properties_and_children(Object *obj,
+        PeripheralRegisterInfo *info)
 {
-    Object *obj = cm_object_new(parent_obj, node_name,
-    TYPE_PERIPHERAL_REGISTER);
-
     /*
      * After properties are set to default values by .instance_init,
      * copy actual values from info.
      */
-
-    /* Store a local copy of the node name, for easier access.  */
-    cm_object_property_set_str(obj, node_name, "name");
 
     cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
     if (info->reset_value != 0) {
@@ -70,7 +68,7 @@ Object *peripheral_register_new_with_info(Object *parent_obj,
     if (info->size_bits != 0) {
         size_bits = info->size_bits;
     } else {
-        PeripheralState *parent = PERIPHERAL_STATE(parent_obj);
+        PeripheralState *parent = PERIPHERAL_STATE(cm_object_get_parent(obj));
 
         if (parent->register_size_bytes != 0) {
             size_bits = parent->register_size_bytes * 8;
@@ -100,8 +98,12 @@ Object *peripheral_register_new_with_info(Object *parent_obj,
         RegisterBitfieldInfo *bifi_info;
         for (bifi_info = info->bitfields; bifi_info->name; ++bifi_info) {
 
-            Object *bifi = register_bitfield_new_with_info(obj, bifi_info->name,
-                    bifi_info);
+            Object *bifi = cm_object_new(obj, bifi_info->name,
+            TYPE_REGISTER_BITFIELD);
+
+            cm_object_property_set_str(bifi, bifi_info->name, "name");
+
+            register_bitfield_add_properties_and_children(bifi, bifi_info);
 
             /* Should we delay until the register is realized()? */
             cm_object_realize(bifi);
@@ -111,7 +113,7 @@ Object *peripheral_register_new_with_info(Object *parent_obj,
     return obj;
 }
 
-/**
+/*
  * Internal structure with temporary storage,
  * used to compute the auto_bits array.
  */
@@ -332,7 +334,7 @@ void peripheral_register_set_post_read(Object* obj,
 
 /* ----- Private ----------------------------------------------------------- */
 
-/**
+/*
  * Validate the access, using the bits defined for each register.
  * Each byte encodes one size and inside the byte each bit encodes
  * one unaligned offset.
@@ -347,7 +349,7 @@ static int peripheral_register_check_access(unsigned size, unsigned offset,
     return false;
 }
 
-/**
+/*
  * Structure used to process endianness.
  * It overlaps a long long with an array of bytes.
  */
@@ -665,7 +667,7 @@ typedef struct {
     Error *local_err;
 } PeripheralRegisterValidateTmp;
 
-/**
+/*
  * Create the auto_bits array, by concatenating masks of
  * followed bitfields and grouping based on shift steps.
  */
@@ -701,7 +703,7 @@ static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
     return 0; /* Continue iterations. */
 }
 
-/**
+/*
  * Find the followed bitfield among its siblings.
  * Use the temporary structure to pass input/output values.
  * When found, break the iteration.
@@ -723,7 +725,7 @@ static int peripheral_register_find_bifi(Object *obj, void *opaque)
     return 0; /* Continue iterations. */
 }
 
-/**
+/*
  * Create the auto_bits array, by concatenating masks of
  * followed bitfields and grouping based on shift steps.
  */

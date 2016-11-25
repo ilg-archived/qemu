@@ -27,7 +27,7 @@
 #include "hw/sysbus.h"
 #include <hw/cortexm/helper.h>
 
-/**
+/*
  * Emulates the behaviour of a register bitfield.
  *
  * Each bitfield should be the child of a peripheral register.
@@ -106,10 +106,11 @@ typedef struct {
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *register_bitfield_new_with_info(Object *reg, const char *node_name,
+Object *register_bitfield_add_properties_and_children(Object *obj,
         RegisterBitfieldInfo *bifi_info);
 
 bool register_bitfield_is_zero(Object* obj);
+
 peripheral_register_t register_bitfield_read_value(Object* obj);
 
 /* ------------------------------------------------------------------------- */

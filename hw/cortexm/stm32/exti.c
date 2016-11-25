@@ -22,7 +22,7 @@
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
 
-/**
+/*
  * This file implements the STM32 EXTI.
  *
  * References:
@@ -438,7 +438,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F1:
 
         assert(capabilities->num_exti == 20);
-        peripheral_new_with_info(obj, NULL, &stm32f1_exti_info);
+        peripheral_add_properties_and_children(obj, &stm32f1_exti_info);
         break;
 
     case STM32_FAMILY_F4:
@@ -446,11 +446,11 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
         assert(capabilities->num_exti == 23);
         if (capabilities->f4.is_01_57_xx || capabilities->f4.is_23_xxx) {
 
-            peripheral_new_with_info(obj, NULL, &stm32f4xxxx_exti_info);
+            peripheral_add_properties_and_children(obj, &stm32f4xxxx_exti_info);
 
         } else if (capabilities->f4.is11xx) {
 
-            peripheral_new_with_info(obj, NULL, &stm32f411xx_exti_info);
+            peripheral_add_properties_and_children(obj, &stm32f411xx_exti_info);
 
         }
         break;

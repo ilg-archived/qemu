@@ -21,10 +21,12 @@
 #include <hw/cortexm/register-bitfield.h>
 #include <hw/cortexm/helper.h>
 
-/**
+/*
  * This file implements a register bitfield.
  * Up to 64-bits registers are supported.
  * Bitfield objects are always children of register objects.
+ * Bitfields do not keep a separate value, but get it from the
+ * parent register, by masking and shifting
  *
  * To simplify handling, it is possible to explicitly mark status or ready
  * bits to follow the value of other enable bits, present in the same
@@ -33,14 +35,12 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *register_bitfield_new_with_info(Object *parent_obj,
-        const char *node_name, RegisterBitfieldInfo *info)
+/*
+ * Set register bitfield properties from the info structure.
+ */
+Object *register_bitfield_add_properties_and_children(Object *obj,
+        RegisterBitfieldInfo *info)
 {
-    Object *obj = cm_object_new(parent_obj, node_name,
-    TYPE_REGISTER_BITFIELD);
-
-    cm_object_property_set_str(obj, node_name, "name");
-
     assert(info->first_bit < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
     cm_object_property_set_int(obj, info->first_bit, "first-bit");
 
@@ -69,7 +69,8 @@ Object *register_bitfield_new_with_info(Object *parent_obj,
     }
 
     int size_bits = 0;
-    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(parent_obj);
+    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(
+            cm_object_get_parent(obj));
     size_bits = reg_state->size_bits;
 
     cm_object_property_set_int(obj, size_bits, "register-size-bits");
@@ -77,8 +78,9 @@ Object *register_bitfield_new_with_info(Object *parent_obj,
     return obj;
 }
 
-/**
- * Get the value of a bitfield, shifted to the right.
+/*
+ * Get the value of a bitfield. Bitfields do not keep a separate value,
+ * but get it from the parent register, by masking and shifting.
  */
 peripheral_register_t register_bitfield_read_value(Object* obj)
 {
@@ -92,7 +94,7 @@ peripheral_register_t register_bitfield_read_value(Object* obj)
     return (reg->value & state->mask) >> state->shift;
 }
 
-/**
+/*
  * Return true if a bitfield is zero.
  */
 bool register_bitfield_is_zero(Object* obj)

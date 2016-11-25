@@ -110,7 +110,7 @@ typedef struct {
 
     STM32SYSCFGState *syscfg;
 
-    /**
+    /*
      * IRQs used to communicate with the machine implementation, for
      * cases like blinking a LED.
      * There is one IRQ for each pin.  Note that for pins configured
@@ -122,20 +122,20 @@ typedef struct {
     qemu_irq exti_irq[STM32_GPIO_PIN_COUNT];
 
 #if 0
-    /**
+    /*
      * IRQs which relay input pin changes to other STM32 peripherals
      * or to exception handlers.
      */
     qemu_irq in_irq[STM32_GPIO_PIN_COUNT];
 #endif
 
-    /**
+    /*
      * Cached direction mask. 1 = output pin.
      * No more than 16 bits/port.
      */
     uint16_t dir_mask;
 
-    /**
+    /*
      * Mutually exclusive all families registers.
      * Address them like status->u.f1.reg.crl.
      * The 'reg' structure was used to mark explicitly that the member is

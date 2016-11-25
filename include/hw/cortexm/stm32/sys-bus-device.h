@@ -25,7 +25,7 @@
 #include <hw/cortexm/stm32/capabilities.h>
 #include "hw/sysbus.h"
 
-/**
+/*
  *  Parent type for all STM32 peripherals.
  *
  * Define a field to differentiate between different STM32 families.

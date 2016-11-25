@@ -31,7 +31,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-/**
+/*
  * Define all STM32 MCUs, based on table capabilities.
  *
  * To easily reuse the definitions, each line includes a pointer
@@ -861,7 +861,7 @@ static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
     st_class->part_info = data;
 }
 
-/**
+/*
  * Register all devices described in the table.
  * Pass the pointer to the table element as .class_data
  * to the .class_init.

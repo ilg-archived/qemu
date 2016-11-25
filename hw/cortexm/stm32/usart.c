@@ -164,7 +164,7 @@ static void stm32f4_usart_create_objects(Object *obj)
 {
     STM32USARTState *state = STM32_USART_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_usart_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_usart_info);
 
     state->reg.sr = cm_object_get_child_by_name(obj, "sr");
     state->reg.dr = cm_object_get_child_by_name(obj, "dr");

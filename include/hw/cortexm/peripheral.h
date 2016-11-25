@@ -24,7 +24,7 @@
 
 #include <hw/cortexm/peripheral-register.h>
 
-/**
+/*
  * Parent type for peripherals.
  * It builds an array of registers and forwards read/writes to them.
  */
@@ -43,7 +43,7 @@ typedef struct {
 
 /* ------------------------------------------------------------------------- */
 
-/**
+/*
  * Parent definitions.
  *
  * Must be a descendant of SYS_BUS_DEVICE since here are stored the
@@ -110,7 +110,7 @@ typedef struct {
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *peripheral_new_with_info(Object *parent_obj, const char *node_name,
+Object *peripheral_add_properties_and_children(Object *obj,
         PeripheralInfo *info);
 
 /* ------------------------------------------------------------------------- */

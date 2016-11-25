@@ -26,7 +26,7 @@
 
 #include "qemu/bitops.h"
 
-/**
+/*
  * This file implements the STM32 GPIO device.
  *
  * The implementation is more or less complete, with interrupts ready to
@@ -283,7 +283,7 @@ static void stm32f1_gpio_create_objects(Object *obj)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f1_gpio_info);
+    peripheral_add_properties_and_children(obj, &stm32f1_gpio_info);
 
     state->f1.reg.crl = cm_object_get_child_by_name(obj, "crl");
     state->f1.reg.crh = cm_object_get_child_by_name(obj, "crh");
@@ -295,7 +295,7 @@ static void stm32f1_gpio_create_objects(Object *obj)
 }
 /* ------------------------------------------------------------------------- */
 
-/**
+/*
  * Gets the four configuration bits for the pin from the CRL or CRH
  * register.
  */
@@ -313,7 +313,7 @@ static uint32_t stm32f1_gpio_get_pin_config(STM32GPIOState *state, unsigned pin)
     return extract64(cr_64, pin * 4, 4);
 }
 
-/**
+/*
  * Configuration bits:
  * - in input mode:
  *   00: analog mode
@@ -332,7 +332,7 @@ static uint32_t __attribute__ ((unused)) stm32f1_gpio_get_config_bits(
     return (stm32f1_gpio_get_pin_config(state, pin) >> 2) & 0x3;
 }
 
-/**
+/*
  * Modes are:
  * 00: input (reset)
  * 01: output, 10 MHz
@@ -344,7 +344,7 @@ static uint32_t stm32f1_gpio_get_mode_bits(STM32GPIOState *state, unsigned pin)
     return stm32f1_gpio_get_pin_config(state, pin) & 0x3;
 }
 
-/**
+/*
  * Update the direction mask, cached for performance reasons.
  *
  * Must be called after each CR[LH] changes.
@@ -533,7 +533,7 @@ static void stm32f4_gpio_create_objects(Object *obj)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_gpio_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_gpio_info);
 
     state->f4.reg.moder = cm_object_get_child_by_name(obj, "moder");
     state->f4.reg.otyper = cm_object_get_child_by_name(obj, "otyper");
@@ -549,7 +549,7 @@ static void stm32f4_gpio_create_objects(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
-/**
+/*
  * The F4 family has more uniform configuration registers, each
  * register bit has a 2-bits slice in a register.
  */
@@ -582,7 +582,7 @@ static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state)
 
 /* ========================================================================= */
 
-/**
+/*
  * Write the ODR register and trigger interrupts for changed pins
  * (output only).
  *
@@ -642,7 +642,7 @@ static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
     }
 }
 
-/**
+/*
  * For output pins, make them read back the written value.
  *
  * TODO: check if there is anything special for open-drain pins.
@@ -658,7 +658,7 @@ static void stm32_gpio_update_idr(STM32GPIOState *state, Object *idr,
     peripheral_register_or_raw_value(idr, (new_odr & state->dir_mask));
 }
 
-/**
+/*
  * Callback fired when a GPIO input pin changes state (based
  * on an external stimulus from the machine).
  */

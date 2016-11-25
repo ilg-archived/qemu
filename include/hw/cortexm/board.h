@@ -58,7 +58,7 @@ typedef struct {
 #define CORTEXM_BOARD_STATE(obj) \
     OBJECT_CHECK(CortexMBoardState, (obj), TYPE_CORTEXM_BOARD)
 
-/**
+/*
  * Structure used to store the Cortex-M state.
  */
 typedef struct {

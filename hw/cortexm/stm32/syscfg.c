@@ -21,7 +21,7 @@
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
 
-/**
+/*
  * This file implements the STM32 SYSCFG.
  *
  * References:
@@ -370,7 +370,7 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, addr, "mmio-address");
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
-    peripheral_new_with_info(obj, NULL, &stm32f4xxxx_syscfg_info);
+    peripheral_add_properties_and_children(obj, &stm32f4xxxx_syscfg_info);
 
     state->reg.memrmp = cm_object_get_child_by_name(obj, "memrmp");
     state->memrmp.mem_mode = cm_object_get_child_by_name(state->reg.memrmp,

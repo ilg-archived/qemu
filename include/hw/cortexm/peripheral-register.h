@@ -26,7 +26,7 @@
 
 #include <hw/cortexm/register-bitfield.h>
 
-/**
+/*
  * Emulates the behaviour of a peripheral register.
  * Up to 64-bits are supported.
  *
@@ -105,7 +105,7 @@ typedef void (*register_post_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value);
 
-/**
+/*
  * Info structure used to create new register types.
  */
 typedef struct {
@@ -255,8 +255,8 @@ typedef struct {
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *peripheral_register_new_with_info(Object *parent_obj,
-        const char *node_name, PeripheralRegisterInfo *info);
+Object *peripheral_register_add_properties_and_children(Object *obj,
+        PeripheralRegisterInfo *info);
 
 void peripheral_register_compute_auto_bits(Object *obj);
 

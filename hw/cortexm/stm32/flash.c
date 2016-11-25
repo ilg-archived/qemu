@@ -21,7 +21,7 @@
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
 
-/**
+/*
  * This file implements the STM32 flash control.
  *
  * The initial implementation is intended only to pass CMSIS initialisations.
@@ -106,7 +106,7 @@ static void stm32f1_flash_create_objects(Object *obj)
 {
     STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f1_flash_info);
+    peripheral_add_properties_and_children(obj, &stm32f1_flash_info);
 
     state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
     state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
@@ -200,7 +200,7 @@ static void stm32f1xd_flash_create_objects(Object *obj)
 {
     STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f1xd_flash_info);
+    peripheral_add_properties_and_children(obj, &stm32f1xd_flash_info);
 
     state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
     state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
@@ -307,7 +307,7 @@ static void stm32f4_01_57_xx_flash_create_objects(Object *obj)
 {
     //STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_01_57_xx_flash_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_01_57_xx_flash_info);
 }
 
 static PeripheralInfo stm32f411xx_flash_info = {
@@ -372,7 +372,7 @@ static void stm32f411xx_flash_create_objects(Object *obj)
 {
     //STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f411xx_flash_info);
+    peripheral_add_properties_and_children(obj, &stm32f411xx_flash_info);
 }
 
 static PeripheralInfo stm32f4_23_xxx_flash_info = {
@@ -461,7 +461,7 @@ static void stm32f4_23_xxx_flash_create_objects(Object *obj)
 {
     //STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_23_xxx_flash_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_23_xxx_flash_info);
 }
 
 /* ------------------------------------------------------------------------- */

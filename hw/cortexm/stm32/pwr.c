@@ -21,7 +21,7 @@
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
 
-/**
+/*
  * This file implements the STM32 PWR.
  *
  * The initial implementation is intended only to pass CMSIS initialisations.
@@ -143,7 +143,7 @@ static void stm32f1_pwr_create_objects(Object *obj)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f1_pwr_info);
+    peripheral_add_properties_and_children(obj, &stm32f1_pwr_info);
 
     state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -305,7 +305,7 @@ static void stm32f4_01_57_xx_pwr_create_objects(Object *obj)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_01_57_xx_pwr_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_01_57_xx_pwr_info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -487,7 +487,7 @@ static void stm32f411xx_pwr_create_objects(Object *obj)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f411xx_pwr_info);
+    peripheral_add_properties_and_children(obj, &stm32f411xx_pwr_info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -706,7 +706,7 @@ static void stm32f4_23_xxx_pwr_create_objects(Object *obj)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_23_xxx_pwr_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_23_xxx_pwr_info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.csr = cm_object_get_child_by_name(obj, "csr");

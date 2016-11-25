@@ -23,7 +23,7 @@
 
 #include "qemu/timer.h"
 
-/**
+/*
  * This file implements the STM32 RCC (Reset and Clock Control).
  *
  * The initial implementation is intended only to pass CMSIS initialisations.
@@ -569,7 +569,7 @@ static void stm32f1_rcc_create_objects(Object *obj)
 {
     STM32RCCState *state = STM32_RCC_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f1_rcc_info);
+    peripheral_add_properties_and_children(obj, &stm32f1_rcc_info);
 
     state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
@@ -1239,7 +1239,7 @@ static void stm32f1cl_rcc_create_objects(Object *obj)
 {
     STM32RCCState *state = STM32_RCC_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f1cl_rcc_info);
+    peripheral_add_properties_and_children(obj, &stm32f1cl_rcc_info);
 
     state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
@@ -1925,7 +1925,7 @@ static void stm32f4_01_57_xx_rcc_create_objects(Object *obj)
 {
     STM32RCCState *state = STM32_RCC_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_01_57_xx_rcc_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_01_57_xx_rcc_info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.pllcfgr = cm_object_get_child_by_name(obj, "pllcfgr");
@@ -2638,7 +2638,7 @@ static void stm32f411xx_rcc_create_objects(Object *obj)
 {
     STM32RCCState *state = STM32_RCC_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f411xx_rcc_info);
+    peripheral_add_properties_and_children(obj, &stm32f411xx_rcc_info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.pllcfgr = cm_object_get_child_by_name(obj, "pllcfgr");
@@ -3406,7 +3406,7 @@ static void stm32f4_23_xxx_rcc_create_objects(Object *obj)
 {
     STM32RCCState *state = STM32_RCC_STATE(obj);
 
-    peripheral_new_with_info(obj, NULL, &stm32f4_23_xxx_rcc_info);
+    peripheral_add_properties_and_children(obj, &stm32f4_23_xxx_rcc_info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.pllcfgr = cm_object_get_child_by_name(obj, "pllcfgr");
@@ -3575,7 +3575,7 @@ static void stm32_rcc_post_write_callback(Object *reg, Object *periph,
     stm32_rcc_update_clocks(state);
 }
 
-/**
+/*
  * Recompute the system clock, after each change in the RCC registers.
  * The code is inspired by CMSIS init sequences.
  */

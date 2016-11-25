@@ -97,7 +97,7 @@ typedef struct {
 
     CharDriverState *chr;
 
-    /**
+    /*
      * USART/UART peripherals seem to be very similar among all families,
      * so we have a common struct for all mcus.
      */

@@ -31,7 +31,7 @@
 
 /* ----- Private ----------------------------------------------------------- */
 
-/**
+/*
  * Create children GPIO nodes. Public names are "/machine/stm32/gpio[%c]".
  */
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
@@ -40,7 +40,7 @@ static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
     state->gpio[index] = DEVICE(stm32_gpio_create(state->container, index));
 }
 
-/**
+/*
  * Create children USART/UART nodes.
  * Public names are "/machine/stm32/usart[%c]".
  */
@@ -80,7 +80,7 @@ static void create_usart(STM32MCUState *state, stm32_usart_index_t index,
     state->usart[index] = DEVICE(usart);
 }
 
-/**
+/*
  * Constructor for all STM32 devices, based on capabilities.
  *
  * Alias the flash memory to 0x08000000.
@@ -128,7 +128,7 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* Memory alias */
     {
-        /**
+        /*
          * The STM32 family stores its Flash memory at some base address
          * in memory (0x08000000 for medium density devices), and then
          * aliases it to the boot memory space, which starts at 0x00000000
@@ -369,7 +369,7 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
     }
 }
 
-/**
+/*
  * Virtual function, overriding (in fact extending) the Cortex-M code.
  */
 static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)

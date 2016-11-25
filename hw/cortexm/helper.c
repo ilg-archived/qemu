@@ -98,7 +98,7 @@ bool cm_board_help_func(const char *name)
 
 /* ------------------------------------------------------------------------- */
 
-/**
+/*
  * A version of cpu_generic_init() that does only the object creation and
  * initialisation, without calling realize().
  */
@@ -143,7 +143,7 @@ static CPUState *cm_cpu_generic_create(const char *typename,
     return cpu;
 }
 
-/**
+/*
  * A version of cpu_arm_init() that does only the object creation and
  * initialisation, without calling realize().
  */
@@ -167,7 +167,7 @@ Object *cm_object_get_parent(Object *obj)
     return obj->parent;
 }
 
-/**
+/*
  * Return true if the node is of given type. Go up the class hierarchy.
  */
 bool cm_object_is_instance_of_typename(Object *obj, const char *type_name)
@@ -220,7 +220,7 @@ Object *cm_object_get_child_by_name(Object *obj, const char *name)
 
 /* ------------------------------------------------------------------------- */
 
-/**
+/*
  *  Realize object. Errors are fatal.
  *  Similar to qdev_init_nofail(), but with a less-confusing name, since
  *  qdev_init_nofail not only that it does not call init(), but realize(),
@@ -267,7 +267,7 @@ Object *cm_object_new_mcu(MachineState *machine, const char *board_device_name)
     return cm_object_new((Object*) cortexm_board_get(), "mcu", device_name);
 }
 
-/**
+/*
  * Reset the device, if it exists.
  */
 void cm_device_reset(DeviceState *dev)
@@ -277,7 +277,7 @@ void cm_device_reset(DeviceState *dev)
     }
 }
 
-/**
+/*
  *  Call the parent realize() of a given type.
  */
 bool cm_device_parent_realize(DeviceState *dev, Error **errp,
@@ -307,7 +307,7 @@ DeviceState *cm_device_by_name(const char *type_name)
     return DEVICE(object_resolve_path(type_name, NULL));
 }
 
-/**
+/*
  *  Call the realize() of a given type.
  */
 bool cm_device_by_name_realize(DeviceState *dev, Error **errp,
@@ -327,7 +327,7 @@ bool cm_device_by_name_realize(DeviceState *dev, Error **errp,
     return true;
 }
 
-/**
+/*
  * Call the parent reset() of a given type.
  */
 void cm_device_parent_reset(DeviceState *dev, const char *type_name)
@@ -341,7 +341,7 @@ void cm_device_parent_reset(DeviceState *dev, const char *type_name)
     }
 }
 
-/**
+/*
  * Call the reset() of a given type.
  */
 void cm_device_by_name_reset(DeviceState *dev, const char *type_name)

@@ -70,7 +70,7 @@ const char *cortexm_board_get_desc(CortexMBoardState *board)
     return MACHINE_GET_CLASS(board)->desc;
 }
 
-/**
+/*
  * When verbose, display a line to identify the board (name, description).
  */
 void cortexm_board_greeting(CortexMBoardState *board)

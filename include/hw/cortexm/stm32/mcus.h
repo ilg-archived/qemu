@@ -63,7 +63,7 @@ typedef STM32MCUState STM32DeviceParentState;
 #define STM32_DEVICE_GET_CLASS(obj) \
     ((STM32DeviceClass *)object_get_class(OBJECT(obj)))
 
-/**
+/*
  * Structure to define the specifics of each MCU. Capabilities are
  * split between core & stm32; they care processed by parent class
  * constructors.

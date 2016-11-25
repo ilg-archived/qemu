@@ -119,7 +119,7 @@ typedef struct {
 #define CORTEXM_MCU_STATE(obj) \
     OBJECT_CHECK(CortexMState, (obj), TYPE_CORTEXM_MCU)
 
-/**
+/*
  * Structure used to store the Cortex-M state.
  */
 typedef struct {
@@ -130,7 +130,7 @@ typedef struct {
     /* Constructor parameters. */
     const CortexMCapabilities *param_capabilities;
 
-    /**
+    /*
      * R/W copy of core capabilities, set by *_instance_init().
      */
     const CortexMCapabilities *capabilities;
@@ -159,12 +159,12 @@ typedef struct {
     MemoryRegion sram_mem;
     MemoryRegion hack_mem;
 
-    /**
+    /*
      * CPU state, as returned by cpu_arm_init().
      */
     ARMCPU *cpu;
 
-    /**
+    /*
      * Pointer to array of num-irq elements. Does not include system interrupts.
      */
     DeviceState *nvic;

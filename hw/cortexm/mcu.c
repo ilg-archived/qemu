@@ -489,7 +489,7 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 #define DEFINE_PROP_CORTEXMCAPABILITIES_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const CortexMCapabilities*)
 
-/**
+/*
  * Properties for the 'cortexm_mcu' object, used as parent for
  * all vendor MCUs.
  */
@@ -500,7 +500,7 @@ static Property cortexm_mcu_properties[] = {
                 CortexMState, param_capabilities),
     DEFINE_PROP_END_OF_LIST() };
 
-/**
+/*
  * Initialise the "cortexm-mcu" object. Currently there is no input data.
  * Called during module_call_init() in main().
  */

@@ -23,23 +23,28 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
-Object *peripheral_new_with_info(Object *parent_obj, const char *node_name,
+/*
+ * Set the peripheral properties and add children registers from the
+ * info structure.
+ */
+Object *peripheral_add_properties_and_children(Object *obj,
         PeripheralInfo *info)
 {
-    Object *obj = parent_obj;
-    if (node_name) {
-        obj = cm_object_new(parent_obj, node_name, TYPE_PERIPHERAL);
-    }
     /* TODO: Add properties. */
 
     if (info->registers) {
-        PeripheralRegisterInfo *bifi_info;
-        for (bifi_info = info->registers; bifi_info->name; ++bifi_info) {
+        PeripheralRegisterInfo *regs_info;
+        for (regs_info = info->registers; regs_info->name; ++regs_info) {
 
-            Object *bifi = peripheral_register_new_with_info(obj,
-                    bifi_info->name, bifi_info);
+            Object *reg = cm_object_new(obj, regs_info->name,
+            TYPE_PERIPHERAL_REGISTER);
 
-            cm_object_realize(bifi);
+            /* Store a local copy of the node name, for easier access.  */
+            cm_object_property_set_str(reg, regs_info->name, "name");
+
+            peripheral_register_add_properties_and_children(reg, regs_info);
+
+            cm_object_realize(reg);
         }
     }
 
@@ -48,7 +53,7 @@ Object *peripheral_new_with_info(Object *parent_obj, const char *node_name,
 
 /* ----- Private ----------------------------------------------------------- */
 
-/**
+/*
  * Memory region read callback.
  *
  * Forward the read to the register. The basic register will do the
@@ -108,7 +113,7 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
     return value;
 }
 
-/**
+/*
  * Memory region write callback.
  *
  * Forward the write to the register. The basic register will do the

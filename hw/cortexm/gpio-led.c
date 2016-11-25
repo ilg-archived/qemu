@@ -26,13 +26,13 @@
 #include "verbosity.h"
 #endif
 
-/**
+/*
  * This class implements a LED connected to a GPIO device.
  */
 
 /* ----- Public ------------------------------------------------------------ */
 
-/**
+/*
  * Create a number of LEDs, using details from an array of Info structures.
  */
 Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
@@ -128,7 +128,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         cm_object_realize(led);
 
         if (info->gpio_path) {
-            /**
+            /*
              * Connect the outgoing interrupt of the GPIO bit to the (only)
              * incoming interrupt of this LED.
              */
@@ -178,7 +178,7 @@ static void gpio_led_turn(GPIOLEDState *state, bool is_on)
 #endif /* defined(CONFIG_SDL) */
 }
 
-/**
+/*
  * Callback used to notify the LED status change.
  */
 static void gpio_led_irq_handler(void *opaque, int n, int level)

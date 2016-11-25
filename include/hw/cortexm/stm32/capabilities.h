@@ -22,7 +22,7 @@
 
 #include <stdint.h>
 
-/**
+/*
  * This file defines the members used in the structure used to describe
  * the capabilities of the STM32 MCUs.
  *
@@ -33,7 +33,7 @@
 #define TYPE_STM32F1_PREFIX     "stm32f1:"
 #define TYPE_STM32F1CL_PREFIX   "stm32f1cl:"
 
-/**
+/*
  * The family is the main differentiator for STM32 MCUs.
  */
 typedef enum {
