@@ -620,7 +620,7 @@ static void cortexm_nvic_realize_callback(DeviceState *dev, Error **errp)
     /* Adjust back, GIC uses a different numbering scheme. */
     s->num_irq = s->gic.num_irq - 32;
 
-    qemu_log_mask(LOG_TRACE, "NVIC: %d irqs\n", s->num_irq);
+    qemu_log_mask(LOG_FUNC, "NVIC: %d irqs\n", s->num_irq);
 
     /* Call parent realize() early, to complete GIC construction. */
     if (!cm_device_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {

@@ -51,7 +51,7 @@ static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
         hwaddr addr,
         bool is_write, bool is_exec, int opaque, unsigned size)
 {
-    qemu_log_mask(LOG_TRACE,
+    qemu_log_mask(LOG_FUNC,
             "%s(addr=0x%08"PRIX64", size=%d, is_write=%s, is_exec=%s)\n",
             __FUNCTION__, addr, size, is_write ? "true" : "false",
             is_exec ? "true" : "false");

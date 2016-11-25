@@ -995,7 +995,7 @@ void memory_region_init(MemoryRegion *mr,
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     if (name != NULL) {
-        qemu_log_mask(LOG_TRACE, "%s(\"%s\", 0x%"PRIX64")\n", __FUNCTION__, name, size);
+        qemu_log_mask(LOG_FUNC, "%s(\"%s\", 0x%"PRIX64")\n", __FUNCTION__, name, size);
     }
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 

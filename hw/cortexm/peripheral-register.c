@@ -512,7 +512,7 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
     }
 
 #if 0
-    qemu_log_mask(LOG_TRACE, "%s('%s','%s',0x%04X,%u,%u)=0x%"PRIX64"\n",
+    qemu_log_mask(LOG_FUNC, "%s('%s','%s',0x%04X,%u,%u)=0x%"PRIX64"\n",
             __func__, state->name, periph_state->mmio_node_name, addr, offset,
             size, ret);
 #endif
@@ -527,7 +527,7 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
     PeripheralState *periph_state = PERIPHERAL_STATE(periph);
 
-    qemu_log_mask(LOG_TRACE, "%s('%s','%s',0x%04X,%u,%u,0x%"PRIX64")\n",
+    qemu_log_mask(LOG_FUNC, "%s('%s','%s',0x%04X,%u,%u,0x%"PRIX64")\n",
             __func__, state->name, periph_state->mmio_node_name, addr, offset,
             size, value);
 
@@ -904,7 +904,7 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
         state->writable_bits = 0;
     }
 
-    qemu_log_mask(LOG_TRACE,
+    qemu_log_mask(LOG_FUNC,
             "%s() '%s', readable: 0x%08"PRIX64", writable: 0x%08"PRIX64", " "reset: 0x%08"PRIX64", mode: %s%s\n",
             __FUNCTION__, state->name, state->readable_bits,
             state->writable_bits, state->reset_value,
@@ -915,7 +915,7 @@ static void peripheral_register_reset_callback(DeviceState *dev)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
-    qemu_log_mask(LOG_TRACE, "%s() '%s', reset: 0x%08"PRIX64"\n", __FUNCTION__,
+    qemu_log_mask(LOG_FUNC, "%s() '%s', reset: 0x%08"PRIX64"\n", __FUNCTION__,
             state->name, state->reset_value);
 
     /* Call parent reset(). */

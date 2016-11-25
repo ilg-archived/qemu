@@ -46,7 +46,8 @@ static inline bool qemu_log_separate(void)
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 // Leave some space to avoid overlapping.
-#define LOG_TRACE_MR       (1 << 100)
+#define LOG_FUNC          (1 << 20)
+#define LOG_MR            (1 << 21)
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 /* Returns true if a bit is set in the current loglevel mask
@@ -129,7 +130,7 @@ void qemu_log_close(void);
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
 #define qemu_log_function_name() \
-    qemu_log_mask(LOG_TRACE, "%s()\n", __FUNCTION__)
+    qemu_log_mask(LOG_FUNC, "%s()\n", __FUNCTION__)
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
 #endif

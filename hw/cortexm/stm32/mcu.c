@@ -121,7 +121,7 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     default:
         family = "unknown";
     }
-    qemu_log_mask(LOG_TRACE, "STM32 Family: %s\n", family);
+    qemu_log_mask(LOG_FUNC, "STM32 Family: %s\n", family);
 
     /* Devices will be addressed below "/machine/mcu/stm32". */
     state->container = container_get(OBJECT(dev), "/stm32");

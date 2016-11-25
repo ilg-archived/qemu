@@ -52,7 +52,7 @@
  */
 static void stm32f_exti_in_irq_handler(void *opaque, int index, int level)
 {
-    qemu_log_mask(LOG_TRACE, "%s(%d,%d) \n", __FUNCTION__, index, level);
+    qemu_log_mask(LOG_FUNC, "%s(%d,%d) \n", __FUNCTION__, index, level);
 
     STM32EXTIState *state = STM32_EXTI_STATE(opaque);
     assert(index < STM32_EXTI_MAX_NUM);
@@ -72,7 +72,7 @@ static void stm32f_exti_in_irq_handler(void *opaque, int index, int level)
             peripheral_register_or_raw_value(state->reg.pr, mask);
 
 #if 0
-            qemu_log_mask(LOG_TRACE, "%s(%d,%d) nvic\n", __FUNCTION__,
+            qemu_log_mask(LOG_FUNC, "%s(%d,%d) nvic\n", __FUNCTION__,
                     index, level);
 #endif
 

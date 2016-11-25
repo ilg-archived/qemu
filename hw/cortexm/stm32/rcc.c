@@ -3775,7 +3775,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
     if (system_clock_scale == 0) {
         system_clock_scale = 1;
     }
-    qemu_log_mask(LOG_TRACE, "%s() %d, system_clock_scale=%d\n", __FUNCTION__,
+    qemu_log_mask(LOG_FUNC, "%s() %d, system_clock_scale=%d\n", __FUNCTION__,
             cpu_freq_hz, system_clock_scale);
 }
 

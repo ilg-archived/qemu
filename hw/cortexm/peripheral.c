@@ -291,7 +291,7 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
     object_child_foreach(OBJECT(dev),
             peripheral_populate_registers_array_foreach, (void *) dev);
 
-    qemu_log_mask(LOG_TRACE,
+    qemu_log_mask(LOG_FUNC,
             "%s() '%s', address: 0x%08"PRIX64", size: 0x%08"PRIX32"\n",
             __FUNCTION__, node_name, state->mmio_address,
             state->mmio_size_bytes);
@@ -301,7 +301,7 @@ static void peripheral_reset_callback(DeviceState *dev)
 {
     PeripheralState *state = PERIPHERAL_STATE(dev);
 
-    qemu_log_mask(LOG_TRACE, "%s() address: 0x%08"PRIX64"\n", __FUNCTION__,
+    qemu_log_mask(LOG_FUNC, "%s() address: 0x%08"PRIX64"\n", __FUNCTION__,
             state->mmio_address);
 
     /* Call parent reset(). */

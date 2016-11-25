@@ -248,7 +248,7 @@ void cortexm_graphic_event_loop(void)
  */
 int cortexm_graphic_enqueue_event(int code, void *data1, void *data2)
 {
-    qemu_log_mask(LOG_TRACE, "%s(%d)\n", __FUNCTION__, code);
+    qemu_log_mask(LOG_FUNC, "%s(%d)\n", __FUNCTION__, code);
 
 #if defined(CONFIG_SDL)
 
@@ -375,19 +375,19 @@ void cortexm_graphic_quit(void)
 
                 /* Destroy in reverse order of creation */
                 if (board_graphic_context->texture != NULL) {
-                    qemu_log_mask(LOG_TRACE, "%s() SDL_DestroyTexture()\n",
+                    qemu_log_mask(LOG_FUNC, "%s() SDL_DestroyTexture()\n",
                             __FUNCTION__);
                     SDL_DestroyTexture(board_graphic_context->texture);
                 }
 
                 if (board_graphic_context->renderer != NULL) {
-                    qemu_log_mask(LOG_TRACE, "%s() SDL_DestroyRenderer()\n",
+                    qemu_log_mask(LOG_FUNC, "%s() SDL_DestroyRenderer()\n",
                             __FUNCTION__);
                     SDL_DestroyRenderer(board_graphic_context->renderer);
                 }
 
                 if (board_graphic_context->window != NULL) {
-                    qemu_log_mask(LOG_TRACE, "%s() SDL_DestroyWindow()\n",
+                    qemu_log_mask(LOG_FUNC, "%s() SDL_DestroyWindow()\n",
                             __FUNCTION__);
                     SDL_DestroyWindow(board_graphic_context->window);
                 }
@@ -402,7 +402,7 @@ void cortexm_graphic_quit(void)
         cortexm_board_clear();
     }
 
-    qemu_log_mask(LOG_TRACE, "%s() SDL_Quit()\n", __FUNCTION__);
+    qemu_log_mask(LOG_FUNC, "%s() SDL_Quit()\n", __FUNCTION__);
     SDL_Quit();
 
     is_terminated = true;
@@ -427,7 +427,7 @@ static void cortexm_graphic_atexit(void)
         cortexm_graphic_enqueue_event(GRAPHIC_EVENT_QUIT, NULL, NULL);
 
         while (!is_terminated) {
-            qemu_log_mask(LOG_TRACE, "%s() wait\n", __FUNCTION__);
+            qemu_log_mask(LOG_FUNC, "%s() wait\n", __FUNCTION__);
             SDL_Delay(100);
         }
     }
@@ -692,7 +692,7 @@ static void cortexm_graphic_led_init_graphic_context(
 static void cortexm_graphic_led_turn(BoardGraphicContext *board_graphic_context,
         LEDGraphicContext *led_graphic_context, bool is_on)
 {
-    qemu_log_mask(LOG_TRACE, "%s(%s)\n", __FUNCTION__, is_on ? "on" : "off");
+    qemu_log_mask(LOG_FUNC, "%s(%s)\n", __FUNCTION__, is_on ? "on" : "off");
 
 #if defined(CONFIG_SDL)
 

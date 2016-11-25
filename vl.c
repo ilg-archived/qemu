@@ -100,7 +100,7 @@ int main(int argc, char **argv)
 
     cortexm_graphic_quit();
 
-    qemu_log_mask(LOG_TRACE, "%s() done.\n", __FUNCTION__);
+    qemu_log_mask(LOG_FUNC, "%s() done.\n", __FUNCTION__);
 
     exit(code);
 }

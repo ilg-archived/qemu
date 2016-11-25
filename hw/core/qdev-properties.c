@@ -1032,7 +1032,7 @@ void qdev_prop_set_ptr(DeviceState *dev, const char *name, void *value)
     void **ptr;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-        qemu_log_mask(LOG_TRACE, "%s('%s', '%s')\n", __FUNCTION__,
+        qemu_log_mask(LOG_FUNC, "%s('%s', '%s')\n", __FUNCTION__,
                 object_get_typename(OBJECT(dev)), name);
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 

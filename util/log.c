@@ -57,11 +57,9 @@ void qemu_set_log(int log_flags)
 {
     qemu_loglevel = log_flags;
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
 #ifdef CONFIG_TRACE_LOG
     qemu_loglevel |= LOG_TRACE;
 #endif
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
 
     if (!qemu_logfile &&
         (is_daemonized() ? logfilename != NULL : qemu_loglevel)) {
@@ -276,6 +274,14 @@ const QEMULogItem qemu_log_items[] = {
     { CPU_LOG_TB_NOCHAIN, "nochain",
       "do not chain compiled TBs so that \"exec\" and \"cpu\" show\n"
       "complete traces" },
+
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+    { LOG_FUNC, "func",
+      "log functions entry" },
+    { LOG_MR, "mr",
+      "log trace messages for memory regions read/writes" },
+#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+
     { 0, NULL, NULL },
 };
 

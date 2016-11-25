@@ -210,7 +210,7 @@ static void arm_cpu_reset(CPUState *s)
         env->thumb = initial_pc & 1;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-        qemu_log_mask(LOG_TRACE, "MSP=0x%08X, PC=0x%08X\n", env->regs[13],
+        qemu_log_mask(LOG_FUNC, "MSP=0x%08X, PC=0x%08X\n", env->regs[13],
                 env->regs[15]);
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
     }

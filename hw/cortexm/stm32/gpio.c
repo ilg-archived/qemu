@@ -664,7 +664,7 @@ static void stm32_gpio_update_idr(STM32GPIOState *state, Object *idr,
  */
 static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
 {
-    qemu_log_mask(LOG_TRACE, "%s(%d,%d) \n", __FUNCTION__, n, level);
+    qemu_log_mask(LOG_FUNC, "%s(%d,%d) \n", __FUNCTION__, n, level);
 
     STM32GPIOState *state = STM32_GPIO_STATE(opaque);
     unsigned pin = n;
