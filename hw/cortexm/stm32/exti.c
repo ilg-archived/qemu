@@ -109,12 +109,13 @@ static void stm32f_exti_swier_post_write_callback(Object *reg, Object *periph,
     peripheral_register_t prev_value = 0;
     uint32_t raised = 0;
     uint32_t mask = 0;
+    int i;
 
     prev_value = peripheral_register_get_raw_prev_value(reg);
     /* Bits that were 0 and now are 1. */
     raised = (~prev_value) & full_value;
 
-    for (int i = 0; i < state->num_exti; ++i, mask <<= 1) {
+    for (i = 0; i < state->num_exti; ++i, mask <<= 1) {
         if ((raised & mask) != 0) {
             stm32f_exti_in_irq_handler(reg, i, 1);
         }

@@ -64,12 +64,13 @@ Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
     char child_name[10];
     snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
     Object *gpio = cm_object_new(parent, child_name, TYPE_STM32_GPIO);
+    int i;
 
     object_property_set_int(gpio, index, "port-index", NULL);
 
     cm_object_realize(gpio);
 
-    for (int i = 0; i < STM32_GPIO_PIN_COUNT; ++i) {
+    for (i = 0; i < STM32_GPIO_PIN_COUNT; ++i) {
         /* Connect GPIO outgoing to EXTI incoming. */
         cm_irq_connect(DEVICE(gpio), IRQ_GPIO_EXTI_OUT, i,
                 cm_device_by_name(DEVICE_PATH_STM32_EXTI), IRQ_EXTI_IN, i);
