@@ -51,6 +51,7 @@
 static PeripheralInfo stm32f1_pwr_info =
         {
             .desc = "Power controller (PWR)",
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -180,6 +181,9 @@ static void stm32f1_pwr_create_objects(Object *obj)
 static PeripheralInfo stm32f4_01_57_xx_pwr_info =
         {
             .desc = "Power controller (PWR)",
+
+            /* Assumed. */
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -352,6 +356,9 @@ static void stm32f4_01_57_xx_pwr_create_objects(Object *obj)
 static PeripheralInfo stm32f411xx_pwr_info =
         {
             .desc = "Power controller (PWR)",
+
+            /* Assumed. */
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -533,6 +540,9 @@ static void stm32f411xx_pwr_create_objects(Object *obj)
 static PeripheralInfo stm32f4_23_xxx_pwr_info =
         {
             .desc = "Power controller (PWR)",
+
+            /* Assumed. */
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {

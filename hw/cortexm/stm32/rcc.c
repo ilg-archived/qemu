@@ -59,6 +59,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state);
 static PeripheralInfo stm32f1_rcc_info =
         {
             .desc = "Reset and clock control (RCC)",
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -130,7 +131,8 @@ static PeripheralInfo stm32f1_rcc_info =
                                                             .rw_mode =
                                                                     REGISTER_RW_MODE_READ, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -206,7 +208,8 @@ static PeripheralInfo stm32f1_rcc_info =
                                                             .first_bit = 24,
                                                             .width_bits = 3, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc = "Clock interrupt register (RCC_CIR)",
@@ -325,7 +328,8 @@ static PeripheralInfo stm32f1_rcc_info =
                                                             .rw_mode =
                                                                     REGISTER_RW_MODE_WRITE, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -334,7 +338,9 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .offset_bytes = 0x0C,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x0038FFFD,
-                                    .writable_bits = 0x0038FFFD, },
+                                    .writable_bits = 0x0038FFFD,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB1 peripheral reset register (RCC_APB1RSTR)",
@@ -342,7 +348,9 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .offset_bytes = 0x10,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x3AFEC9FF,
-                                    .writable_bits = 0x3AFEC9FF, },
+                                    .writable_bits = 0x3AFEC9FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "AHB peripheral clock enable register (RCC_AHBENR)",
@@ -350,7 +358,9 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .offset_bytes = 0x14,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00000557,
-                                    .writable_bits = 0x00000557, },
+                                    .writable_bits = 0x00000557,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB2 peripheral clock enable register (RCC_APB2ENR)",
@@ -450,7 +460,8 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "TIM11 timer clock enable",
                                                             .first_bit = 21, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -459,7 +470,9 @@ static PeripheralInfo stm32f1_rcc_info =
                                     .offset_bytes = 0x1C,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x3AFEC9FF,
-                                    .writable_bits = 0x3AFEC9FF, },
+                                    .writable_bits = 0x3AFEC9FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "Backup domain control register (RCC_BDCR)",
@@ -502,7 +515,8 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "Backup domain software reset",
                                                             .first_bit = 16, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc = "Control/status register (RCC_CSR)",
@@ -559,7 +573,8 @@ static PeripheralInfo stm32f1_rcc_info =
                                                                     "Low-power reset flag",
                                                             .first_bit = 31, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 { }, /**/
                             } , /**/
@@ -643,6 +658,7 @@ static void stm32f1_rcc_create_objects(Object *obj)
 static PeripheralInfo stm32f1cl_rcc_info =
         {
             .desc = "Reset and clock control (RCC)",
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -738,7 +754,8 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                             .rw_mode =
                                                                     REGISTER_RW_MODE_READ, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -814,7 +831,8 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                             .first_bit = 24,
                                                             .width_bits = 3, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc = "Clock interrupt register (RCC_CIR)",
@@ -971,7 +989,8 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                             .rw_mode =
                                                                     REGISTER_RW_MODE_WRITE, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -980,7 +999,9 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .offset_bytes = 0x0C,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00005E7D,
-                                    .writable_bits = 0x00005E7D, },
+                                    .writable_bits = 0x00005E7D,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB1 peripheral reset register (RCC_APB1RSTR)",
@@ -988,7 +1009,9 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .offset_bytes = 0x10,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x377EC83F,
-                                    .writable_bits = 0x377EC83F, },
+                                    .writable_bits = 0x377EC83F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "AHB peripheral clock enable register (RCC_AHBENR)",
@@ -996,7 +1019,9 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .offset_bytes = 0x14,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x0001D057,
-                                    .writable_bits = 0x0001D057, },
+                                    .writable_bits = 0x0001D057,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB2 peripheral clock enable register (RCC_APB2ENR)",
@@ -1061,7 +1086,8 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "USART1 clock enable",
                                                             .first_bit = 14, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -1070,7 +1096,9 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .offset_bytes = 0x1C,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x3E7EC83F,
-                                    .writable_bits = 0x3E7EC83F, },
+                                    .writable_bits = 0x3E7EC83F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "Backup domain control register (RCC_BDCR)",
@@ -1113,7 +1141,8 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "Backup domain software reset",
                                                             .first_bit = 16, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc = "Control/status register (RCC_CSR)",
@@ -1170,7 +1199,8 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "Low-power reset flag",
                                                             .first_bit = 31, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -1179,7 +1209,9 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                     .offset_bytes = 0x28,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00005000,
-                                    .writable_bits = 0x00005000, },
+                                    .writable_bits = 0x00005000,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "Clock configuration register2 (RCC_CFGR2)",
@@ -1228,7 +1260,8 @@ static PeripheralInfo stm32f1cl_rcc_info =
                                                                     "I2S2 clock source",
                                                             .first_bit = 18, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
 
                                 { }, /**/
@@ -1334,6 +1367,7 @@ static void stm32f1cl_rcc_create_objects(Object *obj)
 static PeripheralInfo stm32f4_01_57_xx_rcc_info =
         {
             .desc = "Reset and clock control (RCC)",
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -1418,7 +1452,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                                                     REGISTER_RW_MODE_READ, },
 
                                                         { }, /**/
-                                                    } , /**/},
+                                                    } ,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC PLL configuration register (RCC_PLLCFGR)",
@@ -1458,7 +1494,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                                                     "Main PLL (PLL) division factor",
                                                             .first_bit = 24,
                                                             .width_bits = 4, },
-                                                        { }, } , },
+                                                        { }, } ,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC clock configuration register (RCC_CFGR)",
@@ -1535,7 +1573,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                                             .first_bit = 30,
                                                             .width_bits = 2, },
                                                         { }, /**/
-                                                    } , /**/},
+                                                    } ,
+                                /**/
+                                },
                                 {
                                     .desc = "Clock interrupt register (RCC_CIR)",
                                     .name = "cir",
@@ -1673,7 +1713,8 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                                             .rw_mode =
                                                                     REGISTER_RW_MODE_WRITE, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -1682,7 +1723,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x10,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x226011FF,
-                                    .writable_bits = 0x226011FF, },
+                                    .writable_bits = 0x226011FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB2 peripheral reset register (RCC_AHB2RSTR)",
@@ -1690,7 +1733,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x14,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x000000F1,
-                                    .writable_bits = 0x000000F1, },
+                                    .writable_bits = 0x000000F1,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB3 peripheral reset register (RCC_AHB3RSTR)",
@@ -1698,7 +1743,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x18,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00000001,
-                                    .writable_bits = 0x00000001, },
+                                    .writable_bits = 0x00000001,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB1 peripheral reset register (RCC_APB1RSTR)",
@@ -1706,7 +1753,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x20,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x36FEC9FF,
-                                    .writable_bits = 0x36FEC9FF, },
+                                    .writable_bits = 0x36FEC9FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB2 peripheral reset register (RCC_APB2RSTR)",
@@ -1714,7 +1763,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x24,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00075933,
-                                    .writable_bits = 0x00075933, },
+                                    .writable_bits = 0x00075933,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB1 peripheral clock enable register (RCC_AHB1ENR)",
@@ -1722,7 +1773,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x30,
                                     .reset_value = 0x00100000,
                                     .readable_bits = 0x7E7C11FF,
-                                    .writable_bits = 0x7E7C11FF, },
+                                    .writable_bits = 0x7E7C11FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB2 peripheral clock enable register (RCC_AHB2ENR)",
@@ -1730,7 +1783,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x34,
                                     .reset_value = 0x00100000,
                                     .readable_bits = 0x000000F1,
-                                    .writable_bits = 0x000000F1, },
+                                    .writable_bits = 0x000000F1,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB3 peripheral clock enable register (RCC_AHB3ENR)",
@@ -1738,7 +1793,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x38,
                                     .reset_value = 0x00100000,
                                     .readable_bits = 0x00000001,
-                                    .writable_bits = 0x00000001, },
+                                    .writable_bits = 0x00000001,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB1 peripheral clock enable register (RCC_APB1ENR)",
@@ -1746,7 +1803,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x40,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x3CFEC9FF,
-                                    .writable_bits = 0x3CFEC9FF, },
+                                    .writable_bits = 0x3CFEC9FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB2 peripheral clock enable register (RCC_APB2ENR)",
@@ -1754,7 +1813,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x44,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00377F33,
-                                    .writable_bits = 0x00377F33, },
+                                    .writable_bits = 0x00377F33,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB1 peripheral clock enable in low power mode register (RCC_AHB1LPENR)",
@@ -1762,7 +1823,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x50,
                                     .reset_value = 0x7E6791FF,
                                     .readable_bits = 0x7E6791FF,
-                                    .writable_bits = 0x7E6791FF, },
+                                    .writable_bits = 0x7E6791FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB2 peripheral clock enable in low power mode register (RCC_AHB2LPENR)",
@@ -1770,7 +1833,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x54,
                                     .reset_value = 0x000000F1,
                                     .readable_bits = 0x000000F1,
-                                    .writable_bits = 0x000000F1, },
+                                    .writable_bits = 0x000000F1,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB3 peripheral clock enable in low power mode register (RCC_AHB3LPENR)",
@@ -1778,7 +1843,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x58,
                                     .reset_value = 0x00000001,
                                     .readable_bits = 0x00000001,
-                                    .writable_bits = 0x00000001, },
+                                    .writable_bits = 0x00000001,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB1 peripheral clock enable in low power mode register (RCC_APB1LPENR)",
@@ -1786,7 +1853,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x60,
                                     .reset_value = 0x36FEC9FF,
                                     .readable_bits = 0x3EFEC9FF,
-                                    .writable_bits = 0x3EFEC9FF, },
+                                    .writable_bits = 0x3EFEC9FF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB2 peripheral clock enable in low power mode register (RCC_APB2LPENR)",
@@ -1794,7 +1863,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x64,
                                     .reset_value = 0x00075F33,
                                     .readable_bits = 0x00079F33,
-                                    .writable_bits = 0x00079F33, },
+                                    .writable_bits = 0x00079F33,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC Backup domain control register (RCC_BDCR)",
@@ -1837,7 +1908,8 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                                                     "Backup domain software reset",
                                                             .first_bit = 16, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc = "Control/status register (RCC_CSR)",
@@ -1899,7 +1971,8 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                                                     "Low-power reset flag",
                                                             .first_bit = 31, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -1908,7 +1981,9 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .offset_bytes = 0x80,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0xCEFFFFFF,
-                                    .writable_bits = 0xCEFFFFFF, },
+                                    .writable_bits = 0xCEFFFFFF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC PLLI2S configuration register (RCC_PLLI2SCFGR)",
@@ -1918,7 +1993,8 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
                                     .readable_bits = 0x70007FC0,
                                     .writable_bits = 0x70007FC0, },
                                 { }, /**/
-                            } , /**/
+                            } ,
+        /**/
         };
 
 static void stm32f4_01_57_xx_rcc_create_objects(Object *obj)
@@ -2058,6 +2134,7 @@ static void stm32f4_01_57_xx_rcc_create_objects(Object *obj)
 static PeripheralInfo stm32f411xx_rcc_info =
         {
             .desc = "Reset and clock control (RCC)",
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -2142,7 +2219,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                                                     REGISTER_RW_MODE_READ, },
 
                                                         { }, /**/
-                                                    } , /**/},
+                                                    } ,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC PLL configuration register (RCC_PLLCFGR)",
@@ -2182,7 +2261,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                                                     "Main PLL (PLL) division factor",
                                                             .first_bit = 24,
                                                             .width_bits = 4, },
-                                                        { }, } , },
+                                                        { }, } ,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC clock configuration register (RCC_CFGR)",
@@ -2259,7 +2340,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                                             .first_bit = 30,
                                                             .width_bits = 2, },
                                                         { }, /**/
-                                                    } , /**/},
+                                                    } ,
+                                /**/
+                                },
                                 {
                                     .desc = "Clock interrupt register (RCC_CIR)",
                                     .name = "cir",
@@ -2397,7 +2480,8 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                                             .rw_mode =
                                                                     REGISTER_RW_MODE_WRITE, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -2406,7 +2490,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x10,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x0060109F,
-                                    .writable_bits = 0x0060109F, },
+                                    .writable_bits = 0x0060109F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB2 peripheral reset register (RCC_AHB2RSTR)",
@@ -2414,7 +2500,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x14,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00000080,
-                                    .writable_bits = 0x00000080, },
+                                    .writable_bits = 0x00000080,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB1 peripheral reset register (RCC_APB1RSTR)",
@@ -2422,7 +2510,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x20,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x10E2C80F,
-                                    .writable_bits = 0x10E2C80F, },
+                                    .writable_bits = 0x10E2C80F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB2 peripheral reset register (RCC_APB2RSTR)",
@@ -2430,7 +2520,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x24,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00177931,
-                                    .writable_bits = 0x00177931, },
+                                    .writable_bits = 0x00177931,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB1 peripheral clock enable register (RCC_AHB1ENR)",
@@ -2438,7 +2530,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x30,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x0050101F,
-                                    .writable_bits = 0x0050101F, },
+                                    .writable_bits = 0x0050101F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB2 peripheral clock enable register (RCC_AHB2ENR)",
@@ -2446,7 +2540,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x34,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00000080,
-                                    .writable_bits = 0x00000080, },
+                                    .writable_bits = 0x00000080,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB1 peripheral clock enable register (RCC_APB1ENR)",
@@ -2454,7 +2550,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x40,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x10E2C80F,
-                                    .writable_bits = 0x10E2C80F, },
+                                    .writable_bits = 0x10E2C80F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "APB2 peripheral clock enable register (RCC_APB2ENR)",
@@ -2462,7 +2560,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x44,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x00177931,
-                                    .writable_bits = 0x00177931, },
+                                    .writable_bits = 0x00177931,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB1 peripheral clock enable in low power mode register (RCC_AHB1LPENR)",
@@ -2470,7 +2570,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x50,
                                     .reset_value = 0x0061900F,
                                     .readable_bits = 0x0061909F,
-                                    .writable_bits = 0x0061909F, },
+                                    .writable_bits = 0x0061909F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC AHB2 peripheral clock enable in low power mode register (RCC_AHB2LPENR)",
@@ -2478,7 +2580,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x54,
                                     .reset_value = 0x00000080,
                                     .readable_bits = 0x00000080,
-                                    .writable_bits = 0x00000080, },
+                                    .writable_bits = 0x00000080,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB1 peripheral clock enable in low power mode register (RCC_APB1LPENR)",
@@ -2486,7 +2590,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x60,
                                     .reset_value = 0x10E2C80F,
                                     .readable_bits = 0x10E2C80F,
-                                    .writable_bits = 0x10E2C80F, },
+                                    .writable_bits = 0x10E2C80F,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC APB2 peripheral clock enable in low power mode register (RCC_APB2LPENR)",
@@ -2494,7 +2600,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x64,
                                     .reset_value = 0x00077930,
                                     .readable_bits = 0x00179F31,
-                                    .writable_bits = 0x00179F31, },
+                                    .writable_bits = 0x00179F31,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC Backup domain control register (RCC_BDCR)",
@@ -2542,7 +2650,8 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                                                     "Backup domain software reset",
                                                             .first_bit = 16, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc = "Control/status register (RCC_CSR)",
@@ -2604,7 +2713,8 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                                                     "Low-power reset flag",
                                                             .first_bit = 31, },
                                                         { }, /**/
-                                                    } , /**/
+                                                    } ,
+                                /**/
                                 },
                                 {
                                     .desc =
@@ -2613,7 +2723,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x80,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0xE0FFFFFF,
-                                    .writable_bits = 0xE0FFFFFF, },
+                                    .writable_bits = 0xE0FFFFFF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC PLLI2S configuration register (RCC_PLLI2SCFGR)",
@@ -2621,7 +2733,9 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x84,
                                     .reset_value = 0x24003000,
                                     .readable_bits = 0x70007FFF,
-                                    .writable_bits = 0x70007FFF, },
+                                    .writable_bits = 0x70007FFF,
+                                /**/
+                                },
                                 {
                                     .desc =
                                             "RCC Dedicated Clocks Configuration Register (RCC_DCKCFGR)",
@@ -2629,9 +2743,12 @@ static PeripheralInfo stm32f411xx_rcc_info =
                                     .offset_bytes = 0x8C,
                                     .reset_value = 0x00000000,
                                     .readable_bits = 0x01000000,
-                                    .writable_bits = 0x01000000, },
+                                    .writable_bits = 0x01000000,
+                                /**/
+                                },
                                 { }, /**/
-                            } , /**/
+                            } ,
+        /**/
         };
 
 static void stm32f411xx_rcc_create_objects(Object *obj)
@@ -2768,6 +2885,7 @@ static void stm32f411xx_rcc_create_objects(Object *obj)
 static PeripheralInfo stm32f4_23_xxx_rcc_info =
         {
             .desc = "Reset and clock control (RCC)",
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {

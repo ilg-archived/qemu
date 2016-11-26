@@ -30,7 +30,15 @@
 Object *peripheral_add_properties_and_children(Object *obj,
         PeripheralInfo *info)
 {
-    /* TODO: Add properties. */
+    if (info->default_access_flags != 0) {
+        cm_object_property_set_int(obj, info->default_access_flags,
+                "default-access-flags");
+    }
+
+    if (info->register_size_bytes != 0) {
+        cm_object_property_set_int(obj, info->register_size_bytes,
+                "register-size-bytes");
+    }
 
     if (info->registers) {
         PeripheralRegisterInfo *regs_info;

@@ -32,6 +32,13 @@
 typedef struct {
     const char *desc;
 
+    /* Each byte encodes which accesses are allowed,
+     * for different alignments. Default: all. */
+    uint64_t default_access_flags;
+
+    /* All peripheral registers have the same size. (1-8; default 4) */
+    uint32_t register_size_bytes;
+
     PeripheralRegisterInfo *registers;
 } PeripheralInfo;
 

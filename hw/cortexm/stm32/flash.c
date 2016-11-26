@@ -48,6 +48,9 @@
 static PeripheralInfo stm32f1_flash_info = {
     .desc = "Reset and clock control (RCC)",
 
+    /* Assumed, not found in the reference manual. */
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
     .registers = (PeripheralRegisterInfo[] ) {
                 {
                     .desc = "Flash access control register (FLASH_ACR)",
@@ -124,6 +127,7 @@ static void stm32f1_flash_create_objects(Object *obj)
 
 static PeripheralInfo stm32f1xd_flash_info = {
     .desc = "Reset and clock control (RCC)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
                 {
@@ -223,6 +227,7 @@ static void stm32f1xd_flash_create_objects(Object *obj)
 
 static PeripheralInfo stm32f4_01_57_xx_flash_info = {
     .desc = "Reset and clock control (RCC)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
                 {
@@ -312,6 +317,7 @@ static void stm32f4_01_57_xx_flash_create_objects(Object *obj)
 
 static PeripheralInfo stm32f411xx_flash_info = {
     .desc = "Reset and clock control (RCC)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
                 {
@@ -377,6 +383,7 @@ static void stm32f411xx_flash_create_objects(Object *obj)
 
 static PeripheralInfo stm32f4_23_xxx_flash_info = {
     .desc = "Reset and clock control (RCC)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
                 {

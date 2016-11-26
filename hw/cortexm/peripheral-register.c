@@ -25,8 +25,12 @@
  * This file implements a peripheral register. It extends all shorter accesses
  * to register size and uses the defined masks to write/read the register.
  *
- * If custom read/write actions are needed, it is possible to define new
- * types that redefine these methods.
+ * Pre-read and post-write actions can be defined, to fetch data or to
+ * cross update registers.
+ *
+ * This mechanism should cover most of the cases, but if it does not and
+ * custom read/write actions are needed, it is possible to define new
+ * types that redefine the main read/write methods.
  */
 
 static int peripheral_register_create_auto_array(Object *obj, void *opaque);
@@ -46,6 +50,7 @@ Object *peripheral_register_add_properties_and_children(Object *obj,
      * After properties are set to default values by .instance_init,
      * copy actual values from info.
      */
+    PeripheralState *parent = PERIPHERAL_STATE(cm_object_get_parent(obj));
 
     cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
     if (info->reset_value != 0) {
@@ -60,16 +65,22 @@ Object *peripheral_register_add_properties_and_children(Object *obj,
     if (info->writable_bits != 0) {
         cm_object_property_set_int(obj, info->writable_bits, "writable-bits");
     }
+    uint64_t access_flags = 0;
     if (info->access_flags != 0) {
-        cm_object_property_set_int(obj, info->access_flags, "access-flags");
+        access_flags = info->access_flags;
+    } else {
+        if (parent->default_access_flags != 0) {
+            access_flags = parent->default_access_flags;
+        } else {
+            access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
+        }
     }
+    cm_object_property_set_int(obj, access_flags, "access-flags");
 
     int size_bits = 0;
     if (info->size_bits != 0) {
         size_bits = info->size_bits;
     } else {
-        PeripheralState *parent = PERIPHERAL_STATE(cm_object_get_parent(obj));
-
         if (parent->register_size_bytes != 0) {
             size_bits = parent->register_size_bytes * 8;
         } else {

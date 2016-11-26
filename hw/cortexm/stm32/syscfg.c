@@ -47,6 +47,7 @@
 static PeripheralInfo stm32f4xxxx_syscfg_info =
         {
             .desc = "System configuration controller (SYSCFG)",
+            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
             .registers =
                     (PeripheralRegisterInfo[] ) {
@@ -56,8 +57,6 @@ static PeripheralInfo stm32f4xxxx_syscfg_info =
                                     .name = "memrmp",
                                     .offset_bytes = 0x00,
                                     .reset_value = 0x00000000,
-                                    .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -78,8 +77,6 @@ static PeripheralInfo stm32f4xxxx_syscfg_info =
                                     .name = "pmc",
                                     .offset_bytes = 0x04,
                                     .reset_value = 0x00000000,
-                                    .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -101,8 +98,6 @@ static PeripheralInfo stm32f4xxxx_syscfg_info =
                                     .name = "exticr1",
                                     .offset_bytes = 0x08,
                                     .reset_value = 0x00000000,
-                                    .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -147,8 +142,6 @@ static PeripheralInfo stm32f4xxxx_syscfg_info =
                                     .name = "exticr2",
                                     .offset_bytes = 0x0C,
                                     .reset_value = 0x00000000,
-                                    .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -193,8 +186,6 @@ static PeripheralInfo stm32f4xxxx_syscfg_info =
                                     .name = "exticr3",
                                     .offset_bytes = 0x10,
                                     .reset_value = 0x00000000,
-                                    .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -239,8 +230,6 @@ static PeripheralInfo stm32f4xxxx_syscfg_info =
                                     .name = "exticr4",
                                     .offset_bytes = 0x14,
                                     .reset_value = 0x00000000,
-                                    .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {
@@ -285,8 +274,6 @@ static PeripheralInfo stm32f4xxxx_syscfg_info =
                                     .name = "cmpcr",
                                     .offset_bytes = 0x20,
                                     .reset_value = 0x00000000,
-                                    .access_flags =
-                                    PERIPHERAL_REGISTER_32BITS_ALL,
                                     .bitfields =
                                             (RegisterBitfieldInfo[] ) {
                                                         {

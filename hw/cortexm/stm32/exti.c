@@ -143,6 +143,7 @@ static peripheral_register_t stm32f_exti_pr_pre_write_callback(Object *reg,
 
 static PeripheralInfo stm32f1_exti_info = {
     .desc = "External interrupt/event controller (PWR)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
 
     .registers = (PeripheralRegisterInfo[] ) {
                 {
@@ -152,7 +153,7 @@ static PeripheralInfo stm32f1_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x000FFFFF,
                     .writable_bits = 0x000FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Event mask register (EXTI_EMR)",
@@ -161,7 +162,7 @@ static PeripheralInfo stm32f1_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x000FFFFF,
                     .writable_bits = 0x000FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Rising trigger selection register (EXTI_RTSR)",
@@ -170,7 +171,7 @@ static PeripheralInfo stm32f1_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x000FFFFF,
                     .writable_bits = 0x000FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Falling trigger selection register (EXTI_FTSR)",
@@ -179,7 +180,7 @@ static PeripheralInfo stm32f1_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x000FFFFF,
                     .writable_bits = 0x000FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Software interrupt event register (EXTI_SWIER)",
@@ -188,7 +189,7 @@ static PeripheralInfo stm32f1_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x000FFFFF,
                     .writable_bits = 0x000FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Pending register (EXTI_PR)",
@@ -200,10 +201,9 @@ static PeripheralInfo stm32f1_exti_info = {
                     // .reset_mask = 0x00000000,
                     .readable_bits = 0x000FFFFF,
                     .writable_bits = 0x000FFFFF,
-                    /* rc_w1 - Software can read as well as clear this bit
-                     * by writing 1. Writing ‘0’ has no effect on the bit
-                     * value. */
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /* rc_w1 - Software can read as well as clear this bit
+                 * by writing 1. Writing ‘0’ has no effect on the bit
+                 * value. */
                 },
                 { }, /**/
             } , /**/
@@ -220,6 +220,7 @@ static PeripheralInfo stm32f1_exti_info = {
 
 static PeripheralInfo stm32f4xxxx_exti_info = {
     .desc = "External interrupt/event controller (PWR)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
                 {
@@ -229,7 +230,7 @@ static PeripheralInfo stm32f4xxxx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x007FFFFF,
                     .writable_bits = 0x007FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Event mask register (EXTI_EMR)",
@@ -238,7 +239,7 @@ static PeripheralInfo stm32f4xxxx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x007FFFFF,
                     .writable_bits = 0x007FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Rising trigger selection register (EXTI_RTSR)",
@@ -247,7 +248,7 @@ static PeripheralInfo stm32f4xxxx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x007FFFFF,
                     .writable_bits = 0x007FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Falling trigger selection register (EXTI_FTSR)",
@@ -256,7 +257,7 @@ static PeripheralInfo stm32f4xxxx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x007FFFFF,
                     .writable_bits = 0x007FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Software interrupt event register (EXTI_SWIER)",
@@ -265,7 +266,7 @@ static PeripheralInfo stm32f4xxxx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x007FFFFF,
                     .writable_bits = 0x007FFFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Pending register (EXTI_PR)",
@@ -277,10 +278,9 @@ static PeripheralInfo stm32f4xxxx_exti_info = {
                     // .reset_mask = 0x00000000,
                     .readable_bits = 0x007FFFFF,
                     .writable_bits = 0x007FFFFF,
-                    /* rc_w1 - Software can read as well as clear this bit
-                     * by writing 1. Writing ‘0’ has no effect on the bit
-                     * value. */
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /* rc_w1 - Software can read as well as clear this bit
+                 * by writing 1. Writing ‘0’ has no effect on the bit
+                 * value. */
                 },
                 { }, /**/
             } , /**/
@@ -292,6 +292,7 @@ static PeripheralInfo stm32f4xxxx_exti_info = {
 
 static PeripheralInfo stm32f411xx_exti_info = {
     .desc = "External interrupt/event controller (PWR)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
                 {
@@ -301,7 +302,7 @@ static PeripheralInfo stm32f411xx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x0067FFFF,
                     .writable_bits = 0x0067FFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Event mask register (EXTI_EMR)",
@@ -310,7 +311,7 @@ static PeripheralInfo stm32f411xx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x0067FFFF,
                     .writable_bits = 0x0067FFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Rising trigger selection register (EXTI_RTSR)",
@@ -319,7 +320,7 @@ static PeripheralInfo stm32f411xx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x0067FFFF,
                     .writable_bits = 0x0067FFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Falling trigger selection register (EXTI_FTSR)",
@@ -328,7 +329,7 @@ static PeripheralInfo stm32f411xx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x0067FFFF,
                     .writable_bits = 0x0067FFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Software interrupt event register (EXTI_SWIER)",
@@ -337,7 +338,7 @@ static PeripheralInfo stm32f411xx_exti_info = {
                     .reset_value = 0x00000000,
                     .readable_bits = 0x0067FFFF,
                     .writable_bits = 0x0067FFFF,
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /**/
                 },
                 {
                     .desc = "Pending register (EXTI_PR)",
@@ -349,10 +350,9 @@ static PeripheralInfo stm32f411xx_exti_info = {
                     // .reset_mask = 0x00000000,
                     .readable_bits = 0x0067FFFF,
                     .writable_bits = 0x0067FFFF,
-                    /* rc_w1 - Software can read as well as clear this bit
-                     * by writing 1. Writing ‘0’ has no effect on the bit
-                     * value. */
-                    .access_flags = PERIPHERAL_REGISTER_32BITS_ALL, /**/
+                /* rc_w1 - Software can read as well as clear this bit
+                 * by writing 1. Writing ‘0’ has no effect on the bit
+                 * value. */
                 },
                 { }, /**/
             } , /**/
