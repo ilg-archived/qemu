@@ -294,12 +294,13 @@ static inline bool cortexm_graphic_mouse_is_in_button(MousePosition *mp,
 static void cortexm_graphic_process_mouse_motion(void)
 {
     MousePosition mp;
+    int i;
 
     SDL_GetMouseState(&mp.x, &mp.y);
 
     if (current_button == NULL) {
         // Previously not in a button, enumerate all, maybe one matches.
-        for (int i = 0; i < board_graphic_context->buttons_array_length; ++i) {
+        for (i = 0; i < board_graphic_context->buttons_array_length; ++i) {
             if (cortexm_graphic_mouse_is_in_button(&mp,
                     board_graphic_context->buttons[i])) {
                 // Mouse entered the button.
