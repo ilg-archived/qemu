@@ -31,6 +31,36 @@ Supported MCUs:
 
 The following changes (in reverse order) were applied to the QEMU master branch:
 
+[2016-11-28]
+
+- remove `armv7m_nvic.o` from the build; refer to `cortexm_nvic_*` in `helper.c`
+
+[2016-11-24]
+
+- rename `LOG_FUNC`, `LOG_MR` (`-d func,mr`)
+
+[2016-11-24]
+
+- stm32: add EXTI, SYSCFG
+- stm32/capabilities: add IRQn defs
+- add support for user buttons
+
+[2016-11-16]
+
+- button-reset: actions functional
+
+[2016-11-16]
+
+- cortexm: add graphic buttons, reset & user; not linked to actions (yet)
+
+[2016-11-09]
+
+- qemu-thread-posix: `PTHREAD_MUTEX_ERRORCHECK`
+
+[2016-11-02]
+
+- add support for SDL2
+
 [2016-10-29]
 
 - version 2.7.0-20161029 released on GitHub
