@@ -90,9 +90,7 @@ static peripheral_register_t stm32f_exti_swier_pre_write_callback(Object *reg,
         peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32EXTIState *state = STM32_EXTI_STATE(periph);
-    peripheral_register_t imr_value = 0;
-
-    imr_value = peripheral_register_read_value(state->reg.pr);
+    peripheral_register_t imr_value =  peripheral_register_read_value(state->reg.imr);
 
     return (full_value & imr_value);
 }
@@ -106,15 +104,12 @@ static void stm32f_exti_swier_post_write_callback(Object *reg, Object *periph,
         peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32EXTIState *state = STM32_EXTI_STATE(periph);
-    peripheral_register_t prev_value = 0;
-    uint32_t raised = 0;
-    uint32_t mask = 0;
-    int i;
-
-    prev_value = peripheral_register_get_raw_prev_value(reg);
+    peripheral_register_t prev_value = peripheral_register_get_raw_prev_value(reg);
     /* Bits that were 0 and now are 1. */
-    raised = (~prev_value) & full_value;
+    uint32_t raised = (~prev_value) & full_value;
 
+    uint32_t mask = 1;
+    int i;
     for (i = 0; i < state->num_exti; ++i, mask <<= 1) {
         if ((raised & mask) != 0) {
             stm32f_exti_in_irq_handler(reg, i, 1);
@@ -130,9 +125,23 @@ static peripheral_register_t stm32f_exti_pr_pre_write_callback(Object *reg,
         peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32EXTIState *state = STM32_EXTI_STATE(periph);
-    peripheral_register_t prev_value = 0;
+    peripheral_register_t prev_value = peripheral_register_get_raw_prev_value(
+            state->reg.pr);
 
-    prev_value = peripheral_register_get_raw_prev_value(state->reg.pr);
+    peripheral_register_t imr_value = peripheral_register_read_value(
+            state->reg.imr);
+
+    /* Compute enabled bits that were 1 and were requested to clear. */
+    uint32_t acknowledged = (imr_value & prev_value & full_value);
+
+    uint32_t mask = 1;
+    int i;
+    for (i = 0; i < state->num_exti; ++i, mask <<= 1) {
+        if ((acknowledged & mask) != 0) {
+            /* Notify NVIC that the interrupt was acknowledged. */
+            cm_irq_lower(state->irq_out[i]);
+        }
+    }
 
     /* Clear bits. */
     return (prev_value & (~full_value));
