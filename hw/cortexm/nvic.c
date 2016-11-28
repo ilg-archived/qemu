@@ -52,6 +52,8 @@
 
 /* ----- Public ------------------------------------------------------------ */
 
+int system_clock_scale;
+
 /* TODO: use these instead of armv7m_nvic_*(). */
 
 /* Exceptions are 0-15 */
@@ -164,6 +166,17 @@ static void systick_timer_tick(void * opaque)
 {
     CortexMNVICState *s = (CortexMNVICState *) opaque;
     s->systick.control |= SYSTICK_COUNTFLAG;
+#if 0
+    {
+        static int c = 0;
+        fprintf(stderr, ".");
+        if(++c == 20){
+            fprintf(stderr, "\n");
+            c=0;
+        }
+        fflush(stderr);
+    }
+#endif
     if (s->systick.control & SYSTICK_TICKINT) {
         /* Trigger the interrupt.  */
         cortexm_nvic_set_pending_exception(s, NVIC_EXCEPTION_SYSTICK);

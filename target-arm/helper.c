@@ -5942,7 +5942,11 @@ static void do_v7m_exception_exit(CPUARMState *env)
 
     type = env->regs[15];
     if (env->v7m.exception != 0)
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        cortexm_nvic_complete_irq(env->nvic, env->v7m.exception);
+#else
         armv7m_nvic_complete_irq(env->nvic, env->v7m.exception);
+#endif
 
     /* Switch to the target stack.  */
     switch_v7m_sp(env, (type & 4) != 0);
@@ -6021,18 +6025,30 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
        one we're raising.  */
     switch (cs->exception_index) {
     case EXCP_UDEF:
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_USAGE);
+#else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_USAGE);
+#endif
         return;
     case EXCP_SWI:
         /* The PC already points to the next instruction.  */
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_SVC);
+#else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_SVC);
+#endif
         return;
     case EXCP_PREFETCH_ABORT:
     case EXCP_DATA_ABORT:
         /* TODO: if we implemented the MPU registers, this is where we
          * should set the MMFAR, etc from exception.fsr and exception.vaddress.
          */
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_MEM);
+#else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_MEM);
+#endif
         return;
     case EXCP_BKPT:
 
@@ -6094,10 +6110,18 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
         }
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_DEBUG);
+#else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_DEBUG);
+#endif
         return;
     case EXCP_IRQ:
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
+        env->v7m.exception = cortexm_nvic_acknowledge_irq(env->nvic);
+#else
         env->v7m.exception = armv7m_nvic_acknowledge_irq(env->nvic);
+#endif
         break;
     case EXCP_EXCEPTION_EXIT:
         do_v7m_exception_exit(env);
