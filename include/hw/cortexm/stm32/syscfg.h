@@ -67,28 +67,47 @@ typedef struct {
     STM32SYSCFGParentState parent_obj;
     /*< public >*/
 
-    struct {
-        Object *memrmp;
-        Object *pmc;
-        Object *exticr1;
-        Object *exticr2;
-        Object *exticr3;
-        Object *exticr4;
-        Object *cmpcr; /* rc_w1 */
-    } reg;
-
-    struct {
-        Object *mem_mode;
-    } memrmp;
-
+    /* Used in GPIOs, it is easier to make it common to all families. */
     struct {
         Object *exti[16];
     } exticr;
 
     struct {
-        Object *cmp_pd;
-        Object *ready;
-    } cmpcr;
+        struct {
+            Object *cfgr1;
+            Object *exticr1;
+            Object *exticr2;
+            Object *exticr3;
+            Object *exticr4;
+            Object *cfgr2;
+        } reg;
+
+        struct {
+        } fld;
+    } f0;
+
+    struct {
+        struct {
+            Object *memrmp;
+            Object *pmc;
+            Object *exticr1;
+            Object *exticr2;
+            Object *exticr3;
+            Object *exticr4;
+            Object *cmpcr; /* rc_w1 */
+        } reg;
+
+        struct {
+            struct {
+                Object *mem_mode;
+            } memrmp;
+
+            struct {
+                Object *cmp_pd;
+                Object *ready;
+            } cmpcr;
+        } fld;
+    } f4;
 
     const STM32Capabilities *capabilities;
 } STM32SYSCFGState;

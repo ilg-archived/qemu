@@ -80,6 +80,23 @@ typedef struct {
             Object *ar; /* 0x14 */
             Object *obr; /* 0x1C */
             Object *wrpr; /* 0x20 */
+        } reg;
+        struct {
+            Object *prftbs;
+        } acr;
+    } f0;
+
+    struct {
+        /* F1 specific registers */
+        struct {
+            Object *acr; /* 0x00 */
+            Object *keyr; /* 0x04 */
+            Object *optkeyr; /* 0x08 */
+            Object *sr; /* 0x0C */
+            Object *cr; /* 0x10 */
+            Object *ar; /* 0x14 */
+            Object *obr; /* 0x1C */
+            Object *wrpr; /* 0x20 */
 
             /* XL only */
             Object *keyr2; /* 0x44 */
@@ -91,10 +108,18 @@ typedef struct {
             Object *prftbs;
         } acr;
     } f1;
+
     struct {
         /* F4 specific registers */
         struct {
-            // TODO: add them
+            Object *acr; /* 0x00 */
+            Object *keyr; /* 0x04 */
+            Object *optkeyr; /* 0x08 */
+            Object *sr; /* 0x0C */
+            Object *cr; /* 0x10 */
+            Object *ar; /* 0x14 */
+            Object *obr; /* 0x1C */
+            Object *wrpr; /* 0x20 */
         } reg;
     } f4;
 } STM32FlashState;

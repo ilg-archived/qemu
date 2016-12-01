@@ -25,21 +25,6 @@
 /*
  * This file implements the STM32 EXTI.
  *
- * References:
- * - Doc ID 018909 Rev 6, "ST RM0090 Reference manual,
- * STM32F405xx/07xx, STM32F415xx/17xx, STM32F42xxx and STM32F43xxx
- * advanced ARM-based 32-bit MCUs"
- *
- * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
- * STM32F411xC/E advanced ARM-based 32-bit MCUs"
- *
- * - Doc 13902 Rev 15, "ST RM0008 Reference manual,
- * STM32F101xx, STM32F102xx, STM32F103xx, STM32F105xx and STM32F107xx
- * advanced ARM-based 32-bit MCUs"
- *
- * All STM32 reference manuals are available from:
- * http://www.st.com/content/st_com/en/support/resources/resource-selector.html?querycriteria=productId=SC1169$$resourceCategory=technical_literature$$resourceType=reference_manual
- *
  * Not yet implemented:
  * - event mode; EMR ignored, no events are generated.
  */
@@ -90,7 +75,8 @@ static peripheral_register_t stm32f_exti_swier_pre_write_callback(Object *reg,
         peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32EXTIState *state = STM32_EXTI_STATE(periph);
-    peripheral_register_t imr_value =  peripheral_register_read_value(state->reg.imr);
+    peripheral_register_t imr_value = peripheral_register_read_value(
+            state->reg.imr);
 
     return (full_value & imr_value);
 }
@@ -104,7 +90,8 @@ static void stm32f_exti_swier_post_write_callback(Object *reg, Object *periph,
         peripheral_register_t value, peripheral_register_t full_value)
 {
     STM32EXTIState *state = STM32_EXTI_STATE(periph);
-    peripheral_register_t prev_value = peripheral_register_get_raw_prev_value(reg);
+    peripheral_register_t prev_value = peripheral_register_get_raw_prev_value(
+            reg);
     /* Bits that were 0 and now are 1. */
     uint32_t raised = (~prev_value) & full_value;
 
@@ -146,6 +133,85 @@ static peripheral_register_t stm32f_exti_pr_pre_write_callback(Object *reg,
     /* Clear bits. */
     return (prev_value & (~full_value));
 }
+
+/* ------------------------------------------------------------------------- */
+
+/* STM32F051XX */
+
+static PeripheralInfo stm32f051xx_exti_info = {
+    .desc = "External interrupt/event controller (PWR)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
+
+    .registers = (PeripheralRegisterInfo[] ) {
+                {
+                    .desc = "Interrupt mask register (EXTI_IMR)",
+                    .name = "imr",
+                    .offset_bytes = 0x00,
+                    /*
+                     * Reset value:
+                     * - 0x0FF4 0000 (STM32F03x devices)
+                     * - 0x7FF4 0000 (STM32F04x devices)
+                     * - 0x0F94 0000 (STM32F05x devices)
+                     * - 0x7F84 0000 (STM32F07x and STM32F09x devices)
+                     */
+                    .reset_value = 0x0F940000,
+                    .readable_bits = 0xFFFFFFFF,
+                    .writable_bits = 0xFFFFFFFF,
+                /**/
+                },
+                {
+                    .desc = "Event mask register (EXTI_EMR)",
+                    .name = "emr",
+                    .offset_bytes = 0x04,
+                    .reset_value = 0x00000000,
+                    .readable_bits = 0x007BFFFF,
+                    .writable_bits = 0x007BFFFF,
+                /**/
+                },
+                {
+                    .desc = "Rising trigger selection register (EXTI_RTSR)",
+                    .name = "rtsr",
+                    .offset_bytes = 0x08,
+                    .reset_value = 0x00000000,
+                    .readable_bits = 0x007BFFFF,
+                    .writable_bits = 0x007BFFFF,
+                /**/
+                },
+                {
+                    .desc = "Falling trigger selection register (EXTI_FTSR)",
+                    .name = "ftsr",
+                    .offset_bytes = 0x0C,
+                    .reset_value = 0x00000000,
+                    .readable_bits = 0x007BFFFF,
+                    .writable_bits = 0x007BFFFF,
+                /**/
+                },
+                {
+                    .desc = "Software interrupt event register (EXTI_SWIER)",
+                    .name = "swier",
+                    .offset_bytes = 0x10,
+                    .reset_value = 0x00000000,
+                    .readable_bits = 0x007BFFFF,
+                    .writable_bits = 0x007BFFFF,
+                /**/
+                },
+                {
+                    .desc = "Pending register (EXTI_PR)",
+                    .name = "pr",
+                    .offset_bytes = 0x14,
+                    .reset_value = 0x00000000,
+                    // The manual states 'Reset value is undefined',
+                    // but SVD gives the 0x0 value.
+                    // .reset_mask = 0x00000000,
+                    .readable_bits = 0x007BFFFF,
+                    .writable_bits = 0x007BFFFF,
+                /* rc_w1 - Software can read as well as clear this bit
+                 * by writing 1. Writing ‘0’ has no effect on the bit
+                 * value. */
+                },
+                { }, /**/
+            } , /**/
+};
 
 /* ------------------------------------------------------------------------- */
 
@@ -419,9 +485,18 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     Object *obj = OBJECT(dev);
 
-    uint32_t size;
-    hwaddr addr;
+    /*
+     * Creating the memory region in the parent class will trigger
+     * an assertion if zro address or size.
+     */
+    uint32_t size = 0;
+    hwaddr addr = 0;
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
+        addr = 0x40010400;
+        size = 0x400;
+        break;
+
     case STM32_FAMILY_F1:
     case STM32_FAMILY_F4:
         addr = 0x40013C00;
@@ -429,12 +504,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     default:
-        /*
-         * This will trigger an assertion to fail when creating the
-         * memory region in the parent class.
-         */
-        size = 0;
-        addr = 0;
+        assert(false);
         break;
     }
 
@@ -445,6 +515,14 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, capabilities->num_exti, "num_exti");
 
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
+
+        assert(capabilities->num_exti == 23);
+        if (capabilities->f0.is_51xx) {
+            peripheral_add_properties_and_children(obj, &stm32f051xx_exti_info);
+        }
+        break;
+
     case STM32_FAMILY_F1:
 
         assert(capabilities->num_exti == 20);
@@ -487,6 +565,49 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     DeviceState *nvic = DEVICE(cm_device_by_name(DEVICE_PATH_CORTEXM_NVIC));
 
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
+
+        if (capabilities->f0.is_51xx) {
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 0, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI0_1_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 1, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI0_1_IRQn);
+
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 2, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI2_3_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 3, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI2_3_IRQn);
+
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 4, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 5, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 6, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 7, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 8, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 9, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 10, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 11, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 12, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 13, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 14, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+            cm_irq_connect(dev, IRQ_EXTI_OUT, 15, nvic, IRQ_NVIC_IN,
+                    STM32F051XX_EXTI4_15_IRQn);
+
+            // TODO add 16 - 23;
+
+        }
+        break;
+
     case STM32_FAMILY_F1:
 
         if (capabilities->f1.is_md || capabilities->f1.is_cl) {

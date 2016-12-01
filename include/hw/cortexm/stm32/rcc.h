@@ -78,6 +78,121 @@ typedef struct {
     // qemu_irq irq;
 
     struct {
+        /* F0 specific registers */
+        /* 0x38 */
+        struct {
+            Object *cr; /* 0x00 */
+            Object *cfgr; /* 0x04 */
+            Object *cir; /* 0x08 */
+            Object *apb2rstr; /* 0x0C */
+            Object *apb1rstr; /* 0x10 */
+            Object *ahbenr; /* 0x14 */
+            Object *apb2enr; /* 0x18 */
+            Object *apb1enr; /* 0x1C */
+            Object *bdcr; /* 0x20 */
+            Object *csr; /* 0x24 */
+
+            /* Connectivity line devices */
+            Object *ahbrstr; /* 0x28 */
+            Object *cfgr2; /* 0x2C */
+            Object *cfgr3; /* 0x30 */
+            Object *cr2; /* 0x34 */
+        } reg;
+
+        /* Bitfields. */
+        struct {
+            Object *hsion;
+            Object *hsirdy;
+            Object *hsitrim;
+            Object *hsical;
+            Object *hseon;
+            Object *hserdy;
+            Object *hsebyp;
+            Object *csson;
+            Object *pllon;
+            Object *pllrdy;
+        } cr;
+        struct {
+            Object *sw;
+            Object *sws;
+            Object *hpre;
+            Object *ppre;
+            Object *adcpre;
+            Object *pllsrc;
+            Object *pllxtpre;
+            Object *pllmul;
+            Object *mco;
+            Object *mcopre;
+            Object *pllnodiv;
+        } cfgr;
+
+        struct {
+            Object *lsirdyf;
+            Object *lserdyf;
+            Object *hsirdyf;
+            Object *hserdyf;
+            Object *pllrdyf;
+            Object *hsi14rdyf;
+            Object *hsi48rdyf;
+            Object *cssf;
+//            Object *lsirdye;
+//            Object *lserdye;
+//            Object *hsirdye;
+//            Object *hserdye;
+//            Object *pllrdye;
+//            Object *hsi14rdye;
+//            Object *hsi48rdye;
+//            Object *lsirdyc;
+//            Object *lserdyc;
+//            Object *hsirdyc;
+//            Object *hserdyc;
+//            Object *pllrdyc;
+//            Object *hsi14rdyc;
+//            Object *hsi48rdyc;
+//            Object *cssc;
+        } cir;
+        struct {
+            Object *lserdy;
+        } bdcr;
+        struct {
+            Object *lsion;
+            Object *lsirdy;
+            Object *v18pwrrstf;
+            Object *rmvf;
+            Object *oblrstf;
+            Object *pinrstf;
+            Object *porrstf;
+            Object *stfrstf;
+            Object *iwdgrstf;
+            Object *wwdgrstf;
+            Object *lpwrrstf;
+        } csr;
+        struct {
+            Object *prediv;
+        } cfgr2;
+        struct {
+//            Object *usart1sw;
+//            Object *i2c1sw;
+//            Object *cecsw;
+//            Object *usbsw;
+//            Object *adcsw;
+        } cfgr3;
+        struct {
+//            Object *hsi14on;
+//            Object *hsi14rdy;
+//            Object *hsi14dis;
+//            Object *hsi14trim;
+//            Object *hsi14cal;
+//            Object *hsi48on;
+//            Object *hsi48rdy;
+//            Object *hsi48dis;
+//            Object *hsi48trim;
+//            Object *hsi48cal;
+        } cr2;
+
+    } f0;
+
+    struct {
         /* F1 specific registers */
         /* 0x28 most, 0x30 for CL */
         struct {

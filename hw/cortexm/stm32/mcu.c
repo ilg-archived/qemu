@@ -103,6 +103,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     const char *family;
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
+        family = "F0";
+        break;
     case STM32_FAMILY_F1:
         family = "F1";
         break;
@@ -178,7 +181,7 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         cm_object_property_set_int(rcc, capabilities->lsi_freq_hz,
                 "lsi-freq-hz");
 
-        /* Forward properties to RCC. */
+        /* Forward properties from MCU to RCC. */
         cm_object_property_set_int(rcc, state->hse_freq_hz, "hse-freq-hz");
         cm_object_property_set_int(rcc, state->lse_freq_hz, "lse-freq-hz");
 
@@ -380,19 +383,30 @@ static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
     CortexMClass *parent_class = CORTEXM_MCU_CLASS(
             object_class_by_name(TYPE_CORTEXM_MCU));
     parent_class->memory_regions_create(dev);
-
 }
 
+// TODO: get rid of the pointer property.
 #define DEFINE_PROP_STM32CAPABILITIES_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const STM32Capabilities*)
 
 static Property stm32_mcu_properties[] = {
         DEFINE_PROP_STM32CAPABILITIES_PTR("stm32-capabilities",
                 STM32MCUState, param_capabilities),
-        DEFINE_PROP_UINT32("hse-freq-hz", STM32MCUState, hse_freq_hz, 0),
-        DEFINE_PROP_UINT32("lse-freq-hz", STM32MCUState, lse_freq_hz, 0),
     DEFINE_PROP_END_OF_LIST(), /**/
 };
+
+static void stm32_mcu_instance_init_callback(Object *obj)
+{
+    qemu_log_function_name();
+
+    STM32MCUState *state = STM32_MCU_STATE(obj);
+
+    cm_object_property_add_uint32(obj, "hse-freq-hz", &state->hse_freq_hz);
+    state->hse_freq_hz = 0;
+
+    cm_object_property_add_uint32(obj, "lse-freq-hz", &state->lse_freq_hz);
+    state->lse_freq_hz = 0;
+}
 
 static void stm32_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
@@ -409,6 +423,7 @@ static const TypeInfo stm32_mcu_type_info = {
     .abstract = true,
     .name = TYPE_STM32_MCU,
     .parent = TYPE_STM32_MCU_PARENT,
+    .instance_init = stm32_mcu_instance_init_callback,
     .instance_size = sizeof(STM32MCUState),
     .class_init = stm32_mcu_class_init_callback,
     .class_size = sizeof(STM32MCUClass) /**/

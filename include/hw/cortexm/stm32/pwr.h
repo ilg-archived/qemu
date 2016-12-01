@@ -89,6 +89,31 @@ typedef struct {
                 Object *wuf;
                 Object *sbf;
                 Object *pvdo;
+                // Object *ewup;
+            } csr;
+        } fld;
+    } f0;
+
+    struct {
+        /* F1 specific registers */
+        struct {
+            Object *cr;
+            Object *csr;
+        } reg;
+        struct {
+            struct {
+                Object *lpds;
+                Object *pdds;
+                Object *cwuf;
+                Object *csbf;
+                Object *pvde;
+                Object *pls;
+                Object *dbp;
+            } cr;
+            struct {
+                Object *wuf;
+                Object *sbf;
+                Object *pvdo;
                 Object *ewup;
             } csr;
         } fld;

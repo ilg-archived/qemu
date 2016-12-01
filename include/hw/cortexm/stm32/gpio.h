@@ -119,15 +119,10 @@ typedef struct {
      */
     qemu_irq odr_irq[STM32_GPIO_PIN_COUNT];
 
-    qemu_irq exti_irq[STM32_GPIO_PIN_COUNT];
-
-#if 0
     /*
-     * IRQs which relay input pin changes to other STM32 peripherals
-     * or to exception handlers.
+     * IRQs used to communicate with EXTI.
      */
-    qemu_irq in_irq[STM32_GPIO_PIN_COUNT];
-#endif
+    qemu_irq exti_irq[STM32_GPIO_PIN_COUNT];
 
     /*
      * Cached direction mask. 1 = output pin.
@@ -135,12 +130,30 @@ typedef struct {
      */
     uint16_t dir_mask;
 
+    /* Common to F4 and F0. */
+    struct {
+        Object *moder;
+        Object *otyper;
+        Object *ospeeder;
+        Object *pupdr;
+        Object *idr;
+        Object *odr;
+        Object *bsrr;
+        Object *lckr;
+        Object *afrl;
+        Object *afrh;
+        Object *brr; /* Not used in F4 */
+    } reg;
+
     /*
      * Mutually exclusive all families registers.
      * Address them like status->u.f1.reg.crl.
      * The 'reg' structure was used to mark explicitly that the member is
      * a MCU processor and also in case other family variables are needed.
      */
+    struct {
+        /* F0 specific registers (same as F4) */
+    } f0;
     struct {
         /* F1 specific registers */
         struct {
@@ -155,18 +168,6 @@ typedef struct {
     } f1;
     struct {
         /* F4 specific registers */
-        struct {
-            Object *moder;
-            Object *otyper;
-            Object *ospeeder;
-            Object *pupdr;
-            Object *idr;
-            Object *odr;
-            Object *bsrr;
-            Object *lckr;
-            Object *afrl;
-            Object *afrh;
-        } reg;
     } f4;
 
     const STM32Capabilities *capabilities;

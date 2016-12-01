@@ -49,16 +49,37 @@ typedef enum {
 #define STM32_MAX_GPIO  (8)
 #define STM32_MAX_USART (6)
 
-#if 0
-typedef struct {
-    /* Number of output interrupt in the device array. */
-    int out_irq_number;
-
-    /* Index in the MCU exceptions array;
-     * 0 = the first after Cortex M exceptions */
-    int nvic_irq_number;
-}STM32ExceptionsConnector;
-#endif
+typedef enum {
+    STM32F051XX_WWDG_IRQn = 0, /*!< Window WatchDog Interrupt                               */
+    STM32F051XX_PVD_IRQn = 1, /*!< PVD Interrupt through EXTI Lines 16                             */
+    STM32F051XX_RTC_IRQn = 2, /*!< RTC Interrupt through EXTI Lines 17, 19 and 20                  */
+    STM32F051XX_FLASH_IRQn = 3, /*!< FLASH global Interrupt                                          */
+    STM32F051XX_RCC_IRQn = 4, /*!< RCC global Interrupt                                            */
+    STM32F051XX_EXTI0_1_IRQn = 5, /*!< EXTI Line 0 and 1 Interrupt                                     */
+    STM32F051XX_EXTI2_3_IRQn = 6, /*!< EXTI Line 2 and 3 Interrupt                                     */
+    STM32F051XX_EXTI4_15_IRQn = 7, /*!< EXTI Line 4 to 15 Interrupt                                     */
+    STM32F051XX_TSC_IRQn = 8, /*!< Touch Sensing Controller Interrupts                             */
+    STM32F051XX_DMA1_Channel1_IRQn = 9, /*!< DMA1 Channel 1 Interrupt                                        */
+    STM32F051XX_DMA1_Channel2_3_IRQn = 10, /*!< DMA1 Channel 2 and Channel 3 Interrupt                          */
+    STM32F051XX_DMA1_Channel4_5_IRQn = 11, /*!< DMA1 Channel 4 and Channel 5 Interrupt                          */
+    STM32F051XX_ADC1_COMP_IRQn = 12, /*!< ADC1 and COMP interrupts (ADC interrupt combined with EXTI Lines 21 and 22 */
+    STM32F051XX_TIM1_BRK_UP_TRG_COM_IRQn = 13, /*!< TIM1 Break, Update, Trigger and Commutation Interrupt           */
+    STM32F051XX_TIM1_CC_IRQn = 14, /*!< TIM1 Capture Compare Interrupt                                  */
+    STM32F051XX_TIM2_IRQn = 15, /*!< TIM2 global Interrupt                                           */
+    STM32F051XX_TIM3_IRQn = 16, /*!< TIM3 global Interrupt                                           */
+    STM32F051XX_TIM6_DAC_IRQn = 17, /*!< TIM6 global and DAC channel underrun error Interrupt            */
+    STM32F051XX_TIM14_IRQn = 19, /*!< TIM14 global Interrupt                                          */
+    STM32F051XX_TIM15_IRQn = 20, /*!< TIM15 global Interrupt                                          */
+    STM32F051XX_TIM16_IRQn = 21, /*!< TIM16 global Interrupt                                          */
+    STM32F051XX_TIM17_IRQn = 22, /*!< TIM17 global Interrupt                                          */
+    STM32F051XX_I2C1_IRQn = 23, /*!< I2C1 Event Interrupt & EXTI Line23 Interrupt (I2C1 wakeup)      */
+    STM32F051XX_I2C2_IRQn = 24, /*!< I2C2 Event Interrupt                                            */
+    STM32F051XX_SPI1_IRQn = 25, /*!< SPI1 global Interrupt                                           */
+    STM32F051XX_SPI2_IRQn = 26, /*!< SPI2 global Interrupt                                           */
+    STM32F051XX_USART1_IRQn = 27, /*!< USART1 global Interrupt & EXTI Line25 Interrupt (USART1 wakeup) */
+    STM32F051XX_USART2_IRQn = 28, /*!< USART2 global Interrupt                                         */
+    STM32F051XX_CEC_CAN_IRQn = 30 /*!< CEC and CAN global Interrupts & EXTI Line27 Interrupt           */
+} STM32F051XX_IRQn_Type;
 
 typedef enum {
     STM32F10X_MD_WWDG_IRQn = 0, /*!< Window WatchDog Interrupt                            */
@@ -479,6 +500,9 @@ typedef struct {
     unsigned int has_gp_tim11 :1;
     unsigned int has_gp_tim13 :1;
     unsigned int has_gp_tim14 :1;
+    unsigned int has_gp_tim15 :1;
+    unsigned int has_gp_tim16 :1;
+    unsigned int has_gp_tim17 :1;
     /* Basic timers */
     unsigned int has_bc_tim6 :1;
     unsigned int has_bc_tim7 :1;
@@ -533,7 +557,7 @@ typedef struct {
     unsigned int has_adc2 :1;
     unsigned int has_adc3 :1;
     /* DAC */
-    unsigned int has_dac :1;
+    unsigned int has_dac :1; /* num_dac */
     unsigned int has_dac1 :1;
     unsigned int has_dac2 :1;
     /* USB */
@@ -550,22 +574,24 @@ typedef struct {
     /* Temperature sensor */
     unsigned int has_ts :1;
 
+    unsigned int has_comp :1; /* num_comp */
+
     unsigned int has_dcmi :1;
     unsigned int has_rng :1;
+    unsigned int has_hdmi_cec :1;
+
+    /* Has TSC (touch sensing controller) */
+    unsigned int has_tsc :1;
 
     /* Keep them together */
     unsigned char num_exti;
     unsigned char num_dma1;
     unsigned char num_dma2;
     unsigned char num_dma;
+    unsigned char num_comp;
 
     /* Number of backup bytes */
     uint32_t num_back_bytes;
-
-#if 0
-    /* Pointer to null terminated array of connectors */
-    STM32ExceptionsConnector *exceptions;
-#endif
 
     /*
      * Note: the family definitions are mutual exclusive, and could
@@ -573,6 +599,10 @@ typedef struct {
      * more complicated and was discarded.
      * The memory penalty is not significant.
      */
+    struct {
+        unsigned int is_51xx :1;
+    } f0;
+
     struct {
         unsigned int is_ld :1; /* is low density */
         unsigned int is_md :1; /* is medium density */

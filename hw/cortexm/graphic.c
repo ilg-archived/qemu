@@ -326,6 +326,12 @@ static void cortexm_graphic_process_mouse_motion(void)
 
 static void cortexm_graphic_process_mouse_button_down(void)
 {
+#if 1
+    MousePosition mp;
+    SDL_GetMouseState(&mp.x, &mp.y);
+    qemu_log_mask(LOG_FUNC, "%s() %d,%d\n", __FUNCTION__, mp.x, mp.y);
+#endif
+
     if (current_button != NULL) {
 
         ButtonClass *klass = BUTTON_GET_CLASS(current_button);

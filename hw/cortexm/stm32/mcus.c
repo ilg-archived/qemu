@@ -40,6 +40,26 @@
  */
 
 /*
+ * References:
+ * - Doc ID 018940 Rev 8, "ST RM0091 Reference manual,
+ * STM32F0x1/STM32F0x2/STM32F0x8 advanced ARM-based 32-bit MCUs"
+ *
+ * - ST CD00171190.pdf, Doc ID 13902 Rev 15, "RM0008 Reference Manual,
+ * STM32F101xx, STM32F102xx, STM32F103xx, STM32F105xx and STM32F107xx
+ * advanced ARM®-based 32-bit MCUs"
+ *
+ * - Doc ID 018909 Rev 6, "ST RM0090 Reference manual,
+ * STM32F405xx/07xx, STM32F415xx/17xx, STM32F42xxx and STM32F43xxx
+ * advanced ARM-based 32-bit MCUs"
+ *
+ * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
+ * STM32F411xC/E advanced ARM-based 32-bit MCUs"
+ *
+ * All STM32 reference manuals are available from:
+ * http://www.st.com/content/st_com/en/support/resources/resource-selector.html?querycriteria=productId=SC1169$$resourceCategory=technical_literature$$resourceType=reference_manual
+ */
+
+/*
  * - Low-density devices are STM32F101xx, STM32F102xx and STM32F103xx
  * microcontrollers where the Flash memory density ranges between 16
  * and 32 Kbytes.
@@ -82,6 +102,8 @@
 /*
  * STM32 Flash sizes encoding (second char after number):
  *
+ * 4 = 16K
+ * 6 = 32K
  * 8 = 64K
  * B = 128K
  * C = 256K
@@ -90,6 +112,72 @@
  * G = 1024K
  * I = 2048K
  */
+
+static const STM32Capabilities stm32f051x8 = {
+    .family = STM32_FAMILY_F0,
+    .f0 = {
+        .is_51xx = true },
+
+    .hsi_freq_hz = 8000000,
+    .lsi_freq_hz = 40000,
+    .has_rcc = true,
+    .has_pwr = true,
+    .has_periph_bitband = false,
+
+    .has_crc = true,
+    .has_syscfg = true,
+
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpiof = true,
+
+    .has_exti = true,
+    .num_exti = 23,
+
+    .has_dma = true,
+    .num_dma = 5,
+
+    .has_adc = true, /* 12-bits, 16+3 channels, Vref = ADC_IN17 */
+
+    .has_ts = 1, /* ADC12_IN16 */
+
+    .has_dac = true, /* 12-bits, 5 channels  */
+
+    .has_comp = true,
+    .num_comp = 2,
+
+    .has_tsc = true,
+
+    .has_ac_tim1 = true,
+    .has_gp_tim2 = true,
+    .has_gp_tim3 = true,
+    .has_gp_tim14 = true,
+    .has_gp_tim15 = true,
+    .has_gp_tim16 = true,
+    .has_gp_tim17 = true,
+    .has_bc_tim6 = true,
+
+    .has_iwdg = true,
+    .has_wwdg = true,
+
+    .has_rtc = true,
+    .num_back_bytes = 20,
+
+    .has_i2c1 = true,
+    .has_i2c2 = true,
+
+    .has_usart1 = true, /* 6 Mb/s */
+    .has_usart2 = true, /* 6 Mb/s */
+
+    .has_spi1 = true,
+    .has_spi2 = true,
+
+    .has_hdmi_cec = true,
+
+/**/
+};
 
 static const STM32Capabilities stm32f103x8b = {
 
@@ -107,6 +195,7 @@ static const STM32Capabilities stm32f103x8b = {
 
     .has_crc = true,
     .has_exti = true,
+    .num_exti = 20,
     .has_afio = true,
 
     .has_dma1 = true,
@@ -594,19 +683,21 @@ static const STM32Capabilities stm32f429xx = {
 
 /* ------------------------------------------------------------------------- */
 
-#if 0
-static const CortexMCoreCapabilities stm32f0xx_core = {
+static const CortexMCoreCapabilities stm32f051x8_core = {
     .cpu_model = "cortex-m0",
     .has_mpu = false, /* itm? irqs? */
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+/**/
 };
 
+#if 0
 static const CortexMCoreCapabilities stm32f100_core = {
     .cpu_model = "cortex-m3",
     .has_mpu = true,
     .has_itm = true,
     .num_irq = 60,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+    /**/
 };
 #endif
 
@@ -615,7 +706,8 @@ static const CortexMCoreCapabilities stm32f1xx_core = {
     .has_mpu = true,
     .has_itm = true, /* no ETM? */
     .num_irq = 44,
-    .nvic_bits = 4 /**/
+    .nvic_bits = 4
+/**/
 };
 
 static const CortexMCoreCapabilities stm32f1cl_core = {
@@ -624,7 +716,8 @@ static const CortexMCoreCapabilities stm32f1cl_core = {
     .has_etm = true,
     .has_itm = true,
     .num_irq = 68,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+/**/
 };
 
 static const CortexMCoreCapabilities stm32f152_core = {
@@ -633,7 +726,8 @@ static const CortexMCoreCapabilities stm32f152_core = {
     .has_itm = true, /* TODO: check */
     .has_etm = true,
     .num_irq = 57, /* TODO: check */
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+/**/
 };
 
 #if 0
@@ -641,21 +735,24 @@ static const CortexMCoreCapabilities stm32f2xx_core = {
     .cpu_model = "cortex-m3",
     .has_mpu = true,
     .has_itm = true,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+    /**/
 };
 
 static const CortexMCoreCapabilities stm32f3xx_core = {
     .cpu_model = "cortex-m4f",
     .has_mpu = true,
     .has_itm = true,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+    /**/
 };
 
 static const CortexMCoreCapabilities stm32f4xx_core = {
     .cpu_model = "cortex-m4f",
     .has_mpu = true,
     .has_itm = true,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+    /**/
 };
 #endif
 
@@ -664,7 +761,8 @@ static const CortexMCoreCapabilities stm32f4_01_57_xx_core = {
     .has_mpu = true,
     .has_itm = true,
     .num_irq = 82,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+/**/
 };
 
 static const CortexMCoreCapabilities stm32f4_23_xxx_core = {
@@ -672,7 +770,8 @@ static const CortexMCoreCapabilities stm32f4_23_xxx_core = {
     .has_mpu = true,
     .has_itm = true,
     .num_irq = 91,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+/**/
 };
 
 static const CortexMCoreCapabilities stm32f411xx_core = {
@@ -680,21 +779,23 @@ static const CortexMCoreCapabilities stm32f411xx_core = {
     .has_mpu = true,
     .has_itm = true,
     .num_irq = 62,
-    .nvic_bits = 4, /**/
+    .nvic_bits = 4,
+/**/
 };
 
 /* ------------------------------------------------------------------------- */
 
 static const STM32PartInfo stm32_mcus[] = {
-#if 0
     {
         .name = TYPE_STM32F051R8,
         .cortexm = {
             .flash_size_kb = 64,
             .sram_size_kb = 8,
-            .core = &stm32f0xx_core, /* TODO: Add .stm32 */
-        }, /**/
+            .core = &stm32f051x8_core, },
+        .stm32 = &stm32f051x8,
+    /**/
     },
+#if 0
     {
         .name = TYPE_STM32F100RB,
         .cortexm = {
@@ -711,7 +812,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .sram_size_kb = 20,
             .core = &stm32f1xx_core, /**/
         },
-        .stm32 = &stm32f103x8b, /**/
+        .stm32 = &stm32f103x8b,
+    /**/
     },
     {
         .name = TYPE_STM32F107VC,
@@ -720,7 +822,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .sram_size_kb = 64,
             .core = &stm32f1cl_core, /**/
         },
-        .stm32 = &stm32f10_57_xx, /**/
+        .stm32 = &stm32f10_57_xx,
+    /**/
     },
     {
         .name = TYPE_STM32L152RE,
@@ -729,7 +832,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .sram_size_kb = 48,
             .core = &stm32f152_core, /**/
         },
-        .stm32 = &stm32l15_12_xd, /**/
+        .stm32 = &stm32l15_12_xd,
+    /**/
     },
 #if 0
     {
@@ -738,7 +842,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .flash_size_kb = 768,
             .sram_size_kb = 128, /* No CCM */
             .core = &stm32f2xx_core, /* TODO: Add .stm32 */
-        }, /**/
+        },
+        /**/
     },
     {
         .name = TYPE_STM32F303VC,
@@ -746,7 +851,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .flash_size_kb = 256,
             .sram_size_kb = 40,
             .core = &stm32f3xx_core, /* TODO: Add .stm32 */
-        }, /**/
+        },
+        /**/
     },
     {
         .name = TYPE_STM32F334R8,
@@ -754,7 +860,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .flash_size_kb = 64,
             .sram_size_kb = 12,
             .core = &stm32f3xx_core, /* TODO: Add .stm32 */
-        }, /**/
+        },
+        /**/
     },
 #endif
     {
@@ -764,7 +871,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .sram_size_kb = 128, /* 64K CCM not counted */
             .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
         }, /**/
-        .stm32 = &stm32f405xx, /**/
+        .stm32 = &stm32f405xx,
+    /**/
     },
     {
         .name = TYPE_STM32F407VG,
@@ -773,7 +881,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .sram_size_kb = 128, /* 64K CCM not counted */
             .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
         },
-        .stm32 = &stm32f407xx, /**/
+        .stm32 = &stm32f407xx,
+    /**/
     },
     {
         .name = TYPE_STM32F407ZG,
@@ -781,7 +890,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
             .core = &stm32f4_01_57_xx_core, },
-        .stm32 = &stm32f407xx /**/
+        .stm32 = &stm32f407xx,
+    /**/
     },
     {
         .name = TYPE_STM32F411RE,
@@ -789,7 +899,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .flash_size_kb = 512,
             .sram_size_kb = 128, /* No CCM */
             .core = &stm32f411xx_core, },
-        .stm32 = &stm32f411xx /**/
+        .stm32 = &stm32f411xx,
+    /**/
     },
     {
         .name = TYPE_STM32F429ZI,
@@ -798,15 +909,21 @@ static const STM32PartInfo stm32_mcus[] = {
             .sram_size_kb = 192, /* 64K CCM not counted */
             .core = &stm32f4_23_xxx_core, /* TODO: Add .stm32 */
         },
-        .stm32 = &stm32f429xx /**/
-
+        .stm32 = &stm32f429xx,
+    /**/
     },
-    {
-        .name = 0 /* End of array. */
-    } /**/
+    { } /* End of array. */
+/**/
 };
 
 /* ------------------------------------------------------------------------- */
+
+static void stm32_mcus_instance_init_callback(Object *obj)
+{
+    qemu_log_function_name();
+
+    // Add properties here.
+}
 
 static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
 {
@@ -841,17 +958,12 @@ static void stm32_mcus_reset_callback(DeviceState *dev)
     cm_device_by_name_reset(dev, TYPE_STM32_MCU);
 }
 
-static Property stm32_mcus_properties[] = {
-    /* TODO: add STM32 specific properties */
-    DEFINE_PROP_END_OF_LIST(), /**/
-};
-
 static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
     dc->realize = stm32_mcus_realize_callback;
     dc->reset = stm32_mcus_reset_callback;
-    dc->props = stm32_mcus_properties;
+    // dc->props = stm32_mcus_properties;
 
     STM32DeviceClass *st_class = (STM32DeviceClass *) (klass);
     /*
@@ -874,6 +986,7 @@ static void stm32_mcus_types_init(void)
         TypeInfo ti = {
             .name = stm32_mcus[i].name,
             .parent = TYPE_STM32_DEVICE_PARENT,
+            .instance_init = stm32_mcus_instance_init_callback,
             .instance_size = sizeof(STM32DeviceState),
             .class_init = stm32_mcus_class_init_callback,
             .class_size = sizeof(STM32DeviceClass),

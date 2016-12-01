@@ -170,7 +170,7 @@ static void systick_timer_tick(void * opaque)
     {
         static int c = 0;
         fprintf(stderr, ".");
-        if(++c == 20){
+        if(++c == 20) {
             fprintf(stderr, "\n");
             c=0;
         }

@@ -320,14 +320,35 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     /* TODO: get it from MCU */
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
-    uint32_t size;
-    hwaddr addr;
+    /*
+     * Creating the memory region in the parent class will trigger
+     * an assertion if zro address or size.
+     */
+    uint32_t size = 0;
+    hwaddr addr = 0;
 
     const STM32Capabilities *capabilities =
     STM32_USART_STATE(state)->capabilities;
     assert(capabilities != NULL);
 
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
+        if (state->port_index > STM32_USART_2) {
+            qemu_log_mask(LOG_GUEST_ERROR, "USART: Illegal USART port %d\n",
+                    state->port_index);
+            return;
+        }
+        size = 0x400;
+        if (state->port_index == STM32_USART_1) {
+            addr = 0x40013800;
+        } else if (state->port_index == STM32_USART_2) {
+            addr = 0x40004400;
+        } else {
+            assert(false);
+        }
+
+        break;
+
     case STM32_FAMILY_F4:
 
         if (state->port_index > STM32_USART_6) {
@@ -349,9 +370,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     default:
 
-        size = 0; /* This will trigger an assertion to fail. */
-        addr = 0;
-
+        assert(false);
         break;
     }
 
@@ -359,6 +378,10 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
+        // TODO
+        break;
+
     case STM32_FAMILY_F4:
 
         stm32f4_usart_create_objects(obj);
@@ -380,6 +403,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     default:
+        assert(false);
         break;
     }
 

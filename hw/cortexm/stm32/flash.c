@@ -26,22 +26,84 @@
  *
  * The initial implementation is intended only to pass CMSIS initialisations.
  * The written values can be read back, but no other actions are supported.
- *
- * References:
- * - ST CD00171190.pdf, Doc ID 13902 Rev 15, "RM0008 Reference Manual,
- * STM32F101xx, STM32F102xx, STM32F103xx, STM32F105xx and STM32F107xx
- * advanced ARM®-based 32-bit MCUs"
- *
- * - Doc ID 018909 Rev 6, "ST RM0090 Reference manual,
- * STM32F405xx/07xx, STM32F415xx/17xx, STM32F42xxx and STM32F43xxx
- * advanced ARM-based 32-bit MCUs"
- *
- * - Doc ID 026448 Rev 1, "ST RM0383 Reference manual,
- * STM32F411xC/E advanced ARM-based 32-bit MCUs"
- *
- * All STM32 reference manuals are available from:
- * http://www.st.com/content/st_com/en/support/resources/resource-selector.html?querycriteria=productId=SC1169$$resourceCategory=technical_literature$$resourceType=reference_manual
  */
+
+/* ------------------------------------------------------------------------- */
+
+static PeripheralInfo stm32f051xx_flash_info = {
+    .desc = "Reset and clock control (RCC)",
+
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
+
+    .registers = (PeripheralRegisterInfo[] ) {
+                {
+                    .desc = "Flash access control register (FLASH_ACR)",
+                    .name = "acr",
+                    .offset_bytes = 0x00,
+                    .reset_value = 0x00000000,
+                    .bitfields = (RegisterBitfieldInfo[] ) {
+                                {
+                                    .name = "latency",
+                                    .first_bit = 0,
+                                    .width_bits = 3, },
+                                {
+                                    .name = "prftbe",
+                                    .desc = "Prefetch buffer enable",
+                                    .first_bit = 4, },
+                                {
+                                    .name = "prftbs",
+                                    .desc = "Prefetch buffer status",
+                                    .first_bit = 5,
+                                    .rw_mode = REGISTER_RW_MODE_READ, },
+                                { }, /**/
+                            } , /**/
+                },
+                /* Very schematic, functional read after write only. */
+                {
+                    .name = "keyr",
+                    .offset_bytes = 0x04, },
+                {
+                    .name = "optkeyr",
+                    .offset_bytes = 0x08, },
+                {
+                    .name = "sr",
+                    .offset_bytes = 0x0C, },
+                {
+                    .name = "cr",
+                    .offset_bytes = 0x10, },
+                {
+                    .name = "ar",
+                    .offset_bytes = 0x14, },
+                /* 0x18 is reserved */
+                {
+                    .name = "obr",
+                    .offset_bytes = 0x1C, },
+                {
+                    .name = "wrpr",
+                    .offset_bytes = 0x20, },
+                { }, /**/
+            } , /**/
+};
+
+static void stm32f051xx_flash_create_objects(Object *obj)
+{
+    STM32FlashState *state = STM32_FLASH_STATE(obj);
+
+    peripheral_add_properties_and_children(obj, &stm32f051xx_flash_info);
+
+    state->f0.reg.acr = cm_object_get_child_by_name(obj, "acr");
+    state->f0.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
+    state->f0.reg.optkeyr = cm_object_get_child_by_name(obj, "optkeyr");
+    state->f0.reg.sr = cm_object_get_child_by_name(obj, "sr");
+    state->f0.reg.cr = cm_object_get_child_by_name(obj, "cr");
+    state->f0.reg.ar = cm_object_get_child_by_name(obj, "ar");
+    state->f0.reg.obr = cm_object_get_child_by_name(obj, "obr");
+    state->f0.reg.wrpr = cm_object_get_child_by_name(obj, "wrpr");
+
+    /* ACR bitfields. */
+    state->f0.acr.prftbs = cm_object_get_child_by_name(
+            OBJECT(state->f0.reg.acr), "prftbs");
+}
 
 /* ------------------------------------------------------------------------- */
 
@@ -124,6 +186,8 @@ static void stm32f1_flash_create_objects(Object *obj)
     state->f1.acr.prftbs = cm_object_get_child_by_name(
             OBJECT(state->f1.reg.acr), "prftbs");
 }
+
+/* ------------------------------------------------------------------------- */
 
 static PeripheralInfo stm32f1xd_flash_info = {
     .desc = "Reset and clock control (RCC)",
@@ -225,6 +289,8 @@ static void stm32f1xd_flash_create_objects(Object *obj)
             OBJECT(state->f1.reg.acr), "prftbs");
 }
 
+/* ------------------------------------------------------------------------- */
+
 static PeripheralInfo stm32f4_01_57_xx_flash_info = {
     .desc = "Reset and clock control (RCC)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
@@ -278,32 +344,8 @@ static PeripheralInfo stm32f4_01_57_xx_flash_info = {
                     .name = "cr",
                     .offset_bytes = 0x10, },
                 {
-                    .name = "ar",
+                    .name = "optcr",
                     .offset_bytes = 0x14, },
-                /* 0x18 is reserved */
-                {
-                    .name = "obr",
-                    .offset_bytes = 0x1C, },
-                {
-                    .name = "wrpr",
-                    .offset_bytes = 0x20, },
-
-                /*
-                 * XL density devices specific.
-                 */
-                {
-                    .name = "keyr2",
-                    .offset_bytes = 0x44, },
-                {
-                    .name = "sr2",
-                    .offset_bytes = 0x4C, },
-                {
-                    .name = "cr2",
-                    .offset_bytes = 0x50, },
-                {
-                    .name = "ar2",
-                    .offset_bytes = 0x54, },
-
                 { }, /**/
             } , /**/
 };
@@ -314,6 +356,8 @@ static void stm32f4_01_57_xx_flash_create_objects(Object *obj)
 
     peripheral_add_properties_and_children(obj, &stm32f4_01_57_xx_flash_info);
 }
+
+/* ------------------------------------------------------------------------- */
 
 static PeripheralInfo stm32f411xx_flash_info = {
     .desc = "Reset and clock control (RCC)",
@@ -381,6 +425,8 @@ static void stm32f411xx_flash_create_objects(Object *obj)
     peripheral_add_properties_and_children(obj, &stm32f411xx_flash_info);
 }
 
+/* ------------------------------------------------------------------------- */
+
 static PeripheralInfo stm32f4_23_xxx_flash_info = {
     .desc = "Reset and clock control (RCC)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
@@ -434,31 +480,11 @@ static PeripheralInfo stm32f4_23_xxx_flash_info = {
                     .name = "cr",
                     .offset_bytes = 0x10, },
                 {
-                    .name = "ar",
+                    .name = "optcr",
                     .offset_bytes = 0x14, },
-                /* 0x18 is reserved */
                 {
-                    .name = "obr",
-                    .offset_bytes = 0x1C, },
-                {
-                    .name = "wrpr",
-                    .offset_bytes = 0x20, },
-
-                /*
-                 * XL density devices specific.
-                 */
-                {
-                    .name = "keyr2",
-                    .offset_bytes = 0x44, },
-                {
-                    .name = "sr2",
-                    .offset_bytes = 0x4C, },
-                {
-                    .name = "cr2",
-                    .offset_bytes = 0x50, },
-                {
-                    .name = "ar2",
-                    .offset_bytes = 0x54, },
+                    .name = "optcr1",
+                    .offset_bytes = 0x18, },
 
                 { }, /**/
             } , /**/
@@ -504,10 +530,15 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     /* TODO: get it from MCU */
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
-    uint64_t size;
-    hwaddr addr;
+    /*
+     * Creating the memory region in the parent class will trigger
+     * an assertion if zro address or size.
+     */
+    uint32_t size = 0;
+    hwaddr addr = 0;
 
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
     case STM32_FAMILY_F1:
         addr = 0x40022000;
         size = 0x400;
@@ -519,18 +550,21 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     default:
-        /*
-         * This will trigger an assertion to fail when creating the
-         * memory region in the parent class.
-         */
-        addr = 0;
-        size = 0;
+        assert(false);
+        break;
     }
 
     cm_object_property_set_int(obj, addr, "mmio-address");
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
     switch (capabilities->family) {
+    case STM32_FAMILY_F0:
+
+        if (!capabilities->f0.is_51xx) {
+            stm32f051xx_flash_create_objects(obj);
+        }
+        break;
+
     case STM32_FAMILY_F1:
 
         if (!capabilities->f1.is_xd) {
