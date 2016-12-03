@@ -2491,13 +2491,23 @@ char *qemu_find_file(int type, const char *name)
         break;
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-    case QEMU_FILE_TYPE_IMAGES:
+
+    case QEMU_FILE_TYPE_GRAPHICS:
 #if defined(CONFIG_WIN32)
-        subdir = "images\\";
+        subdir = "graphics\\";
 #else
-        subdir = "images/";
+        subdir = "graphics/";
 #endif
         break;
+
+    case QEMU_FILE_TYPE_DEVICES:
+#if defined(CONFIG_WIN32)
+        subdir = "devices\\";
+#else
+        subdir = "devices/";
+#endif
+        break;
+
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
         default:
