@@ -159,6 +159,12 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         exit(1);
     }
 
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_DETAILED) {
+        printf("Device file: '%s'.\n", device_full_name);
+    }
+#endif
+
     state->family_json = json_parse_file(device_full_name);
 
     /* Devices will be addressed below "/machine/mcu/stm32". */
