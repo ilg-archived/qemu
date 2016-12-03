@@ -511,13 +511,15 @@ static void cortexm_graphic_board_init_graphic_context(
 
 #if defined(CONFIG_SDL)
 
-    const char *fullname = qemu_find_file(QEMU_FILE_TYPE_IMAGES,
+#if 0
+    const char *fullname = qemu_find_file(QEMU_FILE_TYPE_GRAPHICS,
             board_graphic_context->picture_file_name);
     if (fullname == NULL) {
         error_printf("Image file '%s' not found.\n",
                 board_graphic_context->picture_file_name);
         exit(1);
     }
+#endif
 
     int res = IMG_Init(IMG_INIT_JPG | IMG_INIT_PNG);
     if ((res & (IMG_INIT_JPG | IMG_INIT_PNG))

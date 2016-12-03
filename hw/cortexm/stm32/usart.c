@@ -81,92 +81,97 @@ static bool stm32_usart_is_enabled(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f4_usart_info =
+{
+    .desc = "Universal synch asynch receiver transmitter (USART)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "Universal synch asynch receiver transmitter (USART)",
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
+            .desc = "USART status register (USART_SR)",
+            .name = "sr",
+            .offset_bytes = 0x00,
+            /* datasheet indicates 0x00C00000, but I think it's wrong */
+            .reset_value = 0x000000C0,
+            .readable_bits = 0x000003FF,
+            .writable_bits = 0x00000360,
+            /**/
+        },
+        {
+            .desc = "USART data register (USART_DR)",
+            .name = "dr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x000001FF,
+            .writable_bits = 0x000001FF,
+            /**/
+        },
+        {
+            .desc =
+            "USART baud rate register (USART_BRR)",
+            .name = "brr",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0000FFFF,
+            .writable_bits = 0x0000FFFF,
+            /**/
+        },
+        {
+            .desc =
+            "USART control register 1 (USART_CR1)",
+            .name = "cr1",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0000BFFF,
+            .writable_bits = 0x0000BFFF,
+            /**/
+        },
+        {
+            .desc =
+            "USART control register 2 (USART_CR2)",
+            .name = "cr2",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x00007F7F,
+            .writable_bits = 0x00007F7F,
+            /**/
+        },
+        {
+            .desc =
+            "USART control register 3 (USART_CR3)",
+            .name = "cr3",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            .writable_bits = 0x00000FFF,
+            .readable_bits = 0x00000FFF,
+            /**/
+        },
+        {
+            .desc =
+            "USART guard time and prescaler register (USART_GTPR)",
+            .name = "gtpr",
+            .offset_bytes = 0x18,
+            .reset_value = 0x00000000,
+            .writable_bits = 0x0000FFFF,
+            .readable_bits = 0x0000FFFF,
+            /**/
+        },
+        {}, /**/
+    },
+    /**/
+};
+#endif
 
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc = "USART status register (USART_SR)",
-                                    .name = "sr",
-                                    .offset_bytes = 0x00,
-                                    /* datasheet indicates 0x00C00000, but I think it's wrong */
-                                    .reset_value = 0x000000C0,
-                                    .readable_bits = 0x000003FF,
-                                    .writable_bits = 0x00000360,
-                                /**/
-                                },
-                                {
-                                    .desc = "USART data register (USART_DR)",
-                                    .name = "dr",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x000001FF,
-                                    .writable_bits = 0x000001FF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "USART baud rate register (USART_BRR)",
-                                    .name = "brr",
-                                    .offset_bytes = 0x08,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x0000FFFF,
-                                    .writable_bits = 0x0000FFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "USART control register 1 (USART_CR1)",
-                                    .name = "cr1",
-                                    .offset_bytes = 0x0C,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x0000BFFF,
-                                    .writable_bits = 0x0000BFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "USART control register 2 (USART_CR2)",
-                                    .name = "cr2",
-                                    .offset_bytes = 0x10,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x00007F7F,
-                                    .writable_bits = 0x00007F7F,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "USART control register 3 (USART_CR3)",
-                                    .name = "cr3",
-                                    .offset_bytes = 0x14,
-                                    .reset_value = 0x00000000,
-                                    .writable_bits = 0x00000FFF,
-                                    .readable_bits = 0x00000FFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "USART guard time and prescaler register (USART_GTPR)",
-                                    .name = "gtpr",
-                                    .offset_bytes = 0x18,
-                                    .reset_value = 0x00000000,
-                                    .writable_bits = 0x0000FFFF,
-                                    .readable_bits = 0x0000FFFF,
-                                /**/
-                                },
-                                { }, /**/
-                            } ,
-        /**/
-        };
-
-static void stm32f4_usart_create_objects(Object *obj)
+static void stm32f4xx_usart_create_objects(Object *obj, JSON_Value *family)
 {
     STM32USARTState *state = STM32_USART_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f4_usart_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f4xx:usart");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->reg.sr = cm_object_get_child_by_name(obj, "sr");
     state->reg.dr = cm_object_get_child_by_name(obj, "dr");
@@ -384,7 +389,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     case STM32_FAMILY_F4:
 
-        stm32f4_usart_create_objects(obj);
+        stm32f4xx_usart_create_objects(obj, mcu->family_json);
 
         /* Register callbacks. */
         peripheral_register_set_post_read(state->reg.dr,
@@ -488,6 +493,10 @@ static const TypeInfo stm32_usart_type_info = {
 static void stm32_usart_register_types(void)
 {
     type_register_static(&stm32_usart_type_info);
+
+#if 0
+    peripheral_serialize_info("f4xx-usart.json", "stm32f4xx:usart", &stm32f4_usart_info);
+#endif
 }
 
 type_init(stm32_usart_register_types);

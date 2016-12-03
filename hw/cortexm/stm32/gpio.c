@@ -137,123 +137,127 @@ static bool stm32_gpio_is_enabled(Object *obj)
 
 /* STM32F051xx; uses the callbacks from F4. */
 
+#if 0
 static PeripheralInfo stm32f0_gpio_info =
+{
+    .desc = "General-purpose I/Os (GPIO)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "General-purpose I/Os (GPIO)",
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+            .desc =
+            "GPIO port mode register (GPIOx_MODER)",
+            .name = "moder",
+            .offset_bytes = 0x00,
+            /* 0xA8000000 for port A, 0x00000280 for port B */
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO port output type register (GPIOx_OTYPER)",
+            .name = "otyper",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0000FFFF,
+            .writable_bits = 0x0000FFFF,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO port output speed register (GPIOx_OSPEEDR)",
+            .name = "ospeeder",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000, /* 0x0000 00C0 for port B */
+            /**/
+        },
+        {
+            .desc =
+            "GPIO port pull-up/pull-down register (GPIOx_PUPDR)",
+            .name = "pupdr",
+            .offset_bytes = 0x0C,
+            /* 0x640000C0 for port A, 0x00000100 for port B */
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port input data register (GPIOx_IDR)",
+            .name = "idr",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .reset_mask = 0xFFFF0000,
+            .readable_bits = 0x0000FFFF,
+            .rw_mode = REGISTER_RW_MODE_READ,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port output data register (GPIOx_ODR)",
+            .name = "odr",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            .writable_bits = 0x0000FFFF,
+            .readable_bits = 0x0000FFFF,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port bit set/reset register (GPIOx_BSRR) ",
+            .name = "bsrr",
+            .offset_bytes = 0x18,
+            .reset_value = 0x00000000,
+            .rw_mode = REGISTER_RW_MODE_WRITE,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port configuration lock register (GPIOx_LCKR)",
+            .name = "lckr",
+            .offset_bytes = 0x1C,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0001FFFF,
+            .writable_bits = 0x0001FFFF,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO alternate function low register (GPIOx_AFRL)",
+            .name = "afrl",
+            .offset_bytes = 0x20,
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO alternate function low register (GPIOx_AFRH)",
+            .name = "afrh",
+            .offset_bytes = 0x24,
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port bit reset register (GPIOx_BRR) ",
+            .name = "brr",
+            .offset_bytes = 0x28,
+            .reset_value = 0x00000000,
+            .rw_mode = REGISTER_RW_MODE_WRITE,
+            /**/
+        },
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "GPIO port mode register (GPIOx_MODER)",
-                                    .name = "moder",
-                                    .offset_bytes = 0x00,
-                                    /* 0xA8000000 for port A, 0x00000280 for port B */
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO port output type register (GPIOx_OTYPER)",
-                                    .name = "otyper",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x0000FFFF,
-                                    .writable_bits = 0x0000FFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO port output speed register (GPIOx_OSPEEDR)",
-                                    .name = "ospeeder",
-                                    .offset_bytes = 0x08,
-                                    .reset_value = 0x00000000, /* 0x0000 00C0 for port B */
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO port pull-up/pull-down register (GPIOx_PUPDR)",
-                                    .name = "pupdr",
-                                    .offset_bytes = 0x0C,
-                                    /* 0x640000C0 for port A, 0x00000100 for port B */
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port input data register (GPIOx_IDR)",
-                                    .name = "idr",
-                                    .offset_bytes = 0x10,
-                                    .reset_value = 0x00000000,
-                                    .reset_mask = 0xFFFF0000,
-                                    .readable_bits = 0x0000FFFF,
-                                    .rw_mode = REGISTER_RW_MODE_READ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port output data register (GPIOx_ODR)",
-                                    .name = "odr",
-                                    .offset_bytes = 0x14,
-                                    .reset_value = 0x00000000,
-                                    .writable_bits = 0x0000FFFF,
-                                    .readable_bits = 0x0000FFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port bit set/reset register (GPIOx_BSRR) ",
-                                    .name = "bsrr",
-                                    .offset_bytes = 0x18,
-                                    .reset_value = 0x00000000,
-                                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port configuration lock register (GPIOx_LCKR)",
-                                    .name = "lckr",
-                                    .offset_bytes = 0x1C,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x0001FFFF,
-                                    .writable_bits = 0x0001FFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO alternate function low register (GPIOx_AFRL)",
-                                    .name = "afrl",
-                                    .offset_bytes = 0x20,
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO alternate function low register (GPIOx_AFRH)",
-                                    .name = "afrh",
-                                    .offset_bytes = 0x24,
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port bit reset register (GPIOx_BRR) ",
-                                    .name = "brr",
-                                    .offset_bytes = 0x28,
-                                    .reset_value = 0x00000000,
-                                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                                /**/
-                                },
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f0_gpio_create_objects(Object *obj)
+static void stm32f051_gpio_create_objects(Object *obj, JSON_Value *family)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f0_gpio_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f051:gpio");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->reg.moder = cm_object_get_child_by_name(obj, "moder");
     state->reg.otyper = cm_object_get_child_by_name(obj, "otyper");
@@ -366,81 +370,85 @@ static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, odr, state->f1.reg.idr, new_value);
 }
 
+#if 0
 static PeripheralInfo stm32f1_gpio_info = {
     .desc = "General-purpose I/Os (GPIO)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
 
     .registers = (PeripheralRegisterInfo[] ) {
-                {
-                    .desc = "Port configuration register low (GPIOx_CRL)",
-                    .name = "crl",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x44444444,
-                /**/
-                },
-                {
-                    .desc = "Port configuration register low (GPIOx_CRH)",
-                    .name = "crh",
-                    .offset_bytes = 0x04,
-                    .reset_value = 0x44444444,
-                /**/
-                },
+        {
+            .desc = "Port configuration register low (GPIOx_CRL)",
+            .name = "crl",
+            .offset_bytes = 0x00,
+            .reset_value = 0x44444444,
+            /**/
+        },
+        {
+            .desc = "Port configuration register low (GPIOx_CRH)",
+            .name = "crh",
+            .offset_bytes = 0x04,
+            .reset_value = 0x44444444,
+            /**/
+        },
 
-                {
-                    .desc = "Port input data register (GPIOx_IDR)",
-                    .name = "idr",
-                    .offset_bytes = 0x08,
-                    .reset_value = 0x00000000,
-                    .reset_mask = 0xFFFF0000,
-                    .readable_bits = 0x0000FFFF,
-                    .rw_mode = REGISTER_RW_MODE_READ,
-                /**/
-                },
-                {
-                    .desc = "Port output data register (GPIOx_ODR)",
-                    .name = "odr",
-                    .offset_bytes = 0x0C,
-                    .reset_value = 0x00000000,
-                    .writable_bits = 0x0000FFFF,
-                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                /**/
-                },
-                {
-                    .desc = "Port bit set/reset register (GPIOx_BSRR)",
-                    .name = "bsrr",
-                    .offset_bytes = 0x10,
-                    .reset_value = 0x00000000,
-                    .writable_bits = 0xFFFFFFFF,
-                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                /**/
-                },
-                {
-                    .desc = "Port bit reset register (GPIOx_BRR) ",
-                    .name = "brr",
-                    .offset_bytes = 0x14,
-                    .reset_value = 0x00000000,
-                    .writable_bits = 0x0000FFFF,
-                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                /**/
-                },
-                {
-                    .desc = "Port configuration lock register (GPIOx_LCKR)",
-                    .name = "lckr",
-                    .offset_bytes = 0x18,
-                    .reset_value = 0x0001FFFF,
-                    .readable_bits = 0x0001FFFF,
-                    .writable_bits = 0x0001FFFF,
-                /**/
-                },
-                { }, /**/
-            } , /**/
+        {
+            .desc = "Port input data register (GPIOx_IDR)",
+            .name = "idr",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .reset_mask = 0xFFFF0000,
+            .readable_bits = 0x0000FFFF,
+            .rw_mode = REGISTER_RW_MODE_READ,
+            /**/
+        },
+        {
+            .desc = "Port output data register (GPIOx_ODR)",
+            .name = "odr",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .writable_bits = 0x0000FFFF,
+            .rw_mode = REGISTER_RW_MODE_WRITE,
+            /**/
+        },
+        {
+            .desc = "Port bit set/reset register (GPIOx_BSRR)",
+            .name = "bsrr",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .writable_bits = 0xFFFFFFFF,
+            .rw_mode = REGISTER_RW_MODE_WRITE,
+            /**/
+        },
+        {
+            .desc = "Port bit reset register (GPIOx_BRR) ",
+            .name = "brr",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            .writable_bits = 0x0000FFFF,
+            .rw_mode = REGISTER_RW_MODE_WRITE,
+            /**/
+        },
+        {
+            .desc = "Port configuration lock register (GPIOx_LCKR)",
+            .name = "lckr",
+            .offset_bytes = 0x18,
+            .reset_value = 0x0001FFFF,
+            .readable_bits = 0x0001FFFF,
+            .writable_bits = 0x0001FFFF,
+            /**/
+        },
+        {}, /**/
+    }, /**/
 };
+#endif
 
-static void stm32f1_gpio_create_objects(Object *obj)
+static void stm32f1xx_gpio_create_objects(Object *obj, JSON_Value *family)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f1_gpio_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f1xx:gpio");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f1.reg.crl = cm_object_get_child_by_name(obj, "crl");
     state->f1.reg.crh = cm_object_get_child_by_name(obj, "crh");
@@ -585,114 +593,118 @@ static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, odr, state->reg.idr, new_value);
 }
 
+#if 0
 static PeripheralInfo stm32f4_gpio_info =
+{
+    .desc = "General-purpose I/Os (GPIO)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "General-purpose I/Os (GPIO)",
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+            .desc =
+            "GPIO port mode register (GPIOx_MODER)",
+            .name = "moder",
+            .offset_bytes = 0x00,
+            /* 0xA8000000 for port A, 0x00000280 for port B */
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO port output type register (GPIOx_OTYPER)",
+            .name = "otyper",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0000FFFF,
+            .writable_bits = 0x0000FFFF,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO port output speed register (GPIOx_OSPEEDR)",
+            .name = "ospeeder",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000, /* 0x0000 00C0 for port B */
+            /**/
+        },
+        {
+            .desc =
+            "GPIO port pull-up/pull-down register (GPIOx_PUPDR)",
+            .name = "pupdr",
+            .offset_bytes = 0x0C,
+            /* 0x640000C0 for port A, 0x00000100 for port B */
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port input data register (GPIOx_IDR)",
+            .name = "idr",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .reset_mask = 0xFFFF0000,
+            .readable_bits = 0x0000FFFF,
+            .rw_mode = REGISTER_RW_MODE_READ,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port output data register (GPIOx_ODR)",
+            .name = "odr",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            .writable_bits = 0x0000FFFF,
+            .readable_bits = 0x0000FFFF,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port bit set/reset register (GPIOx_BSRR) ",
+            .name = "bsrr",
+            .offset_bytes = 0x18,
+            .reset_value = 0x00000000,
+            .rw_mode = REGISTER_RW_MODE_WRITE,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO Port configuration lock register (GPIOx_LCKR)",
+            .name = "lckr",
+            .offset_bytes = 0x1C,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0001FFFF,
+            .writable_bits = 0x0001FFFF,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO alternate function low register (GPIOx_AFRL)",
+            .name = "afrl",
+            .offset_bytes = 0x20,
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {
+            .desc =
+            "GPIO alternate function low register (GPIOx_AFRH)",
+            .name = "afrh",
+            .offset_bytes = 0x24,
+            .reset_value = 0x00000000,
+            /**/
+        },
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "GPIO port mode register (GPIOx_MODER)",
-                                    .name = "moder",
-                                    .offset_bytes = 0x00,
-                                    /* 0xA8000000 for port A, 0x00000280 for port B */
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO port output type register (GPIOx_OTYPER)",
-                                    .name = "otyper",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x0000FFFF,
-                                    .writable_bits = 0x0000FFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO port output speed register (GPIOx_OSPEEDR)",
-                                    .name = "ospeeder",
-                                    .offset_bytes = 0x08,
-                                    .reset_value = 0x00000000, /* 0x0000 00C0 for port B */
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO port pull-up/pull-down register (GPIOx_PUPDR)",
-                                    .name = "pupdr",
-                                    .offset_bytes = 0x0C,
-                                    /* 0x640000C0 for port A, 0x00000100 for port B */
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port input data register (GPIOx_IDR)",
-                                    .name = "idr",
-                                    .offset_bytes = 0x10,
-                                    .reset_value = 0x00000000,
-                                    .reset_mask = 0xFFFF0000,
-                                    .readable_bits = 0x0000FFFF,
-                                    .rw_mode = REGISTER_RW_MODE_READ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port output data register (GPIOx_ODR)",
-                                    .name = "odr",
-                                    .offset_bytes = 0x14,
-                                    .reset_value = 0x00000000,
-                                    .writable_bits = 0x0000FFFF,
-                                    .readable_bits = 0x0000FFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port bit set/reset register (GPIOx_BSRR) ",
-                                    .name = "bsrr",
-                                    .offset_bytes = 0x18,
-                                    .reset_value = 0x00000000,
-                                    .rw_mode = REGISTER_RW_MODE_WRITE,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO Port configuration lock register (GPIOx_LCKR)",
-                                    .name = "lckr",
-                                    .offset_bytes = 0x1C,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x0001FFFF,
-                                    .writable_bits = 0x0001FFFF,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO alternate function low register (GPIOx_AFRL)",
-                                    .name = "afrl",
-                                    .offset_bytes = 0x20,
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "GPIO alternate function low register (GPIOx_AFRH)",
-                                    .name = "afrh",
-                                    .offset_bytes = 0x24,
-                                    .reset_value = 0x00000000,
-                                /**/
-                                },
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f4_gpio_create_objects(Object *obj)
+static void stm32f4xx_gpio_create_objects(Object *obj, JSON_Value *family)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f4_gpio_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f4xx:gpio");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->reg.moder = cm_object_get_child_by_name(obj, "moder");
     state->reg.otyper = cm_object_get_child_by_name(obj, "otyper");
@@ -1000,7 +1012,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        stm32f0_gpio_create_objects(obj);
+        stm32f051_gpio_create_objects(obj, mcu->family_json);
 
         /* Add callbacks. Use some of the F4 ones.*/
         peripheral_register_set_post_write(state->reg.moder,
@@ -1017,7 +1029,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F1:
-        stm32f1_gpio_create_objects(obj);
+        stm32f1xx_gpio_create_objects(obj, mcu->family_json);
 
         /* Add callbacks. */
         peripheral_register_set_post_write(state->f1.reg.crl,
@@ -1034,7 +1046,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F4:
-        stm32f4_gpio_create_objects(obj);
+        stm32f4xx_gpio_create_objects(obj, mcu->family_json);
 
         /* Add callbacks. */
         peripheral_register_set_post_write(state->reg.moder,
@@ -1148,6 +1160,12 @@ static const TypeInfo stm32_gpio_type_info = {
 static void stm32_gpio_register_types(void)
 {
     type_register_static(&stm32_gpio_type_info);
+
+#if 0
+    peripheral_serialize_info("f051-gpio.json", "stm32f051:gpio", &stm32f0_gpio_info);
+    peripheral_serialize_info("f1xx-gpio.json", "stm32f1xx:gpio", &stm32f1_gpio_info);
+    peripheral_serialize_info("f4xx-gpio.json", "stm32f4xx:gpio", &stm32f4_gpio_info);
+#endif
 }
 
 type_init(stm32_gpio_register_types);

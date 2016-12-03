@@ -21,6 +21,9 @@
 #include <hw/cortexm/helper.h>
 #include "qemu/error-report.h"
 
+#include "qapi/qmp/qstring.h"
+#include "migration/qjson.h"
+
 /* ----- Public ------------------------------------------------------------ */
 
 /*
@@ -57,6 +60,215 @@ Object *peripheral_add_properties_and_children(Object *obj,
     }
 
     return obj;
+}
+
+Object *peripheral_add_properties_and_children2(Object *obj, JSON_Object *info)
+{
+    const char *str;
+    double number;
+    // uint32_t value32;
+
+    if (json_object_has_value_of_type(info, "default_access_flags",
+            JSONString)) {
+        str = json_object_get_string(info, "default_access_flags");
+        uint64_t access_flags = cm_json_parser_parse_access_flags(str);
+        cm_object_property_set_int(obj, access_flags, "default-access-flags");
+    }
+
+    if (json_object_has_value_of_type(info, "register_size_bytes",
+            JSONNumber)) {
+        number = json_object_get_number(info, "register_size_bytes");
+        cm_object_property_set_int(obj, (uint32_t) number,
+                "register-size-bytes");
+    }
+
+    if (json_object_has_value_of_type(info, "registers", JSONArray)) {
+        JSON_Array *registers = json_object_get_array(info, "registers");
+        size_t count = json_array_get_count(registers);
+        int i;
+
+        for (i = 0; i < count; ++i) {
+            JSON_Object *regi = json_array_get_object(registers, i);
+
+            const char *regi_name = json_object_get_string(regi, "name");
+
+            Object *reg = cm_object_new(obj, regi_name,
+            TYPE_PERIPHERAL_REGISTER);
+
+            /* Store a local copy of the node name, for easier access.  */
+            cm_object_property_set_str(reg, regi_name, "name");
+
+            peripheral_register_add_properties_and_children2(reg, regi);
+
+            cm_object_realize(reg);
+        }
+
+    } else {
+        error_printf("Missing registers array.\n");
+        exit(1);
+    }
+
+    return obj;
+}
+
+/* ------------------------------------------------------------------------- */
+
+static void cm_json_prop_hex(QJSON *json, const char *name, uint32_t value,
+        uint32_t width)
+{
+    char buf[20];
+
+    if (width > 0) {
+        snprintf(buf, sizeof(buf) - 1, "0x%0*X", width, value);
+    } else {
+        snprintf(buf, sizeof(buf) - 1, "0x%0X", value);
+    }
+    json_prop_str(json, name, buf);
+}
+
+static void cm_json_prop_access_flags(QJSON *json, const char *name,
+        uint64_t access_flags)
+{
+    char buf[30];
+
+    if (access_flags == PERIPHERAL_REGISTER_32BITS_ALL) {
+        strncpy(buf, "32_all", sizeof(buf) - 1);
+    } else if (access_flags == PERIPHERAL_REGISTER_32BITS_WORD) {
+        strncpy(buf, "32_word", sizeof(buf) - 1);
+    } else if (access_flags == PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD) {
+        strncpy(buf, "32_word_halfword", sizeof(buf) - 1);
+    } else {
+        snprintf(buf, sizeof(buf) - 1, "0x%016" PRIX64, access_flags);
+    }
+    json_prop_str(json, name, buf);
+}
+
+static void cm_json_prop_rw_mode(QJSON *json, const char *name, uint32_t mode)
+{
+    char buf[8];
+
+    if (mode == REGISTER_RW_MODE_READ) {
+        strncpy(buf, "r", sizeof(buf) - 1);
+    } else if (mode == REGISTER_RW_MODE_WRITE) {
+        strncpy(buf, "w", sizeof(buf) - 1);
+    } else if (mode == REGISTER_RW_MODE_WRITE) {
+        strncpy(buf, "rw", sizeof(buf) - 1);
+    }
+    json_prop_str(json, name, buf);
+}
+
+void peripheral_serialize_info(const char* file_name, const char* periph_name,
+        PeripheralInfo *info)
+{
+    QJSON *json_info = qjson_new();
+
+    assert(periph_name != NULL);
+    json_prop_str(json_info, "name", periph_name);
+    if (info->desc != NULL) {
+        json_prop_str(json_info, "desc", info->desc);
+    }
+    if (info->register_size_bytes > 0) {
+        json_prop_int(json_info, "register_size_bytes",
+                info->register_size_bytes);
+    }
+    if (info->default_access_flags) {
+        cm_json_prop_access_flags(json_info, "default_access_flags",
+                info->default_access_flags);
+    }
+    assert(info->registers != NULL);
+
+    PeripheralRegisterInfo *reg_info;
+    json_start_array(json_info, "registers");
+
+    for (reg_info = info->registers; reg_info->name; ++reg_info) {
+
+        json_start_object(json_info, NULL);
+
+        json_prop_str(json_info, "name", reg_info->name);
+        if (reg_info->desc != NULL) {
+            json_prop_str(json_info, "desc", reg_info->desc);
+        }
+        cm_json_prop_hex(json_info, "offset_bytes", reg_info->offset_bytes, 3);
+        cm_json_prop_hex(json_info, "reset_value", reg_info->reset_value, 8);
+        if (reg_info->reset_mask > 0) {
+            cm_json_prop_hex(json_info, "reset_mask", reg_info->reset_mask, 8);
+        }
+
+        if (reg_info->readable_bits > 0) {
+            cm_json_prop_hex(json_info, "readable_bits",
+                    reg_info->readable_bits, 8);
+        }
+        if (reg_info->writable_bits > 0) {
+            cm_json_prop_hex(json_info, "writable_bits",
+                    reg_info->writable_bits, 8);
+        }
+
+        if (reg_info->access_flags) {
+            cm_json_prop_access_flags(json_info, "access_flags",
+                    reg_info->access_flags);
+        }
+
+        if (reg_info->rw_mode) {
+            cm_json_prop_rw_mode(json_info, "rw_mode", reg_info->rw_mode);
+        }
+
+        if (reg_info->size_bits) {
+            json_prop_int(json_info, "size_bits", reg_info->size_bits);
+        }
+
+        if (reg_info->bitfields) {
+
+            RegisterBitfieldInfo *bifi_info;
+            json_start_array(json_info, "bitfields");
+
+            for (bifi_info = reg_info->bitfields; bifi_info->name;
+                    ++bifi_info) {
+
+                json_start_object(json_info, NULL);
+
+                json_prop_str(json_info, "name", bifi_info->name);
+                if (bifi_info->desc != NULL) {
+                    json_prop_str(json_info, "desc", bifi_info->desc);
+                }
+
+                json_prop_int(json_info, "first_bit", bifi_info->first_bit);
+                if (bifi_info->width_bits > 0) {
+                    json_prop_int(json_info, "width_bits",
+                            bifi_info->width_bits);
+                }
+
+                if (bifi_info->rw_mode) {
+                    cm_json_prop_rw_mode(json_info, "rw_mode",
+                            bifi_info->rw_mode);
+                }
+
+                json_end_object(json_info);
+            }
+
+            json_end_array(json_info);
+        }
+
+        json_end_object(json_info);
+    }
+
+    json_end_array(json_info);
+
+    qjson_finish(json_info);
+
+    {
+        FILE *fout = fopen(file_name, "w");
+
+        const char* p = qjson_get_str(json_info);
+        size_t len = strlen(p);
+        while (len > 0) {
+            size_t written = fwrite(p, 1, len, fout);
+            len -= written;
+            p += written;
+        }
+        fclose(fout);
+    }
+
+    qjson_destroy(json_info);
 }
 
 /* ----- Private ----------------------------------------------------------- */

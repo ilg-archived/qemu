@@ -30,66 +30,71 @@
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f051xx_flash_info = {
     .desc = "Reset and clock control (RCC)",
 
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
 
     .registers = (PeripheralRegisterInfo[] ) {
+        {
+            .desc = "Flash access control register (FLASH_ACR)",
+            .name = "acr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000000,
+            .bitfields = (RegisterBitfieldInfo[] ) {
                 {
-                    .desc = "Flash access control register (FLASH_ACR)",
-                    .name = "acr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000000,
-                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                {
-                                    .name = "latency",
-                                    .first_bit = 0,
-                                    .width_bits = 3, },
-                                {
-                                    .name = "prftbe",
-                                    .desc = "Prefetch buffer enable",
-                                    .first_bit = 4, },
-                                {
-                                    .name = "prftbs",
-                                    .desc = "Prefetch buffer status",
-                                    .first_bit = 5,
-                                    .rw_mode = REGISTER_RW_MODE_READ, },
-                                { }, /**/
-                            } , /**/
-                },
-                /* Very schematic, functional read after write only. */
+                    .name = "latency",
+                    .first_bit = 0,
+                    .width_bits = 3,},
                 {
-                    .name = "keyr",
-                    .offset_bytes = 0x04, },
+                    .name = "prftbe",
+                    .desc = "Prefetch buffer enable",
+                    .first_bit = 4,},
                 {
-                    .name = "optkeyr",
-                    .offset_bytes = 0x08, },
-                {
-                    .name = "sr",
-                    .offset_bytes = 0x0C, },
-                {
-                    .name = "cr",
-                    .offset_bytes = 0x10, },
-                {
-                    .name = "ar",
-                    .offset_bytes = 0x14, },
-                /* 0x18 is reserved */
-                {
-                    .name = "obr",
-                    .offset_bytes = 0x1C, },
-                {
-                    .name = "wrpr",
-                    .offset_bytes = 0x20, },
-                { }, /**/
-            } , /**/
+                    .name = "prftbs",
+                    .desc = "Prefetch buffer status",
+                    .first_bit = 5,
+                    .rw_mode = REGISTER_RW_MODE_READ,},
+                {}, /**/
+            }, /**/
+        },
+        /* Very schematic, functional read after write only. */
+        {
+            .name = "keyr",
+            .offset_bytes = 0x04,},
+        {
+            .name = "optkeyr",
+            .offset_bytes = 0x08,},
+        {
+            .name = "sr",
+            .offset_bytes = 0x0C,},
+        {
+            .name = "cr",
+            .offset_bytes = 0x10,},
+        {
+            .name = "ar",
+            .offset_bytes = 0x14,},
+        /* 0x18 is reserved */
+        {
+            .name = "obr",
+            .offset_bytes = 0x1C,},
+        {
+            .name = "wrpr",
+            .offset_bytes = 0x20,},
+        {}, /**/
+    }, /**/
 };
+#endif
 
-static void stm32f051xx_flash_create_objects(Object *obj)
+static void stm32f051_flash_create_objects(Object *obj, JSON_Value *family)
 {
     STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f051xx_flash_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f051:flash");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f0.reg.acr = cm_object_get_child_by_name(obj, "acr");
     state->f0.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
@@ -107,6 +112,7 @@ static void stm32f051xx_flash_create_objects(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f1_flash_info = {
     .desc = "Reset and clock control (RCC)",
 
@@ -114,64 +120,68 @@ static PeripheralInfo stm32f1_flash_info = {
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
+        {
+            .desc = "Flash access control register (FLASH_ACR)",
+            .name = "acr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000030,
+            .bitfields = (RegisterBitfieldInfo[] ) {
                 {
-                    .desc = "Flash access control register (FLASH_ACR)",
-                    .name = "acr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000030,
-                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                {
-                                    .name = "latency",
-                                    .first_bit = 0,
-                                    .width_bits = 3, },
-                                {
-                                    .name = "hlfcya",
-                                    .desc = "Flash half cycle access enable",
-                                    .first_bit = 3, },
-                                {
-                                    .name = "prftbe",
-                                    .desc = "Prefetch buffer enable",
-                                    .first_bit = 4, },
-                                {
-                                    .name = "prftbs",
-                                    .desc = "Prefetch buffer status",
-                                    .first_bit = 5,
-                                    .rw_mode = REGISTER_RW_MODE_READ, },
-                                { }, /**/
-                            } , /**/
-                },
-                /* Very schematic, functional read after write only. */
+                    .name = "latency",
+                    .first_bit = 0,
+                    .width_bits = 3,},
                 {
-                    .name = "keyr",
-                    .offset_bytes = 0x04, },
+                    .name = "hlfcya",
+                    .desc = "Flash half cycle access enable",
+                    .first_bit = 3,},
                 {
-                    .name = "optkeyr",
-                    .offset_bytes = 0x08, },
+                    .name = "prftbe",
+                    .desc = "Prefetch buffer enable",
+                    .first_bit = 4,},
                 {
-                    .name = "sr",
-                    .offset_bytes = 0x0C, },
-                {
-                    .name = "cr",
-                    .offset_bytes = 0x10, },
-                {
-                    .name = "ar",
-                    .offset_bytes = 0x14, },
-                /* 0x18 is reserved */
-                {
-                    .name = "obr",
-                    .offset_bytes = 0x1C, },
-                {
-                    .name = "wrpr",
-                    .offset_bytes = 0x20, },
-                { }, /**/
-            } , /**/
+                    .name = "prftbs",
+                    .desc = "Prefetch buffer status",
+                    .first_bit = 5,
+                    .rw_mode = REGISTER_RW_MODE_READ,},
+                {}, /**/
+            }, /**/
+        },
+        /* Very schematic, functional read after write only. */
+        {
+            .name = "keyr",
+            .offset_bytes = 0x04,},
+        {
+            .name = "optkeyr",
+            .offset_bytes = 0x08,},
+        {
+            .name = "sr",
+            .offset_bytes = 0x0C,},
+        {
+            .name = "cr",
+            .offset_bytes = 0x10,},
+        {
+            .name = "ar",
+            .offset_bytes = 0x14,},
+        /* 0x18 is reserved */
+        {
+            .name = "obr",
+            .offset_bytes = 0x1C,},
+        {
+            .name = "wrpr",
+            .offset_bytes = 0x20,},
+        {}, /**/
+    }, /**/
 };
+#endif
 
-static void stm32f1_flash_create_objects(Object *obj)
+static void stm32f1xx_flash_create_objects(Object *obj, JSON_Value *family)
 {
     STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f1_flash_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f1xx:flash");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
     state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
@@ -189,86 +199,91 @@ static void stm32f1_flash_create_objects(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f1xd_flash_info = {
     .desc = "Reset and clock control (RCC)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
+        {
+            .desc = "Flash access control register (FLASH_ACR)",
+            .name = "acr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000030,
+            .bitfields = (RegisterBitfieldInfo[] ) {
                 {
-                    .desc = "Flash access control register (FLASH_ACR)",
-                    .name = "acr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000030,
-                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                {
-                                    .name = "latency",
-                                    .first_bit = 0,
-                                    .width_bits = 3, },
-                                {
-                                    .name = "hlfcya",
-                                    .desc = "Flash half cycle access enable",
-                                    .first_bit = 3, },
-                                {
-                                    .name = "prftbe",
-                                    .desc = "Prefetch buffer enable",
-                                    .first_bit = 4, },
-                                {
-                                    .name = "prftbs",
-                                    .desc = "Prefetch buffer status",
-                                    .first_bit = 5,
-                                    .rw_mode = REGISTER_RW_MODE_READ, },
-                                { }, /**/
-                            } , /**/
-                },
-                /* Very schematic, functional read after write only. */
+                    .name = "latency",
+                    .first_bit = 0,
+                    .width_bits = 3,},
                 {
-                    .name = "keyr",
-                    .offset_bytes = 0x04, },
+                    .name = "hlfcya",
+                    .desc = "Flash half cycle access enable",
+                    .first_bit = 3,},
                 {
-                    .name = "optkeyr",
-                    .offset_bytes = 0x08, },
+                    .name = "prftbe",
+                    .desc = "Prefetch buffer enable",
+                    .first_bit = 4,},
                 {
-                    .name = "sr",
-                    .offset_bytes = 0x0C, },
-                {
-                    .name = "cr",
-                    .offset_bytes = 0x10, },
-                {
-                    .name = "ar",
-                    .offset_bytes = 0x14, },
-                /* 0x18 is reserved */
-                {
-                    .name = "obr",
-                    .offset_bytes = 0x1C, },
-                {
-                    .name = "wrpr",
-                    .offset_bytes = 0x20, },
+                    .name = "prftbs",
+                    .desc = "Prefetch buffer status",
+                    .first_bit = 5,
+                    .rw_mode = REGISTER_RW_MODE_READ,},
+                {}, /**/
+            }, /**/
+        },
+        /* Very schematic, functional read after write only. */
+        {
+            .name = "keyr",
+            .offset_bytes = 0x04,},
+        {
+            .name = "optkeyr",
+            .offset_bytes = 0x08,},
+        {
+            .name = "sr",
+            .offset_bytes = 0x0C,},
+        {
+            .name = "cr",
+            .offset_bytes = 0x10,},
+        {
+            .name = "ar",
+            .offset_bytes = 0x14,},
+        /* 0x18 is reserved */
+        {
+            .name = "obr",
+            .offset_bytes = 0x1C,},
+        {
+            .name = "wrpr",
+            .offset_bytes = 0x20,},
 
-                /*
-                 * XL density devices specific.
-                 */
-                {
-                    .name = "keyr2",
-                    .offset_bytes = 0x44, },
-                {
-                    .name = "sr2",
-                    .offset_bytes = 0x4C, },
-                {
-                    .name = "cr2",
-                    .offset_bytes = 0x50, },
-                {
-                    .name = "ar2",
-                    .offset_bytes = 0x54, },
+        /*
+         * XL density devices specific.
+         */
+        {
+            .name = "keyr2",
+            .offset_bytes = 0x44,},
+        {
+            .name = "sr2",
+            .offset_bytes = 0x4C,},
+        {
+            .name = "cr2",
+            .offset_bytes = 0x50,},
+        {
+            .name = "ar2",
+            .offset_bytes = 0x54,},
 
-                { }, /**/
-            } , /**/
+        {}, /**/
+    }, /**/
 };
+#endif
 
-static void stm32f1xd_flash_create_objects(Object *obj)
+static void stm32f1xd_flash_create_objects(Object *obj, JSON_Value *family)
 {
     STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f1xd_flash_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f1xd:flash");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f1.reg.acr = cm_object_get_child_by_name(obj, "acr");
     state->f1.reg.keyr = cm_object_get_child_by_name(obj, "keyr");
@@ -291,210 +306,225 @@ static void stm32f1xd_flash_create_objects(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f4_01_57_xx_flash_info = {
     .desc = "Reset and clock control (RCC)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
+        {
+            .desc = "Flash access control register (FLASH_ACR)",
+            .name = "acr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000030,
+            .bitfields = (RegisterBitfieldInfo[] ) {
                 {
-                    .desc = "Flash access control register (FLASH_ACR)",
-                    .name = "acr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000030,
-                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                {
-                                    .name = "latency",
-                                    .first_bit = 0,
-                                    .width_bits = 3, },
-                                {
-                                    .name = "prften",
-                                    .desc = "Prefetch enable",
-                                    .first_bit = 8, },
-                                {
-                                    .name = "icen",
-                                    .desc = "Prefetch enable",
-                                    .first_bit = 9, },
-                                {
-                                    .name = "dcen",
-                                    .desc = "Data cache enable",
-                                    .first_bit = 10, },
-                                {
-                                    .name = "icrst",
-                                    .desc = "Instruction cache reset",
-                                    .first_bit = 11,
-                                    .rw_mode = REGISTER_RW_MODE_READ, },
-                                {
-                                    .name = "dcrst",
-                                    .desc = "Data cache reset",
-                                    .first_bit = 12, },
-                                { }, /**/
-                            } , /**/
-                },
-                /* Very schematic, functional read after write only. */
+                    .name = "latency",
+                    .first_bit = 0,
+                    .width_bits = 3,},
                 {
-                    .name = "keyr",
-                    .offset_bytes = 0x04, },
+                    .name = "prften",
+                    .desc = "Prefetch enable",
+                    .first_bit = 8,},
                 {
-                    .name = "optkeyr",
-                    .offset_bytes = 0x08, },
+                    .name = "icen",
+                    .desc = "Prefetch enable",
+                    .first_bit = 9,},
                 {
-                    .name = "sr",
-                    .offset_bytes = 0x0C, },
+                    .name = "dcen",
+                    .desc = "Data cache enable",
+                    .first_bit = 10,},
                 {
-                    .name = "cr",
-                    .offset_bytes = 0x10, },
+                    .name = "icrst",
+                    .desc = "Instruction cache reset",
+                    .first_bit = 11,
+                    .rw_mode = REGISTER_RW_MODE_READ,},
                 {
-                    .name = "optcr",
-                    .offset_bytes = 0x14, },
-                { }, /**/
-            } , /**/
+                    .name = "dcrst",
+                    .desc = "Data cache reset",
+                    .first_bit = 12,},
+                {}, /**/
+            }, /**/
+        },
+        /* Very schematic, functional read after write only. */
+        {
+            .name = "keyr",
+            .offset_bytes = 0x04,},
+        {
+            .name = "optkeyr",
+            .offset_bytes = 0x08,},
+        {
+            .name = "sr",
+            .offset_bytes = 0x0C,},
+        {
+            .name = "cr",
+            .offset_bytes = 0x10,},
+        {
+            .name = "optcr",
+            .offset_bytes = 0x14,},
+        {}, /**/
+    }, /**/
 };
+#endif
 
-static void stm32f4_01_57_xx_flash_create_objects(Object *obj)
+static void stm32f4_01_57_flash_create_objects(Object *obj, JSON_Value *family)
 {
     //STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f4_01_57_xx_flash_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f4_01_57:flash");
+
+    peripheral_add_properties_and_children2(obj, info);
 }
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f411xx_flash_info = {
     .desc = "Reset and clock control (RCC)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
+        {
+            .desc = "Flash access control register (FLASH_ACR)",
+            .name = "acr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000030,
+            .bitfields = (RegisterBitfieldInfo[] ) {
                 {
-                    .desc = "Flash access control register (FLASH_ACR)",
-                    .name = "acr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000030,
-                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                {
-                                    .name = "latency",
-                                    .first_bit = 0,
-                                    .width_bits = 4, },
-                                {
-                                    .name = "prften",
-                                    .desc = "Prefetch enable",
-                                    .first_bit = 8, },
-                                {
-                                    .name = "icen",
-                                    .desc = "Prefetch enable",
-                                    .first_bit = 9, },
-                                {
-                                    .name = "dcen",
-                                    .desc = "Data cache enable",
-                                    .first_bit = 10, },
-                                {
-                                    .name = "icrst",
-                                    .desc = "Instruction cache reset",
-                                    .first_bit = 11,
-                                    .rw_mode = REGISTER_RW_MODE_READ, },
-                                {
-                                    .name = "dcrst",
-                                    .desc = "Data cache reset",
-                                    .first_bit = 12, },
-                                { }, /**/
-                            } , /**/
-                },
-                /* Very schematic, functional read after write only. */
+                    .name = "latency",
+                    .first_bit = 0,
+                    .width_bits = 4,},
                 {
-                    .name = "keyr",
-                    .offset_bytes = 0x04, },
+                    .name = "prften",
+                    .desc = "Prefetch enable",
+                    .first_bit = 8,},
                 {
-                    .name = "optkeyr",
-                    .offset_bytes = 0x08, },
+                    .name = "icen",
+                    .desc = "Prefetch enable",
+                    .first_bit = 9,},
                 {
-                    .name = "sr",
-                    .offset_bytes = 0x0C, },
+                    .name = "dcen",
+                    .desc = "Data cache enable",
+                    .first_bit = 10,},
                 {
-                    .name = "cr",
-                    .offset_bytes = 0x10, },
+                    .name = "icrst",
+                    .desc = "Instruction cache reset",
+                    .first_bit = 11,
+                    .rw_mode = REGISTER_RW_MODE_READ,},
                 {
-                    .name = "optcr",
-                    .offset_bytes = 0x14, },
-                { }, /**/
-            } , /**/
+                    .name = "dcrst",
+                    .desc = "Data cache reset",
+                    .first_bit = 12,},
+                {}, /**/
+            }, /**/
+        },
+        /* Very schematic, functional read after write only. */
+        {
+            .name = "keyr",
+            .offset_bytes = 0x04,},
+        {
+            .name = "optkeyr",
+            .offset_bytes = 0x08,},
+        {
+            .name = "sr",
+            .offset_bytes = 0x0C,},
+        {
+            .name = "cr",
+            .offset_bytes = 0x10,},
+        {
+            .name = "optcr",
+            .offset_bytes = 0x14,},
+        {}, /**/
+    }, /**/
 };
+#endif
 
-static void stm32f411xx_flash_create_objects(Object *obj)
+static void stm32f411_flash_create_objects(Object *obj, JSON_Value *family)
 {
     //STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f411xx_flash_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f411:flash");
+
+    peripheral_add_properties_and_children2(obj, info);
 }
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f4_23_xxx_flash_info = {
     .desc = "Reset and clock control (RCC)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
+        {
+            .desc = "Flash access control register (FLASH_ACR)",
+            .name = "acr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000030,
+            .bitfields = (RegisterBitfieldInfo[] ) {
                 {
-                    .desc = "Flash access control register (FLASH_ACR)",
-                    .name = "acr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000030,
-                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                {
-                                    .name = "latency",
-                                    .first_bit = 0,
-                                    .width_bits = 4, },
-                                {
-                                    .name = "prften",
-                                    .desc = "Prefetch enable",
-                                    .first_bit = 8, },
-                                {
-                                    .name = "icen",
-                                    .desc = "Prefetch enable",
-                                    .first_bit = 9, },
-                                {
-                                    .name = "dcen",
-                                    .desc = "Data cache enable",
-                                    .first_bit = 10, },
-                                {
-                                    .name = "icrst",
-                                    .desc = "Instruction cache reset",
-                                    .first_bit = 11,
-                                    .rw_mode = REGISTER_RW_MODE_READ, },
-                                {
-                                    .name = "dcrst",
-                                    .desc = "Data cache reset",
-                                    .first_bit = 12, },
-                                { }, /**/
-                            } , /**/
-                },
-                /* Very schematic, functional read after write only. */
+                    .name = "latency",
+                    .first_bit = 0,
+                    .width_bits = 4,},
                 {
-                    .name = "keyr",
-                    .offset_bytes = 0x04, },
+                    .name = "prften",
+                    .desc = "Prefetch enable",
+                    .first_bit = 8,},
                 {
-                    .name = "optkeyr",
-                    .offset_bytes = 0x08, },
+                    .name = "icen",
+                    .desc = "Prefetch enable",
+                    .first_bit = 9,},
                 {
-                    .name = "sr",
-                    .offset_bytes = 0x0C, },
+                    .name = "dcen",
+                    .desc = "Data cache enable",
+                    .first_bit = 10,},
                 {
-                    .name = "cr",
-                    .offset_bytes = 0x10, },
+                    .name = "icrst",
+                    .desc = "Instruction cache reset",
+                    .first_bit = 11,
+                    .rw_mode = REGISTER_RW_MODE_READ,},
                 {
-                    .name = "optcr",
-                    .offset_bytes = 0x14, },
-                {
-                    .name = "optcr1",
-                    .offset_bytes = 0x18, },
+                    .name = "dcrst",
+                    .desc = "Data cache reset",
+                    .first_bit = 12,},
+                {}, /**/
+            }, /**/
+        },
+        /* Very schematic, functional read after write only. */
+        {
+            .name = "keyr",
+            .offset_bytes = 0x04,},
+        {
+            .name = "optkeyr",
+            .offset_bytes = 0x08,},
+        {
+            .name = "sr",
+            .offset_bytes = 0x0C,},
+        {
+            .name = "cr",
+            .offset_bytes = 0x10,},
+        {
+            .name = "optcr",
+            .offset_bytes = 0x14,},
+        {
+            .name = "optcr1",
+            .offset_bytes = 0x18,},
 
-                { }, /**/
-            } , /**/
+        {}, /**/
+    }, /**/
 };
+#endif
 
-static void stm32f4_23_xxx_flash_create_objects(Object *obj)
+static void stm32f4_23_x_flash_create_objects(Object *obj, JSON_Value *family)
 {
     //STM32FlashState *state = STM32_FLASH_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f4_23_xxx_flash_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f4_23_x:flash");
+
+    peripheral_add_properties_and_children2(obj, info);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -560,21 +590,24 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (!capabilities->f0.is_51xx) {
-            stm32f051xx_flash_create_objects(obj);
+        if (capabilities->f0.is_51xx) {
+            stm32f051_flash_create_objects(obj, mcu->family_json);
         }
         break;
 
     case STM32_FAMILY_F1:
 
-        if (!capabilities->f1.is_xd) {
-            stm32f1_flash_create_objects(obj);
+        if (capabilities->f1.is_cl || capabilities->f1.is_hd
+                || capabilities->f1.is_hdvl || capabilities->f1.is_ld
+                || capabilities->f1.is_ldvl || capabilities->f1.is_md
+                || capabilities->f1.is_mdvl) {
+            stm32f1xx_flash_create_objects(obj, mcu->family_json);
 
             /* Auto bits. */
             cm_object_property_set_str(state->f1.acr.prftbs, "prftbe",
                     "follows");
-        } else {
-            stm32f1xd_flash_create_objects(obj);
+        } else if (capabilities->f1.is_xd) {
+            stm32f1xd_flash_create_objects(obj, mcu->family_json);
 
             /* Auto bits. */
             cm_object_property_set_str(state->f1.acr.prftbs, "prftbe",
@@ -586,11 +619,11 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F4:
 
         if (capabilities->f4.is_01_57_xx) {
-            stm32f4_01_57_xx_flash_create_objects(obj);
+            stm32f4_01_57_flash_create_objects(obj, mcu->family_json);
         } else if (capabilities->f4.is11xx) {
-            stm32f411xx_flash_create_objects(obj);
+            stm32f411_flash_create_objects(obj, mcu->family_json);
         } else if (capabilities->f4.is_23_xxx) {
-            stm32f4_23_xxx_flash_create_objects(obj);
+            stm32f4_23_x_flash_create_objects(obj, mcu->family_json);
         }
         break;
 
@@ -639,6 +672,22 @@ static const TypeInfo stm32_flash_type_info = {
 static void stm32_flash_register_types(void)
 {
     type_register_static(&stm32_flash_type_info);
+
+#if 0
+    peripheral_serialize_info("f051-flash.json", "stm32f051:flash",
+            &stm32f051xx_flash_info);
+    peripheral_serialize_info("f1xx-flash.json", "stm32f1xx:flash",
+            &stm32f1_flash_info);
+    peripheral_serialize_info("f1xd-flash.json", "stm32f1xd:flash",
+            &stm32f1xd_flash_info);
+
+    peripheral_serialize_info("f4_01_57-flash.json", "stm32f4_01_57:flash",
+            &stm32f4_01_57_xx_flash_info);
+    peripheral_serialize_info("f4_23_x-flash.json", "stm32f4_23_x:flash",
+            &stm32f4_23_xxx_flash_info);
+    peripheral_serialize_info("f411-flash.json", "stm32f411:flash",
+            &stm32f411xx_flash_info);
+#endif
 }
 
 type_init(stm32_flash_register_types);

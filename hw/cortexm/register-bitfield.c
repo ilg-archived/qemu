@@ -78,6 +78,54 @@ Object *register_bitfield_add_properties_and_children(Object *obj,
     return obj;
 }
 
+Object *register_bitfield_add_properties_and_children2(Object *obj,
+        JSON_Object *info)
+{
+    const char *str;
+    double number;
+
+    if (json_object_has_value_of_type(info, "first_bit", JSONNumber)) {
+        number = json_object_get_number(info, "first_bit");
+        assert((uint32_t) number < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
+        cm_object_property_set_int(obj, (uint32_t) number, "first-bit");
+    }
+
+    if (json_object_has_value_of_type(info, "width_bits", JSONNumber)) {
+        number = json_object_get_number(info, "width_bits");
+        assert((uint32_t) number < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
+        cm_object_property_set_int(obj, (uint32_t) number, "width-bits");
+    }
+
+    if (json_object_has_value_of_type(info, "rw_mode", JSONString)) {
+        str = json_object_get_string(info, "rw_mode");
+        if (strchr(str, 'r') != NULL) {
+            cm_object_property_set_bool(obj, true, "is-readable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-readable");
+        }
+        if (strchr(str, 'w') != NULL) {
+            cm_object_property_set_bool(obj, true, "is-writable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-writable");
+        }
+    } else {
+        /*
+         * Leave both false, as set by the option defaults,
+         * in bitfield realize() this dual condition is tested to
+         * compute the actual values using parent values.
+         */
+    }
+
+    int size_bits = 0;
+    PeripheralRegisterState *reg_state = PERIPHERAL_REGISTER_STATE(
+            cm_object_get_parent(obj));
+    size_bits = reg_state->size_bits;
+
+    cm_object_property_set_int(obj, size_bits, "register-size-bits");
+
+    return obj;
+}
+
 /*
  * Get the value of a bitfield. Bitfields do not keep a separate value,
  * but get it from the parent register, by masking and shifting.

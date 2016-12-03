@@ -23,6 +23,7 @@
 #include "qemu/osdep.h"
 
 #include <hw/cortexm/peripheral-register.h>
+#include <hw/cortexm/json-parser.h>
 
 /*
  * Parent type for peripherals.
@@ -118,6 +119,11 @@ typedef struct {
 /* ----- Public ------------------------------------------------------------ */
 
 Object *peripheral_add_properties_and_children(Object *obj,
+        PeripheralInfo *info);
+
+Object *peripheral_add_properties_and_children2(Object *obj, JSON_Object *info);
+
+void peripheral_serialize_info(const char* file_name, const char* periph_name,
         PeripheralInfo *info);
 
 /* ------------------------------------------------------------------------- */

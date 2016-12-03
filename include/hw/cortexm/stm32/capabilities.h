@@ -43,7 +43,11 @@ typedef enum {
     STM32_FAMILY_F2,
     STM32_FAMILY_F3,
     STM32_FAMILY_F4,
+    STM32_FAMILY_F7,
+    STM32_FAMILY_H7,
+    STM32_FAMILY_L0,
     STM32_FAMILY_L1,
+    STM32_FAMILY_L4,
 } stm32_family_t;
 
 #define STM32_MAX_GPIO  (8)

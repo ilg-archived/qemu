@@ -101,9 +101,9 @@ BoardGraphicContext *cortexm_board_init_graphic_image(CortexMBoardState *board,
     board->graphic_context.picture_file_name = file_name;
     board->graphic_context.window_caption = caption;
 
-    const char *fullname = qemu_find_file(QEMU_FILE_TYPE_IMAGES, file_name);
+    const char *fullname = qemu_find_file(QEMU_FILE_TYPE_GRAPHICS, file_name);
     if (fullname == NULL) {
-        error_printf("Image file '%s' not found.\n", file_name);
+        error_printf("Picture file '%s' not found.\n", file_name);
         exit(1);
     }
 

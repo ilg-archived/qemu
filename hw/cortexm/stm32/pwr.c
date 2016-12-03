@@ -33,133 +33,137 @@
 
 /* STM32F051xx */
 
+#if 0
 static PeripheralInfo stm32f051xx_pwr_info =
+{
+    .desc = "Power controller (PWR)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "Power controller (PWR)",
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
+            .desc =
+            "PWR power control register (PWR_CR)",
+            .name = "cr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lpds",
+                    .desc =
+                    "Low-power deep sleep",
+                    .first_bit = 0,},
+                {
+                    .name = "pdds",
+                    .desc =
+                    "Power-down deepsleep",
+                    .first_bit = 1,},
+                {
+                    /* rc_w1, read as 0, cleared by 1 */
+                    .name = "cwuf",
+                    .desc =
+                    "Clear wakeup flag",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    /* rc_w1, read as 0, cleared by 1 */
+                    .name = "csbf",
+                    .desc =
+                    "Clear standby flag",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "pvde",
+                    .desc =
+                    "Power voltage detector enable",
+                    .first_bit = 4,},
+                {
+                    .name = "pls",
+                    .desc =
+                    "PVD level selection",
+                    .first_bit = 5,
+                    .width_bits = 3,},
+                {
+                    .name = "dbp",
+                    .desc =
+                    "Disable backup domain write protection",
+                    .first_bit = 8,},
+                {}, /**/
+            }, /**/},
+        {
+            .desc =
+            "PWR power control/status register (PWR_CSR)",
+            .name = "csr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "wuf",
+                    .desc = "Wakeup flag",
+                    .first_bit = 0,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "sbf",
+                    .desc = "Standby flag",
+                    .first_bit = 1,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "pvdo",
+                    .desc = "PVD output",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "ewup1",
+                    .desc = "Enable WKUP1 pin",
+                    .first_bit = 8,},
+                {
+                    .name = "ewup2",
+                    .desc = "Enable WKUP2 pin",
+                    .first_bit = 9,},
+                {
+                    .name = "ewup3",
+                    .desc = "Enable WKUP3 pin",
+                    .first_bit = 10,},
+                {
+                    .name = "ewup4",
+                    .desc = "Enable WKUP4 pin",
+                    .first_bit = 11,},
+                {
+                    .name = "ewup5",
+                    .desc = "Enable WKUP5 pin",
+                    .first_bit = 12,},
+                {
+                    .name = "ewup6",
+                    .desc = "Enable WKUP6 pin",
+                    .first_bit = 13,},
+                {
+                    .name = "ewup7",
+                    .desc = "Enable WKUP7 pin",
+                    .first_bit = 14,},
+                {
+                    .name = "ewup8",
+                    .desc = "Enable WKUP8 pin",
+                    .first_bit = 15,},
+                {}, /**/
+            }, /**/},
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "PWR power control register (PWR_CR)",
-                                    .name = "cr",
-                                    .offset_bytes = 0x00,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "lpds",
-                                                            .desc =
-                                                                    "Low-power deep sleep",
-                                                            .first_bit = 0, },
-                                                        {
-                                                            .name = "pdds",
-                                                            .desc =
-                                                                    "Power-down deepsleep",
-                                                            .first_bit = 1, },
-                                                        {
-                                                            /* rc_w1, read as 0, cleared by 1 */
-                                                            .name = "cwuf",
-                                                            .desc =
-                                                                    "Clear wakeup flag",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            /* rc_w1, read as 0, cleared by 1 */
-                                                            .name = "csbf",
-                                                            .desc =
-                                                                    "Clear standby flag",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "pvde",
-                                                            .desc =
-                                                                    "Power voltage detector enable",
-                                                            .first_bit = 4, },
-                                                        {
-                                                            .name = "pls",
-                                                            .desc =
-                                                                    "PVD level selection",
-                                                            .first_bit = 5,
-                                                            .width_bits = 3, },
-                                                        {
-                                                            .name = "dbp",
-                                                            .desc =
-                                                                    "Disable backup domain write protection",
-                                                            .first_bit = 8, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                {
-                                    .desc =
-                                            "PWR power control/status register (PWR_CSR)",
-                                    .name = "csr",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                                {
-                                                    .name = "wuf",
-                                                    .desc = "Wakeup flag",
-                                                    .first_bit = 0,
-                                                    .rw_mode =
-                                                    REGISTER_RW_MODE_READ, },
-                                                {
-                                                    .name = "sbf",
-                                                    .desc = "Standby flag",
-                                                    .first_bit = 1,
-                                                    .rw_mode =
-                                                    REGISTER_RW_MODE_READ, },
-                                                {
-                                                    .name = "pvdo",
-                                                    .desc = "PVD output",
-                                                    .first_bit = 2,
-                                                    .rw_mode =
-                                                    REGISTER_RW_MODE_READ, },
-                                                {
-                                                    .name = "ewup1",
-                                                    .desc = "Enable WKUP1 pin",
-                                                    .first_bit = 8, },
-                                                {
-                                                    .name = "ewup2",
-                                                    .desc = "Enable WKUP2 pin",
-                                                    .first_bit = 9, },
-                                                {
-                                                    .name = "ewup3",
-                                                    .desc = "Enable WKUP3 pin",
-                                                    .first_bit = 10, },
-                                                {
-                                                    .name = "ewup4",
-                                                    .desc = "Enable WKUP4 pin",
-                                                    .first_bit = 11, },
-                                                {
-                                                    .name = "ewup5",
-                                                    .desc = "Enable WKUP5 pin",
-                                                    .first_bit = 12, },
-                                                {
-                                                    .name = "ewup6",
-                                                    .desc = "Enable WKUP6 pin",
-                                                    .first_bit = 13, },
-                                                {
-                                                    .name = "ewup7",
-                                                    .desc = "Enable WKUP7 pin",
-                                                    .first_bit = 14, },
-                                                {
-                                                    .name = "ewup8",
-                                                    .desc = "Enable WKUP8 pin",
-                                                    .first_bit = 15, },
-                                                { }, /**/
-                                            } , /**/},
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f051xx_pwr_create_objects(Object *obj)
+static void stm32f051_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f051xx_pwr_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f051:pwr");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f0.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f0.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -193,103 +197,107 @@ static void stm32f051xx_pwr_create_objects(Object *obj)
 
 /* STM32F10xx */
 
+#if 0
 static PeripheralInfo stm32f1_pwr_info =
+{
+    .desc = "Power controller (PWR)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "Power controller (PWR)",
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
+            .desc =
+            "PWR power control register (PWR_CR)",
+            .name = "cr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00004000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lpds",
+                    .desc =
+                    "Low-power deep sleep",
+                    .first_bit = 0,},
+                {
+                    .name = "pdds",
+                    .desc =
+                    "Power-down deepsleep",
+                    .first_bit = 1,},
+                {
+                    .name = "cwuf",
+                    .desc =
+                    "Clear wakeup flag",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "csbf",
+                    .desc =
+                    "Clear standby flag",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "pvde",
+                    .desc =
+                    "Power voltage detector enable",
+                    .first_bit = 4,},
+                {
+                    .name = "pls",
+                    .desc =
+                    "PVD level selection",
+                    .first_bit = 5,
+                    .width_bits = 3,},
+                {
+                    .name = "dbp",
+                    .desc =
+                    "Disable backup domain write protection",
+                    .first_bit = 8,},
+                {}, /**/
+            }, /**/},
+        {
+            .desc =
+            "PWR power control/status register (PWR_CSR)",
+            .name = "csr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .bitfields = (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "wuf",
+                    .desc = "Wakeup flag",
+                    .first_bit = 0,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "sbf",
+                    .desc = "Standby flag",
+                    .first_bit = 1,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "pvdo",
+                    .desc = "PVD output",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "ewup",
+                    .desc = "Enable WKUP pin",
+                    .first_bit = 8,},
+                {}, /**/
+            }, /**/},
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "PWR power control register (PWR_CR)",
-                                    .name = "cr",
-                                    .offset_bytes = 0x00,
-                                    .reset_value = 0x00004000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "lpds",
-                                                            .desc =
-                                                                    "Low-power deep sleep",
-                                                            .first_bit = 0, },
-                                                        {
-                                                            .name = "pdds",
-                                                            .desc =
-                                                                    "Power-down deepsleep",
-                                                            .first_bit = 1, },
-                                                        {
-                                                            .name = "cwuf",
-                                                            .desc =
-                                                                    "Clear wakeup flag",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "csbf",
-                                                            .desc =
-                                                                    "Clear standby flag",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "pvde",
-                                                            .desc =
-                                                                    "Power voltage detector enable",
-                                                            .first_bit = 4, },
-                                                        {
-                                                            .name = "pls",
-                                                            .desc =
-                                                                    "PVD level selection",
-                                                            .first_bit = 5,
-                                                            .width_bits = 3, },
-                                                        {
-                                                            .name = "dbp",
-                                                            .desc =
-                                                                    "Disable backup domain write protection",
-                                                            .first_bit = 8, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                {
-                                    .desc =
-                                            "PWR power control/status register (PWR_CSR)",
-                                    .name = "csr",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .bitfields = (RegisterBitfieldInfo[] ) {
-                                                {
-                                                    .name = "wuf",
-                                                    .desc = "Wakeup flag",
-                                                    .first_bit = 0,
-                                                    .rw_mode =
-                                                    REGISTER_RW_MODE_READ, },
-                                                {
-                                                    .name = "sbf",
-                                                    .desc = "Standby flag",
-                                                    .first_bit = 1,
-                                                    .rw_mode =
-                                                    REGISTER_RW_MODE_READ, },
-                                                {
-                                                    .name = "pvdo",
-                                                    .desc = "PVD output",
-                                                    .first_bit = 2,
-                                                    .rw_mode =
-                                                    REGISTER_RW_MODE_READ, },
-                                                {
-                                                    .name = "ewup",
-                                                    .desc = "Enable WKUP pin",
-                                                    .first_bit = 8, },
-                                                { }, /**/
-                                            } , /**/},
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f1_pwr_create_objects(Object *obj)
+static void stm32f1xx_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f1_pwr_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f1xx:pwr");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f1.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f1.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -323,138 +331,143 @@ static void stm32f1_pwr_create_objects(Object *obj)
 
 /* STM32F4_01_57_xx */
 
+#if 0
 static PeripheralInfo stm32f4_01_57_xx_pwr_info =
+{
+    .desc = "Power controller (PWR)",
+
+    /* Assumed. */
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "Power controller (PWR)",
+            .desc =
+            "PWR power control register (PWR_CR)",
+            .name = "cr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00004000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lpds",
+                    .desc =
+                    "Low-power deep sleep",
+                    .first_bit = 0,},
+                {
+                    .name = "pdds",
+                    .desc =
+                    "Power-down deepsleep",
+                    .first_bit = 1,},
+                {
+                    .name = "cwuf",
+                    .desc =
+                    "Clear wakeup flag",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "csbf",
+                    .desc =
+                    "Clear standby flag",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "pvde",
+                    .desc =
+                    "Power voltage detector enable",
+                    .first_bit = 4,},
+                {
+                    .name = "pls",
+                    .desc =
+                    "PVD level selection",
+                    .first_bit = 5,
+                    .width_bits = 3,},
+                {
+                    .name = "dbp",
+                    .desc =
+                    "Disable backup domain write protection",
+                    .first_bit = 8,},
+                {
+                    .name = "fpds",
+                    .desc =
+                    "Flash power-down in Stop mode",
+                    .first_bit = 9,},
+                {
+                    .name = "vos",
+                    .desc =
+                    "Regulator voltages caling output selection",
+                    .first_bit = 14,},
+                {}, /**/
+            }, /**/},
+        {
+            .desc =
+            "PWR power control/status register (PWR_CSR)",
+            .name = "csr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "wuf",
+                    .desc =
+                    "Wakeup flag",
+                    .first_bit = 0,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "sbf",
+                    .desc =
+                    "Standby flag",
+                    .first_bit = 1,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "pvdo",
+                    .desc = "PVD output",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "brr",
+                    .desc =
+                    "CBackup regulator ready",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "ewup",
+                    .desc =
+                    "Enable WKUP pin",
+                    .first_bit = 8,},
+                {
+                    .name = "bre",
+                    .desc =
+                    "Backup regulator enable",
+                    .first_bit = 9,},
+                {
+                    .name = "vosrdy",
+                    .desc =
+                    "Regulator voltage scaling output selection ready bit",
+                    .first_bit = 14,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {}, /**/
+            }, /**/},
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            /* Assumed. */
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
-
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "PWR power control register (PWR_CR)",
-                                    .name = "cr",
-                                    .offset_bytes = 0x00,
-                                    .reset_value = 0x00004000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "lpds",
-                                                            .desc =
-                                                                    "Low-power deep sleep",
-                                                            .first_bit = 0, },
-                                                        {
-                                                            .name = "pdds",
-                                                            .desc =
-                                                                    "Power-down deepsleep",
-                                                            .first_bit = 1, },
-                                                        {
-                                                            .name = "cwuf",
-                                                            .desc =
-                                                                    "Clear wakeup flag",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "csbf",
-                                                            .desc =
-                                                                    "Clear standby flag",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "pvde",
-                                                            .desc =
-                                                                    "Power voltage detector enable",
-                                                            .first_bit = 4, },
-                                                        {
-                                                            .name = "pls",
-                                                            .desc =
-                                                                    "PVD level selection",
-                                                            .first_bit = 5,
-                                                            .width_bits = 3, },
-                                                        {
-                                                            .name = "dbp",
-                                                            .desc =
-                                                                    "Disable backup domain write protection",
-                                                            .first_bit = 8, },
-                                                        {
-                                                            .name = "fpds",
-                                                            .desc =
-                                                                    "Flash power-down in Stop mode",
-                                                            .first_bit = 9, },
-                                                        {
-                                                            .name = "vos",
-                                                            .desc =
-                                                                    "Regulator voltages caling output selection",
-                                                            .first_bit = 14, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                {
-                                    .desc =
-                                            "PWR power control/status register (PWR_CSR)",
-                                    .name = "csr",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "wuf",
-                                                            .desc =
-                                                                    "Wakeup flag",
-                                                            .first_bit = 0,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "sbf",
-                                                            .desc =
-                                                                    "Standby flag",
-                                                            .first_bit = 1,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "pvdo",
-                                                            .desc = "PVD output",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "brr",
-                                                            .desc =
-                                                                    "CBackup regulator ready",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "ewup",
-                                                            .desc =
-                                                                    "Enable WKUP pin",
-                                                            .first_bit = 8, },
-                                                        {
-                                                            .name = "bre",
-                                                            .desc =
-                                                                    "Backup regulator enable",
-                                                            .first_bit = 9, },
-                                                        {
-                                                            .name = "vosrdy",
-                                                            .desc =
-                                                                    "Regulator voltage scaling output selection ready bit",
-                                                            .first_bit = 14,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f4_01_57_xx_pwr_create_objects(Object *obj)
+static void stm32f4_01_57_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f4_01_57_xx_pwr_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f4_01_57:pwr");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -498,148 +511,152 @@ static void stm32f4_01_57_xx_pwr_create_objects(Object *obj)
 
 /* STM32F411_xx */
 
+#if 0
 static PeripheralInfo stm32f411xx_pwr_info =
+{
+    .desc = "Power controller (PWR)",
+
+    /* Assumed. */
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "Power controller (PWR)",
+            .desc =
+            "PWR power control register (PWR_CR)",
+            .name = "cr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00008000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lpds",
+                    .desc =
+                    "Low-power deep sleep",
+                    .first_bit = 0,},
+                {
+                    .name = "pdds",
+                    .desc =
+                    "Power-down deepsleep",
+                    .first_bit = 1,},
+                {
+                    .name = "cwuf",
+                    .desc =
+                    "Clear wakeup flag",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "csbf",
+                    .desc =
+                    "Clear standby flag",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "pvde",
+                    .desc =
+                    "Power voltage detector enable",
+                    .first_bit = 4,},
+                {
+                    .name = "pls",
+                    .desc =
+                    "PVD level selection",
+                    .first_bit = 5,
+                    .width_bits = 3,},
+                {
+                    .name = "dbp",
+                    .desc =
+                    "Disable backup domain write protection",
+                    .first_bit = 8,},
+                {
+                    .name = "fpds",
+                    .desc =
+                    "Flash power-down in Stop mode",
+                    .first_bit = 9,},
+                {
+                    .name = "vos",
+                    .desc =
+                    "Regulator voltages caling output selection",
+                    .first_bit = 14,},
+                {
+                    .name = "fmssr",
+                    .desc =
+                    "Flash Memory Sleep System Run",
+                    .first_bit = 20,},
+                {
+                    .name = "fissr",
+                    .desc =
+                    "Flash Interface Stop while System Run",
+                    .first_bit = 21,},
+                {}, /**/
+            }, /**/},
+        {
+            .desc =
+            "PWR power control/status register (PWR_CSR)",
+            .name = "csr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "wuf",
+                    .desc =
+                    "Wakeup flag",
+                    .first_bit = 0,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "sbf",
+                    .desc =
+                    "Standby flag",
+                    .first_bit = 1,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "pvdo",
+                    .desc = "PVD output",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "brr",
+                    .desc =
+                    "CBackup regulator ready",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "ewup",
+                    .desc =
+                    "Enable WKUP pin",
+                    .first_bit = 8,},
+                {
+                    .name = "bre",
+                    .desc =
+                    "Backup regulator enable",
+                    .first_bit = 9,},
+                {
+                    .name = "vosrdy",
+                    .desc =
+                    "Regulator voltage scaling output selection ready bit",
+                    .first_bit = 14,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {}, /**/
+            }, /**/},
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            /* Assumed. */
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
-
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "PWR power control register (PWR_CR)",
-                                    .name = "cr",
-                                    .offset_bytes = 0x00,
-                                    .reset_value = 0x00008000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "lpds",
-                                                            .desc =
-                                                                    "Low-power deep sleep",
-                                                            .first_bit = 0, },
-                                                        {
-                                                            .name = "pdds",
-                                                            .desc =
-                                                                    "Power-down deepsleep",
-                                                            .first_bit = 1, },
-                                                        {
-                                                            .name = "cwuf",
-                                                            .desc =
-                                                                    "Clear wakeup flag",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "csbf",
-                                                            .desc =
-                                                                    "Clear standby flag",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "pvde",
-                                                            .desc =
-                                                                    "Power voltage detector enable",
-                                                            .first_bit = 4, },
-                                                        {
-                                                            .name = "pls",
-                                                            .desc =
-                                                                    "PVD level selection",
-                                                            .first_bit = 5,
-                                                            .width_bits = 3, },
-                                                        {
-                                                            .name = "dbp",
-                                                            .desc =
-                                                                    "Disable backup domain write protection",
-                                                            .first_bit = 8, },
-                                                        {
-                                                            .name = "fpds",
-                                                            .desc =
-                                                                    "Flash power-down in Stop mode",
-                                                            .first_bit = 9, },
-                                                        {
-                                                            .name = "vos",
-                                                            .desc =
-                                                                    "Regulator voltages caling output selection",
-                                                            .first_bit = 14, },
-                                                        {
-                                                            .name = "fmssr",
-                                                            .desc =
-                                                                    "Flash Memory Sleep System Run",
-                                                            .first_bit = 20, },
-                                                        {
-                                                            .name = "fissr",
-                                                            .desc =
-                                                                    "Flash Interface Stop while System Run",
-                                                            .first_bit = 21, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                {
-                                    .desc =
-                                            "PWR power control/status register (PWR_CSR)",
-                                    .name = "csr",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "wuf",
-                                                            .desc =
-                                                                    "Wakeup flag",
-                                                            .first_bit = 0,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "sbf",
-                                                            .desc =
-                                                                    "Standby flag",
-                                                            .first_bit = 1,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "pvdo",
-                                                            .desc = "PVD output",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "brr",
-                                                            .desc =
-                                                                    "CBackup regulator ready",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "ewup",
-                                                            .desc =
-                                                                    "Enable WKUP pin",
-                                                            .first_bit = 8, },
-                                                        {
-                                                            .name = "bre",
-                                                            .desc =
-                                                                    "Backup regulator enable",
-                                                            .first_bit = 9, },
-                                                        {
-                                                            .name = "vosrdy",
-                                                            .desc =
-                                                                    "Regulator voltage scaling output selection ready bit",
-                                                            .first_bit = 14,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f411xx_pwr_create_objects(Object *obj)
+static void stm32f411_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f411xx_pwr_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f411:pwr");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -682,186 +699,191 @@ static void stm32f411xx_pwr_create_objects(Object *obj)
 
 /* STM32F4_23_xxx */
 
+#if 0
 static PeripheralInfo stm32f4_23_xxx_pwr_info =
+{
+    .desc = "Power controller (PWR)",
+
+    /* Assumed. */
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "Power controller (PWR)",
+            .desc =
+            "PWR power control register (PWR_CR)",
+            .name = "cr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00004000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "lpds",
+                    .desc =
+                    "Low-power deep sleep",
+                    .first_bit = 0,},
+                {
+                    .name = "pdds",
+                    .desc =
+                    "Power-down deepsleep",
+                    .first_bit = 1,},
+                {
+                    .name = "cwuf",
+                    .desc =
+                    "Clear wakeup flag",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "csbf",
+                    .desc =
+                    "Clear standby flag",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_WRITE,},
+                {
+                    .name = "pvde",
+                    .desc =
+                    "Power voltage detector enable",
+                    .first_bit = 4,},
+                {
+                    .name = "pls",
+                    .desc =
+                    "PVD level selection",
+                    .first_bit = 5,
+                    .width_bits = 3,},
+                {
+                    .name = "dbp",
+                    .desc =
+                    "Disable backup domain write protection",
+                    .first_bit = 8,},
+                {
+                    .name = "fpds",
+                    .desc =
+                    "Flash power-down in Stop mode",
+                    .first_bit = 9,},
+                {
+                    .name = "lpuds",
+                    .desc =
+                    "Low-power regulator",
+                    .first_bit = 10,},
+                {
+                    .name = "mruds",
+                    .desc =
+                    "Main regulator in deeppsleep",
+                    .first_bit = 11,},
+                {
+                    .name = "adcdc1",
+                    .desc = " ",
+                    .first_bit = 13,},
+                {
+                    .name = "vos",
+                    .desc =
+                    "Regulator voltages caling output selection",
+                    .first_bit = 14,
+                    .width_bits = 2,},
+                {
+                    .name = "oden",
+                    .desc = " ",
+                    .first_bit = 16,},
+                {
+                    .name = "odswen",
+                    .desc = " ",
+                    .first_bit = 17,},
+                {
+                    .name = "uden",
+                    .desc = " ",
+                    .first_bit = 18,
+                    .width_bits = 2,},
+                {}, /**/
+            }, /**/},
+        {
+            .desc =
+            "PWR power control/status register (PWR_CSR)",
+            .name = "csr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .name = "wuf",
+                    .desc =
+                    "Wakeup flag",
+                    .first_bit = 0,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "sbf",
+                    .desc =
+                    "Standby flag",
+                    .first_bit = 1,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "pvdo",
+                    .desc = "PVD output",
+                    .first_bit = 2,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "brr",
+                    .desc =
+                    "CBackup regulator ready",
+                    .first_bit = 3,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "ewup",
+                    .desc =
+                    "Enable WKUP pin",
+                    .first_bit = 8,},
+                {
+                    .name = "bre",
+                    .desc =
+                    "Backup regulator enable",
+                    .first_bit = 9,},
+                {
+                    .name = "vosrdy",
+                    .desc =
+                    "Regulator voltage scaling output selection ready bit",
+                    .first_bit = 14,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "odrdy",
+                    .desc =
+                    "Over-drive ready",
+                    .first_bit = 16,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "odswrdy",
+                    .desc =
+                    "Over-drive mode switching ready",
+                    .first_bit = 17,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,},
+                {
+                    .name = "udrdy",
+                    .desc =
+                    "Unedr-drive ready",
+                    .first_bit = 18,
+                    .width_bits = 2,},
+                {}, /**/
+            }, /**/},
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            /* Assumed. */
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
-
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "PWR power control register (PWR_CR)",
-                                    .name = "cr",
-                                    .offset_bytes = 0x00,
-                                    .reset_value = 0x00004000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "lpds",
-                                                            .desc =
-                                                                    "Low-power deep sleep",
-                                                            .first_bit = 0, },
-                                                        {
-                                                            .name = "pdds",
-                                                            .desc =
-                                                                    "Power-down deepsleep",
-                                                            .first_bit = 1, },
-                                                        {
-                                                            .name = "cwuf",
-                                                            .desc =
-                                                                    "Clear wakeup flag",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "csbf",
-                                                            .desc =
-                                                                    "Clear standby flag",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_WRITE, },
-                                                        {
-                                                            .name = "pvde",
-                                                            .desc =
-                                                                    "Power voltage detector enable",
-                                                            .first_bit = 4, },
-                                                        {
-                                                            .name = "pls",
-                                                            .desc =
-                                                                    "PVD level selection",
-                                                            .first_bit = 5,
-                                                            .width_bits = 3, },
-                                                        {
-                                                            .name = "dbp",
-                                                            .desc =
-                                                                    "Disable backup domain write protection",
-                                                            .first_bit = 8, },
-                                                        {
-                                                            .name = "fpds",
-                                                            .desc =
-                                                                    "Flash power-down in Stop mode",
-                                                            .first_bit = 9, },
-                                                        {
-                                                            .name = "lpuds",
-                                                            .desc =
-                                                                    "Low-power regulator",
-                                                            .first_bit = 10, },
-                                                        {
-                                                            .name = "mruds",
-                                                            .desc =
-                                                                    "Main regulator in deeppsleep",
-                                                            .first_bit = 11, },
-                                                        {
-                                                            .name = "adcdc1",
-                                                            .desc = " ",
-                                                            .first_bit = 13, },
-                                                        {
-                                                            .name = "vos",
-                                                            .desc =
-                                                                    "Regulator voltages caling output selection",
-                                                            .first_bit = 14,
-                                                            .width_bits = 2, },
-                                                        {
-                                                            .name = "oden",
-                                                            .desc = " ",
-                                                            .first_bit = 16, },
-                                                        {
-                                                            .name = "odswen",
-                                                            .desc = " ",
-                                                            .first_bit = 17, },
-                                                        {
-                                                            .name = "uden",
-                                                            .desc = " ",
-                                                            .first_bit = 18,
-                                                            .width_bits = 2, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                {
-                                    .desc =
-                                            "PWR power control/status register (PWR_CSR)",
-                                    .name = "csr",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .name = "wuf",
-                                                            .desc =
-                                                                    "Wakeup flag",
-                                                            .first_bit = 0,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "sbf",
-                                                            .desc =
-                                                                    "Standby flag",
-                                                            .first_bit = 1,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "pvdo",
-                                                            .desc = "PVD output",
-                                                            .first_bit = 2,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "brr",
-                                                            .desc =
-                                                                    "CBackup regulator ready",
-                                                            .first_bit = 3,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "ewup",
-                                                            .desc =
-                                                                    "Enable WKUP pin",
-                                                            .first_bit = 8, },
-                                                        {
-                                                            .name = "bre",
-                                                            .desc =
-                                                                    "Backup regulator enable",
-                                                            .first_bit = 9, },
-                                                        {
-                                                            .name = "vosrdy",
-                                                            .desc =
-                                                                    "Regulator voltage scaling output selection ready bit",
-                                                            .first_bit = 14,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "odrdy",
-                                                            .desc =
-                                                                    "Over-drive ready",
-                                                            .first_bit = 16,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "odswrdy",
-                                                            .desc =
-                                                                    "Over-drive mode switching ready",
-                                                            .first_bit = 17,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ, },
-                                                        {
-                                                            .name = "udrdy",
-                                                            .desc =
-                                                                    "Unedr-drive ready",
-                                                            .first_bit = 18,
-                                                            .width_bits = 2, },
-                                                        { }, /**/
-                                                    } , /**/},
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f4_23_xxx_pwr_create_objects(Object *obj)
+static void stm32f4_23_x_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f4_23_xxx_pwr_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f4_23_x:pwr");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.csr = cm_object_get_child_by_name(obj, "csr");
@@ -972,24 +994,24 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        stm32f051xx_pwr_create_objects(obj);
+        stm32f051_pwr_create_objects(obj, mcu->family_json);
         break;
 
     case STM32_FAMILY_F1:
-        stm32f1_pwr_create_objects(obj);
+        stm32f1xx_pwr_create_objects(obj, mcu->family_json);
         break;
 
     case STM32_FAMILY_F4:
         if (capabilities->f4.is_01_57_xx) {
-            stm32f4_01_57_xx_pwr_create_objects(obj);
+            stm32f4_01_57_pwr_create_objects(obj, mcu->family_json);
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");
         } else if (capabilities->f4.is_23_xxx) {
-            stm32f4_23_xxx_pwr_create_objects(obj);
+            stm32f4_23_x_pwr_create_objects(obj, mcu->family_json);
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");
         } else if (capabilities->f4.is11xx) {
-            stm32f411xx_pwr_create_objects(obj);
+            stm32f411_pwr_create_objects(obj, mcu->family_json);
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");
         }
@@ -1043,6 +1065,14 @@ static const TypeInfo stm32_pwr_type_info = {
 static void stm32_pwr_register_types(void)
 {
     type_register_static(&stm32_pwr_type_info);
+
+#if 0
+    peripheral_serialize_info("f051-pwr.json", "stm32f051:pwr", &stm32f051xx_pwr_info);
+    peripheral_serialize_info("f1xx-pwr.json", "stm32f1xx:pwr", &stm32f1_pwr_info);
+    peripheral_serialize_info("f4_01_57-pwr.json", "stm32f4_01_57:pwr", &stm32f4_01_57_xx_pwr_info);
+    peripheral_serialize_info("f4_23_x-pwr.json", "stm32f4_23_x:pwr", &stm32f4_23_xxx_pwr_info);
+    peripheral_serialize_info("f411-pwr.json", "stm32f411:pwr", &stm32f411xx_pwr_info);
+#endif
 }
 
 type_init(stm32_pwr_register_types);

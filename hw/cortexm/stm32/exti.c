@@ -138,152 +138,156 @@ static peripheral_register_t stm32f_exti_pr_pre_write_callback(Object *reg,
 
 /* STM32F051XX */
 
+#if 0
 static PeripheralInfo stm32f051xx_exti_info = {
     .desc = "External interrupt/event controller (PWR)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
 
     .registers = (PeripheralRegisterInfo[] ) {
-                {
-                    .desc = "Interrupt mask register (EXTI_IMR)",
-                    .name = "imr",
-                    .offset_bytes = 0x00,
-                    /*
-                     * Reset value:
-                     * - 0x0FF4 0000 (STM32F03x devices)
-                     * - 0x7FF4 0000 (STM32F04x devices)
-                     * - 0x0F94 0000 (STM32F05x devices)
-                     * - 0x7F84 0000 (STM32F07x and STM32F09x devices)
-                     */
-                    .reset_value = 0x0F940000,
-                    .readable_bits = 0xFFFFFFFF,
-                    .writable_bits = 0xFFFFFFFF,
-                /**/
-                },
-                {
-                    .desc = "Event mask register (EXTI_EMR)",
-                    .name = "emr",
-                    .offset_bytes = 0x04,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007BFFFF,
-                    .writable_bits = 0x007BFFFF,
-                /**/
-                },
-                {
-                    .desc = "Rising trigger selection register (EXTI_RTSR)",
-                    .name = "rtsr",
-                    .offset_bytes = 0x08,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007BFFFF,
-                    .writable_bits = 0x007BFFFF,
-                /**/
-                },
-                {
-                    .desc = "Falling trigger selection register (EXTI_FTSR)",
-                    .name = "ftsr",
-                    .offset_bytes = 0x0C,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007BFFFF,
-                    .writable_bits = 0x007BFFFF,
-                /**/
-                },
-                {
-                    .desc = "Software interrupt event register (EXTI_SWIER)",
-                    .name = "swier",
-                    .offset_bytes = 0x10,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007BFFFF,
-                    .writable_bits = 0x007BFFFF,
-                /**/
-                },
-                {
-                    .desc = "Pending register (EXTI_PR)",
-                    .name = "pr",
-                    .offset_bytes = 0x14,
-                    .reset_value = 0x00000000,
-                    // The manual states 'Reset value is undefined',
-                    // but SVD gives the 0x0 value.
-                    // .reset_mask = 0x00000000,
-                    .readable_bits = 0x007BFFFF,
-                    .writable_bits = 0x007BFFFF,
-                /* rc_w1 - Software can read as well as clear this bit
-                 * by writing 1. Writing ‘0’ has no effect on the bit
-                 * value. */
-                },
-                { }, /**/
-            } , /**/
+        {
+            .desc = "Interrupt mask register (EXTI_IMR)",
+            .name = "imr",
+            .offset_bytes = 0x00,
+            /*
+             * Reset value:
+             * - 0x0FF4 0000 (STM32F03x devices)
+             * - 0x7FF4 0000 (STM32F04x devices)
+             * - 0x0F94 0000 (STM32F05x devices)
+             * - 0x7F84 0000 (STM32F07x and STM32F09x devices)
+             */
+            .reset_value = 0x0F940000,
+            .readable_bits = 0xFFFFFFFF,
+            .writable_bits = 0xFFFFFFFF,
+            /**/
+        },
+        {
+            .desc = "Event mask register (EXTI_EMR)",
+            .name = "emr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007BFFFF,
+            .writable_bits = 0x007BFFFF,
+            /**/
+        },
+        {
+            .desc = "Rising trigger selection register (EXTI_RTSR)",
+            .name = "rtsr",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007BFFFF,
+            .writable_bits = 0x007BFFFF,
+            /**/
+        },
+        {
+            .desc = "Falling trigger selection register (EXTI_FTSR)",
+            .name = "ftsr",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007BFFFF,
+            .writable_bits = 0x007BFFFF,
+            /**/
+        },
+        {
+            .desc = "Software interrupt event register (EXTI_SWIER)",
+            .name = "swier",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007BFFFF,
+            .writable_bits = 0x007BFFFF,
+            /**/
+        },
+        {
+            .desc = "Pending register (EXTI_PR)",
+            .name = "pr",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            // The manual states 'Reset value is undefined',
+            // but SVD gives the 0x0 value.
+            // .reset_mask = 0x00000000,
+            .readable_bits = 0x007BFFFF,
+            .writable_bits = 0x007BFFFF,
+            /* rc_w1 - Software can read as well as clear this bit
+             * by writing 1. Writing ‘0’ has no effect on the bit
+             * value. */
+        },
+        {}, /**/
+    }, /**/
 };
+#endif
 
 /* ------------------------------------------------------------------------- */
 
 /* STM32F10xx */
 
+#if 0
 static PeripheralInfo stm32f1_exti_info = {
     .desc = "External interrupt/event controller (PWR)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
 
     .registers = (PeripheralRegisterInfo[] ) {
-                {
-                    .desc = "Interrupt mask register (EXTI_IMR)",
-                    .name = "imr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x000FFFFF,
-                    .writable_bits = 0x000FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Event mask register (EXTI_EMR)",
-                    .name = "emr",
-                    .offset_bytes = 0x04,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x000FFFFF,
-                    .writable_bits = 0x000FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Rising trigger selection register (EXTI_RTSR)",
-                    .name = "rtsr",
-                    .offset_bytes = 0x08,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x000FFFFF,
-                    .writable_bits = 0x000FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Falling trigger selection register (EXTI_FTSR)",
-                    .name = "ftsr",
-                    .offset_bytes = 0x0C,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x000FFFFF,
-                    .writable_bits = 0x000FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Software interrupt event register (EXTI_SWIER)",
-                    .name = "swier",
-                    .offset_bytes = 0x10,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x000FFFFF,
-                    .writable_bits = 0x000FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Pending register (EXTI_PR)",
-                    .name = "pr",
-                    .offset_bytes = 0x14,
-                    .reset_value = 0x00000000,
-                    // The manual states 'Reset value is undefined',
-                    // but SVD gives the 0x0 value.
-                    // .reset_mask = 0x00000000,
-                    .readable_bits = 0x000FFFFF,
-                    .writable_bits = 0x000FFFFF,
-                /* rc_w1 - Software can read as well as clear this bit
-                 * by writing 1. Writing ‘0’ has no effect on the bit
-                 * value. */
-                },
-                { }, /**/
-            } , /**/
+        {
+            .desc = "Interrupt mask register (EXTI_IMR)",
+            .name = "imr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x000FFFFF,
+            .writable_bits = 0x000FFFFF,
+            /**/
+        },
+        {
+            .desc = "Event mask register (EXTI_EMR)",
+            .name = "emr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x000FFFFF,
+            .writable_bits = 0x000FFFFF,
+            /**/
+        },
+        {
+            .desc = "Rising trigger selection register (EXTI_RTSR)",
+            .name = "rtsr",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x000FFFFF,
+            .writable_bits = 0x000FFFFF,
+            /**/
+        },
+        {
+            .desc = "Falling trigger selection register (EXTI_FTSR)",
+            .name = "ftsr",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x000FFFFF,
+            .writable_bits = 0x000FFFFF,
+            /**/
+        },
+        {
+            .desc = "Software interrupt event register (EXTI_SWIER)",
+            .name = "swier",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x000FFFFF,
+            .writable_bits = 0x000FFFFF,
+            /**/
+        },
+        {
+            .desc = "Pending register (EXTI_PR)",
+            .name = "pr",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            // The manual states 'Reset value is undefined',
+            // but SVD gives the 0x0 value.
+            // .reset_mask = 0x00000000,
+            .readable_bits = 0x000FFFFF,
+            .writable_bits = 0x000FFFFF,
+            /* rc_w1 - Software can read as well as clear this bit
+             * by writing 1. Writing ‘0’ has no effect on the bit
+             * value. */
+        },
+        {}, /**/
+    }, /**/
 };
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -294,145 +298,149 @@ static PeripheralInfo stm32f1_exti_info = {
 
 /* STM32F4_01_57_XX, STM32F4_23_XX_ */
 
+#if 0
 static PeripheralInfo stm32f4xxxx_exti_info = {
     .desc = "External interrupt/event controller (PWR)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
-                {
-                    .desc = "Interrupt mask register (EXTI_IMR)",
-                    .name = "imr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007FFFFF,
-                    .writable_bits = 0x007FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Event mask register (EXTI_EMR)",
-                    .name = "emr",
-                    .offset_bytes = 0x04,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007FFFFF,
-                    .writable_bits = 0x007FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Rising trigger selection register (EXTI_RTSR)",
-                    .name = "rtsr",
-                    .offset_bytes = 0x08,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007FFFFF,
-                    .writable_bits = 0x007FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Falling trigger selection register (EXTI_FTSR)",
-                    .name = "ftsr",
-                    .offset_bytes = 0x0C,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007FFFFF,
-                    .writable_bits = 0x007FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Software interrupt event register (EXTI_SWIER)",
-                    .name = "swier",
-                    .offset_bytes = 0x10,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x007FFFFF,
-                    .writable_bits = 0x007FFFFF,
-                /**/
-                },
-                {
-                    .desc = "Pending register (EXTI_PR)",
-                    .name = "pr",
-                    .offset_bytes = 0x14,
-                    .reset_value = 0x00000000,
-                    // The manual states 'Reset value is undefined',
-                    // but SVD gives the 0x0 value.
-                    // .reset_mask = 0x00000000,
-                    .readable_bits = 0x007FFFFF,
-                    .writable_bits = 0x007FFFFF,
-                /* rc_w1 - Software can read as well as clear this bit
-                 * by writing 1. Writing ‘0’ has no effect on the bit
-                 * value. */
-                },
-                { }, /**/
-            } , /**/
+        {
+            .desc = "Interrupt mask register (EXTI_IMR)",
+            .name = "imr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007FFFFF,
+            .writable_bits = 0x007FFFFF,
+            /**/
+        },
+        {
+            .desc = "Event mask register (EXTI_EMR)",
+            .name = "emr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007FFFFF,
+            .writable_bits = 0x007FFFFF,
+            /**/
+        },
+        {
+            .desc = "Rising trigger selection register (EXTI_RTSR)",
+            .name = "rtsr",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007FFFFF,
+            .writable_bits = 0x007FFFFF,
+            /**/
+        },
+        {
+            .desc = "Falling trigger selection register (EXTI_FTSR)",
+            .name = "ftsr",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007FFFFF,
+            .writable_bits = 0x007FFFFF,
+            /**/
+        },
+        {
+            .desc = "Software interrupt event register (EXTI_SWIER)",
+            .name = "swier",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x007FFFFF,
+            .writable_bits = 0x007FFFFF,
+            /**/
+        },
+        {
+            .desc = "Pending register (EXTI_PR)",
+            .name = "pr",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            // The manual states 'Reset value is undefined',
+            // but SVD gives the 0x0 value.
+            // .reset_mask = 0x00000000,
+            .readable_bits = 0x007FFFFF,
+            .writable_bits = 0x007FFFFF,
+            /* rc_w1 - Software can read as well as clear this bit
+             * by writing 1. Writing ‘0’ has no effect on the bit
+             * value. */
+        },
+        {}, /**/
+    }, /**/
 };
+#endif
 
 /* ------------------------------------------------------------------------- */
 
 /* STM32F411_xx */
 
+#if 0
 static PeripheralInfo stm32f411xx_exti_info = {
     .desc = "External interrupt/event controller (PWR)",
     .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
 
     .registers = (PeripheralRegisterInfo[] ) {
-                {
-                    .desc = "Interrupt mask register (EXTI_IMR)",
-                    .name = "imr",
-                    .offset_bytes = 0x00,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x0067FFFF,
-                    .writable_bits = 0x0067FFFF,
-                /**/
-                },
-                {
-                    .desc = "Event mask register (EXTI_EMR)",
-                    .name = "emr",
-                    .offset_bytes = 0x04,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x0067FFFF,
-                    .writable_bits = 0x0067FFFF,
-                /**/
-                },
-                {
-                    .desc = "Rising trigger selection register (EXTI_RTSR)",
-                    .name = "rtsr",
-                    .offset_bytes = 0x08,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x0067FFFF,
-                    .writable_bits = 0x0067FFFF,
-                /**/
-                },
-                {
-                    .desc = "Falling trigger selection register (EXTI_FTSR)",
-                    .name = "ftsr",
-                    .offset_bytes = 0x0C,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x0067FFFF,
-                    .writable_bits = 0x0067FFFF,
-                /**/
-                },
-                {
-                    .desc = "Software interrupt event register (EXTI_SWIER)",
-                    .name = "swier",
-                    .offset_bytes = 0x10,
-                    .reset_value = 0x00000000,
-                    .readable_bits = 0x0067FFFF,
-                    .writable_bits = 0x0067FFFF,
-                /**/
-                },
-                {
-                    .desc = "Pending register (EXTI_PR)",
-                    .name = "pr",
-                    .offset_bytes = 0x14,
-                    .reset_value = 0x00000000,
-                    // The manual states 'Reset value is undefined',
-                    // but SVD gives the 0x0 value.
-                    // .reset_mask = 0x00000000,
-                    .readable_bits = 0x0067FFFF,
-                    .writable_bits = 0x0067FFFF,
-                /* rc_w1 - Software can read as well as clear this bit
-                 * by writing 1. Writing ‘0’ has no effect on the bit
-                 * value. */
-                },
-                { }, /**/
-            } , /**/
+        {
+            .desc = "Interrupt mask register (EXTI_IMR)",
+            .name = "imr",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0067FFFF,
+            .writable_bits = 0x0067FFFF,
+            /**/
+        },
+        {
+            .desc = "Event mask register (EXTI_EMR)",
+            .name = "emr",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0067FFFF,
+            .writable_bits = 0x0067FFFF,
+            /**/
+        },
+        {
+            .desc = "Rising trigger selection register (EXTI_RTSR)",
+            .name = "rtsr",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0067FFFF,
+            .writable_bits = 0x0067FFFF,
+            /**/
+        },
+        {
+            .desc = "Falling trigger selection register (EXTI_FTSR)",
+            .name = "ftsr",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0067FFFF,
+            .writable_bits = 0x0067FFFF,
+            /**/
+        },
+        {
+            .desc = "Software interrupt event register (EXTI_SWIER)",
+            .name = "swier",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x0067FFFF,
+            .writable_bits = 0x0067FFFF,
+            /**/
+        },
+        {
+            .desc = "Pending register (EXTI_PR)",
+            .name = "pr",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            // The manual states 'Reset value is undefined',
+            // but SVD gives the 0x0 value.
+            // .reset_mask = 0x00000000,
+            .readable_bits = 0x0067FFFF,
+            .writable_bits = 0x0067FFFF,
+            /* rc_w1 - Software can read as well as clear this bit
+             * by writing 1. Writing ‘0’ has no effect on the bit
+             * value. */
+        },
+        {}, /**/
+    }, /**/
 };
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -514,19 +522,27 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     assert(capabilities->num_exti <= STM32_EXTI_MAX_NUM);
     cm_object_property_set_int(obj, capabilities->num_exti, "num_exti");
 
+    JSON_Object *info;
+
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
         assert(capabilities->num_exti == 23);
         if (capabilities->f0.is_51xx) {
-            peripheral_add_properties_and_children(obj, &stm32f051xx_exti_info);
+            info = cm_json_parser_get_peripheral(mcu->family_json,
+                    "stm32f051:exti");
+            peripheral_add_properties_and_children2(obj, info);
+        } else {
+            assert(false);
         }
         break;
 
     case STM32_FAMILY_F1:
 
         assert(capabilities->num_exti == 20);
-        peripheral_add_properties_and_children(obj, &stm32f1_exti_info);
+        info = cm_json_parser_get_peripheral(mcu->family_json,
+                "stm32f1xx:exti");
+        peripheral_add_properties_and_children2(obj, info);
         break;
 
     case STM32_FAMILY_F4:
@@ -534,12 +550,18 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
         assert(capabilities->num_exti == 23);
         if (capabilities->f4.is_01_57_xx || capabilities->f4.is_23_xxx) {
 
-            peripheral_add_properties_and_children(obj, &stm32f4xxxx_exti_info);
+            info = cm_json_parser_get_peripheral(mcu->family_json,
+                    "stm32f4xx:exti");
+            peripheral_add_properties_and_children2(obj, info);
 
         } else if (capabilities->f4.is11xx) {
 
-            peripheral_add_properties_and_children(obj, &stm32f411xx_exti_info);
+            info = cm_json_parser_get_peripheral(mcu->family_json,
+                    "stm32f411:exti");
+            peripheral_add_properties_and_children2(obj, info);
 
+        } else {
+            assert(false);
         }
         break;
 
@@ -774,6 +796,13 @@ static const TypeInfo stm32_exti_type_info = {
 static void stm32_exti_register_types(void)
 {
     type_register_static(&stm32_exti_type_info);
+
+#if 0
+    peripheral_serialize_info("f051-exti.json", "stm32f051:exti", &stm32f051xx_exti_info);
+    peripheral_serialize_info("f1xx-exti.json", "stm32f1xx:exti", &stm32f1_exti_info);
+    peripheral_serialize_info("f4xx-exti.json", "stm32f4xx:exti", &stm32f4xxxx_exti_info);
+    peripheral_serialize_info("f411-exti.json", "stm32f411:exti", &stm32f411xx_exti_info);
+#endif
 }
 
 type_init(stm32_exti_register_types);

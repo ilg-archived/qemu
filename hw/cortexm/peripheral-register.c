@@ -21,6 +21,8 @@
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/helper.h>
 
+#include "qemu/error-report.h"
+
 /*
  * This file implements a peripheral register. It extends all shorter accesses
  * to register size and uses the defined masks to write/read the register.
@@ -53,6 +55,7 @@ Object *peripheral_register_add_properties_and_children(Object *obj,
     PeripheralState *parent = PERIPHERAL_STATE(cm_object_get_parent(obj));
 
     cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
+
     if (info->reset_value != 0) {
         cm_object_property_set_int(obj, info->reset_value, "reset-value");
     }
@@ -118,6 +121,120 @@ Object *peripheral_register_add_properties_and_children(Object *obj,
 
             /* Should we delay until the register is realized()? */
             cm_object_realize(bifi);
+        }
+    }
+
+    return obj;
+}
+
+Object *peripheral_register_add_properties_and_children2(Object *obj,
+        JSON_Object *info)
+{
+    const char *str;
+    double number;
+    uint32_t val32;
+
+    /*
+     * After properties are set to default values by .instance_init,
+     * copy actual values from info.
+     */
+    PeripheralState *parent = PERIPHERAL_STATE(cm_object_get_parent(obj));
+
+    if (json_object_has_value_of_type(info, "offset_bytes", JSONString)) {
+        str = json_object_get_string(info, "offset_bytes");
+        val32 = cm_json_parser_parse_hex(str);
+        cm_object_property_set_int(obj, val32, "offset-bytes");
+    } else {
+        error_printf("Missing register offset_bytes.\n");
+        exit(1);
+    }
+
+    if (json_object_has_value_of_type(info, "reset_value", JSONString)) {
+        str = json_object_get_string(info, "reset_value");
+        val32 = cm_json_parser_parse_hex(str);
+        cm_object_property_set_int(obj, val32, "reset-value");
+    }
+
+    if (json_object_has_value_of_type(info, "reset_mask", JSONString)) {
+        str = json_object_get_string(info, "reset_mask");
+        val32 = cm_json_parser_parse_hex(str);
+        cm_object_property_set_int(obj, val32, "reset-mask");
+    }
+
+    if (json_object_has_value_of_type(info, "readable_bits", JSONString)) {
+        str = json_object_get_string(info, "readable_bits");
+        val32 = cm_json_parser_parse_hex(str);
+        cm_object_property_set_int(obj, val32, "readable-bits");
+    }
+
+    if (json_object_has_value_of_type(info, "writable_bits", JSONString)) {
+        str = json_object_get_string(info, "writable_bits");
+        val32 = cm_json_parser_parse_hex(str);
+        cm_object_property_set_int(obj, val32, "writable-bits");
+    }
+
+    uint64_t access_flags = 0;
+    if (json_object_has_value_of_type(info, "access_flags", JSONString)) {
+        str = json_object_get_string(info, "access_flags");
+        access_flags = cm_json_parser_parse_access_flags(str);
+    } else {
+        if (parent->default_access_flags != 0) {
+            access_flags = parent->default_access_flags;
+        } else {
+            access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
+        }
+    }
+    cm_object_property_set_int(obj, access_flags, "access-flags");
+
+    int size_bits = 0;
+    if (json_object_has_value_of_type(info, "size_bits", JSONNumber)) {
+        number = json_object_get_number(info, "register_size_bytes");
+        size_bits = (int) number;
+    } else {
+        if (parent->register_size_bytes != 0) {
+            size_bits = parent->register_size_bytes * 8;
+        } else {
+            size_bits = PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES;
+        }
+    }
+    cm_object_property_set_int(obj, size_bits, "size-bits");
+
+    if (json_object_has_value_of_type(info, "rw_mode", JSONString)) {
+        str = json_object_get_string(info, "rw_mode");
+        if (strchr(str, 'r') != NULL) {
+            cm_object_property_set_bool(obj, true, "is-readable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-readable");
+        }
+        if (strchr(str, 'w') != NULL) {
+            cm_object_property_set_bool(obj, true, "is-writable");
+        } else {
+            cm_object_property_set_bool(obj, false, "is-writable");
+        }
+    } else {
+        cm_object_property_set_bool(obj, true, "is-readable");
+        cm_object_property_set_bool(obj, true, "is-writable");
+    }
+
+    if (json_object_has_value_of_type(info, "bitfields", JSONArray)) {
+        JSON_Array *bitfields = json_object_get_array(info, "bitfields");
+        size_t count = json_array_get_count(bitfields);
+        int i;
+
+        for (i = 0; i < count; ++i) {
+            JSON_Object *bitfield = json_array_get_object(bitfields, i);
+
+            const char *bifi_name = json_object_get_string(bitfield, "name");
+
+            Object *obifi = cm_object_new(obj, bifi_name,
+            TYPE_REGISTER_BITFIELD);
+
+            cm_object_property_set_str(obifi, bifi_name, "name");
+
+            register_bitfield_add_properties_and_children2(obifi, bitfield);
+
+            /* Should we delay until the register is realized()? */
+            cm_object_realize(obifi);
         }
     }
 

@@ -21,7 +21,10 @@
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
 #include <hw/cortexm/bitband.h>
+#include <hw/cortexm/json-parser.h>
+
 #include "sysemu/sysemu.h"
+#include "qemu/error-report.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -102,29 +105,61 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     state->capabilities = capabilities;
 
     const char *family;
+    const char *device_file_name;
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
         family = "F0";
+        device_file_name = "stm32f0.json";
         break;
     case STM32_FAMILY_F1:
         family = "F1";
+        device_file_name = "stm32f1.json";
         break;
     case STM32_FAMILY_F2:
         family = "F2";
+        device_file_name = "stm32f2.json";
         break;
     case STM32_FAMILY_F3:
         family = "F3";
+        device_file_name = "stm32f3.json";
         break;
     case STM32_FAMILY_F4:
         family = "F4";
+        device_file_name = "stm32f4.json";
+        break;
+    case STM32_FAMILY_F7:
+        family = "F7";
+        device_file_name = "stm32f7.json";
+        break;
+    case STM32_FAMILY_H7:
+        family = "H7";
+        device_file_name = "stm32h7.json";
+        break;
+    case STM32_FAMILY_L0:
+        family = "L0";
+        device_file_name = "stm32l0.json";
         break;
     case STM32_FAMILY_L1:
         family = "L1";
+        device_file_name = "stm32l1.json";
+        break;
+    case STM32_FAMILY_L4:
+        family = "L4";
+        device_file_name = "stm32l4.json";
         break;
     default:
         family = "unknown";
     }
     qemu_log_mask(LOG_FUNC, "STM32 Family: %s\n", family);
+
+    const char *device_full_name = qemu_find_file(QEMU_FILE_TYPE_DEVICES,
+            device_file_name);
+    if (device_full_name == NULL) {
+        error_printf("Device file '%s' not found.\n", device_full_name);
+        exit(1);
+    }
+
+    state->family_json = json_parse_file(device_full_name);
 
     /* Devices will be addressed below "/machine/mcu/stm32". */
     state->container = container_get(OBJECT(dev), "/stm32");

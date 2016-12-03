@@ -29,221 +29,226 @@
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f051xx_syscfg_info =
+{
+    .desc = "System configuration controller (SYSCFG)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "System configuration controller (SYSCFG)",
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+            .desc =
+            "Configuration register 1 (SYSCFG_CFGR1)",
+            .name = "cfgr1",
+            .offset_bytes = 0x00,
+            /* 0x0000 000X (X is the memory mode selected by the actual boot mode configuration */
+            .reset_value = 0x00000000,
+            .readable_bits = 0x7FFF7FD3,
+            /* MEM_MODE[1:0] */
+            .writable_bits = 0x7FFF7FD3,
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 1 (SYSCFG_EXTICR1)",
+            .name = "exticr1",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 0 configuration",
+                    .name = "exti0",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 1 configuration",
+                    .name = "exti1",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 2 configuration",
+                    .name = "exti2",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 3 configuration",
+                    .name = "exti3",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 2 (SYSCFG_EXTICR2)",
+            .name = "exticr2",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 4 configuration",
+                    .name = "exti4",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 5 configuration",
+                    .name = "exti5",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 6 configuration",
+                    .name = "exti6",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 7 configuration",
+                    .name = "exti7",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 3 (SYSCFG_EXTICR3)",
+            .name = "exticr3",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 8 configuration",
+                    .name = "exti8",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 9 configuration",
+                    .name = "exti9",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 10 configuration",
+                    .name = "exti10",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 11 configuration",
+                    .name = "exti11",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 4 (SYSCFG_EXTICR1)",
+            .name = "exticr4",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 12 configuration",
+                    .name = "exti12",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 13 configuration",
+                    .name = "exti13",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 14 configuration",
+                    .name = "exti14",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 15 configuration",
+                    .name = "exti15",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "Configuration register 2 (SYSCFG_CFGR2)",
+            .name = "cfgr2",
+            .offset_bytes = 0x18,
+            .reset_value = 0x00000000,
+            .readable_bits = 0x00000107,
+            /* Bit 8 is rc_w1, cleared by writing 1. */
+            .writable_bits = 0x00000107,
+            /**/
+        },
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "Configuration register 1 (SYSCFG_CFGR1)",
-                                    .name = "cfgr1",
-                                    .offset_bytes = 0x00,
-                                    /* 0x0000 000X (X is the memory mode selected by the actual boot mode configuration */
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x7FFF7FD3,
-                                    /* MEM_MODE[1:0] */
-                                    .writable_bits = 0x7FFF7FD3,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 1 (SYSCFG_EXTICR1)",
-                                    .name = "exticr1",
-                                    .offset_bytes = 0x08,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 0 configuration",
-                                                            .name = "exti0",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 1 configuration",
-                                                            .name = "exti1",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 2 configuration",
-                                                            .name = "exti2",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 3 configuration",
-                                                            .name = "exti3",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 2 (SYSCFG_EXTICR2)",
-                                    .name = "exticr2",
-                                    .offset_bytes = 0x0C,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 4 configuration",
-                                                            .name = "exti4",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 5 configuration",
-                                                            .name = "exti5",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 6 configuration",
-                                                            .name = "exti6",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 7 configuration",
-                                                            .name = "exti7",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 3 (SYSCFG_EXTICR3)",
-                                    .name = "exticr3",
-                                    .offset_bytes = 0x10,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 8 configuration",
-                                                            .name = "exti8",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 9 configuration",
-                                                            .name = "exti9",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 10 configuration",
-                                                            .name = "exti10",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 11 configuration",
-                                                            .name = "exti11",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 4 (SYSCFG_EXTICR1)",
-                                    .name = "exticr4",
-                                    .offset_bytes = 0x14,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 12 configuration",
-                                                            .name = "exti12",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 13 configuration",
-                                                            .name = "exti13",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 14 configuration",
-                                                            .name = "exti14",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 15 configuration",
-                                                            .name = "exti15",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "Configuration register 2 (SYSCFG_CFGR2)",
-                                    .name = "cfgr2",
-                                    .offset_bytes = 0x18,
-                                    .reset_value = 0x00000000,
-                                    .readable_bits = 0x00000107,
-                                    /* Bit 8 is rc_w1, cleared by writing 1. */
-                                    .writable_bits = 0x00000107,
-                                /**/
-                                },
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f051xx_syscfg_create_objects(Object *obj)
+static void stm32f051_syscfg_create_objects(Object *obj, JSON_Value *family)
 {
     STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f051xx_syscfg_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f051:syscfg");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f0.reg.cfgr1 = cm_object_get_child_by_name(obj, "cfgr1");
     state->f0.reg.exticr1 = cm_object_get_child_by_name(obj, "exticr1");
@@ -291,269 +296,274 @@ static void stm32f051xx_syscfg_create_objects(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+#if 0
 static PeripheralInfo stm32f4xxxx_syscfg_info =
+{
+    .desc = "System configuration controller (SYSCFG)",
+    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+
+    .registers =
+    (PeripheralRegisterInfo[] ) {
         {
-            .desc = "System configuration controller (SYSCFG)",
-            .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
+            .desc =
+            "Memory remap register (SYSCFG_MEMRMP)",
+            .name = "memrmp",
+            .offset_bytes = 0x00,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "Memory mapping selection",
+                    .name = "mem-mode",
+                    .first_bit = 0,
+                    .width_bits = 2,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "Peripheral mode configuration register (SYSCFG_PMC)",
+            .name = "pmc",
+            .offset_bytes = 0x04,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "Ethernet PHY interface selection",
+                    .name =
+                    "mii-rmii-sel",
+                    .first_bit = 7,
+                    .width_bits = 1,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 1 (SYSCFG_EXTICR1)",
+            .name = "exticr1",
+            .offset_bytes = 0x08,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 0 configuration",
+                    .name = "exti0",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 1 configuration",
+                    .name = "exti1",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 2 configuration",
+                    .name = "exti2",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 3 configuration",
+                    .name = "exti3",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 2 (SYSCFG_EXTICR2)",
+            .name = "exticr2",
+            .offset_bytes = 0x0C,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 4 configuration",
+                    .name = "exti4",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 5 configuration",
+                    .name = "exti5",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 6 configuration",
+                    .name = "exti6",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 7 configuration",
+                    .name = "exti7",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 3 (SYSCFG_EXTICR3)",
+            .name = "exticr3",
+            .offset_bytes = 0x10,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 8 configuration",
+                    .name = "exti8",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 9 configuration",
+                    .name = "exti9",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 10 configuration",
+                    .name = "exti10",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 11 configuration",
+                    .name = "exti11",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "External interrupt configuration register 4 (SYSCFG_EXTICR1)",
+            .name = "exticr4",
+            .offset_bytes = 0x14,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "EXTI 12 configuration",
+                    .name = "exti12",
+                    .first_bit = 0,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 13 configuration",
+                    .name = "exti13",
+                    .first_bit = 4,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 14 configuration",
+                    .name = "exti14",
+                    .first_bit = 8,
+                    .width_bits = 4,
+                    /**/
+                },
+                {
+                    .desc =
+                    "EXTI 15 configuration",
+                    .name = "exti15",
+                    .first_bit = 12,
+                    .width_bits = 4,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {
+            .desc =
+            "Compensation cell control register (SYSCFG_CMPCR)",
+            .name = "cmpcr",
+            .offset_bytes = 0x20,
+            .reset_value = 0x00000000,
+            .bitfields =
+            (RegisterBitfieldInfo[] ) {
+                {
+                    .desc =
+                    "Compensation cell power-down",
+                    .name = "cmp-pd",
+                    .first_bit = 0,
+                    .width_bits = 1,
+                    /**/
+                },
+                {
+                    .desc =
+                    "Compensation cell ready flag",
+                    .name = "ready",
+                    .first_bit = 8,
+                    .width_bits = 1,
+                    .rw_mode =
+                    REGISTER_RW_MODE_READ,
+                    /**/
+                },
+                {} /**/
+            },
+            /**/
+        },
+        {}, /**/
+    }, /**/
+};
+#endif
 
-            .registers =
-                    (PeripheralRegisterInfo[] ) {
-                                {
-                                    .desc =
-                                            "Memory remap register (SYSCFG_MEMRMP)",
-                                    .name = "memrmp",
-                                    .offset_bytes = 0x00,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "Memory mapping selection",
-                                                            .name = "mem-mode",
-                                                            .first_bit = 0,
-                                                            .width_bits = 2,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "Peripheral mode configuration register (SYSCFG_PMC)",
-                                    .name = "pmc",
-                                    .offset_bytes = 0x04,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "Ethernet PHY interface selection",
-                                                            .name =
-                                                                    "mii-rmii-sel",
-                                                            .first_bit = 7,
-                                                            .width_bits = 1,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 1 (SYSCFG_EXTICR1)",
-                                    .name = "exticr1",
-                                    .offset_bytes = 0x08,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 0 configuration",
-                                                            .name = "exti0",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 1 configuration",
-                                                            .name = "exti1",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 2 configuration",
-                                                            .name = "exti2",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 3 configuration",
-                                                            .name = "exti3",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 2 (SYSCFG_EXTICR2)",
-                                    .name = "exticr2",
-                                    .offset_bytes = 0x0C,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 4 configuration",
-                                                            .name = "exti4",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 5 configuration",
-                                                            .name = "exti5",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 6 configuration",
-                                                            .name = "exti6",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 7 configuration",
-                                                            .name = "exti7",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 3 (SYSCFG_EXTICR3)",
-                                    .name = "exticr3",
-                                    .offset_bytes = 0x10,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 8 configuration",
-                                                            .name = "exti8",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 9 configuration",
-                                                            .name = "exti9",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 10 configuration",
-                                                            .name = "exti10",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 11 configuration",
-                                                            .name = "exti11",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "External interrupt configuration register 4 (SYSCFG_EXTICR1)",
-                                    .name = "exticr4",
-                                    .offset_bytes = 0x14,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 12 configuration",
-                                                            .name = "exti12",
-                                                            .first_bit = 0,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 13 configuration",
-                                                            .name = "exti13",
-                                                            .first_bit = 4,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 14 configuration",
-                                                            .name = "exti14",
-                                                            .first_bit = 8,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "EXTI 15 configuration",
-                                                            .name = "exti15",
-                                                            .first_bit = 12,
-                                                            .width_bits = 4,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                {
-                                    .desc =
-                                            "Compensation cell control register (SYSCFG_CMPCR)",
-                                    .name = "cmpcr",
-                                    .offset_bytes = 0x20,
-                                    .reset_value = 0x00000000,
-                                    .bitfields =
-                                            (RegisterBitfieldInfo[] ) {
-                                                        {
-                                                            .desc =
-                                                                    "Compensation cell power-down",
-                                                            .name = "cmp-pd",
-                                                            .first_bit = 0,
-                                                            .width_bits = 1,
-                                                        /**/
-                                                        },
-                                                        {
-                                                            .desc =
-                                                                    "Compensation cell ready flag",
-                                                            .name = "ready",
-                                                            .first_bit = 8,
-                                                            .width_bits = 1,
-                                                            .rw_mode =
-                                                                    REGISTER_RW_MODE_READ,
-                                                        /**/
-                                                        },
-                                                        { } /**/
-                                                    } ,
-                                /**/
-                                },
-                                { }, /**/
-                            } , /**/
-        };
-
-static void stm32f4xxxx_syscfg_create_objects(Object *obj)
+static void stm32f4xx_syscfg_create_objects(Object *obj, JSON_Value *family)
 {
     STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
 
-    peripheral_add_properties_and_children(obj, &stm32f4xxxx_syscfg_info);
+    JSON_Object *info = cm_json_parser_get_peripheral(family,
+            "stm32f4xx:syscfg");
+
+    peripheral_add_properties_and_children2(obj, info);
 
     state->f4.reg.memrmp = cm_object_get_child_by_name(obj, "memrmp");
     state->f4.fld.memrmp.mem_mode = cm_object_get_child_by_name(
@@ -672,11 +682,11 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        stm32f051xx_syscfg_create_objects(obj);
+        stm32f051_syscfg_create_objects(obj, mcu->family_json);
         break;
 
     case STM32_FAMILY_F4:
-        stm32f4xxxx_syscfg_create_objects(obj);
+        stm32f4xx_syscfg_create_objects(obj, mcu->family_json);
         break;
 
     default:
@@ -719,6 +729,11 @@ static const TypeInfo stm32_syscfg_type_info = {
 static void stm32_syscfg_register_types(void)
 {
     type_register_static(&stm32_syscfg_type_info);
+
+#if 0
+    peripheral_serialize_info("f051-syscfg.json", "stm32f051:syscfg", &stm32f051xx_syscfg_info);
+    peripheral_serialize_info("f4xx-syscfg.json", "stm32f4xx:syscfg", &stm32f4xxxx_syscfg_info);
+#endif
 }
 
 type_init(stm32_syscfg_register_types);

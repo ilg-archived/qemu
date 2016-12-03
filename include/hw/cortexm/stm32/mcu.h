@@ -31,6 +31,7 @@
 #include <hw/cortexm/stm32/usart.h>
 #include <hw/cortexm/stm32/exti.h>
 #include <hw/cortexm/stm32/syscfg.h>
+#include <hw/cortexm/parson.h>
 
 /* ------------------------------------------------------------------------- */
 
@@ -76,6 +77,7 @@ typedef struct STM32MCUState {
     const STM32Capabilities *capabilities;
 
     Object *container;
+    JSON_Value *family_json;
 
     DeviceState *rcc;
 
