@@ -20,6 +20,8 @@
 #ifndef CORTEXM_BUTTON_GPIO_H_
 #define CORTEXM_BUTTON_GPIO_H_
 
+#include "qemu/osdep.h"
+
 #include <hw/cortexm/button.h>
 #include <hw/cortexm/graphic.h>
 

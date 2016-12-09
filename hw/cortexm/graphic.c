@@ -24,7 +24,6 @@
 #include <hw/cortexm/gpio-led.h>
 #include <hw/cortexm/button.h>
 
-#include "qemu/osdep.h"
 #include "qemu/timer.h"
 #include "qemu/error-report.h"
 

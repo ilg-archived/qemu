@@ -20,6 +20,8 @@
 #ifndef CORTEXM_BITBAND_H_
 #define CORTEXM_BITBAND_H_
 
+#include "qemu/osdep.h"
+
 #include <hw/cortexm/helper.h>
 
 #include "hw/sysbus.h"

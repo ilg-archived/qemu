@@ -20,6 +20,8 @@
 #ifndef HW_ARM_XMC_H
 #define HW_ARM_XMC_H 1
 
+#include "qemu/osdep.h"
+
 #include "hw/boards.h"
 #include <hw/cortexm/mcu.h>
 

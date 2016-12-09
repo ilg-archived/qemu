@@ -20,6 +20,8 @@
 #ifndef GPIO_LED_H_
 #define GPIO_LED_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/qdev.h"
 #include "qemu/typedefs.h"
 #include "hw/sysbus.h"

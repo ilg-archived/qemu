@@ -20,6 +20,8 @@
 #ifndef CORTEXM_BOARD_H_
 #define CORTEXM_BOARD_H_
 
+#include "qemu/osdep.h"
+
 #include <hw/cortexm/graphic.h>
 #include <hw/cortexm/helper.h>
 #include "hw/boards.h"

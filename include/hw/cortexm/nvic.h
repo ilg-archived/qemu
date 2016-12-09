@@ -22,6 +22,8 @@
 #ifndef CORTEXM_NVIC_H
 #define CORTEXM_NVIC_H
 
+#include "qemu/osdep.h"
+
 #include "hw/intc/gic_internal.h"
 #include <hw/cortexm/peripheral.h>
 

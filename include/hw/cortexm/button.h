@@ -20,6 +20,8 @@
 #ifndef CORTEXM_BUTTON_H_
 #define CORTEXM_BUTTON_H_
 
+#include "qemu/osdep.h"
+
 #include "hw/sysbus.h"
 
 /* ------------------------------------------------------------------------- */
@@ -70,7 +72,7 @@ typedef struct ButtonState {
         int x_right;
         int y_top;
         int y_bottom;
-    }position;
+    } position;
 
 #endif /* defined(CONFIG_SDL) */
 

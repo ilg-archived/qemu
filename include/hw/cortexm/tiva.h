@@ -20,6 +20,8 @@
 #ifndef HW_ARM_TIVA_H
 #define HW_ARM_TIVA_H 1
 
+#include "qemu/osdep.h"
+
 #include "hw/boards.h"
 #include <hw/cortexm/mcu.h>
 
