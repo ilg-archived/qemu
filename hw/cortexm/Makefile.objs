@@ -4,6 +4,7 @@ obj-$(CONFIG_GNU_ARM_ECLIPSE) += mcu.o
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += helper.o
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += parson.o
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += json-parser.o
+obj-$(CONFIG_GNU_ARM_ECLIPSE) += svd.o
 
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += register-bitfield.o 
 obj-$(CONFIG_GNU_ARM_ECLIPSE) += peripheral-register.o

@@ -20,12 +20,16 @@
 #ifndef CORTEXM_MCU_H_
 #define CORTEXM_MCU_H_
 
-#include <hw/cortexm/itm.h>
+#include "qemu/osdep.h"
+
 #include "exec/memory.h"
 #include "hw/irq.h"
 #include "hw/boards.h"
 #include "hw/sysbus.h"
 #include "target-arm/cpu.h"
+
+#include <hw/cortexm/itm.h>
+#include <hw/cortexm/json-parser.h>
 
 /* ------------------------------------------------------------------------- */
 
@@ -78,10 +82,19 @@ typedef struct {
  */
 typedef struct {
 
+    // TODO: make this an array of structs. */
     const uint32_t flash_size_kb; /* size of main program area, in KB */
     const uint32_t sram_size_kb; /* size of main RAM area, in KB */
 
     const CortexMCoreCapabilities *core;
+
+    /* The JSON file with the device definitions.
+     * Must include core capabilities. */
+    const char *svd_file_name;
+
+    /* The device name, as it appears in the SVD.
+     * Used mainly for validation. */
+    const char *svd_device_name;
 
 } CortexMCapabilities;
 
@@ -135,6 +148,8 @@ typedef struct {
      */
     const CortexMCapabilities *capabilities;
 
+    JSON_Object *svd_json;
+
     const char *image_filename;
 
     /*
@@ -171,6 +186,14 @@ typedef struct {
 
     /* Optional */
     DeviceState *itm;
+
+    struct {
+        const char *size;
+        const char *access;
+        const char *protection;
+        const char *reset_value;
+        const char *reset_mask;
+    } svd;
 
 } CortexMState;
 

@@ -1,0 +1,86 @@
+{
+    "comment": "Patch for QEMU use.",
+    "device": {
+        "name": "STM32F40x",
+        "cpu": {
+            "name": "CM4",
+            "revision": "r0p1",
+            "endian": "little",
+            "mpuPresent": "true",
+            "fpuPresent": "true",
+            "nvicPrioBits": "4",
+            "deviceNumInterrupts": "82",
+            "vendorSystickConfig": "false"
+        },
+        "access": "read-write",
+        "qemuAlignment": "any",
+        "peripherals": [
+            {
+                "name": "GPIOA",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOB",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOC",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOD",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOE",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOF",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOG",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOH",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOI",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "USART1",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART2",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART3",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART6",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "UART4",
+                "groupName": "UART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "UART5",
+                "groupName": "UART",
+                "qemuAlignment": "word-halfWord"
+            }
+        ]
+    }
+}

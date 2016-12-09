@@ -21,6 +21,7 @@
 #define PERIPHERAL_REGISTER_H_
 
 #include "qemu/osdep.h"
+
 #include "qemu/typedefs.h"
 #include "qapi/error.h"
 
@@ -252,6 +253,15 @@ typedef struct {
     /* Called after storing the new value in the write callback.
      * Name the function xxx_post_write_callback(). */
     register_post_write_callback_t post_write;
+
+    struct {
+        const char *size;
+        const char *access;
+        const char *protection;
+        const char *reset_value;
+        const char *reset_mask;
+    } svd;
+
 } PeripheralRegisterState;
 
 /* ----- Public ------------------------------------------------------------ */

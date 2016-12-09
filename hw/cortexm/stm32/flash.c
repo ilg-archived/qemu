@@ -20,6 +20,7 @@
 #include <hw/cortexm/stm32/flash.h>
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
 
 /*
  * This file implements the STM32 flash control.
@@ -89,7 +90,7 @@ static PeripheralInfo stm32f051xx_flash_info = {
 
 static void stm32f051_flash_create_objects(Object *obj, JSON_Value *family)
 {
-    STM32FlashState *state = STM32_FLASH_STATE(obj);
+    STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f051:flash");
@@ -176,7 +177,7 @@ static PeripheralInfo stm32f1_flash_info = {
 
 static void stm32f1xx_flash_create_objects(Object *obj, JSON_Value *family)
 {
-    STM32FlashState *state = STM32_FLASH_STATE(obj);
+    STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f1xx:flash");
@@ -278,7 +279,7 @@ static PeripheralInfo stm32f1xd_flash_info = {
 
 static void stm32f1xd_flash_create_objects(Object *obj, JSON_Value *family)
 {
-    STM32FlashState *state = STM32_FLASH_STATE(obj);
+    STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f1xd:flash");
@@ -305,6 +306,94 @@ static void stm32f1xd_flash_create_objects(Object *obj, JSON_Value *family)
 }
 
 /* ------------------------------------------------------------------------- */
+
+static void stm32f40x_flash_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    // DO NOT EDIT! Automatically generated!
+    STM32FLASHState *state = STM32_FLASH_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f4.reg.acr = cm_object_get_child_by_name(obj, "ACR");
+    state->f4.reg.keyr = cm_object_get_child_by_name(obj, "KEYR");
+    state->f4.reg.optkeyr = cm_object_get_child_by_name(obj, "OPTKEYR");
+    state->f4.reg.sr = cm_object_get_child_by_name(obj, "SR");
+    state->f4.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->f4.reg.optcr = cm_object_get_child_by_name(obj, "OPTCR");
+
+    // ACR bitfields.
+    state->f4.fld.acr.latency = cm_object_get_child_by_name(state->f4.reg.acr,
+            "LATENCY");
+    state->f4.fld.acr.prften = cm_object_get_child_by_name(state->f4.reg.acr,
+            "PRFTEN");
+    state->f4.fld.acr.icen = cm_object_get_child_by_name(state->f4.reg.acr,
+            "ICEN");
+    state->f4.fld.acr.dcen = cm_object_get_child_by_name(state->f4.reg.acr,
+            "DCEN");
+    state->f4.fld.acr.icrst = cm_object_get_child_by_name(state->f4.reg.acr,
+            "ICRST");
+    state->f4.fld.acr.dcrst = cm_object_get_child_by_name(state->f4.reg.acr,
+            "DCRST");
+
+    // KEYR bitfields.
+    state->f4.fld.keyr.key = cm_object_get_child_by_name(state->f4.reg.keyr,
+            "KEY");
+
+    // OPTKEYR bitfields.
+    state->f4.fld.optkeyr.optkey = cm_object_get_child_by_name(
+            state->f4.reg.optkeyr, "OPTKEY");
+
+    // SR bitfields.
+    state->f4.fld.sr.eop = cm_object_get_child_by_name(state->f4.reg.sr, "EOP");
+    state->f4.fld.sr.operr = cm_object_get_child_by_name(state->f4.reg.sr,
+            "OPERR");
+    state->f4.fld.sr.wrperr = cm_object_get_child_by_name(state->f4.reg.sr,
+            "WRPERR");
+    state->f4.fld.sr.pgaerr = cm_object_get_child_by_name(state->f4.reg.sr,
+            "PGAERR");
+    state->f4.fld.sr.pgperr = cm_object_get_child_by_name(state->f4.reg.sr,
+            "PGPERR");
+    state->f4.fld.sr.pgserr = cm_object_get_child_by_name(state->f4.reg.sr,
+            "PGSERR");
+    state->f4.fld.sr.bsy = cm_object_get_child_by_name(state->f4.reg.sr, "BSY");
+
+    // CR bitfields.
+    state->f4.fld.cr.pg = cm_object_get_child_by_name(state->f4.reg.cr, "PG");
+    state->f4.fld.cr.ser = cm_object_get_child_by_name(state->f4.reg.cr, "SER");
+    state->f4.fld.cr.mer = cm_object_get_child_by_name(state->f4.reg.cr, "MER");
+    state->f4.fld.cr.snb = cm_object_get_child_by_name(state->f4.reg.cr, "SNB");
+    state->f4.fld.cr.psize = cm_object_get_child_by_name(state->f4.reg.cr,
+            "PSIZE");
+    state->f4.fld.cr.strt = cm_object_get_child_by_name(state->f4.reg.cr,
+            "STRT");
+    state->f4.fld.cr.eopie = cm_object_get_child_by_name(state->f4.reg.cr,
+            "EOPIE");
+    state->f4.fld.cr.errie = cm_object_get_child_by_name(state->f4.reg.cr,
+            "ERRIE");
+    state->f4.fld.cr.lock = cm_object_get_child_by_name(state->f4.reg.cr,
+            "LOCK");
+
+    // OPTCR bitfields.
+    state->f4.fld.optcr.optlock = cm_object_get_child_by_name(
+            state->f4.reg.optcr, "OPTLOCK");
+    state->f4.fld.optcr.optstrt = cm_object_get_child_by_name(
+            state->f4.reg.optcr, "OPTSTRT");
+    state->f4.fld.optcr.bor_lev = cm_object_get_child_by_name(
+            state->f4.reg.optcr, "BOR_LEV");
+    state->f4.fld.optcr.wdg_sw = cm_object_get_child_by_name(
+            state->f4.reg.optcr, "WDG_SW");
+    state->f4.fld.optcr.nrst_stop = cm_object_get_child_by_name(
+            state->f4.reg.optcr, "nRST_STOP");
+    state->f4.fld.optcr.nrst_stdby = cm_object_get_child_by_name(
+            state->f4.reg.optcr, "nRST_STDBY");
+    state->f4.fld.optcr.rdp = cm_object_get_child_by_name(state->f4.reg.optcr,
+            "RDP");
+    state->f4.fld.optcr.nwrp = cm_object_get_child_by_name(state->f4.reg.optcr,
+            "nWRP");
+}
 
 #if 0
 static PeripheralInfo stm32f4_01_57_xx_flash_info = {
@@ -369,7 +458,7 @@ static PeripheralInfo stm32f4_01_57_xx_flash_info = {
 
 static void stm32f4_01_57_flash_create_objects(Object *obj, JSON_Value *family)
 {
-    //STM32FlashState *state = STM32_FLASH_STATE(obj);
+    //STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f4_01_57:flash");
@@ -442,7 +531,7 @@ static PeripheralInfo stm32f411xx_flash_info = {
 
 static void stm32f411_flash_create_objects(Object *obj, JSON_Value *family)
 {
-    //STM32FlashState *state = STM32_FLASH_STATE(obj);
+    //STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f411:flash");
@@ -519,7 +608,7 @@ static PeripheralInfo stm32f4_23_xxx_flash_info = {
 
 static void stm32f4_23_x_flash_create_objects(Object *obj, JSON_Value *family)
 {
-    //STM32FlashState *state = STM32_FLASH_STATE(obj);
+    //STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f4_23_x:flash");
@@ -544,8 +633,9 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
      */
 
     STM32MCUState *mcu = stm32_mcu_get();
+    CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
-    STM32FlashState *state = STM32_FLASH_STATE(dev);
+    STM32FLASHState *state = STM32_FLASH_STATE(dev);
     /* First thing first: get capabilities from MCU, needed everywhere. */
     state->capabilities = mcu->capabilities;
 
@@ -618,7 +708,9 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_01_57_xx) {
+        if (capabilities->f4.is_40x) {
+            stm32f40x_flash_create_objects(obj, cm_state->svd_json, "FLASH");
+        } else if (capabilities->f4.is_01_57_xx) {
             stm32f4_01_57_flash_create_objects(obj, mcu->family_json);
         } else if (capabilities->f4.is11xx) {
             stm32f411_flash_create_objects(obj, mcu->family_json);
@@ -630,8 +722,6 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
     default:
         break;
     }
-
-    cm_object_property_set_str(obj, "flash", "name");
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_FLASH)) {
@@ -648,7 +738,7 @@ static void stm32_flash_reset_callback(DeviceState *dev)
 }
 
 static Property stm32_flash_properties[] = {
-        DEFINE_PROP_NON_VOID_PTR("capabilities", STM32FlashState,
+        DEFINE_PROP_NON_VOID_PTR("capabilities", STM32FLASHState,
                 capabilities, const STM32Capabilities *),
     DEFINE_PROP_END_OF_LIST() };
 
@@ -664,9 +754,9 @@ static const TypeInfo stm32_flash_type_info = {
     .name = TYPE_STM32_FLASH,
     .parent = TYPE_STM32_FLASH_PARENT,
     .instance_init = stm32_flash_instance_init_callback,
-    .instance_size = sizeof(STM32FlashState),
+    .instance_size = sizeof(STM32FLASHState),
     .class_init = stm32_flash_class_init_callback,
-    .class_size = sizeof(STM32FlashClass) /**/
+    .class_size = sizeof(STM32FLASHClass) /**/
 };
 
 static void stm32_flash_register_types(void)

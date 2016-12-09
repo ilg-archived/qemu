@@ -23,6 +23,7 @@
 #include <hw/cortexm/stm32/syscfg.h>
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
 
 #include "qemu/bitops.h"
 
@@ -48,7 +49,7 @@
 Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
 {
     char child_name[10];
-    snprintf(child_name, sizeof(child_name), "gpio[%c]", 'a' + index);
+    snprintf(child_name, sizeof(child_name), "GPIO%c", 'A' + index);
     Object *gpio = cm_object_new(parent, child_name, TYPE_STM32_GPIO);
     int i;
 
@@ -58,7 +59,7 @@ Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
 
     for (i = 0; i < STM32_GPIO_PIN_COUNT; ++i) {
         /* Connect GPIO outgoing to EXTI incoming. */
-        cm_irq_connect(DEVICE(gpio), IRQ_GPIO_EXTI_OUT, i,
+        cm_irq_connect(DEVICE(gpio), STM32_IRQ_GPIO_EXTI_OUT, i,
                 cm_device_by_name(DEVICE_PATH_STM32_EXTI), IRQ_EXTI_IN, i);
     }
 
@@ -593,6 +594,372 @@ static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, odr, state->reg.idr, new_value);
 }
 
+/* ------------------------------------------------------------------------- */
+
+static void stm32f40x_gpio_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    // DO NOT EDIT! Automatically generated!
+    STM32GPIOState *state = STM32_GPIO_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f4.reg.moder = cm_object_get_child_by_name(obj, "MODER");
+    state->f4.reg.otyper = cm_object_get_child_by_name(obj, "OTYPER");
+    state->f4.reg.ospeedr = cm_object_get_child_by_name(obj, "OSPEEDR");
+    state->f4.reg.pupdr = cm_object_get_child_by_name(obj, "PUPDR");
+    state->f4.reg.idr = cm_object_get_child_by_name(obj, "IDR");
+    state->f4.reg.odr = cm_object_get_child_by_name(obj, "ODR");
+    state->f4.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
+    state->f4.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
+    state->f4.reg.afrl = cm_object_get_child_by_name(obj, "AFRL");
+    state->f4.reg.afrh = cm_object_get_child_by_name(obj, "AFRH");
+
+    // MODER bitfields.
+    state->f4.fld.moder.moder0 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER0");
+    state->f4.fld.moder.moder1 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER1");
+    state->f4.fld.moder.moder2 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER2");
+    state->f4.fld.moder.moder3 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER3");
+    state->f4.fld.moder.moder4 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER4");
+    state->f4.fld.moder.moder5 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER5");
+    state->f4.fld.moder.moder6 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER6");
+    state->f4.fld.moder.moder7 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER7");
+    state->f4.fld.moder.moder8 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER8");
+    state->f4.fld.moder.moder9 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER9");
+    state->f4.fld.moder.moder10 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER10");
+    state->f4.fld.moder.moder11 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER11");
+    state->f4.fld.moder.moder12 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER12");
+    state->f4.fld.moder.moder13 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER13");
+    state->f4.fld.moder.moder14 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER14");
+    state->f4.fld.moder.moder15 = cm_object_get_child_by_name(
+            state->f4.reg.moder, "MODER15");
+
+    // OTYPER bitfields.
+    state->f4.fld.otyper.ot0 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT0");
+    state->f4.fld.otyper.ot1 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT1");
+    state->f4.fld.otyper.ot2 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT2");
+    state->f4.fld.otyper.ot3 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT3");
+    state->f4.fld.otyper.ot4 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT4");
+    state->f4.fld.otyper.ot5 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT5");
+    state->f4.fld.otyper.ot6 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT6");
+    state->f4.fld.otyper.ot7 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT7");
+    state->f4.fld.otyper.ot8 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT8");
+    state->f4.fld.otyper.ot9 = cm_object_get_child_by_name(state->f4.reg.otyper,
+            "OT9");
+    state->f4.fld.otyper.ot10 = cm_object_get_child_by_name(
+            state->f4.reg.otyper, "OT10");
+    state->f4.fld.otyper.ot11 = cm_object_get_child_by_name(
+            state->f4.reg.otyper, "OT11");
+    state->f4.fld.otyper.ot12 = cm_object_get_child_by_name(
+            state->f4.reg.otyper, "OT12");
+    state->f4.fld.otyper.ot13 = cm_object_get_child_by_name(
+            state->f4.reg.otyper, "OT13");
+    state->f4.fld.otyper.ot14 = cm_object_get_child_by_name(
+            state->f4.reg.otyper, "OT14");
+    state->f4.fld.otyper.ot15 = cm_object_get_child_by_name(
+            state->f4.reg.otyper, "OT15");
+
+    // OSPEEDR bitfields.
+    state->f4.fld.ospeedr.ospeedr0 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR0");
+    state->f4.fld.ospeedr.ospeedr1 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR1");
+    state->f4.fld.ospeedr.ospeedr2 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR2");
+    state->f4.fld.ospeedr.ospeedr3 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR3");
+    state->f4.fld.ospeedr.ospeedr4 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR4");
+    state->f4.fld.ospeedr.ospeedr5 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR5");
+    state->f4.fld.ospeedr.ospeedr6 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR6");
+    state->f4.fld.ospeedr.ospeedr7 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR7");
+    state->f4.fld.ospeedr.ospeedr8 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR8");
+    state->f4.fld.ospeedr.ospeedr9 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR9");
+    state->f4.fld.ospeedr.ospeedr10 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR10");
+    state->f4.fld.ospeedr.ospeedr11 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR11");
+    state->f4.fld.ospeedr.ospeedr12 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR12");
+    state->f4.fld.ospeedr.ospeedr13 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR13");
+    state->f4.fld.ospeedr.ospeedr14 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR14");
+    state->f4.fld.ospeedr.ospeedr15 = cm_object_get_child_by_name(
+            state->f4.reg.ospeedr, "OSPEEDR15");
+
+    // PUPDR bitfields.
+    state->f4.fld.pupdr.pupdr0 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR0");
+    state->f4.fld.pupdr.pupdr1 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR1");
+    state->f4.fld.pupdr.pupdr2 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR2");
+    state->f4.fld.pupdr.pupdr3 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR3");
+    state->f4.fld.pupdr.pupdr4 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR4");
+    state->f4.fld.pupdr.pupdr5 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR5");
+    state->f4.fld.pupdr.pupdr6 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR6");
+    state->f4.fld.pupdr.pupdr7 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR7");
+    state->f4.fld.pupdr.pupdr8 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR8");
+    state->f4.fld.pupdr.pupdr9 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR9");
+    state->f4.fld.pupdr.pupdr10 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR10");
+    state->f4.fld.pupdr.pupdr11 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR11");
+    state->f4.fld.pupdr.pupdr12 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR12");
+    state->f4.fld.pupdr.pupdr13 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR13");
+    state->f4.fld.pupdr.pupdr14 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR14");
+    state->f4.fld.pupdr.pupdr15 = cm_object_get_child_by_name(
+            state->f4.reg.pupdr, "PUPDR15");
+
+    // IDR bitfields.
+    state->f4.fld.idr.idr0 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR0");
+    state->f4.fld.idr.idr1 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR1");
+    state->f4.fld.idr.idr2 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR2");
+    state->f4.fld.idr.idr3 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR3");
+    state->f4.fld.idr.idr4 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR4");
+    state->f4.fld.idr.idr5 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR5");
+    state->f4.fld.idr.idr6 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR6");
+    state->f4.fld.idr.idr7 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR7");
+    state->f4.fld.idr.idr8 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR8");
+    state->f4.fld.idr.idr9 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR9");
+    state->f4.fld.idr.idr10 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR10");
+    state->f4.fld.idr.idr11 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR11");
+    state->f4.fld.idr.idr12 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR12");
+    state->f4.fld.idr.idr13 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR13");
+    state->f4.fld.idr.idr14 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR14");
+    state->f4.fld.idr.idr15 = cm_object_get_child_by_name(state->f4.reg.idr,
+            "IDR15");
+
+    // ODR bitfields.
+    state->f4.fld.odr.odr0 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR0");
+    state->f4.fld.odr.odr1 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR1");
+    state->f4.fld.odr.odr2 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR2");
+    state->f4.fld.odr.odr3 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR3");
+    state->f4.fld.odr.odr4 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR4");
+    state->f4.fld.odr.odr5 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR5");
+    state->f4.fld.odr.odr6 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR6");
+    state->f4.fld.odr.odr7 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR7");
+    state->f4.fld.odr.odr8 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR8");
+    state->f4.fld.odr.odr9 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR9");
+    state->f4.fld.odr.odr10 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR10");
+    state->f4.fld.odr.odr11 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR11");
+    state->f4.fld.odr.odr12 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR12");
+    state->f4.fld.odr.odr13 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR13");
+    state->f4.fld.odr.odr14 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR14");
+    state->f4.fld.odr.odr15 = cm_object_get_child_by_name(state->f4.reg.odr,
+            "ODR15");
+
+    // BSRR bitfields.
+    state->f4.fld.bsrr.bs0 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS0");
+    state->f4.fld.bsrr.bs1 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS1");
+    state->f4.fld.bsrr.bs2 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS2");
+    state->f4.fld.bsrr.bs3 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS3");
+    state->f4.fld.bsrr.bs4 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS4");
+    state->f4.fld.bsrr.bs5 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS5");
+    state->f4.fld.bsrr.bs6 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS6");
+    state->f4.fld.bsrr.bs7 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS7");
+    state->f4.fld.bsrr.bs8 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS8");
+    state->f4.fld.bsrr.bs9 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS9");
+    state->f4.fld.bsrr.bs10 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS10");
+    state->f4.fld.bsrr.bs11 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS11");
+    state->f4.fld.bsrr.bs12 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS12");
+    state->f4.fld.bsrr.bs13 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS13");
+    state->f4.fld.bsrr.bs14 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS14");
+    state->f4.fld.bsrr.bs15 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BS15");
+    state->f4.fld.bsrr.br0 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR0");
+    state->f4.fld.bsrr.br1 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR1");
+    state->f4.fld.bsrr.br2 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR2");
+    state->f4.fld.bsrr.br3 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR3");
+    state->f4.fld.bsrr.br4 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR4");
+    state->f4.fld.bsrr.br5 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR5");
+    state->f4.fld.bsrr.br6 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR6");
+    state->f4.fld.bsrr.br7 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR7");
+    state->f4.fld.bsrr.br8 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR8");
+    state->f4.fld.bsrr.br9 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR9");
+    state->f4.fld.bsrr.br10 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR10");
+    state->f4.fld.bsrr.br11 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR11");
+    state->f4.fld.bsrr.br12 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR12");
+    state->f4.fld.bsrr.br13 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR13");
+    state->f4.fld.bsrr.br14 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR14");
+    state->f4.fld.bsrr.br15 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+            "BR15");
+
+    // LCKR bitfields.
+    state->f4.fld.lckr.lck0 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK0");
+    state->f4.fld.lckr.lck1 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK1");
+    state->f4.fld.lckr.lck2 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK2");
+    state->f4.fld.lckr.lck3 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK3");
+    state->f4.fld.lckr.lck4 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK4");
+    state->f4.fld.lckr.lck5 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK5");
+    state->f4.fld.lckr.lck6 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK6");
+    state->f4.fld.lckr.lck7 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK7");
+    state->f4.fld.lckr.lck8 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK8");
+    state->f4.fld.lckr.lck9 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK9");
+    state->f4.fld.lckr.lck10 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK10");
+    state->f4.fld.lckr.lck11 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK11");
+    state->f4.fld.lckr.lck12 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK12");
+    state->f4.fld.lckr.lck13 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK13");
+    state->f4.fld.lckr.lck14 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK14");
+    state->f4.fld.lckr.lck15 = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCK15");
+    state->f4.fld.lckr.lckk = cm_object_get_child_by_name(state->f4.reg.lckr,
+            "LCKK");
+
+    // AFRL bitfields.
+    state->f4.fld.afrl.afrl0 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL0");
+    state->f4.fld.afrl.afrl1 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL1");
+    state->f4.fld.afrl.afrl2 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL2");
+    state->f4.fld.afrl.afrl3 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL3");
+    state->f4.fld.afrl.afrl4 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL4");
+    state->f4.fld.afrl.afrl5 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL5");
+    state->f4.fld.afrl.afrl6 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL6");
+    state->f4.fld.afrl.afrl7 = cm_object_get_child_by_name(state->f4.reg.afrl,
+            "AFRL7");
+
+    // AFRH bitfields.
+    state->f4.fld.afrh.afrh8 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH8");
+    state->f4.fld.afrh.afrh9 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH9");
+    state->f4.fld.afrh.afrh10 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH10");
+    state->f4.fld.afrh.afrh11 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH11");
+    state->f4.fld.afrh.afrh12 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH12");
+    state->f4.fld.afrh.afrh13 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH13");
+    state->f4.fld.afrh.afrh14 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH14");
+    state->f4.fld.afrh.afrh15 = cm_object_get_child_by_name(state->f4.reg.afrh,
+            "AFRH15");
+}
+
 #if 0
 static PeripheralInfo stm32f4_gpio_info =
 {
@@ -698,6 +1065,7 @@ static PeripheralInfo stm32f4_gpio_info =
 };
 #endif
 
+#if 0
 static void stm32f4xx_gpio_create_objects(Object *obj, JSON_Value *family)
 {
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
@@ -717,6 +1085,7 @@ static void stm32f4xx_gpio_create_objects(Object *obj, JSON_Value *family)
     state->reg.afrl = cm_object_get_child_by_name(obj, "afrl");
     state->reg.afrh = cm_object_get_child_by_name(obj, "afrh");
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -904,20 +1273,21 @@ static void stm32_gpio_instance_init_callback(Object *obj)
             (const int *) &state->port_index);
     state->port_index = STM32_GPIO_PORT_UNDEFINED;
 
-    cm_irq_init_in(DEVICE(obj), stm32_gpio_in_irq_handler, IRQ_GPIO_IDR_IN,
-    STM32_GPIO_PIN_COUNT);
+    cm_irq_init_in(DEVICE(obj), stm32_gpio_in_irq_handler,
+            STM32_IRQ_GPIO_IDR_IN,
+            STM32_GPIO_PIN_COUNT);
 
     /*
      * Outgoing interrupts, will be later connected to EXTI.
      */
-    cm_irq_init_out(DEVICE(obj), state->exti_irq, IRQ_GPIO_EXTI_OUT,
+    cm_irq_init_out(DEVICE(obj), state->exti_irq, STM32_IRQ_GPIO_EXTI_OUT,
     STM32_GPIO_PIN_COUNT);
 
     /*
      * Outgoing interrupts, machine devices like LEDs might
      * be connected here.
      */
-    cm_irq_init_out(DEVICE(obj), state->odr_irq, IRQ_GPIO_ODR_OUT,
+    cm_irq_init_out(DEVICE(obj), state->odr_irq, STM32_IRQ_GPIO_ODR_OUT,
     STM32_GPIO_PIN_COUNT);
 
 }
@@ -932,6 +1302,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
      */
 
     STM32MCUState *mcu = stm32_mcu_get();
+    CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
     /* First thing first: get capabilities from MCU, needed everywhere. */
@@ -1010,6 +1381,10 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     cm_object_property_set_int(obj, addr, "mmio-address");
     cm_object_property_set_int(obj, size, "mmio-size-bytes");
 
+    char gpio_name[10];
+    snprintf(gpio_name, sizeof(gpio_name) - 1, "GPIO%c",
+            'A' + state->port_index);
+
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
         stm32f051_gpio_create_objects(obj, mcu->family_json);
@@ -1046,7 +1421,19 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F4:
-        stm32f4xx_gpio_create_objects(obj, mcu->family_json);
+        stm32f40x_gpio_create_objects(obj, cm_state->svd_json, gpio_name);
+        // stm32f4xx_gpio_create_objects(obj, mcu->family_json);
+
+        state->reg.moder = state->f4.reg.moder;
+        state->reg.otyper = state->f4.reg.otyper;
+        state->reg.ospeeder = state->f4.reg.ospeedr;
+        state->reg.pupdr = state->f4.reg.pupdr;
+        state->reg.idr = state->f4.reg.idr;
+        state->reg.odr = state->f4.reg.odr;
+        state->reg.bsrr = state->f4.reg.bsrr;
+        state->reg.lckr = state->f4.reg.lckr;
+        state->reg.afrl = state->f4.reg.afrl;
+        state->reg.afrh = state->f4.reg.afrh;
 
         /* Add callbacks. */
         peripheral_register_set_post_write(state->reg.moder,
@@ -1063,9 +1450,11 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
+#if 0
     char name[10];
     snprintf(name, sizeof(name), "gpio[%c]", 'a' + state->port_index);
     cm_object_property_set_str(obj, name, "name");
+#endif
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_GPIO)) {

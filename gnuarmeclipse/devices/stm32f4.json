@@ -2746,6 +2746,68 @@
                 }
             ]
         },
-        { "name" : "stm32f4xx:usart", "desc" : "Universal synch asynch receiver transmitter (USART)", "default_access_flags" : "32_word_halfword", "registers" : [ { "name" : "sr", "desc" : "USART status register (USART_SR)", "offset_bytes" : "0x000", "reset_value" : "0x000000C0", "readable_bits" : "0x000003FF", "writable_bits" : "0x00000360" }, { "name" : "dr", "desc" : "USART data register (USART_DR)", "offset_bytes" : "0x004", "reset_value" : "0x00000000", "readable_bits" : "0x000001FF", "writable_bits" : "0x000001FF" }, { "name" : "brr", "desc" : "USART baud rate register (USART_BRR)", "offset_bytes" : "0x008", "reset_value" : "0x00000000", "readable_bits" : "0x0000FFFF", "writable_bits" : "0x0000FFFF" }, { "name" : "cr1", "desc" : "USART control register 1 (USART_CR1)", "offset_bytes" : "0x00C", "reset_value" : "0x00000000", "readable_bits" : "0x0000BFFF", "writable_bits" : "0x0000BFFF" }, { "name" : "cr2", "desc" : "USART control register 2 (USART_CR2)", "offset_bytes" : "0x010", "reset_value" : "0x00000000", "readable_bits" : "0x00007F7F", "writable_bits" : "0x00007F7F" }, { "name" : "cr3", "desc" : "USART control register 3 (USART_CR3)", "offset_bytes" : "0x014", "reset_value" : "0x00000000", "readable_bits" : "0x00000FFF", "writable_bits" : "0x00000FFF" }, { "name" : "gtpr", "desc" : "USART guard time and prescaler register (USART_GTPR)", "offset_bytes" : "0x018", "reset_value" : "0x00000000", "readable_bits" : "0x0000FFFF", "writable_bits" : "0x0000FFFF" } ] }
+        {
+            "name": "stm32f4xx:usart",
+            "desc": "Universal synch asynch receiver transmitter (USART)",
+            "default_access_flags": "32_word_halfword",
+            "registers": [
+                {
+                    "name": "sr",
+                    "desc": "USART status register (USART_SR)",
+                    "offset_bytes": "0x000",
+                    "reset_value": "0x000000C0",
+                    "readable_bits": "0x000003FF",
+                    "writable_bits": "0x00000360"
+                },
+                {
+                    "name": "dr",
+                    "desc": "USART data register (USART_DR)",
+                    "offset_bytes": "0x004",
+                    "reset_value": "0x00000000",
+                    "readable_bits": "0x000001FF",
+                    "writable_bits": "0x000001FF"
+                },
+                {
+                    "name": "brr",
+                    "desc": "USART baud rate register (USART_BRR)",
+                    "offset_bytes": "0x008",
+                    "reset_value": "0x00000000",
+                    "readable_bits": "0x0000FFFF",
+                    "writable_bits": "0x0000FFFF"
+                },
+                {
+                    "name": "cr1",
+                    "desc": "USART control register 1 (USART_CR1)",
+                    "offset_bytes": "0x00C",
+                    "reset_value": "0x00000000",
+                    "readable_bits": "0x0000BFFF",
+                    "writable_bits": "0x0000BFFF"
+                },
+                {
+                    "name": "cr2",
+                    "desc": "USART control register 2 (USART_CR2)",
+                    "offset_bytes": "0x010",
+                    "reset_value": "0x00000000",
+                    "readable_bits": "0x00007F7F",
+                    "writable_bits": "0x00007F7F"
+                },
+                {
+                    "name": "cr3",
+                    "desc": "USART control register 3 (USART_CR3)",
+                    "offset_bytes": "0x014",
+                    "reset_value": "0x00000000",
+                    "readable_bits": "0x00000FFF",
+                    "writable_bits": "0x00000FFF"
+                },
+                {
+                    "name": "gtpr",
+                    "desc": "USART guard time and prescaler register (USART_GTPR)",
+                    "offset_bytes": "0x018",
+                    "reset_value": "0x00000000",
+                    "readable_bits": "0x0000FFFF",
+                    "writable_bits": "0x0000FFFF"
+                }
+            ]
+        }
     ]
 }

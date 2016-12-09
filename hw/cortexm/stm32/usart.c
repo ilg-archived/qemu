@@ -28,6 +28,7 @@
 
 #include <hw/cortexm/stm32/usart.h>
 #include <hw/cortexm/stm32/mcu.h>
+#include <hw/cortexm/svd.h>
 
 #define USART_SR_TXE        (1 << 7)
 #define USART_SR_TC         (1 << 6)
@@ -81,6 +82,126 @@ static bool stm32_usart_is_enabled(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    // DO NOT EDIT! Automatically generated!
+    STM32USARTState *state = STM32_USART_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f4.reg.sr = cm_object_get_child_by_name(obj, "SR");
+    state->f4.reg.dr = cm_object_get_child_by_name(obj, "DR");
+    state->f4.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+    state->f4.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+    state->f4.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+    state->f4.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
+    state->f4.reg.gtpr = cm_object_get_child_by_name(obj, "GTPR");
+
+    // SR bitfields.
+    state->f4.fld.sr.pe = cm_object_get_child_by_name(state->f4.reg.sr, "PE");
+    state->f4.fld.sr.fe = cm_object_get_child_by_name(state->f4.reg.sr, "FE");
+    state->f4.fld.sr.nf = cm_object_get_child_by_name(state->f4.reg.sr, "NF");
+    state->f4.fld.sr.ore = cm_object_get_child_by_name(state->f4.reg.sr, "ORE");
+    state->f4.fld.sr.idle = cm_object_get_child_by_name(state->f4.reg.sr,
+            "IDLE");
+    state->f4.fld.sr.rxne = cm_object_get_child_by_name(state->f4.reg.sr,
+            "RXNE");
+    state->f4.fld.sr.tc = cm_object_get_child_by_name(state->f4.reg.sr, "TC");
+    state->f4.fld.sr.txe = cm_object_get_child_by_name(state->f4.reg.sr, "TXE");
+    state->f4.fld.sr.lbd = cm_object_get_child_by_name(state->f4.reg.sr, "LBD");
+    state->f4.fld.sr.cts = cm_object_get_child_by_name(state->f4.reg.sr, "CTS");
+
+    // DR bitfields.
+    state->f4.fld.dr.dr = cm_object_get_child_by_name(state->f4.reg.dr, "DR");
+
+    // BRR bitfields.
+    state->f4.fld.brr.div_fraction = cm_object_get_child_by_name(
+            state->f4.reg.brr, "DIV_Fraction");
+    state->f4.fld.brr.div_mantissa = cm_object_get_child_by_name(
+            state->f4.reg.brr, "DIV_Mantissa");
+
+    // CR1 bitfields.
+    state->f4.fld.cr1.sbk = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "SBK");
+    state->f4.fld.cr1.rwu = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "RWU");
+    state->f4.fld.cr1.re = cm_object_get_child_by_name(state->f4.reg.cr1, "RE");
+    state->f4.fld.cr1.te = cm_object_get_child_by_name(state->f4.reg.cr1, "TE");
+    state->f4.fld.cr1.idleie = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "IDLEIE");
+    state->f4.fld.cr1.rxneie = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "RXNEIE");
+    state->f4.fld.cr1.tcie = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "TCIE");
+    state->f4.fld.cr1.txeie = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "TXEIE");
+    state->f4.fld.cr1.peie = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "PEIE");
+    state->f4.fld.cr1.ps = cm_object_get_child_by_name(state->f4.reg.cr1, "PS");
+    state->f4.fld.cr1.pce = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "PCE");
+    state->f4.fld.cr1.wake = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "WAKE");
+    state->f4.fld.cr1.m = cm_object_get_child_by_name(state->f4.reg.cr1, "M");
+    state->f4.fld.cr1.ue = cm_object_get_child_by_name(state->f4.reg.cr1, "UE");
+    state->f4.fld.cr1.over8 = cm_object_get_child_by_name(state->f4.reg.cr1,
+            "OVER8");
+
+    // CR2 bitfields.
+    state->f4.fld.cr2.add = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "ADD");
+    state->f4.fld.cr2.lbdl = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "LBDL");
+    state->f4.fld.cr2.lbdie = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "LBDIE");
+    state->f4.fld.cr2.lbcl = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "LBCL");
+    state->f4.fld.cr2.cpha = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "CPHA");
+    state->f4.fld.cr2.cpol = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "CPOL");
+    state->f4.fld.cr2.clken = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "CLKEN");
+    state->f4.fld.cr2.stop = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "STOP");
+    state->f4.fld.cr2.linen = cm_object_get_child_by_name(state->f4.reg.cr2,
+            "LINEN");
+
+    // CR3 bitfields.
+    state->f4.fld.cr3.eie = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "EIE");
+    state->f4.fld.cr3.iren = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "IREN");
+    state->f4.fld.cr3.irlp = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "IRLP");
+    state->f4.fld.cr3.hdsel = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "HDSEL");
+    state->f4.fld.cr3.nack = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "NACK");
+    state->f4.fld.cr3.scen = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "SCEN");
+    state->f4.fld.cr3.dmar = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "DMAR");
+    state->f4.fld.cr3.dmat = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "DMAT");
+    state->f4.fld.cr3.rtse = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "RTSE");
+    state->f4.fld.cr3.ctse = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "CTSE");
+    state->f4.fld.cr3.ctsie = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "CTSIE");
+    state->f4.fld.cr3.onebit = cm_object_get_child_by_name(state->f4.reg.cr3,
+            "ONEBIT");
+
+    // GTPR bitfields.
+    state->f4.fld.gtpr.psc = cm_object_get_child_by_name(state->f4.reg.gtpr,
+            "PSC");
+    state->f4.fld.gtpr.gt = cm_object_get_child_by_name(state->f4.reg.gtpr,
+            "GT");
+}
 #if 0
 static PeripheralInfo stm32f4_usart_info =
 {
@@ -164,6 +285,7 @@ static PeripheralInfo stm32f4_usart_info =
 };
 #endif
 
+#if 0
 static void stm32f4xx_usart_create_objects(Object *obj, JSON_Value *family)
 {
     STM32USARTState *state = STM32_USART_STATE(obj);
@@ -181,6 +303,7 @@ static void stm32f4xx_usart_create_objects(Object *obj, JSON_Value *family)
     state->reg.cr3 = cm_object_get_child_by_name(obj, "cr3");
     state->reg.gtpr = cm_object_get_child_by_name(obj, "gtpr");
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -312,6 +435,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     /* No need to call parent realize(). */
 
     STM32MCUState *mcu = stm32_mcu_get();
+    CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32USARTState *state = STM32_USART_STATE(dev);
     /* First thing first: get capabilities from MCU, needed everywhere. */
@@ -335,6 +459,10 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     const STM32Capabilities *capabilities =
     STM32_USART_STATE(state)->capabilities;
     assert(capabilities != NULL);
+
+    char usart_name[10];
+    snprintf(usart_name, sizeof(usart_name) - 1, "USART%d",
+            state->port_index - STM32_USART_1 + 1);
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
@@ -389,7 +517,16 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     case STM32_FAMILY_F4:
 
-        stm32f4xx_usart_create_objects(obj, mcu->family_json);
+        // stm32f4xx_usart_create_objects(obj, mcu->family_json);
+        stm32f40x_usart_create_objects(obj, cm_state->svd_json, usart_name);
+
+        state->reg.sr = state->f4.reg.sr;
+        state->reg.dr = state->f4.reg.dr;
+        state->reg.brr = state->f4.reg.brr;
+        state->reg.cr1 = state->f4.reg.cr1;
+        state->reg.cr2 = state->f4.reg.cr2;
+        state->reg.cr3 = state->f4.reg.cr3;
+        state->reg.gtpr = state->f4.reg.gtpr;
 
         /* Register callbacks. */
         peripheral_register_set_post_read(state->reg.dr,

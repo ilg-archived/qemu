@@ -114,6 +114,15 @@ typedef struct {
     Object **registers;
 
     bool is_little_endian;
+
+    struct {
+        const char *size;
+        const char *access;
+        const char *protection;
+        const char *reset_value;
+        const char *reset_mask;
+    } svd;
+
 } PeripheralState;
 
 /* ----- Public ------------------------------------------------------------ */

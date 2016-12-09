@@ -302,9 +302,15 @@ bool cm_device_parent_realize(DeviceState *dev, Error **errp,
  * Return a device pointer for a fully qualified path, like
  * "/machine/mcu/stm32/gpio[a]".
  */
-DeviceState *cm_device_by_name(const char *type_name)
+DeviceState *cm_device_by_name(const char *path)
 {
-    return DEVICE(object_resolve_path(type_name, NULL));
+    DeviceState *dev = DEVICE(object_resolve_path(path, NULL));
+    if (dev == NULL) {
+        error_printf("Cannot find device %s.\n", path);
+        exit(1);
+
+    }
+    return dev;
 }
 
 /*
@@ -402,6 +408,35 @@ void cm_object_property_set_str(Object *obj, const char *value,
     }
 }
 
+// Getter for string properties.
+char *cm_object_property_get_str(Object *obj, const char *name, Error **errp)
+{
+    return object_property_get_str(obj, name, errp);
+}
+
+char *cm_object_property_get_str_with_parent(Object *obj, const char *name,
+        Error **errp)
+{
+    char* str;
+
+    do {
+
+        // Try to get the string property from the current node.
+        str = object_property_get_str(obj, name, errp);
+        if (str != NULL && strlen(str) > 0) {
+            return str;
+        }
+
+        // If not found, try again from parent.
+        obj = obj->parent;
+
+    } while (obj != NULL);
+
+    return NULL;
+}
+
+/* ------------------------------------------------------------------------- */
+
 void cm_object_property_add_child(Object *obj, const char *node_name,
         Object *child)
 {
@@ -441,15 +476,15 @@ cm_object_property_add(Object *obj, const char *name, const char *type,
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_str(Object *obj, Visitor *v, const char *name,
-        void *opaque, Error **errp)
+static void cm_property_get_str_callback(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     char *value = *(char **) opaque;
     visit_type_str(v, name, &value, errp);
 }
 
-static void cm_property_set_str(Object *obj, Visitor *v, const char *name,
-        void *opaque, Error **errp)
+static void cm_property_set_str_callback(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     char *value;
@@ -463,8 +498,8 @@ static void cm_property_set_str(Object *obj, Visitor *v, const char *name,
 void cm_object_property_add_str(Object *obj, const char *name, char **v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "string", cm_property_get_str,
-            cm_property_set_str,
+    object_property_add(obj, name, "string", cm_property_get_str_callback,
+            cm_property_set_str_callback,
             NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
@@ -477,8 +512,8 @@ void cm_object_property_add_const_str(Object *obj, const char *name,
         const char **v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "string", cm_property_get_str,
-            cm_property_set_str,
+    object_property_add(obj, name, "string", cm_property_get_str_callback,
+            cm_property_set_str_callback,
             NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
@@ -489,15 +524,15 @@ void cm_object_property_add_const_str(Object *obj, const char *name,
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_bool(Object *obj, Visitor *v, const char *name,
-        void *opaque, Error **errp)
+static void cm_property_get_bool_callback(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     bool value = *(bool *) opaque;
     visit_type_bool(v, name, &value, errp);
 }
 
-static void cm_property_set_bool(Object *obj, Visitor *v, const char *name,
-        void *opaque, Error **errp)
+static void cm_property_set_bool_callback(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
     bool value;
@@ -512,8 +547,8 @@ static void cm_property_set_bool(Object *obj, Visitor *v, const char *name,
 void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "bool", cm_property_get_bool,
-            cm_property_set_bool,
+    object_property_add(obj, name, "bool", cm_property_get_bool_callback,
+            cm_property_set_bool_callback,
             NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
@@ -524,14 +559,14 @@ void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_uint64_ptr(Object *obj, Visitor *v,
+static void cm_property_get_uint64_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     uint64_t value = *(uint64_t *) opaque;
     visit_type_uint64(v, name, &value, errp);
 }
 
-static void cm_property_set_uint64_ptr(Object *obj, struct Visitor *v,
+static void cm_property_set_uint64_ptr_callback(Object *obj, struct Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
@@ -543,12 +578,13 @@ static void cm_property_set_uint64_ptr(Object *obj, struct Visitor *v,
     error_propagate(errp, local_err);
 }
 
-void cm_object_property_add_uint64(Object *obj, const char *name,
+void cm_object_property_add_uint64_callback(Object *obj, const char *name,
         const uint64_t *v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "uint64", cm_property_get_uint64_ptr,
-            cm_property_set_uint64_ptr, NULL, (void *) v, &local_err);
+    object_property_add(obj, name, "uint64",
+            cm_property_get_uint64_ptr_callback,
+            cm_property_set_uint64_ptr_callback, NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
                 object_get_typename(obj), error_get_pretty(local_err));
@@ -558,14 +594,14 @@ void cm_object_property_add_uint64(Object *obj, const char *name,
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_uint32_ptr(Object *obj, Visitor *v,
+static void cm_property_get_uint32_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     uint32_t value = *(uint32_t *) opaque;
     visit_type_uint32(v, name, &value, errp);
 }
 
-static void cm_property_set_uint32_ptr(Object *obj, struct Visitor *v,
+static void cm_property_set_uint32_ptr_callback(Object *obj, struct Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
@@ -581,8 +617,9 @@ void cm_object_property_add_uint32(Object *obj, const char *name,
         const uint32_t *v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "uint32", cm_property_get_uint32_ptr,
-            cm_property_set_uint32_ptr, NULL, (void *) v, &local_err);
+    object_property_add(obj, name, "uint32",
+            cm_property_get_uint32_ptr_callback,
+            cm_property_set_uint32_ptr_callback, NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
                 object_get_typename(obj), error_get_pretty(local_err));
@@ -592,14 +629,14 @@ void cm_object_property_add_uint32(Object *obj, const char *name,
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_uint16_ptr(Object *obj, Visitor *v,
+static void cm_property_get_uint16_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     uint16_t value = *(uint16_t *) opaque;
     visit_type_uint16(v, name, &value, errp);
 }
 
-static void cm_property_set_uint16_ptr(Object *obj, struct Visitor *v,
+static void cm_property_set_uint16_ptr_callback(Object *obj, struct Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
@@ -615,8 +652,9 @@ void cm_object_property_add_uint16(Object *obj, const char *name,
         const uint16_t *v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "uint16", cm_property_get_uint16_ptr,
-            cm_property_set_uint16_ptr, NULL, (void *) v, &local_err);
+    object_property_add(obj, name, "uint16",
+            cm_property_get_uint16_ptr_callback,
+            cm_property_set_uint16_ptr_callback, NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
                 object_get_typename(obj), error_get_pretty(local_err));
@@ -626,14 +664,14 @@ void cm_object_property_add_uint16(Object *obj, const char *name,
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_uint8_ptr(Object *obj, Visitor *v, const char *name,
-        void *opaque, Error **errp)
+static void cm_property_get_uint8_ptr_callback(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     uint8_t value = *(uint8_t *) opaque;
     visit_type_uint8(v, name, &value, errp);
 }
 
-static void cm_property_set_uint8_ptr(Object *obj, struct Visitor *v,
+static void cm_property_set_uint8_ptr_callback(Object *obj, struct Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
@@ -649,8 +687,8 @@ void cm_object_property_add_uint8(Object *obj, const char *name,
         const uint8_t *v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "uint8", cm_property_get_uint8_ptr,
-            cm_property_set_uint8_ptr, NULL, (void *) v, &local_err);
+    object_property_add(obj, name, "uint8", cm_property_get_uint8_ptr_callback,
+            cm_property_set_uint8_ptr_callback, NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
                 object_get_typename(obj), error_get_pretty(local_err));
@@ -660,14 +698,14 @@ void cm_object_property_add_uint8(Object *obj, const char *name,
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_int16_ptr(Object *obj, Visitor *v, const char *name,
-        void *opaque, Error **errp)
+static void cm_property_get_int16_ptr_callback(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     int16_t value = *(int16_t *) opaque;
     visit_type_int16(v, name, &value, errp);
 }
 
-static void cm_property_set_int16_ptr(Object *obj, struct Visitor *v,
+static void cm_property_set_int16_ptr_callback(Object *obj, struct Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
@@ -683,8 +721,8 @@ void cm_object_property_add_int16(Object *obj, const char *name,
         const int16_t *v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "int16", cm_property_get_int16_ptr,
-            cm_property_set_int16_ptr, NULL, (void *) v, &local_err);
+    object_property_add(obj, name, "int16", cm_property_get_int16_ptr_callback,
+            cm_property_set_int16_ptr_callback, NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
                 object_get_typename(obj), error_get_pretty(local_err));
@@ -694,8 +732,8 @@ void cm_object_property_add_int16(Object *obj, const char *name,
 
 /* ------------------------------------------------------------------------- */
 
-static void cm_property_get_int_ptr(Object *obj, Visitor *v, const char *name,
-        void *opaque, Error **errp)
+static void cm_property_get_int_ptr_callback(Object *obj, Visitor *v,
+        const char *name, void *opaque, Error **errp)
 {
     int value = *(int *) opaque;
 #if (__SIZEOF_INT__ == 4)
@@ -707,7 +745,7 @@ static void cm_property_get_int_ptr(Object *obj, Visitor *v, const char *name,
 #endif
 }
 
-static void cm_property_set_int_ptr(Object *obj, struct Visitor *v,
+static void cm_property_set_int_ptr_callback(Object *obj, struct Visitor *v,
         const char *name, void *opaque, Error **errp)
 {
     Error *local_err = NULL;
@@ -728,8 +766,8 @@ static void cm_property_set_int_ptr(Object *obj, struct Visitor *v,
 void cm_object_property_add_int(Object *obj, const char *name, const int *v)
 {
     Error *local_err = NULL;
-    object_property_add(obj, name, "int", cm_property_get_int_ptr,
-            cm_property_set_int_ptr, NULL, (void *) v, &local_err);
+    object_property_add(obj, name, "int", cm_property_get_int_ptr_callback,
+            cm_property_set_int_ptr_callback, NULL, (void *) v, &local_err);
     if (local_err) {
         error_report("Adding property %s for %s failed: %s.", name,
                 object_get_typename(obj), error_get_pretty(local_err));

@@ -20,6 +20,7 @@
 #include <hw/cortexm/stm32/pwr.h>
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
 
 /*
  * This file implements the STM32 PWR.
@@ -329,6 +330,51 @@ static void stm32f1xx_pwr_create_objects(Object *obj, JSON_Value *family)
 
 /* ------------------------------------------------------------------------- */
 
+static void stm32f40x_pwr_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    // DO NOT EDIT! Automatically generated!
+    STM32PWRState *state = STM32_PWR_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f4.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->f4.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+
+    // CR bitfields.
+    state->f4.fld.cr.lpds = cm_object_get_child_by_name(state->f4.reg.cr,
+            "LPDS");
+    state->f4.fld.cr.pdds = cm_object_get_child_by_name(state->f4.reg.cr,
+            "PDDS");
+    state->f4.fld.cr.cwuf = cm_object_get_child_by_name(state->f4.reg.cr,
+            "CWUF");
+    state->f4.fld.cr.csbf = cm_object_get_child_by_name(state->f4.reg.cr,
+            "CSBF");
+    state->f4.fld.cr.pvde = cm_object_get_child_by_name(state->f4.reg.cr,
+            "PVDE");
+    state->f4.fld.cr.pls = cm_object_get_child_by_name(state->f4.reg.cr, "PLS");
+    state->f4.fld.cr.dbp = cm_object_get_child_by_name(state->f4.reg.cr, "DBP");
+    state->f4.fld.cr.fpds = cm_object_get_child_by_name(state->f4.reg.cr,
+            "FPDS");
+
+    // CSR bitfields.
+    state->f4.fld.csr.wuf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "WUF");
+    state->f4.fld.csr.sbf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "SBF");
+    state->f4.fld.csr.pvdo = cm_object_get_child_by_name(state->f4.reg.csr,
+            "PVDO");
+    state->f4.fld.csr.brr = cm_object_get_child_by_name(state->f4.reg.csr,
+            "BRR");
+    state->f4.fld.csr.ewup = cm_object_get_child_by_name(state->f4.reg.csr,
+            "EWUP");
+    state->f4.fld.csr.bre = cm_object_get_child_by_name(state->f4.reg.csr,
+            "BRE");
+    state->f4.fld.csr.vosrdy = cm_object_get_child_by_name(state->f4.reg.csr,
+            "VOSRDY");
+}
 /* STM32F4_01_57_xx */
 
 #if 0
@@ -487,8 +533,9 @@ static void stm32f4_01_57_pwr_create_objects(Object *obj, JSON_Value *family)
     state->f4.fld.cr.dbp = cm_object_get_child_by_name(state->f4.reg.cr, "dbp");
     state->f4.fld.cr.fpds = cm_object_get_child_by_name(state->f4.reg.cr,
             "fpds");
+#if 0
     state->f4.fld.cr.vos = cm_object_get_child_by_name(state->f4.reg.cr, "vos");
-
+#endif
     /* CSR bitfields. */
     state->f4.fld.csr.wuf = cm_object_get_child_by_name(state->f4.reg.csr,
             "wuf");
@@ -676,8 +723,9 @@ static void stm32f411_pwr_create_objects(Object *obj, JSON_Value *family)
     state->f4.fld.cr.dbp = cm_object_get_child_by_name(state->f4.reg.cr, "dbp");
     state->f4.fld.cr.fpds = cm_object_get_child_by_name(state->f4.reg.cr,
             "fpds");
+#if 0
     state->f4.fld.cr.vos = cm_object_get_child_by_name(state->f4.reg.cr, "vos");
-
+#endif
     /* CSR bitfields. */
     state->f4.fld.csr.wuf = cm_object_get_child_by_name(state->f4.reg.csr,
             "wuf");
@@ -903,6 +951,7 @@ static void stm32f4_23_x_pwr_create_objects(Object *obj, JSON_Value *family)
     state->f4.fld.cr.dbp = cm_object_get_child_by_name(state->f4.reg.cr, "dbp");
     state->f4.fld.cr.fpds = cm_object_get_child_by_name(state->f4.reg.cr,
             "fpds");
+#if 0
     state->f4.fld.cr.lpuds = cm_object_get_child_by_name(state->f4.reg.cr,
             "lpuds");
     state->f4.fld.cr.mruds = cm_object_get_child_by_name(state->f4.reg.cr,
@@ -916,6 +965,7 @@ static void stm32f4_23_x_pwr_create_objects(Object *obj, JSON_Value *family)
             "odswen");
     state->f4.fld.cr.uden = cm_object_get_child_by_name(state->f4.reg.cr,
             "uden");
+#endif
 
     /* CSR bitfields. */
     state->f4.fld.csr.wuf = cm_object_get_child_by_name(state->f4.reg.csr,
@@ -932,13 +982,14 @@ static void stm32f4_23_x_pwr_create_objects(Object *obj, JSON_Value *family)
             "bre");
     state->f4.fld.csr.vosrdy = cm_object_get_child_by_name(state->f4.reg.csr,
             "vosrdy");
+#if 0
     state->f4.fld.csr.odrdy = cm_object_get_child_by_name(state->f4.reg.csr,
             "odrdy");
     state->f4.fld.csr.odswrdy = cm_object_get_child_by_name(state->f4.reg.csr,
             "odswrdy");
     state->f4.fld.csr.udrdy = cm_object_get_child_by_name(state->f4.reg.csr,
             "udrdy");
-
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
@@ -959,6 +1010,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
      */
 
     STM32MCUState *mcu = stm32_mcu_get();
+    CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32PWRState *state = STM32_PWR_STATE(dev);
     /* First thing first: get capabilities from MCU, needed everywhere. */
@@ -1002,7 +1054,11 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F4:
-        if (capabilities->f4.is_01_57_xx) {
+        if (capabilities->f4.is_40x) {
+            stm32f40x_pwr_create_objects(obj, cm_state->svd_json, "PWR");
+            /* Auto bits. */
+            cm_object_property_set_str(state->f4.fld.csr.brr, "BRE", "follows");
+        } else if (capabilities->f4.is_01_57_xx) {
             stm32f4_01_57_pwr_create_objects(obj, mcu->family_json);
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");
@@ -1022,8 +1078,6 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
         assert(false);
         break;
     }
-
-    cm_object_property_set_str(obj, "pwr", "name");
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_PWR)) {

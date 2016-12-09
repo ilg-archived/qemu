@@ -19,6 +19,8 @@
 
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
+
 #include "qemu/error-report.h"
 
 #include "qapi/qmp/qstring.h"
@@ -102,7 +104,6 @@ Object *peripheral_add_properties_and_children2(Object *obj, JSON_Object *info)
 
             cm_object_realize(reg);
         }
-
     } else {
         error_printf("Missing registers array.\n");
         exit(1);
@@ -404,17 +405,19 @@ static void peripheral_instance_init_callback(Object *obj)
 
     cm_object_property_add_const_str(obj, "mmio-node-name",
             &state->mmio_node_name);
+    // Alias to the same variable.
     cm_object_property_add_const_str(obj, "name", &state->mmio_node_name);
     state->mmio_node_name = NULL;
 
-    cm_object_property_add_uint64(obj, "mmio-address", &state->mmio_address);
+    cm_object_property_add_uint64_callback(obj, "mmio-address",
+            &state->mmio_address);
     state->mmio_address = 0;
 
     cm_object_property_add_uint32(obj, "mmio-size-bytes",
             &state->mmio_size_bytes);
     state->mmio_size_bytes = 0;
 
-    cm_object_property_add_uint64(obj, "default-access-flags",
+    cm_object_property_add_uint64_callback(obj, "default-access-flags",
             &state->default_access_flags);
     /* Allow all */
     state->default_access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
@@ -426,6 +429,25 @@ static void peripheral_instance_init_callback(Object *obj)
     cm_object_property_add_bool(obj, "is-little-endian",
             &state->is_little_endian);
     state->is_little_endian = true;
+
+    cm_object_property_add_const_str(obj, "svd-size", &state->svd.size);
+    state->svd.size = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-access", &state->svd.access);
+    state->svd.access = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-protection",
+            &state->svd.protection);
+    state->svd.protection = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-reset-value",
+            &state->svd.reset_value);
+    state->svd.reset_value = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-reset-mask",
+            &state->svd.reset_mask);
+    state->svd.reset_mask = NULL;
+
 }
 
 static int peripheral_compute_max_offset_foreach(Object *obj, void *opaque)
@@ -526,11 +548,15 @@ static void peripheral_reset_callback(DeviceState *dev)
 {
     PeripheralState *state = PERIPHERAL_STATE(dev);
 
+    assert(state->mmio_address != 0);
+
     qemu_log_mask(LOG_FUNC, "%s() address: 0x%08"PRIX64"\n", __FUNCTION__,
             state->mmio_address);
 
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_PERIPHERAL);
+
+    assert(state->registers != NULL);
 
     /* No bus used, explicitly reset all children registers. */
     int i;

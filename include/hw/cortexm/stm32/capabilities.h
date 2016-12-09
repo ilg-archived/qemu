@@ -33,6 +33,8 @@
 #define TYPE_STM32F1_PREFIX     "stm32f1:"
 #define TYPE_STM32F1CL_PREFIX   "stm32f1cl:"
 
+#define DEVICE_PATH_STM32 "/machine/mcu/stm32/"
+
 /*
  * The family is the main differentiator for STM32 MCUs.
  */
@@ -620,9 +622,26 @@ typedef struct {
     } f1;
 
     struct {
+        // DEPRECATED, to be removed!
         unsigned int is_01_57_xx :1;
         unsigned int is_23_xxx :1;
         unsigned int is11xx :1;
+
+        /* The names follow the STM CMSIS SVD naming scheme,
+         * with the STM32F prefix removed. */
+        unsigned int is_40x :1;
+        unsigned int is_41x :1;
+        unsigned int is_46_79x :1;
+        unsigned int is_401x :1;
+        unsigned int is_401xE :1;
+        unsigned int is_410xx :1;
+        unsigned int is_411xx :1;
+        unsigned int is_412xG :1;
+        unsigned int is_427x :1;
+        unsigned int is_429x :1;
+        unsigned int is_437x :1;
+        unsigned int is_439x :1;
+        unsigned int is_446x :1;
     } f4;
     /* TODO: add other families that have sub-families. */
 

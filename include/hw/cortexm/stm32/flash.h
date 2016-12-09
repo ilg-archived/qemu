@@ -27,7 +27,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define DEVICE_PATH_STM32_FLASH "/machine/mcu/stm32/flash"
+#define DEVICE_PATH_STM32_FLASH DEVICE_PATH_STM32 "FLASH"
 
 /* ------------------------------------------------------------------------- */
 
@@ -37,34 +37,34 @@
 
 /* Parent definitions. */
 #define TYPE_STM32_FLASH_PARENT TYPE_PERIPHERAL
-typedef PeripheralClass STM32FlashParentClass;
-typedef PeripheralState STM32FlashParentState;
+typedef PeripheralClass STM32FLASHParentClass;
+typedef PeripheralState STM32FLASHParentState;
 
 /* ------------------------------------------------------------------------- */
 
 /* Class definitions. */
 #define STM32_FLASH_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(STM32FlashClass, (obj), TYPE_STM32_FLASH)
+    OBJECT_GET_CLASS(STM32FLASHClass, (obj), TYPE_STM32_FLASH)
 #define STM32_FLASH_CLASS(klass) \
-    OBJECT_CLASS_CHECK(STM32FlashClass, (klass), TYPE_STM32_FLASH)
+    OBJECT_CLASS_CHECK(STM32FLASHClass, (klass), TYPE_STM32_FLASH)
 
 typedef struct {
     /*< private >*/
-    STM32FlashParentClass parent_class;
+    STM32FLASHParentClass parent_class;
     /*< public >*/
 
     /* None, so far. */
-} STM32FlashClass;
+} STM32FLASHClass;
 
 /* ------------------------------------------------------------------------- */
 
 /* Instance definitions. */
 #define STM32_FLASH_STATE(obj) \
-    OBJECT_CHECK(STM32FlashState, (obj), TYPE_STM32_FLASH)
+    OBJECT_CHECK(STM32FLASHState, (obj), TYPE_STM32_FLASH)
 
 typedef struct {
     /*< private >*/
-    STM32FlashParentState parent_obj;
+    STM32FLASHParentState parent_obj;
     /*< public >*/
 
     const STM32Capabilities *capabilities;
@@ -110,19 +110,76 @@ typedef struct {
     } f1;
 
     struct {
-        /* F4 specific registers */
+        // F4 FLASH (FLASH) registers.
         struct {
-            Object *acr; /* 0x00 */
-            Object *keyr; /* 0x04 */
-            Object *optkeyr; /* 0x08 */
-            Object *sr; /* 0x0C */
-            Object *cr; /* 0x10 */
-            Object *ar; /* 0x14 */
-            Object *obr; /* 0x1C */
-            Object *wrpr; /* 0x20 */
+            Object *acr; // 0x0 Flash access control register
+            Object *keyr; // 0x4 Flash key register
+            Object *optkeyr; // 0x8 Flash option key register
+            Object *sr; // 0xC Status register
+            Object *cr; // 0x10 Control register
+            Object *optcr; // 0x14 Flash option control register
         } reg;
+
+        struct {
+
+            // ACR (Flash access control register) bitfields.
+            struct {
+                Object *latency; // [0:2] Latency
+                Object *prften; // [8:8] Prefetch enable
+                Object *icen; // [9:9] Instruction cache enable
+                Object *dcen; // [10:10] Data cache enable
+                Object *icrst; // [11:11] Instruction cache reset
+                Object *dcrst; // [12:12] Data cache reset
+            } acr;
+
+            // KEYR (Flash key register) bitfields.
+            struct {
+                Object *key; // [0:31] FPEC key
+            } keyr;
+
+            // OPTKEYR (Flash option key register) bitfields.
+            struct {
+                Object *optkey; // [0:31] Option byte key
+            } optkeyr;
+
+            // SR (Status register) bitfields.
+            struct {
+                Object *eop; // [0:0] End of operation
+                Object *operr; // [1:1] Operation error
+                Object *wrperr; // [4:4] Write protection error
+                Object *pgaerr; // [5:5] Programming alignment error
+                Object *pgperr; // [6:6] Programming parallelism error
+                Object *pgserr; // [7:7] Programming sequence error
+                Object *bsy; // [16:16] Busy
+            } sr;
+
+            // CR (Control register) bitfields.
+            struct {
+                Object *pg; // [0:0] Programming
+                Object *ser; // [1:1] Sector Erase
+                Object *mer; // [2:2] Mass Erase
+                Object *snb; // [3:6] Sector number
+                Object *psize; // [8:9] Program size
+                Object *strt; // [16:16] Start
+                Object *eopie; // [24:24] End of operation interrupt enable
+                Object *errie; // [25:25] Error interrupt enable
+                Object *lock; // [31:31] Lock
+            } cr;
+
+            // OPTCR (Flash option control register) bitfields.
+            struct {
+                Object *optlock; // [0:0] Option lock
+                Object *optstrt; // [1:1] Option start
+                Object *bor_lev; // [2:3] BOR reset Level
+                Object *wdg_sw; // [5:5] WDG_SW User option bytes
+                Object *nrst_stop; // [6:6] NRST_STOP User option bytes
+                Object *nrst_stdby; // [7:7] NRST_STDBY User option bytes
+                Object *rdp; // [8:15] Read protect
+                Object *nwrp; // [16:27] Not write protect
+            } optcr;
+        } fld;
     } f4;
-} STM32FlashState;
+} STM32FLASHState;
 
 /* ------------------------------------------------------------------------- */
 

@@ -20,6 +20,7 @@
 #include <hw/cortexm/peripheral-register.h>
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
 
 #include "qemu/error-report.h"
 
@@ -751,19 +752,24 @@ static void peripheral_register_instance_init_callback(Object *obj)
     cm_object_property_add_uint32(obj, "offset-bytes", &state->offset_bytes);
     state->offset_bytes = 0x00000000;
 
-    cm_object_property_add_uint64(obj, "reset-value", &state->reset_value);
+    cm_object_property_add_uint64_callback(obj, "reset-value",
+            &state->reset_value);
     state->reset_value = 0x0000000000000000;
 
-    cm_object_property_add_uint64(obj, "reset-mask", &state->reset_mask);
+    cm_object_property_add_uint64_callback(obj, "reset-mask",
+            &state->reset_mask);
     state->reset_mask = 0xFFFFFFFFFFFFFFFF;
 
-    cm_object_property_add_uint64(obj, "readable-bits", &state->readable_bits);
+    cm_object_property_add_uint64_callback(obj, "readable-bits",
+            &state->readable_bits);
     state->readable_bits = 0x0000000000000000;
 
-    cm_object_property_add_uint64(obj, "writable-bits", &state->writable_bits);
+    cm_object_property_add_uint64_callback(obj, "writable-bits",
+            &state->writable_bits);
     state->writable_bits = 0x0000000000000000;
 
-    cm_object_property_add_uint64(obj, "access-flags", &state->access_flags);
+    cm_object_property_add_uint64_callback(obj, "access-flags",
+            &state->access_flags);
     state->access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
 
     cm_object_property_add_uint32(obj, "size-bits", &state->size_bits);
@@ -775,6 +781,24 @@ static void peripheral_register_instance_init_callback(Object *obj)
 
     cm_object_property_add_bool(obj, "is-writable", &state->is_writable);
     state->is_writable = true;
+
+    cm_object_property_add_const_str(obj, "svd-size", &state->svd.size);
+    state->svd.size = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-access", &state->svd.access);
+    state->svd.access = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-protection",
+            &state->svd.protection);
+    state->svd.protection = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-reset-value",
+            &state->svd.reset_value);
+    state->svd.reset_value = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-reset-mask",
+            &state->svd.reset_mask);
+    state->svd.reset_mask = NULL;
 
     /* Reset value. */
     state->value = state->reset_value;

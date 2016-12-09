@@ -21,6 +21,7 @@
 #define CORTEXM_HELPER_H_
 
 #include "qemu/osdep.h"
+
 #include "hw/boards.h"
 #include "hw/qdev-properties.h"
 #include "qemu/log.h"
@@ -67,7 +68,7 @@ Object *cm_object_get_child_by_name(Object *obj, const char *name);
 
 void cm_object_realize(Object *dev);
 
-DeviceState *cm_device_by_name(const char *type_name);
+DeviceState *cm_device_by_name(const char *path);
 
 void cm_device_reset(DeviceState *dev);
 
@@ -82,6 +83,10 @@ void cm_object_property_set_int(Object *obj, int64_t value, const char *name);
 void cm_object_property_set_bool(Object *obj, bool value, const char *name);
 void cm_object_property_set_str(Object *obj, const char *value,
         const char *name);
+
+char *cm_object_property_get_str(Object *obj, const char *name, Error **errp);
+char *cm_object_property_get_str_with_parent(Object *obj, const char *name,
+        Error **errp);
 
 Object *cm_container_get_peripheral(void);
 
@@ -100,7 +105,7 @@ void cm_object_property_add_const_str(Object *obj, const char *name,
 
 void cm_object_property_add_bool(Object *obj, const char *name, const bool *v);
 
-void cm_object_property_add_uint64(Object *obj, const char *name,
+void cm_object_property_add_uint64_callback(Object *obj, const char *name,
         const uint64_t *v);
 
 void cm_object_property_add_uint32(Object *obj, const char *name,

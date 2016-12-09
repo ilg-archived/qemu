@@ -20,6 +20,7 @@
 
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
 #include <hw/cortexm/bitband.h>
 #include <hw/cortexm/json-parser.h>
 
@@ -100,9 +101,30 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 
     STM32MCUState *state = STM32_MCU_STATE(dev);
-    const STM32Capabilities *capabilities = state->param_capabilities;
+    STM32Capabilities *capabilities = g_new0(STM32Capabilities, 1);
+
+    if (state->param_capabilities) {
+        /* Copy R/O structure to a local R/W copy, to update it. */
+        memcpy(capabilities, state->param_capabilities,
+                sizeof(STM32Capabilities));
+    }
+
     assert(capabilities != NULL);
     state->capabilities = capabilities;
+
+    CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
+    const char *svd_device_name = cm_state->capabilities->svd_device_name;
+
+    /* Based on the SVD device name, set some capabilities fields,
+     * for faster access. */
+    if (strcmp("STM32F40x", svd_device_name) == 0) {
+        capabilities->family = STM32_FAMILY_F4;
+        capabilities->f4.is_40x = true;
+    } else {
+        error_printf("Unsupported device name '%s'.\n", svd_device_name);
+        // TODO: uncomment when all devices use svd
+        // exit(1)
+    }
 
     const char *family;
     const char *device_file_name;
@@ -185,7 +207,6 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
          * reads through the "real" flash memory at 0x08000000, but it works
          * the same either way.
          */
-        CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
         int flash_size = cm_state->flash_size_kb * 1024;
 
         /* Allocate a new region for the alias */
@@ -213,8 +234,8 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* RCC */
     {
-        /* RCC will be named "/machine/mcu/stm32/rcc" */
-        Object *rcc = cm_object_new(state->container, "rcc", TYPE_STM32_RCC);
+        /* RCC will be named "/machine/mcu/stm32/RCC" */
+        Object *rcc = cm_object_new(state->container, "RCC", TYPE_STM32_RCC);
 
         /* Copy internal oscillator frequencies from capabilities. */
         cm_object_property_set_int(rcc, capabilities->hsi_freq_hz,
@@ -232,9 +253,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 
     /* FLASH */
-    {
-        /* FLASH will be named "/machine/mcu/stm32/flash" */
-        Object *flash = cm_object_new(state->container, "flash",
+    if (svd_has_named_peripheral(cm_state->svd_json, "FLASH")) {
+        /* FLASH will be named "/machine/mcu/stm32/FLASH" */
+        Object *flash = cm_object_new(state->container, "FLASH",
         TYPE_STM32_FLASH);
 
         cm_object_realize(flash);
@@ -243,9 +264,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 
     /* PWR */
-    if (capabilities->has_pwr) {
-        /* PWRR will be named "/machine/mcu/stm32/pwr". */
-        Object *pwr = cm_object_new(state->container, "pwr",
+    if (svd_has_named_peripheral(cm_state->svd_json, "PWR")) {
+        /* PWRR will be named "/machine/mcu/stm32/PWR". */
+        Object *pwr = cm_object_new(state->container, "PWR",
         TYPE_STM32_PWR);
 
         cm_object_realize(pwr);
@@ -254,26 +275,26 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 
     /* SYSCFG */
-    if (capabilities->has_syscfg) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "SYSCFG")) {
         /*
-         * SYSCFG will be named "/machine/mcu/stm32/syscfg".
+         * SYSCFG will be named "/machine/mcu/stm32/SYSCFG".
          * It controls, among other, which GPIO pins are
          * connected to EXTI.
          */
-        Object *pwr = cm_object_new(state->container, "syscfg",
+        Object *syscfg = cm_object_new(state->container, "SYSCFG",
         TYPE_STM32_SYSCFG);
 
-        cm_object_realize(pwr);
+        cm_object_realize(syscfg);
 
-        state->syscfg = DEVICE(pwr);
+        state->syscfg = DEVICE(syscfg);
     }
 
     /* EXTI */
-    {
-        /* EXTI will be named "/machine/mcu/stm32/exti".
+    if (svd_has_named_peripheral(cm_state->svd_json, "EXTI")) {
+        /* EXTI will be named "/machine/mcu/stm32/EXTI".
          * It is referred by the GPIOs, to forward interrupts, so
          * it must be constructed before the GPIOs. */
-        Object *exti = cm_object_new(state->container, "exti",
+        Object *exti = cm_object_new(state->container, "EXTI",
         TYPE_STM32_EXTI);
 
         cm_object_realize(exti);
@@ -284,98 +305,100 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     state->num_gpio = 0;
 
     /* GPIOA */
-    if (capabilities->has_gpioa) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOA")) {
         create_gpio(state, STM32_GPIO_PORT_A, capabilities);
         state->num_gpio = 1;
     }
 
     /* GPIOB */
-    if (capabilities->has_gpiob) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOB")) {
         create_gpio(state, STM32_GPIO_PORT_B, capabilities);
         state->num_gpio = 2;
     }
 
     /* GPIOC */
-    if (capabilities->has_gpioc) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOC")) {
         create_gpio(state, STM32_GPIO_PORT_C, capabilities);
         state->num_gpio = 3;
     }
 
     /* GPIOD */
-    if (capabilities->has_gpiod) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOD")) {
         create_gpio(state, STM32_GPIO_PORT_D, capabilities);
         state->num_gpio = 4;
     }
 
     /* GPIOE */
-    if (capabilities->has_gpioe) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOE")) {
         create_gpio(state, STM32_GPIO_PORT_E, capabilities);
         state->num_gpio = 5;
     }
 
     /* GPIOF */
-    if (capabilities->has_gpiof) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOF")) {
         create_gpio(state, STM32_GPIO_PORT_F, capabilities);
         state->num_gpio = 6;
     }
 
     /* GPIOG */
-    if (capabilities->has_gpiog) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOG")) {
         create_gpio(state, STM32_GPIO_PORT_G, capabilities);
         state->num_gpio = 7;
     }
 
     /* GPIOH */
-    if (capabilities->has_gpioh) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOH")) {
         create_gpio(state, STM32_GPIO_PORT_H, capabilities);
         state->num_gpio = 8;
     }
 
     /* GPIOI */
-    if (capabilities->has_gpioi) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOI")) {
         create_gpio(state, STM32_GPIO_PORT_I, capabilities);
         state->num_gpio = 9;
     }
 
     /* GPIOJ */
-    if (capabilities->has_gpioj) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOJ")) {
         create_gpio(state, STM32_GPIO_PORT_J, capabilities);
         state->num_gpio = 10;
     }
 
     /* GPIOK */
-    if (capabilities->has_gpiok) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "GPIOK")) {
         create_gpio(state, STM32_GPIO_PORT_K, capabilities);
         state->num_gpio = 11;
     }
 
     /* USART1 */
-    if (capabilities->has_usart1) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "USART1")) {
         create_usart(state, STM32_USART_1, capabilities);
     }
 
     /* USART2 */
-    if (capabilities->has_usart2) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "USART2")) {
         create_usart(state, STM32_USART_2, capabilities);
     }
 
     /* USART3 */
-    if (capabilities->has_usart3) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "USART3")) {
         create_usart(state, STM32_USART_3, capabilities);
     }
 
+#if 0
     /* UART4 */
-    if (capabilities->has_uart4) {
-        create_usart(state, STM32_UART_4, capabilities);
+    if (svd_has_named_peripheral(cm_state->svd_json, "UART4")) {
+        create_uart(state, STM32_UART_4, capabilities);
     }
 
     /* UART5 */
-    if (capabilities->has_uart5) {
-        create_usart(state, STM32_UART_5, capabilities);
+    if (svd_has_named_peripheral(cm_state->svd_json, "UART5")) {
+        create_uart(state, STM32_UART_5, capabilities);
     }
+#endif
 
     /* USART6 */
-    if (capabilities->has_usart6) {
+    if (svd_has_named_peripheral(cm_state->svd_json, "USART6")) {
         create_usart(state, STM32_USART_6, capabilities);
     }
 

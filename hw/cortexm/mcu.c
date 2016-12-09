@@ -17,10 +17,14 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qemu/osdep.h"
+#include <hw/cortexm/nvic.h>
+#include <hw/cortexm/helper.h>
+#include <hw/cortexm/bitband.h>
+#include <hw/cortexm/board.h>
+#include <hw/cortexm/svd.h>
+#include <hw/cortexm/mcu.h>
 
 #include "sysemu/sysemu.h"
-#include <hw/cortexm/mcu.h>
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "hw/arm/arm.h"
@@ -33,11 +37,6 @@
 #include "cpu.h"
 #include "exec/semihost.h"
 #include "qapi/error.h"
-
-#include <hw/cortexm/nvic.h>
-#include <hw/cortexm/helper.h>
-#include <hw/cortexm/bitband.h>
-#include <hw/cortexm/board.h>
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -75,6 +74,31 @@ static void cortexm_mcu_registered_reset_callback(void *opaque)
 
 /* ------------------------------------------------------------------------- */
 
+static void cortexm_mcu_process_svd_cpu(JSON_Object *svd,
+        CortexMCoreCapabilities *core)
+{
+    assert(svd != NULL);
+    assert(core != NULL);
+
+    JSON_Object *device = json_object_get_object(svd, "device");
+    assert(device != NULL);
+
+    JSON_Object *cpu = json_object_get_object(device, "cpu");
+    if (cpu == NULL) {
+        error_printf("SVD device has no mandatory \"cpu\".\n");
+        exit(1);
+    }
+
+    // TODO: process "cpu"
+}
+
+static void cortexm_mcu_process_device(JSON_Object *svd, Object *obj)
+{
+    JSON_Object *device = json_object_get_object(svd, "device");
+
+    svd_set_register_properties_group(device, obj);
+}
+
 static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
@@ -86,19 +110,50 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
-    /* Copy R/O structure to a local R/W copy, to update it. */
+    /* The param_capabilities property was set in `*_mcus_realize()`
+     * to &part_info->cortexm , which is R/O; to be able to update it,
+     * make a local copy in RAM. */
     CortexMCapabilities* capabilities = g_new(CortexMCapabilities, 1);
     memcpy(capabilities, cm_state->param_capabilities,
             sizeof(CortexMCapabilities));
 
-    CortexMCoreCapabilities* core_capabilities = g_new(CortexMCoreCapabilities,
+    CortexMCoreCapabilities* core_capabilities = g_new0(CortexMCoreCapabilities,
             1);
-    memcpy(core_capabilities, cm_state->param_capabilities->core,
-            sizeof(CortexMCoreCapabilities));
+    if (cm_state->param_capabilities->core != NULL) {
+        memcpy(core_capabilities, cm_state->param_capabilities->core,
+                sizeof(CortexMCoreCapabilities));
+    }
     capabilities->core = core_capabilities;
 
     /* Remember the local copy for future use. */
     cm_state->capabilities = (const CortexMCapabilities*) capabilities;
+
+    // TODO: in the end make this mandatory.
+    if (capabilities->svd_file_name != NULL) {
+
+        const char *svd_full_name = qemu_find_file(QEMU_FILE_TYPE_DEVICES,
+                capabilities->svd_file_name);
+        if (svd_full_name == NULL) {
+            error_printf("JSON SVD file '%s' not found.\n", svd_full_name);
+            exit(1);
+        }
+
+#if defined(CONFIG_VERBOSE)
+        if (verbosity_level >= VERBOSITY_DETAILED) {
+            printf("Device file: '%s'.\n", svd_full_name);
+        }
+#endif
+
+        JSON_Value *value = json_parse_file(svd_full_name);
+        cm_state->svd_json = json_value_get_object(value);
+
+        svd_validate_device_name(cm_state->svd_json,
+                capabilities->svd_device_name);
+
+        cortexm_mcu_process_svd_cpu(cm_state->svd_json, core_capabilities);
+
+        cortexm_mcu_process_device(cm_state->svd_json, OBJECT(dev));
+    }
 
     const MachineState *machine = MACHINE(cortexm_board_get());
     const char *image_filename = NULL;
@@ -494,11 +549,45 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
  * all vendor MCUs.
  */
 static Property cortexm_mcu_properties[] = {
-        DEFINE_PROP_UINT32("sram-size-kb", CortexMState, sram_size_kb, 0),
-        DEFINE_PROP_UINT32("flash-size-kb", CortexMState, flash_size_kb, 0),
         DEFINE_PROP_CORTEXMCAPABILITIES_PTR("cortexm-capabilities",
                 CortexMState, param_capabilities),
-    DEFINE_PROP_END_OF_LIST() };
+    DEFINE_PROP_END_OF_LIST()
+/**/
+};
+
+static void cortexm_mcu_instance_init_callback(Object *obj)
+{
+    qemu_log_function_name();
+
+    CortexMState *state = CORTEXM_MCU_STATE(obj);
+
+    cm_object_property_add_uint32(obj, "sram-size-kb", &state->sram_size_kb);
+    state->sram_size_kb = 0;
+
+    cm_object_property_add_uint32(obj, "flash-size-kb", &state->flash_size_kb);
+    state->flash_size_kb = 0;
+
+    // -----
+
+    cm_object_property_add_const_str(obj, "svd-size", &state->svd.size);
+    state->svd.size = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-access", &state->svd.access);
+    state->svd.access = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-protection",
+            &state->svd.protection);
+    state->svd.protection = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-reset-value",
+            &state->svd.reset_value);
+    state->svd.reset_value = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-reset-mask",
+            &state->svd.reset_mask);
+    state->svd.reset_mask = NULL;
+
+}
 
 /*
  * Initialise the "cortexm-mcu" object. Currently there is no input data.
@@ -522,6 +611,7 @@ static const TypeInfo cortexm_mcu_type_init = {
     .abstract = true,
     .name = TYPE_CORTEXM_MCU,
     .parent = TYPE_CORTEXM_MCU_PARENT,
+    .instance_init = cortexm_mcu_instance_init_callback,
     .instance_size = sizeof(CortexMState),
     .class_init = cortexm_mcu_class_init_callback,
     .class_size = sizeof(CortexMClass) };

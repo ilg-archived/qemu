@@ -27,7 +27,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define DEVICE_PATH_STM32_SYSCFG "/machine/mcu/stm32/syscfg"
+#define DEVICE_PATH_STM32_SYSCFG DEVICE_PATH_STM32 "SYSCFG"
 
 /* ------------------------------------------------------------------------- */
 
@@ -87,24 +87,65 @@ typedef struct {
     } f0;
 
     struct {
+        // F4 SYSCFG (System configuration controller) registers.
         struct {
-            Object *memrmp;
-            Object *pmc;
-            Object *exticr1;
-            Object *exticr2;
-            Object *exticr3;
-            Object *exticr4;
-            Object *cmpcr; /* rc_w1 */
+            Object *memrm; // 0x0 Memory remap register
+            Object *pmc; // 0x4 Peripheral mode configuration register
+            Object *exticr1; // 0x8 External interrupt configuration register 1
+            Object *exticr2; // 0xC External interrupt configuration register 2
+            Object *exticr3; // 0x10 External interrupt configuration register 3
+            Object *exticr4; // 0x14 External interrupt configuration register 4
+            Object *cmpcr; // 0x20 Compensation cell control register
         } reg;
 
         struct {
-            struct {
-                Object *mem_mode;
-            } memrmp;
 
+            // MEMRM (Memory remap register) bitfields.
             struct {
-                Object *cmp_pd;
-                Object *ready;
+                Object *mem_mode; // [0:1] MEM_MODE
+            } memrm;
+
+            // PMC (Peripheral mode configuration register) bitfields.
+            struct {
+                Object *mii_rmii_sel; // [23:23] Ethernet PHY interface selection
+            } pmc;
+
+            // EXTICR1 (External interrupt configuration register 1) bitfields.
+            struct {
+                Object *exti0; // [0:3] EXTI x configuration (x = 0 to 3)
+                Object *exti1; // [4:7] EXTI x configuration (x = 0 to 3)
+                Object *exti2; // [8:11] EXTI x configuration (x = 0 to 3)
+                Object *exti3; // [12:15] EXTI x configuration (x = 0 to 3)
+            } exticr1;
+
+            // EXTICR2 (External interrupt configuration register 2) bitfields.
+            struct {
+                Object *exti4; // [0:3] EXTI x configuration (x = 4 to 7)
+                Object *exti5; // [4:7] EXTI x configuration (x = 4 to 7)
+                Object *exti6; // [8:11] EXTI x configuration (x = 4 to 7)
+                Object *exti7; // [12:15] EXTI x configuration (x = 4 to 7)
+            } exticr2;
+
+            // EXTICR3 (External interrupt configuration register 3) bitfields.
+            struct {
+                Object *exti8; // [0:3] EXTI x configuration (x = 8 to 11)
+                Object *exti9; // [4:7] EXTI x configuration (x = 8 to 11)
+                Object *exti10; // [8:11] EXTI10
+                Object *exti11; // [12:15] EXTI x configuration (x = 8 to 11)
+            } exticr3;
+
+            // EXTICR4 (External interrupt configuration register 4) bitfields.
+            struct {
+                Object *exti12; // [0:3] EXTI x configuration (x = 12 to 15)
+                Object *exti13; // [4:7] EXTI x configuration (x = 12 to 15)
+                Object *exti14; // [8:11] EXTI x configuration (x = 12 to 15)
+                Object *exti15; // [12:15] EXTI x configuration (x = 12 to 15)
+            } exticr4;
+
+            // CMPCR (Compensation cell control register) bitfields.
+            struct {
+                Object *cmp_pd; // [0:0] Compensation cell power-down
+                Object *ready; // [8:8] READY
             } cmpcr;
         } fld;
     } f4;

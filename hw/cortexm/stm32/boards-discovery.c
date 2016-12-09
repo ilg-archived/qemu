@@ -41,8 +41,8 @@ static GPIOLEDInfo stm32f0_discovery_leds_info[] = {
         .y = 253,
         .w = 8,
         .h = 6,
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 8,
     /**/
     },
@@ -54,8 +54,8 @@ static GPIOLEDInfo stm32f0_discovery_leds_info[] = {
         .y = 76,
         .w = 8,
         .h = 6,
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 9,
     /**/
     },
@@ -71,8 +71,8 @@ static ButtonGPIOInfo stm32f0_discovery_buttons_user_info[] = {
         .h = 20,
 
         .active_low = false,
-        .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .irq_name = IRQ_GPIO_IDR_IN,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
         .gpio_bit = 0,
     /**/
     },
@@ -146,8 +146,8 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .y = 218,
         .w = 8,
         .h = 10,
-        .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_D,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 12,
     /**/
     },
@@ -159,8 +159,8 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .y = 246,
         .w = 8,
         .h = 10,
-        .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_D,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 13,
     /**/
     },
@@ -172,8 +172,8 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .y = 274,
         .w = 8,
         .h = 10,
-        .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_D,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 14,
     /**/
     },
@@ -185,8 +185,8 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .y = 246,
         .w = 8,
         .h = 10,
-        .gpio_path = "/machine/mcu/stm32/gpio[d]",
-        .irq_name = IRQ_GPIO_ODR_OUT,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_D,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 15,
     /**/
     },
@@ -202,8 +202,8 @@ static ButtonGPIOInfo stm32f4_discovery_buttons_user_info[] = {
         .h = 40,
 
         .active_low = false,
-        .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .irq_name = IRQ_GPIO_IDR_IN,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
         .gpio_bit = 0,
     /**/
     },
@@ -278,7 +278,7 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .y = 109,
         .w = 10,
         .h = 8,
-        .gpio_path = "/machine/mcu/stm32/gpio[g]",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_G,
         .gpio_bit = 13, },
     {
         .name = "red-led",
@@ -288,7 +288,7 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .y = 130,
         .w = 10,
         .h = 8,
-        .gpio_path = "/machine/mcu/stm32/gpio[g]",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_G,
         .gpio_bit = 14, },
     { }, /**/
 };

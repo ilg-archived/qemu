@@ -20,10 +20,11 @@
 
 #include <hw/cortexm/stm32/mcus.h>
 #include <hw/cortexm/mcu.h>
+#include <hw/cortexm/helper.h>
+
 #include "exec/address-spaces.h"
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
-#include <hw/cortexm/helper.h>
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -879,8 +880,13 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
+
+            // TODO: remove
             .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
-        },
+
+            .svd_file_name = "STM32F40xx-qemu.json",
+            .svd_device_name = "STM32F40x", },
+        // TODO: remove
         .stm32 = &stm32f407xx,
     /**/
     },

@@ -20,6 +20,7 @@
 #include <hw/cortexm/stm32/rcc.h>
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
 
 #include "qemu/timer.h"
 
@@ -2679,13 +2680,14 @@ static PeripheralInfo stm32f4_01_57_xx_rcc_info =
 
 static void stm32f4_01_57_rcc_create_objects(Object *obj, JSON_Value *family)
 {
-    STM32RCCState *state = STM32_RCC_STATE(obj);
+    // STM32RCCState *state = STM32_RCC_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f4_01_57:rcc");
 
     peripheral_add_properties_and_children2(obj, info);
 
+#if 0
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.pllcfgr = cm_object_get_child_by_name(obj, "pllcfgr");
     state->f4.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
@@ -2795,8 +2797,8 @@ static void stm32f4_01_57_rcc_create_objects(Object *obj, JSON_Value *family)
     /* CSR bitfields. */
     state->f4.fld.csr.lsirdy = cm_object_get_child_by_name(state->f4.reg.csr,
             "lsirdy");
-    state->f4.fld.csr.pinrstf = cm_object_get_child_by_name(state->f4.reg.csr,
-            "pinrstf");
+//    state->f4.fld.csr.pinrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+//            "pinrstf");
     state->f4.fld.csr.porrstf = cm_object_get_child_by_name(state->f4.reg.csr,
             "porrstf");
     state->f4.fld.csr.stfrstf = cm_object_get_child_by_name(state->f4.reg.csr,
@@ -2807,7 +2809,574 @@ static void stm32f4_01_57_rcc_create_objects(Object *obj, JSON_Value *family)
             "wwdgrstf");
     state->f4.fld.csr.lpwrrstf = cm_object_get_child_by_name(state->f4.reg.csr,
             "lpwrrstf");
+#endif
+}
 
+static void stm32f40x_rcc_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    STM32RCCState *state = STM32_RCC_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f4.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->f4.reg.pllcfgr = cm_object_get_child_by_name(obj, "PLLCFGR");
+    state->f4.reg.cfgr = cm_object_get_child_by_name(obj, "CFGR");
+    state->f4.reg.cir = cm_object_get_child_by_name(obj, "CIR");
+    state->f4.reg.ahb1rstr = cm_object_get_child_by_name(obj, "AHB1RSTR");
+    state->f4.reg.ahb2rstr = cm_object_get_child_by_name(obj, "AHB2RSTR");
+    state->f4.reg.ahb3rstr = cm_object_get_child_by_name(obj, "AHB3RSTR");
+    state->f4.reg.apb1rstr = cm_object_get_child_by_name(obj, "APB1RSTR");
+    state->f4.reg.apb2rstr = cm_object_get_child_by_name(obj, "APB2RSTR");
+    state->f4.reg.ahb1enr = cm_object_get_child_by_name(obj, "AHB1ENR");
+    state->f4.reg.ahb2enr = cm_object_get_child_by_name(obj, "AHB2ENR");
+    state->f4.reg.ahb3enr = cm_object_get_child_by_name(obj, "AHB3ENR");
+    state->f4.reg.apb1enr = cm_object_get_child_by_name(obj, "APB1ENR");
+    state->f4.reg.apb2enr = cm_object_get_child_by_name(obj, "APB2ENR");
+    state->f4.reg.ahb1lpenr = cm_object_get_child_by_name(obj, "AHB1LPENR");
+    state->f4.reg.ahb2lpenr = cm_object_get_child_by_name(obj, "AHB2LPENR");
+    state->f4.reg.ahb3lpenr = cm_object_get_child_by_name(obj, "AHB3LPENR");
+    state->f4.reg.apb1lpenr = cm_object_get_child_by_name(obj, "APB1LPENR");
+    state->f4.reg.apb2lpenr = cm_object_get_child_by_name(obj, "APB2LPENR");
+    state->f4.reg.bdcr = cm_object_get_child_by_name(obj, "BDCR");
+    state->f4.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+    state->f4.reg.sscgr = cm_object_get_child_by_name(obj, "SSCGR");
+    state->f4.reg.plli2scfgr = cm_object_get_child_by_name(obj, "PLLI2SCFGR");
+
+    // CR bitfields.
+    state->f4.fld.cr.hsion = cm_object_get_child_by_name(state->f4.reg.cr,
+            "HSION");
+    state->f4.fld.cr.hsirdy = cm_object_get_child_by_name(state->f4.reg.cr,
+            "HSIRDY");
+    state->f4.fld.cr.hsitrim = cm_object_get_child_by_name(state->f4.reg.cr,
+            "HSITRIM");
+    state->f4.fld.cr.hsical = cm_object_get_child_by_name(state->f4.reg.cr,
+            "HSICAL");
+    state->f4.fld.cr.hseon = cm_object_get_child_by_name(state->f4.reg.cr,
+            "HSEON");
+    state->f4.fld.cr.hserdy = cm_object_get_child_by_name(state->f4.reg.cr,
+            "HSERDY");
+    state->f4.fld.cr.hsebyp = cm_object_get_child_by_name(state->f4.reg.cr,
+            "HSEBYP");
+    state->f4.fld.cr.csson = cm_object_get_child_by_name(state->f4.reg.cr,
+            "CSSON");
+    state->f4.fld.cr.pllon = cm_object_get_child_by_name(state->f4.reg.cr,
+            "PLLON");
+    state->f4.fld.cr.pllrdy = cm_object_get_child_by_name(state->f4.reg.cr,
+            "PLLRDY");
+    state->f4.fld.cr.plli2son = cm_object_get_child_by_name(state->f4.reg.cr,
+            "PLLI2SON");
+    state->f4.fld.cr.plli2srdy = cm_object_get_child_by_name(state->f4.reg.cr,
+            "PLLI2SRDY");
+
+    // PLLCFGR bitfields.
+    state->f4.fld.pllcfgr.pllm = cm_object_get_child_by_name(
+            state->f4.reg.pllcfgr, "PLLM");
+    state->f4.fld.pllcfgr.plln = cm_object_get_child_by_name(
+            state->f4.reg.pllcfgr, "PLLN");
+    state->f4.fld.pllcfgr.pllp = cm_object_get_child_by_name(
+            state->f4.reg.pllcfgr, "PLLP");
+    state->f4.fld.pllcfgr.pllsrc = cm_object_get_child_by_name(
+            state->f4.reg.pllcfgr, "PLLSRC");
+    state->f4.fld.pllcfgr.pllq = cm_object_get_child_by_name(
+            state->f4.reg.pllcfgr, "PLLQ");
+
+    // CFGR bitfields.
+    state->f4.fld.cfgr.sw = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "SW");
+    state->f4.fld.cfgr.sws = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "SWS");
+    state->f4.fld.cfgr.hpre = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "HPRE");
+    state->f4.fld.cfgr.ppre1 = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "PPRE1");
+    state->f4.fld.cfgr.ppre2 = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "PPRE2");
+    state->f4.fld.cfgr.rtcpre = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "RTCPRE");
+    state->f4.fld.cfgr.mco1 = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "MCO1");
+    state->f4.fld.cfgr.i2ssrc = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "I2SSRC");
+    state->f4.fld.cfgr.mco1pre = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "MCO1PRE");
+    state->f4.fld.cfgr.mco2pre = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "MCO2PRE");
+    state->f4.fld.cfgr.mco2 = cm_object_get_child_by_name(state->f4.reg.cfgr,
+            "MCO2");
+
+    // CIR bitfields.
+    state->f4.fld.cir.lsirdyf = cm_object_get_child_by_name(state->f4.reg.cir,
+            "LSIRDYF");
+    state->f4.fld.cir.lserdyf = cm_object_get_child_by_name(state->f4.reg.cir,
+            "LSERDYF");
+    state->f4.fld.cir.hsirdyf = cm_object_get_child_by_name(state->f4.reg.cir,
+            "HSIRDYF");
+    state->f4.fld.cir.hserdyf = cm_object_get_child_by_name(state->f4.reg.cir,
+            "HSERDYF");
+    state->f4.fld.cir.pllrdyf = cm_object_get_child_by_name(state->f4.reg.cir,
+            "PLLRDYF");
+    state->f4.fld.cir.plli2srdyf = cm_object_get_child_by_name(
+            state->f4.reg.cir, "PLLI2SRDYF");
+    state->f4.fld.cir.cssf = cm_object_get_child_by_name(state->f4.reg.cir,
+            "CSSF");
+    state->f4.fld.cir.lsirdyie = cm_object_get_child_by_name(state->f4.reg.cir,
+            "LSIRDYIE");
+    state->f4.fld.cir.lserdyie = cm_object_get_child_by_name(state->f4.reg.cir,
+            "LSERDYIE");
+    state->f4.fld.cir.hsirdyie = cm_object_get_child_by_name(state->f4.reg.cir,
+            "HSIRDYIE");
+    state->f4.fld.cir.hserdyie = cm_object_get_child_by_name(state->f4.reg.cir,
+            "HSERDYIE");
+    state->f4.fld.cir.pllrdyie = cm_object_get_child_by_name(state->f4.reg.cir,
+            "PLLRDYIE");
+    state->f4.fld.cir.plli2srdyie = cm_object_get_child_by_name(
+            state->f4.reg.cir, "PLLI2SRDYIE");
+    state->f4.fld.cir.lsirdyc = cm_object_get_child_by_name(state->f4.reg.cir,
+            "LSIRDYC");
+    state->f4.fld.cir.lserdyc = cm_object_get_child_by_name(state->f4.reg.cir,
+            "LSERDYC");
+    state->f4.fld.cir.hsirdyc = cm_object_get_child_by_name(state->f4.reg.cir,
+            "HSIRDYC");
+    state->f4.fld.cir.hserdyc = cm_object_get_child_by_name(state->f4.reg.cir,
+            "HSERDYC");
+    state->f4.fld.cir.pllrdyc = cm_object_get_child_by_name(state->f4.reg.cir,
+            "PLLRDYC");
+    state->f4.fld.cir.plli2srdyc = cm_object_get_child_by_name(
+            state->f4.reg.cir, "PLLI2SRDYC");
+    state->f4.fld.cir.cssc = cm_object_get_child_by_name(state->f4.reg.cir,
+            "CSSC");
+
+    // AHB1RSTR bitfields.
+    state->f4.fld.ahb1rstr.gpioarst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOARST");
+    state->f4.fld.ahb1rstr.gpiobrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOBRST");
+    state->f4.fld.ahb1rstr.gpiocrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOCRST");
+    state->f4.fld.ahb1rstr.gpiodrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIODRST");
+    state->f4.fld.ahb1rstr.gpioerst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOERST");
+    state->f4.fld.ahb1rstr.gpiofrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOFRST");
+    state->f4.fld.ahb1rstr.gpiogrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOGRST");
+    state->f4.fld.ahb1rstr.gpiohrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOHRST");
+    state->f4.fld.ahb1rstr.gpioirst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "GPIOIRST");
+    state->f4.fld.ahb1rstr.crcrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "CRCRST");
+    state->f4.fld.ahb1rstr.dma1rst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "DMA1RST");
+    state->f4.fld.ahb1rstr.dma2rst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "DMA2RST");
+    state->f4.fld.ahb1rstr.ethmacrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "ETHMACRST");
+    state->f4.fld.ahb1rstr.otghsrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb1rstr, "OTGHSRST");
+
+    // AHB2RSTR bitfields.
+    state->f4.fld.ahb2rstr.dcmirst = cm_object_get_child_by_name(
+            state->f4.reg.ahb2rstr, "DCMIRST");
+    state->f4.fld.ahb2rstr.rngrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb2rstr, "RNGRST");
+    state->f4.fld.ahb2rstr.otgfsrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb2rstr, "OTGFSRST");
+
+    // AHB3RSTR bitfields.
+    state->f4.fld.ahb3rstr.fsmcrst = cm_object_get_child_by_name(
+            state->f4.reg.ahb3rstr, "FSMCRST");
+
+    // APB1RSTR bitfields.
+    state->f4.fld.apb1rstr.tim2rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM2RST");
+    state->f4.fld.apb1rstr.tim3rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM3RST");
+    state->f4.fld.apb1rstr.tim4rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM4RST");
+    state->f4.fld.apb1rstr.tim5rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM5RST");
+    state->f4.fld.apb1rstr.tim6rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM6RST");
+    state->f4.fld.apb1rstr.tim7rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM7RST");
+    state->f4.fld.apb1rstr.tim12rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM12RST");
+    state->f4.fld.apb1rstr.tim13rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM13RST");
+    state->f4.fld.apb1rstr.tim14rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "TIM14RST");
+    state->f4.fld.apb1rstr.wwdgrst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "WWDGRST");
+    state->f4.fld.apb1rstr.spi2rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "SPI2RST");
+    state->f4.fld.apb1rstr.spi3rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "SPI3RST");
+    state->f4.fld.apb1rstr.uart2rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "UART2RST");
+    state->f4.fld.apb1rstr.uart3rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "UART3RST");
+    state->f4.fld.apb1rstr.uart4rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "UART4RST");
+    state->f4.fld.apb1rstr.uart5rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "UART5RST");
+    state->f4.fld.apb1rstr.i2c1rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "I2C1RST");
+    state->f4.fld.apb1rstr.i2c2rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "I2C2RST");
+    state->f4.fld.apb1rstr.i2c3rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "I2C3RST");
+    state->f4.fld.apb1rstr.can1rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "CAN1RST");
+    state->f4.fld.apb1rstr.can2rst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "CAN2RST");
+    state->f4.fld.apb1rstr.pwrrst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "PWRRST");
+    state->f4.fld.apb1rstr.dacrst = cm_object_get_child_by_name(
+            state->f4.reg.apb1rstr, "DACRST");
+
+    // APB2RSTR bitfields.
+    state->f4.fld.apb2rstr.tim1rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "TIM1RST");
+    state->f4.fld.apb2rstr.tim8rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "TIM8RST");
+    state->f4.fld.apb2rstr.usart1rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "USART1RST");
+    state->f4.fld.apb2rstr.usart6rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "USART6RST");
+    state->f4.fld.apb2rstr.adcrst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "ADCRST");
+    state->f4.fld.apb2rstr.sdiorst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "SDIORST");
+    state->f4.fld.apb2rstr.spi1rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "SPI1RST");
+    state->f4.fld.apb2rstr.syscfgrst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "SYSCFGRST");
+    state->f4.fld.apb2rstr.tim9rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "TIM9RST");
+    state->f4.fld.apb2rstr.tim10rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "TIM10RST");
+    state->f4.fld.apb2rstr.tim11rst = cm_object_get_child_by_name(
+            state->f4.reg.apb2rstr, "TIM11RST");
+
+    // AHB1ENR bitfields.
+    state->f4.fld.ahb1enr.gpioaen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOAEN");
+    state->f4.fld.ahb1enr.gpioben = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOBEN");
+    state->f4.fld.ahb1enr.gpiocen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOCEN");
+    state->f4.fld.ahb1enr.gpioden = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIODEN");
+    state->f4.fld.ahb1enr.gpioeen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOEEN");
+    state->f4.fld.ahb1enr.gpiofen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOFEN");
+    state->f4.fld.ahb1enr.gpiogen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOGEN");
+    state->f4.fld.ahb1enr.gpiohen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOHEN");
+    state->f4.fld.ahb1enr.gpioien = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "GPIOIEN");
+    state->f4.fld.ahb1enr.crcen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "CRCEN");
+    state->f4.fld.ahb1enr.bkpsramen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "BKPSRAMEN");
+    state->f4.fld.ahb1enr.dma1en = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "DMA1EN");
+    state->f4.fld.ahb1enr.dma2en = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "DMA2EN");
+    state->f4.fld.ahb1enr.ethmacen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "ETHMACEN");
+    state->f4.fld.ahb1enr.ethmactxen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "ETHMACTXEN");
+    state->f4.fld.ahb1enr.ethmacrxen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "ETHMACRXEN");
+    state->f4.fld.ahb1enr.ethmacptpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "ETHMACPTPEN");
+    state->f4.fld.ahb1enr.otghsen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "OTGHSEN");
+    state->f4.fld.ahb1enr.otghsulpien = cm_object_get_child_by_name(
+            state->f4.reg.ahb1enr, "OTGHSULPIEN");
+
+    // AHB2ENR bitfields.
+    state->f4.fld.ahb2enr.dcmien = cm_object_get_child_by_name(
+            state->f4.reg.ahb2enr, "DCMIEN");
+    state->f4.fld.ahb2enr.rngen = cm_object_get_child_by_name(
+            state->f4.reg.ahb2enr, "RNGEN");
+    state->f4.fld.ahb2enr.otgfsen = cm_object_get_child_by_name(
+            state->f4.reg.ahb2enr, "OTGFSEN");
+
+    // AHB3ENR bitfields.
+    state->f4.fld.ahb3enr.fsmcen = cm_object_get_child_by_name(
+            state->f4.reg.ahb3enr, "FSMCEN");
+
+    // APB1ENR bitfields.
+    state->f4.fld.apb1enr.tim2en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM2EN");
+    state->f4.fld.apb1enr.tim3en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM3EN");
+    state->f4.fld.apb1enr.tim4en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM4EN");
+    state->f4.fld.apb1enr.tim5en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM5EN");
+    state->f4.fld.apb1enr.tim6en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM6EN");
+    state->f4.fld.apb1enr.tim7en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM7EN");
+    state->f4.fld.apb1enr.tim12en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM12EN");
+    state->f4.fld.apb1enr.tim13en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM13EN");
+    state->f4.fld.apb1enr.tim14en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "TIM14EN");
+    state->f4.fld.apb1enr.wwdgen = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "WWDGEN");
+    state->f4.fld.apb1enr.spi2en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "SPI2EN");
+    state->f4.fld.apb1enr.spi3en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "SPI3EN");
+    state->f4.fld.apb1enr.usart2en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "USART2EN");
+    state->f4.fld.apb1enr.usart3en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "USART3EN");
+    state->f4.fld.apb1enr.uart4en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "UART4EN");
+    state->f4.fld.apb1enr.uart5en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "UART5EN");
+    state->f4.fld.apb1enr.i2c1en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "I2C1EN");
+    state->f4.fld.apb1enr.i2c2en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "I2C2EN");
+    state->f4.fld.apb1enr.i2c3en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "I2C3EN");
+    state->f4.fld.apb1enr.can1en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "CAN1EN");
+    state->f4.fld.apb1enr.can2en = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "CAN2EN");
+    state->f4.fld.apb1enr.pwren = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "PWREN");
+    state->f4.fld.apb1enr.dacen = cm_object_get_child_by_name(
+            state->f4.reg.apb1enr, "DACEN");
+
+    // APB2ENR bitfields.
+    state->f4.fld.apb2enr.tim1en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "TIM1EN");
+    state->f4.fld.apb2enr.tim8en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "TIM8EN");
+    state->f4.fld.apb2enr.usart1en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "USART1EN");
+    state->f4.fld.apb2enr.usart6en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "USART6EN");
+    state->f4.fld.apb2enr.adc1en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "ADC1EN");
+    state->f4.fld.apb2enr.adc2en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "ADC2EN");
+    state->f4.fld.apb2enr.adc3en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "ADC3EN");
+    state->f4.fld.apb2enr.sdioen = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "SDIOEN");
+    state->f4.fld.apb2enr.spi1en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "SPI1EN");
+    state->f4.fld.apb2enr.syscfgen = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "SYSCFGEN");
+    state->f4.fld.apb2enr.tim9en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "TIM9EN");
+    state->f4.fld.apb2enr.tim10en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "TIM10EN");
+    state->f4.fld.apb2enr.tim11en = cm_object_get_child_by_name(
+            state->f4.reg.apb2enr, "TIM11EN");
+
+    // AHB1LPENR bitfields.
+    state->f4.fld.ahb1lpenr.gpioalpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOALPEN");
+    state->f4.fld.ahb1lpenr.gpioblpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOBLPEN");
+    state->f4.fld.ahb1lpenr.gpioclpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOCLPEN");
+    state->f4.fld.ahb1lpenr.gpiodlpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIODLPEN");
+    state->f4.fld.ahb1lpenr.gpioelpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOELPEN");
+    state->f4.fld.ahb1lpenr.gpioflpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOFLPEN");
+    state->f4.fld.ahb1lpenr.gpioglpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOGLPEN");
+    state->f4.fld.ahb1lpenr.gpiohlpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOHLPEN");
+    state->f4.fld.ahb1lpenr.gpioilpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "GPIOILPEN");
+    state->f4.fld.ahb1lpenr.crclpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "CRCLPEN");
+    state->f4.fld.ahb1lpenr.flitflpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "FLITFLPEN");
+    state->f4.fld.ahb1lpenr.sram1lpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "SRAM1LPEN");
+    state->f4.fld.ahb1lpenr.sram2lpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "SRAM2LPEN");
+    state->f4.fld.ahb1lpenr.bkpsramlpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "BKPSRAMLPEN");
+    state->f4.fld.ahb1lpenr.dma1lpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "DMA1LPEN");
+    state->f4.fld.ahb1lpenr.dma2lpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "DMA2LPEN");
+    state->f4.fld.ahb1lpenr.ethmaclpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "ETHMACLPEN");
+    state->f4.fld.ahb1lpenr.ethmactxlpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "ETHMACTXLPEN");
+    state->f4.fld.ahb1lpenr.ethmacrxlpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "ETHMACRXLPEN");
+    state->f4.fld.ahb1lpenr.ethmacptplpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "ETHMACPTPLPEN");
+    state->f4.fld.ahb1lpenr.otghslpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "OTGHSLPEN");
+    state->f4.fld.ahb1lpenr.otghsulpilpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb1lpenr, "OTGHSULPILPEN");
+
+    // AHB2LPENR bitfields.
+    state->f4.fld.ahb2lpenr.dcmilpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb2lpenr, "DCMILPEN");
+    state->f4.fld.ahb2lpenr.rnglpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb2lpenr, "RNGLPEN");
+    state->f4.fld.ahb2lpenr.otgfslpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb2lpenr, "OTGFSLPEN");
+
+    // AHB3LPENR bitfields.
+    state->f4.fld.ahb3lpenr.fsmclpen = cm_object_get_child_by_name(
+            state->f4.reg.ahb3lpenr, "FSMCLPEN");
+
+    // APB1LPENR bitfields.
+    state->f4.fld.apb1lpenr.tim2lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM2LPEN");
+    state->f4.fld.apb1lpenr.tim3lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM3LPEN");
+    state->f4.fld.apb1lpenr.tim4lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM4LPEN");
+    state->f4.fld.apb1lpenr.tim5lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM5LPEN");
+    state->f4.fld.apb1lpenr.tim6lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM6LPEN");
+    state->f4.fld.apb1lpenr.tim7lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM7LPEN");
+    state->f4.fld.apb1lpenr.tim12lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM12LPEN");
+    state->f4.fld.apb1lpenr.tim13lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM13LPEN");
+    state->f4.fld.apb1lpenr.tim14lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "TIM14LPEN");
+    state->f4.fld.apb1lpenr.wwdglpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "WWDGLPEN");
+    state->f4.fld.apb1lpenr.spi2lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "SPI2LPEN");
+    state->f4.fld.apb1lpenr.spi3lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "SPI3LPEN");
+    state->f4.fld.apb1lpenr.usart2lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "USART2LPEN");
+    state->f4.fld.apb1lpenr.usart3lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "USART3LPEN");
+    state->f4.fld.apb1lpenr.uart4lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "UART4LPEN");
+    state->f4.fld.apb1lpenr.uart5lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "UART5LPEN");
+    state->f4.fld.apb1lpenr.i2c1lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "I2C1LPEN");
+    state->f4.fld.apb1lpenr.i2c2lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "I2C2LPEN");
+    state->f4.fld.apb1lpenr.i2c3lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "I2C3LPEN");
+    state->f4.fld.apb1lpenr.can1lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "CAN1LPEN");
+    state->f4.fld.apb1lpenr.can2lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "CAN2LPEN");
+    state->f4.fld.apb1lpenr.pwrlpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "PWRLPEN");
+    state->f4.fld.apb1lpenr.daclpen = cm_object_get_child_by_name(
+            state->f4.reg.apb1lpenr, "DACLPEN");
+
+    // APB2LPENR bitfields.
+    state->f4.fld.apb2lpenr.tim1lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "TIM1LPEN");
+    state->f4.fld.apb2lpenr.tim8lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "TIM8LPEN");
+    state->f4.fld.apb2lpenr.usart1lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "USART1LPEN");
+    state->f4.fld.apb2lpenr.usart6lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "USART6LPEN");
+    state->f4.fld.apb2lpenr.adc1lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "ADC1LPEN");
+    state->f4.fld.apb2lpenr.adc2lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "ADC2LPEN");
+    state->f4.fld.apb2lpenr.adc3lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "ADC3LPEN");
+    state->f4.fld.apb2lpenr.sdiolpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "SDIOLPEN");
+    state->f4.fld.apb2lpenr.spi1lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "SPI1LPEN");
+    state->f4.fld.apb2lpenr.syscfglpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "SYSCFGLPEN");
+    state->f4.fld.apb2lpenr.tim9lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "TIM9LPEN");
+    state->f4.fld.apb2lpenr.tim10lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "TIM10LPEN");
+    state->f4.fld.apb2lpenr.tim11lpen = cm_object_get_child_by_name(
+            state->f4.reg.apb2lpenr, "TIM11LPEN");
+
+    // BDCR bitfields.
+    state->f4.fld.bdcr.lseon = cm_object_get_child_by_name(state->f4.reg.bdcr,
+            "LSEON");
+    state->f4.fld.bdcr.lserdy = cm_object_get_child_by_name(state->f4.reg.bdcr,
+            "LSERDY");
+    state->f4.fld.bdcr.lsebyp = cm_object_get_child_by_name(state->f4.reg.bdcr,
+            "LSEBYP");
+    state->f4.fld.bdcr.rtcsel = cm_object_get_child_by_name(state->f4.reg.bdcr,
+            "RTCSEL");
+    state->f4.fld.bdcr.rtcen = cm_object_get_child_by_name(state->f4.reg.bdcr,
+            "RTCEN");
+    state->f4.fld.bdcr.bdrst = cm_object_get_child_by_name(state->f4.reg.bdcr,
+            "BDRST");
+
+    // CSR bitfields.
+    state->f4.fld.csr.lsion = cm_object_get_child_by_name(state->f4.reg.csr,
+            "LSION");
+    state->f4.fld.csr.lsirdy = cm_object_get_child_by_name(state->f4.reg.csr,
+            "LSIRDY");
+    state->f4.fld.csr.rmvf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "RMVF");
+    state->f4.fld.csr.borrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "BORRSTF");
+    state->f4.fld.csr.padrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "PADRSTF");
+    state->f4.fld.csr.porrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "PORRSTF");
+    state->f4.fld.csr.sftrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "SFTRSTF");
+    state->f4.fld.csr.wdgrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "WDGRSTF");
+    state->f4.fld.csr.wwdgrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "WWDGRSTF");
+    state->f4.fld.csr.lpwrrstf = cm_object_get_child_by_name(state->f4.reg.csr,
+            "LPWRRSTF");
+
+    // SSCGR bitfields.
+    state->f4.fld.sscgr.modper = cm_object_get_child_by_name(
+            state->f4.reg.sscgr, "MODPER");
+    state->f4.fld.sscgr.incstep = cm_object_get_child_by_name(
+            state->f4.reg.sscgr, "INCSTEP");
+    state->f4.fld.sscgr.spreadsel = cm_object_get_child_by_name(
+            state->f4.reg.sscgr, "SPREADSEL");
+    state->f4.fld.sscgr.sscgen = cm_object_get_child_by_name(
+            state->f4.reg.sscgr, "SSCGEN");
+
+    // PLLI2SCFGR bitfields.
+    state->f4.fld.plli2scfgr.plli2snx = cm_object_get_child_by_name(
+            state->f4.reg.plli2scfgr, "PLLI2SNx");
+    state->f4.fld.plli2scfgr.plli2srx = cm_object_get_child_by_name(
+            state->f4.reg.plli2scfgr, "PLLI2SRx");
 }
 
 /* ------------------------------------------------------------------------- */
@@ -3438,12 +4007,13 @@ static PeripheralInfo stm32f411xx_rcc_info =
 
 static void stm32f411_rcc_create_objects(Object *obj, JSON_Value *family)
 {
-    STM32RCCState *state = STM32_RCC_STATE(obj);
+    // STM32RCCState *state = STM32_RCC_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f411:rcc");
 
     peripheral_add_properties_and_children2(obj, info);
 
+#if 0
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.pllcfgr = cm_object_get_child_by_name(obj, "pllcfgr");
     state->f4.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
@@ -3562,7 +4132,7 @@ static void stm32f411_rcc_create_objects(Object *obj, JSON_Value *family)
             "wwdgrstf");
     state->f4.fld.csr.lpwrrstf = cm_object_get_child_by_name(state->f4.reg.csr,
             "lpwrrstf");
-
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
@@ -4211,13 +4781,14 @@ static PeripheralInfo stm32f4_23_xxx_rcc_info =
 
 static void stm32f4_23_x_rcc_create_objects(Object *obj, JSON_Value *family)
 {
-    STM32RCCState *state = STM32_RCC_STATE(obj);
+    // STM32RCCState *state = STM32_RCC_STATE(obj);
 
     JSON_Object *info = cm_json_parser_get_peripheral(family,
             "stm32f4_23_x:rcc");
 
     peripheral_add_properties_and_children2(obj, info);
 
+#if 0
     state->f4.reg.cr = cm_object_get_child_by_name(obj, "cr");
     state->f4.reg.pllcfgr = cm_object_get_child_by_name(obj, "pllcfgr");
     state->f4.reg.cfgr = cm_object_get_child_by_name(obj, "cfgr");
@@ -4351,6 +4922,7 @@ static void stm32f4_23_x_rcc_create_objects(Object *obj, JSON_Value *family)
     state->f4.fld.csr.lpwrrstf = cm_object_get_child_by_name(state->f4.reg.csr,
             "lpwrrstf");
 
+#endif
 }
 
 /* ------------------------------------------------------------------------- */
@@ -4679,6 +5251,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
      */
 
     STM32MCUState *mcu = stm32_mcu_get();
+    CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32RCCState *state = STM32_RCC_STATE(dev);
     /* First thing first: get capabilities from MCU, needed everywhere. */
@@ -4941,7 +5514,69 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_01_57_xx) {
+        if (capabilities->f4.is_40x) {
+
+            stm32f40x_rcc_create_objects(obj, cm_state->svd_json, "RCC");
+
+            /* Add callbacks. */
+            peripheral_register_set_post_write(state->f4.reg.pllcfgr,
+                    &stm32_rcc_post_write_callback);
+            peripheral_register_set_post_write(state->f4.reg.cfgr,
+                    &stm32_rcc_post_write_callback);
+
+            /* Auto bits. */
+            cm_object_property_set_str(state->f4.fld.cr.hsirdy, "HSION",
+                    "follows");
+            if (state->hse_freq_hz) {
+                cm_object_property_set_str(state->f4.fld.cr.hserdy, "HSEON",
+                        "follows");
+            }
+            cm_object_property_set_str(state->f4.fld.cr.pllrdy, "PLLON",
+                    "follows");
+            cm_object_property_set_str(state->f4.fld.cr.plli2srdy, "PLLI2SON",
+                    "follows");
+
+            cm_object_property_set_str(state->f4.fld.cfgr.sws, "SW", "follows");
+
+            cm_object_property_set_str(state->f4.fld.cir.lsirdyf, "LSIRDYC",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.cir.lserdyf, "LSERDYC",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.cir.hsirdyf, "HSIRDYC",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.cir.hserdyf, "HSERDYC",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.cir.pllrdyf, "PLLRDYC",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.cir.plli2srdyf,
+                    "PLLI2SRDYC", "cleared-by");
+            cm_object_property_set_str(state->f4.fld.cir.cssf, "CSSC",
+                    "cleared-by");
+
+            cm_object_property_set_str(state->f4.fld.bdcr.lserdy, "LSEON",
+                    "follows");
+
+#if 1
+            cm_object_property_set_str(state->f4.fld.csr.lsirdy, "LSION",
+                    "follows");
+            cm_object_property_set_str(state->f4.fld.csr.padrstf, "RMVF",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.csr.borrstf, "RMVF",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.csr.porrstf, "RMVF",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.csr.sftrstf, "RMVF",
+                    "cleared-by");
+            // Errata: The RM0090 manual refers to wdgrstf as IWDGRSTF
+            cm_object_property_set_str(state->f4.fld.csr.wdgrstf, "RMVF",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.csr.wwdgrstf, "RMVF",
+                    "cleared-by");
+            cm_object_property_set_str(state->f4.fld.csr.lpwrrstf, "RMVF",
+                    "cleared-by");
+#endif
+
+        } else if (capabilities->f4.is_01_57_xx) {
 
             stm32f4_01_57_rcc_create_objects(obj, mcu->family_json);
 
@@ -4983,6 +5618,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             cm_object_property_set_str(state->f4.fld.bdcr.lserdy, "lseon",
                     "follows");
 
+#if 0
             cm_object_property_set_str(state->f4.fld.csr.lsirdy, "lsion",
                     "follows");
             cm_object_property_set_str(state->f4.fld.csr.pinrstf, "rmvf",
@@ -4997,7 +5633,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     "cleared-by");
             cm_object_property_set_str(state->f4.fld.csr.lpwrrstf, "rmvf",
                     "cleared-by");
-
+#endif
         } else if (capabilities->f4.is11xx) {
 
             stm32f411_rcc_create_objects(obj, mcu->family_json);
@@ -5040,6 +5676,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             cm_object_property_set_str(state->f4.fld.bdcr.lserdy, "lseon",
                     "follows");
 
+#if 0
             cm_object_property_set_str(state->f4.fld.csr.lsirdy, "lsion",
                     "follows");
             cm_object_property_set_str(state->f4.fld.csr.pinrstf, "rmvf",
@@ -5054,7 +5691,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     "cleared-by");
             cm_object_property_set_str(state->f4.fld.csr.lpwrrstf, "rmvf",
                     "cleared-by");
-
+#endif
         } else if (capabilities->f4.is_23_xxx) {
 
             stm32f4_23_x_rcc_create_objects(obj, mcu->family_json);
@@ -5100,6 +5737,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             cm_object_property_set_str(state->f4.fld.csr.lsirdy, "lsion",
                     "follows");
 
+#if 0
             cm_object_property_set_str(state->f4.fld.csr.borrstf, "rmvf",
                     "cleared-by");
             cm_object_property_set_str(state->f4.fld.csr.pinrstf, "rmvf",
@@ -5116,6 +5754,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
                     "cleared-by");
             cm_object_property_set_str(state->f4.fld.csr.lpwrrstf, "rmvf",
                     "cleared-by");
+#endif
         } else {
             assert(false);
         }
@@ -5126,8 +5765,6 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
         assert(false);
         break;
     }
-
-    cm_object_property_set_str(obj, "rcc", "name");
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_RCC)) {

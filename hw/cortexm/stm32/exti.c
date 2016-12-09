@@ -21,6 +21,7 @@
 #include <hw/cortexm/stm32/exti.h>
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/helper.h>
+#include <hw/cortexm/svd.h>
 
 /*
  * This file implements the STM32 EXTI.
@@ -291,6 +292,26 @@ static PeripheralInfo stm32f1_exti_info = {
 
 /* ------------------------------------------------------------------------- */
 
+static void stm32f40x_exti_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    // DO NOT EDIT! Automatically generated!
+    STM32EXTIState *state = STM32_EXTI_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f4.reg.imr = cm_object_get_child_by_name(obj, "IMR");
+    state->f4.reg.emr = cm_object_get_child_by_name(obj, "EMR");
+    state->f4.reg.rtsr = cm_object_get_child_by_name(obj, "RTSR");
+    state->f4.reg.ftsr = cm_object_get_child_by_name(obj, "FTSR");
+    state->f4.reg.swier = cm_object_get_child_by_name(obj, "SWIER");
+    state->f4.reg.pr = cm_object_get_child_by_name(obj, "PR");
+
+    // Bitfileds removed.
+}
+
 /* STM32F401x_BC does not have EXTI19 and EXTI20,
  * will probably use the 411xx definitions. */
 
@@ -477,11 +498,13 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     qemu_log_function_name();
 
     /*
-     * Parent realize() is called after setting properties and creating
-     * registers.
+     * Parent realize() is called after setting the the
+     * mmio-address & mmio-size properties (required to init the mmio)
+     * and creating registers (to create the array of registers).
      */
 
     STM32MCUState *mcu = stm32_mcu_get();
+    CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32EXTIState *state = STM32_EXTI_STATE(dev);
     /* First thing first: get capabilities from MCU, needed everywhere. */
@@ -548,7 +571,19 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F4:
 
         assert(capabilities->num_exti == 23);
-        if (capabilities->f4.is_01_57_xx || capabilities->f4.is_23_xxx) {
+
+        if (capabilities->f4.is_40x) {
+
+            stm32f40x_exti_create_objects(obj, cm_state->svd_json, "EXTI");
+
+            state->reg.imr = state->f4.reg.imr;
+            state->reg.emr = state->f4.reg.emr;
+            state->reg.rtsr = state->f4.reg.rtsr;
+            state->reg.ftsr = state->f4.reg.ftsr;
+            state->reg.swier = state->f4.reg.swier;
+            state->reg.pr = state->f4.reg.pr;
+
+        } else if (capabilities->f4.is_01_57_xx || capabilities->f4.is_23_xxx) {
 
             info = cm_json_parser_get_peripheral(mcu->family_json,
                     "stm32f4xx:exti");
@@ -569,12 +604,14 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
+#if 0
     state->reg.imr = cm_object_get_child_by_name(obj, "imr");
     state->reg.emr = cm_object_get_child_by_name(obj, "emr");
     state->reg.rtsr = cm_object_get_child_by_name(obj, "rtsr");
     state->reg.ftsr = cm_object_get_child_by_name(obj, "ftsr");
     state->reg.swier = cm_object_get_child_by_name(obj, "swier");
     state->reg.pr = cm_object_get_child_by_name(obj, "pr");
+#endif
 
     peripheral_register_set_pre_write(state->reg.swier,
             stm32f_exti_swier_pre_write_callback);
@@ -761,9 +798,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
-    cm_object_property_set_str(obj, "exti", "name");
-
-    /* Call parent realize(). */
+    /* Finally call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_EXTI)) {
         return;
     }

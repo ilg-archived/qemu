@@ -19,6 +19,7 @@
 
 #include <hw/cortexm/peripheral-register.h>
 #include <hw/cortexm/register-bitfield.h>
+#include <hw/cortexm/svd.h>
 #include <hw/cortexm/helper.h>
 
 /*
@@ -195,6 +196,9 @@ static void register_bitfield_instance_init_callback(Object *obj)
 
     cm_object_property_add_const_str(obj, "set-by", &state->set_by);
     state->set_by = NULL;
+
+    cm_object_property_add_const_str(obj, "svd-access", &state->svd.access);
+    state->svd.access = NULL;
 }
 
 static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)

@@ -103,6 +103,11 @@ typedef struct {
     /* The field value is ((parent->value & mask) >> shift) */
     peripheral_register_t mask;
     uint32_t shift;
+
+    struct {
+        const char *access;
+    } svd;
+
 } RegisterBitfieldState;
 
 /* ----- Public ------------------------------------------------------------ */

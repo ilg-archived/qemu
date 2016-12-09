@@ -27,7 +27,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-#define DEVICE_PATH_STM32_EXTI "/machine/mcu/stm32/exti"
+#define DEVICE_PATH_STM32_EXTI DEVICE_PATH_STM32 "EXTI"
 
 /*
  * The maximum number of EXTIs for all families.
@@ -94,8 +94,17 @@ typedef struct {
     struct {
         /* F1 specific registers */
     } f1;
+
     struct {
-        /* F4 specific registers */
+        // F4 EXTI (External interrupt/event controller) registers.
+        struct {
+            Object *imr; // 0x0 Interrupt mask register (EXTI_IMR)
+            Object *emr; // 0x4 Event mask register (EXTI_EMR)
+            Object *rtsr; // 0x8 Rising Trigger selection register (EXTI_RTSR)
+            Object *ftsr; // 0xC Falling Trigger selection register (EXTI_FTSR)
+            Object *swier; // 0x10 Software interrupt event register (EXTI_SWIER)
+            Object *pr; // 0x14 Pending register (EXTI_PR)
+        } reg;
     } f4;
 
     const STM32Capabilities *capabilities;
