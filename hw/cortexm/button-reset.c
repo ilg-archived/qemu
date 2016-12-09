@@ -17,12 +17,11 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qemu/osdep.h"
-#include "qemu/log.h"
-#include "sysemu/sysemu.h"
-
 #include <hw/cortexm/button-reset.h>
 #include <hw/cortexm/helper.h>
+
+#include "qemu/log.h"
+#include "sysemu/sysemu.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -90,6 +89,12 @@ static void button_reset_reset_callback(DeviceState *dev)
 static void button_reset_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
+
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, TYPE_BUTTON_RESET)) {
+        return;
+    }
+
 }
 
 static void button_reset_class_init_callback(ObjectClass *klass, void *data)

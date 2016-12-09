@@ -17,11 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qemu/osdep.h"
-#include "qemu/log.h"
-
 #include <hw/cortexm/button.h>
 #include <hw/cortexm/helper.h>
+
+#include "qemu/log.h"
 
 /* ----- Public ------------------------------------------------------------ */
 

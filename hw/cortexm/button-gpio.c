@@ -17,12 +17,10 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qemu/osdep.h"
-#include "qemu/log.h"
-
 #include <hw/cortexm/button-gpio.h>
-
 #include <hw/cortexm/helper.h>
+
+#include "qemu/log.h"
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -131,6 +129,11 @@ static void button_gpio_reset_callback(DeviceState *dev)
 static void button_gpio_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
+
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, TYPE_BUTTON_GPIO)) {
+        return;
+    }
 
     // ButtonGPIOState *state = BUTTON_GPIO_STATE(dev);
 }

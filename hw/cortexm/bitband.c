@@ -19,6 +19,7 @@
  */
 
 #include <hw/cortexm/bitband.h>
+
 #include "cpu.h"
 
 /* Bitbanded IO.  Each word corresponds to a single bit.  */
@@ -170,6 +171,11 @@ static void cortexm_bitband_instance_init_callback(Object *obj)
 static void cortexm_bitband_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
+
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, TYPE_CORTEXM_BITBAND)) {
+        return;
+    }
 
     /* Currently nothing to do. */
 }

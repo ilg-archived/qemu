@@ -18,6 +18,7 @@
  */
 
 #include <hw/cortexm/board.h>
+
 #include "qemu/error-report.h"
 
 #if defined(CONFIG_VERBOSE)

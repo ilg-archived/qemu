@@ -17,8 +17,6 @@
  * with this program; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "qemu/osdep.h"
-
 #include <hw/cortexm/gpio-led.h>
 #include <hw/cortexm/helper.h>
 
@@ -259,6 +257,11 @@ static void gpio_led_instance_init_callback(Object *obj)
 static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
+
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, TYPE_GPIO_LED)) {
+        return;
+    }
 
 #if defined(CONFIG_SDL)
 

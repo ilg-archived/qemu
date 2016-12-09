@@ -167,7 +167,10 @@ static void cortexm_itm_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* The parent does not need realize(). */
+    /* Call parent realize(). */
+    if (!cm_device_parent_realize(dev, errp, TYPE_CORTEXM_ITM)) {
+        return;
+    }
 
     CortexMITMState *state = CORTEXM_ITM_STATE(dev);
 

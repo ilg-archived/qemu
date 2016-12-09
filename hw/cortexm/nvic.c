@@ -619,7 +619,7 @@ static void cortexm_nvic_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    if (!cm_device_parent_realize(dev, NULL, TYPE_CORTEXM_NVIC)) {
+    if (!cm_device_parent_realize(dev, errp, TYPE_CORTEXM_NVIC)) {
         return;
     }
 
