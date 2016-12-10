@@ -687,7 +687,7 @@ static const STM32Capabilities stm32f429xx = {
 static const CortexMCoreCapabilities stm32f051x8_core = {
     .cpu_model = "cortex-m0",
     .has_mpu = false, /* itm? irqs? */
-    .nvic_bits = 4,
+    .nvic_bits = 2,
 /**/
 };
 
@@ -792,7 +792,16 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 64,
             .sram_size_kb = 8,
-            .core = &stm32f051x8_core, },
+
+            // TODO: remove
+            .core = &stm32f051x8_core,
+
+            .svd_file_name = "STM32F0x1-qemu.json",
+            .svd_device_name = "STM32F0x1",
+        /**/
+        },
+
+        // TODO: remove
         .stm32 = &stm32f051x8,
     /**/
     },
@@ -885,7 +894,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
 
             .svd_file_name = "STM32F40xx-qemu.json",
-            .svd_device_name = "STM32F40x", },
+            .svd_device_name = "STM32F40x",
+        /**/},
         // TODO: remove
         .stm32 = &stm32f407xx,
     /**/

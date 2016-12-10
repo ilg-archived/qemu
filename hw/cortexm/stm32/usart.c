@@ -82,6 +82,255 @@ static bool stm32_usart_is_enabled(Object *obj)
 
 /* ------------------------------------------------------------------------- */
 
+static void stm32f0x1_usart_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    // DO NOT EDIT! Automatically generated!
+    STM32USARTState *state = STM32_USART_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f0.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+    state->f0.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+    state->f0.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
+    state->f0.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+    state->f0.reg.gtpr = cm_object_get_child_by_name(obj, "GTPR");
+    state->f0.reg.rtor = cm_object_get_child_by_name(obj, "RTOR");
+    state->f0.reg.rqr = cm_object_get_child_by_name(obj, "RQR");
+    state->f0.reg.isr = cm_object_get_child_by_name(obj, "ISR");
+    state->f0.reg.icr = cm_object_get_child_by_name(obj, "ICR");
+    state->f0.reg.rdr = cm_object_get_child_by_name(obj, "RDR");
+    state->f0.reg.tdr = cm_object_get_child_by_name(obj, "TDR");
+
+    // CR1 bitfields.
+    state->f0.fld.cr1.ue = cm_object_get_child_by_name(state->f0.reg.cr1, "UE");
+    state->f0.fld.cr1.uesm = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "UESM");
+    state->f0.fld.cr1.re = cm_object_get_child_by_name(state->f0.reg.cr1, "RE");
+    state->f0.fld.cr1.te = cm_object_get_child_by_name(state->f0.reg.cr1, "TE");
+    state->f0.fld.cr1.idleie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "IDLEIE");
+    state->f0.fld.cr1.rxneie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "RXNEIE");
+    state->f0.fld.cr1.tcie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "TCIE");
+    state->f0.fld.cr1.txeie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "TXEIE");
+    state->f0.fld.cr1.peie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "PEIE");
+    state->f0.fld.cr1.ps = cm_object_get_child_by_name(state->f0.reg.cr1, "PS");
+    state->f0.fld.cr1.pce = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "PCE");
+    state->f0.fld.cr1.wake = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "WAKE");
+    state->f0.fld.cr1.m = cm_object_get_child_by_name(state->f0.reg.cr1, "M");
+    state->f0.fld.cr1.mme = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "MME");
+    state->f0.fld.cr1.cmie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "CMIE");
+    state->f0.fld.cr1.over8 = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "OVER8");
+    state->f0.fld.cr1.dedt = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "DEDT");
+    state->f0.fld.cr1.deat = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "DEAT");
+    state->f0.fld.cr1.rtoie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "RTOIE");
+    state->f0.fld.cr1.eobie = cm_object_get_child_by_name(state->f0.reg.cr1,
+            "EOBIE");
+    state->f0.fld.cr1.m1 = cm_object_get_child_by_name(state->f0.reg.cr1, "M1");
+
+    // CR2 bitfields.
+    state->f0.fld.cr2.addm7 = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "ADDM7");
+    state->f0.fld.cr2.lbdl = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "LBDL");
+    state->f0.fld.cr2.lbdie = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "LBDIE");
+    state->f0.fld.cr2.lbcl = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "LBCL");
+    state->f0.fld.cr2.cpha = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "CPHA");
+    state->f0.fld.cr2.cpol = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "CPOL");
+    state->f0.fld.cr2.clken = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "CLKEN");
+    state->f0.fld.cr2.stop = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "STOP");
+    state->f0.fld.cr2.linen = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "LINEN");
+    state->f0.fld.cr2.swap = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "SWAP");
+    state->f0.fld.cr2.rxinv = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "RXINV");
+    state->f0.fld.cr2.txinv = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "TXINV");
+    state->f0.fld.cr2.datainv = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "DATAINV");
+    state->f0.fld.cr2.msbfirst = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "MSBFIRST");
+    state->f0.fld.cr2.abren = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "ABREN");
+    state->f0.fld.cr2.abrmod = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "ABRMOD");
+    state->f0.fld.cr2.rtoen = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "RTOEN");
+    state->f0.fld.cr2.add0 = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "ADD0");
+    state->f0.fld.cr2.add4 = cm_object_get_child_by_name(state->f0.reg.cr2,
+            "ADD4");
+
+    // CR3 bitfields.
+    state->f0.fld.cr3.eie = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "EIE");
+    state->f0.fld.cr3.iren = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "IREN");
+    state->f0.fld.cr3.irlp = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "IRLP");
+    state->f0.fld.cr3.hdsel = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "HDSEL");
+    state->f0.fld.cr3.nack = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "NACK");
+    state->f0.fld.cr3.scen = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "SCEN");
+    state->f0.fld.cr3.dmar = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "DMAR");
+    state->f0.fld.cr3.dmat = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "DMAT");
+    state->f0.fld.cr3.rtse = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "RTSE");
+    state->f0.fld.cr3.ctse = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "CTSE");
+    state->f0.fld.cr3.ctsie = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "CTSIE");
+    state->f0.fld.cr3.onebit = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "ONEBIT");
+    state->f0.fld.cr3.ovrdis = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "OVRDIS");
+    state->f0.fld.cr3.ddre = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "DDRE");
+    state->f0.fld.cr3.dem = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "DEM");
+    state->f0.fld.cr3.dep = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "DEP");
+    state->f0.fld.cr3.scarcnt = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "SCARCNT");
+    state->f0.fld.cr3.wus = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "WUS");
+    state->f0.fld.cr3.wufie = cm_object_get_child_by_name(state->f0.reg.cr3,
+            "WUFIE");
+
+    // BRR bitfields.
+    state->f0.fld.brr.div_fraction = cm_object_get_child_by_name(
+            state->f0.reg.brr, "DIV_Fraction");
+    state->f0.fld.brr.div_mantissa = cm_object_get_child_by_name(
+            state->f0.reg.brr, "DIV_Mantissa");
+
+    // GTPR bitfields.
+    state->f0.fld.gtpr.psc = cm_object_get_child_by_name(state->f0.reg.gtpr,
+            "PSC");
+    state->f0.fld.gtpr.gt = cm_object_get_child_by_name(state->f0.reg.gtpr,
+            "GT");
+
+    // RTOR bitfields.
+    state->f0.fld.rtor.rto = cm_object_get_child_by_name(state->f0.reg.rtor,
+            "RTO");
+    state->f0.fld.rtor.blen = cm_object_get_child_by_name(state->f0.reg.rtor,
+            "BLEN");
+
+    // RQR bitfields.
+    state->f0.fld.rqr.abrrq = cm_object_get_child_by_name(state->f0.reg.rqr,
+            "ABRRQ");
+    state->f0.fld.rqr.sbkrq = cm_object_get_child_by_name(state->f0.reg.rqr,
+            "SBKRQ");
+    state->f0.fld.rqr.mmrq = cm_object_get_child_by_name(state->f0.reg.rqr,
+            "MMRQ");
+    state->f0.fld.rqr.rxfrq = cm_object_get_child_by_name(state->f0.reg.rqr,
+            "RXFRQ");
+    state->f0.fld.rqr.txfrq = cm_object_get_child_by_name(state->f0.reg.rqr,
+            "TXFRQ");
+
+    // ISR bitfields.
+    state->f0.fld.isr.pe = cm_object_get_child_by_name(state->f0.reg.isr, "PE");
+    state->f0.fld.isr.fe = cm_object_get_child_by_name(state->f0.reg.isr, "FE");
+    state->f0.fld.isr.nf = cm_object_get_child_by_name(state->f0.reg.isr, "NF");
+    state->f0.fld.isr.ore = cm_object_get_child_by_name(state->f0.reg.isr,
+            "ORE");
+    state->f0.fld.isr.idle = cm_object_get_child_by_name(state->f0.reg.isr,
+            "IDLE");
+    state->f0.fld.isr.rxne = cm_object_get_child_by_name(state->f0.reg.isr,
+            "RXNE");
+    state->f0.fld.isr.tc = cm_object_get_child_by_name(state->f0.reg.isr, "TC");
+    state->f0.fld.isr.txe = cm_object_get_child_by_name(state->f0.reg.isr,
+            "TXE");
+    state->f0.fld.isr.lbdf = cm_object_get_child_by_name(state->f0.reg.isr,
+            "LBDF");
+    state->f0.fld.isr.ctsif = cm_object_get_child_by_name(state->f0.reg.isr,
+            "CTSIF");
+    state->f0.fld.isr.cts = cm_object_get_child_by_name(state->f0.reg.isr,
+            "CTS");
+    state->f0.fld.isr.rtof = cm_object_get_child_by_name(state->f0.reg.isr,
+            "RTOF");
+    state->f0.fld.isr.eobf = cm_object_get_child_by_name(state->f0.reg.isr,
+            "EOBF");
+    state->f0.fld.isr.abre = cm_object_get_child_by_name(state->f0.reg.isr,
+            "ABRE");
+    state->f0.fld.isr.abrf = cm_object_get_child_by_name(state->f0.reg.isr,
+            "ABRF");
+    state->f0.fld.isr.busy = cm_object_get_child_by_name(state->f0.reg.isr,
+            "BUSY");
+    state->f0.fld.isr.cmf = cm_object_get_child_by_name(state->f0.reg.isr,
+            "CMF");
+    state->f0.fld.isr.sbkf = cm_object_get_child_by_name(state->f0.reg.isr,
+            "SBKF");
+    state->f0.fld.isr.rwu = cm_object_get_child_by_name(state->f0.reg.isr,
+            "RWU");
+    state->f0.fld.isr.wuf = cm_object_get_child_by_name(state->f0.reg.isr,
+            "WUF");
+    state->f0.fld.isr.teack = cm_object_get_child_by_name(state->f0.reg.isr,
+            "TEACK");
+    state->f0.fld.isr.reack = cm_object_get_child_by_name(state->f0.reg.isr,
+            "REACK");
+
+    // ICR bitfields.
+    state->f0.fld.icr.pecf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "PECF");
+    state->f0.fld.icr.fecf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "FECF");
+    state->f0.fld.icr.ncf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "NCF");
+    state->f0.fld.icr.orecf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "ORECF");
+    state->f0.fld.icr.idlecf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "IDLECF");
+    state->f0.fld.icr.tccf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "TCCF");
+    state->f0.fld.icr.lbdcf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "LBDCF");
+    state->f0.fld.icr.ctscf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "CTSCF");
+    state->f0.fld.icr.rtocf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "RTOCF");
+    state->f0.fld.icr.eobcf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "EOBCF");
+    state->f0.fld.icr.cmcf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "CMCF");
+    state->f0.fld.icr.wucf = cm_object_get_child_by_name(state->f0.reg.icr,
+            "WUCF");
+
+    // RDR bitfields.
+    state->f0.fld.rdr.rdr = cm_object_get_child_by_name(state->f0.reg.rdr,
+            "RDR");
+
+    // TDR bitfields.
+    state->f0.fld.tdr.tdr = cm_object_get_child_by_name(state->f0.reg.tdr,
+            "TDR");
+}
+
+/* ------------------------------------------------------------------------- */
+
 static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
         const char *name)
 {
@@ -202,6 +451,7 @@ static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
     state->f4.fld.gtpr.gt = cm_object_get_child_by_name(state->f4.reg.gtpr,
             "GT");
 }
+
 #if 0
 static PeripheralInfo stm32f4_usart_info =
 {
@@ -466,7 +716,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        if (state->port_index > STM32_USART_2) {
+        if (state->port_index > STM32_USART_8) {
             qemu_log_mask(LOG_GUEST_ERROR, "USART: Illegal USART port %d\n",
                     state->port_index);
             return;
@@ -476,6 +726,18 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
             addr = 0x40013800;
         } else if (state->port_index == STM32_USART_2) {
             addr = 0x40004400;
+        } else if (state->port_index == STM32_USART_3) {
+            addr = 0x40004800;
+        } else if (state->port_index == STM32_USART_4) {
+            addr = 0x40004C00;
+        } else if (state->port_index == STM32_USART_5) {
+            addr = 0x40005000;
+        } else if (state->port_index == STM32_USART_6) {
+            addr = 0x40011400;
+        } else if (state->port_index == STM32_USART_7) {
+            addr = 0x40011800;
+        } else if (state->port_index == STM32_USART_8) {
+            addr = 0x40011C00;
         } else {
             assert(false);
         }
@@ -512,7 +774,9 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        // TODO
+        stm32f0x1_usart_create_objects(obj, cm_state->svd_json, usart_name);
+
+        // TODO: add callbacks
         break;
 
     case STM32_FAMILY_F4:
@@ -548,9 +812,6 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         assert(false);
         break;
     }
-
-    // TODO: add index
-    cm_object_property_set_str(obj, "usart", "name");
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_USART)) {

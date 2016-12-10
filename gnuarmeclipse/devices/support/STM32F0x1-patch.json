@@ -1,0 +1,110 @@
+{
+    "comment": "Patch for QEMU use.",
+    "device": {
+        "name": "STM32F0x1",
+        "cpu": {
+            "name": "CM0",
+            "revision": "r0p0",
+            "endian": "little",
+            "mpuPresent": "false",
+            "fpuPresent": "false",
+            "nvicPrioBits": "2",
+            "deviceNumInterrupts": "31",
+            "vendorSystickConfig": "false"
+        },
+        "access": "read-write",
+        "qemuAlignment": "any",
+        "peripherals": [
+            {
+                "name": "EXTI",
+                "qemuAlignment": "word"
+            },
+            {
+                "name": "FLASH",
+                "qemuAlignment": "word"
+            },
+            {
+                "name": "PWR",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "RCC",
+                "qemuAlignment": "any"
+            },
+            {
+                "name": "SYSCFG",
+                "qemuAlignment": "any"
+            },
+            {
+                "name": "GPIOA",
+                "qemuAlignment": "any",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOB",
+                "qemuAlignment": "any",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOC",
+                "qemuAlignment": "any",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOD",
+                "qemuAlignment": "any",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOE",
+                "qemuAlignment": "any",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "GPIOF",
+                "qemuAlignment": "any",
+                "groupName": "GPIO"
+            },
+            {
+                "name": "USART1",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART2",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART3",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART4",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART5",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART6",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART7",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "USART8",
+                "groupName": "USART",
+                "qemuAlignment": "word-halfWord"
+            }
+        ]
+    }
+}

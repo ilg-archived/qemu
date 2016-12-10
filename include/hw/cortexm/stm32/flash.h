@@ -69,21 +69,86 @@ typedef struct {
 
     const STM32Capabilities *capabilities;
 
+    // DO NOT EDIT! Automatically generated!
     struct {
-        /* F1 specific registers */
+        // F0 Flash (Flash) registers.
         struct {
-            Object *acr; /* 0x00 */
-            Object *keyr; /* 0x04 */
-            Object *optkeyr; /* 0x08 */
-            Object *sr; /* 0x0C */
-            Object *cr; /* 0x10 */
-            Object *ar; /* 0x14 */
-            Object *obr; /* 0x1C */
-            Object *wrpr; /* 0x20 */
+            Object *acr; // 0x0 Flash access control register
+            Object *keyr; // 0x4 Flash key register
+            Object *optkeyr; // 0x8 Flash option key register
+            Object *sr; // 0xC Flash status register
+            Object *cr; // 0x10 Flash control register
+            Object *ar; // 0x14 Flash address register
+            Object *obr; // 0x1C Option byte register
+            Object *wrpr; // 0x20 Write protection register
         } reg;
+
         struct {
-            Object *prftbs;
-        } acr;
+
+            // ACR (Flash access control register) bitfields.
+            struct {
+                Object *latency; // [0:2] LATENCY
+                Object *prftbe; // [4:4] PRFTBE
+                Object *prftbs; // [5:5] PRFTBS
+            } acr;
+
+            // KEYR (Flash key register) bitfields.
+            struct {
+                Object *fkeyr; // [0:31] Flash Key
+            } keyr;
+
+            // OPTKEYR (Flash option key register) bitfields.
+            struct {
+                Object *optkeyr; // [0:31] Option byte key
+            } optkeyr;
+
+            // SR (Flash status register) bitfields.
+            struct {
+                Object *bsy; // [0:0] Busy
+                Object *pgerr; // [2:2] Programming error
+                Object *wrprt; // [4:4] Write protection error
+                Object *eop; // [5:5] End of operation
+            } sr;
+
+            // CR (Flash control register) bitfields.
+            struct {
+                Object *pg; // [0:0] Programming
+                Object *per; // [1:1] Page erase
+                Object *mer; // [2:2] Mass erase
+                Object *optpg; // [4:4] Option byte programming
+                Object *opter; // [5:5] Option byte erase
+                Object *strt; // [6:6] Start
+                Object *lock; // [7:7] Lock
+                Object *optwre; // [9:9] Option bytes write enable
+                Object *errie; // [10:10] Error interrupt enable
+                Object *eopie; // [12:12] End of operation interrupt enable
+                Object *force_optload; // [13:13] Force option byte loading
+            } cr;
+
+            // AR (Flash address register) bitfields.
+            struct {
+                Object *far; // [0:31] Flash address
+            } ar;
+
+            // OBR (Option byte register) bitfields.
+            struct {
+                Object *opterr; // [0:0] Option byte error
+                Object *level1_prot; // [1:1] Level 1 protection status
+                Object *level2_prot; // [2:2] Level 2 protection status
+                Object *wdg_sw; // [8:8] WDG_SW
+                Object *nrst_stop; // [9:9] NRST_STOP
+                Object *nrst_stdby; // [10:10] NRST_STDBY
+                Object *boot1; // [12:12] BOOT1
+                Object *vdda_monitor; // [13:13] VDDA_MONITOR
+                Object *data0; // [16:23] Data0
+                Object *data1; // [24:31] Data1
+            } obr;
+
+            // WRPR (Write protection register) bitfields.
+            struct {
+                Object *wrp; // [0:31] Write protect
+            } wrpr;
+        } fld;
     } f0;
 
     struct {
@@ -109,6 +174,7 @@ typedef struct {
         } acr;
     } f1;
 
+    // DO NOT EDIT! Automatically generated!
     struct {
         // F4 FLASH (FLASH) registers.
         struct {

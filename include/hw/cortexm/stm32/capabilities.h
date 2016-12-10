@@ -606,7 +606,21 @@ typedef struct {
      * The memory penalty is not significant.
      */
     struct {
+        // DEPRECATED, to be removed!
         unsigned int is_51xx :1;
+
+        /* The names follow the STM CMSIS SVD naming scheme,
+         * with the STM32F prefix removed. */
+        unsigned int is_0x0 :1;
+        unsigned int is_0x1 :1;
+        unsigned int is_0x2 :1;
+        unsigned int is_0x8 :1;
+        unsigned int is_0xx :1;
+        unsigned int is_030 :1;
+        unsigned int is_031x :1;
+        unsigned int is_042x :1;
+        unsigned int is_072x :1;
+        unsigned int is_091x :1;
     } f0;
 
     struct {

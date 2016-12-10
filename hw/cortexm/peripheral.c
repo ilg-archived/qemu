@@ -550,8 +550,8 @@ static void peripheral_reset_callback(DeviceState *dev)
 
     assert(state->mmio_address != 0);
 
-    qemu_log_mask(LOG_FUNC, "%s() address: 0x%08"PRIX64"\n", __FUNCTION__,
-            state->mmio_address);
+    qemu_log_mask(LOG_FUNC, "%s() '%s', address: 0x%08"PRIX64"\n", __FUNCTION__,
+            state->mmio_node_name, state->mmio_address);
 
     /* Call parent reset(). */
     cm_device_parent_reset(dev, TYPE_PERIPHERAL);

@@ -120,6 +120,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     if (strcmp("STM32F40x", svd_device_name) == 0) {
         capabilities->family = STM32_FAMILY_F4;
         capabilities->f4.is_40x = true;
+    } else if (strcmp("STM32F0x1", svd_device_name) == 0) {
+        capabilities->family = STM32_FAMILY_F0;
+        capabilities->f0.is_0x1 = true;
     } else {
         error_printf("Unsupported device name '%s'.\n", svd_device_name);
         // TODO: uncomment when all devices use svd
@@ -385,22 +388,22 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         create_usart(state, STM32_USART_3, capabilities);
     }
 
-#if 0
-    /* UART4 */
-    if (svd_has_named_peripheral(cm_state->svd_json, "UART4")) {
-        create_uart(state, STM32_UART_4, capabilities);
+    /* USART4 */
+    if (svd_has_named_peripheral(cm_state->svd_json, "USART4")) {
+        create_usart(state, STM32_USART_4, capabilities);
     }
 
-    /* UART5 */
-    if (svd_has_named_peripheral(cm_state->svd_json, "UART5")) {
-        create_uart(state, STM32_UART_5, capabilities);
+    /* USART5 */
+    if (svd_has_named_peripheral(cm_state->svd_json, "USART5")) {
+        create_usart(state, STM32_USART_5, capabilities);
     }
-#endif
 
     /* USART6 */
     if (svd_has_named_peripheral(cm_state->svd_json, "USART6")) {
         create_usart(state, STM32_USART_6, capabilities);
     }
+
+    // UARTS are separate from USARTS
 
     /* TODO: add more devices. */
 

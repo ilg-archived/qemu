@@ -8,22 +8,57 @@ The `*-patch.json` are patches to add content required by QEMU.
 cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices
 ```
 
+The development version of `xcdl` is:
+
+```
+/Users/ilg/My\ Files/MacBookPro\ Projects/XCDL/xcdl-js.git/bin/xcdl
+```
+
+## CPUID
+
+The `cpu.revision` value (a string like r0p0) is taken from SCB.CPUID, address 0xE000ED00.
+
+For the STM devices, this value is usually gives in the _Programming manual_, the _Core peripherals_ chapter.
+
+
+## Devices
+
 The commands used to generate the specifc xsvd files are:
 
-## STM32F40x
+### STM32F0x1
+
+```
+xcdl \
+generate-xsvd \
+-i /Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd \
+-o support/STM32F0x1-xsvd.json
+
+xcdl \
+patch-xsvd \
+--ifile "support/STM32F0x1-xsvd.json" \
+--patch-file "support/STM32F0x1-patch.json" \
+--ofile "STM32F0x1-qemu.json" \
+--code "support/STM32F0x1-code.c" \
+--vendor-prefix "STM32" \
+--device-family "F0" \
+--remove "NVIC" \
+
+
+```
+### STM32F40x
 
 ```
 xcdl \
 generate-xsvd \
 -i /Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd \
--o origs/STM32F40x-xsvd.json
+-o support/STM32F40x-xsvd.json
 
 xcdl \
 patch-xsvd \
---ifile "origs/STM32F40x-xsvd.json" \
---patch-file "origs/STM32F40x-patch.json" \
+--ifile "support/STM32F40x-xsvd.json" \
+--patch-file "support/STM32F40x-patch.json" \
 --ofile "STM32F40xx-qemu.json" \
---code "origs/STM32F40x-code.c" \
+--code "support/STM32F40x-code.c" \
 --vendor-prefix "STM32" \
 --device-family "F4" \
 --remove "NVIC" \

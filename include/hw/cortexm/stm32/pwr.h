@@ -69,27 +69,41 @@ typedef struct {
 
     MemoryRegion mmio;
 
+    // DO NOT EDIT! Automatically generated!
     struct {
-        /* F1 specific registers */
+        // F0 PWR (Power control) registers.
         struct {
-            Object *cr;
-            Object *csr;
+            Object *cr; // 0x0 Power control register
+            Object *csr; // 0x4 Power control/status register
         } reg;
+
         struct {
+
+            // CR (Power control register) bitfields.
             struct {
-                Object *lpds;
-                Object *pdds;
-                Object *cwuf;
-                Object *csbf;
-                Object *pvde;
-                Object *pls;
-                Object *dbp;
+                Object *lpds; // [0:0] Low-power deep sleep
+                Object *pdds; // [1:1] Power down deepsleep
+                Object *cwuf; // [2:2] Clear wakeup flag
+                Object *csbf; // [3:3] Clear standby flag
+                Object *pvde; // [4:4] Power voltage detector enable
+                Object *pls; // [5:7] PVD level selection
+                Object *dbp; // [8:8] Disable backup domain write protection
             } cr;
+
+            // CSR (Power control/status register) bitfields.
             struct {
-                Object *wuf;
-                Object *sbf;
-                Object *pvdo;
-                // Object *ewup;
+                Object *wuf; // [0:0] Wakeup flag
+                Object *sbf; // [1:1] Standby flag
+                Object *pvdo; // [2:2] PVD output
+                Object *vrefintrdy; // [3:3] VREFINT reference voltage ready
+                Object *ewup1; // [8:8] Enable WKUP pin 1
+                Object *ewup2; // [9:9] Enable WKUP pin 2
+                Object *ewup3; // [10:10] Enable WKUP pin 3
+                Object *ewup4; // [11:11] Enable WKUP pin 4
+                Object *ewup5; // [12:12] Enable WKUP pin 5
+                Object *ewup6; // [13:13] Enable WKUP pin 6
+                Object *ewup7; // [14:14] Enable WKUP pin 7
+                Object *ewup8; // [15:15] Enable WKUP pin 8
             } csr;
         } fld;
     } f0;
@@ -163,6 +177,8 @@ typedef struct {
         }fld;
     }f4;
 #endif
+
+    // DO NOT EDIT! Automatically generated!
     struct {
         // F4 PWR (Power control) registers.
         struct {
@@ -196,6 +212,7 @@ typedef struct {
             } csr;
         } fld;
     } f4;
+
     const STM32Capabilities *capabilities;
 } STM32PWRState;
 

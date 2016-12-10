@@ -34,6 +34,60 @@
 
 /* STM32F051xx */
 
+static void stm32f0x1_pwr_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    // DO NOT EDIT! Automatically generated!
+    STM32PWRState *state = STM32_PWR_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->f0.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+
+    // CR bitfields.
+    state->f0.fld.cr.lpds = cm_object_get_child_by_name(state->f0.reg.cr,
+            "LPDS");
+    state->f0.fld.cr.pdds = cm_object_get_child_by_name(state->f0.reg.cr,
+            "PDDS");
+    state->f0.fld.cr.cwuf = cm_object_get_child_by_name(state->f0.reg.cr,
+            "CWUF");
+    state->f0.fld.cr.csbf = cm_object_get_child_by_name(state->f0.reg.cr,
+            "CSBF");
+    state->f0.fld.cr.pvde = cm_object_get_child_by_name(state->f0.reg.cr,
+            "PVDE");
+    state->f0.fld.cr.pls = cm_object_get_child_by_name(state->f0.reg.cr, "PLS");
+    state->f0.fld.cr.dbp = cm_object_get_child_by_name(state->f0.reg.cr, "DBP");
+
+    // CSR bitfields.
+    state->f0.fld.csr.wuf = cm_object_get_child_by_name(state->f0.reg.csr,
+            "WUF");
+    state->f0.fld.csr.sbf = cm_object_get_child_by_name(state->f0.reg.csr,
+            "SBF");
+    state->f0.fld.csr.pvdo = cm_object_get_child_by_name(state->f0.reg.csr,
+            "PVDO");
+    state->f0.fld.csr.vrefintrdy = cm_object_get_child_by_name(
+            state->f0.reg.csr, "VREFINTRDY");
+    state->f0.fld.csr.ewup1 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP1");
+    state->f0.fld.csr.ewup2 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP2");
+    state->f0.fld.csr.ewup3 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP3");
+    state->f0.fld.csr.ewup4 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP4");
+    state->f0.fld.csr.ewup5 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP5");
+    state->f0.fld.csr.ewup6 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP6");
+    state->f0.fld.csr.ewup7 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP7");
+    state->f0.fld.csr.ewup8 = cm_object_get_child_by_name(state->f0.reg.csr,
+            "EWUP8");
+}
+
 #if 0
 static PeripheralInfo stm32f051xx_pwr_info =
 {
@@ -158,6 +212,7 @@ static PeripheralInfo stm32f051xx_pwr_info =
 };
 #endif
 
+#if 0
 static void stm32f051_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
@@ -193,6 +248,7 @@ static void stm32f051_pwr_create_objects(Object *obj, JSON_Value *family)
     // state->f0.fld.csr.ewup = cm_object_get_child_by_name(state->f0.reg.csr,
     //        "ewup");
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -1046,7 +1102,9 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        stm32f051_pwr_create_objects(obj, mcu->family_json);
+        stm32f0x1_pwr_create_objects(obj, cm_state->svd_json, "PWR");
+
+        // stm32f051_pwr_create_objects(obj, mcu->family_json);
         break;
 
     case STM32_FAMILY_F1:
