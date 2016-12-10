@@ -313,8 +313,8 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
 
     qemu_log_mask(LOG_FUNC,
             "%s() '%s[%d:%d]', mask: 0x%"PRIX64", shift: %d, mode: %s%s\n",
-            __FUNCTION__, state->name, state->first_bit,
-            state->first_bit + state->width_bits + 1, state->mask, state->shift,
+            __FUNCTION__, state->name, state->first_bit + state->width_bits + 1,
+            state->first_bit, state->mask, state->shift,
             state->is_readable ? "r" : "", state->is_writable ? "w" : "");
 }
 
