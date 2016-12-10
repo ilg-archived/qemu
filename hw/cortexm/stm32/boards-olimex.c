@@ -30,16 +30,20 @@
 
 static GPIOLEDInfo stm32_h103_leds_info[] = {
     {
-        .name = "green-led",
+        .name = "led:green",
         .active_low = true,
         .colour_message = "Green",
         .x = 97,
         .y = 243,
         .w = 14,
         .h = 12,
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 12, },
-    { }, /**/
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 12,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void stm32_h103_board_init_callback(MachineState *machine)
@@ -47,6 +51,8 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "STM32-H103.jpg");
 
     {
         /* Create the MCU */
@@ -59,11 +65,20 @@ static void stm32_h103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "STM32-H103.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    /* Create board LEDs. */
     gpio_led_create_from_info(peripheral, stm32_h103_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+#if 0
+    if (board_graphic_context != NULL) {
+        /* Create board buttons. */
+        button_reset_create_from_info(peripheral,
+                &stm32f0_discovery_button_reset_info, board_graphic_context);
+        button_gpio_create_from_info(peripheral,
+                stm32f0_discovery_buttons_user_info, board_graphic_context);
+    }
+#endif
 }
 
 static void stm32_h103_board_class_init_callback(ObjectClass *oc, void *data)
@@ -77,22 +92,28 @@ static void stm32_h103_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo stm32_h103_machine = {
     .name = BOARD_TYPE_NAME("STM32-H103"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = stm32_h103_board_class_init_callback };
+    .class_init = stm32_h103_board_class_init_callback
+/**/
+};
 
 /* ----- Olimex STM32-P103 ----- */
 
 static GPIOLEDInfo stm32_p103_leds_info[] = {
     {
-        .name = "red-led",
+        .name = "led:red",
         .active_low = true,
         .colour_message = "Red",
         .x = 331,
         .y = 362,
         .w = 12,
         .h = 10,
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 12, },
-    { }, /**/
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 12,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void stm32_p103_board_init_callback(MachineState *machine)
@@ -100,6 +121,8 @@ static void stm32_p103_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "STM32-P103.jpg");
 
     {
         /* Create the MCU */
@@ -112,11 +135,11 @@ static void stm32_p103_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "STM32-P103.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    /* Create board LEDs. */
     gpio_led_create_from_info(peripheral, stm32_p103_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
 }
 
 static void stm32_p103_board_class_init_callback(ObjectClass *oc, void *data)
@@ -130,7 +153,9 @@ static void stm32_p103_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo stm32_p103_machine = {
     .name = BOARD_TYPE_NAME("STM32-P103"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = stm32_p103_board_class_init_callback };
+    .class_init = stm32_p103_board_class_init_callback
+/**/
+};
 
 /* ----- Olimex OLIMEXINO-STM32 ----- */
 

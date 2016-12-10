@@ -32,7 +32,7 @@
 
 /* ------------------------------------------------------------------------- */
 
-/* STM32F051xx */
+/* STM32F051R8 */
 
 static void stm32f0x1_pwr_create_objects(Object *obj, JSON_Object *svd,
         const char *name)
@@ -252,7 +252,45 @@ static void stm32f051_pwr_create_objects(Object *obj, JSON_Value *family)
 
 /* ------------------------------------------------------------------------- */
 
-/* STM32F10xx */
+/* STM32F103RB */
+
+// DO NOT EDIT! Automatically generated!
+static void stm32f103xx_pwr_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    STM32PWRState *state = STM32_PWR_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+
+    // CR bitfields.
+    state->f1.fld.cr.lpds = cm_object_get_child_by_name(state->f1.reg.cr,
+            "LPDS");
+    state->f1.fld.cr.pdds = cm_object_get_child_by_name(state->f1.reg.cr,
+            "PDDS");
+    state->f1.fld.cr.cwuf = cm_object_get_child_by_name(state->f1.reg.cr,
+            "CWUF");
+    state->f1.fld.cr.csbf = cm_object_get_child_by_name(state->f1.reg.cr,
+            "CSBF");
+    state->f1.fld.cr.pvde = cm_object_get_child_by_name(state->f1.reg.cr,
+            "PVDE");
+    state->f1.fld.cr.pls = cm_object_get_child_by_name(state->f1.reg.cr, "PLS");
+    state->f1.fld.cr.dbp = cm_object_get_child_by_name(state->f1.reg.cr, "DBP");
+
+    // CSR bitfields.
+    state->f1.fld.csr.wuf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "WUF");
+    state->f1.fld.csr.sbf = cm_object_get_child_by_name(state->f1.reg.csr,
+            "SBF");
+    state->f1.fld.csr.pvdo = cm_object_get_child_by_name(state->f1.reg.csr,
+            "PVDO");
+    state->f1.fld.csr.ewup = cm_object_get_child_by_name(state->f1.reg.csr,
+            "EWUP");
+}
 
 #if 0
 static PeripheralInfo stm32f1_pwr_info =
@@ -348,6 +386,7 @@ static PeripheralInfo stm32f1_pwr_info =
 };
 #endif
 
+#if 0
 static void stm32f1xx_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
@@ -383,6 +422,7 @@ static void stm32f1xx_pwr_create_objects(Object *obj, JSON_Value *family)
     state->f1.fld.csr.ewup = cm_object_get_child_by_name(state->f1.reg.csr,
             "ewup");
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -562,6 +602,7 @@ static PeripheralInfo stm32f4_01_57_xx_pwr_info =
 };
 #endif
 
+#if 0
 static void stm32f4_01_57_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
@@ -609,6 +650,7 @@ static void stm32f4_01_57_pwr_create_objects(Object *obj, JSON_Value *family)
             "vosrdy");
 
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -753,6 +795,7 @@ static PeripheralInfo stm32f411xx_pwr_info =
 };
 #endif
 
+#if 0
 static void stm32f411_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
@@ -799,6 +842,8 @@ static void stm32f411_pwr_create_objects(Object *obj, JSON_Value *family)
             "vosrdy");
 
 }
+#endif
+
 /* ------------------------------------------------------------------------- */
 
 /* STM32F4_23_xxx */
@@ -980,6 +1025,7 @@ static PeripheralInfo stm32f4_23_xxx_pwr_info =
 };
 #endif
 
+#if 0
 static void stm32f4_23_x_pwr_create_objects(Object *obj, JSON_Value *family)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
@@ -1047,6 +1093,7 @@ static void stm32f4_23_x_pwr_create_objects(Object *obj, JSON_Value *family)
             "udrdy");
 #endif
 }
+#endif
 
 /* ------------------------------------------------------------------------- */
 
@@ -1108,7 +1155,10 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F1:
-        stm32f1xx_pwr_create_objects(obj, mcu->family_json);
+
+        stm32f103xx_pwr_create_objects(obj, cm_state->svd_json, "PWR");
+
+        // stm32f1xx_pwr_create_objects(obj, mcu->family_json);
         break;
 
     case STM32_FAMILY_F4:
@@ -1116,6 +1166,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
             stm32f40x_pwr_create_objects(obj, cm_state->svd_json, "PWR");
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "BRE", "follows");
+#if 0
         } else if (capabilities->f4.is_01_57_xx) {
             stm32f4_01_57_pwr_create_objects(obj, mcu->family_json);
             /* Auto bits. */
@@ -1128,6 +1179,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
             stm32f411_pwr_create_objects(obj, mcu->family_json);
             /* Auto bits. */
             cm_object_property_set_str(state->f4.fld.csr.brr, "bre", "follows");
+#endif
         }
 
         break;

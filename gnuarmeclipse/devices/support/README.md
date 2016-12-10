@@ -43,8 +43,28 @@ patch-xsvd \
 --device-family "F0" \
 --remove "NVIC" \
 
+```
+
+### STM32F103xx
 
 ```
+xcdl \
+generate-xsvd \
+-i /Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd \
+-o support/STM32F103xx-xsvd.json
+
+xcdl \
+patch-xsvd \
+--ifile "support/STM32F103xx-xsvd.json" \
+--patch-file "support/STM32F103xx-patch.json" \
+--ofile "STM32F103xx-qemu.json" \
+--code "support/STM32F103xx-code.c" \
+--vendor-prefix "STM32" \
+--device-family "F1" \
+--remove "NVIC" \
+
+```
+
 ### STM32F40x
 
 ```

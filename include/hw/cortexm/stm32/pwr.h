@@ -108,30 +108,37 @@ typedef struct {
         } fld;
     } f0;
 
+    // DO NOT EDIT! Automatically generated!
     struct {
-        /* F1 specific registers */
+        // F1 PWR (Power control) registers.
         struct {
-            Object *cr;
-            Object *csr;
+            Object *cr; // 0x0 Power control register (PWR_CR)
+            Object *csr; // 0x4 Power control register (PWR_CR)
         } reg;
+
         struct {
+
+            // CR (Power control register (PWR_CR)) bitfields.
             struct {
-                Object *lpds;
-                Object *pdds;
-                Object *cwuf;
-                Object *csbf;
-                Object *pvde;
-                Object *pls;
-                Object *dbp;
+                Object *lpds; // [0:0] Low Power Deep Sleep
+                Object *pdds; // [1:1] Power Down Deep Sleep
+                Object *cwuf; // [2:2] Clear Wake-up Flag
+                Object *csbf; // [3:3] Clear STANDBY Flag
+                Object *pvde; // [4:4] Power Voltage Detector Enable
+                Object *pls; // [5:7] PVD Level Selection
+                Object *dbp; // [8:8] Disable Backup Domain write protection
             } cr;
+
+            // CSR (Power control register (PWR_CR)) bitfields.
             struct {
-                Object *wuf;
-                Object *sbf;
-                Object *pvdo;
-                Object *ewup;
+                Object *wuf; // [0:0] Wake-Up Flag
+                Object *sbf; // [1:1] STANDBY Flag
+                Object *pvdo; // [2:2] PVD Output
+                Object *ewup; // [8:8] Enable WKUP pin
             } csr;
         } fld;
     } f1;
+
 #if 0
     struct {
         /* F4 specific registers */

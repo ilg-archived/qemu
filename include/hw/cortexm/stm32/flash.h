@@ -151,27 +151,83 @@ typedef struct {
         } fld;
     } f0;
 
+    // DO NOT EDIT! Automatically generated!
     struct {
-        /* F1 specific registers */
+        // F1 FLASH (FLASH) registers.
         struct {
-            Object *acr; /* 0x00 */
-            Object *keyr; /* 0x04 */
-            Object *optkeyr; /* 0x08 */
-            Object *sr; /* 0x0C */
-            Object *cr; /* 0x10 */
-            Object *ar; /* 0x14 */
-            Object *obr; /* 0x1C */
-            Object *wrpr; /* 0x20 */
-
-            /* XL only */
-            Object *keyr2; /* 0x44 */
-            Object *sr2; /* 0x4C */
-            Object *cr2; /* 0x50 */
-            Object *ar2; /* 0x54 */
+            Object *acr; // 0x0 Flash access control register
+            Object *keyr; // 0x4 Flash key register
+            Object *optkeyr; // 0x8 Flash option key register
+            Object *sr; // 0xC Status register
+            Object *cr; // 0x10 Control register
+            Object *ar; // 0x14 Flash address register
+            Object *obr; // 0x1C Option byte register
+            Object *wrpr; // 0x20 Write protection register
         } reg;
+
         struct {
-            Object *prftbs;
-        } acr;
+
+            // ACR (Flash access control register) bitfields.
+            struct {
+                Object *latency; // [0:2] Latency
+                Object *hlfcya; // [3:3] Flash half cycle access enable
+                Object *prftbe; // [4:4] Prefetch buffer enable
+                Object *prftbs; // [5:5] Prefetch buffer status
+            } acr;
+
+            // KEYR (Flash key register) bitfields.
+            struct {
+                Object *key; // [0:31] FPEC key
+            } keyr;
+
+            // OPTKEYR (Flash option key register) bitfields.
+            struct {
+                Object *optkey; // [0:31] Option byte key
+            } optkeyr;
+
+            // SR (Status register) bitfields.
+            struct {
+                Object *bsy; // [0:0] Busy
+                Object *pgerr; // [2:2] Programming error
+                Object *wrprterr; // [4:4] Write protection error
+                Object *eop; // [5:5] End of operation
+            } sr;
+
+            // CR (Control register) bitfields.
+            struct {
+                Object *pg; // [0:0] Programming
+                Object *per; // [1:1] Page Erase
+                Object *mer; // [2:2] Mass Erase
+                Object *optpg; // [4:4] Option byte programming
+                Object *opter; // [5:5] Option byte erase
+                Object *strt; // [6:6] Start
+                Object *lock; // [7:7] Lock
+                Object *optwre; // [9:9] Option bytes write enable
+                Object *errie; // [10:10] Error interrupt enable
+                Object *eopie; // [12:12] End of operation interrupt enable
+            } cr;
+
+            // AR (Flash address register) bitfields.
+            struct {
+                Object *far; // [0:31] Flash Address
+            } ar;
+
+            // OBR (Option byte register) bitfields.
+            struct {
+                Object *opterr; // [0:0] Option byte error
+                Object *rdprt; // [1:1] Read protection
+                Object *wdg_sw; // [2:2] WDG_SW
+                Object *nrst_stop; // [3:3] NRST_STOP
+                Object *nrst_stdby; // [4:4] NRST_STDBY
+                Object *data0; // [10:17] Data0
+                Object *data1; // [18:25] Data1
+            } obr;
+
+            // WRPR (Write protection register) bitfields.
+            struct {
+                Object *wrp; // [0:31] Write protect
+            } wrpr;
+        } fld;
     } f1;
 
     // DO NOT EDIT! Automatically generated!

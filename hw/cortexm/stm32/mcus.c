@@ -711,6 +711,7 @@ static const CortexMCoreCapabilities stm32f1xx_core = {
 /**/
 };
 
+// F107
 static const CortexMCoreCapabilities stm32f1cl_core = {
     .cpu_model = "cortex-m3",
     .has_mpu = true,
@@ -801,7 +802,6 @@ static const STM32PartInfo stm32_mcus[] = {
         /**/
         },
 
-        // TODO: remove
         .stm32 = &stm32f051x8,
     /**/
     },
@@ -820,7 +820,13 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 128,
             .sram_size_kb = 20,
-            .core = &stm32f1xx_core, /**/
+
+            // TODO: remove
+            .core = &stm32f1xx_core,
+
+            .svd_file_name = "STM32F103xx-qemu.json",
+            .svd_device_name = "STM32F103xx",
+        /**/
         },
         .stm32 = &stm32f103x8b,
     /**/
@@ -830,7 +836,8 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 256,
             .sram_size_kb = 64,
-            .core = &stm32f1cl_core, /**/
+            .core = &stm32f1cl_core,
+        /**/
         },
         .stm32 = &stm32f10_57_xx,
     /**/
@@ -840,7 +847,8 @@ static const STM32PartInfo stm32_mcus[] = {
         .cortexm = {
             .flash_size_kb = 384, /* 384+12 EEPROM */
             .sram_size_kb = 48,
-            .core = &stm32f152_core, /**/
+            .core = &stm32f152_core,
+        /**/
         },
         .stm32 = &stm32l15_12_xd,
     /**/
@@ -880,7 +888,8 @@ static const STM32PartInfo stm32_mcus[] = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
             .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
-        }, /**/
+        /**/
+        },
         .stm32 = &stm32f405xx,
     /**/
     },
