@@ -526,7 +526,11 @@ typedef struct {
     unsigned int has_usart1 :1;
     unsigned int has_usart2 :1;
     unsigned int has_usart3 :1;
+    unsigned int has_usart4 :1;
+    unsigned int has_usart5 :1;
     unsigned int has_usart6 :1;
+    unsigned int has_usart7 :1;
+    unsigned int has_usart8 :1;
     /* Universal asynchronous */
     unsigned int has_uart4 :1;
     unsigned int has_uart5 :1;
