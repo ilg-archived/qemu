@@ -26,14 +26,13 @@
  * This file implements the STM32 SYSCFG, used in F4, F0 devices.
  */
 
-/* ----- Private ----------------------------------------------------------- */
-
-/* ------------------------------------------------------------------------- */
-
+// ----- Generated code -------------------------------------------------------
+//
+// STM32F051R8
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_syscfg_create_objects(Object *obj, JSON_Object *svd,
         const char *name)
 {
-    // DO NOT EDIT! Automatically generated!
     STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
 
     JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -137,6 +136,84 @@ static void stm32f0x1_syscfg_create_objects(Object *obj, JSON_Object *svd,
     state->f0.fld.cfgr2.sram_pef = cm_object_get_child_by_name(
             state->f0.reg.cfgr2, "SRAM_PEF");
 }
+
+// ----------------------------------------------------------------------------
+
+// STM32F407VG
+// DO NOT EDIT! Automatically generated!
+static void stm32f40x_syscfg_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->f4.reg.memrm = cm_object_get_child_by_name(obj, "MEMRM");
+    state->f4.reg.pmc = cm_object_get_child_by_name(obj, "PMC");
+    state->f4.reg.exticr1 = cm_object_get_child_by_name(obj, "EXTICR1");
+    state->f4.reg.exticr2 = cm_object_get_child_by_name(obj, "EXTICR2");
+    state->f4.reg.exticr3 = cm_object_get_child_by_name(obj, "EXTICR3");
+    state->f4.reg.exticr4 = cm_object_get_child_by_name(obj, "EXTICR4");
+    state->f4.reg.cmpcr = cm_object_get_child_by_name(obj, "CMPCR");
+
+    // MEMRM bitfields.
+    state->f4.fld.memrm.mem_mode = cm_object_get_child_by_name(
+            state->f4.reg.memrm, "MEM_MODE");
+
+    // PMC bitfields.
+    state->f4.fld.pmc.mii_rmii_sel = cm_object_get_child_by_name(
+            state->f4.reg.pmc, "MII_RMII_SEL");
+
+    // EXTICR1 bitfields.
+    state->f4.fld.exticr1.exti0 = cm_object_get_child_by_name(
+            state->f4.reg.exticr1, "EXTI0");
+    state->f4.fld.exticr1.exti1 = cm_object_get_child_by_name(
+            state->f4.reg.exticr1, "EXTI1");
+    state->f4.fld.exticr1.exti2 = cm_object_get_child_by_name(
+            state->f4.reg.exticr1, "EXTI2");
+    state->f4.fld.exticr1.exti3 = cm_object_get_child_by_name(
+            state->f4.reg.exticr1, "EXTI3");
+
+    // EXTICR2 bitfields.
+    state->f4.fld.exticr2.exti4 = cm_object_get_child_by_name(
+            state->f4.reg.exticr2, "EXTI4");
+    state->f4.fld.exticr2.exti5 = cm_object_get_child_by_name(
+            state->f4.reg.exticr2, "EXTI5");
+    state->f4.fld.exticr2.exti6 = cm_object_get_child_by_name(
+            state->f4.reg.exticr2, "EXTI6");
+    state->f4.fld.exticr2.exti7 = cm_object_get_child_by_name(
+            state->f4.reg.exticr2, "EXTI7");
+
+    // EXTICR3 bitfields.
+    state->f4.fld.exticr3.exti8 = cm_object_get_child_by_name(
+            state->f4.reg.exticr3, "EXTI8");
+    state->f4.fld.exticr3.exti9 = cm_object_get_child_by_name(
+            state->f4.reg.exticr3, "EXTI9");
+    state->f4.fld.exticr3.exti10 = cm_object_get_child_by_name(
+            state->f4.reg.exticr3, "EXTI10");
+    state->f4.fld.exticr3.exti11 = cm_object_get_child_by_name(
+            state->f4.reg.exticr3, "EXTI11");
+
+    // EXTICR4 bitfields.
+    state->f4.fld.exticr4.exti12 = cm_object_get_child_by_name(
+            state->f4.reg.exticr4, "EXTI12");
+    state->f4.fld.exticr4.exti13 = cm_object_get_child_by_name(
+            state->f4.reg.exticr4, "EXTI13");
+    state->f4.fld.exticr4.exti14 = cm_object_get_child_by_name(
+            state->f4.reg.exticr4, "EXTI14");
+    state->f4.fld.exticr4.exti15 = cm_object_get_child_by_name(
+            state->f4.reg.exticr4, "EXTI15");
+
+    // CMPCR bitfields.
+    state->f4.fld.cmpcr.cmp_pd = cm_object_get_child_by_name(
+            state->f4.reg.cmpcr, "CMP_PD");
+    state->f4.fld.cmpcr.ready = cm_object_get_child_by_name(state->f4.reg.cmpcr,
+            "READY");
+}
+
+// ----- Private --------------------------------------------------------------
 
 #if 0
 static PeripheralInfo stm32f051xx_syscfg_info =
@@ -406,79 +483,6 @@ static void stm32f051_syscfg_create_objects(Object *obj, JSON_Value *family)
 #endif
 
 /* ------------------------------------------------------------------------- */
-
-static void stm32f40x_syscfg_create_objects(Object *obj, JSON_Object *svd,
-        const char *name)
-{
-    // DO NOT EDIT! Automatically generated!
-    STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
-
-    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
-    svd_add_peripheral_properties_and_children(obj, periph, svd);
-
-    // Registers.
-    state->f4.reg.memrm = cm_object_get_child_by_name(obj, "MEMRM");
-    state->f4.reg.pmc = cm_object_get_child_by_name(obj, "PMC");
-    state->f4.reg.exticr1 = cm_object_get_child_by_name(obj, "EXTICR1");
-    state->f4.reg.exticr2 = cm_object_get_child_by_name(obj, "EXTICR2");
-    state->f4.reg.exticr3 = cm_object_get_child_by_name(obj, "EXTICR3");
-    state->f4.reg.exticr4 = cm_object_get_child_by_name(obj, "EXTICR4");
-    state->f4.reg.cmpcr = cm_object_get_child_by_name(obj, "CMPCR");
-
-    // MEMRM bitfields.
-    state->f4.fld.memrm.mem_mode = cm_object_get_child_by_name(
-            state->f4.reg.memrm, "MEM_MODE");
-
-    // PMC bitfields.
-    state->f4.fld.pmc.mii_rmii_sel = cm_object_get_child_by_name(
-            state->f4.reg.pmc, "MII_RMII_SEL");
-
-    // EXTICR1 bitfields.
-    state->f4.fld.exticr1.exti0 = cm_object_get_child_by_name(
-            state->f4.reg.exticr1, "EXTI0");
-    state->f4.fld.exticr1.exti1 = cm_object_get_child_by_name(
-            state->f4.reg.exticr1, "EXTI1");
-    state->f4.fld.exticr1.exti2 = cm_object_get_child_by_name(
-            state->f4.reg.exticr1, "EXTI2");
-    state->f4.fld.exticr1.exti3 = cm_object_get_child_by_name(
-            state->f4.reg.exticr1, "EXTI3");
-
-    // EXTICR2 bitfields.
-    state->f4.fld.exticr2.exti4 = cm_object_get_child_by_name(
-            state->f4.reg.exticr2, "EXTI4");
-    state->f4.fld.exticr2.exti5 = cm_object_get_child_by_name(
-            state->f4.reg.exticr2, "EXTI5");
-    state->f4.fld.exticr2.exti6 = cm_object_get_child_by_name(
-            state->f4.reg.exticr2, "EXTI6");
-    state->f4.fld.exticr2.exti7 = cm_object_get_child_by_name(
-            state->f4.reg.exticr2, "EXTI7");
-
-    // EXTICR3 bitfields.
-    state->f4.fld.exticr3.exti8 = cm_object_get_child_by_name(
-            state->f4.reg.exticr3, "EXTI8");
-    state->f4.fld.exticr3.exti9 = cm_object_get_child_by_name(
-            state->f4.reg.exticr3, "EXTI9");
-    state->f4.fld.exticr3.exti10 = cm_object_get_child_by_name(
-            state->f4.reg.exticr3, "EXTI10");
-    state->f4.fld.exticr3.exti11 = cm_object_get_child_by_name(
-            state->f4.reg.exticr3, "EXTI11");
-
-    // EXTICR4 bitfields.
-    state->f4.fld.exticr4.exti12 = cm_object_get_child_by_name(
-            state->f4.reg.exticr4, "EXTI12");
-    state->f4.fld.exticr4.exti13 = cm_object_get_child_by_name(
-            state->f4.reg.exticr4, "EXTI13");
-    state->f4.fld.exticr4.exti14 = cm_object_get_child_by_name(
-            state->f4.reg.exticr4, "EXTI14");
-    state->f4.fld.exticr4.exti15 = cm_object_get_child_by_name(
-            state->f4.reg.exticr4, "EXTI15");
-
-    // CMPCR bitfields.
-    state->f4.fld.cmpcr.cmp_pd = cm_object_get_child_by_name(
-            state->f4.reg.cmpcr, "CMP_PD");
-    state->f4.fld.cmpcr.ready = cm_object_get_child_by_name(state->f4.reg.cmpcr,
-            "READY");
-}
 
 #if 0
 static PeripheralInfo stm32f4xxxx_syscfg_info =
@@ -843,6 +847,8 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
 
     Object *obj = OBJECT(dev);
 
+    const char *periph_name = "SYSCFG";
+
     /*
      * Creating the memory region in the parent class will trigger
      * an assertion if zro address or size.
@@ -871,55 +877,71 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        // stm32f051_syscfg_create_objects(obj, mcu->family_json);
-        stm32f0x1_syscfg_create_objects(obj, cm_state->svd_json, "SYSCFG");
+        if (capabilities->f0.is_0x1) {
 
-        // For easier access, also maintain an array.
-        state->exticr.exti[0] = state->f0.fld.exticr1.exti0;
-        state->exticr.exti[1] = state->f0.fld.exticr1.exti1;
-        state->exticr.exti[2] = state->f0.fld.exticr1.exti2;
-        state->exticr.exti[3] = state->f0.fld.exticr1.exti3;
-        state->exticr.exti[4] = state->f0.fld.exticr2.exti4;
-        state->exticr.exti[5] = state->f0.fld.exticr2.exti5;
-        state->exticr.exti[6] = state->f0.fld.exticr2.exti6;
-        state->exticr.exti[7] = state->f0.fld.exticr2.exti7;
-        state->exticr.exti[8] = state->f0.fld.exticr3.exti8;
-        state->exticr.exti[9] = state->f0.fld.exticr3.exti9;
-        state->exticr.exti[10] = state->f0.fld.exticr3.exti10;
-        state->exticr.exti[11] = state->f0.fld.exticr3.exti11;
-        state->exticr.exti[12] = state->f0.fld.exticr4.exti12;
-        state->exticr.exti[13] = state->f0.fld.exticr4.exti13;
-        state->exticr.exti[14] = state->f0.fld.exticr4.exti14;
-        state->exticr.exti[15] = state->f0.fld.exticr4.exti15;
+            // stm32f051_syscfg_create_objects(obj, mcu->family_json);
+            stm32f0x1_syscfg_create_objects(obj, cm_state->svd_json,
+                    periph_name);
+
+            // For easier access, also maintain an array.
+            state->exticr.exti[0] = state->f0.fld.exticr1.exti0;
+            state->exticr.exti[1] = state->f0.fld.exticr1.exti1;
+            state->exticr.exti[2] = state->f0.fld.exticr1.exti2;
+            state->exticr.exti[3] = state->f0.fld.exticr1.exti3;
+            state->exticr.exti[4] = state->f0.fld.exticr2.exti4;
+            state->exticr.exti[5] = state->f0.fld.exticr2.exti5;
+            state->exticr.exti[6] = state->f0.fld.exticr2.exti6;
+            state->exticr.exti[7] = state->f0.fld.exticr2.exti7;
+            state->exticr.exti[8] = state->f0.fld.exticr3.exti8;
+            state->exticr.exti[9] = state->f0.fld.exticr3.exti9;
+            state->exticr.exti[10] = state->f0.fld.exticr3.exti10;
+            state->exticr.exti[11] = state->f0.fld.exticr3.exti11;
+            state->exticr.exti[12] = state->f0.fld.exticr4.exti12;
+            state->exticr.exti[13] = state->f0.fld.exticr4.exti13;
+            state->exticr.exti[14] = state->f0.fld.exticr4.exti14;
+            state->exticr.exti[15] = state->f0.fld.exticr4.exti15;
+
+        } else {
+            assert(false);
+        }
 
         break;
 
     case STM32_FAMILY_F4:
-        stm32f40x_syscfg_create_objects(obj, cm_state->svd_json, "SYSCFG");
 
-        // For easier access, also maintain an array.
-        state->exticr.exti[0] = state->f4.fld.exticr1.exti0;
-        state->exticr.exti[1] = state->f4.fld.exticr1.exti1;
-        state->exticr.exti[2] = state->f4.fld.exticr1.exti2;
-        state->exticr.exti[3] = state->f4.fld.exticr1.exti3;
-        state->exticr.exti[4] = state->f4.fld.exticr2.exti4;
-        state->exticr.exti[5] = state->f4.fld.exticr2.exti5;
-        state->exticr.exti[6] = state->f4.fld.exticr2.exti6;
-        state->exticr.exti[7] = state->f4.fld.exticr2.exti7;
-        state->exticr.exti[8] = state->f4.fld.exticr3.exti8;
-        state->exticr.exti[9] = state->f4.fld.exticr3.exti9;
-        state->exticr.exti[10] = state->f4.fld.exticr3.exti10;
-        state->exticr.exti[11] = state->f4.fld.exticr3.exti11;
-        state->exticr.exti[12] = state->f4.fld.exticr4.exti12;
-        state->exticr.exti[13] = state->f4.fld.exticr4.exti13;
-        state->exticr.exti[14] = state->f4.fld.exticr4.exti14;
-        state->exticr.exti[15] = state->f4.fld.exticr4.exti15;
+        if (capabilities->f4.is_40x) {
 
-        // Actions.
-        cm_object_property_set_str(state->f4.fld.cmpcr.ready, "CMP_PD",
-                "follows");
+            stm32f40x_syscfg_create_objects(obj, cm_state->svd_json,
+                    periph_name);
 
-        //stm32f4xx_syscfg_create_objects(obj, mcu->family_json);
+            // For easier access, also maintain an array.
+            state->exticr.exti[0] = state->f4.fld.exticr1.exti0;
+            state->exticr.exti[1] = state->f4.fld.exticr1.exti1;
+            state->exticr.exti[2] = state->f4.fld.exticr1.exti2;
+            state->exticr.exti[3] = state->f4.fld.exticr1.exti3;
+            state->exticr.exti[4] = state->f4.fld.exticr2.exti4;
+            state->exticr.exti[5] = state->f4.fld.exticr2.exti5;
+            state->exticr.exti[6] = state->f4.fld.exticr2.exti6;
+            state->exticr.exti[7] = state->f4.fld.exticr2.exti7;
+            state->exticr.exti[8] = state->f4.fld.exticr3.exti8;
+            state->exticr.exti[9] = state->f4.fld.exticr3.exti9;
+            state->exticr.exti[10] = state->f4.fld.exticr3.exti10;
+            state->exticr.exti[11] = state->f4.fld.exticr3.exti11;
+            state->exticr.exti[12] = state->f4.fld.exticr4.exti12;
+            state->exticr.exti[13] = state->f4.fld.exticr4.exti13;
+            state->exticr.exti[14] = state->f4.fld.exticr4.exti14;
+            state->exticr.exti[15] = state->f4.fld.exticr4.exti15;
+
+            // Actions.
+            cm_object_property_set_str(state->f4.fld.cmpcr.ready, "CMP_PD",
+                    "follows");
+
+            //stm32f4xx_syscfg_create_objects(obj, mcu->family_json);
+
+        } else {
+            assert(false);
+        }
+
         break;
 
     default:

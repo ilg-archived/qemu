@@ -41,51 +41,13 @@
 #define USART_CR1_TE        (1 << 3)
 #define USART_CR1_RE        (1 << 2)
 
-/* ------------------------------------------------------------------------- */
+// ----- Generated code -------------------------------------------------------
 
-// TODO: rework reference to RCC to use links.
-static bool stm32_usart_is_enabled(Object *obj)
-{
-    STM32USARTState *state = STM32_USART_STATE(obj);
-
-    const STM32Capabilities *capabilities = state->capabilities;
-    assert(capabilities != NULL);
-
-    switch (capabilities->family) {
-
-    case STM32_FAMILY_F4:
-        if (state->port_index == STM32_USART_1) {
-            if ((peripheral_register_read_value(state->rcc->f4.reg.apb2enr)
-                    & 0x10) != 0) {
-                return true;
-            }
-        } else if (state->port_index == STM32_USART_6) {
-            if ((peripheral_register_read_value(state->rcc->f4.reg.apb2enr)
-                    & 0x20) != 0) {
-                return true;
-            }
-        } else {
-            if ((peripheral_register_read_value(state->rcc->f4.reg.apb1enr)
-                    & (0x20000 << (state->port_index - STM32_USART_2))) != 0) {
-                return true;
-            }
-            break;
-        }
-        break;
-
-    default:
-        break;
-    }
-
-    return false;
-}
-
-/* ------------------------------------------------------------------------- */
-
+// STM32F051R8
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_usart_create_objects(Object *obj, JSON_Object *svd,
         const char *name)
 {
-    // DO NOT EDIT! Automatically generated!
     STM32USARTState *state = STM32_USART_STATE(obj);
 
     JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -329,8 +291,9 @@ static void stm32f0x1_usart_create_objects(Object *obj, JSON_Object *svd,
             "TDR");
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// STM32F103RB
 // DO NOT EDIT! Automatically generated!
 static void stm32f103xx_usart_create_objects(Object *obj, JSON_Object *svd,
         const char *name)
@@ -448,12 +411,13 @@ static void stm32f103xx_usart_create_objects(Object *obj, JSON_Object *svd,
             "GT");
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// STM32F407VG
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
         const char *name)
 {
-    // DO NOT EDIT! Automatically generated!
     STM32USARTState *state = STM32_USART_STATE(obj);
 
     JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -569,6 +533,45 @@ static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
             "PSC");
     state->f4.fld.gtpr.gt = cm_object_get_child_by_name(state->f4.reg.gtpr,
             "GT");
+}
+
+// ----- Private --------------------------------------------------------------
+
+// TODO: rework reference to RCC to use links.
+static bool stm32_usart_is_enabled(Object *obj)
+{
+    STM32USARTState *state = STM32_USART_STATE(obj);
+
+    const STM32Capabilities *capabilities = state->capabilities;
+    assert(capabilities != NULL);
+
+    switch (capabilities->family) {
+
+    case STM32_FAMILY_F4:
+        if (state->port_index == STM32_USART_1) {
+            if ((peripheral_register_read_value(state->rcc->f4.reg.apb2enr)
+                    & 0x10) != 0) {
+                return true;
+            }
+        } else if (state->port_index == STM32_USART_6) {
+            if ((peripheral_register_read_value(state->rcc->f4.reg.apb2enr)
+                    & 0x20) != 0) {
+                return true;
+            }
+        } else {
+            if ((peripheral_register_read_value(state->rcc->f4.reg.apb1enr)
+                    & (0x20000 << (state->port_index - STM32_USART_2))) != 0) {
+                return true;
+            }
+            break;
+        }
+        break;
+
+    default:
+        break;
+    }
+
+    return false;
 }
 
 #if 0
@@ -812,6 +815,10 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     Object *obj = OBJECT(dev);
 
+    char periph_name[10];
+    snprintf(periph_name, sizeof(periph_name) - 1, "USART%d",
+            state->port_index - STM32_USART_1 + 1);
+
     /* Must be defined before creating registers. */
     cm_object_property_set_int(obj, 4, "register-size-bytes");
 
@@ -828,10 +835,6 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     const STM32Capabilities *capabilities =
     STM32_USART_STATE(state)->capabilities;
     assert(capabilities != NULL);
-
-    char usart_name[10];
-    snprintf(usart_name, sizeof(usart_name) - 1, "USART%d",
-            state->port_index - STM32_USART_1 + 1);
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
@@ -912,51 +915,69 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        stm32f0x1_usart_create_objects(obj, cm_state->svd_json, usart_name);
+        if (capabilities->f0.is_0x1) {
+            stm32f0x1_usart_create_objects(obj, cm_state->svd_json,
+                    periph_name);
 
-        // TODO: add callbacks
+            // TODO: add callbacks
+        } else {
+            assert(false);
+        }
+
         break;
 
     case STM32_FAMILY_F1:
 
-        stm32f103xx_usart_create_objects(obj, cm_state->svd_json, usart_name);
+        if (capabilities->f1.is_103xx) {
+            stm32f103xx_usart_create_objects(obj, cm_state->svd_json,
+                    periph_name);
 
-        state->reg.sr = state->f1.reg.sr;
-        state->reg.dr = state->f1.reg.dr;
-        state->reg.brr = state->f1.reg.brr;
-        state->reg.cr1 = state->f1.reg.cr1;
-        state->reg.cr2 = state->f1.reg.cr2;
-        state->reg.cr3 = state->f1.reg.cr3;
-        state->reg.gtpr = state->f1.reg.gtpr;
+            state->reg.sr = state->f1.reg.sr;
+            state->reg.dr = state->f1.reg.dr;
+            state->reg.brr = state->f1.reg.brr;
+            state->reg.cr1 = state->f1.reg.cr1;
+            state->reg.cr2 = state->f1.reg.cr2;
+            state->reg.cr3 = state->f1.reg.cr3;
+            state->reg.gtpr = state->f1.reg.gtpr;
 
-        // TODO: add callbacks
+            // TODO: add callbacks
+        } else {
+            assert(false);
+        }
+
         break;
 
     case STM32_FAMILY_F4:
 
-        // stm32f4xx_usart_create_objects(obj, mcu->family_json);
-        stm32f40x_usart_create_objects(obj, cm_state->svd_json, usart_name);
+        if (capabilities->f4.is_40x) {
+            // stm32f4xx_usart_create_objects(obj, mcu->family_json);
+            stm32f40x_usart_create_objects(obj, cm_state->svd_json,
+                    periph_name);
 
-        state->reg.sr = state->f4.reg.sr;
-        state->reg.dr = state->f4.reg.dr;
-        state->reg.brr = state->f4.reg.brr;
-        state->reg.cr1 = state->f4.reg.cr1;
-        state->reg.cr2 = state->f4.reg.cr2;
-        state->reg.cr3 = state->f4.reg.cr3;
-        state->reg.gtpr = state->f4.reg.gtpr;
+            state->reg.sr = state->f4.reg.sr;
+            state->reg.dr = state->f4.reg.dr;
+            state->reg.brr = state->f4.reg.brr;
+            state->reg.cr1 = state->f4.reg.cr1;
+            state->reg.cr2 = state->f4.reg.cr2;
+            state->reg.cr3 = state->f4.reg.cr3;
+            state->reg.gtpr = state->f4.reg.gtpr;
 
-        /* Register callbacks. */
-        peripheral_register_set_post_read(state->reg.dr,
-                &stm32f4_usart_dr_post_read_callback);
-        peripheral_register_set_post_write(state->reg.dr,
-                &stm32f4_usart_dr_post_write_callback);
-        peripheral_register_set_post_write(state->reg.cr1,
-                &stm32f4_usart_cr1_post_write_callback);
+            /* Register callbacks. */
+            peripheral_register_set_post_read(state->reg.dr,
+                    &stm32f4_usart_dr_post_read_callback);
+            peripheral_register_set_post_write(state->reg.dr,
+                    &stm32f4_usart_dr_post_write_callback);
+            peripheral_register_set_post_write(state->reg.cr1,
+                    &stm32f4_usart_cr1_post_write_callback);
 
-        /* char-device callbacks. */
-        if (state->chr) {
-            qemu_chr_add_handlers(state->chr, stm32f4_usart_can_receive,
-                    stm32f4_usart_receive, NULL, obj);
+            /* char-device callbacks. */
+            if (state->chr) {
+                qemu_chr_add_handlers(state->chr, stm32f4_usart_can_receive,
+                        stm32f4_usart_receive, NULL, obj);
+            }
+
+        } else {
+            assert(false);
         }
 
         break;
