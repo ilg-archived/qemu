@@ -5,12 +5,12 @@
 			"tool": "xcdl",
 			"command": [
 				"generate-xsvd",
-				"-i",
+				"--ifile",
 				"/Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd",
-				"-o",
+				"--ofile",
 				"support/STM32F103xx-xsvd.json"
 			],
-			"date": "2016-12-10T12:19:52.429Z"
+			"date": "2016-12-12T19:22:24.281Z"
 		}
 	],
 	"device": {
@@ -33,12 +33,14 @@
 				"description": "Flexible static memory controller",
 				"groupName": "FSMC",
 				"baseAddress": "0xA0000000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x1000",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x1000",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "FSMC",
 						"description": "FSMC global interrupt",
@@ -1460,12 +1462,14 @@
 				"description": "Power control",
 				"groupName": "PWR",
 				"baseAddress": "0x40007000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "PVD",
 						"description": "PVD through EXTI line detection interrupt",
@@ -1571,12 +1575,14 @@
 				"description": "Reset and clock control",
 				"groupName": "RCC",
 				"baseAddress": "0x40021000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "RCC",
 						"description": "RCC global interrupt",
@@ -2601,11 +2607,13 @@
 				"description": "General purpose I/O",
 				"groupName": "GPIO",
 				"baseAddress": "0x40010800",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "CRL",
@@ -3495,11 +3503,13 @@
 				"description": "Alternate function I/O",
 				"groupName": "AFIO",
 				"baseAddress": "0x40010000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "EVCR",
@@ -3853,12 +3863,14 @@
 				"description": "EXTI",
 				"groupName": "EXTI",
 				"baseAddress": "0x40010400",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "TAMPER",
 						"description": "Tamper interrupt",
@@ -4658,12 +4670,14 @@
 				"description": "DMA controller",
 				"groupName": "DMA",
 				"baseAddress": "0x40020000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "DMA1_Channel1",
 						"description": "DMA1 Channel1 global interrupt",
@@ -6003,7 +6017,7 @@
 				"name": "DMA2",
 				"derivedFrom": "DMA1",
 				"baseAddress": "0x40020400",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "DMA2_Channel1",
 						"description": "DMA2 Channel1 global interrupt",
@@ -6031,12 +6045,14 @@
 				"description": "Secure digital input/output interface",
 				"groupName": "SDIO",
 				"baseAddress": "0x40018000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "SDIO",
 						"description": "SDIO global interrupt",
@@ -6837,12 +6853,14 @@
 				"description": "Real time clock",
 				"groupName": "RTC",
 				"baseAddress": "0x40002800",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "RTC",
 						"description": "RTC global interrupt",
@@ -7079,11 +7097,13 @@
 				"description": "Backup registers",
 				"groupName": "BKP",
 				"baseAddress": "0x40006C04",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "DR1",
@@ -7909,11 +7929,13 @@
 				"description": "Independent watchdog",
 				"groupName": "IWDG",
 				"baseAddress": "0x40003000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "KR",
@@ -7996,12 +8018,14 @@
 				"description": "Window watchdog",
 				"groupName": "WWDG",
 				"baseAddress": "0x40002C00",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "WWDG",
 						"description": "Window Watchdog interrupt",
@@ -8085,12 +8109,14 @@
 				"description": "Advanced timer",
 				"groupName": "TIM",
 				"baseAddress": "0x40012C00",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "TIM1_BRK_TIM9",
 						"description": "TIM1 Break interrupt and TIM9 global interrupt",
@@ -9125,7 +9151,7 @@
 				"name": "TIM8",
 				"derivedFrom": "TIM1",
 				"baseAddress": "0x40013400",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM8_BRK_TIM12",
 						"description": "TIM8 Break interrupt and TIM12 global interrupt",
@@ -9153,12 +9179,14 @@
 				"description": "General purpose timer",
 				"groupName": "TIM",
 				"baseAddress": "0x40000000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "TIM2",
 						"description": "TIM2 global interrupt",
@@ -9970,7 +9998,7 @@
 				"name": "TIM3",
 				"derivedFrom": "TIM2",
 				"baseAddress": "0x40000400",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM3",
 						"description": "TIM3 global interrupt",
@@ -9982,7 +10010,7 @@
 				"name": "TIM4",
 				"derivedFrom": "TIM2",
 				"baseAddress": "0x40000800",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM4",
 						"description": "TIM4 global interrupt",
@@ -9994,7 +10022,7 @@
 				"name": "TIM5",
 				"derivedFrom": "TIM2",
 				"baseAddress": "0x40000C00",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM5",
 						"description": "TIM5 global interrupt",
@@ -10007,12 +10035,14 @@
 				"description": "General purpose timer",
 				"groupName": "TIM",
 				"baseAddress": "0x40014C00",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "TIM1_BRK_TIM9",
 						"description": "TIM1 Break interrupt and TIM9 global interrupt",
@@ -10475,7 +10505,7 @@
 				"name": "TIM12",
 				"derivedFrom": "TIM9",
 				"baseAddress": "0x40001800",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM8_BRK_TIM12",
 						"description": "TIM8 Break interrupt and TIM12 global interrupt",
@@ -10488,12 +10518,14 @@
 				"description": "General purpose timer",
 				"groupName": "TIM",
 				"baseAddress": "0x40015000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "TIM1_UP_TIM10",
 						"description": "TIM1 Update interrupt and TIM10 global interrupt",
@@ -10796,7 +10828,7 @@
 				"name": "TIM11",
 				"derivedFrom": "TIM10",
 				"baseAddress": "0x40015400",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM1_TRG_COM_TIM11",
 						"description": "TIM1 Trigger and Commutation interrupts and TIM11 global interrupt",
@@ -10808,7 +10840,7 @@
 				"name": "TIM13",
 				"derivedFrom": "TIM10",
 				"baseAddress": "0x40001C00",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM8_UP_TIM13",
 						"description": "TIM8 Update interrupt and TIM13 global interrupt",
@@ -10820,7 +10852,7 @@
 				"name": "TIM14",
 				"derivedFrom": "TIM10",
 				"baseAddress": "0x40002000",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM8_TRG_COM_TIM14",
 						"description": "TIM8 Trigger and Commutation interrupts and TIM14 global interrupt",
@@ -10833,12 +10865,14 @@
 				"description": "Basic timer",
 				"groupName": "TIM",
 				"baseAddress": "0x40001000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "TIM6",
 						"description": "TIM6 global interrupt",
@@ -11018,7 +11052,7 @@
 				"name": "TIM7",
 				"derivedFrom": "TIM6",
 				"baseAddress": "0x40001400",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "TIM7",
 						"description": "TIM7 global interrupt",
@@ -11031,12 +11065,14 @@
 				"description": "Inter integrated circuit",
 				"groupName": "I2C",
 				"baseAddress": "0x40005400",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "I2C1_EV",
 						"description": "I2C1 event interrupt",
@@ -11485,7 +11521,7 @@
 				"name": "I2C2",
 				"derivedFrom": "I2C1",
 				"baseAddress": "0x40005800",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "I2C2_EV",
 						"description": "I2C2 event interrupt",
@@ -11503,12 +11539,14 @@
 				"description": "Serial peripheral interface",
 				"groupName": "SPI",
 				"baseAddress": "0x40013000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "SPI1",
 						"description": "SPI1 global interrupt",
@@ -11886,7 +11924,7 @@
 				"name": "SPI2",
 				"derivedFrom": "SPI1",
 				"baseAddress": "0x40003800",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "SPI2",
 						"description": "SPI2 global interrupt",
@@ -11898,7 +11936,7 @@
 				"name": "SPI3",
 				"derivedFrom": "SPI1",
 				"baseAddress": "0x40003C00",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "SPI3",
 						"description": "SPI3 global interrupt",
@@ -11911,12 +11949,14 @@
 				"description": "Universal synchronous asynchronous receiver transmitter",
 				"groupName": "USART",
 				"baseAddress": "0x40013800",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "USART1",
 						"description": "USART1 global interrupt",
@@ -12310,7 +12350,7 @@
 				"name": "USART2",
 				"derivedFrom": "USART1",
 				"baseAddress": "0x40004400",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "USART2",
 						"description": "USART2 global interrupt",
@@ -12322,7 +12362,7 @@
 				"name": "USART3",
 				"derivedFrom": "USART1",
 				"baseAddress": "0x40004800",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "USART3",
 						"description": "USART3 global interrupt",
@@ -12335,12 +12375,14 @@
 				"description": "Analog to digital converter",
 				"groupName": "ADC",
 				"baseAddress": "0x40012400",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "ADC",
 						"description": "ADC1 global interrupt",
@@ -13073,12 +13115,14 @@
 				"description": "Analog to digital converter",
 				"groupName": "ADC",
 				"baseAddress": "0x40012800",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "ADC",
 						"description": "ADC2 global interrupt",
@@ -13798,7 +13842,7 @@
 				"name": "ADC3",
 				"derivedFrom": "ADC2",
 				"baseAddress": "0x40013C00",
-				"interrupt": [
+				"interrupts": [
 					{
 						"name": "ADC3",
 						"description": "ADC3 global interrupt",
@@ -13811,12 +13855,14 @@
 				"description": "Controller area network",
 				"groupName": "CAN",
 				"baseAddress": "0x40006400",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "CAN1_TX",
 						"description": "CAN1 TX interrupts",
@@ -21193,11 +21239,13 @@
 				"description": "Digital to analog converter",
 				"groupName": "DAC",
 				"baseAddress": "0x40007400",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "CR",
@@ -21529,11 +21577,13 @@
 				"description": "Debug support",
 				"groupName": "DBG",
 				"baseAddress": "0xE0042000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "IDCODE",
@@ -21690,12 +21740,14 @@
 				"description": "Universal asynchronous receiver transmitter",
 				"groupName": "USART",
 				"baseAddress": "0x40004C00",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "UART4",
 						"description": "UART4 global interrupt",
@@ -22006,12 +22058,14 @@
 				"description": "Universal asynchronous receiver transmitter",
 				"groupName": "USART",
 				"baseAddress": "0x40005000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "UART5",
 						"description": "UART5 global interrupt",
@@ -22316,11 +22370,13 @@
 				"description": "CRC calculation unit",
 				"groupName": "CRC",
 				"baseAddress": "0x40023000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "DR",
@@ -22380,12 +22436,14 @@
 				"description": "FLASH",
 				"groupName": "FLASH",
 				"baseAddress": "0x40022000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "FLASH",
 						"description": "Flash global interrupt",
@@ -22668,11 +22726,13 @@
 				"description": "Nested Vectored Interrupt Controller",
 				"groupName": "NVIC",
 				"baseAddress": "0xE000E000",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x1001",
-					"usage": "registers"
-				},
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x1001",
+						"usage": "registers"
+					}
+				],
 				"registers": [
 					{
 						"name": "ICTR",
@@ -23410,12 +23470,14 @@
 				"description": "Universal serial bus full-speed device interface",
 				"groupName": "USB",
 				"baseAddress": "0x40005C00",
-				"addressBlock": {
-					"offset": "0x0",
-					"size": "0x400",
-					"usage": "registers"
-				},
-				"interrupt": [
+				"addressBlocks": [
+					{
+						"offset": "0x0",
+						"size": "0x400",
+						"usage": "registers"
+					}
+				],
+				"interrupts": [
 					{
 						"name": "USB_FS_WKUP",
 						"description": "USB Device FS Wakeup through EXTI line interrupt",

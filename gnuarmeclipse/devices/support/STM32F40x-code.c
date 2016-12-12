@@ -4,6 +4,8 @@
 // RNG (Random number generator) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 RNG (Random number generator) registers.
 		struct {
@@ -35,13 +37,15 @@ struct {
 			} dr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32RNGState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_rng_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32RNGState *state = STM32_RNG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -66,11 +70,14 @@ static void stm32f40x_rng_create_objects(Object *obj, JSON_Object *svd, const ch
 	// DR bitfields.
 	state->f4.fld.dr.rndata = cm_object_get_child_by_name(state->f4.reg.dr, "RNDATA");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // DCMI (Digital camera interface) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 DCMI (Digital camera interface) registers.
 		struct {
@@ -184,13 +191,15 @@ struct {
 			} dr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32DCMIState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_dcmi_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32DCMIState *state = STM32_DCMI_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -281,11 +290,14 @@ static void stm32f40x_dcmi_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.dr.byte2 = cm_object_get_child_by_name(state->f4.reg.dr, "Byte2");
 	state->f4.fld.dr.byte3 = cm_object_get_child_by_name(state->f4.reg.dr, "Byte3");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // FSMC (Flexible static memory controller) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 FSMC (Flexible static memory controller) registers.
 		struct {
@@ -611,13 +623,15 @@ struct {
 			} bwtr4;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32FSMCState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_fsmc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32FSMCState *state = STM32_FSMC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -888,11 +902,14 @@ static void stm32f40x_fsmc_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.bwtr4.datlat = cm_object_get_child_by_name(state->f4.reg.bwtr4, "DATLAT");
 	state->f4.fld.bwtr4.accmod = cm_object_get_child_by_name(state->f4.reg.bwtr4, "ACCMOD");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // DBG (Debug support) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 DBG (Debug support) registers.
 		struct {
@@ -954,13 +971,15 @@ struct {
 			} dbgmcu_apb2_fz;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32DBGState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_dbg_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32DBGState *state = STM32_DBG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -1013,11 +1032,14 @@ static void stm32f40x_dbg_create_objects(Object *obj, JSON_Object *svd, const ch
 	state->f4.fld.dbgmcu_apb2_fz.dbg_tim10_stop = cm_object_get_child_by_name(state->f4.reg.dbgmcu_apb2_fz, "DBG_TIM10_STOP");
 	state->f4.fld.dbgmcu_apb2_fz.dbg_tim11_stop = cm_object_get_child_by_name(state->f4.reg.dbgmcu_apb2_fz, "DBG_TIM11_STOP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // DMA2 (DMA controller) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 DMA2 (DMA controller) registers.
 		struct {
@@ -1589,13 +1611,15 @@ struct {
 			} s7fcr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32DMA2State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_dma2_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32DMA2State *state = STM32_DMA2_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -2062,11 +2086,14 @@ static void stm32f40x_dma2_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.s7fcr.fs = cm_object_get_child_by_name(state->f4.reg.s7fcr, "FS");
 	state->f4.fld.s7fcr.feie = cm_object_get_child_by_name(state->f4.reg.s7fcr, "FEIE");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // RCC (Reset and clock control) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 RCC (Reset and clock control) registers.
 		struct {
@@ -2433,13 +2460,15 @@ struct {
 			} plli2scfgr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32RCCState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_rcc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32RCCState *state = STM32_RCC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -2759,11 +2788,14 @@ static void stm32f40x_rcc_create_objects(Object *obj, JSON_Object *svd, const ch
 	state->f4.fld.plli2scfgr.plli2snx = cm_object_get_child_by_name(state->f4.reg.plli2scfgr, "PLLI2SNx");
 	state->f4.fld.plli2scfgr.plli2srx = cm_object_get_child_by_name(state->f4.reg.plli2scfgr, "PLLI2SRx");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // GPIOI (General-purpose I/Os) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 GPIOI (General-purpose I/Os) registers.
 		struct {
@@ -2983,13 +3015,15 @@ struct {
 			} afrh;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32GPIOIState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_gpioi_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32GPIOIState *state = STM32_GPIOI_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -3188,11 +3222,14 @@ static void stm32f40x_gpioi_create_objects(Object *obj, JSON_Object *svd, const 
 	state->f4.fld.afrh.afrh14 = cm_object_get_child_by_name(state->f4.reg.afrh, "AFRH14");
 	state->f4.fld.afrh.afrh15 = cm_object_get_child_by_name(state->f4.reg.afrh, "AFRH15");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // GPIOB (General-purpose I/Os) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 GPIOB (General-purpose I/Os) registers.
 		struct {
@@ -3412,13 +3449,15 @@ struct {
 			} afrh;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32GPIOBState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_gpiob_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32GPIOBState *state = STM32_GPIOB_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -3617,11 +3656,14 @@ static void stm32f40x_gpiob_create_objects(Object *obj, JSON_Object *svd, const 
 	state->f4.fld.afrh.afrh14 = cm_object_get_child_by_name(state->f4.reg.afrh, "AFRH14");
 	state->f4.fld.afrh.afrh15 = cm_object_get_child_by_name(state->f4.reg.afrh, "AFRH15");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // GPIOA (General-purpose I/Os) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 GPIOA (General-purpose I/Os) registers.
 		struct {
@@ -3841,13 +3883,15 @@ struct {
 			} afrh;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32GPIOAState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_gpioa_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32GPIOAState *state = STM32_GPIOA_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4046,11 +4090,14 @@ static void stm32f40x_gpioa_create_objects(Object *obj, JSON_Object *svd, const 
 	state->f4.fld.afrh.afrh14 = cm_object_get_child_by_name(state->f4.reg.afrh, "AFRH14");
 	state->f4.fld.afrh.afrh15 = cm_object_get_child_by_name(state->f4.reg.afrh, "AFRH15");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // SYSCFG (System configuration controller) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 SYSCFG (System configuration controller) registers.
 		struct {
@@ -4114,13 +4161,15 @@ struct {
 			} cmpcr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32SYSCFGState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_syscfg_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4169,11 +4218,14 @@ static void stm32f40x_syscfg_create_objects(Object *obj, JSON_Object *svd, const
 	state->f4.fld.cmpcr.cmp_pd = cm_object_get_child_by_name(state->f4.reg.cmpcr, "CMP_PD");
 	state->f4.fld.cmpcr.ready = cm_object_get_child_by_name(state->f4.reg.cmpcr, "READY");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // SPI1 (Serial peripheral interface) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 SPI1 (Serial peripheral interface) registers.
 		struct {
@@ -4272,13 +4324,15 @@ struct {
 			} i2spr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32SPI1State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_spi1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32SPI1State *state = STM32_SPI1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4358,11 +4412,14 @@ static void stm32f40x_spi1_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.i2spr.odd = cm_object_get_child_by_name(state->f4.reg.i2spr, "ODD");
 	state->f4.fld.i2spr.mckoe = cm_object_get_child_by_name(state->f4.reg.i2spr, "MCKOE");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // SDIO (Secure digital input/output interface) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 SDIO (Secure digital input/output interface) registers.
 		struct {
@@ -4559,13 +4616,15 @@ struct {
 			} fifo;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32SDIOState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_sdio_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32SDIOState *state = STM32_SDIO_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4725,11 +4784,14 @@ static void stm32f40x_sdio_create_objects(Object *obj, JSON_Object *svd, const c
 	// FIFO bitfields.
 	state->f4.fld.fifo.fifodata = cm_object_get_child_by_name(state->f4.reg.fifo, "FIFOData");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // ADC1 (Analog-to-digital converter) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 ADC1 (Analog-to-digital converter) registers.
 		struct {
@@ -4905,13 +4967,15 @@ struct {
 			} dr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32ADC1State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_adc1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32ADC1State *state = STM32_ADC1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5046,11 +5110,14 @@ static void stm32f40x_adc1_create_objects(Object *obj, JSON_Object *svd, const c
 	// DR bitfields.
 	state->f4.fld.dr.data = cm_object_get_child_by_name(state->f4.reg.dr, "DATA");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // USART6 (Universal synchronous asynchronous receiver transmitter) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 USART6 (Universal synchronous asynchronous receiver transmitter) registers.
 		struct {
@@ -5145,13 +5212,15 @@ struct {
 			} gtpr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32USART6State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_usart6_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32USART6State *state = STM32_USART6_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5231,11 +5300,14 @@ static void stm32f40x_usart6_create_objects(Object *obj, JSON_Object *svd, const
 	state->f4.fld.gtpr.psc = cm_object_get_child_by_name(state->f4.reg.gtpr, "PSC");
 	state->f4.fld.gtpr.gt = cm_object_get_child_by_name(state->f4.reg.gtpr, "GT");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // DAC (Digital-to-analog converter) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 DAC (Digital-to-analog converter) registers.
 		struct {
@@ -5348,13 +5420,15 @@ struct {
 			} sr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32DACState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_dac_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32DACState *state = STM32_DAC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5438,11 +5512,14 @@ static void stm32f40x_dac_create_objects(Object *obj, JSON_Object *svd, const ch
 	state->f4.fld.sr.dmaudr1 = cm_object_get_child_by_name(state->f4.reg.sr, "DMAUDR1");
 	state->f4.fld.sr.dmaudr2 = cm_object_get_child_by_name(state->f4.reg.sr, "DMAUDR2");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // PWR (Power control) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 PWR (Power control) registers.
 		struct {
@@ -5476,13 +5553,15 @@ struct {
 			} csr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32PWRState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_pwr_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32PWRState *state = STM32_PWR_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5511,11 +5590,14 @@ static void stm32f40x_pwr_create_objects(Object *obj, JSON_Object *svd, const ch
 	state->f4.fld.csr.bre = cm_object_get_child_by_name(state->f4.reg.csr, "BRE");
 	state->f4.fld.csr.vosrdy = cm_object_get_child_by_name(state->f4.reg.csr, "VOSRDY");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // I2C3 (Inter-integrated circuit) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 I2C3 (Inter-integrated circuit) registers.
 		struct {
@@ -5622,13 +5704,15 @@ struct {
 			} trise;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32I2C3State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_i2c3_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32I2C3State *state = STM32_I2C3_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5716,11 +5800,14 @@ static void stm32f40x_i2c3_create_objects(Object *obj, JSON_Object *svd, const c
 	// TRISE bitfields.
 	state->f4.fld.trise.trise = cm_object_get_child_by_name(state->f4.reg.trise, "TRISE");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // IWDG (Independent watchdog) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 IWDG (Independent watchdog) registers.
 		struct {
@@ -5754,13 +5841,15 @@ struct {
 			} sr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32IWDGState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_iwdg_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32IWDGState *state = STM32_IWDG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5785,11 +5874,14 @@ static void stm32f40x_iwdg_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.sr.pvu = cm_object_get_child_by_name(state->f4.reg.sr, "PVU");
 	state->f4.fld.sr.rvu = cm_object_get_child_by_name(state->f4.reg.sr, "RVU");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // WWDG (Window watchdog) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 WWDG (Window watchdog) registers.
 		struct {
@@ -5820,13 +5912,15 @@ struct {
 			} sr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32WWDGState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_wwdg_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32WWDGState *state = STM32_WWDG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5850,11 +5944,14 @@ static void stm32f40x_wwdg_create_objects(Object *obj, JSON_Object *svd, const c
 	// SR bitfields.
 	state->f4.fld.sr.ewif = cm_object_get_child_by_name(state->f4.reg.sr, "EWIF");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // RTC (Real-time clock) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 RTC (Real-time clock) registers.
 		struct {
@@ -6197,13 +6294,15 @@ struct {
 			} bkp19r;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32RTCState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_rtc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32RTCState *state = STM32_RTC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -6467,11 +6566,14 @@ static void stm32f40x_rtc_create_objects(Object *obj, JSON_Object *svd, const ch
 	// BKP19R bitfields.
 	state->f4.fld.bkp19r.bkp = cm_object_get_child_by_name(state->f4.reg.bkp19r, "BKP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // UART4 (Universal synchronous asynchronous receiver transmitter) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 UART4 (Universal synchronous asynchronous receiver transmitter) registers.
 		struct {
@@ -6549,13 +6651,15 @@ struct {
 			} cr3;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32UART4State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_uart4_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32UART4State *state = STM32_UART4_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -6620,11 +6724,14 @@ static void stm32f40x_uart4_create_objects(Object *obj, JSON_Object *svd, const 
 	state->f4.fld.cr3.dmat = cm_object_get_child_by_name(state->f4.reg.cr3, "DMAT");
 	state->f4.fld.cr3.onebit = cm_object_get_child_by_name(state->f4.reg.cr3, "ONEBIT");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // C_ADC (Common ADC registers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 C_ADC (Common ADC registers) registers.
 		struct {
@@ -6675,13 +6782,15 @@ struct {
 			} cdr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32C_ADCState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_c_adc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32C_ADCState *state = STM32_C_ADC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -6725,11 +6834,14 @@ static void stm32f40x_c_adc_create_objects(Object *obj, JSON_Object *svd, const 
 	state->f4.fld.cdr.data1 = cm_object_get_child_by_name(state->f4.reg.cdr, "DATA1");
 	state->f4.fld.cdr.data2 = cm_object_get_child_by_name(state->f4.reg.cdr, "DATA2");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM1 (Advanced-timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM1 (Advanced-timers) registers.
 		struct {
@@ -6975,13 +7087,15 @@ struct {
 			} bdtr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM1State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM1State *state = STM32_TIM1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -7182,11 +7296,14 @@ static void stm32f40x_tim1_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.bdtr.aoe = cm_object_get_child_by_name(state->f4.reg.bdtr, "AOE");
 	state->f4.fld.bdtr.moe = cm_object_get_child_by_name(state->f4.reg.bdtr, "MOE");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM2 (General purpose timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM2 (General purpose timers) registers.
 		struct {
@@ -7407,13 +7524,15 @@ struct {
 			} or;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM2State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim2_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM2State *state = STM32_TIM2_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -7591,11 +7710,14 @@ static void stm32f40x_tim2_create_objects(Object *obj, JSON_Object *svd, const c
 	// OR bitfields.
 	state->f4.fld.or.itr1_rmp = cm_object_get_child_by_name(state->f4.reg.or, "ITR1_RMP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM3 (General purpose timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM3 (General purpose timers) registers.
 		struct {
@@ -7810,13 +7932,15 @@ struct {
 			} dmar;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM3State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim3_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM3State *state = STM32_TIM3_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -7990,11 +8114,14 @@ static void stm32f40x_tim3_create_objects(Object *obj, JSON_Object *svd, const c
 	// DMAR bitfields.
 	state->f4.fld.dmar.dmab = cm_object_get_child_by_name(state->f4.reg.dmar, "DMAB");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM5 (General-purpose-timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM5 (General-purpose-timers) registers.
 		struct {
@@ -8215,13 +8342,15 @@ struct {
 			} or;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM5State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim5_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM5State *state = STM32_TIM5_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -8399,11 +8528,14 @@ static void stm32f40x_tim5_create_objects(Object *obj, JSON_Object *svd, const c
 	// OR bitfields.
 	state->f4.fld.or.it4_rmp = cm_object_get_child_by_name(state->f4.reg.or, "IT4_RMP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM9 (General purpose timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM9 (General purpose timers) registers.
 		struct {
@@ -8531,13 +8663,15 @@ struct {
 			} ccr2;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM9State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim9_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM9State *state = STM32_TIM9_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -8636,11 +8770,14 @@ static void stm32f40x_tim9_create_objects(Object *obj, JSON_Object *svd, const c
 	// CCR2 bitfields.
 	state->f4.fld.ccr2.ccr2 = cm_object_get_child_by_name(state->f4.reg.ccr2, "CCR2");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM10 (General-purpose-timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM10 (General-purpose-timers) registers.
 		struct {
@@ -8730,13 +8867,15 @@ struct {
 			} ccr1;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM10State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim10_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM10State *state = STM32_TIM10_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -8803,11 +8942,14 @@ static void stm32f40x_tim10_create_objects(Object *obj, JSON_Object *svd, const 
 	// CCR1 bitfields.
 	state->f4.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->f4.reg.ccr1, "CCR1");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM11 (General-purpose-timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM11 (General-purpose-timers) registers.
 		struct {
@@ -8903,13 +9045,15 @@ struct {
 			} or;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM11State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim11_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM11State *state = STM32_TIM11_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -8980,11 +9124,14 @@ static void stm32f40x_tim11_create_objects(Object *obj, JSON_Object *svd, const 
 	// OR bitfields.
 	state->f4.fld.or.rmp = cm_object_get_child_by_name(state->f4.reg.or, "RMP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // TIM6 (Basic timers) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 TIM6 (Basic timers) registers.
 		struct {
@@ -9046,13 +9193,15 @@ struct {
 			} arr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32TIM6State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_tim6_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM6State *state = STM32_TIM6_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -9097,13 +9246,16 @@ static void stm32f40x_tim6_create_objects(Object *obj, JSON_Object *svd, const c
 	// ARR bitfields.
 	state->f4.fld.arr.arr = cm_object_get_child_by_name(state->f4.reg.arr, "ARR");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-// Ethernet_MAC (Ethernet: media access control (MAC)) peripheral.
+// ETHERNET_MAC (Ethernet: media access control (MAC)) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
-		// F4 Ethernet_MAC (Ethernet: media access control (MAC)) registers.
+		// F4 ETHERNET_MAC (Ethernet: media access control (MAC)) registers.
 		struct {
 			Object *maccr; // 0x0 Ethernet MAC configuration register
 			Object *macffr; // 0x4 Ethernet MAC frame filter register
@@ -9292,13 +9444,15 @@ struct {
 			} maca3lr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32ETHERNET_MACState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_ethernet_mac_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32ETHERNET_MACState *state = STM32_ETHERNET_MAC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -9448,13 +9602,16 @@ static void stm32f40x_ethernet_mac_create_objects(Object *obj, JSON_Object *svd,
 	// MACA3LR bitfields.
 	state->f4.fld.maca3lr.mbca3l = cm_object_get_child_by_name(state->f4.reg.maca3lr, "MBCA3L");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-// Ethernet_MMC (Ethernet: MAC management counters) peripheral.
+// ETHERNET_MMC (Ethernet: MAC management counters) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
-		// F4 Ethernet_MMC (Ethernet: MAC management counters) registers.
+		// F4 ETHERNET_MMC (Ethernet: MAC management counters) registers.
 		struct {
 			Object *mmccr; // 0x0 Ethernet MMC control register
 			Object *mmcrir; // 0x4 Ethernet MMC receive interrupt register
@@ -9540,13 +9697,15 @@ struct {
 			} mmcrgufcr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32ETHERNET_MMCState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_ethernet_mmc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32ETHERNET_MMCState *state = STM32_ETHERNET_MMC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -9611,13 +9770,16 @@ static void stm32f40x_ethernet_mmc_create_objects(Object *obj, JSON_Object *svd,
 	// MMCRGUFCR bitfields.
 	state->f4.fld.mmcrgufcr.rgufc = cm_object_get_child_by_name(state->f4.reg.mmcrgufcr, "RGUFC");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-// Ethernet_PTP (Ethernet: Precision time protocol) peripheral.
+// ETHERNET_PTP (Ethernet: Precision time protocol) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
-		// F4 Ethernet_PTP (Ethernet: Precision time protocol) registers.
+		// F4 ETHERNET_PTP (Ethernet: Precision time protocol) registers.
 		struct {
 			Object *ptptscr; // 0x0 Ethernet PTP time stamp control register
 			Object *ptpssir; // 0x4 Ethernet PTP subsecond increment register
@@ -9709,13 +9871,15 @@ struct {
 			} ptpppscr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32ETHERNET_PTPState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_ethernet_ptp_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32ETHERNET_PTPState *state = STM32_ETHERNET_PTP_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -9786,13 +9950,16 @@ static void stm32f40x_ethernet_ptp_create_objects(Object *obj, JSON_Object *svd,
 	state->f4.fld.ptpppscr.tsso = cm_object_get_child_by_name(state->f4.reg.ptpppscr, "TSSO");
 	state->f4.fld.ptpppscr.tsttr = cm_object_get_child_by_name(state->f4.reg.ptpppscr, "TSTTR");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-// Ethernet_DMA (Ethernet: DMA controller operation) peripheral.
+// ETHERNET_DMA (Ethernet: DMA controller operation) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
-		// F4 Ethernet_DMA (Ethernet: DMA controller operation) registers.
+		// F4 ETHERNET_DMA (Ethernet: DMA controller operation) registers.
 		struct {
 			Object *dmabmr; // 0x0 Ethernet DMA bus mode register
 			Object *dmatpdr; // 0x4 Ethernet DMA transmit poll demand register
@@ -9942,13 +10109,15 @@ struct {
 			} dmachrbar;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32ETHERNET_DMAState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_ethernet_dma_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32ETHERNET_DMAState *state = STM32_ETHERNET_DMA_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -10071,11 +10240,14 @@ static void stm32f40x_ethernet_dma_create_objects(Object *obj, JSON_Object *svd,
 	// DMACHRBAR bitfields.
 	state->f4.fld.dmachrbar.hrbap = cm_object_get_child_by_name(state->f4.reg.dmachrbar, "HRBAP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // CRC (Cryptographic processor) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 CRC (Cryptographic processor) registers.
 		struct {
@@ -10102,13 +10274,15 @@ struct {
 			} cr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32CRCState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_crc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32CRCState *state = STM32_CRC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -10128,11 +10302,14 @@ static void stm32f40x_crc_create_objects(Object *obj, JSON_Object *svd, const ch
 	// CR bitfields.
 	state->f4.fld.cr.cr = cm_object_get_child_by_name(state->f4.reg.cr, "CR");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_FS_GLOBAL (USB on the go full speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_FS_GLOBAL (USB on the go full speed) registers.
 		struct {
@@ -10351,13 +10528,15 @@ struct {
 			} fs_dieptxf3;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_FS_GLOBALState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_fs_global_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_FS_GLOBALState *state = STM32_OTG_FS_GLOBAL_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -10537,11 +10716,14 @@ static void stm32f40x_otg_fs_global_create_objects(Object *obj, JSON_Object *svd
 	state->f4.fld.fs_dieptxf3.ineptxsa = cm_object_get_child_by_name(state->f4.reg.fs_dieptxf3, "INEPTXSA");
 	state->f4.fld.fs_dieptxf3.ineptxfd = cm_object_get_child_by_name(state->f4.reg.fs_dieptxf3, "INEPTXFD");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_FS_HOST (USB on the go full speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_FS_HOST (USB on the go full speed) registers.
 		struct {
@@ -11024,13 +11206,15 @@ struct {
 			} fs_hctsiz7;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_FS_HOSTState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_fs_host_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_FS_HOSTState *state = STM32_OTG_FS_HOST_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -11434,11 +11618,14 @@ static void stm32f40x_otg_fs_host_create_objects(Object *obj, JSON_Object *svd, 
 	state->f4.fld.fs_hctsiz7.pktcnt = cm_object_get_child_by_name(state->f4.reg.fs_hctsiz7, "PKTCNT");
 	state->f4.fld.fs_hctsiz7.dpid = cm_object_get_child_by_name(state->f4.reg.fs_hctsiz7, "DPID");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_FS_DEVICE (USB on the go full speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_FS_DEVICE (USB on the go full speed) registers.
 		struct {
@@ -11841,13 +12028,15 @@ struct {
 			} doeptsiz3;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_FS_DEVICEState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_fs_device_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_FS_DEVICEState *state = STM32_OTG_FS_DEVICE_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -12173,11 +12362,14 @@ static void stm32f40x_otg_fs_device_create_objects(Object *obj, JSON_Object *svd
 	state->f4.fld.doeptsiz3.pktcnt = cm_object_get_child_by_name(state->f4.reg.doeptsiz3, "PKTCNT");
 	state->f4.fld.doeptsiz3.rxdpid_stupcnt = cm_object_get_child_by_name(state->f4.reg.doeptsiz3, "RXDPID_STUPCNT");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_FS_PWRCLK (USB on the go full speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_FS_PWRCLK (USB on the go full speed) registers.
 		struct {
@@ -12194,13 +12386,15 @@ struct {
 			} fs_pcgcctl;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_FS_PWRCLKState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_fs_pwrclk_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_FS_PWRCLKState *state = STM32_OTG_FS_PWRCLK_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -12214,11 +12408,14 @@ static void stm32f40x_otg_fs_pwrclk_create_objects(Object *obj, JSON_Object *svd
 	state->f4.fld.fs_pcgcctl.gatehclk = cm_object_get_child_by_name(state->f4.reg.fs_pcgcctl, "GATEHCLK");
 	state->f4.fld.fs_pcgcctl.physusp = cm_object_get_child_by_name(state->f4.reg.fs_pcgcctl, "PHYSUSP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // CAN1 (Controller area network) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 CAN1 (Controller area network) registers.
 		struct {
@@ -14731,13 +14928,15 @@ struct {
 			} f27r2;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32CAN1State;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_can1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32CAN1State *state = STM32_CAN1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -17071,11 +17270,14 @@ static void stm32f40x_can1_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.f27r2.fb30 = cm_object_get_child_by_name(state->f4.reg.f27r2, "FB30");
 	state->f4.fld.f27r2.fb31 = cm_object_get_child_by_name(state->f4.reg.f27r2, "FB31");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // FLASH (FLASH) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 FLASH (FLASH) registers.
 		struct {
@@ -17146,13 +17348,15 @@ struct {
 			} optcr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32FLASHState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_flash_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -17210,11 +17414,14 @@ static void stm32f40x_flash_create_objects(Object *obj, JSON_Object *svd, const 
 	state->f4.fld.optcr.rdp = cm_object_get_child_by_name(state->f4.reg.optcr, "RDP");
 	state->f4.fld.optcr.nwrp = cm_object_get_child_by_name(state->f4.reg.optcr, "nWRP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // EXTI (External interrupt/event controller) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 EXTI (External interrupt/event controller) registers.
 		struct {
@@ -17391,13 +17598,15 @@ struct {
 			} pr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32EXTIState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_exti_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32EXTIState *state = STM32_EXTI_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -17561,11 +17770,14 @@ static void stm32f40x_exti_create_objects(Object *obj, JSON_Object *svd, const c
 	state->f4.fld.pr.pr21 = cm_object_get_child_by_name(state->f4.reg.pr, "PR21");
 	state->f4.fld.pr.pr22 = cm_object_get_child_by_name(state->f4.reg.pr, "PR22");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_HS_GLOBAL (USB on the go high speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_HS_GLOBAL (USB on the go high speed) registers.
 		struct {
@@ -17847,13 +18059,15 @@ struct {
 			} otg_hs_grxstsp_peripheral;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_HS_GLOBALState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_hs_global_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_HS_GLOBALState *state = STM32_OTG_HS_GLOBAL_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -18084,11 +18298,14 @@ static void stm32f40x_otg_hs_global_create_objects(Object *obj, JSON_Object *svd
 	state->f4.fld.otg_hs_grxstsp_peripheral.pktsts = cm_object_get_child_by_name(state->f4.reg.otg_hs_grxstsp_peripheral, "PKTSTS");
 	state->f4.fld.otg_hs_grxstsp_peripheral.frmnum = cm_object_get_child_by_name(state->f4.reg.otg_hs_grxstsp_peripheral, "FRMNUM");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_HS_HOST (USB on the go high speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_HS_HOST (USB on the go high speed) registers.
 		struct {
@@ -19007,13 +19224,15 @@ struct {
 			} otg_hs_hcdma11;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_HS_HOSTState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_hs_host_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_HS_HOSTState *state = STM32_OTG_HS_HOST_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -19773,11 +19992,14 @@ static void stm32f40x_otg_hs_host_create_objects(Object *obj, JSON_Object *svd, 
 	// OTG_HS_HCDMA11 bitfields.
 	state->f4.fld.otg_hs_hcdma11.dmaaddr = cm_object_get_child_by_name(state->f4.reg.otg_hs_hcdma11, "DMAADDR");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_HS_DEVICE (USB on the go high speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_HS_DEVICE (USB on the go high speed) registers.
 		struct {
@@ -20514,13 +20736,15 @@ struct {
 			} otg_hs_doeptsiz4;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_HS_DEVICEState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_hs_device_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_HS_DEVICEState *state = STM32_OTG_HS_DEVICE_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -21126,11 +21350,14 @@ static void stm32f40x_otg_hs_device_create_objects(Object *obj, JSON_Object *svd
 	state->f4.fld.otg_hs_doeptsiz4.pktcnt = cm_object_get_child_by_name(state->f4.reg.otg_hs_doeptsiz4, "PKTCNT");
 	state->f4.fld.otg_hs_doeptsiz4.rxdpid_stupcnt = cm_object_get_child_by_name(state->f4.reg.otg_hs_doeptsiz4, "RXDPID_STUPCNT");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
 // OTG_HS_PWRCLK (USB on the go high speed) peripheral.
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+	// DO NOT EDIT! Automatically generated!
 	struct {
 		// F4 OTG_HS_PWRCLK (USB on the go high speed) registers.
 		struct {
@@ -21147,13 +21374,15 @@ struct {
 			} otg_hs_pcgcr;
 		} fld;
 	} f4;
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 } STM32OTG_HS_PWRCLKState;
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
+
+// DO NOT EDIT! Automatically generated!
 static void stm32f40x_otg_hs_pwrclk_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32OTG_HS_PWRCLKState *state = STM32_OTG_HS_PWRCLK_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -21167,5 +21396,6 @@ static void stm32f40x_otg_hs_pwrclk_create_objects(Object *obj, JSON_Object *svd
 	state->f4.fld.otg_hs_pcgcr.gatehclk = cm_object_get_child_by_name(state->f4.reg.otg_hs_pcgcr, "GATEHCLK");
 	state->f4.fld.otg_hs_pcgcr.physusp = cm_object_get_child_by_name(state->f4.reg.otg_hs_pcgcr, "PHYSUSP");
 }
+
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 

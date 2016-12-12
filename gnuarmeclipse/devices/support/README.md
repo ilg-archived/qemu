@@ -11,7 +11,7 @@ cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices
 The development version of `xcdl` is:
 
 ```
-/Users/ilg/My\ Files/MacBookPro\ Projects/XCDL/xcdl-js.git/bin/xcdl
+/Users/ilg/My\ Files/MacBookPro\ Projects/XCDL/xcdl-js.git/bin/xcdl \
 ```
 
 ## CPUID
@@ -30,8 +30,8 @@ The commands used to generate the specifc xsvd files are:
 ```
 xcdl \
 generate-xsvd \
--i /Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd \
--o support/STM32F0x1-xsvd.json
+--ifile /Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd \
+--ofile support/STM32F0x1-xsvd.json
 
 xcdl \
 patch-xsvd \
@@ -50,8 +50,8 @@ patch-xsvd \
 ```
 xcdl \
 generate-xsvd \
--i /Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd \
--o support/STM32F103xx-xsvd.json
+--ifile /Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd \
+--ofile support/STM32F103xx-xsvd.json
 
 xcdl \
 patch-xsvd \
@@ -70,8 +70,8 @@ patch-xsvd \
 ```
 xcdl \
 generate-xsvd \
--i /Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd \
--o support/STM32F40x-xsvd.json
+--ifile /Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd \
+--ofile support/STM32F40x-xsvd.json
 
 xcdl \
 patch-xsvd \
