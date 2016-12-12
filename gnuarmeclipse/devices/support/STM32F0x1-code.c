@@ -47,9 +47,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_crc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32CRCState *state = STM32_CRC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -330,9 +330,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_gpiof_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32GPIOFState *state = STM32_GPIOF_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -804,9 +804,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_gpioa_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32GPIOAState *state = STM32_GPIOA_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -1143,9 +1143,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_spi1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32SPI1State *state = STM32_SPI1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -1303,9 +1303,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_dac_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32DACState *state = STM32_DAC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -1399,9 +1399,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_pwr_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32PWRState *state = STM32_PWR_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -1592,9 +1592,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_i2c1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32I2C1State *state = STM32_I2C1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -1770,9 +1770,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_iwdg_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32IWDGState *state = STM32_IWDG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -1845,9 +1845,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_wwdg_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32WWDGState *state = STM32_WWDG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -2129,9 +2129,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_tim1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM1State *state = STM32_TIM1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -2561,9 +2561,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_tim2_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM2State *state = STM32_TIM2_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -2847,9 +2847,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_tim14_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM14State *state = STM32_TIM14_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -2995,9 +2995,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_tim6_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM6State *state = STM32_TIM6_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -3226,9 +3226,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_exti_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32EXTIState *state = STM32_EXTI_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -3719,9 +3719,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_dma1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32DMA1State *state = STM32_DMA1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4221,9 +4221,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_rcc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32RCCState *state = STM32_RCC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4513,9 +4513,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_syscfg_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4712,9 +4712,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_adc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32ADCState *state = STM32_ADC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -4995,9 +4995,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_usart1_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32USART1State *state = STM32_USART1_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5189,9 +5189,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_comp_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32COMPState *state = STM32_COMP_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5443,9 +5443,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_rtc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32RTCState *state = STM32_RTC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -5804,9 +5804,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_tim15_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM15State *state = STM32_TIM15_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -6105,9 +6105,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_tim16_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TIM16State *state = STM32_TIM16_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -6453,9 +6453,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_tsc_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32TSCState *state = STM32_TSC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -6734,9 +6734,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_cec_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32CECState *state = STM32_CEC_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -6894,9 +6894,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_flash_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -7019,9 +7019,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_dbgmcu_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32DBGMCUState *state = STM32_DBGMCU_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -7282,9 +7282,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_usb_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32USBState *state = STM32_USB_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -7532,9 +7532,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_crs_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32CRSState *state = STM32_CRS_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
@@ -10106,9 +10106,9 @@ struct {
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
+// DO NOT EDIT! Automatically generated!
 static void stm32f0x1_can_create_objects(Object *obj, JSON_Object *svd, const char *name)
 {
-	// DO NOT EDIT! Automatically generated!
 	STM32CANState *state = STM32_CAN_STATE(obj);
 
 	JSON_Object *periph = svd_get_peripheral_by_name(svd, name);

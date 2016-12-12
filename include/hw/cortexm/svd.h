@@ -34,10 +34,15 @@ void svd_set_register_properties_group(JSON_Object *svd, Object *obj);
 
 Object *svd_add_peripheral_properties_and_children(Object *obj,
         JSON_Object *svd, JSON_Object *root);
-Object *svd_add_peripheral_register_properties_and_children3(Object *obj,
+Object *svd_add_peripheral_register_properties_and_children(Object *obj,
         JSON_Object *svd);
-Object *svd_add_register_bitfield_properties_and_children3(Object *obj,
+Object *svd_add_register_bitfield_properties_and_children(Object *obj,
         JSON_Object *svd);
+
+void svd_set_peripheral_address_block(JSON_Object *svd, const char* name,
+        Object *obj);
+
+uint64_t svd_parse_uint(const char *str);
 
 #endif /* CORTEXM_SVD_H_ */
 

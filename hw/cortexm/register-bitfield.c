@@ -158,6 +158,21 @@ bool register_bitfield_is_zero(Object* obj)
     return (reg->value & state->mask) == 0;
 }
 
+/*
+ * Return true if a bitfield is non-zero.
+ */
+bool register_bitfield_is_non_zero(Object* obj)
+{
+    assert(obj);
+
+    PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj->parent);
+    assert(reg);
+
+    RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
+
+    return (reg->value & state->mask) != 0;
+}
+
 /* ----- Private ----------------------------------------------------------- */
 
 static void register_bitfield_instance_init_callback(Object *obj)

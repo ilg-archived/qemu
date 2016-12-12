@@ -119,6 +119,7 @@ Object *register_bitfield_add_properties_and_children2(Object *obj,
         JSON_Object *info);
 
 bool register_bitfield_is_zero(Object* obj);
+bool register_bitfield_is_non_zero(Object* obj);
 
 peripheral_register_t register_bitfield_read_value(Object* obj);
 

@@ -106,9 +106,10 @@ typedef struct {
 
     stm32_gpio_index_t port_index;
 
-    STM32RCCState *rcc;
-
     STM32SYSCFGState *syscfg;
+
+    // Points to one RCC bitfield that enables the GPIO.
+    Object *enabling_bit;
 
     /*
      * IRQs used to communicate with the machine implementation, for
