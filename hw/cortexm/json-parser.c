@@ -68,16 +68,3 @@ uint64_t cm_json_parser_parse_hex(const char *str)
     exit(1);
 }
 
-uint64_t cm_json_parser_parse_uint(const char *str)
-{
-    assert(str != NULL);
-    assert(strlen(str) > 0);
-
-    uint64_t ret;
-    if (strncmp(str, "0x", 2) == 0) {
-        sscanf(str, "0x%" PRIX64, &ret);
-    } else {
-        sscanf(str, "%" PRIu64, &ret);
-    }
-    return ret;
-}

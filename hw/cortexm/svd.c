@@ -220,7 +220,7 @@ Object *svd_add_peripheral_register_properties_and_children(Object *obj,
 
     str = json_object_get_string(svd, "addressOffset");
     if (str != NULL) {
-        val32 = cm_json_parser_parse_uint(str);
+        val32 = svd_parse_uint(str);
         cm_object_property_set_int(obj, val32, "offset-bytes");
     } else {
         error_printf("Missing register offset_bytes.\n");
@@ -231,20 +231,20 @@ Object *svd_add_peripheral_register_properties_and_children(Object *obj,
 
     str = cm_object_property_get_str_with_parent(obj, "svd-reset-value", NULL);
     if (str != NULL) {
-        val32 = cm_json_parser_parse_uint(str);
+        val32 = svd_parse_uint(str);
         cm_object_property_set_int(obj, val32, "reset-value");
     }
 
     str = cm_object_property_get_str_with_parent(obj, "svd-reset-mask", NULL);
     if (str != NULL) {
-        val32 = cm_json_parser_parse_uint(str);
+        val32 = svd_parse_uint(str);
         cm_object_property_set_int(obj, val32, "reset-mask");
     }
 
     int size_bits = 0;
     str = cm_object_property_get_str_with_parent(obj, "svd-size", NULL);
     if (str != NULL) {
-        size_bits = cm_json_parser_parse_uint(str);
+        size_bits = svd_parse_uint(str);
         cm_object_property_set_int(obj, size_bits, "size-bits");
     }
 
@@ -319,14 +319,14 @@ Object *svd_add_register_bitfield_properties_and_children(Object *obj,
 
     str = json_object_get_string(svd, "bitOffset");
     if (str != NULL) {
-        val32 = cm_json_parser_parse_uint(str);
+        val32 = svd_parse_uint(str);
         assert(val32 < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
         cm_object_property_set_int(obj, val32, "first-bit");
     }
 
     str = json_object_get_string(svd, "bitWidth");
     if (str != NULL) {
-        val32 = cm_json_parser_parse_uint(str);
+        val32 = svd_parse_uint(str);
         assert(val32 < PERIPHERAL_REGISTER_MAX_SIZE_BITS);
         cm_object_property_set_int(obj, val32, "width-bits");
     }
@@ -348,5 +348,93 @@ Object *svd_add_register_bitfield_properties_and_children(Object *obj,
     cm_object_property_set_int(obj, size_bits, "register-size-bits");
 
     return obj;
+}
+
+void svd_set_peripheral_address_block(JSON_Object *svd, const char* name,
+        Object *obj)
+{
+    const char *str;
+
+    uint32_t size = 0;
+    hwaddr addr = 0;
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+
+    str = json_object_get_string(periph, "baseAddress");
+    if (str == NULL) {
+        error_printf("Missing baseAddress array.\n");
+        exit(1);
+    }
+    addr = svd_parse_uint(str);
+
+    JSON_Array *address_blocks = json_object_get_array(periph, "addressBlocks");
+    if (address_blocks == NULL) {
+        str = json_object_get_string(periph, "derivedFrom");
+        if (str == NULL) {
+            error_printf("Missing derivedFrom for addressBlocks.\n");
+            exit(1);
+        }
+        JSON_Object *peripheral = svd_get_peripheral_by_name(svd, str);
+        if (peripheral == NULL) {
+            error_printf("Missing derivedFrom %s.\n", str);
+            exit(1);
+        }
+        address_blocks = json_object_get_array(peripheral, "addressBlocks");
+        if (address_blocks == NULL) {
+            error_printf("Missing addressBlocks array.\n");
+            exit(1);
+        }
+    }
+
+    size_t count = json_array_get_count(address_blocks);
+    int i;
+
+    for (i = 0; i < count; ++i) {
+        JSON_Object *address_block = json_array_get_object(address_blocks, i);
+
+        str = json_object_get_string(address_block, "usage");
+        if (strcmp(str, "registers") == 0) {
+            str = json_object_get_string(address_block, "offset");
+            if (str == NULL) {
+                error_printf("Missing addressBlock.offset.\n");
+                exit(1);
+            }
+            addr += svd_parse_uint(str);
+
+            str = json_object_get_string(address_block, "size");
+            if (str == NULL) {
+                error_printf("Missing addressBlock.size.\n");
+                exit(1);
+            }
+            size = svd_parse_uint(str);
+
+            assert(addr != 0);
+            assert(size != 0);
+
+            cm_object_property_set_int(obj, addr, "mmio-address");
+            cm_object_property_set_int(obj, size, "mmio-size-bytes");
+
+            return;
+        }
+    }
+
+    error_printf("Missing addressBlock.usage=registers.\n");
+    exit(1);
+}
+
+uint64_t svd_parse_uint(const char *str)
+{
+    assert(str != NULL);
+    assert(strlen(str) > 0);
+
+    uint64_t ret;
+    if (strncmp(str, "0x", 2) == 0) {
+        sscanf(str, "0x%" PRIX64, &ret);
+    } else if (strncmp(str, "0X", 2) == 0) {
+        sscanf(str, "0X%" PRIX64, &ret);
+    } else {
+        sscanf(str, "%" PRIu64, &ret);
+    }
+    return ret;
 }
 

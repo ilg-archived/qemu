@@ -1108,12 +1108,13 @@ static void stm32f40x_gpio_create_objects(Object *obj, JSON_Object *svd,
 // ----- Public ---------------------------------------------------------------
 
 /*
- * Create GPIO[i] and return it.
+ * Create GPIO%c and return it.
  */
 Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
 {
     char child_name[10];
     snprintf(child_name, sizeof(child_name), "GPIO%c", 'A' + index);
+    // Passing a local string is ok.
     Object *gpio = cm_object_new(parent, child_name, TYPE_STM32_GPIO);
     int i;
 
@@ -1132,13 +1133,13 @@ Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
 }
 
 /*
- * Return a pointer to the gpio[n] object, or null if not found.
+ * Return a pointer to the GPIO%c object, or null if not found.
  */
 Object* stm32_gpio_get(int index)
 {
     char gpio_name[40];
-    snprintf(gpio_name, sizeof(gpio_name), "/machine/mcu/stm32/gpio[%c]",
-            'a' + index);
+    snprintf(gpio_name, sizeof(gpio_name), DEVICE_PATH_STM32 "GPIO%c",
+            'A' + index);
     return object_resolve_path(gpio_name, NULL);
 }
 
@@ -1153,188 +1154,19 @@ static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
 static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state, Object *odr,
         Object *idr, uint16_t new_value);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static bool stm32_gpio_is_enabled(Object *obj)
 {
-#if 1
     STM32GPIOState *state = STM32_GPIO_STATE(obj);
 
-    const STM32Capabilities *capabilities = state->capabilities;
-    assert(capabilities != NULL);
-
-    switch (capabilities->family) {
-    case STM32_FAMILY_F0:
-
-        if ((peripheral_register_read_value(state->rcc->f0.reg.ahbenr)
-                & (0x20000 << state->port_index)) != 0) {
-            return true;
-        }
-        break;
-
-    case STM32_FAMILY_F1:
-
-        if ((peripheral_register_read_value(state->rcc->f1.reg.apb2enr)
-                & (0x4 << state->port_index)) != 0) {
-            return true;
-        }
-        break;
-
-    case STM32_FAMILY_F4:
-
-        if ((peripheral_register_read_value(state->rcc->f4.reg.ahb1enr)
-                & (0x1 << state->port_index)) != 0) {
-            return true;
-        }
-        break;
-
-    default:
-        break;
+    if (register_bitfield_is_non_zero(state->enabling_bit)) {
+        return true; // Positive logic, bit == 1 means enabled.
     }
 
+    // Not enabled
     return false;
-#else
-    /* Always enabled. Used during tests. */
-    return true;
-#endif
 }
-
-#if 0
-static PeripheralInfo stm32f0_gpio_info =
-{
-    .desc = "General-purpose I/Os (GPIO)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
-
-    .registers =
-    (PeripheralRegisterInfo[] ) {
-        {
-            .desc =
-            "GPIO port mode register (GPIOx_MODER)",
-            .name = "moder",
-            .offset_bytes = 0x00,
-            /* 0xA8000000 for port A, 0x00000280 for port B */
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO port output type register (GPIOx_OTYPER)",
-            .name = "otyper",
-            .offset_bytes = 0x04,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0000FFFF,
-            .writable_bits = 0x0000FFFF,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO port output speed register (GPIOx_OSPEEDR)",
-            .name = "ospeeder",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000, /* 0x0000 00C0 for port B */
-            /**/
-        },
-        {
-            .desc =
-            "GPIO port pull-up/pull-down register (GPIOx_PUPDR)",
-            .name = "pupdr",
-            .offset_bytes = 0x0C,
-            /* 0x640000C0 for port A, 0x00000100 for port B */
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port input data register (GPIOx_IDR)",
-            .name = "idr",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .reset_mask = 0xFFFF0000,
-            .readable_bits = 0x0000FFFF,
-            .rw_mode = REGISTER_RW_MODE_READ,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port output data register (GPIOx_ODR)",
-            .name = "odr",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            .writable_bits = 0x0000FFFF,
-            .readable_bits = 0x0000FFFF,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port bit set/reset register (GPIOx_BSRR) ",
-            .name = "bsrr",
-            .offset_bytes = 0x18,
-            .reset_value = 0x00000000,
-            .rw_mode = REGISTER_RW_MODE_WRITE,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port configuration lock register (GPIOx_LCKR)",
-            .name = "lckr",
-            .offset_bytes = 0x1C,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0001FFFF,
-            .writable_bits = 0x0001FFFF,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO alternate function low register (GPIOx_AFRL)",
-            .name = "afrl",
-            .offset_bytes = 0x20,
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO alternate function low register (GPIOx_AFRH)",
-            .name = "afrh",
-            .offset_bytes = 0x24,
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port bit reset register (GPIOx_BRR) ",
-            .name = "brr",
-            .offset_bytes = 0x28,
-            .reset_value = 0x00000000,
-            .rw_mode = REGISTER_RW_MODE_WRITE,
-            /**/
-        },
-        {}, /**/
-    }, /**/
-};
-#endif
-
-#if 0
-static void stm32f051_gpio_create_objects(Object *obj, JSON_Value *family)
-{
-    STM32GPIOState *state = STM32_GPIO_STATE(obj);
-
-    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f051:gpio");
-
-    peripheral_add_properties_and_children2(obj, info);
-
-    state->reg.moder = cm_object_get_child_by_name(obj, "moder");
-    state->reg.otyper = cm_object_get_child_by_name(obj, "otyper");
-    state->reg.ospeeder = cm_object_get_child_by_name(obj, "ospeeder");
-    state->reg.pupdr = cm_object_get_child_by_name(obj, "pupdr");
-    state->reg.idr = cm_object_get_child_by_name(obj, "idr");
-    state->reg.odr = cm_object_get_child_by_name(obj, "odr");
-    state->reg.bsrr = cm_object_get_child_by_name(obj, "bsrr");
-    state->reg.lckr = cm_object_get_child_by_name(obj, "lckr");
-    state->reg.afrl = cm_object_get_child_by_name(obj, "afrl");
-    state->reg.afrh = cm_object_get_child_by_name(obj, "afrh");
-    state->reg.brr = cm_object_get_child_by_name(obj, "brr");
-}
-#endif
 
 static void stm32f0_gpio_brr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
@@ -1354,15 +1186,15 @@ static void stm32f0_gpio_brr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, odr, state->reg.idr, new_value);
 }
 
-/* ===== F1 ================================================================ */
+// ----------------------------------------------------------------------------
 
 /* STM32F1[LMHX]D, STM32F1CL */
 
+/*
+ *  The F1 peripheral registers must be accessed only as words (32-bit).
+ */
+
 static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index);
-
-/* ------------------------------------------------------------------------- */
-
-/* The peripheral registers have to be accessed only by words (32-bit). */
 
 static void stm32f1_gpio_crl_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
@@ -1434,98 +1266,7 @@ static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, odr, state->f1.reg.idr, new_value);
 }
 
-#if 0
-static PeripheralInfo stm32f1_gpio_info = {
-    .desc = "General-purpose I/Os (GPIO)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
-
-    .registers = (PeripheralRegisterInfo[] ) {
-        {
-            .desc = "Port configuration register low (GPIOx_CRL)",
-            .name = "crl",
-            .offset_bytes = 0x00,
-            .reset_value = 0x44444444,
-            /**/
-        },
-        {
-            .desc = "Port configuration register low (GPIOx_CRH)",
-            .name = "crh",
-            .offset_bytes = 0x04,
-            .reset_value = 0x44444444,
-            /**/
-        },
-
-        {
-            .desc = "Port input data register (GPIOx_IDR)",
-            .name = "idr",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000,
-            .reset_mask = 0xFFFF0000,
-            .readable_bits = 0x0000FFFF,
-            .rw_mode = REGISTER_RW_MODE_READ,
-            /**/
-        },
-        {
-            .desc = "Port output data register (GPIOx_ODR)",
-            .name = "odr",
-            .offset_bytes = 0x0C,
-            .reset_value = 0x00000000,
-            .writable_bits = 0x0000FFFF,
-            .rw_mode = REGISTER_RW_MODE_WRITE,
-            /**/
-        },
-        {
-            .desc = "Port bit set/reset register (GPIOx_BSRR)",
-            .name = "bsrr",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .writable_bits = 0xFFFFFFFF,
-            .rw_mode = REGISTER_RW_MODE_WRITE,
-            /**/
-        },
-        {
-            .desc = "Port bit reset register (GPIOx_BRR) ",
-            .name = "brr",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            .writable_bits = 0x0000FFFF,
-            .rw_mode = REGISTER_RW_MODE_WRITE,
-            /**/
-        },
-        {
-            .desc = "Port configuration lock register (GPIOx_LCKR)",
-            .name = "lckr",
-            .offset_bytes = 0x18,
-            .reset_value = 0x0001FFFF,
-            .readable_bits = 0x0001FFFF,
-            .writable_bits = 0x0001FFFF,
-            /**/
-        },
-        {}, /**/
-    }, /**/
-};
-#endif
-
-#if 0
-static void stm32f1xx_gpio_create_objects(Object *obj, JSON_Value *family)
-{
-    STM32GPIOState *state = STM32_GPIO_STATE(obj);
-
-    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f1xx:gpio");
-
-    peripheral_add_properties_and_children2(obj, info);
-
-    state->f1.reg.crl = cm_object_get_child_by_name(obj, "crl");
-    state->f1.reg.crh = cm_object_get_child_by_name(obj, "crh");
-    state->f1.reg.idr = cm_object_get_child_by_name(obj, "idr");
-    state->f1.reg.odr = cm_object_get_child_by_name(obj, "odr");
-    state->f1.reg.bsrr = cm_object_get_child_by_name(obj, "bsrr");
-    state->f1.reg.brr = cm_object_get_child_by_name(obj, "brr");
-    state->f1.reg.lckr = cm_object_get_child_by_name(obj, "lckr");
-}
-#endif
-
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /*
  * Gets the four configuration bits for the pin from the CRL or CRH
@@ -1606,14 +1347,12 @@ static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index)
     }
 }
 
-/* ===== F4 ================================================================ */
+// ----------------------------------------------------------------------------
 
 /* STM32F4[01][57]xx, STM32F4[23]xxx, STM32F411xx */
 
-uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit);
+static uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit);
 static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state);
-
-/* ------------------------------------------------------------------------- */
 
 static void stm32f4_gpio_moder_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
@@ -1659,145 +1398,21 @@ static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_odr_and_idr(state, odr, state->reg.idr, new_value);
 }
 
-#if 0
-static PeripheralInfo stm32f4_gpio_info =
-{
-    .desc = "General-purpose I/Os (GPIO)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
-
-    .registers =
-    (PeripheralRegisterInfo[] ) {
-        {
-            .desc =
-            "GPIO port mode register (GPIOx_MODER)",
-            .name = "moder",
-            .offset_bytes = 0x00,
-            /* 0xA8000000 for port A, 0x00000280 for port B */
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO port output type register (GPIOx_OTYPER)",
-            .name = "otyper",
-            .offset_bytes = 0x04,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0000FFFF,
-            .writable_bits = 0x0000FFFF,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO port output speed register (GPIOx_OSPEEDR)",
-            .name = "ospeeder",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000, /* 0x0000 00C0 for port B */
-            /**/
-        },
-        {
-            .desc =
-            "GPIO port pull-up/pull-down register (GPIOx_PUPDR)",
-            .name = "pupdr",
-            .offset_bytes = 0x0C,
-            /* 0x640000C0 for port A, 0x00000100 for port B */
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port input data register (GPIOx_IDR)",
-            .name = "idr",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .reset_mask = 0xFFFF0000,
-            .readable_bits = 0x0000FFFF,
-            .rw_mode = REGISTER_RW_MODE_READ,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port output data register (GPIOx_ODR)",
-            .name = "odr",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            .writable_bits = 0x0000FFFF,
-            .readable_bits = 0x0000FFFF,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port bit set/reset register (GPIOx_BSRR) ",
-            .name = "bsrr",
-            .offset_bytes = 0x18,
-            .reset_value = 0x00000000,
-            .rw_mode = REGISTER_RW_MODE_WRITE,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO Port configuration lock register (GPIOx_LCKR)",
-            .name = "lckr",
-            .offset_bytes = 0x1C,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0001FFFF,
-            .writable_bits = 0x0001FFFF,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO alternate function low register (GPIOx_AFRL)",
-            .name = "afrl",
-            .offset_bytes = 0x20,
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {
-            .desc =
-            "GPIO alternate function low register (GPIOx_AFRH)",
-            .name = "afrh",
-            .offset_bytes = 0x24,
-            .reset_value = 0x00000000,
-            /**/
-        },
-        {}, /**/
-    }, /**/
-};
-#endif
-
-#if 0
-static void stm32f4xx_gpio_create_objects(Object *obj, JSON_Value *family)
-{
-    STM32GPIOState *state = STM32_GPIO_STATE(obj);
-
-    JSON_Object *info = cm_json_parser_get_peripheral(family, "stm32f4xx:gpio");
-
-    peripheral_add_properties_and_children2(obj, info);
-
-    state->reg.moder = cm_object_get_child_by_name(obj, "moder");
-    state->reg.otyper = cm_object_get_child_by_name(obj, "otyper");
-    state->reg.ospeeder = cm_object_get_child_by_name(obj, "ospeeder");
-    state->reg.pupdr = cm_object_get_child_by_name(obj, "pupdr");
-    state->reg.idr = cm_object_get_child_by_name(obj, "idr");
-    state->reg.odr = cm_object_get_child_by_name(obj, "odr");
-    state->reg.bsrr = cm_object_get_child_by_name(obj, "bsrr");
-    state->reg.lckr = cm_object_get_child_by_name(obj, "lckr");
-    state->reg.afrl = cm_object_get_child_by_name(obj, "afrl");
-    state->reg.afrh = cm_object_get_child_by_name(obj, "afrh");
-}
-#endif
-
 /* ------------------------------------------------------------------------- */
 
 /*
  * The F4 family has more uniform configuration registers, each
  * register bit has a 2-bits slice in a register.
  */
-uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit)
+static uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit)
 {
     assert(bit < 16);
     return (value >> (bit * 2)) & 0x3;
 }
 
+/*
+ * Update the cached direction mask on MODER changes.
+ */
 static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state)
 {
     uint32_t moder = peripheral_register_get_raw_value(state->reg.moder);
@@ -1819,7 +1434,7 @@ static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state)
     }
 }
 
-/* ========================================================================= */
+// ----------------------------------------------------------------------------
 
 /*
  * Write the ODR register and trigger interrupts for changed pins
@@ -1846,7 +1461,10 @@ static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state, Object *odr,
     stm32_gpio_update_idr(state, idr, new_value);
 }
 
-static void stm32_gpio_set_irq(STM32GPIOState *state, int pin, int level)
+/*
+ * If EXTI is sensitive to this GPIO pin, set interrupt.
+ */
+static void stm32_gpio_set_exti_irq(STM32GPIOState *state, int pin, int level)
 {
     assert(pin < 16);
 
@@ -1858,7 +1476,7 @@ static void stm32_gpio_set_irq(STM32GPIOState *state, int pin, int level)
      */
 
     if (capabilities->family == STM32_FAMILY_F1) {
-        // TODO: on F1, use AFIO.
+        // TODO: for F1, use AFIO.
         cm_irq_set(state->exti_irq[pin], level);
     } else {
         if (register_bitfield_read_value(state->syscfg->exticr.exti[pin])
@@ -1868,11 +1486,13 @@ static void stm32_gpio_set_irq(STM32GPIOState *state, int pin, int level)
     }
 }
 
+/*
+ * Identify ODR bits that changed, then notify listeners (like LEDs)
+ * and trigger interrupts.
+ */
 static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
         uint16_t new_odr)
 {
-    // const STM32Capabilities *capabilities = state->capabilities;
-
     /* Compute pins that changed value. */
     uint16_t changed = old_odr ^ new_odr;
 
@@ -1892,7 +1512,7 @@ static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
 
                 cm_irq_set(state->odr_irq[pin], level);
 
-                stm32_gpio_set_irq(state, pin, level);
+                stm32_gpio_set_exti_irq(state, pin, level);
             }
         }
     }
@@ -1965,10 +1585,10 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
         peripheral_register_or_raw_value(idr, (1 << pin));
     }
 
-    stm32_gpio_set_irq(state, pin, level);
+    stm32_gpio_set_exti_irq(state, pin, level);
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void stm32_gpio_instance_init_callback(Object *obj)
 {
@@ -1996,6 +1616,8 @@ static void stm32_gpio_instance_init_callback(Object *obj)
     cm_irq_init_out(DEVICE(obj), state->odr_irq, STM32_IRQ_GPIO_ODR_OUT,
     STM32_GPIO_PIN_COUNT);
 
+    state->syscfg = NULL;
+    state->enabling_bit = NULL;
 }
 
 static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
@@ -2005,6 +1627,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     /*
      * Parent realize() is called after setting properties and creating
      * registers.
+     * TODO: use separate methods and bring realize() at the top.
      */
 
     STM32MCUState *mcu = stm32_mcu_get();
@@ -2023,76 +1646,13 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     snprintf(periph_name, sizeof(periph_name) - 1, "GPIO%c",
             'A' + state->port_index);
 
-    // TODO: use links
-    state->rcc = STM32_RCC_STATE(cm_device_by_name(DEVICE_PATH_STM32_RCC));
-
     /* Must be defined before creating registers. */
     cm_object_property_set_int(obj, 4, "register-size-bytes");
 
     /* TODO: get it from MCU */
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
-    /*
-     * Creating the memory region in the parent class will trigger
-     * an assertion if zro address or size.
-     */
-    uint32_t size = 0;
-    hwaddr addr = 0;
-
-    switch (capabilities->family) {
-    case STM32_FAMILY_F0:
-
-        if (state->port_index > STM32_GPIO_PORT_F) {
-            qemu_log_mask(LOG_GUEST_ERROR, "GPIO: Illegal GPIO port %d\n",
-                    state->port_index);
-            return;
-        }
-
-        size = 0x400;
-        addr = 0x48000000 + (state->port_index - STM32_GPIO_PORT_A) * size;
-
-        state->syscfg = STM32_SYSCFG_STATE(
-                cm_device_by_name(DEVICE_PATH_STM32_SYSCFG));
-
-        break;
-
-    case STM32_FAMILY_F1:
-
-        if (state->port_index > STM32_GPIO_PORT_G) {
-            qemu_log_mask(LOG_GUEST_ERROR, "GPIO: Illegal GPIO port %d\n",
-                    state->port_index);
-            return;
-        }
-
-        size = 0x400;
-        addr = 0x40010800 + (state->port_index - STM32_GPIO_PORT_A) * size;
-
-        break;
-
-    case STM32_FAMILY_F4:
-
-        if (state->port_index > STM32_GPIO_PORT_K) {
-            qemu_log_mask(LOG_GUEST_ERROR, "GPIO: Illegal GPIO port %d\n",
-                    state->port_index);
-            return;
-        }
-
-        size = 0x400;
-        addr = 0x40020000 + (state->port_index - STM32_GPIO_PORT_A) * size;
-
-        state->syscfg = STM32_SYSCFG_STATE(
-                cm_device_by_name(DEVICE_PATH_STM32_SYSCFG));
-
-        break;
-
-    default:
-
-        assert(false);
-        break;
-    }
-
-    cm_object_property_set_int(obj, addr, "mmio-address");
-    cm_object_property_set_int(obj, size, "mmio-size-bytes");
+    char enabling_bit_name[STM32_RCC_SIZEOF_ENABLING_BITFIELD];
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
@@ -2100,7 +1660,6 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         if (capabilities->f0.is_0x1) {
 
             stm32f0x1_gpio_create_objects(obj, cm_state->svd_json, periph_name);
-            // stm32f051_gpio_create_objects(obj, mcu->family_json);
 
             state->reg.moder = state->f0.reg.moder;
             state->reg.otyper = state->f0.reg.otyper;
@@ -2130,12 +1689,19 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
             assert(false);
         }
 
+        state->syscfg = STM32_SYSCFG_STATE(
+                cm_device_by_name(DEVICE_PATH_STM32_SYSCFG));
+
+        snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                DEVICE_PATH_STM32_RCC "/AHBENR/IOP%cEN",
+                'A' + state->port_index);
+
         break;
 
     case STM32_FAMILY_F1:
 
         if (capabilities->f1.is_103xx) {
-            // stm32f1xx_gpio_create_objects(obj, mcu->family_json);
+
             stm32f103xx_gpio_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
@@ -2154,6 +1720,10 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
             assert(false);
         }
 
+        snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                DEVICE_PATH_STM32_RCC "/APB2ENR/IOP%cEN",
+                'A' + state->port_index);
+
         break;
 
     case STM32_FAMILY_F4:
@@ -2161,7 +1731,6 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         if (capabilities->f4.is_40x) {
 
             stm32f40x_gpio_create_objects(obj, cm_state->svd_json, periph_name);
-            // stm32f4xx_gpio_create_objects(obj, mcu->family_json);
 
             state->reg.moder = state->f4.reg.moder;
             state->reg.otyper = state->f4.reg.otyper;
@@ -2186,6 +1755,13 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
             assert(false);
         }
 
+        state->syscfg = STM32_SYSCFG_STATE(
+                cm_device_by_name(DEVICE_PATH_STM32_SYSCFG));
+
+        snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                DEVICE_PATH_STM32_RCC "/AHB1ENR/GPIO%cEN",
+                'A' + state->port_index);
+
         break;
 
     default:
@@ -2193,13 +1769,15 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
-#if 0
-    char name[10];
-    snprintf(name, sizeof(name), "gpio[%c]", 'a' + state->port_index);
-    cm_object_property_set_str(obj, name, "name");
-#endif
+    state->enabling_bit = OBJECT(cm_device_by_name(enabling_bit_name));
 
-    /* Call parent realize(). */
+    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
+
+    // Memory region address and peripherals are known now,
+    // can realize parent.
+    // TODO: decouple memory creation from realize().
+
+    // Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_GPIO)) {
         return;
     }
@@ -2292,12 +1870,6 @@ static const TypeInfo stm32_gpio_type_info = {
 static void stm32_gpio_register_types(void)
 {
     type_register_static(&stm32_gpio_type_info);
-
-#if 0
-    peripheral_serialize_info("f051-gpio.json", "stm32f051:gpio", &stm32f0_gpio_info);
-    peripheral_serialize_info("f1xx-gpio.json", "stm32f1xx:gpio", &stm32f1_gpio_info);
-    peripheral_serialize_info("f4xx-gpio.json", "stm32f4xx:gpio", &stm32f4_gpio_info);
-#endif
 }
 
 type_init(stm32_gpio_register_types);
