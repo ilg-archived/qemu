@@ -138,7 +138,8 @@ Object *svd_add_peripheral_properties_and_children(Object *obj,
     const char *str;
 
     str = json_object_get_string(svd, "name");
-    /* Store a local copy of the node name, for easier access.  */
+    // Store a local copy of the node name, for easier access.
+    // Passing a parsed string is ok, it is copied.
     cm_object_property_set_str(obj, str, "name");
 
 #if 0
@@ -199,10 +200,11 @@ Object *svd_add_peripheral_properties_and_children(Object *obj,
         Object *reg = cm_object_new(obj, regi_name,
         TYPE_PERIPHERAL_REGISTER);
 
-        /* Store a local copy of the node name, for easier access.  */
+        // Store a local copy of the node name, for easier access.
+        // Passing a parsed string is ok, it is copied.
         cm_object_property_set_str(reg, regi_name, "name");
 
-        svd_add_peripheral_register_properties_and_children3(reg, regi);
+        svd_add_peripheral_register_properties_and_children(reg, regi);
 
         cm_object_realize(reg);
     }
@@ -210,7 +212,7 @@ Object *svd_add_peripheral_properties_and_children(Object *obj,
     return obj;
 }
 
-Object *svd_add_peripheral_register_properties_and_children3(Object *obj,
+Object *svd_add_peripheral_register_properties_and_children(Object *obj,
         JSON_Object *svd)
 {
     const char *str;
@@ -261,12 +263,15 @@ Object *svd_add_peripheral_register_properties_and_children3(Object *obj,
 
             const char *bifi_name = json_object_get_string(bitfield, "name");
 
+            // Passing a parsed string is ok, it is used to as an
+            // index in a table.
             Object *obifi = cm_object_new(obj, bifi_name,
             TYPE_REGISTER_BITFIELD);
 
+            // Passing a parsed string is ok, it is copied.
             cm_object_property_set_str(obifi, bifi_name, "name");
 
-            svd_add_register_bitfield_properties_and_children3(obifi, bitfield);
+            svd_add_register_bitfield_properties_and_children(obifi, bitfield);
 
             /* Should we delay until the register is realized()? */
             cm_object_realize(obifi);
@@ -306,7 +311,7 @@ Object *svd_add_peripheral_register_properties_and_children3(Object *obj,
     return obj;
 }
 
-Object *svd_add_register_bitfield_properties_and_children3(Object *obj,
+Object *svd_add_register_bitfield_properties_and_children(Object *obj,
         JSON_Object *svd)
 {
     const char *str;
@@ -327,6 +332,7 @@ Object *svd_add_register_bitfield_properties_and_children3(Object *obj,
     }
 
     str = json_object_get_string(svd, "access");
+    // Passing a parsed string is ok, it is copied.
     cm_object_property_set_str(obj, str, "svd-access");
 
     str = cm_object_property_get_str_with_parent(obj, "svd-access", NULL);

@@ -389,7 +389,9 @@ void cm_object_property_set_bool(Object *obj, bool value, const char *name)
 }
 
 /*
- * Setter for string properties.
+ * Setter for string properties. Makes a copy of the value string,
+ * so the initial value may be allocated anywhere, for example
+ * on stack or on a temporary parsed json value.
  */
 void cm_object_property_set_str(Object *obj, const char *value,
         const char *name)
