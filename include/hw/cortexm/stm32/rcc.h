@@ -29,6 +29,8 @@
 
 #define DEVICE_PATH_STM32_RCC DEVICE_PATH_STM32 "RCC"
 
+#define STM32_RCC_SIZEOF_ENABLING_BITFIELD (sizeof(DEVICE_PATH_STM32_RCC)+32)
+
 /* ------------------------------------------------------------------------- */
 
 #define TYPE_STM32_RCC TYPE_STM32_PREFIX "rcc" TYPE_PERIPHERAL_SUFFIX
