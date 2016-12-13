@@ -68,8 +68,8 @@ typedef struct {
 
     unsigned int fpu_type; /* CORTEX_M_FPU_TYPE_*; may be not needed */
 
-    unsigned int num_irq; /* number of interrupts (excluding first
-     * 15 core interrupts). */
+    /* number of interrupts (excluding first 16 core interrupts). */
+    unsigned int num_irq;
 
     unsigned int nvic_bits; /* bits used for irqs in NVIC. */
 } CortexMCoreCapabilities;

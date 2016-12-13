@@ -77,7 +77,6 @@ typedef struct STM32MCUState {
     const STM32Capabilities *capabilities;
 
     Object *container;
-    JSON_Value *family_json;
 
     DeviceState *rcc;
 

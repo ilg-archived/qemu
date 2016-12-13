@@ -74,31 +74,6 @@ static void cortexm_mcu_registered_reset_callback(void *opaque)
 
 /* ------------------------------------------------------------------------- */
 
-static void cortexm_mcu_process_svd_cpu(JSON_Object *svd,
-        CortexMCoreCapabilities *core)
-{
-    assert(svd != NULL);
-    assert(core != NULL);
-
-    JSON_Object *device = json_object_get_object(svd, "device");
-    assert(device != NULL);
-
-    JSON_Object *cpu = json_object_get_object(device, "cpu");
-    if (cpu == NULL) {
-        error_printf("SVD device has no mandatory \"cpu\".\n");
-        exit(1);
-    }
-
-    // TODO: process "cpu"
-}
-
-static void cortexm_mcu_process_device(JSON_Object *svd, Object *obj)
-{
-    JSON_Object *device = json_object_get_object(svd, "device");
-
-    svd_set_register_properties_group(device, obj);
-}
-
 static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
@@ -120,8 +95,10 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     CortexMCoreCapabilities* core_capabilities = g_new0(CortexMCoreCapabilities,
             1);
     if (cm_state->param_capabilities->core != NULL) {
-        memcpy(core_capabilities, cm_state->param_capabilities->core,
-                sizeof(CortexMCoreCapabilities));
+        error_printf("Core capabilities must be defined in SVD files.\n");
+        exit(1);
+        // memcpy(core_capabilities, cm_state->param_capabilities->core,
+        //        sizeof(CortexMCoreCapabilities));
     }
     capabilities->core = core_capabilities;
 
@@ -150,9 +127,11 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         svd_validate_device_name(cm_state->svd_json,
                 capabilities->svd_device_name);
 
-        cortexm_mcu_process_svd_cpu(cm_state->svd_json, core_capabilities);
+        svd_process_cpu(cm_state->svd_json, core_capabilities);
 
-        cortexm_mcu_process_device(cm_state->svd_json, OBJECT(dev));
+        JSON_Object *device = json_object_get_object(cm_state->svd_json,
+                "device");
+        svd_set_register_properties_group(device, OBJECT(dev));
     }
 
     const MachineState *machine = MACHINE(cortexm_board_get());
@@ -185,6 +164,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     {
         /* ----- Create CPU based on model. ----- */
         ARMCPU *cpu;
+        // TODO: pass version bits.
         cpu = cm_cpu_arm_create(cm_state->container, cm_state->cpu_model);
 
         CPUClass *cc;
@@ -235,24 +215,28 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         core_capabilities->model = CORTEX_M4;
         core_capabilities->has_fpu = false;
         core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+#if 0
     } else if (strcmp(sub_model, "m4f") == 0) {
         display_model = "Cortex-M4F";
         core_capabilities->model = CORTEX_M4F;
         core_capabilities->has_fpu = true;
         core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV4_SP_D16;
+#endif
     } else if (strcmp(sub_model, "m7") == 0) {
         display_model = "Cortex-M7";
         core_capabilities->model = CORTEX_M7;
         core_capabilities->has_fpu = false;
         core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_NONE;
+#if 0
     } else if (strcmp(sub_model, "m7f") == 0) {
         display_model = "Cortex-M7F";
         core_capabilities->model = CORTEX_M7F;
         core_capabilities->has_fpu = true;
         core_capabilities->fpu_type = CORTEX_M_FPU_TYPE_FPV5_DP_D16;
+#endif
     } else {
         error_report("Unsupported '--cpu %s' "
-                "(cortex-m0,m0p,m1,m3,m4,m4f,m7,m7f only).", cpu_model);
+                "(cortex-m0,m0p,m1,m3,m4,m7 only).", cpu_model);
         exit(1);
     }
 
@@ -297,6 +281,12 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         if (capabilities->core->has_fpu) {
             printf(", FPU");
         }
+        if (capabilities->core->has_itm) {
+            printf(", ITM");
+        }
+        printf(", %d NVIC prio bits", capabilities->core->nvic_bits);
+        printf(", %d IRQs", capabilities->core->num_irq);
+
         printf("), Flash: %d kB, RAM: %d kB.\n", flash_size_kb, sram_size_kb);
         if (image_filename) {
             printf("Image: '%s'.\n", image_filename);

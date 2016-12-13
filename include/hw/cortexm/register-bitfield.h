@@ -115,9 +115,6 @@ typedef struct {
 Object *register_bitfield_add_properties_and_children(Object *obj,
         RegisterBitfieldInfo *bifi_info);
 
-Object *register_bitfield_add_properties_and_children2(Object *obj,
-        JSON_Object *info);
-
 bool register_bitfield_is_zero(Object* obj);
 bool register_bitfield_is_non_zero(Object* obj);
 

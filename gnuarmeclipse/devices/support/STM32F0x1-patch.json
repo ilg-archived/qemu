@@ -10,7 +10,8 @@
             "fpuPresent": "false",
             "nvicPrioBits": "2",
             "deviceNumInterrupts": "31",
-            "vendorSystickConfig": "false"
+            "vendorSystickConfig": "false",
+            "qemuItmPresent": false
         },
         "access": "read-write",
         "qemuAlignment": "any",

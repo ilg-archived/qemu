@@ -64,54 +64,6 @@ Object *peripheral_add_properties_and_children(Object *obj,
     return obj;
 }
 
-Object *peripheral_add_properties_and_children2(Object *obj, JSON_Object *info)
-{
-    const char *str;
-    double number;
-    // uint32_t value32;
-
-    if (json_object_has_value_of_type(info, "default_access_flags",
-            JSONString)) {
-        str = json_object_get_string(info, "default_access_flags");
-        uint64_t access_flags = cm_json_parser_parse_access_flags(str);
-        cm_object_property_set_int(obj, access_flags, "default-access-flags");
-    }
-
-    if (json_object_has_value_of_type(info, "register_size_bytes",
-            JSONNumber)) {
-        number = json_object_get_number(info, "register_size_bytes");
-        cm_object_property_set_int(obj, (uint32_t) number,
-                "register-size-bytes");
-    }
-
-    if (json_object_has_value_of_type(info, "registers", JSONArray)) {
-        JSON_Array *registers = json_object_get_array(info, "registers");
-        size_t count = json_array_get_count(registers);
-        int i;
-
-        for (i = 0; i < count; ++i) {
-            JSON_Object *regi = json_array_get_object(registers, i);
-
-            const char *regi_name = json_object_get_string(regi, "name");
-
-            Object *reg = cm_object_new(obj, regi_name,
-            TYPE_PERIPHERAL_REGISTER);
-
-            /* Store a local copy of the node name, for easier access.  */
-            cm_object_property_set_str(reg, regi_name, "name");
-
-            peripheral_register_add_properties_and_children2(reg, regi);
-
-            cm_object_realize(reg);
-        }
-    } else {
-        error_printf("Missing registers array.\n");
-        exit(1);
-    }
-
-    return obj;
-}
-
 /* ------------------------------------------------------------------------- */
 
 static void cm_json_prop_hex(QJSON *json, const char *name, uint32_t value,

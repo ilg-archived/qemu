@@ -12,6 +12,8 @@ Groups of similar devices share common definitions; specific devices can differ 
 
 The QEMU grouping reflects the vendor grouping, with one SVD file for each CMSIS sub-family.
 
+Please note that the peripherals defined in the CMSIS SVD files are for the largest sub-family member, and some smaller members may not provide all the peripherals listed in the SVD files, thus the need for the extra capabilities structures.
+
 ## System peripherals
 
 Some vendors also provide definitions for some system devices in the SVD files (line NVIC in STM32 files). Because there is no guarantee that the register names and fields are kept consistent, these definitions are ignored and the system peripherals are created using separate definitions.

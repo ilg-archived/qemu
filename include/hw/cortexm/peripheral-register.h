@@ -269,9 +269,6 @@ typedef struct {
 Object *peripheral_register_add_properties_and_children(Object *obj,
         PeripheralRegisterInfo *info);
 
-Object *peripheral_register_add_properties_and_children2(Object *obj,
-        JSON_Object *info);
-
 void peripheral_register_compute_auto_bits(Object *obj);
 
 peripheral_register_t peripheral_register_read_value(Object* obj);

@@ -455,10 +455,13 @@ typedef struct {
      * 32 MB at 0x42000000-0x43FFFFFF.
      */
     unsigned int has_periph_bitband :1;
+
+#if 0
     /*
      * Peripherals common to all families.
      */
     unsigned int has_rcc :1;
+    unsigned int has_flash :1;
     unsigned int has_pwr :1;
 
     /* System configuration; F4 specific. */
@@ -466,6 +469,11 @@ typedef struct {
 
     /* Alternate function I/O; F1 specific */
     unsigned int has_afio :1;
+
+    /* EXTI */
+    unsigned int has_exti :1;
+
+#endif
 
     /* GPIOs */
     unsigned int has_gpioa :1;
@@ -482,8 +490,6 @@ typedef struct {
 
     unsigned char num_gpio; /* Will be computed, no need to set it. */
 
-    /* EXTI */
-    unsigned int has_exti :1;
     /* DMA */
     unsigned int has_dma :1;
     unsigned int has_dma1 :1;
@@ -594,7 +600,7 @@ typedef struct {
     unsigned int has_tsc :1;
 
     /* Keep them together */
-    unsigned char num_exti;
+    // unsigned char num_exti;
     unsigned char num_dma1;
     unsigned char num_dma2;
     unsigned char num_dma;
@@ -611,7 +617,7 @@ typedef struct {
      */
     struct {
         // DEPRECATED, to be removed!
-        unsigned int is_51xx :1;
+        // unsigned int is_51xx :1;
 
         /* The names follow the STM CMSIS SVD naming scheme,
          * with the STM32F prefix removed. */
@@ -644,9 +650,9 @@ typedef struct {
 
     struct {
         // DEPRECATED, to be removed!
-        unsigned int is_01_57_xx :1;
-        unsigned int is_23_xxx :1;
-        unsigned int is11xx :1;
+        // unsigned int is_01_57_xx :1;
+        // unsigned int is_23_xxx :1;
+        // unsigned int is11xx :1;
 
         /* The names follow the STM CMSIS SVD naming scheme,
          * with the STM32F prefix removed. */

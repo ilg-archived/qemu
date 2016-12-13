@@ -1063,13 +1063,13 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     const char *periph_name = "EXTI";
 
-    assert(capabilities->num_exti <= STM32_EXTI_MAX_NUM);
-    cm_object_property_set_int(obj, capabilities->num_exti, "num_exti");
+    // assert(capabilities->num_exti <= STM32_EXTI_MAX_NUM);
+    // cm_object_property_set_int(obj, capabilities->num_exti, "num_exti");
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        assert(capabilities->num_exti == 23);
+        // capabilities->num_exti = 23;
         if (capabilities->f0.is_0x1) {
             stm32f0x1_exti_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -1088,8 +1088,8 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F1:
 
         if (capabilities->f1.is_103xx) {
-            assert(capabilities->num_exti == 20);
 
+            // capabilities->num_exti = 20;
             stm32f103xx_exti_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
@@ -1108,8 +1108,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     case STM32_FAMILY_F4:
 
-        assert(capabilities->num_exti == 23);
-
+        // capabilities->num_exti = 23;
         if (capabilities->f4.is_40x) {
 
             stm32f40x_exti_create_objects(obj, cm_state->svd_json, periph_name);
@@ -1143,7 +1142,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_51xx) {
+        if (capabilities->f0.is_0x1) {
             cm_irq_connect(dev, STM32_IRQ_EXTI_OUT, 0, nvic, IRQ_NVIC_IN,
                     STM32F051XX_EXTI0_1_IRQn);
             cm_irq_connect(dev, STM32_IRQ_EXTI_OUT, 1, nvic, IRQ_NVIC_IN,
@@ -1230,7 +1229,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_01_57_xx || capabilities->f4.is_23_xxx) {
+        if (capabilities->f4.is_40x /* || capabilities->f4.is_23_xxx */) {
 
             cm_irq_connect(dev, STM32_IRQ_EXTI_OUT, 0, nvic, IRQ_NVIC_IN,
                     STM32F4_01_57_XX_EXTI0_IRQn);
@@ -1269,6 +1268,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO add 16 - 22; if different for STM32F4_23_XX, extend if
 
+#if 0
         } else if (capabilities->f4.is11xx) {
 
             cm_irq_connect(dev, STM32_IRQ_EXTI_OUT, 0, nvic, IRQ_NVIC_IN,
@@ -1307,6 +1307,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
                     STM32F411XX_EXTI15_10_IRQn);
 
             // TODO add 16,17,18,21,22
+#endif
         }
 
         break;

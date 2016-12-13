@@ -45,7 +45,7 @@
 				"--group-bitfield",
 				"RCC/BDCR/RTCSEL"
 			],
-			"date": "2016-12-13T11:36:28.402Z"
+			"date": "2016-12-13T15:20:23.718Z"
 		}
 	],
 	"device": {
@@ -50989,7 +50989,8 @@
 			"fpuPresent": "true",
 			"nvicPrioBits": "4",
 			"deviceNumInterrupts": "82",
-			"vendorSystickConfig": "false"
+			"vendorSystickConfig": "false",
+			"qemuItmPresent": "true"
 		}
 	}
 }

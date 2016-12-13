@@ -428,13 +428,142 @@ uint64_t svd_parse_uint(const char *str)
     assert(strlen(str) > 0);
 
     uint64_t ret;
+    int cnt;
     if (strncmp(str, "0x", 2) == 0) {
-        sscanf(str, "0x%" PRIX64, &ret);
+        cnt = sscanf(str, "0x%" PRIX64, &ret);
     } else if (strncmp(str, "0X", 2) == 0) {
-        sscanf(str, "0X%" PRIX64, &ret);
+        cnt = sscanf(str, "0X%" PRIX64, &ret);
     } else {
-        sscanf(str, "%" PRIu64, &ret);
+        cnt = sscanf(str, "%" PRIu64, &ret);
+    }
+    if (cnt != 1) {
+        error_printf(
+                "Cannot parse unsigned int from %s (must be 0x, 0X, nnn).\n",
+                str);
+        exit(1);
     }
     return ret;
+}
+
+bool svd_parse_bool(const char *str)
+{
+    assert(str != NULL);
+    assert(strlen(str) > 0);
+
+    if (strcmp(str, "true") == 0 || strcmp(str, "1") == 0) {
+        return true;
+    } else if (strcmp(str, "false") == 0 || strcmp(str, "0") == 0) {
+        return false;
+    } else {
+        error_printf("Cannot parse bool from %s (must be true/false, 1/0).\n",
+                str);
+        exit(1);
+    }
+}
+
+void svd_process_cpu(JSON_Object *svd, CortexMCoreCapabilities *core)
+{
+    assert(svd != NULL);
+    assert(core != NULL);
+
+    JSON_Object *device = json_object_get_object(svd, "device");
+    assert(device != NULL);
+
+    JSON_Object *cpu = json_object_get_object(device, "cpu");
+    if (cpu == NULL) {
+        error_printf("SVD device has no mandatory \"cpu\".\n");
+        exit(1);
+    }
+
+    const char *str;
+
+    str = json_object_get_string(cpu, "name");
+    if (str == NULL) {
+        error_printf("SVD device.cpu has no mandatory \"name\".\n");
+        exit(1);
+    }
+
+    if (strcmp(str, "CM0") == 0) {
+        core->cpu_model = "cortex-m0";
+    } else if (strcmp(str, "CM0PLUS") == 0 || strcmp(str, "CM0+") == 0) {
+        core->cpu_model = "cortex-m0p";
+    } else if (strcmp(str, "CM1") == 0) {
+        core->cpu_model = "cortex-m1";
+    } else if (strcmp(str, "CM3") == 0) {
+        core->cpu_model = "cortex-m3";
+    } else if (strcmp(str, "CM4") == 0) {
+        core->cpu_model = "cortex-m4";
+    } else if (strcmp(str, "CM7") == 0) {
+        core->cpu_model = "cortex-m7";
+    } else {
+        error_printf("SVD device.cpu unsupported \"name\"=%s.\n", str);
+        exit(1);
+    }
+
+    str = json_object_get_string(cpu, "revision");
+    if (str != NULL) {
+        int major = 0;
+        int minor = 0;
+        if (sscanf(str, "r%dp%d", &major, &minor) != 2) {
+            error_printf("SVD device.cpu unsupported \"revision\"=%s.\n", str);
+            exit(1);
+        }
+        core->major = major;
+        core->minor = minor;
+    } else {
+        core->major = 0;
+        core->minor = 0;
+    }
+
+    // TODO: process endian
+
+    str = json_object_get_string(cpu, "mpuPresent");
+    if (str != NULL) {
+        core->has_mpu = svd_parse_bool(str);
+    } else {
+        core->has_mpu = false;
+    }
+
+    str = json_object_get_string(cpu, "fpuPresent");
+    if (str != NULL) {
+        core->has_fpu = svd_parse_bool(str);
+    } else {
+        core->has_fpu = false;
+    }
+
+    str = json_object_get_string(cpu, "qemuItmPresent");
+    if (str != NULL) {
+        core->has_etm = svd_parse_bool(str);
+    } else {
+        core->has_etm = false;
+    }
+
+    str = json_object_get_string(cpu, "qemuEtmPresent");
+    if (str != NULL) {
+        core->has_itm = svd_parse_bool(str);
+    } else {
+        core->has_itm = false;
+    }
+
+    // TODO parse fpuDP
+
+    str = json_object_get_string(cpu, "deviceNumInterrupts");
+    if (str != NULL) {
+        core->num_irq = svd_parse_uint(str);
+    } else {
+        error_printf(
+                "SVD device.cpu has no mandatory \"deviceNumInterrupts\".\n");
+        exit(1);
+    }
+
+    str = json_object_get_string(cpu, "nvicPrioBits");
+    if (str != NULL) {
+        core->nvic_bits = svd_parse_uint(str);
+    } else {
+        error_printf("SVD device.cpu has no mandatory \"nvicPrioBits\".\n");
+        exit(1);
+    }
+
+    // TODO: parse vendorSystickConfig
 }
 

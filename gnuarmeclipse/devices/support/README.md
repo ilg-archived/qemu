@@ -20,6 +20,27 @@ The `cpu.revision` value (a string like r0p0) is taken from SCB.CPUID, address 0
 
 For the STM devices, this value is usually gives in the _Programming manual_, the _Core peripherals_ chapter.
 
+## Custom definitions
+
+### CPU core capabilities
+
+These definitions are from the [CMSIS SVD](http://www.keil.com/pack/doc/CMSIS/SVD/html/elem_cpu.html) `<cpu>` element, with some extensions.
+
+- `name` (CM0, CM0PLUS, CM0+, CM1, CM3, CM4, CM7)
+- `revision` (r0p0, values 0-99)
+- `endian` (little/big/selectable)
+- `mpuPresent` (true/**false**)
+- `fpuPresent` (true/**false**)
+- `fpuDP` (true/false, but only when FPU present) 
+- `nvicPrioBits` - the number of significant bits on he left of the NVIC byte; 4 for most STM, 2 for F0
+- `deviceNumInterrupts` - does not include the 16 system exceptions
+- `vendorSystickConfig` (true/**false**)
+
+QEMU extensions
+
+- `qemuItmPresent` (true/**false**)
+- `qemuEtmPresent` (true/**false**)
+
 
 ## Devices
 
