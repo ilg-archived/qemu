@@ -30,6 +30,8 @@
 #include <hw/cortexm/stm32/mcu.h>
 #include <hw/cortexm/svd.h>
 
+#include "sysemu/sysemu.h"
+
 #define USART_SR_TXE        (1 << 7)
 #define USART_SR_TC         (1 << 6)
 #define USART_SR_RXNE       (1 << 5)
@@ -535,149 +537,47 @@ static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
             "GT");
 }
 
+// ----- Public ---------------------------------------------------------------
+
+/*
+ * Create GPIO%c and return it.
+ */
+Object* stm32_usart_create(Object *parent, stm32_usart_index_t index)
+{
+    if ((int) index >= STM32_USART_PORT_UNDEFINED) {
+        hw_error("Cannot assign USART %d: QEMU supports only %d ports\n",
+                index + 1, STM32_USART_PORT_UNDEFINED);
+    }
+
+    char child_name[10];
+    snprintf(child_name, sizeof(child_name) - 1, "USART%d",
+            index - STM32_USART_1 + 1);
+    // Passing a local string is ok.
+    Object *usart = cm_object_new(parent, child_name,
+    TYPE_STM32_USART);
+
+    object_property_set_int(usart, index, "port-index", NULL);
+
+    cm_object_realize(usart);
+
+    return usart;
+}
+
 // ----- Private --------------------------------------------------------------
 
-// TODO: rework reference to RCC to use links.
 static bool stm32_usart_is_enabled(Object *obj)
 {
     STM32USARTState *state = STM32_USART_STATE(obj);
 
-    const STM32Capabilities *capabilities = state->capabilities;
-    assert(capabilities != NULL);
-
-    switch (capabilities->family) {
-
-    case STM32_FAMILY_F4:
-        if (state->port_index == STM32_USART_1) {
-            if ((peripheral_register_read_value(state->rcc->f4.reg.apb2enr)
-                    & 0x10) != 0) {
-                return true;
-            }
-        } else if (state->port_index == STM32_USART_6) {
-            if ((peripheral_register_read_value(state->rcc->f4.reg.apb2enr)
-                    & 0x20) != 0) {
-                return true;
-            }
-        } else {
-            if ((peripheral_register_read_value(state->rcc->f4.reg.apb1enr)
-                    & (0x20000 << (state->port_index - STM32_USART_2))) != 0) {
-                return true;
-            }
-            break;
-        }
-        break;
-
-    default:
-        break;
+    if (register_bitfield_is_non_zero(state->enabling_bit)) {
+        return true; // Positive logic, bit == 1 means enabled.
     }
 
+    // Not enabled
     return false;
 }
 
-#if 0
-static PeripheralInfo stm32f4_usart_info =
-{
-    .desc = "Universal synch asynch receiver transmitter (USART)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD,
-
-    .registers =
-    (PeripheralRegisterInfo[] ) {
-        {
-            .desc = "USART status register (USART_SR)",
-            .name = "sr",
-            .offset_bytes = 0x00,
-            /* datasheet indicates 0x00C00000, but I think it's wrong */
-            .reset_value = 0x000000C0,
-            .readable_bits = 0x000003FF,
-            .writable_bits = 0x00000360,
-            /**/
-        },
-        {
-            .desc = "USART data register (USART_DR)",
-            .name = "dr",
-            .offset_bytes = 0x04,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x000001FF,
-            .writable_bits = 0x000001FF,
-            /**/
-        },
-        {
-            .desc =
-            "USART baud rate register (USART_BRR)",
-            .name = "brr",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0000FFFF,
-            .writable_bits = 0x0000FFFF,
-            /**/
-        },
-        {
-            .desc =
-            "USART control register 1 (USART_CR1)",
-            .name = "cr1",
-            .offset_bytes = 0x0C,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0000BFFF,
-            .writable_bits = 0x0000BFFF,
-            /**/
-        },
-        {
-            .desc =
-            "USART control register 2 (USART_CR2)",
-            .name = "cr2",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x00007F7F,
-            .writable_bits = 0x00007F7F,
-            /**/
-        },
-        {
-            .desc =
-            "USART control register 3 (USART_CR3)",
-            .name = "cr3",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            .writable_bits = 0x00000FFF,
-            .readable_bits = 0x00000FFF,
-            /**/
-        },
-        {
-            .desc =
-            "USART guard time and prescaler register (USART_GTPR)",
-            .name = "gtpr",
-            .offset_bytes = 0x18,
-            .reset_value = 0x00000000,
-            .writable_bits = 0x0000FFFF,
-            .readable_bits = 0x0000FFFF,
-            /**/
-        },
-        {}, /**/
-    },
-    /**/
-};
-#endif
-
-#if 0
-static void stm32f4xx_usart_create_objects(Object *obj, JSON_Value *family)
-{
-    STM32USARTState *state = STM32_USART_STATE(obj);
-
-    JSON_Object *info = cm_json_parser_get_peripheral(family,
-            "stm32f4xx:usart");
-
-    peripheral_add_properties_and_children2(obj, info);
-
-    state->reg.sr = cm_object_get_child_by_name(obj, "sr");
-    state->reg.dr = cm_object_get_child_by_name(obj, "dr");
-    state->reg.brr = cm_object_get_child_by_name(obj, "brr");
-    state->reg.cr1 = cm_object_get_child_by_name(obj, "cr1");
-    state->reg.cr2 = cm_object_get_child_by_name(obj, "cr2");
-    state->reg.cr3 = cm_object_get_child_by_name(obj, "cr3");
-    state->reg.gtpr = cm_object_get_child_by_name(obj, "gtpr");
-}
-#endif
-
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
 {
@@ -788,16 +688,21 @@ static void stm32f4_usart_cr1_post_write_callback(Object *reg, Object *periph,
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void stm32_usart_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
 
-    /* STM32USARTState *state = STM32_USART_STATE(obj); */
+    STM32USARTState *state = STM32_USART_STATE(obj);
 
     /* FIXME use a qdev char-device prop instead of qemu_char_get_next_serial() */
     /* state->chr = qemu_char_get_next_serial(); */
+
+    cm_object_property_add_int(obj, "port-index",
+            (const int *) &state->port_index);
+    state->port_index = STM32_USART_PORT_UNDEFINED;
+
 }
 
 static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
@@ -815,6 +720,8 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     Object *obj = OBJECT(dev);
 
+    state->nvic = CORTEXM_NVIC_STATE(cm_state->nvic);
+
     char periph_name[10];
     snprintf(periph_name, sizeof(periph_name) - 1, "USART%d",
             state->port_index - STM32_USART_1 + 1);
@@ -825,103 +732,45 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     /* TODO: get it from MCU */
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
-    /*
-     * Creating the memory region in the parent class will trigger
-     * an assertion if zro address or size.
-     */
-    uint32_t size = 0;
-    hwaddr addr = 0;
-
     const STM32Capabilities *capabilities =
     STM32_USART_STATE(state)->capabilities;
     assert(capabilities != NULL);
 
-    switch (capabilities->family) {
-    case STM32_FAMILY_F0:
-        if (state->port_index > STM32_USART_8) {
-            qemu_log_mask(LOG_GUEST_ERROR, "USART: Illegal USART port %d\n",
-                    state->port_index);
-            return;
-        }
-        size = 0x400;
-        if (state->port_index == STM32_USART_1) {
-            addr = 0x40013800;
-        } else if (state->port_index == STM32_USART_2) {
-            addr = 0x40004400;
-        } else if (state->port_index == STM32_USART_3) {
-            addr = 0x40004800;
-        } else if (state->port_index == STM32_USART_4) {
-            addr = 0x40004C00;
-        } else if (state->port_index == STM32_USART_5) {
-            addr = 0x40005000;
-        } else if (state->port_index == STM32_USART_6) {
-            addr = 0x40011400;
-        } else if (state->port_index == STM32_USART_7) {
-            addr = 0x40011800;
-        } else if (state->port_index == STM32_USART_8) {
-            addr = 0x40011C00;
-        } else {
-            assert(false);
-        }
-
-        break;
-
-    case STM32_FAMILY_F1:
-        if (state->port_index > STM32_USART_8) {
-            qemu_log_mask(LOG_GUEST_ERROR, "USART: Illegal USART port %d\n",
-                    state->port_index);
-            return;
-        }
-        size = 0x400;
-        if (state->port_index == STM32_USART_1) {
-            addr = 0x40013800;
-        } else if (state->port_index == STM32_USART_2) {
-            addr = 0x40004400;
-        } else if (state->port_index == STM32_USART_3) {
-            addr = 0x40004800;
-        } else {
-            assert(false);
-        }
-
-        break;
-
-    case STM32_FAMILY_F4:
-
-        if (state->port_index > STM32_USART_6) {
-            qemu_log_mask(LOG_GUEST_ERROR, "USART: Illegal USART port %d\n",
-                    state->port_index);
-            return;
-        }
-
-        size = 0x400;
-        if (state->port_index == STM32_USART_1) {
-            addr = 0x40011000;
-        } else if (state->port_index == STM32_USART_6) {
-            addr = 0x40011400;
-        } else {
-            addr = 0x40004400 + (state->port_index - STM32_USART_2) * size;
-        }
-
-        break;
-
-    default:
-
-        assert(false);
-        break;
-    }
-
-    cm_object_property_set_int(obj, addr, "mmio-address");
-    cm_object_property_set_int(obj, size, "mmio-size-bytes");
+    char enabling_bit_name[STM32_RCC_SIZEOF_ENABLING_BITFIELD];
 
     switch (capabilities->family) {
+
     case STM32_FAMILY_F0:
         if (capabilities->f0.is_0x1) {
+
             stm32f0x1_usart_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
             // TODO: add callbacks
         } else {
             assert(false);
+        }
+
+        switch (state->port_index) {
+
+        case STM32_USART_1:
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
+                    state->port_index);
+            break;
+
+        case STM32_USART_2:
+        case STM32_USART_3:
+        case STM32_USART_4:
+        case STM32_USART_5:
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
+                    state->port_index);
+            break;
+
+        default:
+            assert(false);
+            break;
         }
 
         break;
@@ -941,8 +790,30 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
             state->reg.gtpr = state->f1.reg.gtpr;
 
             // TODO: add callbacks
+
         } else {
             assert(false);
+        }
+
+        switch (state->port_index) {
+
+        case STM32_USART_1:
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
+                    state->port_index);
+            break;
+
+        case STM32_USART_2:
+        case STM32_USART_3:
+            // UART_4, UART_5:
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
+                    state->port_index);
+            break;
+
+        default:
+            assert(false);
+            break;
         }
 
         break;
@@ -980,12 +851,48 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
             assert(false);
         }
 
+        switch (state->port_index) {
+
+        case STM32_USART_1:
+        case STM32_USART_6:
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
+                    state->port_index);
+            break;
+
+        case STM32_USART_2:
+        case STM32_USART_3:
+            // UART_4, UART_5:
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
+                    state->port_index);
+            break;
+
+        default:
+            assert(false);
+            break;
+        }
+
         break;
 
     default:
         assert(false);
         break;
     }
+
+    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
+
+    CharDriverState *chr = serial_hds[state->port_index];
+    if (!chr) {
+        char chardev_name[10];
+        snprintf(chardev_name, ARRAY_SIZE(chardev_name)-1, "serial%d",
+                state->port_index);
+        chr = qemu_chr_new(chardev_name, "null", NULL);
+        if (!(chr)) {
+            hw_error("Can't assign serial port to %s.\n", periph_name);
+        }
+    }
+    state->chr = chr;
 
     /* Call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_USART)) {
@@ -996,8 +903,6 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 static void stm32_usart_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
-
-    /* No need to call parent reset(). */
 
     STM32USARTState *state = STM32_USART_STATE(dev);
 
@@ -1026,16 +931,11 @@ static void stm32_usart_reset_callback(DeviceState *dev)
 
 }
 
+#if 0
 static Property stm32_usart_properties[] = {
-        DEFINE_PROP_CHR("chardev", STM32USARTState, chr),
-        DEFINE_PROP_INT32_TYPE("port-index", STM32USARTState, port_index,
-                STM32_USART_PORT_UNDEFINED, stm32_usart_index_t),
-        DEFINE_PROP_NON_VOID_PTR("rcc", STM32USARTState, rcc, STM32RCCState *),
-        DEFINE_PROP_NON_VOID_PTR("nvic", STM32USARTState,
-                nvic, CortexMNVICState *),
-        DEFINE_PROP_NON_VOID_PTR("capabilities", STM32USARTState,
-                capabilities, const STM32Capabilities *),
-    DEFINE_PROP_END_OF_LIST() };
+    DEFINE_PROP_CHR("chardev", STM32USARTState, chr),
+    DEFINE_PROP_END_OF_LIST()};
+#endif
 
 static void stm32_usart_class_init_callback(ObjectClass *klass, void *data)
 {
@@ -1044,7 +944,7 @@ static void stm32_usart_class_init_callback(ObjectClass *klass, void *data)
     dc->reset = stm32_usart_reset_callback;
     dc->realize = stm32_usart_realize_callback;
 
-    dc->props = stm32_usart_properties;
+    // dc->props = stm32_usart_properties;
 
     /* Reason: instance_init() method uses qemu_char_get_next_serial()
      dc->cannot_instantiate_with_device_add_yet = true;*/

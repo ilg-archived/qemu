@@ -1112,8 +1112,13 @@ static void stm32f40x_gpio_create_objects(Object *obj, JSON_Object *svd,
  */
 Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
 {
+    if ((int) index >= STM32_GPIO_PORT_UNDEFINED) {
+        hw_error("Cannot assign GPIO%c: QEMU supports only %d ports\n",
+                'A' + index, STM32_GPIO_PORT_UNDEFINED);
+    }
+
     char child_name[10];
-    snprintf(child_name, sizeof(child_name), "GPIO%c", 'A' + index);
+    snprintf(child_name, sizeof(child_name) - 1, "GPIO%c", 'A' + index);
     // Passing a local string is ok.
     Object *gpio = cm_object_new(parent, child_name, TYPE_STM32_GPIO);
     int i;
@@ -1618,6 +1623,20 @@ static void stm32_gpio_instance_init_callback(Object *obj)
 
     state->syscfg = NULL;
     state->enabling_bit = NULL;
+
+    state->dir_mask = 0;
+
+    state->reg.moder = NULL;
+    state->reg.otyper = NULL;
+    state->reg.ospeeder = NULL;
+    state->reg.pupdr = NULL;
+    state->reg.idr = NULL;
+    state->reg.odr = NULL;
+    state->reg.bsrr = NULL;
+    state->reg.lckr = NULL;
+    state->reg.afrl = NULL;
+    state->reg.afrh = NULL;
+    state->reg.brr = NULL;
 }
 
 static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
@@ -1874,4 +1893,4 @@ static void stm32_gpio_register_types(void)
 
 type_init(stm32_gpio_register_types);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

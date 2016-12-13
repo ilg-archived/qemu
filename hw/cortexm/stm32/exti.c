@@ -972,305 +972,7 @@ static peripheral_register_t stm32f_exti_pr_pre_write_callback(Object *reg,
     return (prev_value & (~full_value));
 }
 
-#if 0
-static PeripheralInfo stm32f051xx_exti_info = {
-    .desc = "External interrupt/event controller (PWR)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
-
-    .registers = (PeripheralRegisterInfo[] ) {
-        {
-            .desc = "Interrupt mask register (EXTI_IMR)",
-            .name = "imr",
-            .offset_bytes = 0x00,
-            /*
-             * Reset value:
-             * - 0x0FF4 0000 (STM32F03x devices)
-             * - 0x7FF4 0000 (STM32F04x devices)
-             * - 0x0F94 0000 (STM32F05x devices)
-             * - 0x7F84 0000 (STM32F07x and STM32F09x devices)
-             */
-            .reset_value = 0x0F940000,
-            .readable_bits = 0xFFFFFFFF,
-            .writable_bits = 0xFFFFFFFF,
-            /**/
-        },
-        {
-            .desc = "Event mask register (EXTI_EMR)",
-            .name = "emr",
-            .offset_bytes = 0x04,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007BFFFF,
-            .writable_bits = 0x007BFFFF,
-            /**/
-        },
-        {
-            .desc = "Rising trigger selection register (EXTI_RTSR)",
-            .name = "rtsr",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007BFFFF,
-            .writable_bits = 0x007BFFFF,
-            /**/
-        },
-        {
-            .desc = "Falling trigger selection register (EXTI_FTSR)",
-            .name = "ftsr",
-            .offset_bytes = 0x0C,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007BFFFF,
-            .writable_bits = 0x007BFFFF,
-            /**/
-        },
-        {
-            .desc = "Software interrupt event register (EXTI_SWIER)",
-            .name = "swier",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007BFFFF,
-            .writable_bits = 0x007BFFFF,
-            /**/
-        },
-        {
-            .desc = "Pending register (EXTI_PR)",
-            .name = "pr",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            // The manual states 'Reset value is undefined',
-            // but SVD gives the 0x0 value.
-            // .reset_mask = 0x00000000,
-            .readable_bits = 0x007BFFFF,
-            .writable_bits = 0x007BFFFF,
-            /* rc_w1 - Software can read as well as clear this bit
-             * by writing 1. Writing ‘0’ has no effect on the bit
-             * value. */
-        },
-        {}, /**/
-    }, /**/
-};
-#endif
-
-#if 0
-static PeripheralInfo stm32f1_exti_info = {
-    .desc = "External interrupt/event controller (PWR)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_WORD,
-
-    .registers = (PeripheralRegisterInfo[] ) {
-        {
-            .desc = "Interrupt mask register (EXTI_IMR)",
-            .name = "imr",
-            .offset_bytes = 0x00,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x000FFFFF,
-            .writable_bits = 0x000FFFFF,
-            /**/
-        },
-        {
-            .desc = "Event mask register (EXTI_EMR)",
-            .name = "emr",
-            .offset_bytes = 0x04,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x000FFFFF,
-            .writable_bits = 0x000FFFFF,
-            /**/
-        },
-        {
-            .desc = "Rising trigger selection register (EXTI_RTSR)",
-            .name = "rtsr",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x000FFFFF,
-            .writable_bits = 0x000FFFFF,
-            /**/
-        },
-        {
-            .desc = "Falling trigger selection register (EXTI_FTSR)",
-            .name = "ftsr",
-            .offset_bytes = 0x0C,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x000FFFFF,
-            .writable_bits = 0x000FFFFF,
-            /**/
-        },
-        {
-            .desc = "Software interrupt event register (EXTI_SWIER)",
-            .name = "swier",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x000FFFFF,
-            .writable_bits = 0x000FFFFF,
-            /**/
-        },
-        {
-            .desc = "Pending register (EXTI_PR)",
-            .name = "pr",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            // The manual states 'Reset value is undefined',
-            // but SVD gives the 0x0 value.
-            // .reset_mask = 0x00000000,
-            .readable_bits = 0x000FFFFF,
-            .writable_bits = 0x000FFFFF,
-            /* rc_w1 - Software can read as well as clear this bit
-             * by writing 1. Writing ‘0’ has no effect on the bit
-             * value. */
-        },
-        {}, /**/
-    }, /**/
-};
-#endif
-
-/* STM32F401x_BC does not have EXTI19 and EXTI20,
- * will probably use the 411xx definitions. */
-
-/* ------------------------------------------------------------------------- */
-
-/* STM32F4_01_57_XX, STM32F4_23_XX_ */
-
-#if 0
-static PeripheralInfo stm32f4xxxx_exti_info = {
-    .desc = "External interrupt/event controller (PWR)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
-
-    .registers = (PeripheralRegisterInfo[] ) {
-        {
-            .desc = "Interrupt mask register (EXTI_IMR)",
-            .name = "imr",
-            .offset_bytes = 0x00,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007FFFFF,
-            .writable_bits = 0x007FFFFF,
-            /**/
-        },
-        {
-            .desc = "Event mask register (EXTI_EMR)",
-            .name = "emr",
-            .offset_bytes = 0x04,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007FFFFF,
-            .writable_bits = 0x007FFFFF,
-            /**/
-        },
-        {
-            .desc = "Rising trigger selection register (EXTI_RTSR)",
-            .name = "rtsr",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007FFFFF,
-            .writable_bits = 0x007FFFFF,
-            /**/
-        },
-        {
-            .desc = "Falling trigger selection register (EXTI_FTSR)",
-            .name = "ftsr",
-            .offset_bytes = 0x0C,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007FFFFF,
-            .writable_bits = 0x007FFFFF,
-            /**/
-        },
-        {
-            .desc = "Software interrupt event register (EXTI_SWIER)",
-            .name = "swier",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x007FFFFF,
-            .writable_bits = 0x007FFFFF,
-            /**/
-        },
-        {
-            .desc = "Pending register (EXTI_PR)",
-            .name = "pr",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            // The manual states 'Reset value is undefined',
-            // but SVD gives the 0x0 value.
-            // .reset_mask = 0x00000000,
-            .readable_bits = 0x007FFFFF,
-            .writable_bits = 0x007FFFFF,
-            /* rc_w1 - Software can read as well as clear this bit
-             * by writing 1. Writing ‘0’ has no effect on the bit
-             * value. */
-        },
-        {}, /**/
-    }, /**/
-};
-#endif
-
-/* ------------------------------------------------------------------------- */
-
-/* STM32F411_xx */
-
-#if 0
-static PeripheralInfo stm32f411xx_exti_info = {
-    .desc = "External interrupt/event controller (PWR)",
-    .default_access_flags = PERIPHERAL_REGISTER_32BITS_ALL,
-
-    .registers = (PeripheralRegisterInfo[] ) {
-        {
-            .desc = "Interrupt mask register (EXTI_IMR)",
-            .name = "imr",
-            .offset_bytes = 0x00,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0067FFFF,
-            .writable_bits = 0x0067FFFF,
-            /**/
-        },
-        {
-            .desc = "Event mask register (EXTI_EMR)",
-            .name = "emr",
-            .offset_bytes = 0x04,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0067FFFF,
-            .writable_bits = 0x0067FFFF,
-            /**/
-        },
-        {
-            .desc = "Rising trigger selection register (EXTI_RTSR)",
-            .name = "rtsr",
-            .offset_bytes = 0x08,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0067FFFF,
-            .writable_bits = 0x0067FFFF,
-            /**/
-        },
-        {
-            .desc = "Falling trigger selection register (EXTI_FTSR)",
-            .name = "ftsr",
-            .offset_bytes = 0x0C,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0067FFFF,
-            .writable_bits = 0x0067FFFF,
-            /**/
-        },
-        {
-            .desc = "Software interrupt event register (EXTI_SWIER)",
-            .name = "swier",
-            .offset_bytes = 0x10,
-            .reset_value = 0x00000000,
-            .readable_bits = 0x0067FFFF,
-            .writable_bits = 0x0067FFFF,
-            /**/
-        },
-        {
-            .desc = "Pending register (EXTI_PR)",
-            .name = "pr",
-            .offset_bytes = 0x14,
-            .reset_value = 0x00000000,
-            // The manual states 'Reset value is undefined',
-            // but SVD gives the 0x0 value.
-            // .reset_mask = 0x00000000,
-            .readable_bits = 0x0067FFFF,
-            .writable_bits = 0x0067FFFF,
-            /* rc_w1 - Software can read as well as clear this bit
-             * by writing 1. Writing ‘0’ has no effect on the bit
-             * value. */
-        },
-        {}, /**/
-    }, /**/
-};
-#endif
-
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void stm32_exti_instance_init_callback(Object *obj)
 {
@@ -1298,6 +1000,12 @@ static void stm32_exti_instance_init_callback(Object *obj)
     cm_irq_init_out(DEVICE(obj), state->irq_out, STM32_IRQ_EXTI_OUT,
     STM32_EXTI_MAX_NUM);
 
+    state->reg.imr = NULL;
+    state->reg.emr = NULL;
+    state->reg.rtsr = NULL;
+    state->reg.ftsr = NULL;
+    state->reg.swier = NULL;
+    state->reg.pr = NULL;
 }
 
 static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
@@ -1325,36 +1033,8 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     const char *periph_name = "EXTI";
 
-    /*
-     * Creating the memory region in the parent class will trigger
-     * an assertion if zro address or size.
-     */
-    uint32_t size = 0;
-    hwaddr addr = 0;
-    switch (capabilities->family) {
-    case STM32_FAMILY_F0:
-        addr = 0x40010400;
-        size = 0x400;
-        break;
-
-    case STM32_FAMILY_F1:
-    case STM32_FAMILY_F4:
-        addr = 0x40013C00;
-        size = 0x400;
-        break;
-
-    default:
-        assert(false);
-        break;
-    }
-
-    cm_object_property_set_int(obj, addr, "mmio-address");
-    cm_object_property_set_int(obj, size, "mmio-size-bytes");
-
     assert(capabilities->num_exti <= STM32_EXTI_MAX_NUM);
     cm_object_property_set_int(obj, capabilities->num_exti, "num_exti");
-
-    JSON_Object *info;
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
@@ -1370,10 +1050,6 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
             state->reg.swier = state->f0.reg.swier;
             state->reg.pr = state->f0.reg.pr;
 
-        } else if (capabilities->f0.is_51xx) {
-            info = cm_json_parser_get_peripheral(mcu->family_json,
-                    "stm32f051:exti");
-            peripheral_add_properties_and_children2(obj, info);
         } else {
             assert(false);
         }
@@ -1394,11 +1070,6 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
             state->reg.swier = state->f1.reg.swier;
             state->reg.pr = state->f1.reg.pr;
 
-#if 0
-            info = cm_json_parser_get_peripheral(mcu->family_json,
-                    "stm32f1xx:exti");
-            peripheral_add_properties_and_children2(obj, info);
-#endif
         } else {
             assert(false);
         }
@@ -1420,19 +1091,6 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
             state->reg.swier = state->f4.reg.swier;
             state->reg.pr = state->f4.reg.pr;
 
-#if 0
-        } else if (capabilities->f4.is_01_57_xx || capabilities->f4.is_23_xxx) {
-
-            info = cm_json_parser_get_peripheral(mcu->family_json,
-                    "stm32f4xx:exti");
-            peripheral_add_properties_and_children2(obj, info);
-
-        } else if (capabilities->f4.is11xx) {
-
-            info = cm_json_parser_get_peripheral(mcu->family_json,
-                    "stm32f411:exti");
-            peripheral_add_properties_and_children2(obj, info);
-#endif
         } else {
             assert(false);
         }
@@ -1441,15 +1099,6 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     default:
         break;
     }
-
-#if 0
-    state->reg.imr = cm_object_get_child_by_name(obj, "imr");
-    state->reg.emr = cm_object_get_child_by_name(obj, "emr");
-    state->reg.rtsr = cm_object_get_child_by_name(obj, "rtsr");
-    state->reg.ftsr = cm_object_get_child_by_name(obj, "ftsr");
-    state->reg.swier = cm_object_get_child_by_name(obj, "swier");
-    state->reg.pr = cm_object_get_child_by_name(obj, "pr");
-#endif
 
     peripheral_register_set_pre_write(state->reg.swier,
             stm32f_exti_swier_pre_write_callback);
@@ -1636,6 +1285,8 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
+    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
+
     /* Finally call parent realize(). */
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_EXTI)) {
         return;
@@ -1669,13 +1320,6 @@ static const TypeInfo stm32_exti_type_info = {
 static void stm32_exti_register_types(void)
 {
     type_register_static(&stm32_exti_type_info);
-
-#if 0
-    peripheral_serialize_info("f051-exti.json", "stm32f051:exti", &stm32f051xx_exti_info);
-    peripheral_serialize_info("f1xx-exti.json", "stm32f1xx:exti", &stm32f1_exti_info);
-    peripheral_serialize_info("f4xx-exti.json", "stm32f4xx:exti", &stm32f4xxxx_exti_info);
-    peripheral_serialize_info("f411-exti.json", "stm32f411:exti", &stm32f411xx_exti_info);
-#endif
 }
 
 type_init(stm32_exti_register_types);

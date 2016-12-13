@@ -291,7 +291,14 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
 
     if (per_class->is_enabled) {
         if (!per_class->is_enabled(OBJECT(state))) {
-            /* If peripheral is not enabled, return a convenience value. */
+            /*
+             * For all peripherals, when the peripheral is not active,
+             * the peripheral register values may not be readable by
+             * software and the returned value is always 0x0.
+             */
+            qemu_log_mask(LOG_GUEST_ERROR,
+                    "%s: Peripheral read of size %d at offset " "0x%"PRIX64 " on disabled peripheral, returns 0.\n",
+                    object_get_typename(OBJECT(state)), size, addr);
             return 0;
         }
     }
@@ -352,7 +359,14 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
 
     if (per_class->is_enabled) {
         if (!per_class->is_enabled(OBJECT(state))) {
-            /* If peripheral is not enabled, do not attempt any write. */
+            /*
+             * For all peripherals, when the peripheral is not active,
+             * the peripheral register values may not be written by
+             * software.
+             */
+            qemu_log_mask(LOG_GUEST_ERROR,
+                    "%s: Write of size %d at offset 0x%"PRIX64 " on disabled peripheral, ignored.\n",
+                    object_get_typename(OBJECT(state)), size, addr);
             return;
         }
     }

@@ -628,7 +628,6 @@ typedef struct {
     } f0;
 
     struct {
-        // DEPRECATED, to be removed!
         unsigned int is_ld :1; /* is low density */
         unsigned int is_md :1; /* is medium density */
         unsigned int is_hd :1; /* is high density */
@@ -638,6 +637,7 @@ typedef struct {
         unsigned int is_mdvl :1; /* is medium density */
         unsigned int is_hdvl :1; /* is high density */
 
+        // Used in parallel with the above.
         unsigned int is_103xx :1;
 
     } f1;

@@ -25,7 +25,7 @@
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/stm32/capabilities.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_STM32_EXTI DEVICE_PATH_STM32 "EXTI"
 
@@ -38,18 +38,18 @@
 #define STM32_IRQ_EXTI_IN     "exti-in"
 #define STM32_IRQ_EXTI_OUT    "nvic-out"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_EXTI TYPE_STM32_PREFIX "exti" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Parent definitions. */
 #define TYPE_STM32_EXTI_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32EXTIParentClass;
 typedef PeripheralState STM32EXTIParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Class definitions. */
 #define STM32_EXTI_GET_CLASS(obj) \
@@ -65,7 +65,7 @@ typedef struct {
     /* None, so far. */
 } STM32EXTIClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Instance definitions. */
 #define STM32_EXTI_STATE(obj) \
@@ -75,6 +75,8 @@ typedef struct {
     /*< private >*/
     STM32EXTIParentState parent_obj;
     /*< public >*/
+
+    const STM32Capabilities *capabilities;
 
     MemoryRegion mmio;
     uint32_t num_exti;
@@ -596,9 +598,8 @@ typedef struct {
 
     } f4;
 
-    const STM32Capabilities *capabilities;
 } STM32EXTIState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_EXTI_H_ */

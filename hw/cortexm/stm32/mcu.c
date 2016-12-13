@@ -24,7 +24,6 @@
 #include <hw/cortexm/bitband.h>
 #include <hw/cortexm/json-parser.h>
 
-#include "sysemu/sysemu.h"
 #include "qemu/error-report.h"
 
 #if defined(CONFIG_VERBOSE)
@@ -36,52 +35,21 @@
 /* ----- Private ----------------------------------------------------------- */
 
 /*
- * Create children GPIO nodes. Public names are "/machine/stm32/gpio[%c]".
+ * Create children GPIO nodes.
+ * Public names are "/machine/stm32/GPIO%c".
  */
-static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index,
-        const STM32Capabilities *capabilities)
+static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index)
 {
     state->gpio[index] = DEVICE(stm32_gpio_create(state->container, index));
 }
 
 /*
- * Create children USART/UART nodes.
- * Public names are "/machine/stm32/usart[%c]".
+ * Create children USART nodes.
+ * Public names are "/machine/stm32/USART%d".
  */
-static void create_usart(STM32MCUState *state, stm32_usart_index_t index,
-        const STM32Capabilities *capabilities)
+static void create_usart(STM32MCUState *state, stm32_usart_index_t index)
 {
-    char child_name[10];
-    char chardev_name[10];
-    CharDriverState *chr;
-
-    snprintf(child_name, sizeof(child_name), "usart[%c]", '1' + index);
-    Object *usart = cm_object_new(state->container, child_name,
-    TYPE_STM32_USART);
-
-    object_property_set_int(usart, index, "port-index", NULL);
-    // TODO: get rid of pointers
-    qdev_prop_set_ptr(DEVICE(usart), "capabilities", (void *) capabilities);
-    qdev_prop_set_ptr(DEVICE(usart), "rcc", state->rcc);
-    qdev_prop_set_ptr(DEVICE(usart), "nvic", state->parent_obj.nvic);
-
-    if ((int) index >= MAX_SERIAL_PORTS) {
-        hw_error("Cannot assign usart %d: QEMU supports only %d ports\n", index,
-        MAX_SERIAL_PORTS);
-    }
-    chr = serial_hds[index];
-    if (!chr) {
-        snprintf(chardev_name, ARRAY_SIZE(chardev_name), "serial%d", index);
-        chr = qemu_chr_new(chardev_name, "null", NULL);
-        if (!(chr)) {
-            hw_error("Can't assign serial port to %s.\n", child_name);
-        }
-    }
-    qdev_prop_set_chr(DEVICE(usart), "chardev", chr);
-
-    cm_object_realize(usart);
-
-    state->usart[index] = DEVICE(usart);
+    state->usart[index] = DEVICE(stm32_usart_create(state->container, index));
 }
 
 /*
@@ -117,15 +85,17 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     /* Based on the SVD device name, set some capabilities fields,
      * for faster access. */
-    if (strcmp("STM32F40x", svd_device_name) == 0) {
-        capabilities->family = STM32_FAMILY_F4;
-        capabilities->f4.is_40x = true;
-    } else if (strcmp("STM32F0x1", svd_device_name) == 0) {
+    if (strcmp("STM32F0x1", svd_device_name) == 0) {
         capabilities->family = STM32_FAMILY_F0;
         capabilities->f0.is_0x1 = true;
     } else if (strcmp("STM32F103xx", svd_device_name) == 0) {
         capabilities->family = STM32_FAMILY_F1;
         capabilities->f1.is_103xx = true;
+        capabilities->f1.is_md = true;
+
+    } else if (strcmp("STM32F40x", svd_device_name) == 0) {
+        capabilities->family = STM32_FAMILY_F4;
+        capabilities->f4.is_40x = true;
     } else {
         error_printf("Unsupported device name '%s'.\n", svd_device_name);
         // TODO: uncomment when all devices use svd
@@ -313,126 +283,126 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     /* GPIOA */
     if (capabilities->has_gpioa
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOA")) {
-        create_gpio(state, STM32_GPIO_PORT_A, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_A);
         state->num_gpio = 1;
     }
 
     /* GPIOB */
     if (capabilities->has_gpiob
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOB")) {
-        create_gpio(state, STM32_GPIO_PORT_B, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_B);
         state->num_gpio = 2;
     }
 
     /* GPIOC */
     if (capabilities->has_gpioc
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOC")) {
-        create_gpio(state, STM32_GPIO_PORT_C, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_C);
         state->num_gpio = 3;
     }
 
     /* GPIOD */
     if (capabilities->has_gpiod
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOD")) {
-        create_gpio(state, STM32_GPIO_PORT_D, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_D);
         state->num_gpio = 4;
     }
 
     /* GPIOE */
     if (capabilities->has_gpioe
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOE")) {
-        create_gpio(state, STM32_GPIO_PORT_E, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_E);
         state->num_gpio = 5;
     }
 
     /* GPIOF */
     if (capabilities->has_gpiof
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOF")) {
-        create_gpio(state, STM32_GPIO_PORT_F, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_F);
         state->num_gpio = 6;
     }
 
     /* GPIOG */
     if (capabilities->has_gpiog
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOG")) {
-        create_gpio(state, STM32_GPIO_PORT_G, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_G);
         state->num_gpio = 7;
     }
 
     /* GPIOH */
     if (capabilities->has_gpioh
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOH")) {
-        create_gpio(state, STM32_GPIO_PORT_H, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_H);
         state->num_gpio = 8;
     }
 
     /* GPIOI */
     if (capabilities->has_gpioi
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOI")) {
-        create_gpio(state, STM32_GPIO_PORT_I, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_I);
         state->num_gpio = 9;
     }
 
     /* GPIOJ */
     if (capabilities->has_gpioj
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOJ")) {
-        create_gpio(state, STM32_GPIO_PORT_J, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_J);
         state->num_gpio = 10;
     }
 
     /* GPIOK */
     if (capabilities->has_gpiok
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOK")) {
-        create_gpio(state, STM32_GPIO_PORT_K, capabilities);
+        create_gpio(state, STM32_GPIO_PORT_K);
         state->num_gpio = 11;
     }
 
     /* USART1 */
     if (capabilities->has_usart1
             && svd_has_named_peripheral(cm_state->svd_json, "USART1")) {
-        create_usart(state, STM32_USART_1, capabilities);
+        create_usart(state, STM32_USART_1);
     }
 
     /* USART2 */
     if (capabilities->has_usart2
             && svd_has_named_peripheral(cm_state->svd_json, "USART2")) {
-        create_usart(state, STM32_USART_2, capabilities);
+        create_usart(state, STM32_USART_2);
     }
 
     /* USART3 */
     if (capabilities->has_usart3
             && svd_has_named_peripheral(cm_state->svd_json, "USART3")) {
-        create_usart(state, STM32_USART_3, capabilities);
+        create_usart(state, STM32_USART_3);
     }
 
     /* USART4 */
     if (capabilities->has_usart4
             && svd_has_named_peripheral(cm_state->svd_json, "USART4")) {
-        create_usart(state, STM32_USART_4, capabilities);
+        create_usart(state, STM32_USART_4);
     }
 
     /* USART5 */
     if (capabilities->has_usart5
             && svd_has_named_peripheral(cm_state->svd_json, "USART5")) {
-        create_usart(state, STM32_USART_5, capabilities);
+        create_usart(state, STM32_USART_5);
     }
 
     /* USART6 */
     if (capabilities->has_usart6
             && svd_has_named_peripheral(cm_state->svd_json, "USART6")) {
-        create_usart(state, STM32_USART_6, capabilities);
+        create_usart(state, STM32_USART_6);
     }
 
     /* USART7 */
     if (capabilities->has_usart7
             && svd_has_named_peripheral(cm_state->svd_json, "USART7")) {
-        create_usart(state, STM32_USART_7, capabilities);
+        create_usart(state, STM32_USART_7);
     }
 
     /* USART8 */
     if (capabilities->has_usart8
             && svd_has_named_peripheral(cm_state->svd_json, "USART8")) {
-        create_usart(state, STM32_USART_8, capabilities);
+        create_usart(state, STM32_USART_8);
     }
 
     // UARTS are separate from USARTS

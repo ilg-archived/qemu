@@ -25,22 +25,22 @@
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/stm32/capabilities.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_STM32_SYSCFG DEVICE_PATH_STM32 "SYSCFG"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_SYSCFG TYPE_STM32_PREFIX "syscfg" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Parent definitions. */
 #define TYPE_STM32_SYSCFG_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32SYSCFGParentClass;
 typedef PeripheralState STM32SYSCFGParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Class definitions. */
 #define STM32_SYSCFG_GET_CLASS(obj) \
@@ -56,7 +56,7 @@ typedef struct {
     /* None, so far. */
 } STM32SYSCFGClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Instance definitions. */
 #define STM32_SYSCFG_STATE(obj) \
@@ -66,6 +66,8 @@ typedef struct {
     /*< private >*/
     STM32SYSCFGParentState parent_obj;
     /*< public >*/
+
+    const STM32Capabilities *capabilities;
 
     /* Used in GPIOs, it is easier to make it common to all families. */
     struct {
@@ -216,9 +218,8 @@ typedef struct {
         } fld;
     } f4;
 
-    const STM32Capabilities *capabilities;
 } STM32SYSCFGState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_SYSCFG_H_ */

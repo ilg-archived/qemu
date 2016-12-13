@@ -25,24 +25,24 @@
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/stm32/capabilities.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_STM32_RCC DEVICE_PATH_STM32 "RCC"
 
 #define STM32_RCC_SIZEOF_ENABLING_BITFIELD (sizeof(DEVICE_PATH_STM32_RCC)+32)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_RCC TYPE_STM32_PREFIX "rcc" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Parent definitions. */
 #define TYPE_STM32_RCC_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32RCCParentClass;
 typedef PeripheralState STM32RCCParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Class definitions. */
 #define STM32_RCC_GET_CLASS(obj) \
@@ -58,7 +58,7 @@ typedef struct {
     /* None, so far. */
 } STM32RCCClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Instance definitions. */
 #define STM32_RCC_STATE(obj) \
@@ -69,6 +69,8 @@ typedef struct {
     STM32RCCParentState parent_obj;
     /*< public >*/
 
+    const STM32Capabilities *capabilities;
+
     /* Properties */
     uint32_t cpu_freq_hz;
     uint32_t hse_freq_hz;
@@ -77,7 +79,6 @@ typedef struct {
     uint32_t lsi_freq_hz;
 
     MemoryRegion mmio;
-    // qemu_irq irq;
 
     // DO NOT EDIT! Automatically generated!
     struct {
@@ -259,6 +260,7 @@ typedef struct {
             struct {
                 Object *lsion; // [0:0] Internal low speed oscillator enable
                 Object *lsirdy; // [1:1] Internal low speed oscillator ready
+                // rt_w, 1 = clear the reset flags
                 Object *rmvf; // [24:24] Remove reset flag
                 Object *oblrstf; // [25:25] Option byte loader reset flag
                 Object *pinrstf; // [26:26] PIN reset flag
@@ -947,9 +949,8 @@ typedef struct {
         } fld;
     } f4;
 
-    const STM32Capabilities *capabilities;
 } STM32RCCState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_RCC_H_ */

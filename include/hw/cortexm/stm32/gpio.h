@@ -33,7 +33,7 @@
 #include <hw/cortexm/stm32/syscfg.h>
 #include <hw/cortexm/peripheral.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_STM32_GPIO_A DEVICE_PATH_STM32 "GPIOA"
 #define DEVICE_PATH_STM32_GPIO_B DEVICE_PATH_STM32 "GPIOB"
@@ -69,17 +69,17 @@ typedef enum {
 #define STM32_IRQ_GPIO_ODR_OUT        "odr-out"
 #define STM32_IRQ_GPIO_EXTI_OUT       "exti-out"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_GPIO TYPE_STM32_PREFIX "gpio" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_GPIO_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32GPIOParentClass;
 typedef PeripheralState STM32GPIOParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define STM32_GPIO_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32GPIOClass, (obj), TYPE_STM32_GPIO)
@@ -92,7 +92,7 @@ typedef struct {
     /*< public >*/
 } STM32GPIOClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define STM32_GPIO_STATE(obj) \
     OBJECT_CHECK(STM32GPIOState, (obj), TYPE_STM32_GPIO)
@@ -101,6 +101,8 @@ typedef struct {
     /*< private >*/
     STM32GPIOParentState parent_obj;
     /*< public >*/
+
+    const STM32Capabilities *capabilities;
 
     MemoryRegion mmio;
 
@@ -791,15 +793,14 @@ typedef struct {
         } fld;
     } f4;
 
-    const STM32Capabilities *capabilities;
 } STM32GPIOState;
 
-/* ------------------------------------------------------------------------- */
+// ----- Public ---------------------------------------------------------------
 
 Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index);
 
 Object* stm32_gpio_get(int index);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_GPIO_H_ */

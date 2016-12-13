@@ -25,22 +25,22 @@
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/stm32/capabilities.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_STM32_PWR DEVICE_PATH_STM32 "PWR"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_PWR TYPE_STM32_PREFIX "pwr" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Parent definitions. */
 #define TYPE_STM32_PWR_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32PWRParentClass;
 typedef PeripheralState STM32PWRParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Class definitions. */
 #define STM32_PWR_GET_CLASS(obj) \
@@ -56,7 +56,7 @@ typedef struct {
     /* None, so far. */
 } STM32PWRClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /* Instance definitions. */
 #define STM32_PWR_STATE(obj) \
@@ -66,6 +66,8 @@ typedef struct {
     /*< private >*/
     STM32PWRParentState parent_obj;
     /*< public >*/
+
+    const STM32Capabilities *capabilities;
 
     MemoryRegion mmio;
 
@@ -220,9 +222,8 @@ typedef struct {
         } fld;
     } f4;
 
-    const STM32Capabilities *capabilities;
 } STM32PWRState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_PWR_H_ */

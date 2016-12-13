@@ -38,21 +38,21 @@
 
 #include "sysemu/char.h"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_STM32_USART DEVICE_PATH_STM32 "USART"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_USART TYPE_STM32_PREFIX "usart" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_USART_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32USARTParentClass;
 typedef PeripheralState STM32USARTParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define STM32_USART_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32USARTClass, (obj), TYPE_STM32_USART)
@@ -65,7 +65,7 @@ typedef struct {
     /*< public >*/
 } STM32USARTClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef enum {
     STM32_USART_1 = 0,
@@ -106,11 +106,15 @@ typedef struct {
     STM32USARTParentState parent_obj;
     /*< public >*/
 
+    const STM32Capabilities *capabilities;
+
     MemoryRegion mmio;
 
     stm32_usart_index_t port_index;
 
-    STM32RCCState *rcc;
+    // Points to one RCC bitfield that enables the GPIO.
+    Object *enabling_bit;
+
     CortexMNVICState *nvic;
 
     CharDriverState *chr;
@@ -490,10 +494,13 @@ typedef struct {
         } fld;
     } f4;
 
-    const STM32Capabilities *capabilities;
 } STM32USARTState;
 
-/* ------------------------------------------------------------------------- */
+// ----- Public ---------------------------------------------------------------
+
+Object* stm32_usart_create(Object *parent, stm32_usart_index_t index);
+
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_USART_H_ */
 
