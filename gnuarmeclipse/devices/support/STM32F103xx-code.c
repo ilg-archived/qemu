@@ -5,7 +5,8 @@
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 FSMC (Flexible static memory controller) registers.
 		struct {
@@ -346,269 +347,269 @@ static void stm32f103xx_fsmc_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.bcr1 = cm_object_get_child_by_name(obj, "BCR1");
-	state->f1.reg.btr1 = cm_object_get_child_by_name(obj, "BTR1");
-	state->f1.reg.bcr2 = cm_object_get_child_by_name(obj, "BCR2");
-	state->f1.reg.btr2 = cm_object_get_child_by_name(obj, "BTR2");
-	state->f1.reg.bcr3 = cm_object_get_child_by_name(obj, "BCR3");
-	state->f1.reg.btr3 = cm_object_get_child_by_name(obj, "BTR3");
-	state->f1.reg.bcr4 = cm_object_get_child_by_name(obj, "BCR4");
-	state->f1.reg.btr4 = cm_object_get_child_by_name(obj, "BTR4");
-	state->f1.reg.pcr2 = cm_object_get_child_by_name(obj, "PCR2");
-	state->f1.reg.sr2 = cm_object_get_child_by_name(obj, "SR2");
-	state->f1.reg.pmem2 = cm_object_get_child_by_name(obj, "PMEM2");
-	state->f1.reg.patt2 = cm_object_get_child_by_name(obj, "PATT2");
-	state->f1.reg.eccr2 = cm_object_get_child_by_name(obj, "ECCR2");
-	state->f1.reg.pcr3 = cm_object_get_child_by_name(obj, "PCR3");
-	state->f1.reg.sr3 = cm_object_get_child_by_name(obj, "SR3");
-	state->f1.reg.pmem3 = cm_object_get_child_by_name(obj, "PMEM3");
-	state->f1.reg.patt3 = cm_object_get_child_by_name(obj, "PATT3");
-	state->f1.reg.eccr3 = cm_object_get_child_by_name(obj, "ECCR3");
-	state->f1.reg.pcr4 = cm_object_get_child_by_name(obj, "PCR4");
-	state->f1.reg.sr4 = cm_object_get_child_by_name(obj, "SR4");
-	state->f1.reg.pmem4 = cm_object_get_child_by_name(obj, "PMEM4");
-	state->f1.reg.patt4 = cm_object_get_child_by_name(obj, "PATT4");
-	state->f1.reg.pio4 = cm_object_get_child_by_name(obj, "PIO4");
-	state->f1.reg.bwtr1 = cm_object_get_child_by_name(obj, "BWTR1");
-	state->f1.reg.bwtr2 = cm_object_get_child_by_name(obj, "BWTR2");
-	state->f1.reg.bwtr3 = cm_object_get_child_by_name(obj, "BWTR3");
-	state->f1.reg.bwtr4 = cm_object_get_child_by_name(obj, "BWTR4");
+	state->u.f1.reg.bcr1 = cm_object_get_child_by_name(obj, "BCR1");
+	state->u.f1.reg.btr1 = cm_object_get_child_by_name(obj, "BTR1");
+	state->u.f1.reg.bcr2 = cm_object_get_child_by_name(obj, "BCR2");
+	state->u.f1.reg.btr2 = cm_object_get_child_by_name(obj, "BTR2");
+	state->u.f1.reg.bcr3 = cm_object_get_child_by_name(obj, "BCR3");
+	state->u.f1.reg.btr3 = cm_object_get_child_by_name(obj, "BTR3");
+	state->u.f1.reg.bcr4 = cm_object_get_child_by_name(obj, "BCR4");
+	state->u.f1.reg.btr4 = cm_object_get_child_by_name(obj, "BTR4");
+	state->u.f1.reg.pcr2 = cm_object_get_child_by_name(obj, "PCR2");
+	state->u.f1.reg.sr2 = cm_object_get_child_by_name(obj, "SR2");
+	state->u.f1.reg.pmem2 = cm_object_get_child_by_name(obj, "PMEM2");
+	state->u.f1.reg.patt2 = cm_object_get_child_by_name(obj, "PATT2");
+	state->u.f1.reg.eccr2 = cm_object_get_child_by_name(obj, "ECCR2");
+	state->u.f1.reg.pcr3 = cm_object_get_child_by_name(obj, "PCR3");
+	state->u.f1.reg.sr3 = cm_object_get_child_by_name(obj, "SR3");
+	state->u.f1.reg.pmem3 = cm_object_get_child_by_name(obj, "PMEM3");
+	state->u.f1.reg.patt3 = cm_object_get_child_by_name(obj, "PATT3");
+	state->u.f1.reg.eccr3 = cm_object_get_child_by_name(obj, "ECCR3");
+	state->u.f1.reg.pcr4 = cm_object_get_child_by_name(obj, "PCR4");
+	state->u.f1.reg.sr4 = cm_object_get_child_by_name(obj, "SR4");
+	state->u.f1.reg.pmem4 = cm_object_get_child_by_name(obj, "PMEM4");
+	state->u.f1.reg.patt4 = cm_object_get_child_by_name(obj, "PATT4");
+	state->u.f1.reg.pio4 = cm_object_get_child_by_name(obj, "PIO4");
+	state->u.f1.reg.bwtr1 = cm_object_get_child_by_name(obj, "BWTR1");
+	state->u.f1.reg.bwtr2 = cm_object_get_child_by_name(obj, "BWTR2");
+	state->u.f1.reg.bwtr3 = cm_object_get_child_by_name(obj, "BWTR3");
+	state->u.f1.reg.bwtr4 = cm_object_get_child_by_name(obj, "BWTR4");
 
 	// BCR1 bitfields.
-	state->f1.fld.bcr1.mbken = cm_object_get_child_by_name(state->f1.reg.bcr1, "MBKEN");
-	state->f1.fld.bcr1.muxen = cm_object_get_child_by_name(state->f1.reg.bcr1, "MUXEN");
-	state->f1.fld.bcr1.mtyp = cm_object_get_child_by_name(state->f1.reg.bcr1, "MTYP");
-	state->f1.fld.bcr1.mwid = cm_object_get_child_by_name(state->f1.reg.bcr1, "MWID");
-	state->f1.fld.bcr1.faccen = cm_object_get_child_by_name(state->f1.reg.bcr1, "FACCEN");
-	state->f1.fld.bcr1.bursten = cm_object_get_child_by_name(state->f1.reg.bcr1, "BURSTEN");
-	state->f1.fld.bcr1.waitpol = cm_object_get_child_by_name(state->f1.reg.bcr1, "WAITPOL");
-	state->f1.fld.bcr1.waitcfg = cm_object_get_child_by_name(state->f1.reg.bcr1, "WAITCFG");
-	state->f1.fld.bcr1.wren = cm_object_get_child_by_name(state->f1.reg.bcr1, "WREN");
-	state->f1.fld.bcr1.waiten = cm_object_get_child_by_name(state->f1.reg.bcr1, "WAITEN");
-	state->f1.fld.bcr1.extmod = cm_object_get_child_by_name(state->f1.reg.bcr1, "EXTMOD");
-	state->f1.fld.bcr1.asyncwait = cm_object_get_child_by_name(state->f1.reg.bcr1, "ASYNCWAIT");
-	state->f1.fld.bcr1.cburstrw = cm_object_get_child_by_name(state->f1.reg.bcr1, "CBURSTRW");
+	state->u.f1.fld.bcr1.mbken = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "MBKEN");
+	state->u.f1.fld.bcr1.muxen = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "MUXEN");
+	state->u.f1.fld.bcr1.mtyp = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "MTYP");
+	state->u.f1.fld.bcr1.mwid = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "MWID");
+	state->u.f1.fld.bcr1.faccen = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "FACCEN");
+	state->u.f1.fld.bcr1.bursten = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "BURSTEN");
+	state->u.f1.fld.bcr1.waitpol = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "WAITPOL");
+	state->u.f1.fld.bcr1.waitcfg = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "WAITCFG");
+	state->u.f1.fld.bcr1.wren = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "WREN");
+	state->u.f1.fld.bcr1.waiten = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "WAITEN");
+	state->u.f1.fld.bcr1.extmod = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "EXTMOD");
+	state->u.f1.fld.bcr1.asyncwait = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "ASYNCWAIT");
+	state->u.f1.fld.bcr1.cburstrw = cm_object_get_child_by_name(state->u.f1.reg.bcr1, "CBURSTRW");
 
 	// BTR1 bitfields.
-	state->f1.fld.btr1.addset = cm_object_get_child_by_name(state->f1.reg.btr1, "ADDSET");
-	state->f1.fld.btr1.addhld = cm_object_get_child_by_name(state->f1.reg.btr1, "ADDHLD");
-	state->f1.fld.btr1.datast = cm_object_get_child_by_name(state->f1.reg.btr1, "DATAST");
-	state->f1.fld.btr1.busturn = cm_object_get_child_by_name(state->f1.reg.btr1, "BUSTURN");
-	state->f1.fld.btr1.clkdiv = cm_object_get_child_by_name(state->f1.reg.btr1, "CLKDIV");
-	state->f1.fld.btr1.datlat = cm_object_get_child_by_name(state->f1.reg.btr1, "DATLAT");
-	state->f1.fld.btr1.accmod = cm_object_get_child_by_name(state->f1.reg.btr1, "ACCMOD");
+	state->u.f1.fld.btr1.addset = cm_object_get_child_by_name(state->u.f1.reg.btr1, "ADDSET");
+	state->u.f1.fld.btr1.addhld = cm_object_get_child_by_name(state->u.f1.reg.btr1, "ADDHLD");
+	state->u.f1.fld.btr1.datast = cm_object_get_child_by_name(state->u.f1.reg.btr1, "DATAST");
+	state->u.f1.fld.btr1.busturn = cm_object_get_child_by_name(state->u.f1.reg.btr1, "BUSTURN");
+	state->u.f1.fld.btr1.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.btr1, "CLKDIV");
+	state->u.f1.fld.btr1.datlat = cm_object_get_child_by_name(state->u.f1.reg.btr1, "DATLAT");
+	state->u.f1.fld.btr1.accmod = cm_object_get_child_by_name(state->u.f1.reg.btr1, "ACCMOD");
 
 	// BCR2 bitfields.
-	state->f1.fld.bcr2.mbken = cm_object_get_child_by_name(state->f1.reg.bcr2, "MBKEN");
-	state->f1.fld.bcr2.muxen = cm_object_get_child_by_name(state->f1.reg.bcr2, "MUXEN");
-	state->f1.fld.bcr2.mtyp = cm_object_get_child_by_name(state->f1.reg.bcr2, "MTYP");
-	state->f1.fld.bcr2.mwid = cm_object_get_child_by_name(state->f1.reg.bcr2, "MWID");
-	state->f1.fld.bcr2.faccen = cm_object_get_child_by_name(state->f1.reg.bcr2, "FACCEN");
-	state->f1.fld.bcr2.bursten = cm_object_get_child_by_name(state->f1.reg.bcr2, "BURSTEN");
-	state->f1.fld.bcr2.waitpol = cm_object_get_child_by_name(state->f1.reg.bcr2, "WAITPOL");
-	state->f1.fld.bcr2.wrapmod = cm_object_get_child_by_name(state->f1.reg.bcr2, "WRAPMOD");
-	state->f1.fld.bcr2.waitcfg = cm_object_get_child_by_name(state->f1.reg.bcr2, "WAITCFG");
-	state->f1.fld.bcr2.wren = cm_object_get_child_by_name(state->f1.reg.bcr2, "WREN");
-	state->f1.fld.bcr2.waiten = cm_object_get_child_by_name(state->f1.reg.bcr2, "WAITEN");
-	state->f1.fld.bcr2.extmod = cm_object_get_child_by_name(state->f1.reg.bcr2, "EXTMOD");
-	state->f1.fld.bcr2.asyncwait = cm_object_get_child_by_name(state->f1.reg.bcr2, "ASYNCWAIT");
-	state->f1.fld.bcr2.cburstrw = cm_object_get_child_by_name(state->f1.reg.bcr2, "CBURSTRW");
+	state->u.f1.fld.bcr2.mbken = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "MBKEN");
+	state->u.f1.fld.bcr2.muxen = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "MUXEN");
+	state->u.f1.fld.bcr2.mtyp = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "MTYP");
+	state->u.f1.fld.bcr2.mwid = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "MWID");
+	state->u.f1.fld.bcr2.faccen = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "FACCEN");
+	state->u.f1.fld.bcr2.bursten = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "BURSTEN");
+	state->u.f1.fld.bcr2.waitpol = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "WAITPOL");
+	state->u.f1.fld.bcr2.wrapmod = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "WRAPMOD");
+	state->u.f1.fld.bcr2.waitcfg = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "WAITCFG");
+	state->u.f1.fld.bcr2.wren = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "WREN");
+	state->u.f1.fld.bcr2.waiten = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "WAITEN");
+	state->u.f1.fld.bcr2.extmod = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "EXTMOD");
+	state->u.f1.fld.bcr2.asyncwait = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "ASYNCWAIT");
+	state->u.f1.fld.bcr2.cburstrw = cm_object_get_child_by_name(state->u.f1.reg.bcr2, "CBURSTRW");
 
 	// BTR2 bitfields.
-	state->f1.fld.btr2.addset = cm_object_get_child_by_name(state->f1.reg.btr2, "ADDSET");
-	state->f1.fld.btr2.addhld = cm_object_get_child_by_name(state->f1.reg.btr2, "ADDHLD");
-	state->f1.fld.btr2.datast = cm_object_get_child_by_name(state->f1.reg.btr2, "DATAST");
-	state->f1.fld.btr2.busturn = cm_object_get_child_by_name(state->f1.reg.btr2, "BUSTURN");
-	state->f1.fld.btr2.clkdiv = cm_object_get_child_by_name(state->f1.reg.btr2, "CLKDIV");
-	state->f1.fld.btr2.datlat = cm_object_get_child_by_name(state->f1.reg.btr2, "DATLAT");
-	state->f1.fld.btr2.accmod = cm_object_get_child_by_name(state->f1.reg.btr2, "ACCMOD");
+	state->u.f1.fld.btr2.addset = cm_object_get_child_by_name(state->u.f1.reg.btr2, "ADDSET");
+	state->u.f1.fld.btr2.addhld = cm_object_get_child_by_name(state->u.f1.reg.btr2, "ADDHLD");
+	state->u.f1.fld.btr2.datast = cm_object_get_child_by_name(state->u.f1.reg.btr2, "DATAST");
+	state->u.f1.fld.btr2.busturn = cm_object_get_child_by_name(state->u.f1.reg.btr2, "BUSTURN");
+	state->u.f1.fld.btr2.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.btr2, "CLKDIV");
+	state->u.f1.fld.btr2.datlat = cm_object_get_child_by_name(state->u.f1.reg.btr2, "DATLAT");
+	state->u.f1.fld.btr2.accmod = cm_object_get_child_by_name(state->u.f1.reg.btr2, "ACCMOD");
 
 	// BCR3 bitfields.
-	state->f1.fld.bcr3.mbken = cm_object_get_child_by_name(state->f1.reg.bcr3, "MBKEN");
-	state->f1.fld.bcr3.muxen = cm_object_get_child_by_name(state->f1.reg.bcr3, "MUXEN");
-	state->f1.fld.bcr3.mtyp = cm_object_get_child_by_name(state->f1.reg.bcr3, "MTYP");
-	state->f1.fld.bcr3.mwid = cm_object_get_child_by_name(state->f1.reg.bcr3, "MWID");
-	state->f1.fld.bcr3.faccen = cm_object_get_child_by_name(state->f1.reg.bcr3, "FACCEN");
-	state->f1.fld.bcr3.bursten = cm_object_get_child_by_name(state->f1.reg.bcr3, "BURSTEN");
-	state->f1.fld.bcr3.waitpol = cm_object_get_child_by_name(state->f1.reg.bcr3, "WAITPOL");
-	state->f1.fld.bcr3.wrapmod = cm_object_get_child_by_name(state->f1.reg.bcr3, "WRAPMOD");
-	state->f1.fld.bcr3.waitcfg = cm_object_get_child_by_name(state->f1.reg.bcr3, "WAITCFG");
-	state->f1.fld.bcr3.wren = cm_object_get_child_by_name(state->f1.reg.bcr3, "WREN");
-	state->f1.fld.bcr3.waiten = cm_object_get_child_by_name(state->f1.reg.bcr3, "WAITEN");
-	state->f1.fld.bcr3.extmod = cm_object_get_child_by_name(state->f1.reg.bcr3, "EXTMOD");
-	state->f1.fld.bcr3.asyncwait = cm_object_get_child_by_name(state->f1.reg.bcr3, "ASYNCWAIT");
-	state->f1.fld.bcr3.cburstrw = cm_object_get_child_by_name(state->f1.reg.bcr3, "CBURSTRW");
+	state->u.f1.fld.bcr3.mbken = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "MBKEN");
+	state->u.f1.fld.bcr3.muxen = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "MUXEN");
+	state->u.f1.fld.bcr3.mtyp = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "MTYP");
+	state->u.f1.fld.bcr3.mwid = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "MWID");
+	state->u.f1.fld.bcr3.faccen = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "FACCEN");
+	state->u.f1.fld.bcr3.bursten = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "BURSTEN");
+	state->u.f1.fld.bcr3.waitpol = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "WAITPOL");
+	state->u.f1.fld.bcr3.wrapmod = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "WRAPMOD");
+	state->u.f1.fld.bcr3.waitcfg = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "WAITCFG");
+	state->u.f1.fld.bcr3.wren = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "WREN");
+	state->u.f1.fld.bcr3.waiten = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "WAITEN");
+	state->u.f1.fld.bcr3.extmod = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "EXTMOD");
+	state->u.f1.fld.bcr3.asyncwait = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "ASYNCWAIT");
+	state->u.f1.fld.bcr3.cburstrw = cm_object_get_child_by_name(state->u.f1.reg.bcr3, "CBURSTRW");
 
 	// BTR3 bitfields.
-	state->f1.fld.btr3.addset = cm_object_get_child_by_name(state->f1.reg.btr3, "ADDSET");
-	state->f1.fld.btr3.addhld = cm_object_get_child_by_name(state->f1.reg.btr3, "ADDHLD");
-	state->f1.fld.btr3.datast = cm_object_get_child_by_name(state->f1.reg.btr3, "DATAST");
-	state->f1.fld.btr3.busturn = cm_object_get_child_by_name(state->f1.reg.btr3, "BUSTURN");
-	state->f1.fld.btr3.clkdiv = cm_object_get_child_by_name(state->f1.reg.btr3, "CLKDIV");
-	state->f1.fld.btr3.datlat = cm_object_get_child_by_name(state->f1.reg.btr3, "DATLAT");
-	state->f1.fld.btr3.accmod = cm_object_get_child_by_name(state->f1.reg.btr3, "ACCMOD");
+	state->u.f1.fld.btr3.addset = cm_object_get_child_by_name(state->u.f1.reg.btr3, "ADDSET");
+	state->u.f1.fld.btr3.addhld = cm_object_get_child_by_name(state->u.f1.reg.btr3, "ADDHLD");
+	state->u.f1.fld.btr3.datast = cm_object_get_child_by_name(state->u.f1.reg.btr3, "DATAST");
+	state->u.f1.fld.btr3.busturn = cm_object_get_child_by_name(state->u.f1.reg.btr3, "BUSTURN");
+	state->u.f1.fld.btr3.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.btr3, "CLKDIV");
+	state->u.f1.fld.btr3.datlat = cm_object_get_child_by_name(state->u.f1.reg.btr3, "DATLAT");
+	state->u.f1.fld.btr3.accmod = cm_object_get_child_by_name(state->u.f1.reg.btr3, "ACCMOD");
 
 	// BCR4 bitfields.
-	state->f1.fld.bcr4.mbken = cm_object_get_child_by_name(state->f1.reg.bcr4, "MBKEN");
-	state->f1.fld.bcr4.muxen = cm_object_get_child_by_name(state->f1.reg.bcr4, "MUXEN");
-	state->f1.fld.bcr4.mtyp = cm_object_get_child_by_name(state->f1.reg.bcr4, "MTYP");
-	state->f1.fld.bcr4.mwid = cm_object_get_child_by_name(state->f1.reg.bcr4, "MWID");
-	state->f1.fld.bcr4.faccen = cm_object_get_child_by_name(state->f1.reg.bcr4, "FACCEN");
-	state->f1.fld.bcr4.bursten = cm_object_get_child_by_name(state->f1.reg.bcr4, "BURSTEN");
-	state->f1.fld.bcr4.waitpol = cm_object_get_child_by_name(state->f1.reg.bcr4, "WAITPOL");
-	state->f1.fld.bcr4.wrapmod = cm_object_get_child_by_name(state->f1.reg.bcr4, "WRAPMOD");
-	state->f1.fld.bcr4.waitcfg = cm_object_get_child_by_name(state->f1.reg.bcr4, "WAITCFG");
-	state->f1.fld.bcr4.wren = cm_object_get_child_by_name(state->f1.reg.bcr4, "WREN");
-	state->f1.fld.bcr4.waiten = cm_object_get_child_by_name(state->f1.reg.bcr4, "WAITEN");
-	state->f1.fld.bcr4.extmod = cm_object_get_child_by_name(state->f1.reg.bcr4, "EXTMOD");
-	state->f1.fld.bcr4.asyncwait = cm_object_get_child_by_name(state->f1.reg.bcr4, "ASYNCWAIT");
-	state->f1.fld.bcr4.cburstrw = cm_object_get_child_by_name(state->f1.reg.bcr4, "CBURSTRW");
+	state->u.f1.fld.bcr4.mbken = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "MBKEN");
+	state->u.f1.fld.bcr4.muxen = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "MUXEN");
+	state->u.f1.fld.bcr4.mtyp = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "MTYP");
+	state->u.f1.fld.bcr4.mwid = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "MWID");
+	state->u.f1.fld.bcr4.faccen = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "FACCEN");
+	state->u.f1.fld.bcr4.bursten = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "BURSTEN");
+	state->u.f1.fld.bcr4.waitpol = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "WAITPOL");
+	state->u.f1.fld.bcr4.wrapmod = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "WRAPMOD");
+	state->u.f1.fld.bcr4.waitcfg = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "WAITCFG");
+	state->u.f1.fld.bcr4.wren = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "WREN");
+	state->u.f1.fld.bcr4.waiten = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "WAITEN");
+	state->u.f1.fld.bcr4.extmod = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "EXTMOD");
+	state->u.f1.fld.bcr4.asyncwait = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "ASYNCWAIT");
+	state->u.f1.fld.bcr4.cburstrw = cm_object_get_child_by_name(state->u.f1.reg.bcr4, "CBURSTRW");
 
 	// BTR4 bitfields.
-	state->f1.fld.btr4.addset = cm_object_get_child_by_name(state->f1.reg.btr4, "ADDSET");
-	state->f1.fld.btr4.addhld = cm_object_get_child_by_name(state->f1.reg.btr4, "ADDHLD");
-	state->f1.fld.btr4.datast = cm_object_get_child_by_name(state->f1.reg.btr4, "DATAST");
-	state->f1.fld.btr4.busturn = cm_object_get_child_by_name(state->f1.reg.btr4, "BUSTURN");
-	state->f1.fld.btr4.clkdiv = cm_object_get_child_by_name(state->f1.reg.btr4, "CLKDIV");
-	state->f1.fld.btr4.datlat = cm_object_get_child_by_name(state->f1.reg.btr4, "DATLAT");
-	state->f1.fld.btr4.accmod = cm_object_get_child_by_name(state->f1.reg.btr4, "ACCMOD");
+	state->u.f1.fld.btr4.addset = cm_object_get_child_by_name(state->u.f1.reg.btr4, "ADDSET");
+	state->u.f1.fld.btr4.addhld = cm_object_get_child_by_name(state->u.f1.reg.btr4, "ADDHLD");
+	state->u.f1.fld.btr4.datast = cm_object_get_child_by_name(state->u.f1.reg.btr4, "DATAST");
+	state->u.f1.fld.btr4.busturn = cm_object_get_child_by_name(state->u.f1.reg.btr4, "BUSTURN");
+	state->u.f1.fld.btr4.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.btr4, "CLKDIV");
+	state->u.f1.fld.btr4.datlat = cm_object_get_child_by_name(state->u.f1.reg.btr4, "DATLAT");
+	state->u.f1.fld.btr4.accmod = cm_object_get_child_by_name(state->u.f1.reg.btr4, "ACCMOD");
 
 	// PCR2 bitfields.
-	state->f1.fld.pcr2.pwaiten = cm_object_get_child_by_name(state->f1.reg.pcr2, "PWAITEN");
-	state->f1.fld.pcr2.pbken = cm_object_get_child_by_name(state->f1.reg.pcr2, "PBKEN");
-	state->f1.fld.pcr2.ptyp = cm_object_get_child_by_name(state->f1.reg.pcr2, "PTYP");
-	state->f1.fld.pcr2.pwid = cm_object_get_child_by_name(state->f1.reg.pcr2, "PWID");
-	state->f1.fld.pcr2.eccen = cm_object_get_child_by_name(state->f1.reg.pcr2, "ECCEN");
-	state->f1.fld.pcr2.tclr = cm_object_get_child_by_name(state->f1.reg.pcr2, "TCLR");
-	state->f1.fld.pcr2.tar = cm_object_get_child_by_name(state->f1.reg.pcr2, "TAR");
-	state->f1.fld.pcr2.eccps = cm_object_get_child_by_name(state->f1.reg.pcr2, "ECCPS");
+	state->u.f1.fld.pcr2.pwaiten = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "PWAITEN");
+	state->u.f1.fld.pcr2.pbken = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "PBKEN");
+	state->u.f1.fld.pcr2.ptyp = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "PTYP");
+	state->u.f1.fld.pcr2.pwid = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "PWID");
+	state->u.f1.fld.pcr2.eccen = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "ECCEN");
+	state->u.f1.fld.pcr2.tclr = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "TCLR");
+	state->u.f1.fld.pcr2.tar = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "TAR");
+	state->u.f1.fld.pcr2.eccps = cm_object_get_child_by_name(state->u.f1.reg.pcr2, "ECCPS");
 
 	// SR2 bitfields.
-	state->f1.fld.sr2.irs = cm_object_get_child_by_name(state->f1.reg.sr2, "IRS");
-	state->f1.fld.sr2.ils = cm_object_get_child_by_name(state->f1.reg.sr2, "ILS");
-	state->f1.fld.sr2.ifs = cm_object_get_child_by_name(state->f1.reg.sr2, "IFS");
-	state->f1.fld.sr2.iren = cm_object_get_child_by_name(state->f1.reg.sr2, "IREN");
-	state->f1.fld.sr2.ilen = cm_object_get_child_by_name(state->f1.reg.sr2, "ILEN");
-	state->f1.fld.sr2.ifen = cm_object_get_child_by_name(state->f1.reg.sr2, "IFEN");
-	state->f1.fld.sr2.fempt = cm_object_get_child_by_name(state->f1.reg.sr2, "FEMPT");
+	state->u.f1.fld.sr2.irs = cm_object_get_child_by_name(state->u.f1.reg.sr2, "IRS");
+	state->u.f1.fld.sr2.ils = cm_object_get_child_by_name(state->u.f1.reg.sr2, "ILS");
+	state->u.f1.fld.sr2.ifs = cm_object_get_child_by_name(state->u.f1.reg.sr2, "IFS");
+	state->u.f1.fld.sr2.iren = cm_object_get_child_by_name(state->u.f1.reg.sr2, "IREN");
+	state->u.f1.fld.sr2.ilen = cm_object_get_child_by_name(state->u.f1.reg.sr2, "ILEN");
+	state->u.f1.fld.sr2.ifen = cm_object_get_child_by_name(state->u.f1.reg.sr2, "IFEN");
+	state->u.f1.fld.sr2.fempt = cm_object_get_child_by_name(state->u.f1.reg.sr2, "FEMPT");
 
 	// PMEM2 bitfields.
-	state->f1.fld.pmem2.memsetx = cm_object_get_child_by_name(state->f1.reg.pmem2, "MEMSETx");
-	state->f1.fld.pmem2.memwaitx = cm_object_get_child_by_name(state->f1.reg.pmem2, "MEMWAITx");
-	state->f1.fld.pmem2.memholdx = cm_object_get_child_by_name(state->f1.reg.pmem2, "MEMHOLDx");
-	state->f1.fld.pmem2.memhizx = cm_object_get_child_by_name(state->f1.reg.pmem2, "MEMHIZx");
+	state->u.f1.fld.pmem2.memsetx = cm_object_get_child_by_name(state->u.f1.reg.pmem2, "MEMSETx");
+	state->u.f1.fld.pmem2.memwaitx = cm_object_get_child_by_name(state->u.f1.reg.pmem2, "MEMWAITx");
+	state->u.f1.fld.pmem2.memholdx = cm_object_get_child_by_name(state->u.f1.reg.pmem2, "MEMHOLDx");
+	state->u.f1.fld.pmem2.memhizx = cm_object_get_child_by_name(state->u.f1.reg.pmem2, "MEMHIZx");
 
 	// PATT2 bitfields.
-	state->f1.fld.patt2.attsetx = cm_object_get_child_by_name(state->f1.reg.patt2, "ATTSETx");
-	state->f1.fld.patt2.attwaitx = cm_object_get_child_by_name(state->f1.reg.patt2, "ATTWAITx");
-	state->f1.fld.patt2.attholdx = cm_object_get_child_by_name(state->f1.reg.patt2, "ATTHOLDx");
-	state->f1.fld.patt2.atthizx = cm_object_get_child_by_name(state->f1.reg.patt2, "ATTHIZx");
+	state->u.f1.fld.patt2.attsetx = cm_object_get_child_by_name(state->u.f1.reg.patt2, "ATTSETx");
+	state->u.f1.fld.patt2.attwaitx = cm_object_get_child_by_name(state->u.f1.reg.patt2, "ATTWAITx");
+	state->u.f1.fld.patt2.attholdx = cm_object_get_child_by_name(state->u.f1.reg.patt2, "ATTHOLDx");
+	state->u.f1.fld.patt2.atthizx = cm_object_get_child_by_name(state->u.f1.reg.patt2, "ATTHIZx");
 
 	// ECCR2 bitfields.
-	state->f1.fld.eccr2.eccx = cm_object_get_child_by_name(state->f1.reg.eccr2, "ECCx");
+	state->u.f1.fld.eccr2.eccx = cm_object_get_child_by_name(state->u.f1.reg.eccr2, "ECCx");
 
 	// PCR3 bitfields.
-	state->f1.fld.pcr3.pwaiten = cm_object_get_child_by_name(state->f1.reg.pcr3, "PWAITEN");
-	state->f1.fld.pcr3.pbken = cm_object_get_child_by_name(state->f1.reg.pcr3, "PBKEN");
-	state->f1.fld.pcr3.ptyp = cm_object_get_child_by_name(state->f1.reg.pcr3, "PTYP");
-	state->f1.fld.pcr3.pwid = cm_object_get_child_by_name(state->f1.reg.pcr3, "PWID");
-	state->f1.fld.pcr3.eccen = cm_object_get_child_by_name(state->f1.reg.pcr3, "ECCEN");
-	state->f1.fld.pcr3.tclr = cm_object_get_child_by_name(state->f1.reg.pcr3, "TCLR");
-	state->f1.fld.pcr3.tar = cm_object_get_child_by_name(state->f1.reg.pcr3, "TAR");
-	state->f1.fld.pcr3.eccps = cm_object_get_child_by_name(state->f1.reg.pcr3, "ECCPS");
+	state->u.f1.fld.pcr3.pwaiten = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "PWAITEN");
+	state->u.f1.fld.pcr3.pbken = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "PBKEN");
+	state->u.f1.fld.pcr3.ptyp = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "PTYP");
+	state->u.f1.fld.pcr3.pwid = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "PWID");
+	state->u.f1.fld.pcr3.eccen = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "ECCEN");
+	state->u.f1.fld.pcr3.tclr = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "TCLR");
+	state->u.f1.fld.pcr3.tar = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "TAR");
+	state->u.f1.fld.pcr3.eccps = cm_object_get_child_by_name(state->u.f1.reg.pcr3, "ECCPS");
 
 	// SR3 bitfields.
-	state->f1.fld.sr3.irs = cm_object_get_child_by_name(state->f1.reg.sr3, "IRS");
-	state->f1.fld.sr3.ils = cm_object_get_child_by_name(state->f1.reg.sr3, "ILS");
-	state->f1.fld.sr3.ifs = cm_object_get_child_by_name(state->f1.reg.sr3, "IFS");
-	state->f1.fld.sr3.iren = cm_object_get_child_by_name(state->f1.reg.sr3, "IREN");
-	state->f1.fld.sr3.ilen = cm_object_get_child_by_name(state->f1.reg.sr3, "ILEN");
-	state->f1.fld.sr3.ifen = cm_object_get_child_by_name(state->f1.reg.sr3, "IFEN");
-	state->f1.fld.sr3.fempt = cm_object_get_child_by_name(state->f1.reg.sr3, "FEMPT");
+	state->u.f1.fld.sr3.irs = cm_object_get_child_by_name(state->u.f1.reg.sr3, "IRS");
+	state->u.f1.fld.sr3.ils = cm_object_get_child_by_name(state->u.f1.reg.sr3, "ILS");
+	state->u.f1.fld.sr3.ifs = cm_object_get_child_by_name(state->u.f1.reg.sr3, "IFS");
+	state->u.f1.fld.sr3.iren = cm_object_get_child_by_name(state->u.f1.reg.sr3, "IREN");
+	state->u.f1.fld.sr3.ilen = cm_object_get_child_by_name(state->u.f1.reg.sr3, "ILEN");
+	state->u.f1.fld.sr3.ifen = cm_object_get_child_by_name(state->u.f1.reg.sr3, "IFEN");
+	state->u.f1.fld.sr3.fempt = cm_object_get_child_by_name(state->u.f1.reg.sr3, "FEMPT");
 
 	// PMEM3 bitfields.
-	state->f1.fld.pmem3.memsetx = cm_object_get_child_by_name(state->f1.reg.pmem3, "MEMSETx");
-	state->f1.fld.pmem3.memwaitx = cm_object_get_child_by_name(state->f1.reg.pmem3, "MEMWAITx");
-	state->f1.fld.pmem3.memholdx = cm_object_get_child_by_name(state->f1.reg.pmem3, "MEMHOLDx");
-	state->f1.fld.pmem3.memhizx = cm_object_get_child_by_name(state->f1.reg.pmem3, "MEMHIZx");
+	state->u.f1.fld.pmem3.memsetx = cm_object_get_child_by_name(state->u.f1.reg.pmem3, "MEMSETx");
+	state->u.f1.fld.pmem3.memwaitx = cm_object_get_child_by_name(state->u.f1.reg.pmem3, "MEMWAITx");
+	state->u.f1.fld.pmem3.memholdx = cm_object_get_child_by_name(state->u.f1.reg.pmem3, "MEMHOLDx");
+	state->u.f1.fld.pmem3.memhizx = cm_object_get_child_by_name(state->u.f1.reg.pmem3, "MEMHIZx");
 
 	// PATT3 bitfields.
-	state->f1.fld.patt3.attsetx = cm_object_get_child_by_name(state->f1.reg.patt3, "ATTSETx");
-	state->f1.fld.patt3.attwaitx = cm_object_get_child_by_name(state->f1.reg.patt3, "ATTWAITx");
-	state->f1.fld.patt3.attholdx = cm_object_get_child_by_name(state->f1.reg.patt3, "ATTHOLDx");
-	state->f1.fld.patt3.atthizx = cm_object_get_child_by_name(state->f1.reg.patt3, "ATTHIZx");
+	state->u.f1.fld.patt3.attsetx = cm_object_get_child_by_name(state->u.f1.reg.patt3, "ATTSETx");
+	state->u.f1.fld.patt3.attwaitx = cm_object_get_child_by_name(state->u.f1.reg.patt3, "ATTWAITx");
+	state->u.f1.fld.patt3.attholdx = cm_object_get_child_by_name(state->u.f1.reg.patt3, "ATTHOLDx");
+	state->u.f1.fld.patt3.atthizx = cm_object_get_child_by_name(state->u.f1.reg.patt3, "ATTHIZx");
 
 	// ECCR3 bitfields.
-	state->f1.fld.eccr3.eccx = cm_object_get_child_by_name(state->f1.reg.eccr3, "ECCx");
+	state->u.f1.fld.eccr3.eccx = cm_object_get_child_by_name(state->u.f1.reg.eccr3, "ECCx");
 
 	// PCR4 bitfields.
-	state->f1.fld.pcr4.pwaiten = cm_object_get_child_by_name(state->f1.reg.pcr4, "PWAITEN");
-	state->f1.fld.pcr4.pbken = cm_object_get_child_by_name(state->f1.reg.pcr4, "PBKEN");
-	state->f1.fld.pcr4.ptyp = cm_object_get_child_by_name(state->f1.reg.pcr4, "PTYP");
-	state->f1.fld.pcr4.pwid = cm_object_get_child_by_name(state->f1.reg.pcr4, "PWID");
-	state->f1.fld.pcr4.eccen = cm_object_get_child_by_name(state->f1.reg.pcr4, "ECCEN");
-	state->f1.fld.pcr4.tclr = cm_object_get_child_by_name(state->f1.reg.pcr4, "TCLR");
-	state->f1.fld.pcr4.tar = cm_object_get_child_by_name(state->f1.reg.pcr4, "TAR");
-	state->f1.fld.pcr4.eccps = cm_object_get_child_by_name(state->f1.reg.pcr4, "ECCPS");
+	state->u.f1.fld.pcr4.pwaiten = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "PWAITEN");
+	state->u.f1.fld.pcr4.pbken = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "PBKEN");
+	state->u.f1.fld.pcr4.ptyp = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "PTYP");
+	state->u.f1.fld.pcr4.pwid = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "PWID");
+	state->u.f1.fld.pcr4.eccen = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "ECCEN");
+	state->u.f1.fld.pcr4.tclr = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "TCLR");
+	state->u.f1.fld.pcr4.tar = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "TAR");
+	state->u.f1.fld.pcr4.eccps = cm_object_get_child_by_name(state->u.f1.reg.pcr4, "ECCPS");
 
 	// SR4 bitfields.
-	state->f1.fld.sr4.irs = cm_object_get_child_by_name(state->f1.reg.sr4, "IRS");
-	state->f1.fld.sr4.ils = cm_object_get_child_by_name(state->f1.reg.sr4, "ILS");
-	state->f1.fld.sr4.ifs = cm_object_get_child_by_name(state->f1.reg.sr4, "IFS");
-	state->f1.fld.sr4.iren = cm_object_get_child_by_name(state->f1.reg.sr4, "IREN");
-	state->f1.fld.sr4.ilen = cm_object_get_child_by_name(state->f1.reg.sr4, "ILEN");
-	state->f1.fld.sr4.ifen = cm_object_get_child_by_name(state->f1.reg.sr4, "IFEN");
-	state->f1.fld.sr4.fempt = cm_object_get_child_by_name(state->f1.reg.sr4, "FEMPT");
+	state->u.f1.fld.sr4.irs = cm_object_get_child_by_name(state->u.f1.reg.sr4, "IRS");
+	state->u.f1.fld.sr4.ils = cm_object_get_child_by_name(state->u.f1.reg.sr4, "ILS");
+	state->u.f1.fld.sr4.ifs = cm_object_get_child_by_name(state->u.f1.reg.sr4, "IFS");
+	state->u.f1.fld.sr4.iren = cm_object_get_child_by_name(state->u.f1.reg.sr4, "IREN");
+	state->u.f1.fld.sr4.ilen = cm_object_get_child_by_name(state->u.f1.reg.sr4, "ILEN");
+	state->u.f1.fld.sr4.ifen = cm_object_get_child_by_name(state->u.f1.reg.sr4, "IFEN");
+	state->u.f1.fld.sr4.fempt = cm_object_get_child_by_name(state->u.f1.reg.sr4, "FEMPT");
 
 	// PMEM4 bitfields.
-	state->f1.fld.pmem4.memsetx = cm_object_get_child_by_name(state->f1.reg.pmem4, "MEMSETx");
-	state->f1.fld.pmem4.memwaitx = cm_object_get_child_by_name(state->f1.reg.pmem4, "MEMWAITx");
-	state->f1.fld.pmem4.memholdx = cm_object_get_child_by_name(state->f1.reg.pmem4, "MEMHOLDx");
-	state->f1.fld.pmem4.memhizx = cm_object_get_child_by_name(state->f1.reg.pmem4, "MEMHIZx");
+	state->u.f1.fld.pmem4.memsetx = cm_object_get_child_by_name(state->u.f1.reg.pmem4, "MEMSETx");
+	state->u.f1.fld.pmem4.memwaitx = cm_object_get_child_by_name(state->u.f1.reg.pmem4, "MEMWAITx");
+	state->u.f1.fld.pmem4.memholdx = cm_object_get_child_by_name(state->u.f1.reg.pmem4, "MEMHOLDx");
+	state->u.f1.fld.pmem4.memhizx = cm_object_get_child_by_name(state->u.f1.reg.pmem4, "MEMHIZx");
 
 	// PATT4 bitfields.
-	state->f1.fld.patt4.attsetx = cm_object_get_child_by_name(state->f1.reg.patt4, "ATTSETx");
-	state->f1.fld.patt4.attwaitx = cm_object_get_child_by_name(state->f1.reg.patt4, "ATTWAITx");
-	state->f1.fld.patt4.attholdx = cm_object_get_child_by_name(state->f1.reg.patt4, "ATTHOLDx");
-	state->f1.fld.patt4.atthizx = cm_object_get_child_by_name(state->f1.reg.patt4, "ATTHIZx");
+	state->u.f1.fld.patt4.attsetx = cm_object_get_child_by_name(state->u.f1.reg.patt4, "ATTSETx");
+	state->u.f1.fld.patt4.attwaitx = cm_object_get_child_by_name(state->u.f1.reg.patt4, "ATTWAITx");
+	state->u.f1.fld.patt4.attholdx = cm_object_get_child_by_name(state->u.f1.reg.patt4, "ATTHOLDx");
+	state->u.f1.fld.patt4.atthizx = cm_object_get_child_by_name(state->u.f1.reg.patt4, "ATTHIZx");
 
 	// PIO4 bitfields.
-	state->f1.fld.pio4.iosetx = cm_object_get_child_by_name(state->f1.reg.pio4, "IOSETx");
-	state->f1.fld.pio4.iowaitx = cm_object_get_child_by_name(state->f1.reg.pio4, "IOWAITx");
-	state->f1.fld.pio4.ioholdx = cm_object_get_child_by_name(state->f1.reg.pio4, "IOHOLDx");
-	state->f1.fld.pio4.iohizx = cm_object_get_child_by_name(state->f1.reg.pio4, "IOHIZx");
+	state->u.f1.fld.pio4.iosetx = cm_object_get_child_by_name(state->u.f1.reg.pio4, "IOSETx");
+	state->u.f1.fld.pio4.iowaitx = cm_object_get_child_by_name(state->u.f1.reg.pio4, "IOWAITx");
+	state->u.f1.fld.pio4.ioholdx = cm_object_get_child_by_name(state->u.f1.reg.pio4, "IOHOLDx");
+	state->u.f1.fld.pio4.iohizx = cm_object_get_child_by_name(state->u.f1.reg.pio4, "IOHIZx");
 
 	// BWTR1 bitfields.
-	state->f1.fld.bwtr1.addset = cm_object_get_child_by_name(state->f1.reg.bwtr1, "ADDSET");
-	state->f1.fld.bwtr1.addhld = cm_object_get_child_by_name(state->f1.reg.bwtr1, "ADDHLD");
-	state->f1.fld.bwtr1.datast = cm_object_get_child_by_name(state->f1.reg.bwtr1, "DATAST");
-	state->f1.fld.bwtr1.clkdiv = cm_object_get_child_by_name(state->f1.reg.bwtr1, "CLKDIV");
-	state->f1.fld.bwtr1.datlat = cm_object_get_child_by_name(state->f1.reg.bwtr1, "DATLAT");
-	state->f1.fld.bwtr1.accmod = cm_object_get_child_by_name(state->f1.reg.bwtr1, "ACCMOD");
+	state->u.f1.fld.bwtr1.addset = cm_object_get_child_by_name(state->u.f1.reg.bwtr1, "ADDSET");
+	state->u.f1.fld.bwtr1.addhld = cm_object_get_child_by_name(state->u.f1.reg.bwtr1, "ADDHLD");
+	state->u.f1.fld.bwtr1.datast = cm_object_get_child_by_name(state->u.f1.reg.bwtr1, "DATAST");
+	state->u.f1.fld.bwtr1.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.bwtr1, "CLKDIV");
+	state->u.f1.fld.bwtr1.datlat = cm_object_get_child_by_name(state->u.f1.reg.bwtr1, "DATLAT");
+	state->u.f1.fld.bwtr1.accmod = cm_object_get_child_by_name(state->u.f1.reg.bwtr1, "ACCMOD");
 
 	// BWTR2 bitfields.
-	state->f1.fld.bwtr2.addset = cm_object_get_child_by_name(state->f1.reg.bwtr2, "ADDSET");
-	state->f1.fld.bwtr2.addhld = cm_object_get_child_by_name(state->f1.reg.bwtr2, "ADDHLD");
-	state->f1.fld.bwtr2.datast = cm_object_get_child_by_name(state->f1.reg.bwtr2, "DATAST");
-	state->f1.fld.bwtr2.clkdiv = cm_object_get_child_by_name(state->f1.reg.bwtr2, "CLKDIV");
-	state->f1.fld.bwtr2.datlat = cm_object_get_child_by_name(state->f1.reg.bwtr2, "DATLAT");
-	state->f1.fld.bwtr2.accmod = cm_object_get_child_by_name(state->f1.reg.bwtr2, "ACCMOD");
+	state->u.f1.fld.bwtr2.addset = cm_object_get_child_by_name(state->u.f1.reg.bwtr2, "ADDSET");
+	state->u.f1.fld.bwtr2.addhld = cm_object_get_child_by_name(state->u.f1.reg.bwtr2, "ADDHLD");
+	state->u.f1.fld.bwtr2.datast = cm_object_get_child_by_name(state->u.f1.reg.bwtr2, "DATAST");
+	state->u.f1.fld.bwtr2.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.bwtr2, "CLKDIV");
+	state->u.f1.fld.bwtr2.datlat = cm_object_get_child_by_name(state->u.f1.reg.bwtr2, "DATLAT");
+	state->u.f1.fld.bwtr2.accmod = cm_object_get_child_by_name(state->u.f1.reg.bwtr2, "ACCMOD");
 
 	// BWTR3 bitfields.
-	state->f1.fld.bwtr3.addset = cm_object_get_child_by_name(state->f1.reg.bwtr3, "ADDSET");
-	state->f1.fld.bwtr3.addhld = cm_object_get_child_by_name(state->f1.reg.bwtr3, "ADDHLD");
-	state->f1.fld.bwtr3.datast = cm_object_get_child_by_name(state->f1.reg.bwtr3, "DATAST");
-	state->f1.fld.bwtr3.clkdiv = cm_object_get_child_by_name(state->f1.reg.bwtr3, "CLKDIV");
-	state->f1.fld.bwtr3.datlat = cm_object_get_child_by_name(state->f1.reg.bwtr3, "DATLAT");
-	state->f1.fld.bwtr3.accmod = cm_object_get_child_by_name(state->f1.reg.bwtr3, "ACCMOD");
+	state->u.f1.fld.bwtr3.addset = cm_object_get_child_by_name(state->u.f1.reg.bwtr3, "ADDSET");
+	state->u.f1.fld.bwtr3.addhld = cm_object_get_child_by_name(state->u.f1.reg.bwtr3, "ADDHLD");
+	state->u.f1.fld.bwtr3.datast = cm_object_get_child_by_name(state->u.f1.reg.bwtr3, "DATAST");
+	state->u.f1.fld.bwtr3.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.bwtr3, "CLKDIV");
+	state->u.f1.fld.bwtr3.datlat = cm_object_get_child_by_name(state->u.f1.reg.bwtr3, "DATLAT");
+	state->u.f1.fld.bwtr3.accmod = cm_object_get_child_by_name(state->u.f1.reg.bwtr3, "ACCMOD");
 
 	// BWTR4 bitfields.
-	state->f1.fld.bwtr4.addset = cm_object_get_child_by_name(state->f1.reg.bwtr4, "ADDSET");
-	state->f1.fld.bwtr4.addhld = cm_object_get_child_by_name(state->f1.reg.bwtr4, "ADDHLD");
-	state->f1.fld.bwtr4.datast = cm_object_get_child_by_name(state->f1.reg.bwtr4, "DATAST");
-	state->f1.fld.bwtr4.clkdiv = cm_object_get_child_by_name(state->f1.reg.bwtr4, "CLKDIV");
-	state->f1.fld.bwtr4.datlat = cm_object_get_child_by_name(state->f1.reg.bwtr4, "DATLAT");
-	state->f1.fld.bwtr4.accmod = cm_object_get_child_by_name(state->f1.reg.bwtr4, "ACCMOD");
+	state->u.f1.fld.bwtr4.addset = cm_object_get_child_by_name(state->u.f1.reg.bwtr4, "ADDSET");
+	state->u.f1.fld.bwtr4.addhld = cm_object_get_child_by_name(state->u.f1.reg.bwtr4, "ADDHLD");
+	state->u.f1.fld.bwtr4.datast = cm_object_get_child_by_name(state->u.f1.reg.bwtr4, "DATAST");
+	state->u.f1.fld.bwtr4.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.bwtr4, "CLKDIV");
+	state->u.f1.fld.bwtr4.datlat = cm_object_get_child_by_name(state->u.f1.reg.bwtr4, "DATLAT");
+	state->u.f1.fld.bwtr4.accmod = cm_object_get_child_by_name(state->u.f1.reg.bwtr4, "ACCMOD");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -617,7 +618,8 @@ static void stm32f103xx_fsmc_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 PWR (Power control) registers.
 		struct {
@@ -662,23 +664,23 @@ static void stm32f103xx_pwr_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-	state->f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
 
 	// CR bitfields.
-	state->f1.fld.cr.lpds = cm_object_get_child_by_name(state->f1.reg.cr, "LPDS");
-	state->f1.fld.cr.pdds = cm_object_get_child_by_name(state->f1.reg.cr, "PDDS");
-	state->f1.fld.cr.cwuf = cm_object_get_child_by_name(state->f1.reg.cr, "CWUF");
-	state->f1.fld.cr.csbf = cm_object_get_child_by_name(state->f1.reg.cr, "CSBF");
-	state->f1.fld.cr.pvde = cm_object_get_child_by_name(state->f1.reg.cr, "PVDE");
-	state->f1.fld.cr.pls = cm_object_get_child_by_name(state->f1.reg.cr, "PLS");
-	state->f1.fld.cr.dbp = cm_object_get_child_by_name(state->f1.reg.cr, "DBP");
+	state->u.f1.fld.cr.lpds = cm_object_get_child_by_name(state->u.f1.reg.cr, "LPDS");
+	state->u.f1.fld.cr.pdds = cm_object_get_child_by_name(state->u.f1.reg.cr, "PDDS");
+	state->u.f1.fld.cr.cwuf = cm_object_get_child_by_name(state->u.f1.reg.cr, "CWUF");
+	state->u.f1.fld.cr.csbf = cm_object_get_child_by_name(state->u.f1.reg.cr, "CSBF");
+	state->u.f1.fld.cr.pvde = cm_object_get_child_by_name(state->u.f1.reg.cr, "PVDE");
+	state->u.f1.fld.cr.pls = cm_object_get_child_by_name(state->u.f1.reg.cr, "PLS");
+	state->u.f1.fld.cr.dbp = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBP");
 
 	// CSR bitfields.
-	state->f1.fld.csr.wuf = cm_object_get_child_by_name(state->f1.reg.csr, "WUF");
-	state->f1.fld.csr.sbf = cm_object_get_child_by_name(state->f1.reg.csr, "SBF");
-	state->f1.fld.csr.pvdo = cm_object_get_child_by_name(state->f1.reg.csr, "PVDO");
-	state->f1.fld.csr.ewup = cm_object_get_child_by_name(state->f1.reg.csr, "EWUP");
+	state->u.f1.fld.csr.wuf = cm_object_get_child_by_name(state->u.f1.reg.csr, "WUF");
+	state->u.f1.fld.csr.sbf = cm_object_get_child_by_name(state->u.f1.reg.csr, "SBF");
+	state->u.f1.fld.csr.pvdo = cm_object_get_child_by_name(state->u.f1.reg.csr, "PVDO");
+	state->u.f1.fld.csr.ewup = cm_object_get_child_by_name(state->u.f1.reg.csr, "EWUP");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -687,7 +689,8 @@ static void stm32f103xx_pwr_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 RCC (Reset and clock control) registers.
 		struct {
@@ -903,178 +906,178 @@ static void stm32f103xx_rcc_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-	state->f1.reg.cfgr = cm_object_get_child_by_name(obj, "CFGR");
-	state->f1.reg.cir = cm_object_get_child_by_name(obj, "CIR");
-	state->f1.reg.apb2rstr = cm_object_get_child_by_name(obj, "APB2RSTR");
-	state->f1.reg.apb1rstr = cm_object_get_child_by_name(obj, "APB1RSTR");
-	state->f1.reg.ahbenr = cm_object_get_child_by_name(obj, "AHBENR");
-	state->f1.reg.apb2enr = cm_object_get_child_by_name(obj, "APB2ENR");
-	state->f1.reg.apb1enr = cm_object_get_child_by_name(obj, "APB1ENR");
-	state->f1.reg.bdcr = cm_object_get_child_by_name(obj, "BDCR");
-	state->f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.cfgr = cm_object_get_child_by_name(obj, "CFGR");
+	state->u.f1.reg.cir = cm_object_get_child_by_name(obj, "CIR");
+	state->u.f1.reg.apb2rstr = cm_object_get_child_by_name(obj, "APB2RSTR");
+	state->u.f1.reg.apb1rstr = cm_object_get_child_by_name(obj, "APB1RSTR");
+	state->u.f1.reg.ahbenr = cm_object_get_child_by_name(obj, "AHBENR");
+	state->u.f1.reg.apb2enr = cm_object_get_child_by_name(obj, "APB2ENR");
+	state->u.f1.reg.apb1enr = cm_object_get_child_by_name(obj, "APB1ENR");
+	state->u.f1.reg.bdcr = cm_object_get_child_by_name(obj, "BDCR");
+	state->u.f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
 
 	// CR bitfields.
-	state->f1.fld.cr.hsion = cm_object_get_child_by_name(state->f1.reg.cr, "HSION");
-	state->f1.fld.cr.hsirdy = cm_object_get_child_by_name(state->f1.reg.cr, "HSIRDY");
-	state->f1.fld.cr.hsitrim = cm_object_get_child_by_name(state->f1.reg.cr, "HSITRIM");
-	state->f1.fld.cr.hsical = cm_object_get_child_by_name(state->f1.reg.cr, "HSICAL");
-	state->f1.fld.cr.hseon = cm_object_get_child_by_name(state->f1.reg.cr, "HSEON");
-	state->f1.fld.cr.hserdy = cm_object_get_child_by_name(state->f1.reg.cr, "HSERDY");
-	state->f1.fld.cr.hsebyp = cm_object_get_child_by_name(state->f1.reg.cr, "HSEBYP");
-	state->f1.fld.cr.csson = cm_object_get_child_by_name(state->f1.reg.cr, "CSSON");
-	state->f1.fld.cr.pllon = cm_object_get_child_by_name(state->f1.reg.cr, "PLLON");
-	state->f1.fld.cr.pllrdy = cm_object_get_child_by_name(state->f1.reg.cr, "PLLRDY");
+	state->u.f1.fld.cr.hsion = cm_object_get_child_by_name(state->u.f1.reg.cr, "HSION");
+	state->u.f1.fld.cr.hsirdy = cm_object_get_child_by_name(state->u.f1.reg.cr, "HSIRDY");
+	state->u.f1.fld.cr.hsitrim = cm_object_get_child_by_name(state->u.f1.reg.cr, "HSITRIM");
+	state->u.f1.fld.cr.hsical = cm_object_get_child_by_name(state->u.f1.reg.cr, "HSICAL");
+	state->u.f1.fld.cr.hseon = cm_object_get_child_by_name(state->u.f1.reg.cr, "HSEON");
+	state->u.f1.fld.cr.hserdy = cm_object_get_child_by_name(state->u.f1.reg.cr, "HSERDY");
+	state->u.f1.fld.cr.hsebyp = cm_object_get_child_by_name(state->u.f1.reg.cr, "HSEBYP");
+	state->u.f1.fld.cr.csson = cm_object_get_child_by_name(state->u.f1.reg.cr, "CSSON");
+	state->u.f1.fld.cr.pllon = cm_object_get_child_by_name(state->u.f1.reg.cr, "PLLON");
+	state->u.f1.fld.cr.pllrdy = cm_object_get_child_by_name(state->u.f1.reg.cr, "PLLRDY");
 
 	// CFGR bitfields.
-	state->f1.fld.cfgr.sw = cm_object_get_child_by_name(state->f1.reg.cfgr, "SW");
-	state->f1.fld.cfgr.sws = cm_object_get_child_by_name(state->f1.reg.cfgr, "SWS");
-	state->f1.fld.cfgr.hpre = cm_object_get_child_by_name(state->f1.reg.cfgr, "HPRE");
-	state->f1.fld.cfgr.ppre1 = cm_object_get_child_by_name(state->f1.reg.cfgr, "PPRE1");
-	state->f1.fld.cfgr.ppre2 = cm_object_get_child_by_name(state->f1.reg.cfgr, "PPRE2");
-	state->f1.fld.cfgr.adcpre = cm_object_get_child_by_name(state->f1.reg.cfgr, "ADCPRE");
-	state->f1.fld.cfgr.pllsrc = cm_object_get_child_by_name(state->f1.reg.cfgr, "PLLSRC");
-	state->f1.fld.cfgr.pllxtpre = cm_object_get_child_by_name(state->f1.reg.cfgr, "PLLXTPRE");
-	state->f1.fld.cfgr.pllmul = cm_object_get_child_by_name(state->f1.reg.cfgr, "PLLMUL");
-	state->f1.fld.cfgr.otgfspre = cm_object_get_child_by_name(state->f1.reg.cfgr, "OTGFSPRE");
-	state->f1.fld.cfgr.mco = cm_object_get_child_by_name(state->f1.reg.cfgr, "MCO");
+	state->u.f1.fld.cfgr.sw = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "SW");
+	state->u.f1.fld.cfgr.sws = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "SWS");
+	state->u.f1.fld.cfgr.hpre = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "HPRE");
+	state->u.f1.fld.cfgr.ppre1 = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "PPRE1");
+	state->u.f1.fld.cfgr.ppre2 = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "PPRE2");
+	state->u.f1.fld.cfgr.adcpre = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "ADCPRE");
+	state->u.f1.fld.cfgr.pllsrc = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "PLLSRC");
+	state->u.f1.fld.cfgr.pllxtpre = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "PLLXTPRE");
+	state->u.f1.fld.cfgr.pllmul = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "PLLMUL");
+	state->u.f1.fld.cfgr.otgfspre = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "OTGFSPRE");
+	state->u.f1.fld.cfgr.mco = cm_object_get_child_by_name(state->u.f1.reg.cfgr, "MCO");
 
 	// CIR bitfields.
-	state->f1.fld.cir.lsirdyf = cm_object_get_child_by_name(state->f1.reg.cir, "LSIRDYF");
-	state->f1.fld.cir.lserdyf = cm_object_get_child_by_name(state->f1.reg.cir, "LSERDYF");
-	state->f1.fld.cir.hsirdyf = cm_object_get_child_by_name(state->f1.reg.cir, "HSIRDYF");
-	state->f1.fld.cir.hserdyf = cm_object_get_child_by_name(state->f1.reg.cir, "HSERDYF");
-	state->f1.fld.cir.pllrdyf = cm_object_get_child_by_name(state->f1.reg.cir, "PLLRDYF");
-	state->f1.fld.cir.cssf = cm_object_get_child_by_name(state->f1.reg.cir, "CSSF");
-	state->f1.fld.cir.lsirdyie = cm_object_get_child_by_name(state->f1.reg.cir, "LSIRDYIE");
-	state->f1.fld.cir.lserdyie = cm_object_get_child_by_name(state->f1.reg.cir, "LSERDYIE");
-	state->f1.fld.cir.hsirdyie = cm_object_get_child_by_name(state->f1.reg.cir, "HSIRDYIE");
-	state->f1.fld.cir.hserdyie = cm_object_get_child_by_name(state->f1.reg.cir, "HSERDYIE");
-	state->f1.fld.cir.pllrdyie = cm_object_get_child_by_name(state->f1.reg.cir, "PLLRDYIE");
-	state->f1.fld.cir.lsirdyc = cm_object_get_child_by_name(state->f1.reg.cir, "LSIRDYC");
-	state->f1.fld.cir.lserdyc = cm_object_get_child_by_name(state->f1.reg.cir, "LSERDYC");
-	state->f1.fld.cir.hsirdyc = cm_object_get_child_by_name(state->f1.reg.cir, "HSIRDYC");
-	state->f1.fld.cir.hserdyc = cm_object_get_child_by_name(state->f1.reg.cir, "HSERDYC");
-	state->f1.fld.cir.pllrdyc = cm_object_get_child_by_name(state->f1.reg.cir, "PLLRDYC");
-	state->f1.fld.cir.cssc = cm_object_get_child_by_name(state->f1.reg.cir, "CSSC");
+	state->u.f1.fld.cir.lsirdyf = cm_object_get_child_by_name(state->u.f1.reg.cir, "LSIRDYF");
+	state->u.f1.fld.cir.lserdyf = cm_object_get_child_by_name(state->u.f1.reg.cir, "LSERDYF");
+	state->u.f1.fld.cir.hsirdyf = cm_object_get_child_by_name(state->u.f1.reg.cir, "HSIRDYF");
+	state->u.f1.fld.cir.hserdyf = cm_object_get_child_by_name(state->u.f1.reg.cir, "HSERDYF");
+	state->u.f1.fld.cir.pllrdyf = cm_object_get_child_by_name(state->u.f1.reg.cir, "PLLRDYF");
+	state->u.f1.fld.cir.cssf = cm_object_get_child_by_name(state->u.f1.reg.cir, "CSSF");
+	state->u.f1.fld.cir.lsirdyie = cm_object_get_child_by_name(state->u.f1.reg.cir, "LSIRDYIE");
+	state->u.f1.fld.cir.lserdyie = cm_object_get_child_by_name(state->u.f1.reg.cir, "LSERDYIE");
+	state->u.f1.fld.cir.hsirdyie = cm_object_get_child_by_name(state->u.f1.reg.cir, "HSIRDYIE");
+	state->u.f1.fld.cir.hserdyie = cm_object_get_child_by_name(state->u.f1.reg.cir, "HSERDYIE");
+	state->u.f1.fld.cir.pllrdyie = cm_object_get_child_by_name(state->u.f1.reg.cir, "PLLRDYIE");
+	state->u.f1.fld.cir.lsirdyc = cm_object_get_child_by_name(state->u.f1.reg.cir, "LSIRDYC");
+	state->u.f1.fld.cir.lserdyc = cm_object_get_child_by_name(state->u.f1.reg.cir, "LSERDYC");
+	state->u.f1.fld.cir.hsirdyc = cm_object_get_child_by_name(state->u.f1.reg.cir, "HSIRDYC");
+	state->u.f1.fld.cir.hserdyc = cm_object_get_child_by_name(state->u.f1.reg.cir, "HSERDYC");
+	state->u.f1.fld.cir.pllrdyc = cm_object_get_child_by_name(state->u.f1.reg.cir, "PLLRDYC");
+	state->u.f1.fld.cir.cssc = cm_object_get_child_by_name(state->u.f1.reg.cir, "CSSC");
 
 	// APB2RSTR bitfields.
-	state->f1.fld.apb2rstr.afiorst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "AFIORST");
-	state->f1.fld.apb2rstr.ioparst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "IOPARST");
-	state->f1.fld.apb2rstr.iopbrst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "IOPBRST");
-	state->f1.fld.apb2rstr.iopcrst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "IOPCRST");
-	state->f1.fld.apb2rstr.iopdrst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "IOPDRST");
-	state->f1.fld.apb2rstr.ioperst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "IOPERST");
-	state->f1.fld.apb2rstr.iopfrst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "IOPFRST");
-	state->f1.fld.apb2rstr.iopgrst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "IOPGRST");
-	state->f1.fld.apb2rstr.adc1rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "ADC1RST");
-	state->f1.fld.apb2rstr.adc2rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "ADC2RST");
-	state->f1.fld.apb2rstr.tim1rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "TIM1RST");
-	state->f1.fld.apb2rstr.spi1rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "SPI1RST");
-	state->f1.fld.apb2rstr.tim8rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "TIM8RST");
-	state->f1.fld.apb2rstr.usart1rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "USART1RST");
-	state->f1.fld.apb2rstr.adc3rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "ADC3RST");
-	state->f1.fld.apb2rstr.tim9rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "TIM9RST");
-	state->f1.fld.apb2rstr.tim10rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "TIM10RST");
-	state->f1.fld.apb2rstr.tim11rst = cm_object_get_child_by_name(state->f1.reg.apb2rstr, "TIM11RST");
+	state->u.f1.fld.apb2rstr.afiorst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "AFIORST");
+	state->u.f1.fld.apb2rstr.ioparst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "IOPARST");
+	state->u.f1.fld.apb2rstr.iopbrst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "IOPBRST");
+	state->u.f1.fld.apb2rstr.iopcrst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "IOPCRST");
+	state->u.f1.fld.apb2rstr.iopdrst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "IOPDRST");
+	state->u.f1.fld.apb2rstr.ioperst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "IOPERST");
+	state->u.f1.fld.apb2rstr.iopfrst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "IOPFRST");
+	state->u.f1.fld.apb2rstr.iopgrst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "IOPGRST");
+	state->u.f1.fld.apb2rstr.adc1rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "ADC1RST");
+	state->u.f1.fld.apb2rstr.adc2rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "ADC2RST");
+	state->u.f1.fld.apb2rstr.tim1rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "TIM1RST");
+	state->u.f1.fld.apb2rstr.spi1rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "SPI1RST");
+	state->u.f1.fld.apb2rstr.tim8rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "TIM8RST");
+	state->u.f1.fld.apb2rstr.usart1rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "USART1RST");
+	state->u.f1.fld.apb2rstr.adc3rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "ADC3RST");
+	state->u.f1.fld.apb2rstr.tim9rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "TIM9RST");
+	state->u.f1.fld.apb2rstr.tim10rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "TIM10RST");
+	state->u.f1.fld.apb2rstr.tim11rst = cm_object_get_child_by_name(state->u.f1.reg.apb2rstr, "TIM11RST");
 
 	// APB1RSTR bitfields.
-	state->f1.fld.apb1rstr.tim2rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM2RST");
-	state->f1.fld.apb1rstr.tim3rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM3RST");
-	state->f1.fld.apb1rstr.tim4rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM4RST");
-	state->f1.fld.apb1rstr.tim5rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM5RST");
-	state->f1.fld.apb1rstr.tim6rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM6RST");
-	state->f1.fld.apb1rstr.tim7rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM7RST");
-	state->f1.fld.apb1rstr.tim12rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM12RST");
-	state->f1.fld.apb1rstr.tim13rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM13RST");
-	state->f1.fld.apb1rstr.tim14rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "TIM14RST");
-	state->f1.fld.apb1rstr.wwdgrst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "WWDGRST");
-	state->f1.fld.apb1rstr.spi2rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "SPI2RST");
-	state->f1.fld.apb1rstr.spi3rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "SPI3RST");
-	state->f1.fld.apb1rstr.usart2rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "USART2RST");
-	state->f1.fld.apb1rstr.usart3rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "USART3RST");
-	state->f1.fld.apb1rstr.uart4rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "UART4RST");
-	state->f1.fld.apb1rstr.uart5rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "UART5RST");
-	state->f1.fld.apb1rstr.i2c1rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "I2C1RST");
-	state->f1.fld.apb1rstr.i2c2rst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "I2C2RST");
-	state->f1.fld.apb1rstr.usbrst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "USBRST");
-	state->f1.fld.apb1rstr.canrst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "CANRST");
-	state->f1.fld.apb1rstr.bkprst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "BKPRST");
-	state->f1.fld.apb1rstr.pwrrst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "PWRRST");
-	state->f1.fld.apb1rstr.dacrst = cm_object_get_child_by_name(state->f1.reg.apb1rstr, "DACRST");
+	state->u.f1.fld.apb1rstr.tim2rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM2RST");
+	state->u.f1.fld.apb1rstr.tim3rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM3RST");
+	state->u.f1.fld.apb1rstr.tim4rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM4RST");
+	state->u.f1.fld.apb1rstr.tim5rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM5RST");
+	state->u.f1.fld.apb1rstr.tim6rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM6RST");
+	state->u.f1.fld.apb1rstr.tim7rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM7RST");
+	state->u.f1.fld.apb1rstr.tim12rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM12RST");
+	state->u.f1.fld.apb1rstr.tim13rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM13RST");
+	state->u.f1.fld.apb1rstr.tim14rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "TIM14RST");
+	state->u.f1.fld.apb1rstr.wwdgrst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "WWDGRST");
+	state->u.f1.fld.apb1rstr.spi2rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "SPI2RST");
+	state->u.f1.fld.apb1rstr.spi3rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "SPI3RST");
+	state->u.f1.fld.apb1rstr.usart2rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "USART2RST");
+	state->u.f1.fld.apb1rstr.usart3rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "USART3RST");
+	state->u.f1.fld.apb1rstr.uart4rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "UART4RST");
+	state->u.f1.fld.apb1rstr.uart5rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "UART5RST");
+	state->u.f1.fld.apb1rstr.i2c1rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "I2C1RST");
+	state->u.f1.fld.apb1rstr.i2c2rst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "I2C2RST");
+	state->u.f1.fld.apb1rstr.usbrst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "USBRST");
+	state->u.f1.fld.apb1rstr.canrst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "CANRST");
+	state->u.f1.fld.apb1rstr.bkprst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "BKPRST");
+	state->u.f1.fld.apb1rstr.pwrrst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "PWRRST");
+	state->u.f1.fld.apb1rstr.dacrst = cm_object_get_child_by_name(state->u.f1.reg.apb1rstr, "DACRST");
 
 	// AHBENR bitfields.
-	state->f1.fld.ahbenr.dma1en = cm_object_get_child_by_name(state->f1.reg.ahbenr, "DMA1EN");
-	state->f1.fld.ahbenr.dma2en = cm_object_get_child_by_name(state->f1.reg.ahbenr, "DMA2EN");
-	state->f1.fld.ahbenr.sramen = cm_object_get_child_by_name(state->f1.reg.ahbenr, "SRAMEN");
-	state->f1.fld.ahbenr.flitfen = cm_object_get_child_by_name(state->f1.reg.ahbenr, "FLITFEN");
-	state->f1.fld.ahbenr.crcen = cm_object_get_child_by_name(state->f1.reg.ahbenr, "CRCEN");
-	state->f1.fld.ahbenr.fsmcen = cm_object_get_child_by_name(state->f1.reg.ahbenr, "FSMCEN");
-	state->f1.fld.ahbenr.sdioen = cm_object_get_child_by_name(state->f1.reg.ahbenr, "SDIOEN");
+	state->u.f1.fld.ahbenr.dma1en = cm_object_get_child_by_name(state->u.f1.reg.ahbenr, "DMA1EN");
+	state->u.f1.fld.ahbenr.dma2en = cm_object_get_child_by_name(state->u.f1.reg.ahbenr, "DMA2EN");
+	state->u.f1.fld.ahbenr.sramen = cm_object_get_child_by_name(state->u.f1.reg.ahbenr, "SRAMEN");
+	state->u.f1.fld.ahbenr.flitfen = cm_object_get_child_by_name(state->u.f1.reg.ahbenr, "FLITFEN");
+	state->u.f1.fld.ahbenr.crcen = cm_object_get_child_by_name(state->u.f1.reg.ahbenr, "CRCEN");
+	state->u.f1.fld.ahbenr.fsmcen = cm_object_get_child_by_name(state->u.f1.reg.ahbenr, "FSMCEN");
+	state->u.f1.fld.ahbenr.sdioen = cm_object_get_child_by_name(state->u.f1.reg.ahbenr, "SDIOEN");
 
 	// APB2ENR bitfields.
-	state->f1.fld.apb2enr.afioen = cm_object_get_child_by_name(state->f1.reg.apb2enr, "AFIOEN");
-	state->f1.fld.apb2enr.iopaen = cm_object_get_child_by_name(state->f1.reg.apb2enr, "IOPAEN");
-	state->f1.fld.apb2enr.iopben = cm_object_get_child_by_name(state->f1.reg.apb2enr, "IOPBEN");
-	state->f1.fld.apb2enr.iopcen = cm_object_get_child_by_name(state->f1.reg.apb2enr, "IOPCEN");
-	state->f1.fld.apb2enr.iopden = cm_object_get_child_by_name(state->f1.reg.apb2enr, "IOPDEN");
-	state->f1.fld.apb2enr.iopeen = cm_object_get_child_by_name(state->f1.reg.apb2enr, "IOPEEN");
-	state->f1.fld.apb2enr.iopfen = cm_object_get_child_by_name(state->f1.reg.apb2enr, "IOPFEN");
-	state->f1.fld.apb2enr.iopgen = cm_object_get_child_by_name(state->f1.reg.apb2enr, "IOPGEN");
-	state->f1.fld.apb2enr.adc1en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "ADC1EN");
-	state->f1.fld.apb2enr.adc2en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "ADC2EN");
-	state->f1.fld.apb2enr.tim1en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "TIM1EN");
-	state->f1.fld.apb2enr.spi1en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "SPI1EN");
-	state->f1.fld.apb2enr.tim8en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "TIM8EN");
-	state->f1.fld.apb2enr.usart1en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "USART1EN");
-	state->f1.fld.apb2enr.adc3en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "ADC3EN");
-	state->f1.fld.apb2enr.tim9en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "TIM9EN");
-	state->f1.fld.apb2enr.tim10en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "TIM10EN");
-	state->f1.fld.apb2enr.tim11en = cm_object_get_child_by_name(state->f1.reg.apb2enr, "TIM11EN");
+	state->u.f1.fld.apb2enr.afioen = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "AFIOEN");
+	state->u.f1.fld.apb2enr.iopaen = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "IOPAEN");
+	state->u.f1.fld.apb2enr.iopben = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "IOPBEN");
+	state->u.f1.fld.apb2enr.iopcen = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "IOPCEN");
+	state->u.f1.fld.apb2enr.iopden = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "IOPDEN");
+	state->u.f1.fld.apb2enr.iopeen = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "IOPEEN");
+	state->u.f1.fld.apb2enr.iopfen = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "IOPFEN");
+	state->u.f1.fld.apb2enr.iopgen = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "IOPGEN");
+	state->u.f1.fld.apb2enr.adc1en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "ADC1EN");
+	state->u.f1.fld.apb2enr.adc2en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "ADC2EN");
+	state->u.f1.fld.apb2enr.tim1en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "TIM1EN");
+	state->u.f1.fld.apb2enr.spi1en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "SPI1EN");
+	state->u.f1.fld.apb2enr.tim8en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "TIM8EN");
+	state->u.f1.fld.apb2enr.usart1en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "USART1EN");
+	state->u.f1.fld.apb2enr.adc3en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "ADC3EN");
+	state->u.f1.fld.apb2enr.tim9en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "TIM9EN");
+	state->u.f1.fld.apb2enr.tim10en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "TIM10EN");
+	state->u.f1.fld.apb2enr.tim11en = cm_object_get_child_by_name(state->u.f1.reg.apb2enr, "TIM11EN");
 
 	// APB1ENR bitfields.
-	state->f1.fld.apb1enr.tim2en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM2EN");
-	state->f1.fld.apb1enr.tim3en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM3EN");
-	state->f1.fld.apb1enr.tim4en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM4EN");
-	state->f1.fld.apb1enr.tim5en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM5EN");
-	state->f1.fld.apb1enr.tim6en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM6EN");
-	state->f1.fld.apb1enr.tim7en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM7EN");
-	state->f1.fld.apb1enr.tim12en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM12EN");
-	state->f1.fld.apb1enr.tim13en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM13EN");
-	state->f1.fld.apb1enr.tim14en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "TIM14EN");
-	state->f1.fld.apb1enr.wwdgen = cm_object_get_child_by_name(state->f1.reg.apb1enr, "WWDGEN");
-	state->f1.fld.apb1enr.spi2en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "SPI2EN");
-	state->f1.fld.apb1enr.spi3en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "SPI3EN");
-	state->f1.fld.apb1enr.usart2en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "USART2EN");
-	state->f1.fld.apb1enr.usart3en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "USART3EN");
-	state->f1.fld.apb1enr.uart4en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "UART4EN");
-	state->f1.fld.apb1enr.uart5en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "UART5EN");
-	state->f1.fld.apb1enr.i2c1en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "I2C1EN");
-	state->f1.fld.apb1enr.i2c2en = cm_object_get_child_by_name(state->f1.reg.apb1enr, "I2C2EN");
-	state->f1.fld.apb1enr.usben = cm_object_get_child_by_name(state->f1.reg.apb1enr, "USBEN");
-	state->f1.fld.apb1enr.canen = cm_object_get_child_by_name(state->f1.reg.apb1enr, "CANEN");
-	state->f1.fld.apb1enr.bkpen = cm_object_get_child_by_name(state->f1.reg.apb1enr, "BKPEN");
-	state->f1.fld.apb1enr.pwren = cm_object_get_child_by_name(state->f1.reg.apb1enr, "PWREN");
-	state->f1.fld.apb1enr.dacen = cm_object_get_child_by_name(state->f1.reg.apb1enr, "DACEN");
+	state->u.f1.fld.apb1enr.tim2en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM2EN");
+	state->u.f1.fld.apb1enr.tim3en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM3EN");
+	state->u.f1.fld.apb1enr.tim4en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM4EN");
+	state->u.f1.fld.apb1enr.tim5en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM5EN");
+	state->u.f1.fld.apb1enr.tim6en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM6EN");
+	state->u.f1.fld.apb1enr.tim7en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM7EN");
+	state->u.f1.fld.apb1enr.tim12en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM12EN");
+	state->u.f1.fld.apb1enr.tim13en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM13EN");
+	state->u.f1.fld.apb1enr.tim14en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "TIM14EN");
+	state->u.f1.fld.apb1enr.wwdgen = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "WWDGEN");
+	state->u.f1.fld.apb1enr.spi2en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "SPI2EN");
+	state->u.f1.fld.apb1enr.spi3en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "SPI3EN");
+	state->u.f1.fld.apb1enr.usart2en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "USART2EN");
+	state->u.f1.fld.apb1enr.usart3en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "USART3EN");
+	state->u.f1.fld.apb1enr.uart4en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "UART4EN");
+	state->u.f1.fld.apb1enr.uart5en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "UART5EN");
+	state->u.f1.fld.apb1enr.i2c1en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "I2C1EN");
+	state->u.f1.fld.apb1enr.i2c2en = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "I2C2EN");
+	state->u.f1.fld.apb1enr.usben = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "USBEN");
+	state->u.f1.fld.apb1enr.canen = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "CANEN");
+	state->u.f1.fld.apb1enr.bkpen = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "BKPEN");
+	state->u.f1.fld.apb1enr.pwren = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "PWREN");
+	state->u.f1.fld.apb1enr.dacen = cm_object_get_child_by_name(state->u.f1.reg.apb1enr, "DACEN");
 
 	// BDCR bitfields.
-	state->f1.fld.bdcr.lseon = cm_object_get_child_by_name(state->f1.reg.bdcr, "LSEON");
-	state->f1.fld.bdcr.lserdy = cm_object_get_child_by_name(state->f1.reg.bdcr, "LSERDY");
-	state->f1.fld.bdcr.lsebyp = cm_object_get_child_by_name(state->f1.reg.bdcr, "LSEBYP");
-	state->f1.fld.bdcr.rtcsel = cm_object_get_child_by_name(state->f1.reg.bdcr, "RTCSEL");
-	state->f1.fld.bdcr.rtcen = cm_object_get_child_by_name(state->f1.reg.bdcr, "RTCEN");
-	state->f1.fld.bdcr.bdrst = cm_object_get_child_by_name(state->f1.reg.bdcr, "BDRST");
+	state->u.f1.fld.bdcr.lseon = cm_object_get_child_by_name(state->u.f1.reg.bdcr, "LSEON");
+	state->u.f1.fld.bdcr.lserdy = cm_object_get_child_by_name(state->u.f1.reg.bdcr, "LSERDY");
+	state->u.f1.fld.bdcr.lsebyp = cm_object_get_child_by_name(state->u.f1.reg.bdcr, "LSEBYP");
+	state->u.f1.fld.bdcr.rtcsel = cm_object_get_child_by_name(state->u.f1.reg.bdcr, "RTCSEL");
+	state->u.f1.fld.bdcr.rtcen = cm_object_get_child_by_name(state->u.f1.reg.bdcr, "RTCEN");
+	state->u.f1.fld.bdcr.bdrst = cm_object_get_child_by_name(state->u.f1.reg.bdcr, "BDRST");
 
 	// CSR bitfields.
-	state->f1.fld.csr.lsion = cm_object_get_child_by_name(state->f1.reg.csr, "LSION");
-	state->f1.fld.csr.lsirdy = cm_object_get_child_by_name(state->f1.reg.csr, "LSIRDY");
-	state->f1.fld.csr.rmvf = cm_object_get_child_by_name(state->f1.reg.csr, "RMVF");
-	state->f1.fld.csr.pinrstf = cm_object_get_child_by_name(state->f1.reg.csr, "PINRSTF");
-	state->f1.fld.csr.porrstf = cm_object_get_child_by_name(state->f1.reg.csr, "PORRSTF");
-	state->f1.fld.csr.sftrstf = cm_object_get_child_by_name(state->f1.reg.csr, "SFTRSTF");
-	state->f1.fld.csr.iwdgrstf = cm_object_get_child_by_name(state->f1.reg.csr, "IWDGRSTF");
-	state->f1.fld.csr.wwdgrstf = cm_object_get_child_by_name(state->f1.reg.csr, "WWDGRSTF");
-	state->f1.fld.csr.lpwrrstf = cm_object_get_child_by_name(state->f1.reg.csr, "LPWRRSTF");
+	state->u.f1.fld.csr.lsion = cm_object_get_child_by_name(state->u.f1.reg.csr, "LSION");
+	state->u.f1.fld.csr.lsirdy = cm_object_get_child_by_name(state->u.f1.reg.csr, "LSIRDY");
+	state->u.f1.fld.csr.rmvf = cm_object_get_child_by_name(state->u.f1.reg.csr, "RMVF");
+	state->u.f1.fld.csr.pinrstf = cm_object_get_child_by_name(state->u.f1.reg.csr, "PINRSTF");
+	state->u.f1.fld.csr.porrstf = cm_object_get_child_by_name(state->u.f1.reg.csr, "PORRSTF");
+	state->u.f1.fld.csr.sftrstf = cm_object_get_child_by_name(state->u.f1.reg.csr, "SFTRSTF");
+	state->u.f1.fld.csr.iwdgrstf = cm_object_get_child_by_name(state->u.f1.reg.csr, "IWDGRSTF");
+	state->u.f1.fld.csr.wwdgrstf = cm_object_get_child_by_name(state->u.f1.reg.csr, "WWDGRSTF");
+	state->u.f1.fld.csr.lpwrrstf = cm_object_get_child_by_name(state->u.f1.reg.csr, "LPWRRSTF");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -1083,7 +1086,8 @@ static void stm32f103xx_rcc_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 GPIOA (General purpose I/O) registers.
 		struct {
@@ -1271,156 +1275,156 @@ static void stm32f103xx_gpioa_create_objects(Object *obj, JSON_Object *svd, cons
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.crl = cm_object_get_child_by_name(obj, "CRL");
-	state->f1.reg.crh = cm_object_get_child_by_name(obj, "CRH");
-	state->f1.reg.idr = cm_object_get_child_by_name(obj, "IDR");
-	state->f1.reg.odr = cm_object_get_child_by_name(obj, "ODR");
-	state->f1.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
-	state->f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
-	state->f1.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
+	state->u.f1.reg.crl = cm_object_get_child_by_name(obj, "CRL");
+	state->u.f1.reg.crh = cm_object_get_child_by_name(obj, "CRH");
+	state->u.f1.reg.idr = cm_object_get_child_by_name(obj, "IDR");
+	state->u.f1.reg.odr = cm_object_get_child_by_name(obj, "ODR");
+	state->u.f1.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
+	state->u.f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+	state->u.f1.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
 
 	// CRL bitfields.
-	state->f1.fld.crl.mode0 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE0");
-	state->f1.fld.crl.cnf0 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF0");
-	state->f1.fld.crl.mode1 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE1");
-	state->f1.fld.crl.cnf1 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF1");
-	state->f1.fld.crl.mode2 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE2");
-	state->f1.fld.crl.cnf2 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF2");
-	state->f1.fld.crl.mode3 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE3");
-	state->f1.fld.crl.cnf3 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF3");
-	state->f1.fld.crl.mode4 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE4");
-	state->f1.fld.crl.cnf4 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF4");
-	state->f1.fld.crl.mode5 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE5");
-	state->f1.fld.crl.cnf5 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF5");
-	state->f1.fld.crl.mode6 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE6");
-	state->f1.fld.crl.cnf6 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF6");
-	state->f1.fld.crl.mode7 = cm_object_get_child_by_name(state->f1.reg.crl, "MODE7");
-	state->f1.fld.crl.cnf7 = cm_object_get_child_by_name(state->f1.reg.crl, "CNF7");
+	state->u.f1.fld.crl.mode0 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE0");
+	state->u.f1.fld.crl.cnf0 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF0");
+	state->u.f1.fld.crl.mode1 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE1");
+	state->u.f1.fld.crl.cnf1 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF1");
+	state->u.f1.fld.crl.mode2 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE2");
+	state->u.f1.fld.crl.cnf2 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF2");
+	state->u.f1.fld.crl.mode3 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE3");
+	state->u.f1.fld.crl.cnf3 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF3");
+	state->u.f1.fld.crl.mode4 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE4");
+	state->u.f1.fld.crl.cnf4 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF4");
+	state->u.f1.fld.crl.mode5 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE5");
+	state->u.f1.fld.crl.cnf5 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF5");
+	state->u.f1.fld.crl.mode6 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE6");
+	state->u.f1.fld.crl.cnf6 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF6");
+	state->u.f1.fld.crl.mode7 = cm_object_get_child_by_name(state->u.f1.reg.crl, "MODE7");
+	state->u.f1.fld.crl.cnf7 = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF7");
 
 	// CRH bitfields.
-	state->f1.fld.crh.mode8 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE8");
-	state->f1.fld.crh.cnf8 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF8");
-	state->f1.fld.crh.mode9 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE9");
-	state->f1.fld.crh.cnf9 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF9");
-	state->f1.fld.crh.mode10 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE10");
-	state->f1.fld.crh.cnf10 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF10");
-	state->f1.fld.crh.mode11 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE11");
-	state->f1.fld.crh.cnf11 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF11");
-	state->f1.fld.crh.mode12 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE12");
-	state->f1.fld.crh.cnf12 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF12");
-	state->f1.fld.crh.mode13 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE13");
-	state->f1.fld.crh.cnf13 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF13");
-	state->f1.fld.crh.mode14 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE14");
-	state->f1.fld.crh.cnf14 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF14");
-	state->f1.fld.crh.mode15 = cm_object_get_child_by_name(state->f1.reg.crh, "MODE15");
-	state->f1.fld.crh.cnf15 = cm_object_get_child_by_name(state->f1.reg.crh, "CNF15");
+	state->u.f1.fld.crh.mode8 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE8");
+	state->u.f1.fld.crh.cnf8 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF8");
+	state->u.f1.fld.crh.mode9 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE9");
+	state->u.f1.fld.crh.cnf9 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF9");
+	state->u.f1.fld.crh.mode10 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE10");
+	state->u.f1.fld.crh.cnf10 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF10");
+	state->u.f1.fld.crh.mode11 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE11");
+	state->u.f1.fld.crh.cnf11 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF11");
+	state->u.f1.fld.crh.mode12 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE12");
+	state->u.f1.fld.crh.cnf12 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF12");
+	state->u.f1.fld.crh.mode13 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE13");
+	state->u.f1.fld.crh.cnf13 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF13");
+	state->u.f1.fld.crh.mode14 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE14");
+	state->u.f1.fld.crh.cnf14 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF14");
+	state->u.f1.fld.crh.mode15 = cm_object_get_child_by_name(state->u.f1.reg.crh, "MODE15");
+	state->u.f1.fld.crh.cnf15 = cm_object_get_child_by_name(state->u.f1.reg.crh, "CNF15");
 
 	// IDR bitfields.
-	state->f1.fld.idr.idr0 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR0");
-	state->f1.fld.idr.idr1 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR1");
-	state->f1.fld.idr.idr2 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR2");
-	state->f1.fld.idr.idr3 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR3");
-	state->f1.fld.idr.idr4 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR4");
-	state->f1.fld.idr.idr5 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR5");
-	state->f1.fld.idr.idr6 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR6");
-	state->f1.fld.idr.idr7 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR7");
-	state->f1.fld.idr.idr8 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR8");
-	state->f1.fld.idr.idr9 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR9");
-	state->f1.fld.idr.idr10 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR10");
-	state->f1.fld.idr.idr11 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR11");
-	state->f1.fld.idr.idr12 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR12");
-	state->f1.fld.idr.idr13 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR13");
-	state->f1.fld.idr.idr14 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR14");
-	state->f1.fld.idr.idr15 = cm_object_get_child_by_name(state->f1.reg.idr, "IDR15");
+	state->u.f1.fld.idr.idr0 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR0");
+	state->u.f1.fld.idr.idr1 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR1");
+	state->u.f1.fld.idr.idr2 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR2");
+	state->u.f1.fld.idr.idr3 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR3");
+	state->u.f1.fld.idr.idr4 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR4");
+	state->u.f1.fld.idr.idr5 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR5");
+	state->u.f1.fld.idr.idr6 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR6");
+	state->u.f1.fld.idr.idr7 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR7");
+	state->u.f1.fld.idr.idr8 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR8");
+	state->u.f1.fld.idr.idr9 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR9");
+	state->u.f1.fld.idr.idr10 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR10");
+	state->u.f1.fld.idr.idr11 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR11");
+	state->u.f1.fld.idr.idr12 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR12");
+	state->u.f1.fld.idr.idr13 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR13");
+	state->u.f1.fld.idr.idr14 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR14");
+	state->u.f1.fld.idr.idr15 = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR15");
 
 	// ODR bitfields.
-	state->f1.fld.odr.odr0 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR0");
-	state->f1.fld.odr.odr1 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR1");
-	state->f1.fld.odr.odr2 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR2");
-	state->f1.fld.odr.odr3 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR3");
-	state->f1.fld.odr.odr4 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR4");
-	state->f1.fld.odr.odr5 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR5");
-	state->f1.fld.odr.odr6 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR6");
-	state->f1.fld.odr.odr7 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR7");
-	state->f1.fld.odr.odr8 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR8");
-	state->f1.fld.odr.odr9 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR9");
-	state->f1.fld.odr.odr10 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR10");
-	state->f1.fld.odr.odr11 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR11");
-	state->f1.fld.odr.odr12 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR12");
-	state->f1.fld.odr.odr13 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR13");
-	state->f1.fld.odr.odr14 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR14");
-	state->f1.fld.odr.odr15 = cm_object_get_child_by_name(state->f1.reg.odr, "ODR15");
+	state->u.f1.fld.odr.odr0 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR0");
+	state->u.f1.fld.odr.odr1 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR1");
+	state->u.f1.fld.odr.odr2 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR2");
+	state->u.f1.fld.odr.odr3 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR3");
+	state->u.f1.fld.odr.odr4 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR4");
+	state->u.f1.fld.odr.odr5 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR5");
+	state->u.f1.fld.odr.odr6 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR6");
+	state->u.f1.fld.odr.odr7 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR7");
+	state->u.f1.fld.odr.odr8 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR8");
+	state->u.f1.fld.odr.odr9 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR9");
+	state->u.f1.fld.odr.odr10 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR10");
+	state->u.f1.fld.odr.odr11 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR11");
+	state->u.f1.fld.odr.odr12 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR12");
+	state->u.f1.fld.odr.odr13 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR13");
+	state->u.f1.fld.odr.odr14 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR14");
+	state->u.f1.fld.odr.odr15 = cm_object_get_child_by_name(state->u.f1.reg.odr, "ODR15");
 
 	// BSRR bitfields.
-	state->f1.fld.bsrr.bs0 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS0");
-	state->f1.fld.bsrr.bs1 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS1");
-	state->f1.fld.bsrr.bs2 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS2");
-	state->f1.fld.bsrr.bs3 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS3");
-	state->f1.fld.bsrr.bs4 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS4");
-	state->f1.fld.bsrr.bs5 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS5");
-	state->f1.fld.bsrr.bs6 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS6");
-	state->f1.fld.bsrr.bs7 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS7");
-	state->f1.fld.bsrr.bs8 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS8");
-	state->f1.fld.bsrr.bs9 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS9");
-	state->f1.fld.bsrr.bs10 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS10");
-	state->f1.fld.bsrr.bs11 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS11");
-	state->f1.fld.bsrr.bs12 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS12");
-	state->f1.fld.bsrr.bs13 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS13");
-	state->f1.fld.bsrr.bs14 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS14");
-	state->f1.fld.bsrr.bs15 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BS15");
-	state->f1.fld.bsrr.br0 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR0");
-	state->f1.fld.bsrr.br1 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR1");
-	state->f1.fld.bsrr.br2 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR2");
-	state->f1.fld.bsrr.br3 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR3");
-	state->f1.fld.bsrr.br4 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR4");
-	state->f1.fld.bsrr.br5 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR5");
-	state->f1.fld.bsrr.br6 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR6");
-	state->f1.fld.bsrr.br7 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR7");
-	state->f1.fld.bsrr.br8 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR8");
-	state->f1.fld.bsrr.br9 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR9");
-	state->f1.fld.bsrr.br10 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR10");
-	state->f1.fld.bsrr.br11 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR11");
-	state->f1.fld.bsrr.br12 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR12");
-	state->f1.fld.bsrr.br13 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR13");
-	state->f1.fld.bsrr.br14 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR14");
-	state->f1.fld.bsrr.br15 = cm_object_get_child_by_name(state->f1.reg.bsrr, "BR15");
+	state->u.f1.fld.bsrr.bs0 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS0");
+	state->u.f1.fld.bsrr.bs1 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS1");
+	state->u.f1.fld.bsrr.bs2 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS2");
+	state->u.f1.fld.bsrr.bs3 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS3");
+	state->u.f1.fld.bsrr.bs4 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS4");
+	state->u.f1.fld.bsrr.bs5 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS5");
+	state->u.f1.fld.bsrr.bs6 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS6");
+	state->u.f1.fld.bsrr.bs7 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS7");
+	state->u.f1.fld.bsrr.bs8 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS8");
+	state->u.f1.fld.bsrr.bs9 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS9");
+	state->u.f1.fld.bsrr.bs10 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS10");
+	state->u.f1.fld.bsrr.bs11 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS11");
+	state->u.f1.fld.bsrr.bs12 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS12");
+	state->u.f1.fld.bsrr.bs13 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS13");
+	state->u.f1.fld.bsrr.bs14 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS14");
+	state->u.f1.fld.bsrr.bs15 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BS15");
+	state->u.f1.fld.bsrr.br0 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR0");
+	state->u.f1.fld.bsrr.br1 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR1");
+	state->u.f1.fld.bsrr.br2 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR2");
+	state->u.f1.fld.bsrr.br3 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR3");
+	state->u.f1.fld.bsrr.br4 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR4");
+	state->u.f1.fld.bsrr.br5 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR5");
+	state->u.f1.fld.bsrr.br6 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR6");
+	state->u.f1.fld.bsrr.br7 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR7");
+	state->u.f1.fld.bsrr.br8 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR8");
+	state->u.f1.fld.bsrr.br9 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR9");
+	state->u.f1.fld.bsrr.br10 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR10");
+	state->u.f1.fld.bsrr.br11 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR11");
+	state->u.f1.fld.bsrr.br12 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR12");
+	state->u.f1.fld.bsrr.br13 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR13");
+	state->u.f1.fld.bsrr.br14 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR14");
+	state->u.f1.fld.bsrr.br15 = cm_object_get_child_by_name(state->u.f1.reg.bsrr, "BR15");
 
 	// BRR bitfields.
-	state->f1.fld.brr.br0 = cm_object_get_child_by_name(state->f1.reg.brr, "BR0");
-	state->f1.fld.brr.br1 = cm_object_get_child_by_name(state->f1.reg.brr, "BR1");
-	state->f1.fld.brr.br2 = cm_object_get_child_by_name(state->f1.reg.brr, "BR2");
-	state->f1.fld.brr.br3 = cm_object_get_child_by_name(state->f1.reg.brr, "BR3");
-	state->f1.fld.brr.br4 = cm_object_get_child_by_name(state->f1.reg.brr, "BR4");
-	state->f1.fld.brr.br5 = cm_object_get_child_by_name(state->f1.reg.brr, "BR5");
-	state->f1.fld.brr.br6 = cm_object_get_child_by_name(state->f1.reg.brr, "BR6");
-	state->f1.fld.brr.br7 = cm_object_get_child_by_name(state->f1.reg.brr, "BR7");
-	state->f1.fld.brr.br8 = cm_object_get_child_by_name(state->f1.reg.brr, "BR8");
-	state->f1.fld.brr.br9 = cm_object_get_child_by_name(state->f1.reg.brr, "BR9");
-	state->f1.fld.brr.br10 = cm_object_get_child_by_name(state->f1.reg.brr, "BR10");
-	state->f1.fld.brr.br11 = cm_object_get_child_by_name(state->f1.reg.brr, "BR11");
-	state->f1.fld.brr.br12 = cm_object_get_child_by_name(state->f1.reg.brr, "BR12");
-	state->f1.fld.brr.br13 = cm_object_get_child_by_name(state->f1.reg.brr, "BR13");
-	state->f1.fld.brr.br14 = cm_object_get_child_by_name(state->f1.reg.brr, "BR14");
-	state->f1.fld.brr.br15 = cm_object_get_child_by_name(state->f1.reg.brr, "BR15");
+	state->u.f1.fld.brr.br0 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR0");
+	state->u.f1.fld.brr.br1 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR1");
+	state->u.f1.fld.brr.br2 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR2");
+	state->u.f1.fld.brr.br3 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR3");
+	state->u.f1.fld.brr.br4 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR4");
+	state->u.f1.fld.brr.br5 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR5");
+	state->u.f1.fld.brr.br6 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR6");
+	state->u.f1.fld.brr.br7 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR7");
+	state->u.f1.fld.brr.br8 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR8");
+	state->u.f1.fld.brr.br9 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR9");
+	state->u.f1.fld.brr.br10 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR10");
+	state->u.f1.fld.brr.br11 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR11");
+	state->u.f1.fld.brr.br12 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR12");
+	state->u.f1.fld.brr.br13 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR13");
+	state->u.f1.fld.brr.br14 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR14");
+	state->u.f1.fld.brr.br15 = cm_object_get_child_by_name(state->u.f1.reg.brr, "BR15");
 
 	// LCKR bitfields.
-	state->f1.fld.lckr.lck0 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK0");
-	state->f1.fld.lckr.lck1 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK1");
-	state->f1.fld.lckr.lck2 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK2");
-	state->f1.fld.lckr.lck3 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK3");
-	state->f1.fld.lckr.lck4 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK4");
-	state->f1.fld.lckr.lck5 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK5");
-	state->f1.fld.lckr.lck6 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK6");
-	state->f1.fld.lckr.lck7 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK7");
-	state->f1.fld.lckr.lck8 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK8");
-	state->f1.fld.lckr.lck9 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK9");
-	state->f1.fld.lckr.lck10 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK10");
-	state->f1.fld.lckr.lck11 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK11");
-	state->f1.fld.lckr.lck12 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK12");
-	state->f1.fld.lckr.lck13 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK13");
-	state->f1.fld.lckr.lck14 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK14");
-	state->f1.fld.lckr.lck15 = cm_object_get_child_by_name(state->f1.reg.lckr, "LCK15");
-	state->f1.fld.lckr.lckk = cm_object_get_child_by_name(state->f1.reg.lckr, "LCKK");
+	state->u.f1.fld.lckr.lck0 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK0");
+	state->u.f1.fld.lckr.lck1 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK1");
+	state->u.f1.fld.lckr.lck2 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK2");
+	state->u.f1.fld.lckr.lck3 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK3");
+	state->u.f1.fld.lckr.lck4 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK4");
+	state->u.f1.fld.lckr.lck5 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK5");
+	state->u.f1.fld.lckr.lck6 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK6");
+	state->u.f1.fld.lckr.lck7 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK7");
+	state->u.f1.fld.lckr.lck8 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK8");
+	state->u.f1.fld.lckr.lck9 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK9");
+	state->u.f1.fld.lckr.lck10 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK10");
+	state->u.f1.fld.lckr.lck11 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK11");
+	state->u.f1.fld.lckr.lck12 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK12");
+	state->u.f1.fld.lckr.lck13 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK13");
+	state->u.f1.fld.lckr.lck14 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK14");
+	state->u.f1.fld.lckr.lck15 = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCK15");
+	state->u.f1.fld.lckr.lckk = cm_object_get_child_by_name(state->u.f1.reg.lckr, "LCKK");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -1429,7 +1433,8 @@ static void stm32f103xx_gpioa_create_objects(Object *obj, JSON_Object *svd, cons
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 AFIO (Alternate function I/O) registers.
 		struct {
@@ -1530,69 +1535,69 @@ static void stm32f103xx_afio_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.evcr = cm_object_get_child_by_name(obj, "EVCR");
-	state->f1.reg.mapr = cm_object_get_child_by_name(obj, "MAPR");
-	state->f1.reg.exticr1 = cm_object_get_child_by_name(obj, "EXTICR1");
-	state->f1.reg.exticr2 = cm_object_get_child_by_name(obj, "EXTICR2");
-	state->f1.reg.exticr3 = cm_object_get_child_by_name(obj, "EXTICR3");
-	state->f1.reg.exticr4 = cm_object_get_child_by_name(obj, "EXTICR4");
-	state->f1.reg.mapr2 = cm_object_get_child_by_name(obj, "MAPR2");
+	state->u.f1.reg.evcr = cm_object_get_child_by_name(obj, "EVCR");
+	state->u.f1.reg.mapr = cm_object_get_child_by_name(obj, "MAPR");
+	state->u.f1.reg.exticr1 = cm_object_get_child_by_name(obj, "EXTICR1");
+	state->u.f1.reg.exticr2 = cm_object_get_child_by_name(obj, "EXTICR2");
+	state->u.f1.reg.exticr3 = cm_object_get_child_by_name(obj, "EXTICR3");
+	state->u.f1.reg.exticr4 = cm_object_get_child_by_name(obj, "EXTICR4");
+	state->u.f1.reg.mapr2 = cm_object_get_child_by_name(obj, "MAPR2");
 
 	// EVCR bitfields.
-	state->f1.fld.evcr.pin = cm_object_get_child_by_name(state->f1.reg.evcr, "PIN");
-	state->f1.fld.evcr.port = cm_object_get_child_by_name(state->f1.reg.evcr, "PORT");
-	state->f1.fld.evcr.evoe = cm_object_get_child_by_name(state->f1.reg.evcr, "EVOE");
+	state->u.f1.fld.evcr.pin = cm_object_get_child_by_name(state->u.f1.reg.evcr, "PIN");
+	state->u.f1.fld.evcr.port = cm_object_get_child_by_name(state->u.f1.reg.evcr, "PORT");
+	state->u.f1.fld.evcr.evoe = cm_object_get_child_by_name(state->u.f1.reg.evcr, "EVOE");
 
 	// MAPR bitfields.
-	state->f1.fld.mapr.spi1_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "SPI1_REMAP");
-	state->f1.fld.mapr.i2c1_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "I2C1_REMAP");
-	state->f1.fld.mapr.usart1_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "USART1_REMAP");
-	state->f1.fld.mapr.usart2_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "USART2_REMAP");
-	state->f1.fld.mapr.usart3_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "USART3_REMAP");
-	state->f1.fld.mapr.tim1_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "TIM1_REMAP");
-	state->f1.fld.mapr.tim2_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "TIM2_REMAP");
-	state->f1.fld.mapr.tim3_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "TIM3_REMAP");
-	state->f1.fld.mapr.tim4_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "TIM4_REMAP");
-	state->f1.fld.mapr.can_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "CAN_REMAP");
-	state->f1.fld.mapr.pd01_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "PD01_REMAP");
-	state->f1.fld.mapr.tim5ch4_iremap = cm_object_get_child_by_name(state->f1.reg.mapr, "TIM5CH4_IREMAP");
-	state->f1.fld.mapr.adc1_etrginj_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "ADC1_ETRGINJ_REMAP");
-	state->f1.fld.mapr.adc1_etrgreg_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "ADC1_ETRGREG_REMAP");
-	state->f1.fld.mapr.adc2_etrginj_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "ADC2_ETRGINJ_REMAP");
-	state->f1.fld.mapr.adc2_etrgreg_remap = cm_object_get_child_by_name(state->f1.reg.mapr, "ADC2_ETRGREG_REMAP");
-	state->f1.fld.mapr.swj_cfg = cm_object_get_child_by_name(state->f1.reg.mapr, "SWJ_CFG");
+	state->u.f1.fld.mapr.spi1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "SPI1_REMAP");
+	state->u.f1.fld.mapr.i2c1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "I2C1_REMAP");
+	state->u.f1.fld.mapr.usart1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART1_REMAP");
+	state->u.f1.fld.mapr.usart2_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART2_REMAP");
+	state->u.f1.fld.mapr.usart3_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART3_REMAP");
+	state->u.f1.fld.mapr.tim1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM1_REMAP");
+	state->u.f1.fld.mapr.tim2_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM2_REMAP");
+	state->u.f1.fld.mapr.tim3_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM3_REMAP");
+	state->u.f1.fld.mapr.tim4_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM4_REMAP");
+	state->u.f1.fld.mapr.can_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "CAN_REMAP");
+	state->u.f1.fld.mapr.pd01_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "PD01_REMAP");
+	state->u.f1.fld.mapr.tim5ch4_iremap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM5CH4_IREMAP");
+	state->u.f1.fld.mapr.adc1_etrginj_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC1_ETRGINJ_REMAP");
+	state->u.f1.fld.mapr.adc1_etrgreg_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC1_ETRGREG_REMAP");
+	state->u.f1.fld.mapr.adc2_etrginj_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC2_ETRGINJ_REMAP");
+	state->u.f1.fld.mapr.adc2_etrgreg_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC2_ETRGREG_REMAP");
+	state->u.f1.fld.mapr.swj_cfg = cm_object_get_child_by_name(state->u.f1.reg.mapr, "SWJ_CFG");
 
 	// EXTICR1 bitfields.
-	state->f1.fld.exticr1.exti0 = cm_object_get_child_by_name(state->f1.reg.exticr1, "EXTI0");
-	state->f1.fld.exticr1.exti1 = cm_object_get_child_by_name(state->f1.reg.exticr1, "EXTI1");
-	state->f1.fld.exticr1.exti2 = cm_object_get_child_by_name(state->f1.reg.exticr1, "EXTI2");
-	state->f1.fld.exticr1.exti3 = cm_object_get_child_by_name(state->f1.reg.exticr1, "EXTI3");
+	state->u.f1.fld.exticr1.exti0 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI0");
+	state->u.f1.fld.exticr1.exti1 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI1");
+	state->u.f1.fld.exticr1.exti2 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI2");
+	state->u.f1.fld.exticr1.exti3 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI3");
 
 	// EXTICR2 bitfields.
-	state->f1.fld.exticr2.exti4 = cm_object_get_child_by_name(state->f1.reg.exticr2, "EXTI4");
-	state->f1.fld.exticr2.exti5 = cm_object_get_child_by_name(state->f1.reg.exticr2, "EXTI5");
-	state->f1.fld.exticr2.exti6 = cm_object_get_child_by_name(state->f1.reg.exticr2, "EXTI6");
-	state->f1.fld.exticr2.exti7 = cm_object_get_child_by_name(state->f1.reg.exticr2, "EXTI7");
+	state->u.f1.fld.exticr2.exti4 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI4");
+	state->u.f1.fld.exticr2.exti5 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI5");
+	state->u.f1.fld.exticr2.exti6 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI6");
+	state->u.f1.fld.exticr2.exti7 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI7");
 
 	// EXTICR3 bitfields.
-	state->f1.fld.exticr3.exti8 = cm_object_get_child_by_name(state->f1.reg.exticr3, "EXTI8");
-	state->f1.fld.exticr3.exti9 = cm_object_get_child_by_name(state->f1.reg.exticr3, "EXTI9");
-	state->f1.fld.exticr3.exti10 = cm_object_get_child_by_name(state->f1.reg.exticr3, "EXTI10");
-	state->f1.fld.exticr3.exti11 = cm_object_get_child_by_name(state->f1.reg.exticr3, "EXTI11");
+	state->u.f1.fld.exticr3.exti8 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI8");
+	state->u.f1.fld.exticr3.exti9 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI9");
+	state->u.f1.fld.exticr3.exti10 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI10");
+	state->u.f1.fld.exticr3.exti11 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI11");
 
 	// EXTICR4 bitfields.
-	state->f1.fld.exticr4.exti12 = cm_object_get_child_by_name(state->f1.reg.exticr4, "EXTI12");
-	state->f1.fld.exticr4.exti13 = cm_object_get_child_by_name(state->f1.reg.exticr4, "EXTI13");
-	state->f1.fld.exticr4.exti14 = cm_object_get_child_by_name(state->f1.reg.exticr4, "EXTI14");
-	state->f1.fld.exticr4.exti15 = cm_object_get_child_by_name(state->f1.reg.exticr4, "EXTI15");
+	state->u.f1.fld.exticr4.exti12 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI12");
+	state->u.f1.fld.exticr4.exti13 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI13");
+	state->u.f1.fld.exticr4.exti14 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI14");
+	state->u.f1.fld.exticr4.exti15 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI15");
 
 	// MAPR2 bitfields.
-	state->f1.fld.mapr2.tim9_remap = cm_object_get_child_by_name(state->f1.reg.mapr2, "TIM9_REMAP");
-	state->f1.fld.mapr2.tim10_remap = cm_object_get_child_by_name(state->f1.reg.mapr2, "TIM10_REMAP");
-	state->f1.fld.mapr2.tim11_remap = cm_object_get_child_by_name(state->f1.reg.mapr2, "TIM11_REMAP");
-	state->f1.fld.mapr2.tim13_remap = cm_object_get_child_by_name(state->f1.reg.mapr2, "TIM13_REMAP");
-	state->f1.fld.mapr2.tim14_remap = cm_object_get_child_by_name(state->f1.reg.mapr2, "TIM14_REMAP");
-	state->f1.fld.mapr2.fsmc_nadv = cm_object_get_child_by_name(state->f1.reg.mapr2, "FSMC_NADV");
+	state->u.f1.fld.mapr2.tim9_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM9_REMAP");
+	state->u.f1.fld.mapr2.tim10_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM10_REMAP");
+	state->u.f1.fld.mapr2.tim11_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM11_REMAP");
+	state->u.f1.fld.mapr2.tim13_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM13_REMAP");
+	state->u.f1.fld.mapr2.tim14_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM14_REMAP");
+	state->u.f1.fld.mapr2.fsmc_nadv = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "FSMC_NADV");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -1601,7 +1606,8 @@ static void stm32f103xx_afio_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 EXTI (EXTI) registers.
 		struct {
@@ -1769,138 +1775,138 @@ static void stm32f103xx_exti_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.imr = cm_object_get_child_by_name(obj, "IMR");
-	state->f1.reg.emr = cm_object_get_child_by_name(obj, "EMR");
-	state->f1.reg.rtsr = cm_object_get_child_by_name(obj, "RTSR");
-	state->f1.reg.ftsr = cm_object_get_child_by_name(obj, "FTSR");
-	state->f1.reg.swier = cm_object_get_child_by_name(obj, "SWIER");
-	state->f1.reg.pr = cm_object_get_child_by_name(obj, "PR");
+	state->u.f1.reg.imr = cm_object_get_child_by_name(obj, "IMR");
+	state->u.f1.reg.emr = cm_object_get_child_by_name(obj, "EMR");
+	state->u.f1.reg.rtsr = cm_object_get_child_by_name(obj, "RTSR");
+	state->u.f1.reg.ftsr = cm_object_get_child_by_name(obj, "FTSR");
+	state->u.f1.reg.swier = cm_object_get_child_by_name(obj, "SWIER");
+	state->u.f1.reg.pr = cm_object_get_child_by_name(obj, "PR");
 
 	// IMR bitfields.
-	state->f1.fld.imr.mr0 = cm_object_get_child_by_name(state->f1.reg.imr, "MR0");
-	state->f1.fld.imr.mr1 = cm_object_get_child_by_name(state->f1.reg.imr, "MR1");
-	state->f1.fld.imr.mr2 = cm_object_get_child_by_name(state->f1.reg.imr, "MR2");
-	state->f1.fld.imr.mr3 = cm_object_get_child_by_name(state->f1.reg.imr, "MR3");
-	state->f1.fld.imr.mr4 = cm_object_get_child_by_name(state->f1.reg.imr, "MR4");
-	state->f1.fld.imr.mr5 = cm_object_get_child_by_name(state->f1.reg.imr, "MR5");
-	state->f1.fld.imr.mr6 = cm_object_get_child_by_name(state->f1.reg.imr, "MR6");
-	state->f1.fld.imr.mr7 = cm_object_get_child_by_name(state->f1.reg.imr, "MR7");
-	state->f1.fld.imr.mr8 = cm_object_get_child_by_name(state->f1.reg.imr, "MR8");
-	state->f1.fld.imr.mr9 = cm_object_get_child_by_name(state->f1.reg.imr, "MR9");
-	state->f1.fld.imr.mr10 = cm_object_get_child_by_name(state->f1.reg.imr, "MR10");
-	state->f1.fld.imr.mr11 = cm_object_get_child_by_name(state->f1.reg.imr, "MR11");
-	state->f1.fld.imr.mr12 = cm_object_get_child_by_name(state->f1.reg.imr, "MR12");
-	state->f1.fld.imr.mr13 = cm_object_get_child_by_name(state->f1.reg.imr, "MR13");
-	state->f1.fld.imr.mr14 = cm_object_get_child_by_name(state->f1.reg.imr, "MR14");
-	state->f1.fld.imr.mr15 = cm_object_get_child_by_name(state->f1.reg.imr, "MR15");
-	state->f1.fld.imr.mr16 = cm_object_get_child_by_name(state->f1.reg.imr, "MR16");
-	state->f1.fld.imr.mr17 = cm_object_get_child_by_name(state->f1.reg.imr, "MR17");
-	state->f1.fld.imr.mr18 = cm_object_get_child_by_name(state->f1.reg.imr, "MR18");
+	state->u.f1.fld.imr.mr0 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR0");
+	state->u.f1.fld.imr.mr1 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR1");
+	state->u.f1.fld.imr.mr2 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR2");
+	state->u.f1.fld.imr.mr3 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR3");
+	state->u.f1.fld.imr.mr4 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR4");
+	state->u.f1.fld.imr.mr5 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR5");
+	state->u.f1.fld.imr.mr6 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR6");
+	state->u.f1.fld.imr.mr7 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR7");
+	state->u.f1.fld.imr.mr8 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR8");
+	state->u.f1.fld.imr.mr9 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR9");
+	state->u.f1.fld.imr.mr10 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR10");
+	state->u.f1.fld.imr.mr11 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR11");
+	state->u.f1.fld.imr.mr12 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR12");
+	state->u.f1.fld.imr.mr13 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR13");
+	state->u.f1.fld.imr.mr14 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR14");
+	state->u.f1.fld.imr.mr15 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR15");
+	state->u.f1.fld.imr.mr16 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR16");
+	state->u.f1.fld.imr.mr17 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR17");
+	state->u.f1.fld.imr.mr18 = cm_object_get_child_by_name(state->u.f1.reg.imr, "MR18");
 
 	// EMR bitfields.
-	state->f1.fld.emr.mr0 = cm_object_get_child_by_name(state->f1.reg.emr, "MR0");
-	state->f1.fld.emr.mr1 = cm_object_get_child_by_name(state->f1.reg.emr, "MR1");
-	state->f1.fld.emr.mr2 = cm_object_get_child_by_name(state->f1.reg.emr, "MR2");
-	state->f1.fld.emr.mr3 = cm_object_get_child_by_name(state->f1.reg.emr, "MR3");
-	state->f1.fld.emr.mr4 = cm_object_get_child_by_name(state->f1.reg.emr, "MR4");
-	state->f1.fld.emr.mr5 = cm_object_get_child_by_name(state->f1.reg.emr, "MR5");
-	state->f1.fld.emr.mr6 = cm_object_get_child_by_name(state->f1.reg.emr, "MR6");
-	state->f1.fld.emr.mr7 = cm_object_get_child_by_name(state->f1.reg.emr, "MR7");
-	state->f1.fld.emr.mr8 = cm_object_get_child_by_name(state->f1.reg.emr, "MR8");
-	state->f1.fld.emr.mr9 = cm_object_get_child_by_name(state->f1.reg.emr, "MR9");
-	state->f1.fld.emr.mr10 = cm_object_get_child_by_name(state->f1.reg.emr, "MR10");
-	state->f1.fld.emr.mr11 = cm_object_get_child_by_name(state->f1.reg.emr, "MR11");
-	state->f1.fld.emr.mr12 = cm_object_get_child_by_name(state->f1.reg.emr, "MR12");
-	state->f1.fld.emr.mr13 = cm_object_get_child_by_name(state->f1.reg.emr, "MR13");
-	state->f1.fld.emr.mr14 = cm_object_get_child_by_name(state->f1.reg.emr, "MR14");
-	state->f1.fld.emr.mr15 = cm_object_get_child_by_name(state->f1.reg.emr, "MR15");
-	state->f1.fld.emr.mr16 = cm_object_get_child_by_name(state->f1.reg.emr, "MR16");
-	state->f1.fld.emr.mr17 = cm_object_get_child_by_name(state->f1.reg.emr, "MR17");
-	state->f1.fld.emr.mr18 = cm_object_get_child_by_name(state->f1.reg.emr, "MR18");
+	state->u.f1.fld.emr.mr0 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR0");
+	state->u.f1.fld.emr.mr1 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR1");
+	state->u.f1.fld.emr.mr2 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR2");
+	state->u.f1.fld.emr.mr3 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR3");
+	state->u.f1.fld.emr.mr4 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR4");
+	state->u.f1.fld.emr.mr5 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR5");
+	state->u.f1.fld.emr.mr6 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR6");
+	state->u.f1.fld.emr.mr7 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR7");
+	state->u.f1.fld.emr.mr8 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR8");
+	state->u.f1.fld.emr.mr9 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR9");
+	state->u.f1.fld.emr.mr10 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR10");
+	state->u.f1.fld.emr.mr11 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR11");
+	state->u.f1.fld.emr.mr12 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR12");
+	state->u.f1.fld.emr.mr13 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR13");
+	state->u.f1.fld.emr.mr14 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR14");
+	state->u.f1.fld.emr.mr15 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR15");
+	state->u.f1.fld.emr.mr16 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR16");
+	state->u.f1.fld.emr.mr17 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR17");
+	state->u.f1.fld.emr.mr18 = cm_object_get_child_by_name(state->u.f1.reg.emr, "MR18");
 
 	// RTSR bitfields.
-	state->f1.fld.rtsr.tr0 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR0");
-	state->f1.fld.rtsr.tr1 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR1");
-	state->f1.fld.rtsr.tr2 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR2");
-	state->f1.fld.rtsr.tr3 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR3");
-	state->f1.fld.rtsr.tr4 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR4");
-	state->f1.fld.rtsr.tr5 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR5");
-	state->f1.fld.rtsr.tr6 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR6");
-	state->f1.fld.rtsr.tr7 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR7");
-	state->f1.fld.rtsr.tr8 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR8");
-	state->f1.fld.rtsr.tr9 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR9");
-	state->f1.fld.rtsr.tr10 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR10");
-	state->f1.fld.rtsr.tr11 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR11");
-	state->f1.fld.rtsr.tr12 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR12");
-	state->f1.fld.rtsr.tr13 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR13");
-	state->f1.fld.rtsr.tr14 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR14");
-	state->f1.fld.rtsr.tr15 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR15");
-	state->f1.fld.rtsr.tr16 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR16");
-	state->f1.fld.rtsr.tr17 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR17");
-	state->f1.fld.rtsr.tr18 = cm_object_get_child_by_name(state->f1.reg.rtsr, "TR18");
+	state->u.f1.fld.rtsr.tr0 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR0");
+	state->u.f1.fld.rtsr.tr1 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR1");
+	state->u.f1.fld.rtsr.tr2 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR2");
+	state->u.f1.fld.rtsr.tr3 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR3");
+	state->u.f1.fld.rtsr.tr4 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR4");
+	state->u.f1.fld.rtsr.tr5 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR5");
+	state->u.f1.fld.rtsr.tr6 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR6");
+	state->u.f1.fld.rtsr.tr7 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR7");
+	state->u.f1.fld.rtsr.tr8 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR8");
+	state->u.f1.fld.rtsr.tr9 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR9");
+	state->u.f1.fld.rtsr.tr10 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR10");
+	state->u.f1.fld.rtsr.tr11 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR11");
+	state->u.f1.fld.rtsr.tr12 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR12");
+	state->u.f1.fld.rtsr.tr13 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR13");
+	state->u.f1.fld.rtsr.tr14 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR14");
+	state->u.f1.fld.rtsr.tr15 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR15");
+	state->u.f1.fld.rtsr.tr16 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR16");
+	state->u.f1.fld.rtsr.tr17 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR17");
+	state->u.f1.fld.rtsr.tr18 = cm_object_get_child_by_name(state->u.f1.reg.rtsr, "TR18");
 
 	// FTSR bitfields.
-	state->f1.fld.ftsr.tr0 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR0");
-	state->f1.fld.ftsr.tr1 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR1");
-	state->f1.fld.ftsr.tr2 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR2");
-	state->f1.fld.ftsr.tr3 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR3");
-	state->f1.fld.ftsr.tr4 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR4");
-	state->f1.fld.ftsr.tr5 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR5");
-	state->f1.fld.ftsr.tr6 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR6");
-	state->f1.fld.ftsr.tr7 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR7");
-	state->f1.fld.ftsr.tr8 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR8");
-	state->f1.fld.ftsr.tr9 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR9");
-	state->f1.fld.ftsr.tr10 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR10");
-	state->f1.fld.ftsr.tr11 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR11");
-	state->f1.fld.ftsr.tr12 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR12");
-	state->f1.fld.ftsr.tr13 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR13");
-	state->f1.fld.ftsr.tr14 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR14");
-	state->f1.fld.ftsr.tr15 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR15");
-	state->f1.fld.ftsr.tr16 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR16");
-	state->f1.fld.ftsr.tr17 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR17");
-	state->f1.fld.ftsr.tr18 = cm_object_get_child_by_name(state->f1.reg.ftsr, "TR18");
+	state->u.f1.fld.ftsr.tr0 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR0");
+	state->u.f1.fld.ftsr.tr1 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR1");
+	state->u.f1.fld.ftsr.tr2 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR2");
+	state->u.f1.fld.ftsr.tr3 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR3");
+	state->u.f1.fld.ftsr.tr4 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR4");
+	state->u.f1.fld.ftsr.tr5 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR5");
+	state->u.f1.fld.ftsr.tr6 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR6");
+	state->u.f1.fld.ftsr.tr7 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR7");
+	state->u.f1.fld.ftsr.tr8 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR8");
+	state->u.f1.fld.ftsr.tr9 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR9");
+	state->u.f1.fld.ftsr.tr10 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR10");
+	state->u.f1.fld.ftsr.tr11 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR11");
+	state->u.f1.fld.ftsr.tr12 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR12");
+	state->u.f1.fld.ftsr.tr13 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR13");
+	state->u.f1.fld.ftsr.tr14 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR14");
+	state->u.f1.fld.ftsr.tr15 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR15");
+	state->u.f1.fld.ftsr.tr16 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR16");
+	state->u.f1.fld.ftsr.tr17 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR17");
+	state->u.f1.fld.ftsr.tr18 = cm_object_get_child_by_name(state->u.f1.reg.ftsr, "TR18");
 
 	// SWIER bitfields.
-	state->f1.fld.swier.swier0 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER0");
-	state->f1.fld.swier.swier1 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER1");
-	state->f1.fld.swier.swier2 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER2");
-	state->f1.fld.swier.swier3 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER3");
-	state->f1.fld.swier.swier4 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER4");
-	state->f1.fld.swier.swier5 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER5");
-	state->f1.fld.swier.swier6 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER6");
-	state->f1.fld.swier.swier7 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER7");
-	state->f1.fld.swier.swier8 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER8");
-	state->f1.fld.swier.swier9 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER9");
-	state->f1.fld.swier.swier10 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER10");
-	state->f1.fld.swier.swier11 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER11");
-	state->f1.fld.swier.swier12 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER12");
-	state->f1.fld.swier.swier13 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER13");
-	state->f1.fld.swier.swier14 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER14");
-	state->f1.fld.swier.swier15 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER15");
-	state->f1.fld.swier.swier16 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER16");
-	state->f1.fld.swier.swier17 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER17");
-	state->f1.fld.swier.swier18 = cm_object_get_child_by_name(state->f1.reg.swier, "SWIER18");
+	state->u.f1.fld.swier.swier0 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER0");
+	state->u.f1.fld.swier.swier1 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER1");
+	state->u.f1.fld.swier.swier2 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER2");
+	state->u.f1.fld.swier.swier3 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER3");
+	state->u.f1.fld.swier.swier4 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER4");
+	state->u.f1.fld.swier.swier5 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER5");
+	state->u.f1.fld.swier.swier6 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER6");
+	state->u.f1.fld.swier.swier7 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER7");
+	state->u.f1.fld.swier.swier8 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER8");
+	state->u.f1.fld.swier.swier9 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER9");
+	state->u.f1.fld.swier.swier10 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER10");
+	state->u.f1.fld.swier.swier11 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER11");
+	state->u.f1.fld.swier.swier12 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER12");
+	state->u.f1.fld.swier.swier13 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER13");
+	state->u.f1.fld.swier.swier14 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER14");
+	state->u.f1.fld.swier.swier15 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER15");
+	state->u.f1.fld.swier.swier16 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER16");
+	state->u.f1.fld.swier.swier17 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER17");
+	state->u.f1.fld.swier.swier18 = cm_object_get_child_by_name(state->u.f1.reg.swier, "SWIER18");
 
 	// PR bitfields.
-	state->f1.fld.pr.pr0 = cm_object_get_child_by_name(state->f1.reg.pr, "PR0");
-	state->f1.fld.pr.pr1 = cm_object_get_child_by_name(state->f1.reg.pr, "PR1");
-	state->f1.fld.pr.pr2 = cm_object_get_child_by_name(state->f1.reg.pr, "PR2");
-	state->f1.fld.pr.pr3 = cm_object_get_child_by_name(state->f1.reg.pr, "PR3");
-	state->f1.fld.pr.pr4 = cm_object_get_child_by_name(state->f1.reg.pr, "PR4");
-	state->f1.fld.pr.pr5 = cm_object_get_child_by_name(state->f1.reg.pr, "PR5");
-	state->f1.fld.pr.pr6 = cm_object_get_child_by_name(state->f1.reg.pr, "PR6");
-	state->f1.fld.pr.pr7 = cm_object_get_child_by_name(state->f1.reg.pr, "PR7");
-	state->f1.fld.pr.pr8 = cm_object_get_child_by_name(state->f1.reg.pr, "PR8");
-	state->f1.fld.pr.pr9 = cm_object_get_child_by_name(state->f1.reg.pr, "PR9");
-	state->f1.fld.pr.pr10 = cm_object_get_child_by_name(state->f1.reg.pr, "PR10");
-	state->f1.fld.pr.pr11 = cm_object_get_child_by_name(state->f1.reg.pr, "PR11");
-	state->f1.fld.pr.pr12 = cm_object_get_child_by_name(state->f1.reg.pr, "PR12");
-	state->f1.fld.pr.pr13 = cm_object_get_child_by_name(state->f1.reg.pr, "PR13");
-	state->f1.fld.pr.pr14 = cm_object_get_child_by_name(state->f1.reg.pr, "PR14");
-	state->f1.fld.pr.pr15 = cm_object_get_child_by_name(state->f1.reg.pr, "PR15");
-	state->f1.fld.pr.pr16 = cm_object_get_child_by_name(state->f1.reg.pr, "PR16");
-	state->f1.fld.pr.pr17 = cm_object_get_child_by_name(state->f1.reg.pr, "PR17");
-	state->f1.fld.pr.pr18 = cm_object_get_child_by_name(state->f1.reg.pr, "PR18");
+	state->u.f1.fld.pr.pr0 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR0");
+	state->u.f1.fld.pr.pr1 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR1");
+	state->u.f1.fld.pr.pr2 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR2");
+	state->u.f1.fld.pr.pr3 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR3");
+	state->u.f1.fld.pr.pr4 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR4");
+	state->u.f1.fld.pr.pr5 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR5");
+	state->u.f1.fld.pr.pr6 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR6");
+	state->u.f1.fld.pr.pr7 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR7");
+	state->u.f1.fld.pr.pr8 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR8");
+	state->u.f1.fld.pr.pr9 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR9");
+	state->u.f1.fld.pr.pr10 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR10");
+	state->u.f1.fld.pr.pr11 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR11");
+	state->u.f1.fld.pr.pr12 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR12");
+	state->u.f1.fld.pr.pr13 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR13");
+	state->u.f1.fld.pr.pr14 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR14");
+	state->u.f1.fld.pr.pr15 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR15");
+	state->u.f1.fld.pr.pr16 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR16");
+	state->u.f1.fld.pr.pr17 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR17");
+	state->u.f1.fld.pr.pr18 = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR18");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -1909,7 +1915,8 @@ static void stm32f103xx_exti_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 DMA1 (DMA controller) registers.
 		struct {
@@ -2244,257 +2251,257 @@ static void stm32f103xx_dma1_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.isr = cm_object_get_child_by_name(obj, "ISR");
-	state->f1.reg.ifcr = cm_object_get_child_by_name(obj, "IFCR");
-	state->f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
-	state->f1.reg.cndtr1 = cm_object_get_child_by_name(obj, "CNDTR1");
-	state->f1.reg.cpar1 = cm_object_get_child_by_name(obj, "CPAR1");
-	state->f1.reg.cmar1 = cm_object_get_child_by_name(obj, "CMAR1");
-	state->f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
-	state->f1.reg.cndtr2 = cm_object_get_child_by_name(obj, "CNDTR2");
-	state->f1.reg.cpar2 = cm_object_get_child_by_name(obj, "CPAR2");
-	state->f1.reg.cmar2 = cm_object_get_child_by_name(obj, "CMAR2");
-	state->f1.reg.ccr3 = cm_object_get_child_by_name(obj, "CCR3");
-	state->f1.reg.cndtr3 = cm_object_get_child_by_name(obj, "CNDTR3");
-	state->f1.reg.cpar3 = cm_object_get_child_by_name(obj, "CPAR3");
-	state->f1.reg.cmar3 = cm_object_get_child_by_name(obj, "CMAR3");
-	state->f1.reg.ccr4 = cm_object_get_child_by_name(obj, "CCR4");
-	state->f1.reg.cndtr4 = cm_object_get_child_by_name(obj, "CNDTR4");
-	state->f1.reg.cpar4 = cm_object_get_child_by_name(obj, "CPAR4");
-	state->f1.reg.cmar4 = cm_object_get_child_by_name(obj, "CMAR4");
-	state->f1.reg.ccr5 = cm_object_get_child_by_name(obj, "CCR5");
-	state->f1.reg.cndtr5 = cm_object_get_child_by_name(obj, "CNDTR5");
-	state->f1.reg.cpar5 = cm_object_get_child_by_name(obj, "CPAR5");
-	state->f1.reg.cmar5 = cm_object_get_child_by_name(obj, "CMAR5");
-	state->f1.reg.ccr6 = cm_object_get_child_by_name(obj, "CCR6");
-	state->f1.reg.cndtr6 = cm_object_get_child_by_name(obj, "CNDTR6");
-	state->f1.reg.cpar6 = cm_object_get_child_by_name(obj, "CPAR6");
-	state->f1.reg.cmar6 = cm_object_get_child_by_name(obj, "CMAR6");
-	state->f1.reg.ccr7 = cm_object_get_child_by_name(obj, "CCR7");
-	state->f1.reg.cndtr7 = cm_object_get_child_by_name(obj, "CNDTR7");
-	state->f1.reg.cpar7 = cm_object_get_child_by_name(obj, "CPAR7");
-	state->f1.reg.cmar7 = cm_object_get_child_by_name(obj, "CMAR7");
+	state->u.f1.reg.isr = cm_object_get_child_by_name(obj, "ISR");
+	state->u.f1.reg.ifcr = cm_object_get_child_by_name(obj, "IFCR");
+	state->u.f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
+	state->u.f1.reg.cndtr1 = cm_object_get_child_by_name(obj, "CNDTR1");
+	state->u.f1.reg.cpar1 = cm_object_get_child_by_name(obj, "CPAR1");
+	state->u.f1.reg.cmar1 = cm_object_get_child_by_name(obj, "CMAR1");
+	state->u.f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
+	state->u.f1.reg.cndtr2 = cm_object_get_child_by_name(obj, "CNDTR2");
+	state->u.f1.reg.cpar2 = cm_object_get_child_by_name(obj, "CPAR2");
+	state->u.f1.reg.cmar2 = cm_object_get_child_by_name(obj, "CMAR2");
+	state->u.f1.reg.ccr3 = cm_object_get_child_by_name(obj, "CCR3");
+	state->u.f1.reg.cndtr3 = cm_object_get_child_by_name(obj, "CNDTR3");
+	state->u.f1.reg.cpar3 = cm_object_get_child_by_name(obj, "CPAR3");
+	state->u.f1.reg.cmar3 = cm_object_get_child_by_name(obj, "CMAR3");
+	state->u.f1.reg.ccr4 = cm_object_get_child_by_name(obj, "CCR4");
+	state->u.f1.reg.cndtr4 = cm_object_get_child_by_name(obj, "CNDTR4");
+	state->u.f1.reg.cpar4 = cm_object_get_child_by_name(obj, "CPAR4");
+	state->u.f1.reg.cmar4 = cm_object_get_child_by_name(obj, "CMAR4");
+	state->u.f1.reg.ccr5 = cm_object_get_child_by_name(obj, "CCR5");
+	state->u.f1.reg.cndtr5 = cm_object_get_child_by_name(obj, "CNDTR5");
+	state->u.f1.reg.cpar5 = cm_object_get_child_by_name(obj, "CPAR5");
+	state->u.f1.reg.cmar5 = cm_object_get_child_by_name(obj, "CMAR5");
+	state->u.f1.reg.ccr6 = cm_object_get_child_by_name(obj, "CCR6");
+	state->u.f1.reg.cndtr6 = cm_object_get_child_by_name(obj, "CNDTR6");
+	state->u.f1.reg.cpar6 = cm_object_get_child_by_name(obj, "CPAR6");
+	state->u.f1.reg.cmar6 = cm_object_get_child_by_name(obj, "CMAR6");
+	state->u.f1.reg.ccr7 = cm_object_get_child_by_name(obj, "CCR7");
+	state->u.f1.reg.cndtr7 = cm_object_get_child_by_name(obj, "CNDTR7");
+	state->u.f1.reg.cpar7 = cm_object_get_child_by_name(obj, "CPAR7");
+	state->u.f1.reg.cmar7 = cm_object_get_child_by_name(obj, "CMAR7");
 
 	// ISR bitfields.
-	state->f1.fld.isr.gif1 = cm_object_get_child_by_name(state->f1.reg.isr, "GIF1");
-	state->f1.fld.isr.tcif1 = cm_object_get_child_by_name(state->f1.reg.isr, "TCIF1");
-	state->f1.fld.isr.htif1 = cm_object_get_child_by_name(state->f1.reg.isr, "HTIF1");
-	state->f1.fld.isr.teif1 = cm_object_get_child_by_name(state->f1.reg.isr, "TEIF1");
-	state->f1.fld.isr.gif2 = cm_object_get_child_by_name(state->f1.reg.isr, "GIF2");
-	state->f1.fld.isr.tcif2 = cm_object_get_child_by_name(state->f1.reg.isr, "TCIF2");
-	state->f1.fld.isr.htif2 = cm_object_get_child_by_name(state->f1.reg.isr, "HTIF2");
-	state->f1.fld.isr.teif2 = cm_object_get_child_by_name(state->f1.reg.isr, "TEIF2");
-	state->f1.fld.isr.gif3 = cm_object_get_child_by_name(state->f1.reg.isr, "GIF3");
-	state->f1.fld.isr.tcif3 = cm_object_get_child_by_name(state->f1.reg.isr, "TCIF3");
-	state->f1.fld.isr.htif3 = cm_object_get_child_by_name(state->f1.reg.isr, "HTIF3");
-	state->f1.fld.isr.teif3 = cm_object_get_child_by_name(state->f1.reg.isr, "TEIF3");
-	state->f1.fld.isr.gif4 = cm_object_get_child_by_name(state->f1.reg.isr, "GIF4");
-	state->f1.fld.isr.tcif4 = cm_object_get_child_by_name(state->f1.reg.isr, "TCIF4");
-	state->f1.fld.isr.htif4 = cm_object_get_child_by_name(state->f1.reg.isr, "HTIF4");
-	state->f1.fld.isr.teif4 = cm_object_get_child_by_name(state->f1.reg.isr, "TEIF4");
-	state->f1.fld.isr.gif5 = cm_object_get_child_by_name(state->f1.reg.isr, "GIF5");
-	state->f1.fld.isr.tcif5 = cm_object_get_child_by_name(state->f1.reg.isr, "TCIF5");
-	state->f1.fld.isr.htif5 = cm_object_get_child_by_name(state->f1.reg.isr, "HTIF5");
-	state->f1.fld.isr.teif5 = cm_object_get_child_by_name(state->f1.reg.isr, "TEIF5");
-	state->f1.fld.isr.gif6 = cm_object_get_child_by_name(state->f1.reg.isr, "GIF6");
-	state->f1.fld.isr.tcif6 = cm_object_get_child_by_name(state->f1.reg.isr, "TCIF6");
-	state->f1.fld.isr.htif6 = cm_object_get_child_by_name(state->f1.reg.isr, "HTIF6");
-	state->f1.fld.isr.teif6 = cm_object_get_child_by_name(state->f1.reg.isr, "TEIF6");
-	state->f1.fld.isr.gif7 = cm_object_get_child_by_name(state->f1.reg.isr, "GIF7");
-	state->f1.fld.isr.tcif7 = cm_object_get_child_by_name(state->f1.reg.isr, "TCIF7");
-	state->f1.fld.isr.htif7 = cm_object_get_child_by_name(state->f1.reg.isr, "HTIF7");
-	state->f1.fld.isr.teif7 = cm_object_get_child_by_name(state->f1.reg.isr, "TEIF7");
+	state->u.f1.fld.isr.gif1 = cm_object_get_child_by_name(state->u.f1.reg.isr, "GIF1");
+	state->u.f1.fld.isr.tcif1 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TCIF1");
+	state->u.f1.fld.isr.htif1 = cm_object_get_child_by_name(state->u.f1.reg.isr, "HTIF1");
+	state->u.f1.fld.isr.teif1 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TEIF1");
+	state->u.f1.fld.isr.gif2 = cm_object_get_child_by_name(state->u.f1.reg.isr, "GIF2");
+	state->u.f1.fld.isr.tcif2 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TCIF2");
+	state->u.f1.fld.isr.htif2 = cm_object_get_child_by_name(state->u.f1.reg.isr, "HTIF2");
+	state->u.f1.fld.isr.teif2 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TEIF2");
+	state->u.f1.fld.isr.gif3 = cm_object_get_child_by_name(state->u.f1.reg.isr, "GIF3");
+	state->u.f1.fld.isr.tcif3 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TCIF3");
+	state->u.f1.fld.isr.htif3 = cm_object_get_child_by_name(state->u.f1.reg.isr, "HTIF3");
+	state->u.f1.fld.isr.teif3 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TEIF3");
+	state->u.f1.fld.isr.gif4 = cm_object_get_child_by_name(state->u.f1.reg.isr, "GIF4");
+	state->u.f1.fld.isr.tcif4 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TCIF4");
+	state->u.f1.fld.isr.htif4 = cm_object_get_child_by_name(state->u.f1.reg.isr, "HTIF4");
+	state->u.f1.fld.isr.teif4 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TEIF4");
+	state->u.f1.fld.isr.gif5 = cm_object_get_child_by_name(state->u.f1.reg.isr, "GIF5");
+	state->u.f1.fld.isr.tcif5 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TCIF5");
+	state->u.f1.fld.isr.htif5 = cm_object_get_child_by_name(state->u.f1.reg.isr, "HTIF5");
+	state->u.f1.fld.isr.teif5 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TEIF5");
+	state->u.f1.fld.isr.gif6 = cm_object_get_child_by_name(state->u.f1.reg.isr, "GIF6");
+	state->u.f1.fld.isr.tcif6 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TCIF6");
+	state->u.f1.fld.isr.htif6 = cm_object_get_child_by_name(state->u.f1.reg.isr, "HTIF6");
+	state->u.f1.fld.isr.teif6 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TEIF6");
+	state->u.f1.fld.isr.gif7 = cm_object_get_child_by_name(state->u.f1.reg.isr, "GIF7");
+	state->u.f1.fld.isr.tcif7 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TCIF7");
+	state->u.f1.fld.isr.htif7 = cm_object_get_child_by_name(state->u.f1.reg.isr, "HTIF7");
+	state->u.f1.fld.isr.teif7 = cm_object_get_child_by_name(state->u.f1.reg.isr, "TEIF7");
 
 	// IFCR bitfields.
-	state->f1.fld.ifcr.cgif1 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CGIF1");
-	state->f1.fld.ifcr.ctcif1 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTCIF1");
-	state->f1.fld.ifcr.chtif1 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CHTIF1");
-	state->f1.fld.ifcr.cteif1 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTEIF1");
-	state->f1.fld.ifcr.cgif2 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CGIF2");
-	state->f1.fld.ifcr.ctcif2 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTCIF2");
-	state->f1.fld.ifcr.chtif2 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CHTIF2");
-	state->f1.fld.ifcr.cteif2 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTEIF2");
-	state->f1.fld.ifcr.cgif3 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CGIF3");
-	state->f1.fld.ifcr.ctcif3 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTCIF3");
-	state->f1.fld.ifcr.chtif3 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CHTIF3");
-	state->f1.fld.ifcr.cteif3 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTEIF3");
-	state->f1.fld.ifcr.cgif4 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CGIF4");
-	state->f1.fld.ifcr.ctcif4 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTCIF4");
-	state->f1.fld.ifcr.chtif4 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CHTIF4");
-	state->f1.fld.ifcr.cteif4 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTEIF4");
-	state->f1.fld.ifcr.cgif5 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CGIF5");
-	state->f1.fld.ifcr.ctcif5 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTCIF5");
-	state->f1.fld.ifcr.chtif5 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CHTIF5");
-	state->f1.fld.ifcr.cteif5 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTEIF5");
-	state->f1.fld.ifcr.cgif6 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CGIF6");
-	state->f1.fld.ifcr.ctcif6 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTCIF6");
-	state->f1.fld.ifcr.chtif6 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CHTIF6");
-	state->f1.fld.ifcr.cteif6 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTEIF6");
-	state->f1.fld.ifcr.cgif7 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CGIF7");
-	state->f1.fld.ifcr.ctcif7 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTCIF7");
-	state->f1.fld.ifcr.chtif7 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CHTIF7");
-	state->f1.fld.ifcr.cteif7 = cm_object_get_child_by_name(state->f1.reg.ifcr, "CTEIF7");
+	state->u.f1.fld.ifcr.cgif1 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CGIF1");
+	state->u.f1.fld.ifcr.ctcif1 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTCIF1");
+	state->u.f1.fld.ifcr.chtif1 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CHTIF1");
+	state->u.f1.fld.ifcr.cteif1 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTEIF1");
+	state->u.f1.fld.ifcr.cgif2 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CGIF2");
+	state->u.f1.fld.ifcr.ctcif2 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTCIF2");
+	state->u.f1.fld.ifcr.chtif2 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CHTIF2");
+	state->u.f1.fld.ifcr.cteif2 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTEIF2");
+	state->u.f1.fld.ifcr.cgif3 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CGIF3");
+	state->u.f1.fld.ifcr.ctcif3 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTCIF3");
+	state->u.f1.fld.ifcr.chtif3 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CHTIF3");
+	state->u.f1.fld.ifcr.cteif3 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTEIF3");
+	state->u.f1.fld.ifcr.cgif4 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CGIF4");
+	state->u.f1.fld.ifcr.ctcif4 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTCIF4");
+	state->u.f1.fld.ifcr.chtif4 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CHTIF4");
+	state->u.f1.fld.ifcr.cteif4 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTEIF4");
+	state->u.f1.fld.ifcr.cgif5 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CGIF5");
+	state->u.f1.fld.ifcr.ctcif5 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTCIF5");
+	state->u.f1.fld.ifcr.chtif5 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CHTIF5");
+	state->u.f1.fld.ifcr.cteif5 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTEIF5");
+	state->u.f1.fld.ifcr.cgif6 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CGIF6");
+	state->u.f1.fld.ifcr.ctcif6 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTCIF6");
+	state->u.f1.fld.ifcr.chtif6 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CHTIF6");
+	state->u.f1.fld.ifcr.cteif6 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTEIF6");
+	state->u.f1.fld.ifcr.cgif7 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CGIF7");
+	state->u.f1.fld.ifcr.ctcif7 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTCIF7");
+	state->u.f1.fld.ifcr.chtif7 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CHTIF7");
+	state->u.f1.fld.ifcr.cteif7 = cm_object_get_child_by_name(state->u.f1.reg.ifcr, "CTEIF7");
 
 	// CCR1 bitfields.
-	state->f1.fld.ccr1.en = cm_object_get_child_by_name(state->f1.reg.ccr1, "EN");
-	state->f1.fld.ccr1.tcie = cm_object_get_child_by_name(state->f1.reg.ccr1, "TCIE");
-	state->f1.fld.ccr1.htie = cm_object_get_child_by_name(state->f1.reg.ccr1, "HTIE");
-	state->f1.fld.ccr1.teie = cm_object_get_child_by_name(state->f1.reg.ccr1, "TEIE");
-	state->f1.fld.ccr1.dir = cm_object_get_child_by_name(state->f1.reg.ccr1, "DIR");
-	state->f1.fld.ccr1.circ = cm_object_get_child_by_name(state->f1.reg.ccr1, "CIRC");
-	state->f1.fld.ccr1.pinc = cm_object_get_child_by_name(state->f1.reg.ccr1, "PINC");
-	state->f1.fld.ccr1.minc = cm_object_get_child_by_name(state->f1.reg.ccr1, "MINC");
-	state->f1.fld.ccr1.psize = cm_object_get_child_by_name(state->f1.reg.ccr1, "PSIZE");
-	state->f1.fld.ccr1.msize = cm_object_get_child_by_name(state->f1.reg.ccr1, "MSIZE");
-	state->f1.fld.ccr1.pl = cm_object_get_child_by_name(state->f1.reg.ccr1, "PL");
-	state->f1.fld.ccr1.mem2mem = cm_object_get_child_by_name(state->f1.reg.ccr1, "MEM2MEM");
+	state->u.f1.fld.ccr1.en = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "EN");
+	state->u.f1.fld.ccr1.tcie = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "TCIE");
+	state->u.f1.fld.ccr1.htie = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "HTIE");
+	state->u.f1.fld.ccr1.teie = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "TEIE");
+	state->u.f1.fld.ccr1.dir = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "DIR");
+	state->u.f1.fld.ccr1.circ = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "CIRC");
+	state->u.f1.fld.ccr1.pinc = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "PINC");
+	state->u.f1.fld.ccr1.minc = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "MINC");
+	state->u.f1.fld.ccr1.psize = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "PSIZE");
+	state->u.f1.fld.ccr1.msize = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "MSIZE");
+	state->u.f1.fld.ccr1.pl = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "PL");
+	state->u.f1.fld.ccr1.mem2mem = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "MEM2MEM");
 
 	// CNDTR1 bitfields.
-	state->f1.fld.cndtr1.ndt = cm_object_get_child_by_name(state->f1.reg.cndtr1, "NDT");
+	state->u.f1.fld.cndtr1.ndt = cm_object_get_child_by_name(state->u.f1.reg.cndtr1, "NDT");
 
 	// CPAR1 bitfields.
-	state->f1.fld.cpar1.pa = cm_object_get_child_by_name(state->f1.reg.cpar1, "PA");
+	state->u.f1.fld.cpar1.pa = cm_object_get_child_by_name(state->u.f1.reg.cpar1, "PA");
 
 	// CMAR1 bitfields.
-	state->f1.fld.cmar1.ma = cm_object_get_child_by_name(state->f1.reg.cmar1, "MA");
+	state->u.f1.fld.cmar1.ma = cm_object_get_child_by_name(state->u.f1.reg.cmar1, "MA");
 
 	// CCR2 bitfields.
-	state->f1.fld.ccr2.en = cm_object_get_child_by_name(state->f1.reg.ccr2, "EN");
-	state->f1.fld.ccr2.tcie = cm_object_get_child_by_name(state->f1.reg.ccr2, "TCIE");
-	state->f1.fld.ccr2.htie = cm_object_get_child_by_name(state->f1.reg.ccr2, "HTIE");
-	state->f1.fld.ccr2.teie = cm_object_get_child_by_name(state->f1.reg.ccr2, "TEIE");
-	state->f1.fld.ccr2.dir = cm_object_get_child_by_name(state->f1.reg.ccr2, "DIR");
-	state->f1.fld.ccr2.circ = cm_object_get_child_by_name(state->f1.reg.ccr2, "CIRC");
-	state->f1.fld.ccr2.pinc = cm_object_get_child_by_name(state->f1.reg.ccr2, "PINC");
-	state->f1.fld.ccr2.minc = cm_object_get_child_by_name(state->f1.reg.ccr2, "MINC");
-	state->f1.fld.ccr2.psize = cm_object_get_child_by_name(state->f1.reg.ccr2, "PSIZE");
-	state->f1.fld.ccr2.msize = cm_object_get_child_by_name(state->f1.reg.ccr2, "MSIZE");
-	state->f1.fld.ccr2.pl = cm_object_get_child_by_name(state->f1.reg.ccr2, "PL");
-	state->f1.fld.ccr2.mem2mem = cm_object_get_child_by_name(state->f1.reg.ccr2, "MEM2MEM");
+	state->u.f1.fld.ccr2.en = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "EN");
+	state->u.f1.fld.ccr2.tcie = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "TCIE");
+	state->u.f1.fld.ccr2.htie = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "HTIE");
+	state->u.f1.fld.ccr2.teie = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "TEIE");
+	state->u.f1.fld.ccr2.dir = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "DIR");
+	state->u.f1.fld.ccr2.circ = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "CIRC");
+	state->u.f1.fld.ccr2.pinc = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "PINC");
+	state->u.f1.fld.ccr2.minc = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "MINC");
+	state->u.f1.fld.ccr2.psize = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "PSIZE");
+	state->u.f1.fld.ccr2.msize = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "MSIZE");
+	state->u.f1.fld.ccr2.pl = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "PL");
+	state->u.f1.fld.ccr2.mem2mem = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "MEM2MEM");
 
 	// CNDTR2 bitfields.
-	state->f1.fld.cndtr2.ndt = cm_object_get_child_by_name(state->f1.reg.cndtr2, "NDT");
+	state->u.f1.fld.cndtr2.ndt = cm_object_get_child_by_name(state->u.f1.reg.cndtr2, "NDT");
 
 	// CPAR2 bitfields.
-	state->f1.fld.cpar2.pa = cm_object_get_child_by_name(state->f1.reg.cpar2, "PA");
+	state->u.f1.fld.cpar2.pa = cm_object_get_child_by_name(state->u.f1.reg.cpar2, "PA");
 
 	// CMAR2 bitfields.
-	state->f1.fld.cmar2.ma = cm_object_get_child_by_name(state->f1.reg.cmar2, "MA");
+	state->u.f1.fld.cmar2.ma = cm_object_get_child_by_name(state->u.f1.reg.cmar2, "MA");
 
 	// CCR3 bitfields.
-	state->f1.fld.ccr3.en = cm_object_get_child_by_name(state->f1.reg.ccr3, "EN");
-	state->f1.fld.ccr3.tcie = cm_object_get_child_by_name(state->f1.reg.ccr3, "TCIE");
-	state->f1.fld.ccr3.htie = cm_object_get_child_by_name(state->f1.reg.ccr3, "HTIE");
-	state->f1.fld.ccr3.teie = cm_object_get_child_by_name(state->f1.reg.ccr3, "TEIE");
-	state->f1.fld.ccr3.dir = cm_object_get_child_by_name(state->f1.reg.ccr3, "DIR");
-	state->f1.fld.ccr3.circ = cm_object_get_child_by_name(state->f1.reg.ccr3, "CIRC");
-	state->f1.fld.ccr3.pinc = cm_object_get_child_by_name(state->f1.reg.ccr3, "PINC");
-	state->f1.fld.ccr3.minc = cm_object_get_child_by_name(state->f1.reg.ccr3, "MINC");
-	state->f1.fld.ccr3.psize = cm_object_get_child_by_name(state->f1.reg.ccr3, "PSIZE");
-	state->f1.fld.ccr3.msize = cm_object_get_child_by_name(state->f1.reg.ccr3, "MSIZE");
-	state->f1.fld.ccr3.pl = cm_object_get_child_by_name(state->f1.reg.ccr3, "PL");
-	state->f1.fld.ccr3.mem2mem = cm_object_get_child_by_name(state->f1.reg.ccr3, "MEM2MEM");
+	state->u.f1.fld.ccr3.en = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "EN");
+	state->u.f1.fld.ccr3.tcie = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "TCIE");
+	state->u.f1.fld.ccr3.htie = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "HTIE");
+	state->u.f1.fld.ccr3.teie = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "TEIE");
+	state->u.f1.fld.ccr3.dir = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "DIR");
+	state->u.f1.fld.ccr3.circ = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "CIRC");
+	state->u.f1.fld.ccr3.pinc = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "PINC");
+	state->u.f1.fld.ccr3.minc = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "MINC");
+	state->u.f1.fld.ccr3.psize = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "PSIZE");
+	state->u.f1.fld.ccr3.msize = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "MSIZE");
+	state->u.f1.fld.ccr3.pl = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "PL");
+	state->u.f1.fld.ccr3.mem2mem = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "MEM2MEM");
 
 	// CNDTR3 bitfields.
-	state->f1.fld.cndtr3.ndt = cm_object_get_child_by_name(state->f1.reg.cndtr3, "NDT");
+	state->u.f1.fld.cndtr3.ndt = cm_object_get_child_by_name(state->u.f1.reg.cndtr3, "NDT");
 
 	// CPAR3 bitfields.
-	state->f1.fld.cpar3.pa = cm_object_get_child_by_name(state->f1.reg.cpar3, "PA");
+	state->u.f1.fld.cpar3.pa = cm_object_get_child_by_name(state->u.f1.reg.cpar3, "PA");
 
 	// CMAR3 bitfields.
-	state->f1.fld.cmar3.ma = cm_object_get_child_by_name(state->f1.reg.cmar3, "MA");
+	state->u.f1.fld.cmar3.ma = cm_object_get_child_by_name(state->u.f1.reg.cmar3, "MA");
 
 	// CCR4 bitfields.
-	state->f1.fld.ccr4.en = cm_object_get_child_by_name(state->f1.reg.ccr4, "EN");
-	state->f1.fld.ccr4.tcie = cm_object_get_child_by_name(state->f1.reg.ccr4, "TCIE");
-	state->f1.fld.ccr4.htie = cm_object_get_child_by_name(state->f1.reg.ccr4, "HTIE");
-	state->f1.fld.ccr4.teie = cm_object_get_child_by_name(state->f1.reg.ccr4, "TEIE");
-	state->f1.fld.ccr4.dir = cm_object_get_child_by_name(state->f1.reg.ccr4, "DIR");
-	state->f1.fld.ccr4.circ = cm_object_get_child_by_name(state->f1.reg.ccr4, "CIRC");
-	state->f1.fld.ccr4.pinc = cm_object_get_child_by_name(state->f1.reg.ccr4, "PINC");
-	state->f1.fld.ccr4.minc = cm_object_get_child_by_name(state->f1.reg.ccr4, "MINC");
-	state->f1.fld.ccr4.psize = cm_object_get_child_by_name(state->f1.reg.ccr4, "PSIZE");
-	state->f1.fld.ccr4.msize = cm_object_get_child_by_name(state->f1.reg.ccr4, "MSIZE");
-	state->f1.fld.ccr4.pl = cm_object_get_child_by_name(state->f1.reg.ccr4, "PL");
-	state->f1.fld.ccr4.mem2mem = cm_object_get_child_by_name(state->f1.reg.ccr4, "MEM2MEM");
+	state->u.f1.fld.ccr4.en = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "EN");
+	state->u.f1.fld.ccr4.tcie = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "TCIE");
+	state->u.f1.fld.ccr4.htie = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "HTIE");
+	state->u.f1.fld.ccr4.teie = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "TEIE");
+	state->u.f1.fld.ccr4.dir = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "DIR");
+	state->u.f1.fld.ccr4.circ = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "CIRC");
+	state->u.f1.fld.ccr4.pinc = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "PINC");
+	state->u.f1.fld.ccr4.minc = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "MINC");
+	state->u.f1.fld.ccr4.psize = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "PSIZE");
+	state->u.f1.fld.ccr4.msize = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "MSIZE");
+	state->u.f1.fld.ccr4.pl = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "PL");
+	state->u.f1.fld.ccr4.mem2mem = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "MEM2MEM");
 
 	// CNDTR4 bitfields.
-	state->f1.fld.cndtr4.ndt = cm_object_get_child_by_name(state->f1.reg.cndtr4, "NDT");
+	state->u.f1.fld.cndtr4.ndt = cm_object_get_child_by_name(state->u.f1.reg.cndtr4, "NDT");
 
 	// CPAR4 bitfields.
-	state->f1.fld.cpar4.pa = cm_object_get_child_by_name(state->f1.reg.cpar4, "PA");
+	state->u.f1.fld.cpar4.pa = cm_object_get_child_by_name(state->u.f1.reg.cpar4, "PA");
 
 	// CMAR4 bitfields.
-	state->f1.fld.cmar4.ma = cm_object_get_child_by_name(state->f1.reg.cmar4, "MA");
+	state->u.f1.fld.cmar4.ma = cm_object_get_child_by_name(state->u.f1.reg.cmar4, "MA");
 
 	// CCR5 bitfields.
-	state->f1.fld.ccr5.en = cm_object_get_child_by_name(state->f1.reg.ccr5, "EN");
-	state->f1.fld.ccr5.tcie = cm_object_get_child_by_name(state->f1.reg.ccr5, "TCIE");
-	state->f1.fld.ccr5.htie = cm_object_get_child_by_name(state->f1.reg.ccr5, "HTIE");
-	state->f1.fld.ccr5.teie = cm_object_get_child_by_name(state->f1.reg.ccr5, "TEIE");
-	state->f1.fld.ccr5.dir = cm_object_get_child_by_name(state->f1.reg.ccr5, "DIR");
-	state->f1.fld.ccr5.circ = cm_object_get_child_by_name(state->f1.reg.ccr5, "CIRC");
-	state->f1.fld.ccr5.pinc = cm_object_get_child_by_name(state->f1.reg.ccr5, "PINC");
-	state->f1.fld.ccr5.minc = cm_object_get_child_by_name(state->f1.reg.ccr5, "MINC");
-	state->f1.fld.ccr5.psize = cm_object_get_child_by_name(state->f1.reg.ccr5, "PSIZE");
-	state->f1.fld.ccr5.msize = cm_object_get_child_by_name(state->f1.reg.ccr5, "MSIZE");
-	state->f1.fld.ccr5.pl = cm_object_get_child_by_name(state->f1.reg.ccr5, "PL");
-	state->f1.fld.ccr5.mem2mem = cm_object_get_child_by_name(state->f1.reg.ccr5, "MEM2MEM");
+	state->u.f1.fld.ccr5.en = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "EN");
+	state->u.f1.fld.ccr5.tcie = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "TCIE");
+	state->u.f1.fld.ccr5.htie = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "HTIE");
+	state->u.f1.fld.ccr5.teie = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "TEIE");
+	state->u.f1.fld.ccr5.dir = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "DIR");
+	state->u.f1.fld.ccr5.circ = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "CIRC");
+	state->u.f1.fld.ccr5.pinc = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "PINC");
+	state->u.f1.fld.ccr5.minc = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "MINC");
+	state->u.f1.fld.ccr5.psize = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "PSIZE");
+	state->u.f1.fld.ccr5.msize = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "MSIZE");
+	state->u.f1.fld.ccr5.pl = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "PL");
+	state->u.f1.fld.ccr5.mem2mem = cm_object_get_child_by_name(state->u.f1.reg.ccr5, "MEM2MEM");
 
 	// CNDTR5 bitfields.
-	state->f1.fld.cndtr5.ndt = cm_object_get_child_by_name(state->f1.reg.cndtr5, "NDT");
+	state->u.f1.fld.cndtr5.ndt = cm_object_get_child_by_name(state->u.f1.reg.cndtr5, "NDT");
 
 	// CPAR5 bitfields.
-	state->f1.fld.cpar5.pa = cm_object_get_child_by_name(state->f1.reg.cpar5, "PA");
+	state->u.f1.fld.cpar5.pa = cm_object_get_child_by_name(state->u.f1.reg.cpar5, "PA");
 
 	// CMAR5 bitfields.
-	state->f1.fld.cmar5.ma = cm_object_get_child_by_name(state->f1.reg.cmar5, "MA");
+	state->u.f1.fld.cmar5.ma = cm_object_get_child_by_name(state->u.f1.reg.cmar5, "MA");
 
 	// CCR6 bitfields.
-	state->f1.fld.ccr6.en = cm_object_get_child_by_name(state->f1.reg.ccr6, "EN");
-	state->f1.fld.ccr6.tcie = cm_object_get_child_by_name(state->f1.reg.ccr6, "TCIE");
-	state->f1.fld.ccr6.htie = cm_object_get_child_by_name(state->f1.reg.ccr6, "HTIE");
-	state->f1.fld.ccr6.teie = cm_object_get_child_by_name(state->f1.reg.ccr6, "TEIE");
-	state->f1.fld.ccr6.dir = cm_object_get_child_by_name(state->f1.reg.ccr6, "DIR");
-	state->f1.fld.ccr6.circ = cm_object_get_child_by_name(state->f1.reg.ccr6, "CIRC");
-	state->f1.fld.ccr6.pinc = cm_object_get_child_by_name(state->f1.reg.ccr6, "PINC");
-	state->f1.fld.ccr6.minc = cm_object_get_child_by_name(state->f1.reg.ccr6, "MINC");
-	state->f1.fld.ccr6.psize = cm_object_get_child_by_name(state->f1.reg.ccr6, "PSIZE");
-	state->f1.fld.ccr6.msize = cm_object_get_child_by_name(state->f1.reg.ccr6, "MSIZE");
-	state->f1.fld.ccr6.pl = cm_object_get_child_by_name(state->f1.reg.ccr6, "PL");
-	state->f1.fld.ccr6.mem2mem = cm_object_get_child_by_name(state->f1.reg.ccr6, "MEM2MEM");
+	state->u.f1.fld.ccr6.en = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "EN");
+	state->u.f1.fld.ccr6.tcie = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "TCIE");
+	state->u.f1.fld.ccr6.htie = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "HTIE");
+	state->u.f1.fld.ccr6.teie = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "TEIE");
+	state->u.f1.fld.ccr6.dir = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "DIR");
+	state->u.f1.fld.ccr6.circ = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "CIRC");
+	state->u.f1.fld.ccr6.pinc = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "PINC");
+	state->u.f1.fld.ccr6.minc = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "MINC");
+	state->u.f1.fld.ccr6.psize = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "PSIZE");
+	state->u.f1.fld.ccr6.msize = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "MSIZE");
+	state->u.f1.fld.ccr6.pl = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "PL");
+	state->u.f1.fld.ccr6.mem2mem = cm_object_get_child_by_name(state->u.f1.reg.ccr6, "MEM2MEM");
 
 	// CNDTR6 bitfields.
-	state->f1.fld.cndtr6.ndt = cm_object_get_child_by_name(state->f1.reg.cndtr6, "NDT");
+	state->u.f1.fld.cndtr6.ndt = cm_object_get_child_by_name(state->u.f1.reg.cndtr6, "NDT");
 
 	// CPAR6 bitfields.
-	state->f1.fld.cpar6.pa = cm_object_get_child_by_name(state->f1.reg.cpar6, "PA");
+	state->u.f1.fld.cpar6.pa = cm_object_get_child_by_name(state->u.f1.reg.cpar6, "PA");
 
 	// CMAR6 bitfields.
-	state->f1.fld.cmar6.ma = cm_object_get_child_by_name(state->f1.reg.cmar6, "MA");
+	state->u.f1.fld.cmar6.ma = cm_object_get_child_by_name(state->u.f1.reg.cmar6, "MA");
 
 	// CCR7 bitfields.
-	state->f1.fld.ccr7.en = cm_object_get_child_by_name(state->f1.reg.ccr7, "EN");
-	state->f1.fld.ccr7.tcie = cm_object_get_child_by_name(state->f1.reg.ccr7, "TCIE");
-	state->f1.fld.ccr7.htie = cm_object_get_child_by_name(state->f1.reg.ccr7, "HTIE");
-	state->f1.fld.ccr7.teie = cm_object_get_child_by_name(state->f1.reg.ccr7, "TEIE");
-	state->f1.fld.ccr7.dir = cm_object_get_child_by_name(state->f1.reg.ccr7, "DIR");
-	state->f1.fld.ccr7.circ = cm_object_get_child_by_name(state->f1.reg.ccr7, "CIRC");
-	state->f1.fld.ccr7.pinc = cm_object_get_child_by_name(state->f1.reg.ccr7, "PINC");
-	state->f1.fld.ccr7.minc = cm_object_get_child_by_name(state->f1.reg.ccr7, "MINC");
-	state->f1.fld.ccr7.psize = cm_object_get_child_by_name(state->f1.reg.ccr7, "PSIZE");
-	state->f1.fld.ccr7.msize = cm_object_get_child_by_name(state->f1.reg.ccr7, "MSIZE");
-	state->f1.fld.ccr7.pl = cm_object_get_child_by_name(state->f1.reg.ccr7, "PL");
-	state->f1.fld.ccr7.mem2mem = cm_object_get_child_by_name(state->f1.reg.ccr7, "MEM2MEM");
+	state->u.f1.fld.ccr7.en = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "EN");
+	state->u.f1.fld.ccr7.tcie = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "TCIE");
+	state->u.f1.fld.ccr7.htie = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "HTIE");
+	state->u.f1.fld.ccr7.teie = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "TEIE");
+	state->u.f1.fld.ccr7.dir = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "DIR");
+	state->u.f1.fld.ccr7.circ = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "CIRC");
+	state->u.f1.fld.ccr7.pinc = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "PINC");
+	state->u.f1.fld.ccr7.minc = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "MINC");
+	state->u.f1.fld.ccr7.psize = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "PSIZE");
+	state->u.f1.fld.ccr7.msize = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "MSIZE");
+	state->u.f1.fld.ccr7.pl = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "PL");
+	state->u.f1.fld.ccr7.mem2mem = cm_object_get_child_by_name(state->u.f1.reg.ccr7, "MEM2MEM");
 
 	// CNDTR7 bitfields.
-	state->f1.fld.cndtr7.ndt = cm_object_get_child_by_name(state->f1.reg.cndtr7, "NDT");
+	state->u.f1.fld.cndtr7.ndt = cm_object_get_child_by_name(state->u.f1.reg.cndtr7, "NDT");
 
 	// CPAR7 bitfields.
-	state->f1.fld.cpar7.pa = cm_object_get_child_by_name(state->f1.reg.cpar7, "PA");
+	state->u.f1.fld.cpar7.pa = cm_object_get_child_by_name(state->u.f1.reg.cpar7, "PA");
 
 	// CMAR7 bitfields.
-	state->f1.fld.cmar7.ma = cm_object_get_child_by_name(state->f1.reg.cmar7, "MA");
+	state->u.f1.fld.cmar7.ma = cm_object_get_child_by_name(state->u.f1.reg.cmar7, "MA");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -2503,7 +2510,8 @@ static void stm32f103xx_dma1_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 SDIO (Secure digital input/output interface) registers.
 		struct {
@@ -2715,158 +2723,158 @@ static void stm32f103xx_sdio_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.power = cm_object_get_child_by_name(obj, "POWER");
-	state->f1.reg.clkcr = cm_object_get_child_by_name(obj, "CLKCR");
-	state->f1.reg.arg = cm_object_get_child_by_name(obj, "ARG");
-	state->f1.reg.cmd = cm_object_get_child_by_name(obj, "CMD");
-	state->f1.reg.respcmd = cm_object_get_child_by_name(obj, "RESPCMD");
-	state->f1.reg.respi1 = cm_object_get_child_by_name(obj, "RESPI1");
-	state->f1.reg.resp2 = cm_object_get_child_by_name(obj, "RESP2");
-	state->f1.reg.resp3 = cm_object_get_child_by_name(obj, "RESP3");
-	state->f1.reg.resp4 = cm_object_get_child_by_name(obj, "RESP4");
-	state->f1.reg.dtimer = cm_object_get_child_by_name(obj, "DTIMER");
-	state->f1.reg.dlen = cm_object_get_child_by_name(obj, "DLEN");
-	state->f1.reg.dctrl = cm_object_get_child_by_name(obj, "DCTRL");
-	state->f1.reg.dcount = cm_object_get_child_by_name(obj, "DCOUNT");
-	state->f1.reg.sta = cm_object_get_child_by_name(obj, "STA");
-	state->f1.reg.icr = cm_object_get_child_by_name(obj, "ICR");
-	state->f1.reg.mask = cm_object_get_child_by_name(obj, "MASK");
-	state->f1.reg.fifocnt = cm_object_get_child_by_name(obj, "FIFOCNT");
-	state->f1.reg.fifo = cm_object_get_child_by_name(obj, "FIFO");
+	state->u.f1.reg.power = cm_object_get_child_by_name(obj, "POWER");
+	state->u.f1.reg.clkcr = cm_object_get_child_by_name(obj, "CLKCR");
+	state->u.f1.reg.arg = cm_object_get_child_by_name(obj, "ARG");
+	state->u.f1.reg.cmd = cm_object_get_child_by_name(obj, "CMD");
+	state->u.f1.reg.respcmd = cm_object_get_child_by_name(obj, "RESPCMD");
+	state->u.f1.reg.respi1 = cm_object_get_child_by_name(obj, "RESPI1");
+	state->u.f1.reg.resp2 = cm_object_get_child_by_name(obj, "RESP2");
+	state->u.f1.reg.resp3 = cm_object_get_child_by_name(obj, "RESP3");
+	state->u.f1.reg.resp4 = cm_object_get_child_by_name(obj, "RESP4");
+	state->u.f1.reg.dtimer = cm_object_get_child_by_name(obj, "DTIMER");
+	state->u.f1.reg.dlen = cm_object_get_child_by_name(obj, "DLEN");
+	state->u.f1.reg.dctrl = cm_object_get_child_by_name(obj, "DCTRL");
+	state->u.f1.reg.dcount = cm_object_get_child_by_name(obj, "DCOUNT");
+	state->u.f1.reg.sta = cm_object_get_child_by_name(obj, "STA");
+	state->u.f1.reg.icr = cm_object_get_child_by_name(obj, "ICR");
+	state->u.f1.reg.mask = cm_object_get_child_by_name(obj, "MASK");
+	state->u.f1.reg.fifocnt = cm_object_get_child_by_name(obj, "FIFOCNT");
+	state->u.f1.reg.fifo = cm_object_get_child_by_name(obj, "FIFO");
 
 	// POWER bitfields.
-	state->f1.fld.power.pwrctrl = cm_object_get_child_by_name(state->f1.reg.power, "PWRCTRL");
+	state->u.f1.fld.power.pwrctrl = cm_object_get_child_by_name(state->u.f1.reg.power, "PWRCTRL");
 
 	// CLKCR bitfields.
-	state->f1.fld.clkcr.clkdiv = cm_object_get_child_by_name(state->f1.reg.clkcr, "CLKDIV");
-	state->f1.fld.clkcr.clken = cm_object_get_child_by_name(state->f1.reg.clkcr, "CLKEN");
-	state->f1.fld.clkcr.pwrsav = cm_object_get_child_by_name(state->f1.reg.clkcr, "PWRSAV");
-	state->f1.fld.clkcr.bypass = cm_object_get_child_by_name(state->f1.reg.clkcr, "BYPASS");
-	state->f1.fld.clkcr.widbus = cm_object_get_child_by_name(state->f1.reg.clkcr, "WIDBUS");
-	state->f1.fld.clkcr.negedge = cm_object_get_child_by_name(state->f1.reg.clkcr, "NEGEDGE");
-	state->f1.fld.clkcr.hwfc_en = cm_object_get_child_by_name(state->f1.reg.clkcr, "HWFC_EN");
+	state->u.f1.fld.clkcr.clkdiv = cm_object_get_child_by_name(state->u.f1.reg.clkcr, "CLKDIV");
+	state->u.f1.fld.clkcr.clken = cm_object_get_child_by_name(state->u.f1.reg.clkcr, "CLKEN");
+	state->u.f1.fld.clkcr.pwrsav = cm_object_get_child_by_name(state->u.f1.reg.clkcr, "PWRSAV");
+	state->u.f1.fld.clkcr.bypass = cm_object_get_child_by_name(state->u.f1.reg.clkcr, "BYPASS");
+	state->u.f1.fld.clkcr.widbus = cm_object_get_child_by_name(state->u.f1.reg.clkcr, "WIDBUS");
+	state->u.f1.fld.clkcr.negedge = cm_object_get_child_by_name(state->u.f1.reg.clkcr, "NEGEDGE");
+	state->u.f1.fld.clkcr.hwfc_en = cm_object_get_child_by_name(state->u.f1.reg.clkcr, "HWFC_EN");
 
 	// ARG bitfields.
-	state->f1.fld.arg.cmdarg = cm_object_get_child_by_name(state->f1.reg.arg, "CMDARG");
+	state->u.f1.fld.arg.cmdarg = cm_object_get_child_by_name(state->u.f1.reg.arg, "CMDARG");
 
 	// CMD bitfields.
-	state->f1.fld.cmd.cmdindex = cm_object_get_child_by_name(state->f1.reg.cmd, "CMDINDEX");
-	state->f1.fld.cmd.waitresp = cm_object_get_child_by_name(state->f1.reg.cmd, "WAITRESP");
-	state->f1.fld.cmd.waitint = cm_object_get_child_by_name(state->f1.reg.cmd, "WAITINT");
-	state->f1.fld.cmd.waitpend = cm_object_get_child_by_name(state->f1.reg.cmd, "WAITPEND");
-	state->f1.fld.cmd.cpsmen = cm_object_get_child_by_name(state->f1.reg.cmd, "CPSMEN");
-	state->f1.fld.cmd.sdiosuspend = cm_object_get_child_by_name(state->f1.reg.cmd, "SDIOSuspend");
-	state->f1.fld.cmd.encmdcompl = cm_object_get_child_by_name(state->f1.reg.cmd, "ENCMDcompl");
-	state->f1.fld.cmd.nien = cm_object_get_child_by_name(state->f1.reg.cmd, "nIEN");
-	state->f1.fld.cmd.ce_atacmd = cm_object_get_child_by_name(state->f1.reg.cmd, "CE_ATACMD");
+	state->u.f1.fld.cmd.cmdindex = cm_object_get_child_by_name(state->u.f1.reg.cmd, "CMDINDEX");
+	state->u.f1.fld.cmd.waitresp = cm_object_get_child_by_name(state->u.f1.reg.cmd, "WAITRESP");
+	state->u.f1.fld.cmd.waitint = cm_object_get_child_by_name(state->u.f1.reg.cmd, "WAITINT");
+	state->u.f1.fld.cmd.waitpend = cm_object_get_child_by_name(state->u.f1.reg.cmd, "WAITPEND");
+	state->u.f1.fld.cmd.cpsmen = cm_object_get_child_by_name(state->u.f1.reg.cmd, "CPSMEN");
+	state->u.f1.fld.cmd.sdiosuspend = cm_object_get_child_by_name(state->u.f1.reg.cmd, "SDIOSuspend");
+	state->u.f1.fld.cmd.encmdcompl = cm_object_get_child_by_name(state->u.f1.reg.cmd, "ENCMDcompl");
+	state->u.f1.fld.cmd.nien = cm_object_get_child_by_name(state->u.f1.reg.cmd, "nIEN");
+	state->u.f1.fld.cmd.ce_atacmd = cm_object_get_child_by_name(state->u.f1.reg.cmd, "CE_ATACMD");
 
 	// RESPCMD bitfields.
-	state->f1.fld.respcmd.respcmd = cm_object_get_child_by_name(state->f1.reg.respcmd, "RESPCMD");
+	state->u.f1.fld.respcmd.respcmd = cm_object_get_child_by_name(state->u.f1.reg.respcmd, "RESPCMD");
 
 	// RESPI1 bitfields.
-	state->f1.fld.respi1.cardstatus1 = cm_object_get_child_by_name(state->f1.reg.respi1, "CARDSTATUS1");
+	state->u.f1.fld.respi1.cardstatus1 = cm_object_get_child_by_name(state->u.f1.reg.respi1, "CARDSTATUS1");
 
 	// RESP2 bitfields.
-	state->f1.fld.resp2.cardstatus2 = cm_object_get_child_by_name(state->f1.reg.resp2, "CARDSTATUS2");
+	state->u.f1.fld.resp2.cardstatus2 = cm_object_get_child_by_name(state->u.f1.reg.resp2, "CARDSTATUS2");
 
 	// RESP3 bitfields.
-	state->f1.fld.resp3.cardstatus3 = cm_object_get_child_by_name(state->f1.reg.resp3, "CARDSTATUS3");
+	state->u.f1.fld.resp3.cardstatus3 = cm_object_get_child_by_name(state->u.f1.reg.resp3, "CARDSTATUS3");
 
 	// RESP4 bitfields.
-	state->f1.fld.resp4.cardstatus4 = cm_object_get_child_by_name(state->f1.reg.resp4, "CARDSTATUS4");
+	state->u.f1.fld.resp4.cardstatus4 = cm_object_get_child_by_name(state->u.f1.reg.resp4, "CARDSTATUS4");
 
 	// DTIMER bitfields.
-	state->f1.fld.dtimer.datatime = cm_object_get_child_by_name(state->f1.reg.dtimer, "DATATIME");
+	state->u.f1.fld.dtimer.datatime = cm_object_get_child_by_name(state->u.f1.reg.dtimer, "DATATIME");
 
 	// DLEN bitfields.
-	state->f1.fld.dlen.datalength = cm_object_get_child_by_name(state->f1.reg.dlen, "DATALENGTH");
+	state->u.f1.fld.dlen.datalength = cm_object_get_child_by_name(state->u.f1.reg.dlen, "DATALENGTH");
 
 	// DCTRL bitfields.
-	state->f1.fld.dctrl.dten = cm_object_get_child_by_name(state->f1.reg.dctrl, "DTEN");
-	state->f1.fld.dctrl.dtdir = cm_object_get_child_by_name(state->f1.reg.dctrl, "DTDIR");
-	state->f1.fld.dctrl.dtmode = cm_object_get_child_by_name(state->f1.reg.dctrl, "DTMODE");
-	state->f1.fld.dctrl.dmaen = cm_object_get_child_by_name(state->f1.reg.dctrl, "DMAEN");
-	state->f1.fld.dctrl.dblocksize = cm_object_get_child_by_name(state->f1.reg.dctrl, "DBLOCKSIZE");
-	state->f1.fld.dctrl.pwstart = cm_object_get_child_by_name(state->f1.reg.dctrl, "PWSTART");
-	state->f1.fld.dctrl.pwstop = cm_object_get_child_by_name(state->f1.reg.dctrl, "PWSTOP");
-	state->f1.fld.dctrl.rwmod = cm_object_get_child_by_name(state->f1.reg.dctrl, "RWMOD");
-	state->f1.fld.dctrl.sdioen = cm_object_get_child_by_name(state->f1.reg.dctrl, "SDIOEN");
+	state->u.f1.fld.dctrl.dten = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "DTEN");
+	state->u.f1.fld.dctrl.dtdir = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "DTDIR");
+	state->u.f1.fld.dctrl.dtmode = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "DTMODE");
+	state->u.f1.fld.dctrl.dmaen = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "DMAEN");
+	state->u.f1.fld.dctrl.dblocksize = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "DBLOCKSIZE");
+	state->u.f1.fld.dctrl.pwstart = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "PWSTART");
+	state->u.f1.fld.dctrl.pwstop = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "PWSTOP");
+	state->u.f1.fld.dctrl.rwmod = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "RWMOD");
+	state->u.f1.fld.dctrl.sdioen = cm_object_get_child_by_name(state->u.f1.reg.dctrl, "SDIOEN");
 
 	// DCOUNT bitfields.
-	state->f1.fld.dcount.datacount = cm_object_get_child_by_name(state->f1.reg.dcount, "DATACOUNT");
+	state->u.f1.fld.dcount.datacount = cm_object_get_child_by_name(state->u.f1.reg.dcount, "DATACOUNT");
 
 	// STA bitfields.
-	state->f1.fld.sta.ccrcfail = cm_object_get_child_by_name(state->f1.reg.sta, "CCRCFAIL");
-	state->f1.fld.sta.dcrcfail = cm_object_get_child_by_name(state->f1.reg.sta, "DCRCFAIL");
-	state->f1.fld.sta.ctimeout = cm_object_get_child_by_name(state->f1.reg.sta, "CTIMEOUT");
-	state->f1.fld.sta.dtimeout = cm_object_get_child_by_name(state->f1.reg.sta, "DTIMEOUT");
-	state->f1.fld.sta.txunderr = cm_object_get_child_by_name(state->f1.reg.sta, "TXUNDERR");
-	state->f1.fld.sta.rxoverr = cm_object_get_child_by_name(state->f1.reg.sta, "RXOVERR");
-	state->f1.fld.sta.cmdrend = cm_object_get_child_by_name(state->f1.reg.sta, "CMDREND");
-	state->f1.fld.sta.cmdsent = cm_object_get_child_by_name(state->f1.reg.sta, "CMDSENT");
-	state->f1.fld.sta.dataend = cm_object_get_child_by_name(state->f1.reg.sta, "DATAEND");
-	state->f1.fld.sta.stbiterr = cm_object_get_child_by_name(state->f1.reg.sta, "STBITERR");
-	state->f1.fld.sta.dbckend = cm_object_get_child_by_name(state->f1.reg.sta, "DBCKEND");
-	state->f1.fld.sta.cmdact = cm_object_get_child_by_name(state->f1.reg.sta, "CMDACT");
-	state->f1.fld.sta.txact = cm_object_get_child_by_name(state->f1.reg.sta, "TXACT");
-	state->f1.fld.sta.rxact = cm_object_get_child_by_name(state->f1.reg.sta, "RXACT");
-	state->f1.fld.sta.txfifohe = cm_object_get_child_by_name(state->f1.reg.sta, "TXFIFOHE");
-	state->f1.fld.sta.rxfifohf = cm_object_get_child_by_name(state->f1.reg.sta, "RXFIFOHF");
-	state->f1.fld.sta.txfifof = cm_object_get_child_by_name(state->f1.reg.sta, "TXFIFOF");
-	state->f1.fld.sta.rxfifof = cm_object_get_child_by_name(state->f1.reg.sta, "RXFIFOF");
-	state->f1.fld.sta.txfifoe = cm_object_get_child_by_name(state->f1.reg.sta, "TXFIFOE");
-	state->f1.fld.sta.rxfifoe = cm_object_get_child_by_name(state->f1.reg.sta, "RXFIFOE");
-	state->f1.fld.sta.txdavl = cm_object_get_child_by_name(state->f1.reg.sta, "TXDAVL");
-	state->f1.fld.sta.rxdavl = cm_object_get_child_by_name(state->f1.reg.sta, "RXDAVL");
-	state->f1.fld.sta.sdioit = cm_object_get_child_by_name(state->f1.reg.sta, "SDIOIT");
-	state->f1.fld.sta.ceataend = cm_object_get_child_by_name(state->f1.reg.sta, "CEATAEND");
+	state->u.f1.fld.sta.ccrcfail = cm_object_get_child_by_name(state->u.f1.reg.sta, "CCRCFAIL");
+	state->u.f1.fld.sta.dcrcfail = cm_object_get_child_by_name(state->u.f1.reg.sta, "DCRCFAIL");
+	state->u.f1.fld.sta.ctimeout = cm_object_get_child_by_name(state->u.f1.reg.sta, "CTIMEOUT");
+	state->u.f1.fld.sta.dtimeout = cm_object_get_child_by_name(state->u.f1.reg.sta, "DTIMEOUT");
+	state->u.f1.fld.sta.txunderr = cm_object_get_child_by_name(state->u.f1.reg.sta, "TXUNDERR");
+	state->u.f1.fld.sta.rxoverr = cm_object_get_child_by_name(state->u.f1.reg.sta, "RXOVERR");
+	state->u.f1.fld.sta.cmdrend = cm_object_get_child_by_name(state->u.f1.reg.sta, "CMDREND");
+	state->u.f1.fld.sta.cmdsent = cm_object_get_child_by_name(state->u.f1.reg.sta, "CMDSENT");
+	state->u.f1.fld.sta.dataend = cm_object_get_child_by_name(state->u.f1.reg.sta, "DATAEND");
+	state->u.f1.fld.sta.stbiterr = cm_object_get_child_by_name(state->u.f1.reg.sta, "STBITERR");
+	state->u.f1.fld.sta.dbckend = cm_object_get_child_by_name(state->u.f1.reg.sta, "DBCKEND");
+	state->u.f1.fld.sta.cmdact = cm_object_get_child_by_name(state->u.f1.reg.sta, "CMDACT");
+	state->u.f1.fld.sta.txact = cm_object_get_child_by_name(state->u.f1.reg.sta, "TXACT");
+	state->u.f1.fld.sta.rxact = cm_object_get_child_by_name(state->u.f1.reg.sta, "RXACT");
+	state->u.f1.fld.sta.txfifohe = cm_object_get_child_by_name(state->u.f1.reg.sta, "TXFIFOHE");
+	state->u.f1.fld.sta.rxfifohf = cm_object_get_child_by_name(state->u.f1.reg.sta, "RXFIFOHF");
+	state->u.f1.fld.sta.txfifof = cm_object_get_child_by_name(state->u.f1.reg.sta, "TXFIFOF");
+	state->u.f1.fld.sta.rxfifof = cm_object_get_child_by_name(state->u.f1.reg.sta, "RXFIFOF");
+	state->u.f1.fld.sta.txfifoe = cm_object_get_child_by_name(state->u.f1.reg.sta, "TXFIFOE");
+	state->u.f1.fld.sta.rxfifoe = cm_object_get_child_by_name(state->u.f1.reg.sta, "RXFIFOE");
+	state->u.f1.fld.sta.txdavl = cm_object_get_child_by_name(state->u.f1.reg.sta, "TXDAVL");
+	state->u.f1.fld.sta.rxdavl = cm_object_get_child_by_name(state->u.f1.reg.sta, "RXDAVL");
+	state->u.f1.fld.sta.sdioit = cm_object_get_child_by_name(state->u.f1.reg.sta, "SDIOIT");
+	state->u.f1.fld.sta.ceataend = cm_object_get_child_by_name(state->u.f1.reg.sta, "CEATAEND");
 
 	// ICR bitfields.
-	state->f1.fld.icr.ccrcfailc = cm_object_get_child_by_name(state->f1.reg.icr, "CCRCFAILC");
-	state->f1.fld.icr.dcrcfailc = cm_object_get_child_by_name(state->f1.reg.icr, "DCRCFAILC");
-	state->f1.fld.icr.ctimeoutc = cm_object_get_child_by_name(state->f1.reg.icr, "CTIMEOUTC");
-	state->f1.fld.icr.dtimeoutc = cm_object_get_child_by_name(state->f1.reg.icr, "DTIMEOUTC");
-	state->f1.fld.icr.txunderrc = cm_object_get_child_by_name(state->f1.reg.icr, "TXUNDERRC");
-	state->f1.fld.icr.rxoverrc = cm_object_get_child_by_name(state->f1.reg.icr, "RXOVERRC");
-	state->f1.fld.icr.cmdrendc = cm_object_get_child_by_name(state->f1.reg.icr, "CMDRENDC");
-	state->f1.fld.icr.cmdsentc = cm_object_get_child_by_name(state->f1.reg.icr, "CMDSENTC");
-	state->f1.fld.icr.dataendc = cm_object_get_child_by_name(state->f1.reg.icr, "DATAENDC");
-	state->f1.fld.icr.stbiterrc = cm_object_get_child_by_name(state->f1.reg.icr, "STBITERRC");
-	state->f1.fld.icr.dbckendc = cm_object_get_child_by_name(state->f1.reg.icr, "DBCKENDC");
-	state->f1.fld.icr.sdioitc = cm_object_get_child_by_name(state->f1.reg.icr, "SDIOITC");
-	state->f1.fld.icr.ceataendc = cm_object_get_child_by_name(state->f1.reg.icr, "CEATAENDC");
+	state->u.f1.fld.icr.ccrcfailc = cm_object_get_child_by_name(state->u.f1.reg.icr, "CCRCFAILC");
+	state->u.f1.fld.icr.dcrcfailc = cm_object_get_child_by_name(state->u.f1.reg.icr, "DCRCFAILC");
+	state->u.f1.fld.icr.ctimeoutc = cm_object_get_child_by_name(state->u.f1.reg.icr, "CTIMEOUTC");
+	state->u.f1.fld.icr.dtimeoutc = cm_object_get_child_by_name(state->u.f1.reg.icr, "DTIMEOUTC");
+	state->u.f1.fld.icr.txunderrc = cm_object_get_child_by_name(state->u.f1.reg.icr, "TXUNDERRC");
+	state->u.f1.fld.icr.rxoverrc = cm_object_get_child_by_name(state->u.f1.reg.icr, "RXOVERRC");
+	state->u.f1.fld.icr.cmdrendc = cm_object_get_child_by_name(state->u.f1.reg.icr, "CMDRENDC");
+	state->u.f1.fld.icr.cmdsentc = cm_object_get_child_by_name(state->u.f1.reg.icr, "CMDSENTC");
+	state->u.f1.fld.icr.dataendc = cm_object_get_child_by_name(state->u.f1.reg.icr, "DATAENDC");
+	state->u.f1.fld.icr.stbiterrc = cm_object_get_child_by_name(state->u.f1.reg.icr, "STBITERRC");
+	state->u.f1.fld.icr.dbckendc = cm_object_get_child_by_name(state->u.f1.reg.icr, "DBCKENDC");
+	state->u.f1.fld.icr.sdioitc = cm_object_get_child_by_name(state->u.f1.reg.icr, "SDIOITC");
+	state->u.f1.fld.icr.ceataendc = cm_object_get_child_by_name(state->u.f1.reg.icr, "CEATAENDC");
 
 	// MASK bitfields.
-	state->f1.fld.mask.ccrcfailie = cm_object_get_child_by_name(state->f1.reg.mask, "CCRCFAILIE");
-	state->f1.fld.mask.dcrcfailie = cm_object_get_child_by_name(state->f1.reg.mask, "DCRCFAILIE");
-	state->f1.fld.mask.ctimeoutie = cm_object_get_child_by_name(state->f1.reg.mask, "CTIMEOUTIE");
-	state->f1.fld.mask.dtimeoutie = cm_object_get_child_by_name(state->f1.reg.mask, "DTIMEOUTIE");
-	state->f1.fld.mask.txunderrie = cm_object_get_child_by_name(state->f1.reg.mask, "TXUNDERRIE");
-	state->f1.fld.mask.rxoverrie = cm_object_get_child_by_name(state->f1.reg.mask, "RXOVERRIE");
-	state->f1.fld.mask.cmdrendie = cm_object_get_child_by_name(state->f1.reg.mask, "CMDRENDIE");
-	state->f1.fld.mask.cmdsentie = cm_object_get_child_by_name(state->f1.reg.mask, "CMDSENTIE");
-	state->f1.fld.mask.dataendie = cm_object_get_child_by_name(state->f1.reg.mask, "DATAENDIE");
-	state->f1.fld.mask.stbiterrie = cm_object_get_child_by_name(state->f1.reg.mask, "STBITERRIE");
-	state->f1.fld.mask.dbackendie = cm_object_get_child_by_name(state->f1.reg.mask, "DBACKENDIE");
-	state->f1.fld.mask.cmdactie = cm_object_get_child_by_name(state->f1.reg.mask, "CMDACTIE");
-	state->f1.fld.mask.txactie = cm_object_get_child_by_name(state->f1.reg.mask, "TXACTIE");
-	state->f1.fld.mask.rxactie = cm_object_get_child_by_name(state->f1.reg.mask, "RXACTIE");
-	state->f1.fld.mask.txfifoheie = cm_object_get_child_by_name(state->f1.reg.mask, "TXFIFOHEIE");
-	state->f1.fld.mask.rxfifohfie = cm_object_get_child_by_name(state->f1.reg.mask, "RXFIFOHFIE");
-	state->f1.fld.mask.txfifofie = cm_object_get_child_by_name(state->f1.reg.mask, "TXFIFOFIE");
-	state->f1.fld.mask.rxfifofie = cm_object_get_child_by_name(state->f1.reg.mask, "RXFIFOFIE");
-	state->f1.fld.mask.txfifoeie = cm_object_get_child_by_name(state->f1.reg.mask, "TXFIFOEIE");
-	state->f1.fld.mask.rxfifoeie = cm_object_get_child_by_name(state->f1.reg.mask, "RXFIFOEIE");
-	state->f1.fld.mask.txdavlie = cm_object_get_child_by_name(state->f1.reg.mask, "TXDAVLIE");
-	state->f1.fld.mask.rxdavlie = cm_object_get_child_by_name(state->f1.reg.mask, "RXDAVLIE");
-	state->f1.fld.mask.sdioitie = cm_object_get_child_by_name(state->f1.reg.mask, "SDIOITIE");
-	state->f1.fld.mask.ceatendie = cm_object_get_child_by_name(state->f1.reg.mask, "CEATENDIE");
+	state->u.f1.fld.mask.ccrcfailie = cm_object_get_child_by_name(state->u.f1.reg.mask, "CCRCFAILIE");
+	state->u.f1.fld.mask.dcrcfailie = cm_object_get_child_by_name(state->u.f1.reg.mask, "DCRCFAILIE");
+	state->u.f1.fld.mask.ctimeoutie = cm_object_get_child_by_name(state->u.f1.reg.mask, "CTIMEOUTIE");
+	state->u.f1.fld.mask.dtimeoutie = cm_object_get_child_by_name(state->u.f1.reg.mask, "DTIMEOUTIE");
+	state->u.f1.fld.mask.txunderrie = cm_object_get_child_by_name(state->u.f1.reg.mask, "TXUNDERRIE");
+	state->u.f1.fld.mask.rxoverrie = cm_object_get_child_by_name(state->u.f1.reg.mask, "RXOVERRIE");
+	state->u.f1.fld.mask.cmdrendie = cm_object_get_child_by_name(state->u.f1.reg.mask, "CMDRENDIE");
+	state->u.f1.fld.mask.cmdsentie = cm_object_get_child_by_name(state->u.f1.reg.mask, "CMDSENTIE");
+	state->u.f1.fld.mask.dataendie = cm_object_get_child_by_name(state->u.f1.reg.mask, "DATAENDIE");
+	state->u.f1.fld.mask.stbiterrie = cm_object_get_child_by_name(state->u.f1.reg.mask, "STBITERRIE");
+	state->u.f1.fld.mask.dbackendie = cm_object_get_child_by_name(state->u.f1.reg.mask, "DBACKENDIE");
+	state->u.f1.fld.mask.cmdactie = cm_object_get_child_by_name(state->u.f1.reg.mask, "CMDACTIE");
+	state->u.f1.fld.mask.txactie = cm_object_get_child_by_name(state->u.f1.reg.mask, "TXACTIE");
+	state->u.f1.fld.mask.rxactie = cm_object_get_child_by_name(state->u.f1.reg.mask, "RXACTIE");
+	state->u.f1.fld.mask.txfifoheie = cm_object_get_child_by_name(state->u.f1.reg.mask, "TXFIFOHEIE");
+	state->u.f1.fld.mask.rxfifohfie = cm_object_get_child_by_name(state->u.f1.reg.mask, "RXFIFOHFIE");
+	state->u.f1.fld.mask.txfifofie = cm_object_get_child_by_name(state->u.f1.reg.mask, "TXFIFOFIE");
+	state->u.f1.fld.mask.rxfifofie = cm_object_get_child_by_name(state->u.f1.reg.mask, "RXFIFOFIE");
+	state->u.f1.fld.mask.txfifoeie = cm_object_get_child_by_name(state->u.f1.reg.mask, "TXFIFOEIE");
+	state->u.f1.fld.mask.rxfifoeie = cm_object_get_child_by_name(state->u.f1.reg.mask, "RXFIFOEIE");
+	state->u.f1.fld.mask.txdavlie = cm_object_get_child_by_name(state->u.f1.reg.mask, "TXDAVLIE");
+	state->u.f1.fld.mask.rxdavlie = cm_object_get_child_by_name(state->u.f1.reg.mask, "RXDAVLIE");
+	state->u.f1.fld.mask.sdioitie = cm_object_get_child_by_name(state->u.f1.reg.mask, "SDIOITIE");
+	state->u.f1.fld.mask.ceatendie = cm_object_get_child_by_name(state->u.f1.reg.mask, "CEATENDIE");
 
 	// FIFOCNT bitfields.
-	state->f1.fld.fifocnt.fif0count = cm_object_get_child_by_name(state->f1.reg.fifocnt, "FIF0COUNT");
+	state->u.f1.fld.fifocnt.fif0count = cm_object_get_child_by_name(state->u.f1.reg.fifocnt, "FIF0COUNT");
 
 	// FIFO bitfields.
-	state->f1.fld.fifo.fifodata = cm_object_get_child_by_name(state->f1.reg.fifo, "FIFOData");
+	state->u.f1.fld.fifo.fifodata = cm_object_get_child_by_name(state->u.f1.reg.fifo, "FIFOData");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -2875,7 +2883,8 @@ static void stm32f103xx_sdio_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 RTC (Real time clock) registers.
 		struct {
@@ -2966,53 +2975,53 @@ static void stm32f103xx_rtc_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.crh = cm_object_get_child_by_name(obj, "CRH");
-	state->f1.reg.crl = cm_object_get_child_by_name(obj, "CRL");
-	state->f1.reg.prlh = cm_object_get_child_by_name(obj, "PRLH");
-	state->f1.reg.prll = cm_object_get_child_by_name(obj, "PRLL");
-	state->f1.reg.divh = cm_object_get_child_by_name(obj, "DIVH");
-	state->f1.reg.divl = cm_object_get_child_by_name(obj, "DIVL");
-	state->f1.reg.cnth = cm_object_get_child_by_name(obj, "CNTH");
-	state->f1.reg.cntl = cm_object_get_child_by_name(obj, "CNTL");
-	state->f1.reg.alrh = cm_object_get_child_by_name(obj, "ALRH");
-	state->f1.reg.alrl = cm_object_get_child_by_name(obj, "ALRL");
+	state->u.f1.reg.crh = cm_object_get_child_by_name(obj, "CRH");
+	state->u.f1.reg.crl = cm_object_get_child_by_name(obj, "CRL");
+	state->u.f1.reg.prlh = cm_object_get_child_by_name(obj, "PRLH");
+	state->u.f1.reg.prll = cm_object_get_child_by_name(obj, "PRLL");
+	state->u.f1.reg.divh = cm_object_get_child_by_name(obj, "DIVH");
+	state->u.f1.reg.divl = cm_object_get_child_by_name(obj, "DIVL");
+	state->u.f1.reg.cnth = cm_object_get_child_by_name(obj, "CNTH");
+	state->u.f1.reg.cntl = cm_object_get_child_by_name(obj, "CNTL");
+	state->u.f1.reg.alrh = cm_object_get_child_by_name(obj, "ALRH");
+	state->u.f1.reg.alrl = cm_object_get_child_by_name(obj, "ALRL");
 
 	// CRH bitfields.
-	state->f1.fld.crh.secie = cm_object_get_child_by_name(state->f1.reg.crh, "SECIE");
-	state->f1.fld.crh.alrie = cm_object_get_child_by_name(state->f1.reg.crh, "ALRIE");
-	state->f1.fld.crh.owie = cm_object_get_child_by_name(state->f1.reg.crh, "OWIE");
+	state->u.f1.fld.crh.secie = cm_object_get_child_by_name(state->u.f1.reg.crh, "SECIE");
+	state->u.f1.fld.crh.alrie = cm_object_get_child_by_name(state->u.f1.reg.crh, "ALRIE");
+	state->u.f1.fld.crh.owie = cm_object_get_child_by_name(state->u.f1.reg.crh, "OWIE");
 
 	// CRL bitfields.
-	state->f1.fld.crl.secf = cm_object_get_child_by_name(state->f1.reg.crl, "SECF");
-	state->f1.fld.crl.alrf = cm_object_get_child_by_name(state->f1.reg.crl, "ALRF");
-	state->f1.fld.crl.owf = cm_object_get_child_by_name(state->f1.reg.crl, "OWF");
-	state->f1.fld.crl.rsf = cm_object_get_child_by_name(state->f1.reg.crl, "RSF");
-	state->f1.fld.crl.cnf = cm_object_get_child_by_name(state->f1.reg.crl, "CNF");
-	state->f1.fld.crl.rtoff = cm_object_get_child_by_name(state->f1.reg.crl, "RTOFF");
+	state->u.f1.fld.crl.secf = cm_object_get_child_by_name(state->u.f1.reg.crl, "SECF");
+	state->u.f1.fld.crl.alrf = cm_object_get_child_by_name(state->u.f1.reg.crl, "ALRF");
+	state->u.f1.fld.crl.owf = cm_object_get_child_by_name(state->u.f1.reg.crl, "OWF");
+	state->u.f1.fld.crl.rsf = cm_object_get_child_by_name(state->u.f1.reg.crl, "RSF");
+	state->u.f1.fld.crl.cnf = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF");
+	state->u.f1.fld.crl.rtoff = cm_object_get_child_by_name(state->u.f1.reg.crl, "RTOFF");
 
 	// PRLH bitfields.
-	state->f1.fld.prlh.prlh = cm_object_get_child_by_name(state->f1.reg.prlh, "PRLH");
+	state->u.f1.fld.prlh.prlh = cm_object_get_child_by_name(state->u.f1.reg.prlh, "PRLH");
 
 	// PRLL bitfields.
-	state->f1.fld.prll.prll = cm_object_get_child_by_name(state->f1.reg.prll, "PRLL");
+	state->u.f1.fld.prll.prll = cm_object_get_child_by_name(state->u.f1.reg.prll, "PRLL");
 
 	// DIVH bitfields.
-	state->f1.fld.divh.divh = cm_object_get_child_by_name(state->f1.reg.divh, "DIVH");
+	state->u.f1.fld.divh.divh = cm_object_get_child_by_name(state->u.f1.reg.divh, "DIVH");
 
 	// DIVL bitfields.
-	state->f1.fld.divl.divl = cm_object_get_child_by_name(state->f1.reg.divl, "DIVL");
+	state->u.f1.fld.divl.divl = cm_object_get_child_by_name(state->u.f1.reg.divl, "DIVL");
 
 	// CNTH bitfields.
-	state->f1.fld.cnth.cnth = cm_object_get_child_by_name(state->f1.reg.cnth, "CNTH");
+	state->u.f1.fld.cnth.cnth = cm_object_get_child_by_name(state->u.f1.reg.cnth, "CNTH");
 
 	// CNTL bitfields.
-	state->f1.fld.cntl.cntl = cm_object_get_child_by_name(state->f1.reg.cntl, "CNTL");
+	state->u.f1.fld.cntl.cntl = cm_object_get_child_by_name(state->u.f1.reg.cntl, "CNTL");
 
 	// ALRH bitfields.
-	state->f1.fld.alrh.alrh = cm_object_get_child_by_name(state->f1.reg.alrh, "ALRH");
+	state->u.f1.fld.alrh.alrh = cm_object_get_child_by_name(state->u.f1.reg.alrh, "ALRH");
 
 	// ALRL bitfields.
-	state->f1.fld.alrl.alrl = cm_object_get_child_by_name(state->f1.reg.alrl, "ALRL");
+	state->u.f1.fld.alrl.alrl = cm_object_get_child_by_name(state->u.f1.reg.alrl, "ALRL");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -3021,7 +3030,8 @@ static void stm32f103xx_rtc_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 BKP (Backup registers) registers.
 		struct {
@@ -3323,194 +3333,194 @@ static void stm32f103xx_bkp_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.dr1 = cm_object_get_child_by_name(obj, "DR1");
-	state->f1.reg.dr2 = cm_object_get_child_by_name(obj, "DR2");
-	state->f1.reg.dr3 = cm_object_get_child_by_name(obj, "DR3");
-	state->f1.reg.dr4 = cm_object_get_child_by_name(obj, "DR4");
-	state->f1.reg.dr5 = cm_object_get_child_by_name(obj, "DR5");
-	state->f1.reg.dr6 = cm_object_get_child_by_name(obj, "DR6");
-	state->f1.reg.dr7 = cm_object_get_child_by_name(obj, "DR7");
-	state->f1.reg.dr8 = cm_object_get_child_by_name(obj, "DR8");
-	state->f1.reg.dr9 = cm_object_get_child_by_name(obj, "DR9");
-	state->f1.reg.dr10 = cm_object_get_child_by_name(obj, "DR10");
-	state->f1.reg.dr11 = cm_object_get_child_by_name(obj, "DR11");
-	state->f1.reg.dr12 = cm_object_get_child_by_name(obj, "DR12");
-	state->f1.reg.dr13 = cm_object_get_child_by_name(obj, "DR13");
-	state->f1.reg.dr14 = cm_object_get_child_by_name(obj, "DR14");
-	state->f1.reg.dr15 = cm_object_get_child_by_name(obj, "DR15");
-	state->f1.reg.dr16 = cm_object_get_child_by_name(obj, "DR16");
-	state->f1.reg.dr17 = cm_object_get_child_by_name(obj, "DR17");
-	state->f1.reg.dr18 = cm_object_get_child_by_name(obj, "DR18");
-	state->f1.reg.dr19 = cm_object_get_child_by_name(obj, "DR19");
-	state->f1.reg.dr20 = cm_object_get_child_by_name(obj, "DR20");
-	state->f1.reg.dr21 = cm_object_get_child_by_name(obj, "DR21");
-	state->f1.reg.dr22 = cm_object_get_child_by_name(obj, "DR22");
-	state->f1.reg.dr23 = cm_object_get_child_by_name(obj, "DR23");
-	state->f1.reg.dr24 = cm_object_get_child_by_name(obj, "DR24");
-	state->f1.reg.dr25 = cm_object_get_child_by_name(obj, "DR25");
-	state->f1.reg.dr26 = cm_object_get_child_by_name(obj, "DR26");
-	state->f1.reg.dr27 = cm_object_get_child_by_name(obj, "DR27");
-	state->f1.reg.dr28 = cm_object_get_child_by_name(obj, "DR28");
-	state->f1.reg.dr29 = cm_object_get_child_by_name(obj, "DR29");
-	state->f1.reg.dr30 = cm_object_get_child_by_name(obj, "DR30");
-	state->f1.reg.dr31 = cm_object_get_child_by_name(obj, "DR31");
-	state->f1.reg.dr32 = cm_object_get_child_by_name(obj, "DR32");
-	state->f1.reg.dr33 = cm_object_get_child_by_name(obj, "DR33");
-	state->f1.reg.dr34 = cm_object_get_child_by_name(obj, "DR34");
-	state->f1.reg.dr35 = cm_object_get_child_by_name(obj, "DR35");
-	state->f1.reg.dr36 = cm_object_get_child_by_name(obj, "DR36");
-	state->f1.reg.dr37 = cm_object_get_child_by_name(obj, "DR37");
-	state->f1.reg.dr38 = cm_object_get_child_by_name(obj, "DR38");
-	state->f1.reg.dr39 = cm_object_get_child_by_name(obj, "DR39");
-	state->f1.reg.dr40 = cm_object_get_child_by_name(obj, "DR40");
-	state->f1.reg.dr41 = cm_object_get_child_by_name(obj, "DR41");
-	state->f1.reg.dr42 = cm_object_get_child_by_name(obj, "DR42");
-	state->f1.reg.rtccr = cm_object_get_child_by_name(obj, "RTCCR");
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-	state->f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+	state->u.f1.reg.dr1 = cm_object_get_child_by_name(obj, "DR1");
+	state->u.f1.reg.dr2 = cm_object_get_child_by_name(obj, "DR2");
+	state->u.f1.reg.dr3 = cm_object_get_child_by_name(obj, "DR3");
+	state->u.f1.reg.dr4 = cm_object_get_child_by_name(obj, "DR4");
+	state->u.f1.reg.dr5 = cm_object_get_child_by_name(obj, "DR5");
+	state->u.f1.reg.dr6 = cm_object_get_child_by_name(obj, "DR6");
+	state->u.f1.reg.dr7 = cm_object_get_child_by_name(obj, "DR7");
+	state->u.f1.reg.dr8 = cm_object_get_child_by_name(obj, "DR8");
+	state->u.f1.reg.dr9 = cm_object_get_child_by_name(obj, "DR9");
+	state->u.f1.reg.dr10 = cm_object_get_child_by_name(obj, "DR10");
+	state->u.f1.reg.dr11 = cm_object_get_child_by_name(obj, "DR11");
+	state->u.f1.reg.dr12 = cm_object_get_child_by_name(obj, "DR12");
+	state->u.f1.reg.dr13 = cm_object_get_child_by_name(obj, "DR13");
+	state->u.f1.reg.dr14 = cm_object_get_child_by_name(obj, "DR14");
+	state->u.f1.reg.dr15 = cm_object_get_child_by_name(obj, "DR15");
+	state->u.f1.reg.dr16 = cm_object_get_child_by_name(obj, "DR16");
+	state->u.f1.reg.dr17 = cm_object_get_child_by_name(obj, "DR17");
+	state->u.f1.reg.dr18 = cm_object_get_child_by_name(obj, "DR18");
+	state->u.f1.reg.dr19 = cm_object_get_child_by_name(obj, "DR19");
+	state->u.f1.reg.dr20 = cm_object_get_child_by_name(obj, "DR20");
+	state->u.f1.reg.dr21 = cm_object_get_child_by_name(obj, "DR21");
+	state->u.f1.reg.dr22 = cm_object_get_child_by_name(obj, "DR22");
+	state->u.f1.reg.dr23 = cm_object_get_child_by_name(obj, "DR23");
+	state->u.f1.reg.dr24 = cm_object_get_child_by_name(obj, "DR24");
+	state->u.f1.reg.dr25 = cm_object_get_child_by_name(obj, "DR25");
+	state->u.f1.reg.dr26 = cm_object_get_child_by_name(obj, "DR26");
+	state->u.f1.reg.dr27 = cm_object_get_child_by_name(obj, "DR27");
+	state->u.f1.reg.dr28 = cm_object_get_child_by_name(obj, "DR28");
+	state->u.f1.reg.dr29 = cm_object_get_child_by_name(obj, "DR29");
+	state->u.f1.reg.dr30 = cm_object_get_child_by_name(obj, "DR30");
+	state->u.f1.reg.dr31 = cm_object_get_child_by_name(obj, "DR31");
+	state->u.f1.reg.dr32 = cm_object_get_child_by_name(obj, "DR32");
+	state->u.f1.reg.dr33 = cm_object_get_child_by_name(obj, "DR33");
+	state->u.f1.reg.dr34 = cm_object_get_child_by_name(obj, "DR34");
+	state->u.f1.reg.dr35 = cm_object_get_child_by_name(obj, "DR35");
+	state->u.f1.reg.dr36 = cm_object_get_child_by_name(obj, "DR36");
+	state->u.f1.reg.dr37 = cm_object_get_child_by_name(obj, "DR37");
+	state->u.f1.reg.dr38 = cm_object_get_child_by_name(obj, "DR38");
+	state->u.f1.reg.dr39 = cm_object_get_child_by_name(obj, "DR39");
+	state->u.f1.reg.dr40 = cm_object_get_child_by_name(obj, "DR40");
+	state->u.f1.reg.dr41 = cm_object_get_child_by_name(obj, "DR41");
+	state->u.f1.reg.dr42 = cm_object_get_child_by_name(obj, "DR42");
+	state->u.f1.reg.rtccr = cm_object_get_child_by_name(obj, "RTCCR");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
 
 	// DR1 bitfields.
-	state->f1.fld.dr1.d1 = cm_object_get_child_by_name(state->f1.reg.dr1, "D1");
+	state->u.f1.fld.dr1.d1 = cm_object_get_child_by_name(state->u.f1.reg.dr1, "D1");
 
 	// DR2 bitfields.
-	state->f1.fld.dr2.d2 = cm_object_get_child_by_name(state->f1.reg.dr2, "D2");
+	state->u.f1.fld.dr2.d2 = cm_object_get_child_by_name(state->u.f1.reg.dr2, "D2");
 
 	// DR3 bitfields.
-	state->f1.fld.dr3.d3 = cm_object_get_child_by_name(state->f1.reg.dr3, "D3");
+	state->u.f1.fld.dr3.d3 = cm_object_get_child_by_name(state->u.f1.reg.dr3, "D3");
 
 	// DR4 bitfields.
-	state->f1.fld.dr4.d4 = cm_object_get_child_by_name(state->f1.reg.dr4, "D4");
+	state->u.f1.fld.dr4.d4 = cm_object_get_child_by_name(state->u.f1.reg.dr4, "D4");
 
 	// DR5 bitfields.
-	state->f1.fld.dr5.d5 = cm_object_get_child_by_name(state->f1.reg.dr5, "D5");
+	state->u.f1.fld.dr5.d5 = cm_object_get_child_by_name(state->u.f1.reg.dr5, "D5");
 
 	// DR6 bitfields.
-	state->f1.fld.dr6.d6 = cm_object_get_child_by_name(state->f1.reg.dr6, "D6");
+	state->u.f1.fld.dr6.d6 = cm_object_get_child_by_name(state->u.f1.reg.dr6, "D6");
 
 	// DR7 bitfields.
-	state->f1.fld.dr7.d7 = cm_object_get_child_by_name(state->f1.reg.dr7, "D7");
+	state->u.f1.fld.dr7.d7 = cm_object_get_child_by_name(state->u.f1.reg.dr7, "D7");
 
 	// DR8 bitfields.
-	state->f1.fld.dr8.d8 = cm_object_get_child_by_name(state->f1.reg.dr8, "D8");
+	state->u.f1.fld.dr8.d8 = cm_object_get_child_by_name(state->u.f1.reg.dr8, "D8");
 
 	// DR9 bitfields.
-	state->f1.fld.dr9.d9 = cm_object_get_child_by_name(state->f1.reg.dr9, "D9");
+	state->u.f1.fld.dr9.d9 = cm_object_get_child_by_name(state->u.f1.reg.dr9, "D9");
 
 	// DR10 bitfields.
-	state->f1.fld.dr10.d10 = cm_object_get_child_by_name(state->f1.reg.dr10, "D10");
+	state->u.f1.fld.dr10.d10 = cm_object_get_child_by_name(state->u.f1.reg.dr10, "D10");
 
 	// DR11 bitfields.
-	state->f1.fld.dr11.dr11 = cm_object_get_child_by_name(state->f1.reg.dr11, "DR11");
+	state->u.f1.fld.dr11.dr11 = cm_object_get_child_by_name(state->u.f1.reg.dr11, "DR11");
 
 	// DR12 bitfields.
-	state->f1.fld.dr12.dr12 = cm_object_get_child_by_name(state->f1.reg.dr12, "DR12");
+	state->u.f1.fld.dr12.dr12 = cm_object_get_child_by_name(state->u.f1.reg.dr12, "DR12");
 
 	// DR13 bitfields.
-	state->f1.fld.dr13.dr13 = cm_object_get_child_by_name(state->f1.reg.dr13, "DR13");
+	state->u.f1.fld.dr13.dr13 = cm_object_get_child_by_name(state->u.f1.reg.dr13, "DR13");
 
 	// DR14 bitfields.
-	state->f1.fld.dr14.d14 = cm_object_get_child_by_name(state->f1.reg.dr14, "D14");
+	state->u.f1.fld.dr14.d14 = cm_object_get_child_by_name(state->u.f1.reg.dr14, "D14");
 
 	// DR15 bitfields.
-	state->f1.fld.dr15.d15 = cm_object_get_child_by_name(state->f1.reg.dr15, "D15");
+	state->u.f1.fld.dr15.d15 = cm_object_get_child_by_name(state->u.f1.reg.dr15, "D15");
 
 	// DR16 bitfields.
-	state->f1.fld.dr16.d16 = cm_object_get_child_by_name(state->f1.reg.dr16, "D16");
+	state->u.f1.fld.dr16.d16 = cm_object_get_child_by_name(state->u.f1.reg.dr16, "D16");
 
 	// DR17 bitfields.
-	state->f1.fld.dr17.d17 = cm_object_get_child_by_name(state->f1.reg.dr17, "D17");
+	state->u.f1.fld.dr17.d17 = cm_object_get_child_by_name(state->u.f1.reg.dr17, "D17");
 
 	// DR18 bitfields.
-	state->f1.fld.dr18.d18 = cm_object_get_child_by_name(state->f1.reg.dr18, "D18");
+	state->u.f1.fld.dr18.d18 = cm_object_get_child_by_name(state->u.f1.reg.dr18, "D18");
 
 	// DR19 bitfields.
-	state->f1.fld.dr19.d19 = cm_object_get_child_by_name(state->f1.reg.dr19, "D19");
+	state->u.f1.fld.dr19.d19 = cm_object_get_child_by_name(state->u.f1.reg.dr19, "D19");
 
 	// DR20 bitfields.
-	state->f1.fld.dr20.d20 = cm_object_get_child_by_name(state->f1.reg.dr20, "D20");
+	state->u.f1.fld.dr20.d20 = cm_object_get_child_by_name(state->u.f1.reg.dr20, "D20");
 
 	// DR21 bitfields.
-	state->f1.fld.dr21.d21 = cm_object_get_child_by_name(state->f1.reg.dr21, "D21");
+	state->u.f1.fld.dr21.d21 = cm_object_get_child_by_name(state->u.f1.reg.dr21, "D21");
 
 	// DR22 bitfields.
-	state->f1.fld.dr22.d22 = cm_object_get_child_by_name(state->f1.reg.dr22, "D22");
+	state->u.f1.fld.dr22.d22 = cm_object_get_child_by_name(state->u.f1.reg.dr22, "D22");
 
 	// DR23 bitfields.
-	state->f1.fld.dr23.d23 = cm_object_get_child_by_name(state->f1.reg.dr23, "D23");
+	state->u.f1.fld.dr23.d23 = cm_object_get_child_by_name(state->u.f1.reg.dr23, "D23");
 
 	// DR24 bitfields.
-	state->f1.fld.dr24.d24 = cm_object_get_child_by_name(state->f1.reg.dr24, "D24");
+	state->u.f1.fld.dr24.d24 = cm_object_get_child_by_name(state->u.f1.reg.dr24, "D24");
 
 	// DR25 bitfields.
-	state->f1.fld.dr25.d25 = cm_object_get_child_by_name(state->f1.reg.dr25, "D25");
+	state->u.f1.fld.dr25.d25 = cm_object_get_child_by_name(state->u.f1.reg.dr25, "D25");
 
 	// DR26 bitfields.
-	state->f1.fld.dr26.d26 = cm_object_get_child_by_name(state->f1.reg.dr26, "D26");
+	state->u.f1.fld.dr26.d26 = cm_object_get_child_by_name(state->u.f1.reg.dr26, "D26");
 
 	// DR27 bitfields.
-	state->f1.fld.dr27.d27 = cm_object_get_child_by_name(state->f1.reg.dr27, "D27");
+	state->u.f1.fld.dr27.d27 = cm_object_get_child_by_name(state->u.f1.reg.dr27, "D27");
 
 	// DR28 bitfields.
-	state->f1.fld.dr28.d28 = cm_object_get_child_by_name(state->f1.reg.dr28, "D28");
+	state->u.f1.fld.dr28.d28 = cm_object_get_child_by_name(state->u.f1.reg.dr28, "D28");
 
 	// DR29 bitfields.
-	state->f1.fld.dr29.d29 = cm_object_get_child_by_name(state->f1.reg.dr29, "D29");
+	state->u.f1.fld.dr29.d29 = cm_object_get_child_by_name(state->u.f1.reg.dr29, "D29");
 
 	// DR30 bitfields.
-	state->f1.fld.dr30.d30 = cm_object_get_child_by_name(state->f1.reg.dr30, "D30");
+	state->u.f1.fld.dr30.d30 = cm_object_get_child_by_name(state->u.f1.reg.dr30, "D30");
 
 	// DR31 bitfields.
-	state->f1.fld.dr31.d31 = cm_object_get_child_by_name(state->f1.reg.dr31, "D31");
+	state->u.f1.fld.dr31.d31 = cm_object_get_child_by_name(state->u.f1.reg.dr31, "D31");
 
 	// DR32 bitfields.
-	state->f1.fld.dr32.d32 = cm_object_get_child_by_name(state->f1.reg.dr32, "D32");
+	state->u.f1.fld.dr32.d32 = cm_object_get_child_by_name(state->u.f1.reg.dr32, "D32");
 
 	// DR33 bitfields.
-	state->f1.fld.dr33.d33 = cm_object_get_child_by_name(state->f1.reg.dr33, "D33");
+	state->u.f1.fld.dr33.d33 = cm_object_get_child_by_name(state->u.f1.reg.dr33, "D33");
 
 	// DR34 bitfields.
-	state->f1.fld.dr34.d34 = cm_object_get_child_by_name(state->f1.reg.dr34, "D34");
+	state->u.f1.fld.dr34.d34 = cm_object_get_child_by_name(state->u.f1.reg.dr34, "D34");
 
 	// DR35 bitfields.
-	state->f1.fld.dr35.d35 = cm_object_get_child_by_name(state->f1.reg.dr35, "D35");
+	state->u.f1.fld.dr35.d35 = cm_object_get_child_by_name(state->u.f1.reg.dr35, "D35");
 
 	// DR36 bitfields.
-	state->f1.fld.dr36.d36 = cm_object_get_child_by_name(state->f1.reg.dr36, "D36");
+	state->u.f1.fld.dr36.d36 = cm_object_get_child_by_name(state->u.f1.reg.dr36, "D36");
 
 	// DR37 bitfields.
-	state->f1.fld.dr37.d37 = cm_object_get_child_by_name(state->f1.reg.dr37, "D37");
+	state->u.f1.fld.dr37.d37 = cm_object_get_child_by_name(state->u.f1.reg.dr37, "D37");
 
 	// DR38 bitfields.
-	state->f1.fld.dr38.d38 = cm_object_get_child_by_name(state->f1.reg.dr38, "D38");
+	state->u.f1.fld.dr38.d38 = cm_object_get_child_by_name(state->u.f1.reg.dr38, "D38");
 
 	// DR39 bitfields.
-	state->f1.fld.dr39.d39 = cm_object_get_child_by_name(state->f1.reg.dr39, "D39");
+	state->u.f1.fld.dr39.d39 = cm_object_get_child_by_name(state->u.f1.reg.dr39, "D39");
 
 	// DR40 bitfields.
-	state->f1.fld.dr40.d40 = cm_object_get_child_by_name(state->f1.reg.dr40, "D40");
+	state->u.f1.fld.dr40.d40 = cm_object_get_child_by_name(state->u.f1.reg.dr40, "D40");
 
 	// DR41 bitfields.
-	state->f1.fld.dr41.d41 = cm_object_get_child_by_name(state->f1.reg.dr41, "D41");
+	state->u.f1.fld.dr41.d41 = cm_object_get_child_by_name(state->u.f1.reg.dr41, "D41");
 
 	// DR42 bitfields.
-	state->f1.fld.dr42.d42 = cm_object_get_child_by_name(state->f1.reg.dr42, "D42");
+	state->u.f1.fld.dr42.d42 = cm_object_get_child_by_name(state->u.f1.reg.dr42, "D42");
 
 	// RTCCR bitfields.
-	state->f1.fld.rtccr.cal = cm_object_get_child_by_name(state->f1.reg.rtccr, "CAL");
-	state->f1.fld.rtccr.cco = cm_object_get_child_by_name(state->f1.reg.rtccr, "CCO");
-	state->f1.fld.rtccr.asoe = cm_object_get_child_by_name(state->f1.reg.rtccr, "ASOE");
-	state->f1.fld.rtccr.asos = cm_object_get_child_by_name(state->f1.reg.rtccr, "ASOS");
+	state->u.f1.fld.rtccr.cal = cm_object_get_child_by_name(state->u.f1.reg.rtccr, "CAL");
+	state->u.f1.fld.rtccr.cco = cm_object_get_child_by_name(state->u.f1.reg.rtccr, "CCO");
+	state->u.f1.fld.rtccr.asoe = cm_object_get_child_by_name(state->u.f1.reg.rtccr, "ASOE");
+	state->u.f1.fld.rtccr.asos = cm_object_get_child_by_name(state->u.f1.reg.rtccr, "ASOS");
 
 	// CR bitfields.
-	state->f1.fld.cr.tpe = cm_object_get_child_by_name(state->f1.reg.cr, "TPE");
-	state->f1.fld.cr.tpal = cm_object_get_child_by_name(state->f1.reg.cr, "TPAL");
+	state->u.f1.fld.cr.tpe = cm_object_get_child_by_name(state->u.f1.reg.cr, "TPE");
+	state->u.f1.fld.cr.tpal = cm_object_get_child_by_name(state->u.f1.reg.cr, "TPAL");
 
 	// CSR bitfields.
-	state->f1.fld.csr.cte = cm_object_get_child_by_name(state->f1.reg.csr, "CTE");
-	state->f1.fld.csr.cti = cm_object_get_child_by_name(state->f1.reg.csr, "CTI");
-	state->f1.fld.csr.tpie = cm_object_get_child_by_name(state->f1.reg.csr, "TPIE");
-	state->f1.fld.csr.tef = cm_object_get_child_by_name(state->f1.reg.csr, "TEF");
-	state->f1.fld.csr.tif = cm_object_get_child_by_name(state->f1.reg.csr, "TIF");
+	state->u.f1.fld.csr.cte = cm_object_get_child_by_name(state->u.f1.reg.csr, "CTE");
+	state->u.f1.fld.csr.cti = cm_object_get_child_by_name(state->u.f1.reg.csr, "CTI");
+	state->u.f1.fld.csr.tpie = cm_object_get_child_by_name(state->u.f1.reg.csr, "TPIE");
+	state->u.f1.fld.csr.tef = cm_object_get_child_by_name(state->u.f1.reg.csr, "TEF");
+	state->u.f1.fld.csr.tif = cm_object_get_child_by_name(state->u.f1.reg.csr, "TIF");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -3519,7 +3529,8 @@ static void stm32f103xx_bkp_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 IWDG (Independent watchdog) registers.
 		struct {
@@ -3568,23 +3579,23 @@ static void stm32f103xx_iwdg_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.kr = cm_object_get_child_by_name(obj, "KR");
-	state->f1.reg.pr = cm_object_get_child_by_name(obj, "PR");
-	state->f1.reg.rlr = cm_object_get_child_by_name(obj, "RLR");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.kr = cm_object_get_child_by_name(obj, "KR");
+	state->u.f1.reg.pr = cm_object_get_child_by_name(obj, "PR");
+	state->u.f1.reg.rlr = cm_object_get_child_by_name(obj, "RLR");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
 
 	// KR bitfields.
-	state->f1.fld.kr.key = cm_object_get_child_by_name(state->f1.reg.kr, "KEY");
+	state->u.f1.fld.kr.key = cm_object_get_child_by_name(state->u.f1.reg.kr, "KEY");
 
 	// PR bitfields.
-	state->f1.fld.pr.pr = cm_object_get_child_by_name(state->f1.reg.pr, "PR");
+	state->u.f1.fld.pr.pr = cm_object_get_child_by_name(state->u.f1.reg.pr, "PR");
 
 	// RLR bitfields.
-	state->f1.fld.rlr.rl = cm_object_get_child_by_name(state->f1.reg.rlr, "RL");
+	state->u.f1.fld.rlr.rl = cm_object_get_child_by_name(state->u.f1.reg.rlr, "RL");
 
 	// SR bitfields.
-	state->f1.fld.sr.pvu = cm_object_get_child_by_name(state->f1.reg.sr, "PVU");
-	state->f1.fld.sr.rvu = cm_object_get_child_by_name(state->f1.reg.sr, "RVU");
+	state->u.f1.fld.sr.pvu = cm_object_get_child_by_name(state->u.f1.reg.sr, "PVU");
+	state->u.f1.fld.sr.rvu = cm_object_get_child_by_name(state->u.f1.reg.sr, "RVU");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -3593,7 +3604,8 @@ static void stm32f103xx_iwdg_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 WWDG (Window watchdog) registers.
 		struct {
@@ -3638,21 +3650,21 @@ static void stm32f103xx_wwdg_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-	state->f1.reg.cfr = cm_object_get_child_by_name(obj, "CFR");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.cfr = cm_object_get_child_by_name(obj, "CFR");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
 
 	// CR bitfields.
-	state->f1.fld.cr.t = cm_object_get_child_by_name(state->f1.reg.cr, "T");
-	state->f1.fld.cr.wdga = cm_object_get_child_by_name(state->f1.reg.cr, "WDGA");
+	state->u.f1.fld.cr.t = cm_object_get_child_by_name(state->u.f1.reg.cr, "T");
+	state->u.f1.fld.cr.wdga = cm_object_get_child_by_name(state->u.f1.reg.cr, "WDGA");
 
 	// CFR bitfields.
-	state->f1.fld.cfr.w = cm_object_get_child_by_name(state->f1.reg.cfr, "W");
-	state->f1.fld.cfr.wdgtb = cm_object_get_child_by_name(state->f1.reg.cfr, "WDGTB");
-	state->f1.fld.cfr.ewi = cm_object_get_child_by_name(state->f1.reg.cfr, "EWI");
+	state->u.f1.fld.cfr.w = cm_object_get_child_by_name(state->u.f1.reg.cfr, "W");
+	state->u.f1.fld.cfr.wdgtb = cm_object_get_child_by_name(state->u.f1.reg.cfr, "WDGTB");
+	state->u.f1.fld.cfr.ewi = cm_object_get_child_by_name(state->u.f1.reg.cfr, "EWI");
 
 	// SR bitfields.
-	state->f1.fld.sr.ewi = cm_object_get_child_by_name(state->f1.reg.sr, "EWI");
+	state->u.f1.fld.sr.ewi = cm_object_get_child_by_name(state->u.f1.reg.sr, "EWI");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -3661,7 +3673,8 @@ static void stm32f103xx_wwdg_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 TIM1 (Advanced timer) registers.
 		struct {
@@ -3922,199 +3935,199 @@ static void stm32f103xx_tim1_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.smcr = cm_object_get_child_by_name(obj, "SMCR");
-	state->f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
-	state->f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
-	state->f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
-	state->f1.reg.ccmr2_output = cm_object_get_child_by_name(obj, "CCMR2_Output");
-	state->f1.reg.ccmr2_input = cm_object_get_child_by_name(obj, "CCMR2_Input");
-	state->f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
-	state->f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
-	state->f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
-	state->f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
-	state->f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
-	state->f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
-	state->f1.reg.ccr3 = cm_object_get_child_by_name(obj, "CCR3");
-	state->f1.reg.ccr4 = cm_object_get_child_by_name(obj, "CCR4");
-	state->f1.reg.dcr = cm_object_get_child_by_name(obj, "DCR");
-	state->f1.reg.dmar = cm_object_get_child_by_name(obj, "DMAR");
-	state->f1.reg.rcr = cm_object_get_child_by_name(obj, "RCR");
-	state->f1.reg.bdtr = cm_object_get_child_by_name(obj, "BDTR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.smcr = cm_object_get_child_by_name(obj, "SMCR");
+	state->u.f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
+	state->u.f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
+	state->u.f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
+	state->u.f1.reg.ccmr2_output = cm_object_get_child_by_name(obj, "CCMR2_Output");
+	state->u.f1.reg.ccmr2_input = cm_object_get_child_by_name(obj, "CCMR2_Input");
+	state->u.f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
+	state->u.f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
+	state->u.f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
+	state->u.f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
+	state->u.f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
+	state->u.f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
+	state->u.f1.reg.ccr3 = cm_object_get_child_by_name(obj, "CCR3");
+	state->u.f1.reg.ccr4 = cm_object_get_child_by_name(obj, "CCR4");
+	state->u.f1.reg.dcr = cm_object_get_child_by_name(obj, "DCR");
+	state->u.f1.reg.dmar = cm_object_get_child_by_name(obj, "DMAR");
+	state->u.f1.reg.rcr = cm_object_get_child_by_name(obj, "RCR");
+	state->u.f1.reg.bdtr = cm_object_get_child_by_name(obj, "BDTR");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.cen = cm_object_get_child_by_name(state->f1.reg.cr1, "CEN");
-	state->f1.fld.cr1.udis = cm_object_get_child_by_name(state->f1.reg.cr1, "UDIS");
-	state->f1.fld.cr1.urs = cm_object_get_child_by_name(state->f1.reg.cr1, "URS");
-	state->f1.fld.cr1.opm = cm_object_get_child_by_name(state->f1.reg.cr1, "OPM");
-	state->f1.fld.cr1.dir = cm_object_get_child_by_name(state->f1.reg.cr1, "DIR");
-	state->f1.fld.cr1.cms = cm_object_get_child_by_name(state->f1.reg.cr1, "CMS");
-	state->f1.fld.cr1.arpe = cm_object_get_child_by_name(state->f1.reg.cr1, "ARPE");
-	state->f1.fld.cr1.ckd = cm_object_get_child_by_name(state->f1.reg.cr1, "CKD");
+	state->u.f1.fld.cr1.cen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CEN");
+	state->u.f1.fld.cr1.udis = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UDIS");
+	state->u.f1.fld.cr1.urs = cm_object_get_child_by_name(state->u.f1.reg.cr1, "URS");
+	state->u.f1.fld.cr1.opm = cm_object_get_child_by_name(state->u.f1.reg.cr1, "OPM");
+	state->u.f1.fld.cr1.dir = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DIR");
+	state->u.f1.fld.cr1.cms = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CMS");
+	state->u.f1.fld.cr1.arpe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ARPE");
+	state->u.f1.fld.cr1.ckd = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CKD");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.ccpc = cm_object_get_child_by_name(state->f1.reg.cr2, "CCPC");
-	state->f1.fld.cr2.ccus = cm_object_get_child_by_name(state->f1.reg.cr2, "CCUS");
-	state->f1.fld.cr2.ccds = cm_object_get_child_by_name(state->f1.reg.cr2, "CCDS");
-	state->f1.fld.cr2.mms = cm_object_get_child_by_name(state->f1.reg.cr2, "MMS");
-	state->f1.fld.cr2.ti1s = cm_object_get_child_by_name(state->f1.reg.cr2, "TI1S");
-	state->f1.fld.cr2.ois1 = cm_object_get_child_by_name(state->f1.reg.cr2, "OIS1");
-	state->f1.fld.cr2.ois1n = cm_object_get_child_by_name(state->f1.reg.cr2, "OIS1N");
-	state->f1.fld.cr2.ois2 = cm_object_get_child_by_name(state->f1.reg.cr2, "OIS2");
-	state->f1.fld.cr2.ois2n = cm_object_get_child_by_name(state->f1.reg.cr2, "OIS2N");
-	state->f1.fld.cr2.ois3 = cm_object_get_child_by_name(state->f1.reg.cr2, "OIS3");
-	state->f1.fld.cr2.ois3n = cm_object_get_child_by_name(state->f1.reg.cr2, "OIS3N");
-	state->f1.fld.cr2.ois4 = cm_object_get_child_by_name(state->f1.reg.cr2, "OIS4");
+	state->u.f1.fld.cr2.ccpc = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CCPC");
+	state->u.f1.fld.cr2.ccus = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CCUS");
+	state->u.f1.fld.cr2.ccds = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CCDS");
+	state->u.f1.fld.cr2.mms = cm_object_get_child_by_name(state->u.f1.reg.cr2, "MMS");
+	state->u.f1.fld.cr2.ti1s = cm_object_get_child_by_name(state->u.f1.reg.cr2, "TI1S");
+	state->u.f1.fld.cr2.ois1 = cm_object_get_child_by_name(state->u.f1.reg.cr2, "OIS1");
+	state->u.f1.fld.cr2.ois1n = cm_object_get_child_by_name(state->u.f1.reg.cr2, "OIS1N");
+	state->u.f1.fld.cr2.ois2 = cm_object_get_child_by_name(state->u.f1.reg.cr2, "OIS2");
+	state->u.f1.fld.cr2.ois2n = cm_object_get_child_by_name(state->u.f1.reg.cr2, "OIS2N");
+	state->u.f1.fld.cr2.ois3 = cm_object_get_child_by_name(state->u.f1.reg.cr2, "OIS3");
+	state->u.f1.fld.cr2.ois3n = cm_object_get_child_by_name(state->u.f1.reg.cr2, "OIS3N");
+	state->u.f1.fld.cr2.ois4 = cm_object_get_child_by_name(state->u.f1.reg.cr2, "OIS4");
 
 	// SMCR bitfields.
-	state->f1.fld.smcr.sms = cm_object_get_child_by_name(state->f1.reg.smcr, "SMS");
-	state->f1.fld.smcr.ts = cm_object_get_child_by_name(state->f1.reg.smcr, "TS");
-	state->f1.fld.smcr.msm = cm_object_get_child_by_name(state->f1.reg.smcr, "MSM");
-	state->f1.fld.smcr.etf = cm_object_get_child_by_name(state->f1.reg.smcr, "ETF");
-	state->f1.fld.smcr.etps = cm_object_get_child_by_name(state->f1.reg.smcr, "ETPS");
-	state->f1.fld.smcr.ece = cm_object_get_child_by_name(state->f1.reg.smcr, "ECE");
-	state->f1.fld.smcr.etp = cm_object_get_child_by_name(state->f1.reg.smcr, "ETP");
+	state->u.f1.fld.smcr.sms = cm_object_get_child_by_name(state->u.f1.reg.smcr, "SMS");
+	state->u.f1.fld.smcr.ts = cm_object_get_child_by_name(state->u.f1.reg.smcr, "TS");
+	state->u.f1.fld.smcr.msm = cm_object_get_child_by_name(state->u.f1.reg.smcr, "MSM");
+	state->u.f1.fld.smcr.etf = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ETF");
+	state->u.f1.fld.smcr.etps = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ETPS");
+	state->u.f1.fld.smcr.ece = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ECE");
+	state->u.f1.fld.smcr.etp = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ETP");
 
 	// DIER bitfields.
-	state->f1.fld.dier.uie = cm_object_get_child_by_name(state->f1.reg.dier, "UIE");
-	state->f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC1IE");
-	state->f1.fld.dier.cc2ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC2IE");
-	state->f1.fld.dier.cc3ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC3IE");
-	state->f1.fld.dier.cc4ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC4IE");
-	state->f1.fld.dier.comie = cm_object_get_child_by_name(state->f1.reg.dier, "COMIE");
-	state->f1.fld.dier.tie = cm_object_get_child_by_name(state->f1.reg.dier, "TIE");
-	state->f1.fld.dier.bie = cm_object_get_child_by_name(state->f1.reg.dier, "BIE");
-	state->f1.fld.dier.ude = cm_object_get_child_by_name(state->f1.reg.dier, "UDE");
-	state->f1.fld.dier.cc1de = cm_object_get_child_by_name(state->f1.reg.dier, "CC1DE");
-	state->f1.fld.dier.cc2de = cm_object_get_child_by_name(state->f1.reg.dier, "CC2DE");
-	state->f1.fld.dier.cc3de = cm_object_get_child_by_name(state->f1.reg.dier, "CC3DE");
-	state->f1.fld.dier.cc4de = cm_object_get_child_by_name(state->f1.reg.dier, "CC4DE");
-	state->f1.fld.dier.comde = cm_object_get_child_by_name(state->f1.reg.dier, "COMDE");
-	state->f1.fld.dier.tde = cm_object_get_child_by_name(state->f1.reg.dier, "TDE");
+	state->u.f1.fld.dier.uie = cm_object_get_child_by_name(state->u.f1.reg.dier, "UIE");
+	state->u.f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC1IE");
+	state->u.f1.fld.dier.cc2ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC2IE");
+	state->u.f1.fld.dier.cc3ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC3IE");
+	state->u.f1.fld.dier.cc4ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC4IE");
+	state->u.f1.fld.dier.comie = cm_object_get_child_by_name(state->u.f1.reg.dier, "COMIE");
+	state->u.f1.fld.dier.tie = cm_object_get_child_by_name(state->u.f1.reg.dier, "TIE");
+	state->u.f1.fld.dier.bie = cm_object_get_child_by_name(state->u.f1.reg.dier, "BIE");
+	state->u.f1.fld.dier.ude = cm_object_get_child_by_name(state->u.f1.reg.dier, "UDE");
+	state->u.f1.fld.dier.cc1de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC1DE");
+	state->u.f1.fld.dier.cc2de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC2DE");
+	state->u.f1.fld.dier.cc3de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC3DE");
+	state->u.f1.fld.dier.cc4de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC4DE");
+	state->u.f1.fld.dier.comde = cm_object_get_child_by_name(state->u.f1.reg.dier, "COMDE");
+	state->u.f1.fld.dier.tde = cm_object_get_child_by_name(state->u.f1.reg.dier, "TDE");
 
 	// SR bitfields.
-	state->f1.fld.sr.uif = cm_object_get_child_by_name(state->f1.reg.sr, "UIF");
-	state->f1.fld.sr.cc1if = cm_object_get_child_by_name(state->f1.reg.sr, "CC1IF");
-	state->f1.fld.sr.cc2if = cm_object_get_child_by_name(state->f1.reg.sr, "CC2IF");
-	state->f1.fld.sr.cc3if = cm_object_get_child_by_name(state->f1.reg.sr, "CC3IF");
-	state->f1.fld.sr.cc4if = cm_object_get_child_by_name(state->f1.reg.sr, "CC4IF");
-	state->f1.fld.sr.comif = cm_object_get_child_by_name(state->f1.reg.sr, "COMIF");
-	state->f1.fld.sr.tif = cm_object_get_child_by_name(state->f1.reg.sr, "TIF");
-	state->f1.fld.sr.bif = cm_object_get_child_by_name(state->f1.reg.sr, "BIF");
-	state->f1.fld.sr.cc1of = cm_object_get_child_by_name(state->f1.reg.sr, "CC1OF");
-	state->f1.fld.sr.cc2of = cm_object_get_child_by_name(state->f1.reg.sr, "CC2OF");
-	state->f1.fld.sr.cc3of = cm_object_get_child_by_name(state->f1.reg.sr, "CC3OF");
-	state->f1.fld.sr.cc4of = cm_object_get_child_by_name(state->f1.reg.sr, "CC4OF");
+	state->u.f1.fld.sr.uif = cm_object_get_child_by_name(state->u.f1.reg.sr, "UIF");
+	state->u.f1.fld.sr.cc1if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1IF");
+	state->u.f1.fld.sr.cc2if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC2IF");
+	state->u.f1.fld.sr.cc3if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC3IF");
+	state->u.f1.fld.sr.cc4if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC4IF");
+	state->u.f1.fld.sr.comif = cm_object_get_child_by_name(state->u.f1.reg.sr, "COMIF");
+	state->u.f1.fld.sr.tif = cm_object_get_child_by_name(state->u.f1.reg.sr, "TIF");
+	state->u.f1.fld.sr.bif = cm_object_get_child_by_name(state->u.f1.reg.sr, "BIF");
+	state->u.f1.fld.sr.cc1of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1OF");
+	state->u.f1.fld.sr.cc2of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC2OF");
+	state->u.f1.fld.sr.cc3of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC3OF");
+	state->u.f1.fld.sr.cc4of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC4OF");
 
 	// EGR bitfields.
-	state->f1.fld.egr.ug = cm_object_get_child_by_name(state->f1.reg.egr, "UG");
-	state->f1.fld.egr.cc1g = cm_object_get_child_by_name(state->f1.reg.egr, "CC1G");
-	state->f1.fld.egr.cc2g = cm_object_get_child_by_name(state->f1.reg.egr, "CC2G");
-	state->f1.fld.egr.cc3g = cm_object_get_child_by_name(state->f1.reg.egr, "CC3G");
-	state->f1.fld.egr.cc4g = cm_object_get_child_by_name(state->f1.reg.egr, "CC4G");
-	state->f1.fld.egr.comg = cm_object_get_child_by_name(state->f1.reg.egr, "COMG");
-	state->f1.fld.egr.tg = cm_object_get_child_by_name(state->f1.reg.egr, "TG");
-	state->f1.fld.egr.bg = cm_object_get_child_by_name(state->f1.reg.egr, "BG");
+	state->u.f1.fld.egr.ug = cm_object_get_child_by_name(state->u.f1.reg.egr, "UG");
+	state->u.f1.fld.egr.cc1g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC1G");
+	state->u.f1.fld.egr.cc2g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC2G");
+	state->u.f1.fld.egr.cc3g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC3G");
+	state->u.f1.fld.egr.cc4g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC4G");
+	state->u.f1.fld.egr.comg = cm_object_get_child_by_name(state->u.f1.reg.egr, "COMG");
+	state->u.f1.fld.egr.tg = cm_object_get_child_by_name(state->u.f1.reg.egr, "TG");
+	state->u.f1.fld.egr.bg = cm_object_get_child_by_name(state->u.f1.reg.egr, "BG");
 
 	// CCMR1_Output bitfields.
-	state->f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "CC1S");
-	state->f1.fld.ccmr1_output.oc1fe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1FE");
-	state->f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1PE");
-	state->f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1M");
-	state->f1.fld.ccmr1_output.oc1ce = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1CE");
-	state->f1.fld.ccmr1_output.cc2s = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "CC2S");
-	state->f1.fld.ccmr1_output.oc2fe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2FE");
-	state->f1.fld.ccmr1_output.oc2pe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2PE");
-	state->f1.fld.ccmr1_output.oc2m = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2M");
-	state->f1.fld.ccmr1_output.oc2ce = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2CE");
+	state->u.f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "CC1S");
+	state->u.f1.fld.ccmr1_output.oc1fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1FE");
+	state->u.f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1PE");
+	state->u.f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1M");
+	state->u.f1.fld.ccmr1_output.oc1ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1CE");
+	state->u.f1.fld.ccmr1_output.cc2s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "CC2S");
+	state->u.f1.fld.ccmr1_output.oc2fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2FE");
+	state->u.f1.fld.ccmr1_output.oc2pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2PE");
+	state->u.f1.fld.ccmr1_output.oc2m = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2M");
+	state->u.f1.fld.ccmr1_output.oc2ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2CE");
 
 	// CCMR1_Input bitfields.
-	state->f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "CC1S");
-	state->f1.fld.ccmr1_input.icpcs = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "ICPCS");
-	state->f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC1F");
-	state->f1.fld.ccmr1_input.cc2s = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "CC2S");
-	state->f1.fld.ccmr1_input.ic2pcs = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC2PCS");
-	state->f1.fld.ccmr1_input.ic2f = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC2F");
+	state->u.f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "CC1S");
+	state->u.f1.fld.ccmr1_input.icpcs = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "ICPCS");
+	state->u.f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC1F");
+	state->u.f1.fld.ccmr1_input.cc2s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "CC2S");
+	state->u.f1.fld.ccmr1_input.ic2pcs = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC2PCS");
+	state->u.f1.fld.ccmr1_input.ic2f = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC2F");
 
 	// CCMR2_Output bitfields.
-	state->f1.fld.ccmr2_output.cc3s = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "CC3S");
-	state->f1.fld.ccmr2_output.oc3fe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3FE");
-	state->f1.fld.ccmr2_output.oc3pe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3PE");
-	state->f1.fld.ccmr2_output.oc3m = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3M");
-	state->f1.fld.ccmr2_output.oc3ce = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3CE");
-	state->f1.fld.ccmr2_output.cc4s = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "CC4S");
-	state->f1.fld.ccmr2_output.oc4fe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC4FE");
-	state->f1.fld.ccmr2_output.oc4pe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC4PE");
-	state->f1.fld.ccmr2_output.oc4m = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC4M");
-	state->f1.fld.ccmr2_output.oc4ce = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC4CE");
+	state->u.f1.fld.ccmr2_output.cc3s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "CC3S");
+	state->u.f1.fld.ccmr2_output.oc3fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3FE");
+	state->u.f1.fld.ccmr2_output.oc3pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3PE");
+	state->u.f1.fld.ccmr2_output.oc3m = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3M");
+	state->u.f1.fld.ccmr2_output.oc3ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3CE");
+	state->u.f1.fld.ccmr2_output.cc4s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "CC4S");
+	state->u.f1.fld.ccmr2_output.oc4fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC4FE");
+	state->u.f1.fld.ccmr2_output.oc4pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC4PE");
+	state->u.f1.fld.ccmr2_output.oc4m = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC4M");
+	state->u.f1.fld.ccmr2_output.oc4ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC4CE");
 
 	// CCMR2_Input bitfields.
-	state->f1.fld.ccmr2_input.cc3s = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "CC3S");
-	state->f1.fld.ccmr2_input.ic3psc = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC3PSC");
-	state->f1.fld.ccmr2_input.ic3f = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC3F");
-	state->f1.fld.ccmr2_input.cc4s = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "CC4S");
-	state->f1.fld.ccmr2_input.ic4psc = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC4PSC");
-	state->f1.fld.ccmr2_input.ic4f = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC4F");
+	state->u.f1.fld.ccmr2_input.cc3s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "CC3S");
+	state->u.f1.fld.ccmr2_input.ic3psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC3PSC");
+	state->u.f1.fld.ccmr2_input.ic3f = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC3F");
+	state->u.f1.fld.ccmr2_input.cc4s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "CC4S");
+	state->u.f1.fld.ccmr2_input.ic4psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC4PSC");
+	state->u.f1.fld.ccmr2_input.ic4f = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC4F");
 
 	// CCER bitfields.
-	state->f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1E");
-	state->f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1P");
-	state->f1.fld.ccer.cc1ne = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1NE");
-	state->f1.fld.ccer.cc1np = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1NP");
-	state->f1.fld.ccer.cc2e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2E");
-	state->f1.fld.ccer.cc2p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2P");
-	state->f1.fld.ccer.cc2ne = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2NE");
-	state->f1.fld.ccer.cc2np = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2NP");
-	state->f1.fld.ccer.cc3e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC3E");
-	state->f1.fld.ccer.cc3p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC3P");
-	state->f1.fld.ccer.cc3ne = cm_object_get_child_by_name(state->f1.reg.ccer, "CC3NE");
-	state->f1.fld.ccer.cc3np = cm_object_get_child_by_name(state->f1.reg.ccer, "CC3NP");
-	state->f1.fld.ccer.cc4e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC4E");
-	state->f1.fld.ccer.cc4p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC4P");
+	state->u.f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1E");
+	state->u.f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1P");
+	state->u.f1.fld.ccer.cc1ne = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1NE");
+	state->u.f1.fld.ccer.cc1np = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1NP");
+	state->u.f1.fld.ccer.cc2e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2E");
+	state->u.f1.fld.ccer.cc2p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2P");
+	state->u.f1.fld.ccer.cc2ne = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2NE");
+	state->u.f1.fld.ccer.cc2np = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2NP");
+	state->u.f1.fld.ccer.cc3e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC3E");
+	state->u.f1.fld.ccer.cc3p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC3P");
+	state->u.f1.fld.ccer.cc3ne = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC3NE");
+	state->u.f1.fld.ccer.cc3np = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC3NP");
+	state->u.f1.fld.ccer.cc4e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC4E");
+	state->u.f1.fld.ccer.cc4p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC4P");
 
 	// CNT bitfields.
-	state->f1.fld.cnt.cnt = cm_object_get_child_by_name(state->f1.reg.cnt, "CNT");
+	state->u.f1.fld.cnt.cnt = cm_object_get_child_by_name(state->u.f1.reg.cnt, "CNT");
 
 	// PSC bitfields.
-	state->f1.fld.psc.psc = cm_object_get_child_by_name(state->f1.reg.psc, "PSC");
+	state->u.f1.fld.psc.psc = cm_object_get_child_by_name(state->u.f1.reg.psc, "PSC");
 
 	// ARR bitfields.
-	state->f1.fld.arr.arr = cm_object_get_child_by_name(state->f1.reg.arr, "ARR");
+	state->u.f1.fld.arr.arr = cm_object_get_child_by_name(state->u.f1.reg.arr, "ARR");
 
 	// CCR1 bitfields.
-	state->f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->f1.reg.ccr1, "CCR1");
+	state->u.f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "CCR1");
 
 	// CCR2 bitfields.
-	state->f1.fld.ccr2.ccr2 = cm_object_get_child_by_name(state->f1.reg.ccr2, "CCR2");
+	state->u.f1.fld.ccr2.ccr2 = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "CCR2");
 
 	// CCR3 bitfields.
-	state->f1.fld.ccr3.ccr3 = cm_object_get_child_by_name(state->f1.reg.ccr3, "CCR3");
+	state->u.f1.fld.ccr3.ccr3 = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "CCR3");
 
 	// CCR4 bitfields.
-	state->f1.fld.ccr4.ccr4 = cm_object_get_child_by_name(state->f1.reg.ccr4, "CCR4");
+	state->u.f1.fld.ccr4.ccr4 = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "CCR4");
 
 	// DCR bitfields.
-	state->f1.fld.dcr.dba = cm_object_get_child_by_name(state->f1.reg.dcr, "DBA");
-	state->f1.fld.dcr.dbl = cm_object_get_child_by_name(state->f1.reg.dcr, "DBL");
+	state->u.f1.fld.dcr.dba = cm_object_get_child_by_name(state->u.f1.reg.dcr, "DBA");
+	state->u.f1.fld.dcr.dbl = cm_object_get_child_by_name(state->u.f1.reg.dcr, "DBL");
 
 	// DMAR bitfields.
-	state->f1.fld.dmar.dmab = cm_object_get_child_by_name(state->f1.reg.dmar, "DMAB");
+	state->u.f1.fld.dmar.dmab = cm_object_get_child_by_name(state->u.f1.reg.dmar, "DMAB");
 
 	// RCR bitfields.
-	state->f1.fld.rcr.rep = cm_object_get_child_by_name(state->f1.reg.rcr, "REP");
+	state->u.f1.fld.rcr.rep = cm_object_get_child_by_name(state->u.f1.reg.rcr, "REP");
 
 	// BDTR bitfields.
-	state->f1.fld.bdtr.dtg = cm_object_get_child_by_name(state->f1.reg.bdtr, "DTG");
-	state->f1.fld.bdtr.lock = cm_object_get_child_by_name(state->f1.reg.bdtr, "LOCK");
-	state->f1.fld.bdtr.ossi = cm_object_get_child_by_name(state->f1.reg.bdtr, "OSSI");
-	state->f1.fld.bdtr.ossr = cm_object_get_child_by_name(state->f1.reg.bdtr, "OSSR");
-	state->f1.fld.bdtr.bke = cm_object_get_child_by_name(state->f1.reg.bdtr, "BKE");
-	state->f1.fld.bdtr.bkp = cm_object_get_child_by_name(state->f1.reg.bdtr, "BKP");
-	state->f1.fld.bdtr.aoe = cm_object_get_child_by_name(state->f1.reg.bdtr, "AOE");
-	state->f1.fld.bdtr.moe = cm_object_get_child_by_name(state->f1.reg.bdtr, "MOE");
+	state->u.f1.fld.bdtr.dtg = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "DTG");
+	state->u.f1.fld.bdtr.lock = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "LOCK");
+	state->u.f1.fld.bdtr.ossi = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "OSSI");
+	state->u.f1.fld.bdtr.ossr = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "OSSR");
+	state->u.f1.fld.bdtr.bke = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "BKE");
+	state->u.f1.fld.bdtr.bkp = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "BKP");
+	state->u.f1.fld.bdtr.aoe = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "AOE");
+	state->u.f1.fld.bdtr.moe = cm_object_get_child_by_name(state->u.f1.reg.bdtr, "MOE");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -4123,7 +4136,8 @@ static void stm32f103xx_tim1_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 TIM2 (General purpose timer) registers.
 		struct {
@@ -4343,162 +4357,162 @@ static void stm32f103xx_tim2_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.smcr = cm_object_get_child_by_name(obj, "SMCR");
-	state->f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
-	state->f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
-	state->f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
-	state->f1.reg.ccmr2_output = cm_object_get_child_by_name(obj, "CCMR2_Output");
-	state->f1.reg.ccmr2_input = cm_object_get_child_by_name(obj, "CCMR2_Input");
-	state->f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
-	state->f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
-	state->f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
-	state->f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
-	state->f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
-	state->f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
-	state->f1.reg.ccr3 = cm_object_get_child_by_name(obj, "CCR3");
-	state->f1.reg.ccr4 = cm_object_get_child_by_name(obj, "CCR4");
-	state->f1.reg.dcr = cm_object_get_child_by_name(obj, "DCR");
-	state->f1.reg.dmar = cm_object_get_child_by_name(obj, "DMAR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.smcr = cm_object_get_child_by_name(obj, "SMCR");
+	state->u.f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
+	state->u.f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
+	state->u.f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
+	state->u.f1.reg.ccmr2_output = cm_object_get_child_by_name(obj, "CCMR2_Output");
+	state->u.f1.reg.ccmr2_input = cm_object_get_child_by_name(obj, "CCMR2_Input");
+	state->u.f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
+	state->u.f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
+	state->u.f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
+	state->u.f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
+	state->u.f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
+	state->u.f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
+	state->u.f1.reg.ccr3 = cm_object_get_child_by_name(obj, "CCR3");
+	state->u.f1.reg.ccr4 = cm_object_get_child_by_name(obj, "CCR4");
+	state->u.f1.reg.dcr = cm_object_get_child_by_name(obj, "DCR");
+	state->u.f1.reg.dmar = cm_object_get_child_by_name(obj, "DMAR");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.cen = cm_object_get_child_by_name(state->f1.reg.cr1, "CEN");
-	state->f1.fld.cr1.udis = cm_object_get_child_by_name(state->f1.reg.cr1, "UDIS");
-	state->f1.fld.cr1.urs = cm_object_get_child_by_name(state->f1.reg.cr1, "URS");
-	state->f1.fld.cr1.opm = cm_object_get_child_by_name(state->f1.reg.cr1, "OPM");
-	state->f1.fld.cr1.dir = cm_object_get_child_by_name(state->f1.reg.cr1, "DIR");
-	state->f1.fld.cr1.cms = cm_object_get_child_by_name(state->f1.reg.cr1, "CMS");
-	state->f1.fld.cr1.arpe = cm_object_get_child_by_name(state->f1.reg.cr1, "ARPE");
-	state->f1.fld.cr1.ckd = cm_object_get_child_by_name(state->f1.reg.cr1, "CKD");
+	state->u.f1.fld.cr1.cen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CEN");
+	state->u.f1.fld.cr1.udis = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UDIS");
+	state->u.f1.fld.cr1.urs = cm_object_get_child_by_name(state->u.f1.reg.cr1, "URS");
+	state->u.f1.fld.cr1.opm = cm_object_get_child_by_name(state->u.f1.reg.cr1, "OPM");
+	state->u.f1.fld.cr1.dir = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DIR");
+	state->u.f1.fld.cr1.cms = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CMS");
+	state->u.f1.fld.cr1.arpe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ARPE");
+	state->u.f1.fld.cr1.ckd = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CKD");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.ccds = cm_object_get_child_by_name(state->f1.reg.cr2, "CCDS");
-	state->f1.fld.cr2.mms = cm_object_get_child_by_name(state->f1.reg.cr2, "MMS");
-	state->f1.fld.cr2.ti1s = cm_object_get_child_by_name(state->f1.reg.cr2, "TI1S");
+	state->u.f1.fld.cr2.ccds = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CCDS");
+	state->u.f1.fld.cr2.mms = cm_object_get_child_by_name(state->u.f1.reg.cr2, "MMS");
+	state->u.f1.fld.cr2.ti1s = cm_object_get_child_by_name(state->u.f1.reg.cr2, "TI1S");
 
 	// SMCR bitfields.
-	state->f1.fld.smcr.sms = cm_object_get_child_by_name(state->f1.reg.smcr, "SMS");
-	state->f1.fld.smcr.ts = cm_object_get_child_by_name(state->f1.reg.smcr, "TS");
-	state->f1.fld.smcr.msm = cm_object_get_child_by_name(state->f1.reg.smcr, "MSM");
-	state->f1.fld.smcr.etf = cm_object_get_child_by_name(state->f1.reg.smcr, "ETF");
-	state->f1.fld.smcr.etps = cm_object_get_child_by_name(state->f1.reg.smcr, "ETPS");
-	state->f1.fld.smcr.ece = cm_object_get_child_by_name(state->f1.reg.smcr, "ECE");
-	state->f1.fld.smcr.etp = cm_object_get_child_by_name(state->f1.reg.smcr, "ETP");
+	state->u.f1.fld.smcr.sms = cm_object_get_child_by_name(state->u.f1.reg.smcr, "SMS");
+	state->u.f1.fld.smcr.ts = cm_object_get_child_by_name(state->u.f1.reg.smcr, "TS");
+	state->u.f1.fld.smcr.msm = cm_object_get_child_by_name(state->u.f1.reg.smcr, "MSM");
+	state->u.f1.fld.smcr.etf = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ETF");
+	state->u.f1.fld.smcr.etps = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ETPS");
+	state->u.f1.fld.smcr.ece = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ECE");
+	state->u.f1.fld.smcr.etp = cm_object_get_child_by_name(state->u.f1.reg.smcr, "ETP");
 
 	// DIER bitfields.
-	state->f1.fld.dier.uie = cm_object_get_child_by_name(state->f1.reg.dier, "UIE");
-	state->f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC1IE");
-	state->f1.fld.dier.cc2ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC2IE");
-	state->f1.fld.dier.cc3ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC3IE");
-	state->f1.fld.dier.cc4ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC4IE");
-	state->f1.fld.dier.tie = cm_object_get_child_by_name(state->f1.reg.dier, "TIE");
-	state->f1.fld.dier.ude = cm_object_get_child_by_name(state->f1.reg.dier, "UDE");
-	state->f1.fld.dier.cc1de = cm_object_get_child_by_name(state->f1.reg.dier, "CC1DE");
-	state->f1.fld.dier.cc2de = cm_object_get_child_by_name(state->f1.reg.dier, "CC2DE");
-	state->f1.fld.dier.cc3de = cm_object_get_child_by_name(state->f1.reg.dier, "CC3DE");
-	state->f1.fld.dier.cc4de = cm_object_get_child_by_name(state->f1.reg.dier, "CC4DE");
-	state->f1.fld.dier.tde = cm_object_get_child_by_name(state->f1.reg.dier, "TDE");
+	state->u.f1.fld.dier.uie = cm_object_get_child_by_name(state->u.f1.reg.dier, "UIE");
+	state->u.f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC1IE");
+	state->u.f1.fld.dier.cc2ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC2IE");
+	state->u.f1.fld.dier.cc3ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC3IE");
+	state->u.f1.fld.dier.cc4ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC4IE");
+	state->u.f1.fld.dier.tie = cm_object_get_child_by_name(state->u.f1.reg.dier, "TIE");
+	state->u.f1.fld.dier.ude = cm_object_get_child_by_name(state->u.f1.reg.dier, "UDE");
+	state->u.f1.fld.dier.cc1de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC1DE");
+	state->u.f1.fld.dier.cc2de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC2DE");
+	state->u.f1.fld.dier.cc3de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC3DE");
+	state->u.f1.fld.dier.cc4de = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC4DE");
+	state->u.f1.fld.dier.tde = cm_object_get_child_by_name(state->u.f1.reg.dier, "TDE");
 
 	// SR bitfields.
-	state->f1.fld.sr.uif = cm_object_get_child_by_name(state->f1.reg.sr, "UIF");
-	state->f1.fld.sr.cc1if = cm_object_get_child_by_name(state->f1.reg.sr, "CC1IF");
-	state->f1.fld.sr.cc2if = cm_object_get_child_by_name(state->f1.reg.sr, "CC2IF");
-	state->f1.fld.sr.cc3if = cm_object_get_child_by_name(state->f1.reg.sr, "CC3IF");
-	state->f1.fld.sr.cc4if = cm_object_get_child_by_name(state->f1.reg.sr, "CC4IF");
-	state->f1.fld.sr.tif = cm_object_get_child_by_name(state->f1.reg.sr, "TIF");
-	state->f1.fld.sr.cc1of = cm_object_get_child_by_name(state->f1.reg.sr, "CC1OF");
-	state->f1.fld.sr.cc2of = cm_object_get_child_by_name(state->f1.reg.sr, "CC2OF");
-	state->f1.fld.sr.cc3of = cm_object_get_child_by_name(state->f1.reg.sr, "CC3OF");
-	state->f1.fld.sr.cc4of = cm_object_get_child_by_name(state->f1.reg.sr, "CC4OF");
+	state->u.f1.fld.sr.uif = cm_object_get_child_by_name(state->u.f1.reg.sr, "UIF");
+	state->u.f1.fld.sr.cc1if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1IF");
+	state->u.f1.fld.sr.cc2if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC2IF");
+	state->u.f1.fld.sr.cc3if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC3IF");
+	state->u.f1.fld.sr.cc4if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC4IF");
+	state->u.f1.fld.sr.tif = cm_object_get_child_by_name(state->u.f1.reg.sr, "TIF");
+	state->u.f1.fld.sr.cc1of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1OF");
+	state->u.f1.fld.sr.cc2of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC2OF");
+	state->u.f1.fld.sr.cc3of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC3OF");
+	state->u.f1.fld.sr.cc4of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC4OF");
 
 	// EGR bitfields.
-	state->f1.fld.egr.ug = cm_object_get_child_by_name(state->f1.reg.egr, "UG");
-	state->f1.fld.egr.cc1g = cm_object_get_child_by_name(state->f1.reg.egr, "CC1G");
-	state->f1.fld.egr.cc2g = cm_object_get_child_by_name(state->f1.reg.egr, "CC2G");
-	state->f1.fld.egr.cc3g = cm_object_get_child_by_name(state->f1.reg.egr, "CC3G");
-	state->f1.fld.egr.cc4g = cm_object_get_child_by_name(state->f1.reg.egr, "CC4G");
-	state->f1.fld.egr.tg = cm_object_get_child_by_name(state->f1.reg.egr, "TG");
+	state->u.f1.fld.egr.ug = cm_object_get_child_by_name(state->u.f1.reg.egr, "UG");
+	state->u.f1.fld.egr.cc1g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC1G");
+	state->u.f1.fld.egr.cc2g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC2G");
+	state->u.f1.fld.egr.cc3g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC3G");
+	state->u.f1.fld.egr.cc4g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC4G");
+	state->u.f1.fld.egr.tg = cm_object_get_child_by_name(state->u.f1.reg.egr, "TG");
 
 	// CCMR1_Output bitfields.
-	state->f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "CC1S");
-	state->f1.fld.ccmr1_output.oc1fe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1FE");
-	state->f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1PE");
-	state->f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1M");
-	state->f1.fld.ccmr1_output.oc1ce = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1CE");
-	state->f1.fld.ccmr1_output.cc2s = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "CC2S");
-	state->f1.fld.ccmr1_output.oc2fe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2FE");
-	state->f1.fld.ccmr1_output.oc2pe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2PE");
-	state->f1.fld.ccmr1_output.oc2m = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2M");
-	state->f1.fld.ccmr1_output.oc2ce = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2CE");
+	state->u.f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "CC1S");
+	state->u.f1.fld.ccmr1_output.oc1fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1FE");
+	state->u.f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1PE");
+	state->u.f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1M");
+	state->u.f1.fld.ccmr1_output.oc1ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1CE");
+	state->u.f1.fld.ccmr1_output.cc2s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "CC2S");
+	state->u.f1.fld.ccmr1_output.oc2fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2FE");
+	state->u.f1.fld.ccmr1_output.oc2pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2PE");
+	state->u.f1.fld.ccmr1_output.oc2m = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2M");
+	state->u.f1.fld.ccmr1_output.oc2ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2CE");
 
 	// CCMR1_Input bitfields.
-	state->f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "CC1S");
-	state->f1.fld.ccmr1_input.ic1psc = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC1PSC");
-	state->f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC1F");
-	state->f1.fld.ccmr1_input.cc2s = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "CC2S");
-	state->f1.fld.ccmr1_input.ic2psc = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC2PSC");
-	state->f1.fld.ccmr1_input.ic2f = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC2F");
+	state->u.f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "CC1S");
+	state->u.f1.fld.ccmr1_input.ic1psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC1PSC");
+	state->u.f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC1F");
+	state->u.f1.fld.ccmr1_input.cc2s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "CC2S");
+	state->u.f1.fld.ccmr1_input.ic2psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC2PSC");
+	state->u.f1.fld.ccmr1_input.ic2f = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC2F");
 
 	// CCMR2_Output bitfields.
-	state->f1.fld.ccmr2_output.cc3s = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "CC3S");
-	state->f1.fld.ccmr2_output.oc3fe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3FE");
-	state->f1.fld.ccmr2_output.oc3pe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3PE");
-	state->f1.fld.ccmr2_output.oc3m = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3M");
-	state->f1.fld.ccmr2_output.oc3ce = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC3CE");
-	state->f1.fld.ccmr2_output.cc4s = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "CC4S");
-	state->f1.fld.ccmr2_output.oc4fe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC4FE");
-	state->f1.fld.ccmr2_output.oc4pe = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC4PE");
-	state->f1.fld.ccmr2_output.oc4m = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "OC4M");
-	state->f1.fld.ccmr2_output.o24ce = cm_object_get_child_by_name(state->f1.reg.ccmr2_output, "O24CE");
+	state->u.f1.fld.ccmr2_output.cc3s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "CC3S");
+	state->u.f1.fld.ccmr2_output.oc3fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3FE");
+	state->u.f1.fld.ccmr2_output.oc3pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3PE");
+	state->u.f1.fld.ccmr2_output.oc3m = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3M");
+	state->u.f1.fld.ccmr2_output.oc3ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC3CE");
+	state->u.f1.fld.ccmr2_output.cc4s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "CC4S");
+	state->u.f1.fld.ccmr2_output.oc4fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC4FE");
+	state->u.f1.fld.ccmr2_output.oc4pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC4PE");
+	state->u.f1.fld.ccmr2_output.oc4m = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "OC4M");
+	state->u.f1.fld.ccmr2_output.o24ce = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_output, "O24CE");
 
 	// CCMR2_Input bitfields.
-	state->f1.fld.ccmr2_input.cc3s = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "CC3S");
-	state->f1.fld.ccmr2_input.ic3psc = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC3PSC");
-	state->f1.fld.ccmr2_input.ic3f = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC3F");
-	state->f1.fld.ccmr2_input.cc4s = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "CC4S");
-	state->f1.fld.ccmr2_input.ic4psc = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC4PSC");
-	state->f1.fld.ccmr2_input.ic4f = cm_object_get_child_by_name(state->f1.reg.ccmr2_input, "IC4F");
+	state->u.f1.fld.ccmr2_input.cc3s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "CC3S");
+	state->u.f1.fld.ccmr2_input.ic3psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC3PSC");
+	state->u.f1.fld.ccmr2_input.ic3f = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC3F");
+	state->u.f1.fld.ccmr2_input.cc4s = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "CC4S");
+	state->u.f1.fld.ccmr2_input.ic4psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC4PSC");
+	state->u.f1.fld.ccmr2_input.ic4f = cm_object_get_child_by_name(state->u.f1.reg.ccmr2_input, "IC4F");
 
 	// CCER bitfields.
-	state->f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1E");
-	state->f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1P");
-	state->f1.fld.ccer.cc2e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2E");
-	state->f1.fld.ccer.cc2p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2P");
-	state->f1.fld.ccer.cc3e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC3E");
-	state->f1.fld.ccer.cc3p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC3P");
-	state->f1.fld.ccer.cc4e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC4E");
-	state->f1.fld.ccer.cc4p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC4P");
+	state->u.f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1E");
+	state->u.f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1P");
+	state->u.f1.fld.ccer.cc2e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2E");
+	state->u.f1.fld.ccer.cc2p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2P");
+	state->u.f1.fld.ccer.cc3e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC3E");
+	state->u.f1.fld.ccer.cc3p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC3P");
+	state->u.f1.fld.ccer.cc4e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC4E");
+	state->u.f1.fld.ccer.cc4p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC4P");
 
 	// CNT bitfields.
-	state->f1.fld.cnt.cnt = cm_object_get_child_by_name(state->f1.reg.cnt, "CNT");
+	state->u.f1.fld.cnt.cnt = cm_object_get_child_by_name(state->u.f1.reg.cnt, "CNT");
 
 	// PSC bitfields.
-	state->f1.fld.psc.psc = cm_object_get_child_by_name(state->f1.reg.psc, "PSC");
+	state->u.f1.fld.psc.psc = cm_object_get_child_by_name(state->u.f1.reg.psc, "PSC");
 
 	// ARR bitfields.
-	state->f1.fld.arr.arr = cm_object_get_child_by_name(state->f1.reg.arr, "ARR");
+	state->u.f1.fld.arr.arr = cm_object_get_child_by_name(state->u.f1.reg.arr, "ARR");
 
 	// CCR1 bitfields.
-	state->f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->f1.reg.ccr1, "CCR1");
+	state->u.f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "CCR1");
 
 	// CCR2 bitfields.
-	state->f1.fld.ccr2.ccr2 = cm_object_get_child_by_name(state->f1.reg.ccr2, "CCR2");
+	state->u.f1.fld.ccr2.ccr2 = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "CCR2");
 
 	// CCR3 bitfields.
-	state->f1.fld.ccr3.ccr3 = cm_object_get_child_by_name(state->f1.reg.ccr3, "CCR3");
+	state->u.f1.fld.ccr3.ccr3 = cm_object_get_child_by_name(state->u.f1.reg.ccr3, "CCR3");
 
 	// CCR4 bitfields.
-	state->f1.fld.ccr4.ccr4 = cm_object_get_child_by_name(state->f1.reg.ccr4, "CCR4");
+	state->u.f1.fld.ccr4.ccr4 = cm_object_get_child_by_name(state->u.f1.reg.ccr4, "CCR4");
 
 	// DCR bitfields.
-	state->f1.fld.dcr.dba = cm_object_get_child_by_name(state->f1.reg.dcr, "DBA");
-	state->f1.fld.dcr.dbl = cm_object_get_child_by_name(state->f1.reg.dcr, "DBL");
+	state->u.f1.fld.dcr.dba = cm_object_get_child_by_name(state->u.f1.reg.dcr, "DBA");
+	state->u.f1.fld.dcr.dbl = cm_object_get_child_by_name(state->u.f1.reg.dcr, "DBL");
 
 	// DMAR bitfields.
-	state->f1.fld.dmar.dmab = cm_object_get_child_by_name(state->f1.reg.dmar, "DMAB");
+	state->u.f1.fld.dmar.dmab = cm_object_get_child_by_name(state->u.f1.reg.dmar, "DMAB");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -4507,7 +4521,8 @@ static void stm32f103xx_tim2_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 TIM9 (General purpose timer) registers.
 		struct {
@@ -4650,97 +4665,97 @@ static void stm32f103xx_tim9_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.smcr = cm_object_get_child_by_name(obj, "SMCR");
-	state->f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
-	state->f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
-	state->f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
-	state->f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
-	state->f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
-	state->f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
-	state->f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
-	state->f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
-	state->f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.smcr = cm_object_get_child_by_name(obj, "SMCR");
+	state->u.f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
+	state->u.f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
+	state->u.f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
+	state->u.f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
+	state->u.f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
+	state->u.f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
+	state->u.f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
+	state->u.f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
+	state->u.f1.reg.ccr2 = cm_object_get_child_by_name(obj, "CCR2");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.cen = cm_object_get_child_by_name(state->f1.reg.cr1, "CEN");
-	state->f1.fld.cr1.udis = cm_object_get_child_by_name(state->f1.reg.cr1, "UDIS");
-	state->f1.fld.cr1.urs = cm_object_get_child_by_name(state->f1.reg.cr1, "URS");
-	state->f1.fld.cr1.opm = cm_object_get_child_by_name(state->f1.reg.cr1, "OPM");
-	state->f1.fld.cr1.arpe = cm_object_get_child_by_name(state->f1.reg.cr1, "ARPE");
-	state->f1.fld.cr1.ckd = cm_object_get_child_by_name(state->f1.reg.cr1, "CKD");
+	state->u.f1.fld.cr1.cen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CEN");
+	state->u.f1.fld.cr1.udis = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UDIS");
+	state->u.f1.fld.cr1.urs = cm_object_get_child_by_name(state->u.f1.reg.cr1, "URS");
+	state->u.f1.fld.cr1.opm = cm_object_get_child_by_name(state->u.f1.reg.cr1, "OPM");
+	state->u.f1.fld.cr1.arpe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ARPE");
+	state->u.f1.fld.cr1.ckd = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CKD");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.mms = cm_object_get_child_by_name(state->f1.reg.cr2, "MMS");
+	state->u.f1.fld.cr2.mms = cm_object_get_child_by_name(state->u.f1.reg.cr2, "MMS");
 
 	// SMCR bitfields.
-	state->f1.fld.smcr.sms = cm_object_get_child_by_name(state->f1.reg.smcr, "SMS");
-	state->f1.fld.smcr.ts = cm_object_get_child_by_name(state->f1.reg.smcr, "TS");
-	state->f1.fld.smcr.msm = cm_object_get_child_by_name(state->f1.reg.smcr, "MSM");
+	state->u.f1.fld.smcr.sms = cm_object_get_child_by_name(state->u.f1.reg.smcr, "SMS");
+	state->u.f1.fld.smcr.ts = cm_object_get_child_by_name(state->u.f1.reg.smcr, "TS");
+	state->u.f1.fld.smcr.msm = cm_object_get_child_by_name(state->u.f1.reg.smcr, "MSM");
 
 	// DIER bitfields.
-	state->f1.fld.dier.uie = cm_object_get_child_by_name(state->f1.reg.dier, "UIE");
-	state->f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC1IE");
-	state->f1.fld.dier.cc2ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC2IE");
-	state->f1.fld.dier.tie = cm_object_get_child_by_name(state->f1.reg.dier, "TIE");
+	state->u.f1.fld.dier.uie = cm_object_get_child_by_name(state->u.f1.reg.dier, "UIE");
+	state->u.f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC1IE");
+	state->u.f1.fld.dier.cc2ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC2IE");
+	state->u.f1.fld.dier.tie = cm_object_get_child_by_name(state->u.f1.reg.dier, "TIE");
 
 	// SR bitfields.
-	state->f1.fld.sr.uif = cm_object_get_child_by_name(state->f1.reg.sr, "UIF");
-	state->f1.fld.sr.cc1if = cm_object_get_child_by_name(state->f1.reg.sr, "CC1IF");
-	state->f1.fld.sr.cc2if = cm_object_get_child_by_name(state->f1.reg.sr, "CC2IF");
-	state->f1.fld.sr.tif = cm_object_get_child_by_name(state->f1.reg.sr, "TIF");
-	state->f1.fld.sr.cc1of = cm_object_get_child_by_name(state->f1.reg.sr, "CC1OF");
-	state->f1.fld.sr.cc2of = cm_object_get_child_by_name(state->f1.reg.sr, "CC2OF");
+	state->u.f1.fld.sr.uif = cm_object_get_child_by_name(state->u.f1.reg.sr, "UIF");
+	state->u.f1.fld.sr.cc1if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1IF");
+	state->u.f1.fld.sr.cc2if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC2IF");
+	state->u.f1.fld.sr.tif = cm_object_get_child_by_name(state->u.f1.reg.sr, "TIF");
+	state->u.f1.fld.sr.cc1of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1OF");
+	state->u.f1.fld.sr.cc2of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC2OF");
 
 	// EGR bitfields.
-	state->f1.fld.egr.ug = cm_object_get_child_by_name(state->f1.reg.egr, "UG");
-	state->f1.fld.egr.cc1g = cm_object_get_child_by_name(state->f1.reg.egr, "CC1G");
-	state->f1.fld.egr.cc2g = cm_object_get_child_by_name(state->f1.reg.egr, "CC2G");
-	state->f1.fld.egr.tg = cm_object_get_child_by_name(state->f1.reg.egr, "TG");
+	state->u.f1.fld.egr.ug = cm_object_get_child_by_name(state->u.f1.reg.egr, "UG");
+	state->u.f1.fld.egr.cc1g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC1G");
+	state->u.f1.fld.egr.cc2g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC2G");
+	state->u.f1.fld.egr.tg = cm_object_get_child_by_name(state->u.f1.reg.egr, "TG");
 
 	// CCMR1_Output bitfields.
-	state->f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "CC1S");
-	state->f1.fld.ccmr1_output.oc1fe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1FE");
-	state->f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1PE");
-	state->f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1M");
-	state->f1.fld.ccmr1_output.cc2s = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "CC2S");
-	state->f1.fld.ccmr1_output.oc2fe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2FE");
-	state->f1.fld.ccmr1_output.oc2pe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2PE");
-	state->f1.fld.ccmr1_output.oc2m = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC2M");
+	state->u.f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "CC1S");
+	state->u.f1.fld.ccmr1_output.oc1fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1FE");
+	state->u.f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1PE");
+	state->u.f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1M");
+	state->u.f1.fld.ccmr1_output.cc2s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "CC2S");
+	state->u.f1.fld.ccmr1_output.oc2fe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2FE");
+	state->u.f1.fld.ccmr1_output.oc2pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2PE");
+	state->u.f1.fld.ccmr1_output.oc2m = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC2M");
 
 	// CCMR1_Input bitfields.
-	state->f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "CC1S");
-	state->f1.fld.ccmr1_input.ic1psc = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC1PSC");
-	state->f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC1F");
-	state->f1.fld.ccmr1_input.cc2s = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "CC2S");
-	state->f1.fld.ccmr1_input.ic2psc = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC2PSC");
-	state->f1.fld.ccmr1_input.ic2f = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC2F");
+	state->u.f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "CC1S");
+	state->u.f1.fld.ccmr1_input.ic1psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC1PSC");
+	state->u.f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC1F");
+	state->u.f1.fld.ccmr1_input.cc2s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "CC2S");
+	state->u.f1.fld.ccmr1_input.ic2psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC2PSC");
+	state->u.f1.fld.ccmr1_input.ic2f = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC2F");
 
 	// CCER bitfields.
-	state->f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1E");
-	state->f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1P");
-	state->f1.fld.ccer.cc1np = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1NP");
-	state->f1.fld.ccer.cc2e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2E");
-	state->f1.fld.ccer.cc2p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2P");
-	state->f1.fld.ccer.cc2np = cm_object_get_child_by_name(state->f1.reg.ccer, "CC2NP");
+	state->u.f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1E");
+	state->u.f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1P");
+	state->u.f1.fld.ccer.cc1np = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1NP");
+	state->u.f1.fld.ccer.cc2e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2E");
+	state->u.f1.fld.ccer.cc2p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2P");
+	state->u.f1.fld.ccer.cc2np = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC2NP");
 
 	// CNT bitfields.
-	state->f1.fld.cnt.cnt = cm_object_get_child_by_name(state->f1.reg.cnt, "CNT");
+	state->u.f1.fld.cnt.cnt = cm_object_get_child_by_name(state->u.f1.reg.cnt, "CNT");
 
 	// PSC bitfields.
-	state->f1.fld.psc.psc = cm_object_get_child_by_name(state->f1.reg.psc, "PSC");
+	state->u.f1.fld.psc.psc = cm_object_get_child_by_name(state->u.f1.reg.psc, "PSC");
 
 	// ARR bitfields.
-	state->f1.fld.arr.arr = cm_object_get_child_by_name(state->f1.reg.arr, "ARR");
+	state->u.f1.fld.arr.arr = cm_object_get_child_by_name(state->u.f1.reg.arr, "ARR");
 
 	// CCR1 bitfields.
-	state->f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->f1.reg.ccr1, "CCR1");
+	state->u.f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "CCR1");
 
 	// CCR2 bitfields.
-	state->f1.fld.ccr2.ccr2 = cm_object_get_child_by_name(state->f1.reg.ccr2, "CCR2");
+	state->u.f1.fld.ccr2.ccr2 = cm_object_get_child_by_name(state->u.f1.reg.ccr2, "CCR2");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -4749,7 +4764,8 @@ static void stm32f103xx_tim9_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 TIM10 (General purpose timer) registers.
 		struct {
@@ -4859,68 +4875,68 @@ static void stm32f103xx_tim10_create_objects(Object *obj, JSON_Object *svd, cons
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
-	state->f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
-	state->f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
-	state->f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
-	state->f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
-	state->f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
-	state->f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
-	state->f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
+	state->u.f1.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
+	state->u.f1.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
+	state->u.f1.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
+	state->u.f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
+	state->u.f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
+	state->u.f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
+	state->u.f1.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.cen = cm_object_get_child_by_name(state->f1.reg.cr1, "CEN");
-	state->f1.fld.cr1.udis = cm_object_get_child_by_name(state->f1.reg.cr1, "UDIS");
-	state->f1.fld.cr1.urs = cm_object_get_child_by_name(state->f1.reg.cr1, "URS");
-	state->f1.fld.cr1.arpe = cm_object_get_child_by_name(state->f1.reg.cr1, "ARPE");
-	state->f1.fld.cr1.ckd = cm_object_get_child_by_name(state->f1.reg.cr1, "CKD");
+	state->u.f1.fld.cr1.cen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CEN");
+	state->u.f1.fld.cr1.udis = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UDIS");
+	state->u.f1.fld.cr1.urs = cm_object_get_child_by_name(state->u.f1.reg.cr1, "URS");
+	state->u.f1.fld.cr1.arpe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ARPE");
+	state->u.f1.fld.cr1.ckd = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CKD");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.mms = cm_object_get_child_by_name(state->f1.reg.cr2, "MMS");
+	state->u.f1.fld.cr2.mms = cm_object_get_child_by_name(state->u.f1.reg.cr2, "MMS");
 
 	// DIER bitfields.
-	state->f1.fld.dier.uie = cm_object_get_child_by_name(state->f1.reg.dier, "UIE");
-	state->f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->f1.reg.dier, "CC1IE");
+	state->u.f1.fld.dier.uie = cm_object_get_child_by_name(state->u.f1.reg.dier, "UIE");
+	state->u.f1.fld.dier.cc1ie = cm_object_get_child_by_name(state->u.f1.reg.dier, "CC1IE");
 
 	// SR bitfields.
-	state->f1.fld.sr.uif = cm_object_get_child_by_name(state->f1.reg.sr, "UIF");
-	state->f1.fld.sr.cc1if = cm_object_get_child_by_name(state->f1.reg.sr, "CC1IF");
-	state->f1.fld.sr.cc1of = cm_object_get_child_by_name(state->f1.reg.sr, "CC1OF");
+	state->u.f1.fld.sr.uif = cm_object_get_child_by_name(state->u.f1.reg.sr, "UIF");
+	state->u.f1.fld.sr.cc1if = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1IF");
+	state->u.f1.fld.sr.cc1of = cm_object_get_child_by_name(state->u.f1.reg.sr, "CC1OF");
 
 	// EGR bitfields.
-	state->f1.fld.egr.ug = cm_object_get_child_by_name(state->f1.reg.egr, "UG");
-	state->f1.fld.egr.cc1g = cm_object_get_child_by_name(state->f1.reg.egr, "CC1G");
+	state->u.f1.fld.egr.ug = cm_object_get_child_by_name(state->u.f1.reg.egr, "UG");
+	state->u.f1.fld.egr.cc1g = cm_object_get_child_by_name(state->u.f1.reg.egr, "CC1G");
 
 	// CCMR1_Output bitfields.
-	state->f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "CC1S");
-	state->f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1PE");
-	state->f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->f1.reg.ccmr1_output, "OC1M");
+	state->u.f1.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "CC1S");
+	state->u.f1.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1PE");
+	state->u.f1.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_output, "OC1M");
 
 	// CCMR1_Input bitfields.
-	state->f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "CC1S");
-	state->f1.fld.ccmr1_input.ic1psc = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC1PSC");
-	state->f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->f1.reg.ccmr1_input, "IC1F");
+	state->u.f1.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "CC1S");
+	state->u.f1.fld.ccmr1_input.ic1psc = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC1PSC");
+	state->u.f1.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->u.f1.reg.ccmr1_input, "IC1F");
 
 	// CCER bitfields.
-	state->f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1E");
-	state->f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1P");
-	state->f1.fld.ccer.cc1np = cm_object_get_child_by_name(state->f1.reg.ccer, "CC1NP");
+	state->u.f1.fld.ccer.cc1e = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1E");
+	state->u.f1.fld.ccer.cc1p = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1P");
+	state->u.f1.fld.ccer.cc1np = cm_object_get_child_by_name(state->u.f1.reg.ccer, "CC1NP");
 
 	// CNT bitfields.
-	state->f1.fld.cnt.cnt = cm_object_get_child_by_name(state->f1.reg.cnt, "CNT");
+	state->u.f1.fld.cnt.cnt = cm_object_get_child_by_name(state->u.f1.reg.cnt, "CNT");
 
 	// PSC bitfields.
-	state->f1.fld.psc.psc = cm_object_get_child_by_name(state->f1.reg.psc, "PSC");
+	state->u.f1.fld.psc.psc = cm_object_get_child_by_name(state->u.f1.reg.psc, "PSC");
 
 	// ARR bitfields.
-	state->f1.fld.arr.arr = cm_object_get_child_by_name(state->f1.reg.arr, "ARR");
+	state->u.f1.fld.arr.arr = cm_object_get_child_by_name(state->u.f1.reg.arr, "ARR");
 
 	// CCR1 bitfields.
-	state->f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->f1.reg.ccr1, "CCR1");
+	state->u.f1.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->u.f1.reg.ccr1, "CCR1");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -4929,7 +4945,8 @@ static void stm32f103xx_tim10_create_objects(Object *obj, JSON_Object *svd, cons
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 TIM6 (Basic timer) registers.
 		struct {
@@ -5006,43 +5023,43 @@ static void stm32f103xx_tim6_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
-	state->f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
-	state->f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
-	state->f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.dier = cm_object_get_child_by_name(obj, "DIER");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.egr = cm_object_get_child_by_name(obj, "EGR");
+	state->u.f1.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
+	state->u.f1.reg.psc = cm_object_get_child_by_name(obj, "PSC");
+	state->u.f1.reg.arr = cm_object_get_child_by_name(obj, "ARR");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.cen = cm_object_get_child_by_name(state->f1.reg.cr1, "CEN");
-	state->f1.fld.cr1.udis = cm_object_get_child_by_name(state->f1.reg.cr1, "UDIS");
-	state->f1.fld.cr1.urs = cm_object_get_child_by_name(state->f1.reg.cr1, "URS");
-	state->f1.fld.cr1.opm = cm_object_get_child_by_name(state->f1.reg.cr1, "OPM");
-	state->f1.fld.cr1.arpe = cm_object_get_child_by_name(state->f1.reg.cr1, "ARPE");
+	state->u.f1.fld.cr1.cen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CEN");
+	state->u.f1.fld.cr1.udis = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UDIS");
+	state->u.f1.fld.cr1.urs = cm_object_get_child_by_name(state->u.f1.reg.cr1, "URS");
+	state->u.f1.fld.cr1.opm = cm_object_get_child_by_name(state->u.f1.reg.cr1, "OPM");
+	state->u.f1.fld.cr1.arpe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ARPE");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.mms = cm_object_get_child_by_name(state->f1.reg.cr2, "MMS");
+	state->u.f1.fld.cr2.mms = cm_object_get_child_by_name(state->u.f1.reg.cr2, "MMS");
 
 	// DIER bitfields.
-	state->f1.fld.dier.uie = cm_object_get_child_by_name(state->f1.reg.dier, "UIE");
-	state->f1.fld.dier.ude = cm_object_get_child_by_name(state->f1.reg.dier, "UDE");
+	state->u.f1.fld.dier.uie = cm_object_get_child_by_name(state->u.f1.reg.dier, "UIE");
+	state->u.f1.fld.dier.ude = cm_object_get_child_by_name(state->u.f1.reg.dier, "UDE");
 
 	// SR bitfields.
-	state->f1.fld.sr.uif = cm_object_get_child_by_name(state->f1.reg.sr, "UIF");
+	state->u.f1.fld.sr.uif = cm_object_get_child_by_name(state->u.f1.reg.sr, "UIF");
 
 	// EGR bitfields.
-	state->f1.fld.egr.ug = cm_object_get_child_by_name(state->f1.reg.egr, "UG");
+	state->u.f1.fld.egr.ug = cm_object_get_child_by_name(state->u.f1.reg.egr, "UG");
 
 	// CNT bitfields.
-	state->f1.fld.cnt.cnt = cm_object_get_child_by_name(state->f1.reg.cnt, "CNT");
+	state->u.f1.fld.cnt.cnt = cm_object_get_child_by_name(state->u.f1.reg.cnt, "CNT");
 
 	// PSC bitfields.
-	state->f1.fld.psc.psc = cm_object_get_child_by_name(state->f1.reg.psc, "PSC");
+	state->u.f1.fld.psc.psc = cm_object_get_child_by_name(state->u.f1.reg.psc, "PSC");
 
 	// ARR bitfields.
-	state->f1.fld.arr.arr = cm_object_get_child_by_name(state->f1.reg.arr, "ARR");
+	state->u.f1.fld.arr.arr = cm_object_get_child_by_name(state->u.f1.reg.arr, "ARR");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -5051,7 +5068,8 @@ static void stm32f103xx_tim6_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 I2C1 (Inter integrated circuit) registers.
 		struct {
@@ -5173,86 +5191,86 @@ static void stm32f103xx_i2c1_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.oar1 = cm_object_get_child_by_name(obj, "OAR1");
-	state->f1.reg.oar2 = cm_object_get_child_by_name(obj, "OAR2");
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
-	state->f1.reg.sr1 = cm_object_get_child_by_name(obj, "SR1");
-	state->f1.reg.sr2 = cm_object_get_child_by_name(obj, "SR2");
-	state->f1.reg.ccr = cm_object_get_child_by_name(obj, "CCR");
-	state->f1.reg.trise = cm_object_get_child_by_name(obj, "TRISE");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.oar1 = cm_object_get_child_by_name(obj, "OAR1");
+	state->u.f1.reg.oar2 = cm_object_get_child_by_name(obj, "OAR2");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.sr1 = cm_object_get_child_by_name(obj, "SR1");
+	state->u.f1.reg.sr2 = cm_object_get_child_by_name(obj, "SR2");
+	state->u.f1.reg.ccr = cm_object_get_child_by_name(obj, "CCR");
+	state->u.f1.reg.trise = cm_object_get_child_by_name(obj, "TRISE");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.pe = cm_object_get_child_by_name(state->f1.reg.cr1, "PE");
-	state->f1.fld.cr1.smbus = cm_object_get_child_by_name(state->f1.reg.cr1, "SMBUS");
-	state->f1.fld.cr1.smbtype = cm_object_get_child_by_name(state->f1.reg.cr1, "SMBTYPE");
-	state->f1.fld.cr1.enarp = cm_object_get_child_by_name(state->f1.reg.cr1, "ENARP");
-	state->f1.fld.cr1.enpec = cm_object_get_child_by_name(state->f1.reg.cr1, "ENPEC");
-	state->f1.fld.cr1.engc = cm_object_get_child_by_name(state->f1.reg.cr1, "ENGC");
-	state->f1.fld.cr1.nostretch = cm_object_get_child_by_name(state->f1.reg.cr1, "NOSTRETCH");
-	state->f1.fld.cr1.start = cm_object_get_child_by_name(state->f1.reg.cr1, "START");
-	state->f1.fld.cr1.stop = cm_object_get_child_by_name(state->f1.reg.cr1, "STOP");
-	state->f1.fld.cr1.ack = cm_object_get_child_by_name(state->f1.reg.cr1, "ACK");
-	state->f1.fld.cr1.pos = cm_object_get_child_by_name(state->f1.reg.cr1, "POS");
-	state->f1.fld.cr1.pec = cm_object_get_child_by_name(state->f1.reg.cr1, "PEC");
-	state->f1.fld.cr1.alert = cm_object_get_child_by_name(state->f1.reg.cr1, "ALERT");
-	state->f1.fld.cr1.swrst = cm_object_get_child_by_name(state->f1.reg.cr1, "SWRST");
+	state->u.f1.fld.cr1.pe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PE");
+	state->u.f1.fld.cr1.smbus = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SMBUS");
+	state->u.f1.fld.cr1.smbtype = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SMBTYPE");
+	state->u.f1.fld.cr1.enarp = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ENARP");
+	state->u.f1.fld.cr1.enpec = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ENPEC");
+	state->u.f1.fld.cr1.engc = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ENGC");
+	state->u.f1.fld.cr1.nostretch = cm_object_get_child_by_name(state->u.f1.reg.cr1, "NOSTRETCH");
+	state->u.f1.fld.cr1.start = cm_object_get_child_by_name(state->u.f1.reg.cr1, "START");
+	state->u.f1.fld.cr1.stop = cm_object_get_child_by_name(state->u.f1.reg.cr1, "STOP");
+	state->u.f1.fld.cr1.ack = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ACK");
+	state->u.f1.fld.cr1.pos = cm_object_get_child_by_name(state->u.f1.reg.cr1, "POS");
+	state->u.f1.fld.cr1.pec = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PEC");
+	state->u.f1.fld.cr1.alert = cm_object_get_child_by_name(state->u.f1.reg.cr1, "ALERT");
+	state->u.f1.fld.cr1.swrst = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SWRST");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.freq = cm_object_get_child_by_name(state->f1.reg.cr2, "FREQ");
-	state->f1.fld.cr2.iterren = cm_object_get_child_by_name(state->f1.reg.cr2, "ITERREN");
-	state->f1.fld.cr2.itevten = cm_object_get_child_by_name(state->f1.reg.cr2, "ITEVTEN");
-	state->f1.fld.cr2.itbufen = cm_object_get_child_by_name(state->f1.reg.cr2, "ITBUFEN");
-	state->f1.fld.cr2.dmaen = cm_object_get_child_by_name(state->f1.reg.cr2, "DMAEN");
-	state->f1.fld.cr2.last = cm_object_get_child_by_name(state->f1.reg.cr2, "LAST");
+	state->u.f1.fld.cr2.freq = cm_object_get_child_by_name(state->u.f1.reg.cr2, "FREQ");
+	state->u.f1.fld.cr2.iterren = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ITERREN");
+	state->u.f1.fld.cr2.itevten = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ITEVTEN");
+	state->u.f1.fld.cr2.itbufen = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ITBUFEN");
+	state->u.f1.fld.cr2.dmaen = cm_object_get_child_by_name(state->u.f1.reg.cr2, "DMAEN");
+	state->u.f1.fld.cr2.last = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LAST");
 
 	// OAR1 bitfields.
-	state->f1.fld.oar1.add0 = cm_object_get_child_by_name(state->f1.reg.oar1, "ADD0");
-	state->f1.fld.oar1.add7 = cm_object_get_child_by_name(state->f1.reg.oar1, "ADD7");
-	state->f1.fld.oar1.add10 = cm_object_get_child_by_name(state->f1.reg.oar1, "ADD10");
-	state->f1.fld.oar1.addmode = cm_object_get_child_by_name(state->f1.reg.oar1, "ADDMODE");
+	state->u.f1.fld.oar1.add0 = cm_object_get_child_by_name(state->u.f1.reg.oar1, "ADD0");
+	state->u.f1.fld.oar1.add7 = cm_object_get_child_by_name(state->u.f1.reg.oar1, "ADD7");
+	state->u.f1.fld.oar1.add10 = cm_object_get_child_by_name(state->u.f1.reg.oar1, "ADD10");
+	state->u.f1.fld.oar1.addmode = cm_object_get_child_by_name(state->u.f1.reg.oar1, "ADDMODE");
 
 	// OAR2 bitfields.
-	state->f1.fld.oar2.endual = cm_object_get_child_by_name(state->f1.reg.oar2, "ENDUAL");
-	state->f1.fld.oar2.add2 = cm_object_get_child_by_name(state->f1.reg.oar2, "ADD2");
+	state->u.f1.fld.oar2.endual = cm_object_get_child_by_name(state->u.f1.reg.oar2, "ENDUAL");
+	state->u.f1.fld.oar2.add2 = cm_object_get_child_by_name(state->u.f1.reg.oar2, "ADD2");
 
 	// DR bitfields.
-	state->f1.fld.dr.dr = cm_object_get_child_by_name(state->f1.reg.dr, "DR");
+	state->u.f1.fld.dr.dr = cm_object_get_child_by_name(state->u.f1.reg.dr, "DR");
 
 	// SR1 bitfields.
-	state->f1.fld.sr1.sb = cm_object_get_child_by_name(state->f1.reg.sr1, "SB");
-	state->f1.fld.sr1.addr = cm_object_get_child_by_name(state->f1.reg.sr1, "ADDR");
-	state->f1.fld.sr1.btf = cm_object_get_child_by_name(state->f1.reg.sr1, "BTF");
-	state->f1.fld.sr1.add10 = cm_object_get_child_by_name(state->f1.reg.sr1, "ADD10");
-	state->f1.fld.sr1.stopf = cm_object_get_child_by_name(state->f1.reg.sr1, "STOPF");
-	state->f1.fld.sr1.rxne = cm_object_get_child_by_name(state->f1.reg.sr1, "RxNE");
-	state->f1.fld.sr1.txe = cm_object_get_child_by_name(state->f1.reg.sr1, "TxE");
-	state->f1.fld.sr1.berr = cm_object_get_child_by_name(state->f1.reg.sr1, "BERR");
-	state->f1.fld.sr1.arlo = cm_object_get_child_by_name(state->f1.reg.sr1, "ARLO");
-	state->f1.fld.sr1.af = cm_object_get_child_by_name(state->f1.reg.sr1, "AF");
-	state->f1.fld.sr1.ovr = cm_object_get_child_by_name(state->f1.reg.sr1, "OVR");
-	state->f1.fld.sr1.pecerr = cm_object_get_child_by_name(state->f1.reg.sr1, "PECERR");
-	state->f1.fld.sr1.timeout = cm_object_get_child_by_name(state->f1.reg.sr1, "TIMEOUT");
-	state->f1.fld.sr1.smbalert = cm_object_get_child_by_name(state->f1.reg.sr1, "SMBALERT");
+	state->u.f1.fld.sr1.sb = cm_object_get_child_by_name(state->u.f1.reg.sr1, "SB");
+	state->u.f1.fld.sr1.addr = cm_object_get_child_by_name(state->u.f1.reg.sr1, "ADDR");
+	state->u.f1.fld.sr1.btf = cm_object_get_child_by_name(state->u.f1.reg.sr1, "BTF");
+	state->u.f1.fld.sr1.add10 = cm_object_get_child_by_name(state->u.f1.reg.sr1, "ADD10");
+	state->u.f1.fld.sr1.stopf = cm_object_get_child_by_name(state->u.f1.reg.sr1, "STOPF");
+	state->u.f1.fld.sr1.rxne = cm_object_get_child_by_name(state->u.f1.reg.sr1, "RxNE");
+	state->u.f1.fld.sr1.txe = cm_object_get_child_by_name(state->u.f1.reg.sr1, "TxE");
+	state->u.f1.fld.sr1.berr = cm_object_get_child_by_name(state->u.f1.reg.sr1, "BERR");
+	state->u.f1.fld.sr1.arlo = cm_object_get_child_by_name(state->u.f1.reg.sr1, "ARLO");
+	state->u.f1.fld.sr1.af = cm_object_get_child_by_name(state->u.f1.reg.sr1, "AF");
+	state->u.f1.fld.sr1.ovr = cm_object_get_child_by_name(state->u.f1.reg.sr1, "OVR");
+	state->u.f1.fld.sr1.pecerr = cm_object_get_child_by_name(state->u.f1.reg.sr1, "PECERR");
+	state->u.f1.fld.sr1.timeout = cm_object_get_child_by_name(state->u.f1.reg.sr1, "TIMEOUT");
+	state->u.f1.fld.sr1.smbalert = cm_object_get_child_by_name(state->u.f1.reg.sr1, "SMBALERT");
 
 	// SR2 bitfields.
-	state->f1.fld.sr2.msl = cm_object_get_child_by_name(state->f1.reg.sr2, "MSL");
-	state->f1.fld.sr2.busy = cm_object_get_child_by_name(state->f1.reg.sr2, "BUSY");
-	state->f1.fld.sr2.tra = cm_object_get_child_by_name(state->f1.reg.sr2, "TRA");
-	state->f1.fld.sr2.gencall = cm_object_get_child_by_name(state->f1.reg.sr2, "GENCALL");
-	state->f1.fld.sr2.smbdefault = cm_object_get_child_by_name(state->f1.reg.sr2, "SMBDEFAULT");
-	state->f1.fld.sr2.smbhost = cm_object_get_child_by_name(state->f1.reg.sr2, "SMBHOST");
-	state->f1.fld.sr2.dualf = cm_object_get_child_by_name(state->f1.reg.sr2, "DUALF");
-	state->f1.fld.sr2.pec = cm_object_get_child_by_name(state->f1.reg.sr2, "PEC");
+	state->u.f1.fld.sr2.msl = cm_object_get_child_by_name(state->u.f1.reg.sr2, "MSL");
+	state->u.f1.fld.sr2.busy = cm_object_get_child_by_name(state->u.f1.reg.sr2, "BUSY");
+	state->u.f1.fld.sr2.tra = cm_object_get_child_by_name(state->u.f1.reg.sr2, "TRA");
+	state->u.f1.fld.sr2.gencall = cm_object_get_child_by_name(state->u.f1.reg.sr2, "GENCALL");
+	state->u.f1.fld.sr2.smbdefault = cm_object_get_child_by_name(state->u.f1.reg.sr2, "SMBDEFAULT");
+	state->u.f1.fld.sr2.smbhost = cm_object_get_child_by_name(state->u.f1.reg.sr2, "SMBHOST");
+	state->u.f1.fld.sr2.dualf = cm_object_get_child_by_name(state->u.f1.reg.sr2, "DUALF");
+	state->u.f1.fld.sr2.pec = cm_object_get_child_by_name(state->u.f1.reg.sr2, "PEC");
 
 	// CCR bitfields.
-	state->f1.fld.ccr.ccr = cm_object_get_child_by_name(state->f1.reg.ccr, "CCR");
-	state->f1.fld.ccr.duty = cm_object_get_child_by_name(state->f1.reg.ccr, "DUTY");
-	state->f1.fld.ccr.f_s = cm_object_get_child_by_name(state->f1.reg.ccr, "F_S");
+	state->u.f1.fld.ccr.ccr = cm_object_get_child_by_name(state->u.f1.reg.ccr, "CCR");
+	state->u.f1.fld.ccr.duty = cm_object_get_child_by_name(state->u.f1.reg.ccr, "DUTY");
+	state->u.f1.fld.ccr.f_s = cm_object_get_child_by_name(state->u.f1.reg.ccr, "F_S");
 
 	// TRISE bitfields.
-	state->f1.fld.trise.trise = cm_object_get_child_by_name(state->f1.reg.trise, "TRISE");
+	state->u.f1.fld.trise.trise = cm_object_get_child_by_name(state->u.f1.reg.trise, "TRISE");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -5261,7 +5279,8 @@ static void stm32f103xx_i2c1_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 SPI1 (Serial peripheral interface) registers.
 		struct {
@@ -5373,76 +5392,76 @@ static void stm32f103xx_spi1_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
-	state->f1.reg.crcpr = cm_object_get_child_by_name(obj, "CRCPR");
-	state->f1.reg.rxcrcr = cm_object_get_child_by_name(obj, "RXCRCR");
-	state->f1.reg.txcrcr = cm_object_get_child_by_name(obj, "TXCRCR");
-	state->f1.reg.i2scfgr = cm_object_get_child_by_name(obj, "I2SCFGR");
-	state->f1.reg.i2spr = cm_object_get_child_by_name(obj, "I2SPR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.crcpr = cm_object_get_child_by_name(obj, "CRCPR");
+	state->u.f1.reg.rxcrcr = cm_object_get_child_by_name(obj, "RXCRCR");
+	state->u.f1.reg.txcrcr = cm_object_get_child_by_name(obj, "TXCRCR");
+	state->u.f1.reg.i2scfgr = cm_object_get_child_by_name(obj, "I2SCFGR");
+	state->u.f1.reg.i2spr = cm_object_get_child_by_name(obj, "I2SPR");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.cpha = cm_object_get_child_by_name(state->f1.reg.cr1, "CPHA");
-	state->f1.fld.cr1.cpol = cm_object_get_child_by_name(state->f1.reg.cr1, "CPOL");
-	state->f1.fld.cr1.mstr = cm_object_get_child_by_name(state->f1.reg.cr1, "MSTR");
-	state->f1.fld.cr1.br = cm_object_get_child_by_name(state->f1.reg.cr1, "BR");
-	state->f1.fld.cr1.spe = cm_object_get_child_by_name(state->f1.reg.cr1, "SPE");
-	state->f1.fld.cr1.lsbfirst = cm_object_get_child_by_name(state->f1.reg.cr1, "LSBFIRST");
-	state->f1.fld.cr1.ssi = cm_object_get_child_by_name(state->f1.reg.cr1, "SSI");
-	state->f1.fld.cr1.ssm = cm_object_get_child_by_name(state->f1.reg.cr1, "SSM");
-	state->f1.fld.cr1.rxonly = cm_object_get_child_by_name(state->f1.reg.cr1, "RXONLY");
-	state->f1.fld.cr1.dff = cm_object_get_child_by_name(state->f1.reg.cr1, "DFF");
-	state->f1.fld.cr1.crcnext = cm_object_get_child_by_name(state->f1.reg.cr1, "CRCNEXT");
-	state->f1.fld.cr1.crcen = cm_object_get_child_by_name(state->f1.reg.cr1, "CRCEN");
-	state->f1.fld.cr1.bidioe = cm_object_get_child_by_name(state->f1.reg.cr1, "BIDIOE");
-	state->f1.fld.cr1.bidimode = cm_object_get_child_by_name(state->f1.reg.cr1, "BIDIMODE");
+	state->u.f1.fld.cr1.cpha = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CPHA");
+	state->u.f1.fld.cr1.cpol = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CPOL");
+	state->u.f1.fld.cr1.mstr = cm_object_get_child_by_name(state->u.f1.reg.cr1, "MSTR");
+	state->u.f1.fld.cr1.br = cm_object_get_child_by_name(state->u.f1.reg.cr1, "BR");
+	state->u.f1.fld.cr1.spe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SPE");
+	state->u.f1.fld.cr1.lsbfirst = cm_object_get_child_by_name(state->u.f1.reg.cr1, "LSBFIRST");
+	state->u.f1.fld.cr1.ssi = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SSI");
+	state->u.f1.fld.cr1.ssm = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SSM");
+	state->u.f1.fld.cr1.rxonly = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RXONLY");
+	state->u.f1.fld.cr1.dff = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DFF");
+	state->u.f1.fld.cr1.crcnext = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CRCNEXT");
+	state->u.f1.fld.cr1.crcen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "CRCEN");
+	state->u.f1.fld.cr1.bidioe = cm_object_get_child_by_name(state->u.f1.reg.cr1, "BIDIOE");
+	state->u.f1.fld.cr1.bidimode = cm_object_get_child_by_name(state->u.f1.reg.cr1, "BIDIMODE");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.rxdmaen = cm_object_get_child_by_name(state->f1.reg.cr2, "RXDMAEN");
-	state->f1.fld.cr2.txdmaen = cm_object_get_child_by_name(state->f1.reg.cr2, "TXDMAEN");
-	state->f1.fld.cr2.ssoe = cm_object_get_child_by_name(state->f1.reg.cr2, "SSOE");
-	state->f1.fld.cr2.errie = cm_object_get_child_by_name(state->f1.reg.cr2, "ERRIE");
-	state->f1.fld.cr2.rxneie = cm_object_get_child_by_name(state->f1.reg.cr2, "RXNEIE");
-	state->f1.fld.cr2.txeie = cm_object_get_child_by_name(state->f1.reg.cr2, "TXEIE");
+	state->u.f1.fld.cr2.rxdmaen = cm_object_get_child_by_name(state->u.f1.reg.cr2, "RXDMAEN");
+	state->u.f1.fld.cr2.txdmaen = cm_object_get_child_by_name(state->u.f1.reg.cr2, "TXDMAEN");
+	state->u.f1.fld.cr2.ssoe = cm_object_get_child_by_name(state->u.f1.reg.cr2, "SSOE");
+	state->u.f1.fld.cr2.errie = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ERRIE");
+	state->u.f1.fld.cr2.rxneie = cm_object_get_child_by_name(state->u.f1.reg.cr2, "RXNEIE");
+	state->u.f1.fld.cr2.txeie = cm_object_get_child_by_name(state->u.f1.reg.cr2, "TXEIE");
 
 	// SR bitfields.
-	state->f1.fld.sr.rxne = cm_object_get_child_by_name(state->f1.reg.sr, "RXNE");
-	state->f1.fld.sr.txe = cm_object_get_child_by_name(state->f1.reg.sr, "TXE");
-	state->f1.fld.sr.chside = cm_object_get_child_by_name(state->f1.reg.sr, "CHSIDE");
-	state->f1.fld.sr.udr = cm_object_get_child_by_name(state->f1.reg.sr, "UDR");
-	state->f1.fld.sr.crcerr = cm_object_get_child_by_name(state->f1.reg.sr, "CRCERR");
-	state->f1.fld.sr.modf = cm_object_get_child_by_name(state->f1.reg.sr, "MODF");
-	state->f1.fld.sr.ovr = cm_object_get_child_by_name(state->f1.reg.sr, "OVR");
-	state->f1.fld.sr.bsy = cm_object_get_child_by_name(state->f1.reg.sr, "BSY");
+	state->u.f1.fld.sr.rxne = cm_object_get_child_by_name(state->u.f1.reg.sr, "RXNE");
+	state->u.f1.fld.sr.txe = cm_object_get_child_by_name(state->u.f1.reg.sr, "TXE");
+	state->u.f1.fld.sr.chside = cm_object_get_child_by_name(state->u.f1.reg.sr, "CHSIDE");
+	state->u.f1.fld.sr.udr = cm_object_get_child_by_name(state->u.f1.reg.sr, "UDR");
+	state->u.f1.fld.sr.crcerr = cm_object_get_child_by_name(state->u.f1.reg.sr, "CRCERR");
+	state->u.f1.fld.sr.modf = cm_object_get_child_by_name(state->u.f1.reg.sr, "MODF");
+	state->u.f1.fld.sr.ovr = cm_object_get_child_by_name(state->u.f1.reg.sr, "OVR");
+	state->u.f1.fld.sr.bsy = cm_object_get_child_by_name(state->u.f1.reg.sr, "BSY");
 
 	// DR bitfields.
-	state->f1.fld.dr.dr = cm_object_get_child_by_name(state->f1.reg.dr, "DR");
+	state->u.f1.fld.dr.dr = cm_object_get_child_by_name(state->u.f1.reg.dr, "DR");
 
 	// CRCPR bitfields.
-	state->f1.fld.crcpr.crcpoly = cm_object_get_child_by_name(state->f1.reg.crcpr, "CRCPOLY");
+	state->u.f1.fld.crcpr.crcpoly = cm_object_get_child_by_name(state->u.f1.reg.crcpr, "CRCPOLY");
 
 	// RXCRCR bitfields.
-	state->f1.fld.rxcrcr.rxcrc = cm_object_get_child_by_name(state->f1.reg.rxcrcr, "RxCRC");
+	state->u.f1.fld.rxcrcr.rxcrc = cm_object_get_child_by_name(state->u.f1.reg.rxcrcr, "RxCRC");
 
 	// TXCRCR bitfields.
-	state->f1.fld.txcrcr.txcrc = cm_object_get_child_by_name(state->f1.reg.txcrcr, "TxCRC");
+	state->u.f1.fld.txcrcr.txcrc = cm_object_get_child_by_name(state->u.f1.reg.txcrcr, "TxCRC");
 
 	// I2SCFGR bitfields.
-	state->f1.fld.i2scfgr.chlen = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "CHLEN");
-	state->f1.fld.i2scfgr.datlen = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "DATLEN");
-	state->f1.fld.i2scfgr.ckpol = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "CKPOL");
-	state->f1.fld.i2scfgr.i2sstd = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "I2SSTD");
-	state->f1.fld.i2scfgr.pcmsync = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "PCMSYNC");
-	state->f1.fld.i2scfgr.i2scfg = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "I2SCFG");
-	state->f1.fld.i2scfgr.i2se = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "I2SE");
-	state->f1.fld.i2scfgr.i2smod = cm_object_get_child_by_name(state->f1.reg.i2scfgr, "I2SMOD");
+	state->u.f1.fld.i2scfgr.chlen = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "CHLEN");
+	state->u.f1.fld.i2scfgr.datlen = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "DATLEN");
+	state->u.f1.fld.i2scfgr.ckpol = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "CKPOL");
+	state->u.f1.fld.i2scfgr.i2sstd = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "I2SSTD");
+	state->u.f1.fld.i2scfgr.pcmsync = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "PCMSYNC");
+	state->u.f1.fld.i2scfgr.i2scfg = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "I2SCFG");
+	state->u.f1.fld.i2scfgr.i2se = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "I2SE");
+	state->u.f1.fld.i2scfgr.i2smod = cm_object_get_child_by_name(state->u.f1.reg.i2scfgr, "I2SMOD");
 
 	// I2SPR bitfields.
-	state->f1.fld.i2spr.i2sdiv = cm_object_get_child_by_name(state->f1.reg.i2spr, "I2SDIV");
-	state->f1.fld.i2spr.odd = cm_object_get_child_by_name(state->f1.reg.i2spr, "ODD");
-	state->f1.fld.i2spr.mckoe = cm_object_get_child_by_name(state->f1.reg.i2spr, "MCKOE");
+	state->u.f1.fld.i2spr.i2sdiv = cm_object_get_child_by_name(state->u.f1.reg.i2spr, "I2SDIV");
+	state->u.f1.fld.i2spr.odd = cm_object_get_child_by_name(state->u.f1.reg.i2spr, "ODD");
+	state->u.f1.fld.i2spr.mckoe = cm_object_get_child_by_name(state->u.f1.reg.i2spr, "MCKOE");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -5451,7 +5470,8 @@ static void stm32f103xx_spi1_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 USART1 (Universal synchronous asynchronous receiver transmitter) registers.
 		struct {
@@ -5559,76 +5579,76 @@ static void stm32f103xx_usart1_create_objects(Object *obj, JSON_Object *svd, con
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
-	state->f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
-	state->f1.reg.gtpr = cm_object_get_child_by_name(obj, "GTPR");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
+	state->u.f1.reg.gtpr = cm_object_get_child_by_name(obj, "GTPR");
 
 	// SR bitfields.
-	state->f1.fld.sr.pe = cm_object_get_child_by_name(state->f1.reg.sr, "PE");
-	state->f1.fld.sr.fe = cm_object_get_child_by_name(state->f1.reg.sr, "FE");
-	state->f1.fld.sr.ne = cm_object_get_child_by_name(state->f1.reg.sr, "NE");
-	state->f1.fld.sr.ore = cm_object_get_child_by_name(state->f1.reg.sr, "ORE");
-	state->f1.fld.sr.idle = cm_object_get_child_by_name(state->f1.reg.sr, "IDLE");
-	state->f1.fld.sr.rxne = cm_object_get_child_by_name(state->f1.reg.sr, "RXNE");
-	state->f1.fld.sr.tc = cm_object_get_child_by_name(state->f1.reg.sr, "TC");
-	state->f1.fld.sr.txe = cm_object_get_child_by_name(state->f1.reg.sr, "TXE");
-	state->f1.fld.sr.lbd = cm_object_get_child_by_name(state->f1.reg.sr, "LBD");
-	state->f1.fld.sr.cts = cm_object_get_child_by_name(state->f1.reg.sr, "CTS");
+	state->u.f1.fld.sr.pe = cm_object_get_child_by_name(state->u.f1.reg.sr, "PE");
+	state->u.f1.fld.sr.fe = cm_object_get_child_by_name(state->u.f1.reg.sr, "FE");
+	state->u.f1.fld.sr.ne = cm_object_get_child_by_name(state->u.f1.reg.sr, "NE");
+	state->u.f1.fld.sr.ore = cm_object_get_child_by_name(state->u.f1.reg.sr, "ORE");
+	state->u.f1.fld.sr.idle = cm_object_get_child_by_name(state->u.f1.reg.sr, "IDLE");
+	state->u.f1.fld.sr.rxne = cm_object_get_child_by_name(state->u.f1.reg.sr, "RXNE");
+	state->u.f1.fld.sr.tc = cm_object_get_child_by_name(state->u.f1.reg.sr, "TC");
+	state->u.f1.fld.sr.txe = cm_object_get_child_by_name(state->u.f1.reg.sr, "TXE");
+	state->u.f1.fld.sr.lbd = cm_object_get_child_by_name(state->u.f1.reg.sr, "LBD");
+	state->u.f1.fld.sr.cts = cm_object_get_child_by_name(state->u.f1.reg.sr, "CTS");
 
 	// DR bitfields.
-	state->f1.fld.dr.dr = cm_object_get_child_by_name(state->f1.reg.dr, "DR");
+	state->u.f1.fld.dr.dr = cm_object_get_child_by_name(state->u.f1.reg.dr, "DR");
 
 	// BRR bitfields.
-	state->f1.fld.brr.div_fraction = cm_object_get_child_by_name(state->f1.reg.brr, "DIV_Fraction");
-	state->f1.fld.brr.div_mantissa = cm_object_get_child_by_name(state->f1.reg.brr, "DIV_Mantissa");
+	state->u.f1.fld.brr.div_fraction = cm_object_get_child_by_name(state->u.f1.reg.brr, "DIV_Fraction");
+	state->u.f1.fld.brr.div_mantissa = cm_object_get_child_by_name(state->u.f1.reg.brr, "DIV_Mantissa");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.sbk = cm_object_get_child_by_name(state->f1.reg.cr1, "SBK");
-	state->f1.fld.cr1.rwu = cm_object_get_child_by_name(state->f1.reg.cr1, "RWU");
-	state->f1.fld.cr1.re = cm_object_get_child_by_name(state->f1.reg.cr1, "RE");
-	state->f1.fld.cr1.te = cm_object_get_child_by_name(state->f1.reg.cr1, "TE");
-	state->f1.fld.cr1.idleie = cm_object_get_child_by_name(state->f1.reg.cr1, "IDLEIE");
-	state->f1.fld.cr1.rxneie = cm_object_get_child_by_name(state->f1.reg.cr1, "RXNEIE");
-	state->f1.fld.cr1.tcie = cm_object_get_child_by_name(state->f1.reg.cr1, "TCIE");
-	state->f1.fld.cr1.txeie = cm_object_get_child_by_name(state->f1.reg.cr1, "TXEIE");
-	state->f1.fld.cr1.peie = cm_object_get_child_by_name(state->f1.reg.cr1, "PEIE");
-	state->f1.fld.cr1.ps = cm_object_get_child_by_name(state->f1.reg.cr1, "PS");
-	state->f1.fld.cr1.pce = cm_object_get_child_by_name(state->f1.reg.cr1, "PCE");
-	state->f1.fld.cr1.wake = cm_object_get_child_by_name(state->f1.reg.cr1, "WAKE");
-	state->f1.fld.cr1.m = cm_object_get_child_by_name(state->f1.reg.cr1, "M");
-	state->f1.fld.cr1.ue = cm_object_get_child_by_name(state->f1.reg.cr1, "UE");
+	state->u.f1.fld.cr1.sbk = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SBK");
+	state->u.f1.fld.cr1.rwu = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RWU");
+	state->u.f1.fld.cr1.re = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RE");
+	state->u.f1.fld.cr1.te = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TE");
+	state->u.f1.fld.cr1.idleie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "IDLEIE");
+	state->u.f1.fld.cr1.rxneie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RXNEIE");
+	state->u.f1.fld.cr1.tcie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TCIE");
+	state->u.f1.fld.cr1.txeie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TXEIE");
+	state->u.f1.fld.cr1.peie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PEIE");
+	state->u.f1.fld.cr1.ps = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PS");
+	state->u.f1.fld.cr1.pce = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PCE");
+	state->u.f1.fld.cr1.wake = cm_object_get_child_by_name(state->u.f1.reg.cr1, "WAKE");
+	state->u.f1.fld.cr1.m = cm_object_get_child_by_name(state->u.f1.reg.cr1, "M");
+	state->u.f1.fld.cr1.ue = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UE");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.add = cm_object_get_child_by_name(state->f1.reg.cr2, "ADD");
-	state->f1.fld.cr2.lbdl = cm_object_get_child_by_name(state->f1.reg.cr2, "LBDL");
-	state->f1.fld.cr2.lbdie = cm_object_get_child_by_name(state->f1.reg.cr2, "LBDIE");
-	state->f1.fld.cr2.lbcl = cm_object_get_child_by_name(state->f1.reg.cr2, "LBCL");
-	state->f1.fld.cr2.cpha = cm_object_get_child_by_name(state->f1.reg.cr2, "CPHA");
-	state->f1.fld.cr2.cpol = cm_object_get_child_by_name(state->f1.reg.cr2, "CPOL");
-	state->f1.fld.cr2.clken = cm_object_get_child_by_name(state->f1.reg.cr2, "CLKEN");
-	state->f1.fld.cr2.stop = cm_object_get_child_by_name(state->f1.reg.cr2, "STOP");
-	state->f1.fld.cr2.linen = cm_object_get_child_by_name(state->f1.reg.cr2, "LINEN");
+	state->u.f1.fld.cr2.add = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ADD");
+	state->u.f1.fld.cr2.lbdl = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LBDL");
+	state->u.f1.fld.cr2.lbdie = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LBDIE");
+	state->u.f1.fld.cr2.lbcl = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LBCL");
+	state->u.f1.fld.cr2.cpha = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CPHA");
+	state->u.f1.fld.cr2.cpol = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CPOL");
+	state->u.f1.fld.cr2.clken = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CLKEN");
+	state->u.f1.fld.cr2.stop = cm_object_get_child_by_name(state->u.f1.reg.cr2, "STOP");
+	state->u.f1.fld.cr2.linen = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LINEN");
 
 	// CR3 bitfields.
-	state->f1.fld.cr3.eie = cm_object_get_child_by_name(state->f1.reg.cr3, "EIE");
-	state->f1.fld.cr3.iren = cm_object_get_child_by_name(state->f1.reg.cr3, "IREN");
-	state->f1.fld.cr3.irlp = cm_object_get_child_by_name(state->f1.reg.cr3, "IRLP");
-	state->f1.fld.cr3.hdsel = cm_object_get_child_by_name(state->f1.reg.cr3, "HDSEL");
-	state->f1.fld.cr3.nack = cm_object_get_child_by_name(state->f1.reg.cr3, "NACK");
-	state->f1.fld.cr3.scen = cm_object_get_child_by_name(state->f1.reg.cr3, "SCEN");
-	state->f1.fld.cr3.dmar = cm_object_get_child_by_name(state->f1.reg.cr3, "DMAR");
-	state->f1.fld.cr3.dmat = cm_object_get_child_by_name(state->f1.reg.cr3, "DMAT");
-	state->f1.fld.cr3.rtse = cm_object_get_child_by_name(state->f1.reg.cr3, "RTSE");
-	state->f1.fld.cr3.ctse = cm_object_get_child_by_name(state->f1.reg.cr3, "CTSE");
-	state->f1.fld.cr3.ctsie = cm_object_get_child_by_name(state->f1.reg.cr3, "CTSIE");
+	state->u.f1.fld.cr3.eie = cm_object_get_child_by_name(state->u.f1.reg.cr3, "EIE");
+	state->u.f1.fld.cr3.iren = cm_object_get_child_by_name(state->u.f1.reg.cr3, "IREN");
+	state->u.f1.fld.cr3.irlp = cm_object_get_child_by_name(state->u.f1.reg.cr3, "IRLP");
+	state->u.f1.fld.cr3.hdsel = cm_object_get_child_by_name(state->u.f1.reg.cr3, "HDSEL");
+	state->u.f1.fld.cr3.nack = cm_object_get_child_by_name(state->u.f1.reg.cr3, "NACK");
+	state->u.f1.fld.cr3.scen = cm_object_get_child_by_name(state->u.f1.reg.cr3, "SCEN");
+	state->u.f1.fld.cr3.dmar = cm_object_get_child_by_name(state->u.f1.reg.cr3, "DMAR");
+	state->u.f1.fld.cr3.dmat = cm_object_get_child_by_name(state->u.f1.reg.cr3, "DMAT");
+	state->u.f1.fld.cr3.rtse = cm_object_get_child_by_name(state->u.f1.reg.cr3, "RTSE");
+	state->u.f1.fld.cr3.ctse = cm_object_get_child_by_name(state->u.f1.reg.cr3, "CTSE");
+	state->u.f1.fld.cr3.ctsie = cm_object_get_child_by_name(state->u.f1.reg.cr3, "CTSIE");
 
 	// GTPR bitfields.
-	state->f1.fld.gtpr.psc = cm_object_get_child_by_name(state->f1.reg.gtpr, "PSC");
-	state->f1.fld.gtpr.gt = cm_object_get_child_by_name(state->f1.reg.gtpr, "GT");
+	state->u.f1.fld.gtpr.psc = cm_object_get_child_by_name(state->u.f1.reg.gtpr, "PSC");
+	state->u.f1.fld.gtpr.gt = cm_object_get_child_by_name(state->u.f1.reg.gtpr, "GT");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -5637,7 +5657,8 @@ static void stm32f103xx_usart1_create_objects(Object *obj, JSON_Object *svd, con
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 ADC1 (Analog to digital converter) registers.
 		struct {
@@ -5844,149 +5865,149 @@ static void stm32f103xx_adc1_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.smpr1 = cm_object_get_child_by_name(obj, "SMPR1");
-	state->f1.reg.smpr2 = cm_object_get_child_by_name(obj, "SMPR2");
-	state->f1.reg.jofr1 = cm_object_get_child_by_name(obj, "JOFR1");
-	state->f1.reg.jofr2 = cm_object_get_child_by_name(obj, "JOFR2");
-	state->f1.reg.jofr3 = cm_object_get_child_by_name(obj, "JOFR3");
-	state->f1.reg.jofr4 = cm_object_get_child_by_name(obj, "JOFR4");
-	state->f1.reg.htr = cm_object_get_child_by_name(obj, "HTR");
-	state->f1.reg.ltr = cm_object_get_child_by_name(obj, "LTR");
-	state->f1.reg.sqr1 = cm_object_get_child_by_name(obj, "SQR1");
-	state->f1.reg.sqr2 = cm_object_get_child_by_name(obj, "SQR2");
-	state->f1.reg.sqr3 = cm_object_get_child_by_name(obj, "SQR3");
-	state->f1.reg.jsqr = cm_object_get_child_by_name(obj, "JSQR");
-	state->f1.reg.jdr1 = cm_object_get_child_by_name(obj, "JDR1");
-	state->f1.reg.jdr2 = cm_object_get_child_by_name(obj, "JDR2");
-	state->f1.reg.jdr3 = cm_object_get_child_by_name(obj, "JDR3");
-	state->f1.reg.jdr4 = cm_object_get_child_by_name(obj, "JDR4");
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.smpr1 = cm_object_get_child_by_name(obj, "SMPR1");
+	state->u.f1.reg.smpr2 = cm_object_get_child_by_name(obj, "SMPR2");
+	state->u.f1.reg.jofr1 = cm_object_get_child_by_name(obj, "JOFR1");
+	state->u.f1.reg.jofr2 = cm_object_get_child_by_name(obj, "JOFR2");
+	state->u.f1.reg.jofr3 = cm_object_get_child_by_name(obj, "JOFR3");
+	state->u.f1.reg.jofr4 = cm_object_get_child_by_name(obj, "JOFR4");
+	state->u.f1.reg.htr = cm_object_get_child_by_name(obj, "HTR");
+	state->u.f1.reg.ltr = cm_object_get_child_by_name(obj, "LTR");
+	state->u.f1.reg.sqr1 = cm_object_get_child_by_name(obj, "SQR1");
+	state->u.f1.reg.sqr2 = cm_object_get_child_by_name(obj, "SQR2");
+	state->u.f1.reg.sqr3 = cm_object_get_child_by_name(obj, "SQR3");
+	state->u.f1.reg.jsqr = cm_object_get_child_by_name(obj, "JSQR");
+	state->u.f1.reg.jdr1 = cm_object_get_child_by_name(obj, "JDR1");
+	state->u.f1.reg.jdr2 = cm_object_get_child_by_name(obj, "JDR2");
+	state->u.f1.reg.jdr3 = cm_object_get_child_by_name(obj, "JDR3");
+	state->u.f1.reg.jdr4 = cm_object_get_child_by_name(obj, "JDR4");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
 
 	// SR bitfields.
-	state->f1.fld.sr.awd = cm_object_get_child_by_name(state->f1.reg.sr, "AWD");
-	state->f1.fld.sr.eoc = cm_object_get_child_by_name(state->f1.reg.sr, "EOC");
-	state->f1.fld.sr.jeoc = cm_object_get_child_by_name(state->f1.reg.sr, "JEOC");
-	state->f1.fld.sr.jstrt = cm_object_get_child_by_name(state->f1.reg.sr, "JSTRT");
-	state->f1.fld.sr.strt = cm_object_get_child_by_name(state->f1.reg.sr, "STRT");
+	state->u.f1.fld.sr.awd = cm_object_get_child_by_name(state->u.f1.reg.sr, "AWD");
+	state->u.f1.fld.sr.eoc = cm_object_get_child_by_name(state->u.f1.reg.sr, "EOC");
+	state->u.f1.fld.sr.jeoc = cm_object_get_child_by_name(state->u.f1.reg.sr, "JEOC");
+	state->u.f1.fld.sr.jstrt = cm_object_get_child_by_name(state->u.f1.reg.sr, "JSTRT");
+	state->u.f1.fld.sr.strt = cm_object_get_child_by_name(state->u.f1.reg.sr, "STRT");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.awdch = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDCH");
-	state->f1.fld.cr1.eocie = cm_object_get_child_by_name(state->f1.reg.cr1, "EOCIE");
-	state->f1.fld.cr1.awdie = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDIE");
-	state->f1.fld.cr1.jeocie = cm_object_get_child_by_name(state->f1.reg.cr1, "JEOCIE");
-	state->f1.fld.cr1.scan = cm_object_get_child_by_name(state->f1.reg.cr1, "SCAN");
-	state->f1.fld.cr1.awdsgl = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDSGL");
-	state->f1.fld.cr1.jauto = cm_object_get_child_by_name(state->f1.reg.cr1, "JAUTO");
-	state->f1.fld.cr1.discen = cm_object_get_child_by_name(state->f1.reg.cr1, "DISCEN");
-	state->f1.fld.cr1.jdiscen = cm_object_get_child_by_name(state->f1.reg.cr1, "JDISCEN");
-	state->f1.fld.cr1.discnum = cm_object_get_child_by_name(state->f1.reg.cr1, "DISCNUM");
-	state->f1.fld.cr1.dualmod = cm_object_get_child_by_name(state->f1.reg.cr1, "DUALMOD");
-	state->f1.fld.cr1.jawden = cm_object_get_child_by_name(state->f1.reg.cr1, "JAWDEN");
-	state->f1.fld.cr1.awden = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDEN");
+	state->u.f1.fld.cr1.awdch = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDCH");
+	state->u.f1.fld.cr1.eocie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "EOCIE");
+	state->u.f1.fld.cr1.awdie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDIE");
+	state->u.f1.fld.cr1.jeocie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JEOCIE");
+	state->u.f1.fld.cr1.scan = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SCAN");
+	state->u.f1.fld.cr1.awdsgl = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDSGL");
+	state->u.f1.fld.cr1.jauto = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JAUTO");
+	state->u.f1.fld.cr1.discen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DISCEN");
+	state->u.f1.fld.cr1.jdiscen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JDISCEN");
+	state->u.f1.fld.cr1.discnum = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DISCNUM");
+	state->u.f1.fld.cr1.dualmod = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DUALMOD");
+	state->u.f1.fld.cr1.jawden = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JAWDEN");
+	state->u.f1.fld.cr1.awden = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDEN");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.adon = cm_object_get_child_by_name(state->f1.reg.cr2, "ADON");
-	state->f1.fld.cr2.cont = cm_object_get_child_by_name(state->f1.reg.cr2, "CONT");
-	state->f1.fld.cr2.cal = cm_object_get_child_by_name(state->f1.reg.cr2, "CAL");
-	state->f1.fld.cr2.rstcal = cm_object_get_child_by_name(state->f1.reg.cr2, "RSTCAL");
-	state->f1.fld.cr2.dma = cm_object_get_child_by_name(state->f1.reg.cr2, "DMA");
-	state->f1.fld.cr2.align = cm_object_get_child_by_name(state->f1.reg.cr2, "ALIGN");
-	state->f1.fld.cr2.jextsel = cm_object_get_child_by_name(state->f1.reg.cr2, "JEXTSEL");
-	state->f1.fld.cr2.jexttrig = cm_object_get_child_by_name(state->f1.reg.cr2, "JEXTTRIG");
-	state->f1.fld.cr2.extsel = cm_object_get_child_by_name(state->f1.reg.cr2, "EXTSEL");
-	state->f1.fld.cr2.exttrig = cm_object_get_child_by_name(state->f1.reg.cr2, "EXTTRIG");
-	state->f1.fld.cr2.jswstart = cm_object_get_child_by_name(state->f1.reg.cr2, "JSWSTART");
-	state->f1.fld.cr2.swstart = cm_object_get_child_by_name(state->f1.reg.cr2, "SWSTART");
-	state->f1.fld.cr2.tsvrefe = cm_object_get_child_by_name(state->f1.reg.cr2, "TSVREFE");
+	state->u.f1.fld.cr2.adon = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ADON");
+	state->u.f1.fld.cr2.cont = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CONT");
+	state->u.f1.fld.cr2.cal = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CAL");
+	state->u.f1.fld.cr2.rstcal = cm_object_get_child_by_name(state->u.f1.reg.cr2, "RSTCAL");
+	state->u.f1.fld.cr2.dma = cm_object_get_child_by_name(state->u.f1.reg.cr2, "DMA");
+	state->u.f1.fld.cr2.align = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ALIGN");
+	state->u.f1.fld.cr2.jextsel = cm_object_get_child_by_name(state->u.f1.reg.cr2, "JEXTSEL");
+	state->u.f1.fld.cr2.jexttrig = cm_object_get_child_by_name(state->u.f1.reg.cr2, "JEXTTRIG");
+	state->u.f1.fld.cr2.extsel = cm_object_get_child_by_name(state->u.f1.reg.cr2, "EXTSEL");
+	state->u.f1.fld.cr2.exttrig = cm_object_get_child_by_name(state->u.f1.reg.cr2, "EXTTRIG");
+	state->u.f1.fld.cr2.jswstart = cm_object_get_child_by_name(state->u.f1.reg.cr2, "JSWSTART");
+	state->u.f1.fld.cr2.swstart = cm_object_get_child_by_name(state->u.f1.reg.cr2, "SWSTART");
+	state->u.f1.fld.cr2.tsvrefe = cm_object_get_child_by_name(state->u.f1.reg.cr2, "TSVREFE");
 
 	// SMPR1 bitfields.
-	state->f1.fld.smpr1.smp10 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP10");
-	state->f1.fld.smpr1.smp11 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP11");
-	state->f1.fld.smpr1.smp12 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP12");
-	state->f1.fld.smpr1.smp13 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP13");
-	state->f1.fld.smpr1.smp14 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP14");
-	state->f1.fld.smpr1.smp15 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP15");
-	state->f1.fld.smpr1.smp16 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP16");
-	state->f1.fld.smpr1.smp17 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP17");
+	state->u.f1.fld.smpr1.smp10 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP10");
+	state->u.f1.fld.smpr1.smp11 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP11");
+	state->u.f1.fld.smpr1.smp12 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP12");
+	state->u.f1.fld.smpr1.smp13 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP13");
+	state->u.f1.fld.smpr1.smp14 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP14");
+	state->u.f1.fld.smpr1.smp15 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP15");
+	state->u.f1.fld.smpr1.smp16 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP16");
+	state->u.f1.fld.smpr1.smp17 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP17");
 
 	// SMPR2 bitfields.
-	state->f1.fld.smpr2.smp0 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP0");
-	state->f1.fld.smpr2.smp1 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP1");
-	state->f1.fld.smpr2.smp2 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP2");
-	state->f1.fld.smpr2.smp3 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP3");
-	state->f1.fld.smpr2.smp4 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP4");
-	state->f1.fld.smpr2.smp5 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP5");
-	state->f1.fld.smpr2.smp6 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP6");
-	state->f1.fld.smpr2.smp7 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP7");
-	state->f1.fld.smpr2.smp8 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP8");
-	state->f1.fld.smpr2.smp9 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP9");
+	state->u.f1.fld.smpr2.smp0 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP0");
+	state->u.f1.fld.smpr2.smp1 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP1");
+	state->u.f1.fld.smpr2.smp2 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP2");
+	state->u.f1.fld.smpr2.smp3 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP3");
+	state->u.f1.fld.smpr2.smp4 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP4");
+	state->u.f1.fld.smpr2.smp5 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP5");
+	state->u.f1.fld.smpr2.smp6 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP6");
+	state->u.f1.fld.smpr2.smp7 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP7");
+	state->u.f1.fld.smpr2.smp8 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP8");
+	state->u.f1.fld.smpr2.smp9 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP9");
 
 	// JOFR1 bitfields.
-	state->f1.fld.jofr1.joffset1 = cm_object_get_child_by_name(state->f1.reg.jofr1, "JOFFSET1");
+	state->u.f1.fld.jofr1.joffset1 = cm_object_get_child_by_name(state->u.f1.reg.jofr1, "JOFFSET1");
 
 	// JOFR2 bitfields.
-	state->f1.fld.jofr2.joffset2 = cm_object_get_child_by_name(state->f1.reg.jofr2, "JOFFSET2");
+	state->u.f1.fld.jofr2.joffset2 = cm_object_get_child_by_name(state->u.f1.reg.jofr2, "JOFFSET2");
 
 	// JOFR3 bitfields.
-	state->f1.fld.jofr3.joffset3 = cm_object_get_child_by_name(state->f1.reg.jofr3, "JOFFSET3");
+	state->u.f1.fld.jofr3.joffset3 = cm_object_get_child_by_name(state->u.f1.reg.jofr3, "JOFFSET3");
 
 	// JOFR4 bitfields.
-	state->f1.fld.jofr4.joffset4 = cm_object_get_child_by_name(state->f1.reg.jofr4, "JOFFSET4");
+	state->u.f1.fld.jofr4.joffset4 = cm_object_get_child_by_name(state->u.f1.reg.jofr4, "JOFFSET4");
 
 	// HTR bitfields.
-	state->f1.fld.htr.ht = cm_object_get_child_by_name(state->f1.reg.htr, "HT");
+	state->u.f1.fld.htr.ht = cm_object_get_child_by_name(state->u.f1.reg.htr, "HT");
 
 	// LTR bitfields.
-	state->f1.fld.ltr.lt = cm_object_get_child_by_name(state->f1.reg.ltr, "LT");
+	state->u.f1.fld.ltr.lt = cm_object_get_child_by_name(state->u.f1.reg.ltr, "LT");
 
 	// SQR1 bitfields.
-	state->f1.fld.sqr1.sq13 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ13");
-	state->f1.fld.sqr1.sq14 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ14");
-	state->f1.fld.sqr1.sq15 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ15");
-	state->f1.fld.sqr1.sq16 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ16");
-	state->f1.fld.sqr1.l = cm_object_get_child_by_name(state->f1.reg.sqr1, "L");
+	state->u.f1.fld.sqr1.sq13 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ13");
+	state->u.f1.fld.sqr1.sq14 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ14");
+	state->u.f1.fld.sqr1.sq15 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ15");
+	state->u.f1.fld.sqr1.sq16 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ16");
+	state->u.f1.fld.sqr1.l = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "L");
 
 	// SQR2 bitfields.
-	state->f1.fld.sqr2.sq7 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ7");
-	state->f1.fld.sqr2.sq8 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ8");
-	state->f1.fld.sqr2.sq9 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ9");
-	state->f1.fld.sqr2.sq10 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ10");
-	state->f1.fld.sqr2.sq11 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ11");
-	state->f1.fld.sqr2.sq12 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ12");
+	state->u.f1.fld.sqr2.sq7 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ7");
+	state->u.f1.fld.sqr2.sq8 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ8");
+	state->u.f1.fld.sqr2.sq9 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ9");
+	state->u.f1.fld.sqr2.sq10 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ10");
+	state->u.f1.fld.sqr2.sq11 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ11");
+	state->u.f1.fld.sqr2.sq12 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ12");
 
 	// SQR3 bitfields.
-	state->f1.fld.sqr3.sq1 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ1");
-	state->f1.fld.sqr3.sq2 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ2");
-	state->f1.fld.sqr3.sq3 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ3");
-	state->f1.fld.sqr3.sq4 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ4");
-	state->f1.fld.sqr3.sq5 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ5");
-	state->f1.fld.sqr3.sq6 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ6");
+	state->u.f1.fld.sqr3.sq1 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ1");
+	state->u.f1.fld.sqr3.sq2 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ2");
+	state->u.f1.fld.sqr3.sq3 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ3");
+	state->u.f1.fld.sqr3.sq4 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ4");
+	state->u.f1.fld.sqr3.sq5 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ5");
+	state->u.f1.fld.sqr3.sq6 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ6");
 
 	// JSQR bitfields.
-	state->f1.fld.jsqr.jsq1 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ1");
-	state->f1.fld.jsqr.jsq2 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ2");
-	state->f1.fld.jsqr.jsq3 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ3");
-	state->f1.fld.jsqr.jsq4 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ4");
-	state->f1.fld.jsqr.jl = cm_object_get_child_by_name(state->f1.reg.jsqr, "JL");
+	state->u.f1.fld.jsqr.jsq1 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ1");
+	state->u.f1.fld.jsqr.jsq2 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ2");
+	state->u.f1.fld.jsqr.jsq3 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ3");
+	state->u.f1.fld.jsqr.jsq4 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ4");
+	state->u.f1.fld.jsqr.jl = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JL");
 
 	// JDR1 bitfields.
-	state->f1.fld.jdr1.jdata = cm_object_get_child_by_name(state->f1.reg.jdr1, "JDATA");
+	state->u.f1.fld.jdr1.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr1, "JDATA");
 
 	// JDR2 bitfields.
-	state->f1.fld.jdr2.jdata = cm_object_get_child_by_name(state->f1.reg.jdr2, "JDATA");
+	state->u.f1.fld.jdr2.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr2, "JDATA");
 
 	// JDR3 bitfields.
-	state->f1.fld.jdr3.jdata = cm_object_get_child_by_name(state->f1.reg.jdr3, "JDATA");
+	state->u.f1.fld.jdr3.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr3, "JDATA");
 
 	// JDR4 bitfields.
-	state->f1.fld.jdr4.jdata = cm_object_get_child_by_name(state->f1.reg.jdr4, "JDATA");
+	state->u.f1.fld.jdr4.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr4, "JDATA");
 
 	// DR bitfields.
-	state->f1.fld.dr.data = cm_object_get_child_by_name(state->f1.reg.dr, "DATA");
-	state->f1.fld.dr.adc2data = cm_object_get_child_by_name(state->f1.reg.dr, "ADC2DATA");
+	state->u.f1.fld.dr.data = cm_object_get_child_by_name(state->u.f1.reg.dr, "DATA");
+	state->u.f1.fld.dr.adc2data = cm_object_get_child_by_name(state->u.f1.reg.dr, "ADC2DATA");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -5995,7 +6016,8 @@ static void stm32f103xx_adc1_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 ADC2 (Analog to digital converter) registers.
 		struct {
@@ -6200,147 +6222,147 @@ static void stm32f103xx_adc2_create_objects(Object *obj, JSON_Object *svd, const
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.smpr1 = cm_object_get_child_by_name(obj, "SMPR1");
-	state->f1.reg.smpr2 = cm_object_get_child_by_name(obj, "SMPR2");
-	state->f1.reg.jofr1 = cm_object_get_child_by_name(obj, "JOFR1");
-	state->f1.reg.jofr2 = cm_object_get_child_by_name(obj, "JOFR2");
-	state->f1.reg.jofr3 = cm_object_get_child_by_name(obj, "JOFR3");
-	state->f1.reg.jofr4 = cm_object_get_child_by_name(obj, "JOFR4");
-	state->f1.reg.htr = cm_object_get_child_by_name(obj, "HTR");
-	state->f1.reg.ltr = cm_object_get_child_by_name(obj, "LTR");
-	state->f1.reg.sqr1 = cm_object_get_child_by_name(obj, "SQR1");
-	state->f1.reg.sqr2 = cm_object_get_child_by_name(obj, "SQR2");
-	state->f1.reg.sqr3 = cm_object_get_child_by_name(obj, "SQR3");
-	state->f1.reg.jsqr = cm_object_get_child_by_name(obj, "JSQR");
-	state->f1.reg.jdr1 = cm_object_get_child_by_name(obj, "JDR1");
-	state->f1.reg.jdr2 = cm_object_get_child_by_name(obj, "JDR2");
-	state->f1.reg.jdr3 = cm_object_get_child_by_name(obj, "JDR3");
-	state->f1.reg.jdr4 = cm_object_get_child_by_name(obj, "JDR4");
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.smpr1 = cm_object_get_child_by_name(obj, "SMPR1");
+	state->u.f1.reg.smpr2 = cm_object_get_child_by_name(obj, "SMPR2");
+	state->u.f1.reg.jofr1 = cm_object_get_child_by_name(obj, "JOFR1");
+	state->u.f1.reg.jofr2 = cm_object_get_child_by_name(obj, "JOFR2");
+	state->u.f1.reg.jofr3 = cm_object_get_child_by_name(obj, "JOFR3");
+	state->u.f1.reg.jofr4 = cm_object_get_child_by_name(obj, "JOFR4");
+	state->u.f1.reg.htr = cm_object_get_child_by_name(obj, "HTR");
+	state->u.f1.reg.ltr = cm_object_get_child_by_name(obj, "LTR");
+	state->u.f1.reg.sqr1 = cm_object_get_child_by_name(obj, "SQR1");
+	state->u.f1.reg.sqr2 = cm_object_get_child_by_name(obj, "SQR2");
+	state->u.f1.reg.sqr3 = cm_object_get_child_by_name(obj, "SQR3");
+	state->u.f1.reg.jsqr = cm_object_get_child_by_name(obj, "JSQR");
+	state->u.f1.reg.jdr1 = cm_object_get_child_by_name(obj, "JDR1");
+	state->u.f1.reg.jdr2 = cm_object_get_child_by_name(obj, "JDR2");
+	state->u.f1.reg.jdr3 = cm_object_get_child_by_name(obj, "JDR3");
+	state->u.f1.reg.jdr4 = cm_object_get_child_by_name(obj, "JDR4");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
 
 	// SR bitfields.
-	state->f1.fld.sr.awd = cm_object_get_child_by_name(state->f1.reg.sr, "AWD");
-	state->f1.fld.sr.eoc = cm_object_get_child_by_name(state->f1.reg.sr, "EOC");
-	state->f1.fld.sr.jeoc = cm_object_get_child_by_name(state->f1.reg.sr, "JEOC");
-	state->f1.fld.sr.jstrt = cm_object_get_child_by_name(state->f1.reg.sr, "JSTRT");
-	state->f1.fld.sr.strt = cm_object_get_child_by_name(state->f1.reg.sr, "STRT");
+	state->u.f1.fld.sr.awd = cm_object_get_child_by_name(state->u.f1.reg.sr, "AWD");
+	state->u.f1.fld.sr.eoc = cm_object_get_child_by_name(state->u.f1.reg.sr, "EOC");
+	state->u.f1.fld.sr.jeoc = cm_object_get_child_by_name(state->u.f1.reg.sr, "JEOC");
+	state->u.f1.fld.sr.jstrt = cm_object_get_child_by_name(state->u.f1.reg.sr, "JSTRT");
+	state->u.f1.fld.sr.strt = cm_object_get_child_by_name(state->u.f1.reg.sr, "STRT");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.awdch = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDCH");
-	state->f1.fld.cr1.eocie = cm_object_get_child_by_name(state->f1.reg.cr1, "EOCIE");
-	state->f1.fld.cr1.awdie = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDIE");
-	state->f1.fld.cr1.jeocie = cm_object_get_child_by_name(state->f1.reg.cr1, "JEOCIE");
-	state->f1.fld.cr1.scan = cm_object_get_child_by_name(state->f1.reg.cr1, "SCAN");
-	state->f1.fld.cr1.awdsgl = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDSGL");
-	state->f1.fld.cr1.jauto = cm_object_get_child_by_name(state->f1.reg.cr1, "JAUTO");
-	state->f1.fld.cr1.discen = cm_object_get_child_by_name(state->f1.reg.cr1, "DISCEN");
-	state->f1.fld.cr1.jdiscen = cm_object_get_child_by_name(state->f1.reg.cr1, "JDISCEN");
-	state->f1.fld.cr1.discnum = cm_object_get_child_by_name(state->f1.reg.cr1, "DISCNUM");
-	state->f1.fld.cr1.jawden = cm_object_get_child_by_name(state->f1.reg.cr1, "JAWDEN");
-	state->f1.fld.cr1.awden = cm_object_get_child_by_name(state->f1.reg.cr1, "AWDEN");
+	state->u.f1.fld.cr1.awdch = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDCH");
+	state->u.f1.fld.cr1.eocie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "EOCIE");
+	state->u.f1.fld.cr1.awdie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDIE");
+	state->u.f1.fld.cr1.jeocie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JEOCIE");
+	state->u.f1.fld.cr1.scan = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SCAN");
+	state->u.f1.fld.cr1.awdsgl = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDSGL");
+	state->u.f1.fld.cr1.jauto = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JAUTO");
+	state->u.f1.fld.cr1.discen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DISCEN");
+	state->u.f1.fld.cr1.jdiscen = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JDISCEN");
+	state->u.f1.fld.cr1.discnum = cm_object_get_child_by_name(state->u.f1.reg.cr1, "DISCNUM");
+	state->u.f1.fld.cr1.jawden = cm_object_get_child_by_name(state->u.f1.reg.cr1, "JAWDEN");
+	state->u.f1.fld.cr1.awden = cm_object_get_child_by_name(state->u.f1.reg.cr1, "AWDEN");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.adon = cm_object_get_child_by_name(state->f1.reg.cr2, "ADON");
-	state->f1.fld.cr2.cont = cm_object_get_child_by_name(state->f1.reg.cr2, "CONT");
-	state->f1.fld.cr2.cal = cm_object_get_child_by_name(state->f1.reg.cr2, "CAL");
-	state->f1.fld.cr2.rstcal = cm_object_get_child_by_name(state->f1.reg.cr2, "RSTCAL");
-	state->f1.fld.cr2.dma = cm_object_get_child_by_name(state->f1.reg.cr2, "DMA");
-	state->f1.fld.cr2.align = cm_object_get_child_by_name(state->f1.reg.cr2, "ALIGN");
-	state->f1.fld.cr2.jextsel = cm_object_get_child_by_name(state->f1.reg.cr2, "JEXTSEL");
-	state->f1.fld.cr2.jexttrig = cm_object_get_child_by_name(state->f1.reg.cr2, "JEXTTRIG");
-	state->f1.fld.cr2.extsel = cm_object_get_child_by_name(state->f1.reg.cr2, "EXTSEL");
-	state->f1.fld.cr2.exttrig = cm_object_get_child_by_name(state->f1.reg.cr2, "EXTTRIG");
-	state->f1.fld.cr2.jswstart = cm_object_get_child_by_name(state->f1.reg.cr2, "JSWSTART");
-	state->f1.fld.cr2.swstart = cm_object_get_child_by_name(state->f1.reg.cr2, "SWSTART");
-	state->f1.fld.cr2.tsvrefe = cm_object_get_child_by_name(state->f1.reg.cr2, "TSVREFE");
+	state->u.f1.fld.cr2.adon = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ADON");
+	state->u.f1.fld.cr2.cont = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CONT");
+	state->u.f1.fld.cr2.cal = cm_object_get_child_by_name(state->u.f1.reg.cr2, "CAL");
+	state->u.f1.fld.cr2.rstcal = cm_object_get_child_by_name(state->u.f1.reg.cr2, "RSTCAL");
+	state->u.f1.fld.cr2.dma = cm_object_get_child_by_name(state->u.f1.reg.cr2, "DMA");
+	state->u.f1.fld.cr2.align = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ALIGN");
+	state->u.f1.fld.cr2.jextsel = cm_object_get_child_by_name(state->u.f1.reg.cr2, "JEXTSEL");
+	state->u.f1.fld.cr2.jexttrig = cm_object_get_child_by_name(state->u.f1.reg.cr2, "JEXTTRIG");
+	state->u.f1.fld.cr2.extsel = cm_object_get_child_by_name(state->u.f1.reg.cr2, "EXTSEL");
+	state->u.f1.fld.cr2.exttrig = cm_object_get_child_by_name(state->u.f1.reg.cr2, "EXTTRIG");
+	state->u.f1.fld.cr2.jswstart = cm_object_get_child_by_name(state->u.f1.reg.cr2, "JSWSTART");
+	state->u.f1.fld.cr2.swstart = cm_object_get_child_by_name(state->u.f1.reg.cr2, "SWSTART");
+	state->u.f1.fld.cr2.tsvrefe = cm_object_get_child_by_name(state->u.f1.reg.cr2, "TSVREFE");
 
 	// SMPR1 bitfields.
-	state->f1.fld.smpr1.smp10 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP10");
-	state->f1.fld.smpr1.smp11 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP11");
-	state->f1.fld.smpr1.smp12 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP12");
-	state->f1.fld.smpr1.smp13 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP13");
-	state->f1.fld.smpr1.smp14 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP14");
-	state->f1.fld.smpr1.smp15 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP15");
-	state->f1.fld.smpr1.smp16 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP16");
-	state->f1.fld.smpr1.smp17 = cm_object_get_child_by_name(state->f1.reg.smpr1, "SMP17");
+	state->u.f1.fld.smpr1.smp10 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP10");
+	state->u.f1.fld.smpr1.smp11 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP11");
+	state->u.f1.fld.smpr1.smp12 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP12");
+	state->u.f1.fld.smpr1.smp13 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP13");
+	state->u.f1.fld.smpr1.smp14 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP14");
+	state->u.f1.fld.smpr1.smp15 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP15");
+	state->u.f1.fld.smpr1.smp16 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP16");
+	state->u.f1.fld.smpr1.smp17 = cm_object_get_child_by_name(state->u.f1.reg.smpr1, "SMP17");
 
 	// SMPR2 bitfields.
-	state->f1.fld.smpr2.smp0 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP0");
-	state->f1.fld.smpr2.smp1 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP1");
-	state->f1.fld.smpr2.smp2 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP2");
-	state->f1.fld.smpr2.smp3 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP3");
-	state->f1.fld.smpr2.smp4 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP4");
-	state->f1.fld.smpr2.smp5 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP5");
-	state->f1.fld.smpr2.smp6 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP6");
-	state->f1.fld.smpr2.smp7 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP7");
-	state->f1.fld.smpr2.smp8 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP8");
-	state->f1.fld.smpr2.smp9 = cm_object_get_child_by_name(state->f1.reg.smpr2, "SMP9");
+	state->u.f1.fld.smpr2.smp0 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP0");
+	state->u.f1.fld.smpr2.smp1 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP1");
+	state->u.f1.fld.smpr2.smp2 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP2");
+	state->u.f1.fld.smpr2.smp3 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP3");
+	state->u.f1.fld.smpr2.smp4 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP4");
+	state->u.f1.fld.smpr2.smp5 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP5");
+	state->u.f1.fld.smpr2.smp6 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP6");
+	state->u.f1.fld.smpr2.smp7 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP7");
+	state->u.f1.fld.smpr2.smp8 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP8");
+	state->u.f1.fld.smpr2.smp9 = cm_object_get_child_by_name(state->u.f1.reg.smpr2, "SMP9");
 
 	// JOFR1 bitfields.
-	state->f1.fld.jofr1.joffset1 = cm_object_get_child_by_name(state->f1.reg.jofr1, "JOFFSET1");
+	state->u.f1.fld.jofr1.joffset1 = cm_object_get_child_by_name(state->u.f1.reg.jofr1, "JOFFSET1");
 
 	// JOFR2 bitfields.
-	state->f1.fld.jofr2.joffset2 = cm_object_get_child_by_name(state->f1.reg.jofr2, "JOFFSET2");
+	state->u.f1.fld.jofr2.joffset2 = cm_object_get_child_by_name(state->u.f1.reg.jofr2, "JOFFSET2");
 
 	// JOFR3 bitfields.
-	state->f1.fld.jofr3.joffset3 = cm_object_get_child_by_name(state->f1.reg.jofr3, "JOFFSET3");
+	state->u.f1.fld.jofr3.joffset3 = cm_object_get_child_by_name(state->u.f1.reg.jofr3, "JOFFSET3");
 
 	// JOFR4 bitfields.
-	state->f1.fld.jofr4.joffset4 = cm_object_get_child_by_name(state->f1.reg.jofr4, "JOFFSET4");
+	state->u.f1.fld.jofr4.joffset4 = cm_object_get_child_by_name(state->u.f1.reg.jofr4, "JOFFSET4");
 
 	// HTR bitfields.
-	state->f1.fld.htr.ht = cm_object_get_child_by_name(state->f1.reg.htr, "HT");
+	state->u.f1.fld.htr.ht = cm_object_get_child_by_name(state->u.f1.reg.htr, "HT");
 
 	// LTR bitfields.
-	state->f1.fld.ltr.lt = cm_object_get_child_by_name(state->f1.reg.ltr, "LT");
+	state->u.f1.fld.ltr.lt = cm_object_get_child_by_name(state->u.f1.reg.ltr, "LT");
 
 	// SQR1 bitfields.
-	state->f1.fld.sqr1.sq13 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ13");
-	state->f1.fld.sqr1.sq14 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ14");
-	state->f1.fld.sqr1.sq15 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ15");
-	state->f1.fld.sqr1.sq16 = cm_object_get_child_by_name(state->f1.reg.sqr1, "SQ16");
-	state->f1.fld.sqr1.l = cm_object_get_child_by_name(state->f1.reg.sqr1, "L");
+	state->u.f1.fld.sqr1.sq13 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ13");
+	state->u.f1.fld.sqr1.sq14 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ14");
+	state->u.f1.fld.sqr1.sq15 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ15");
+	state->u.f1.fld.sqr1.sq16 = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "SQ16");
+	state->u.f1.fld.sqr1.l = cm_object_get_child_by_name(state->u.f1.reg.sqr1, "L");
 
 	// SQR2 bitfields.
-	state->f1.fld.sqr2.sq7 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ7");
-	state->f1.fld.sqr2.sq8 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ8");
-	state->f1.fld.sqr2.sq9 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ9");
-	state->f1.fld.sqr2.sq10 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ10");
-	state->f1.fld.sqr2.sq11 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ11");
-	state->f1.fld.sqr2.sq12 = cm_object_get_child_by_name(state->f1.reg.sqr2, "SQ12");
+	state->u.f1.fld.sqr2.sq7 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ7");
+	state->u.f1.fld.sqr2.sq8 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ8");
+	state->u.f1.fld.sqr2.sq9 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ9");
+	state->u.f1.fld.sqr2.sq10 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ10");
+	state->u.f1.fld.sqr2.sq11 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ11");
+	state->u.f1.fld.sqr2.sq12 = cm_object_get_child_by_name(state->u.f1.reg.sqr2, "SQ12");
 
 	// SQR3 bitfields.
-	state->f1.fld.sqr3.sq1 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ1");
-	state->f1.fld.sqr3.sq2 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ2");
-	state->f1.fld.sqr3.sq3 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ3");
-	state->f1.fld.sqr3.sq4 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ4");
-	state->f1.fld.sqr3.sq5 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ5");
-	state->f1.fld.sqr3.sq6 = cm_object_get_child_by_name(state->f1.reg.sqr3, "SQ6");
+	state->u.f1.fld.sqr3.sq1 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ1");
+	state->u.f1.fld.sqr3.sq2 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ2");
+	state->u.f1.fld.sqr3.sq3 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ3");
+	state->u.f1.fld.sqr3.sq4 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ4");
+	state->u.f1.fld.sqr3.sq5 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ5");
+	state->u.f1.fld.sqr3.sq6 = cm_object_get_child_by_name(state->u.f1.reg.sqr3, "SQ6");
 
 	// JSQR bitfields.
-	state->f1.fld.jsqr.jsq1 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ1");
-	state->f1.fld.jsqr.jsq2 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ2");
-	state->f1.fld.jsqr.jsq3 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ3");
-	state->f1.fld.jsqr.jsq4 = cm_object_get_child_by_name(state->f1.reg.jsqr, "JSQ4");
-	state->f1.fld.jsqr.jl = cm_object_get_child_by_name(state->f1.reg.jsqr, "JL");
+	state->u.f1.fld.jsqr.jsq1 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ1");
+	state->u.f1.fld.jsqr.jsq2 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ2");
+	state->u.f1.fld.jsqr.jsq3 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ3");
+	state->u.f1.fld.jsqr.jsq4 = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JSQ4");
+	state->u.f1.fld.jsqr.jl = cm_object_get_child_by_name(state->u.f1.reg.jsqr, "JL");
 
 	// JDR1 bitfields.
-	state->f1.fld.jdr1.jdata = cm_object_get_child_by_name(state->f1.reg.jdr1, "JDATA");
+	state->u.f1.fld.jdr1.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr1, "JDATA");
 
 	// JDR2 bitfields.
-	state->f1.fld.jdr2.jdata = cm_object_get_child_by_name(state->f1.reg.jdr2, "JDATA");
+	state->u.f1.fld.jdr2.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr2, "JDATA");
 
 	// JDR3 bitfields.
-	state->f1.fld.jdr3.jdata = cm_object_get_child_by_name(state->f1.reg.jdr3, "JDATA");
+	state->u.f1.fld.jdr3.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr3, "JDATA");
 
 	// JDR4 bitfields.
-	state->f1.fld.jdr4.jdata = cm_object_get_child_by_name(state->f1.reg.jdr4, "JDATA");
+	state->u.f1.fld.jdr4.jdata = cm_object_get_child_by_name(state->u.f1.reg.jdr4, "JDATA");
 
 	// DR bitfields.
-	state->f1.fld.dr.data = cm_object_get_child_by_name(state->f1.reg.dr, "DATA");
+	state->u.f1.fld.dr.data = cm_object_get_child_by_name(state->u.f1.reg.dr, "DATA");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -6349,7 +6371,8 @@ static void stm32f103xx_adc2_create_objects(Object *obj, JSON_Object *svd, const
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 CAN (Controller area network) registers.
 		struct {
@@ -7784,1295 +7807,1295 @@ static void stm32f103xx_can_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.can_mcr = cm_object_get_child_by_name(obj, "CAN_MCR");
-	state->f1.reg.can_msr = cm_object_get_child_by_name(obj, "CAN_MSR");
-	state->f1.reg.can_tsr = cm_object_get_child_by_name(obj, "CAN_TSR");
-	state->f1.reg.can_rf0r = cm_object_get_child_by_name(obj, "CAN_RF0R");
-	state->f1.reg.can_rf1r = cm_object_get_child_by_name(obj, "CAN_RF1R");
-	state->f1.reg.can_ier = cm_object_get_child_by_name(obj, "CAN_IER");
-	state->f1.reg.can_esr = cm_object_get_child_by_name(obj, "CAN_ESR");
-	state->f1.reg.can_btr = cm_object_get_child_by_name(obj, "CAN_BTR");
-	state->f1.reg.can_ti0r = cm_object_get_child_by_name(obj, "CAN_TI0R");
-	state->f1.reg.can_tdt0r = cm_object_get_child_by_name(obj, "CAN_TDT0R");
-	state->f1.reg.can_tdl0r = cm_object_get_child_by_name(obj, "CAN_TDL0R");
-	state->f1.reg.can_tdh0r = cm_object_get_child_by_name(obj, "CAN_TDH0R");
-	state->f1.reg.can_ti1r = cm_object_get_child_by_name(obj, "CAN_TI1R");
-	state->f1.reg.can_tdt1r = cm_object_get_child_by_name(obj, "CAN_TDT1R");
-	state->f1.reg.can_tdl1r = cm_object_get_child_by_name(obj, "CAN_TDL1R");
-	state->f1.reg.can_tdh1r = cm_object_get_child_by_name(obj, "CAN_TDH1R");
-	state->f1.reg.can_ti2r = cm_object_get_child_by_name(obj, "CAN_TI2R");
-	state->f1.reg.can_tdt2r = cm_object_get_child_by_name(obj, "CAN_TDT2R");
-	state->f1.reg.can_tdl2r = cm_object_get_child_by_name(obj, "CAN_TDL2R");
-	state->f1.reg.can_tdh2r = cm_object_get_child_by_name(obj, "CAN_TDH2R");
-	state->f1.reg.can_ri0r = cm_object_get_child_by_name(obj, "CAN_RI0R");
-	state->f1.reg.can_rdt0r = cm_object_get_child_by_name(obj, "CAN_RDT0R");
-	state->f1.reg.can_rdl0r = cm_object_get_child_by_name(obj, "CAN_RDL0R");
-	state->f1.reg.can_rdh0r = cm_object_get_child_by_name(obj, "CAN_RDH0R");
-	state->f1.reg.can_ri1r = cm_object_get_child_by_name(obj, "CAN_RI1R");
-	state->f1.reg.can_rdt1r = cm_object_get_child_by_name(obj, "CAN_RDT1R");
-	state->f1.reg.can_rdl1r = cm_object_get_child_by_name(obj, "CAN_RDL1R");
-	state->f1.reg.can_rdh1r = cm_object_get_child_by_name(obj, "CAN_RDH1R");
-	state->f1.reg.can_fmr = cm_object_get_child_by_name(obj, "CAN_FMR");
-	state->f1.reg.can_fm1r = cm_object_get_child_by_name(obj, "CAN_FM1R");
-	state->f1.reg.can_fs1r = cm_object_get_child_by_name(obj, "CAN_FS1R");
-	state->f1.reg.can_ffa1r = cm_object_get_child_by_name(obj, "CAN_FFA1R");
-	state->f1.reg.can_fa1r = cm_object_get_child_by_name(obj, "CAN_FA1R");
-	state->f1.reg.f0r1 = cm_object_get_child_by_name(obj, "F0R1");
-	state->f1.reg.f0r2 = cm_object_get_child_by_name(obj, "F0R2");
-	state->f1.reg.f1r1 = cm_object_get_child_by_name(obj, "F1R1");
-	state->f1.reg.f1r2 = cm_object_get_child_by_name(obj, "F1R2");
-	state->f1.reg.f2r1 = cm_object_get_child_by_name(obj, "F2R1");
-	state->f1.reg.f2r2 = cm_object_get_child_by_name(obj, "F2R2");
-	state->f1.reg.f3r1 = cm_object_get_child_by_name(obj, "F3R1");
-	state->f1.reg.f3r2 = cm_object_get_child_by_name(obj, "F3R2");
-	state->f1.reg.f4r1 = cm_object_get_child_by_name(obj, "F4R1");
-	state->f1.reg.f4r2 = cm_object_get_child_by_name(obj, "F4R2");
-	state->f1.reg.f5r1 = cm_object_get_child_by_name(obj, "F5R1");
-	state->f1.reg.f5r2 = cm_object_get_child_by_name(obj, "F5R2");
-	state->f1.reg.f6r1 = cm_object_get_child_by_name(obj, "F6R1");
-	state->f1.reg.f6r2 = cm_object_get_child_by_name(obj, "F6R2");
-	state->f1.reg.f7r1 = cm_object_get_child_by_name(obj, "F7R1");
-	state->f1.reg.f7r2 = cm_object_get_child_by_name(obj, "F7R2");
-	state->f1.reg.f8r1 = cm_object_get_child_by_name(obj, "F8R1");
-	state->f1.reg.f8r2 = cm_object_get_child_by_name(obj, "F8R2");
-	state->f1.reg.f9r1 = cm_object_get_child_by_name(obj, "F9R1");
-	state->f1.reg.f9r2 = cm_object_get_child_by_name(obj, "F9R2");
-	state->f1.reg.f10r1 = cm_object_get_child_by_name(obj, "F10R1");
-	state->f1.reg.f10r2 = cm_object_get_child_by_name(obj, "F10R2");
-	state->f1.reg.f11r1 = cm_object_get_child_by_name(obj, "F11R1");
-	state->f1.reg.f11r2 = cm_object_get_child_by_name(obj, "F11R2");
-	state->f1.reg.f12r1 = cm_object_get_child_by_name(obj, "F12R1");
-	state->f1.reg.f12r2 = cm_object_get_child_by_name(obj, "F12R2");
-	state->f1.reg.f13r1 = cm_object_get_child_by_name(obj, "F13R1");
-	state->f1.reg.f13r2 = cm_object_get_child_by_name(obj, "F13R2");
+	state->u.f1.reg.can_mcr = cm_object_get_child_by_name(obj, "CAN_MCR");
+	state->u.f1.reg.can_msr = cm_object_get_child_by_name(obj, "CAN_MSR");
+	state->u.f1.reg.can_tsr = cm_object_get_child_by_name(obj, "CAN_TSR");
+	state->u.f1.reg.can_rf0r = cm_object_get_child_by_name(obj, "CAN_RF0R");
+	state->u.f1.reg.can_rf1r = cm_object_get_child_by_name(obj, "CAN_RF1R");
+	state->u.f1.reg.can_ier = cm_object_get_child_by_name(obj, "CAN_IER");
+	state->u.f1.reg.can_esr = cm_object_get_child_by_name(obj, "CAN_ESR");
+	state->u.f1.reg.can_btr = cm_object_get_child_by_name(obj, "CAN_BTR");
+	state->u.f1.reg.can_ti0r = cm_object_get_child_by_name(obj, "CAN_TI0R");
+	state->u.f1.reg.can_tdt0r = cm_object_get_child_by_name(obj, "CAN_TDT0R");
+	state->u.f1.reg.can_tdl0r = cm_object_get_child_by_name(obj, "CAN_TDL0R");
+	state->u.f1.reg.can_tdh0r = cm_object_get_child_by_name(obj, "CAN_TDH0R");
+	state->u.f1.reg.can_ti1r = cm_object_get_child_by_name(obj, "CAN_TI1R");
+	state->u.f1.reg.can_tdt1r = cm_object_get_child_by_name(obj, "CAN_TDT1R");
+	state->u.f1.reg.can_tdl1r = cm_object_get_child_by_name(obj, "CAN_TDL1R");
+	state->u.f1.reg.can_tdh1r = cm_object_get_child_by_name(obj, "CAN_TDH1R");
+	state->u.f1.reg.can_ti2r = cm_object_get_child_by_name(obj, "CAN_TI2R");
+	state->u.f1.reg.can_tdt2r = cm_object_get_child_by_name(obj, "CAN_TDT2R");
+	state->u.f1.reg.can_tdl2r = cm_object_get_child_by_name(obj, "CAN_TDL2R");
+	state->u.f1.reg.can_tdh2r = cm_object_get_child_by_name(obj, "CAN_TDH2R");
+	state->u.f1.reg.can_ri0r = cm_object_get_child_by_name(obj, "CAN_RI0R");
+	state->u.f1.reg.can_rdt0r = cm_object_get_child_by_name(obj, "CAN_RDT0R");
+	state->u.f1.reg.can_rdl0r = cm_object_get_child_by_name(obj, "CAN_RDL0R");
+	state->u.f1.reg.can_rdh0r = cm_object_get_child_by_name(obj, "CAN_RDH0R");
+	state->u.f1.reg.can_ri1r = cm_object_get_child_by_name(obj, "CAN_RI1R");
+	state->u.f1.reg.can_rdt1r = cm_object_get_child_by_name(obj, "CAN_RDT1R");
+	state->u.f1.reg.can_rdl1r = cm_object_get_child_by_name(obj, "CAN_RDL1R");
+	state->u.f1.reg.can_rdh1r = cm_object_get_child_by_name(obj, "CAN_RDH1R");
+	state->u.f1.reg.can_fmr = cm_object_get_child_by_name(obj, "CAN_FMR");
+	state->u.f1.reg.can_fm1r = cm_object_get_child_by_name(obj, "CAN_FM1R");
+	state->u.f1.reg.can_fs1r = cm_object_get_child_by_name(obj, "CAN_FS1R");
+	state->u.f1.reg.can_ffa1r = cm_object_get_child_by_name(obj, "CAN_FFA1R");
+	state->u.f1.reg.can_fa1r = cm_object_get_child_by_name(obj, "CAN_FA1R");
+	state->u.f1.reg.f0r1 = cm_object_get_child_by_name(obj, "F0R1");
+	state->u.f1.reg.f0r2 = cm_object_get_child_by_name(obj, "F0R2");
+	state->u.f1.reg.f1r1 = cm_object_get_child_by_name(obj, "F1R1");
+	state->u.f1.reg.f1r2 = cm_object_get_child_by_name(obj, "F1R2");
+	state->u.f1.reg.f2r1 = cm_object_get_child_by_name(obj, "F2R1");
+	state->u.f1.reg.f2r2 = cm_object_get_child_by_name(obj, "F2R2");
+	state->u.f1.reg.f3r1 = cm_object_get_child_by_name(obj, "F3R1");
+	state->u.f1.reg.f3r2 = cm_object_get_child_by_name(obj, "F3R2");
+	state->u.f1.reg.f4r1 = cm_object_get_child_by_name(obj, "F4R1");
+	state->u.f1.reg.f4r2 = cm_object_get_child_by_name(obj, "F4R2");
+	state->u.f1.reg.f5r1 = cm_object_get_child_by_name(obj, "F5R1");
+	state->u.f1.reg.f5r2 = cm_object_get_child_by_name(obj, "F5R2");
+	state->u.f1.reg.f6r1 = cm_object_get_child_by_name(obj, "F6R1");
+	state->u.f1.reg.f6r2 = cm_object_get_child_by_name(obj, "F6R2");
+	state->u.f1.reg.f7r1 = cm_object_get_child_by_name(obj, "F7R1");
+	state->u.f1.reg.f7r2 = cm_object_get_child_by_name(obj, "F7R2");
+	state->u.f1.reg.f8r1 = cm_object_get_child_by_name(obj, "F8R1");
+	state->u.f1.reg.f8r2 = cm_object_get_child_by_name(obj, "F8R2");
+	state->u.f1.reg.f9r1 = cm_object_get_child_by_name(obj, "F9R1");
+	state->u.f1.reg.f9r2 = cm_object_get_child_by_name(obj, "F9R2");
+	state->u.f1.reg.f10r1 = cm_object_get_child_by_name(obj, "F10R1");
+	state->u.f1.reg.f10r2 = cm_object_get_child_by_name(obj, "F10R2");
+	state->u.f1.reg.f11r1 = cm_object_get_child_by_name(obj, "F11R1");
+	state->u.f1.reg.f11r2 = cm_object_get_child_by_name(obj, "F11R2");
+	state->u.f1.reg.f12r1 = cm_object_get_child_by_name(obj, "F12R1");
+	state->u.f1.reg.f12r2 = cm_object_get_child_by_name(obj, "F12R2");
+	state->u.f1.reg.f13r1 = cm_object_get_child_by_name(obj, "F13R1");
+	state->u.f1.reg.f13r2 = cm_object_get_child_by_name(obj, "F13R2");
 
 	// CAN_MCR bitfields.
-	state->f1.fld.can_mcr.inrq = cm_object_get_child_by_name(state->f1.reg.can_mcr, "INRQ");
-	state->f1.fld.can_mcr.sleep = cm_object_get_child_by_name(state->f1.reg.can_mcr, "SLEEP");
-	state->f1.fld.can_mcr.txfp = cm_object_get_child_by_name(state->f1.reg.can_mcr, "TXFP");
-	state->f1.fld.can_mcr.rflm = cm_object_get_child_by_name(state->f1.reg.can_mcr, "RFLM");
-	state->f1.fld.can_mcr.nart = cm_object_get_child_by_name(state->f1.reg.can_mcr, "NART");
-	state->f1.fld.can_mcr.awum = cm_object_get_child_by_name(state->f1.reg.can_mcr, "AWUM");
-	state->f1.fld.can_mcr.abom = cm_object_get_child_by_name(state->f1.reg.can_mcr, "ABOM");
-	state->f1.fld.can_mcr.ttcm = cm_object_get_child_by_name(state->f1.reg.can_mcr, "TTCM");
-	state->f1.fld.can_mcr.reset = cm_object_get_child_by_name(state->f1.reg.can_mcr, "RESET");
-	state->f1.fld.can_mcr.dbf = cm_object_get_child_by_name(state->f1.reg.can_mcr, "DBF");
+	state->u.f1.fld.can_mcr.inrq = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "INRQ");
+	state->u.f1.fld.can_mcr.sleep = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "SLEEP");
+	state->u.f1.fld.can_mcr.txfp = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "TXFP");
+	state->u.f1.fld.can_mcr.rflm = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "RFLM");
+	state->u.f1.fld.can_mcr.nart = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "NART");
+	state->u.f1.fld.can_mcr.awum = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "AWUM");
+	state->u.f1.fld.can_mcr.abom = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "ABOM");
+	state->u.f1.fld.can_mcr.ttcm = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "TTCM");
+	state->u.f1.fld.can_mcr.reset = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "RESET");
+	state->u.f1.fld.can_mcr.dbf = cm_object_get_child_by_name(state->u.f1.reg.can_mcr, "DBF");
 
 	// CAN_MSR bitfields.
-	state->f1.fld.can_msr.inak = cm_object_get_child_by_name(state->f1.reg.can_msr, "INAK");
-	state->f1.fld.can_msr.slak = cm_object_get_child_by_name(state->f1.reg.can_msr, "SLAK");
-	state->f1.fld.can_msr.erri = cm_object_get_child_by_name(state->f1.reg.can_msr, "ERRI");
-	state->f1.fld.can_msr.wkui = cm_object_get_child_by_name(state->f1.reg.can_msr, "WKUI");
-	state->f1.fld.can_msr.slaki = cm_object_get_child_by_name(state->f1.reg.can_msr, "SLAKI");
-	state->f1.fld.can_msr.txm = cm_object_get_child_by_name(state->f1.reg.can_msr, "TXM");
-	state->f1.fld.can_msr.rxm = cm_object_get_child_by_name(state->f1.reg.can_msr, "RXM");
-	state->f1.fld.can_msr.samp = cm_object_get_child_by_name(state->f1.reg.can_msr, "SAMP");
-	state->f1.fld.can_msr.rx = cm_object_get_child_by_name(state->f1.reg.can_msr, "RX");
+	state->u.f1.fld.can_msr.inak = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "INAK");
+	state->u.f1.fld.can_msr.slak = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "SLAK");
+	state->u.f1.fld.can_msr.erri = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "ERRI");
+	state->u.f1.fld.can_msr.wkui = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "WKUI");
+	state->u.f1.fld.can_msr.slaki = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "SLAKI");
+	state->u.f1.fld.can_msr.txm = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "TXM");
+	state->u.f1.fld.can_msr.rxm = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "RXM");
+	state->u.f1.fld.can_msr.samp = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "SAMP");
+	state->u.f1.fld.can_msr.rx = cm_object_get_child_by_name(state->u.f1.reg.can_msr, "RX");
 
 	// CAN_TSR bitfields.
-	state->f1.fld.can_tsr.rqcp0 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "RQCP0");
-	state->f1.fld.can_tsr.txok0 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TXOK0");
-	state->f1.fld.can_tsr.alst0 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "ALST0");
-	state->f1.fld.can_tsr.terr0 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TERR0");
-	state->f1.fld.can_tsr.abrq0 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "ABRQ0");
-	state->f1.fld.can_tsr.rqcp1 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "RQCP1");
-	state->f1.fld.can_tsr.txok1 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TXOK1");
-	state->f1.fld.can_tsr.alst1 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "ALST1");
-	state->f1.fld.can_tsr.terr1 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TERR1");
-	state->f1.fld.can_tsr.abrq1 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "ABRQ1");
-	state->f1.fld.can_tsr.rqcp2 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "RQCP2");
-	state->f1.fld.can_tsr.txok2 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TXOK2");
-	state->f1.fld.can_tsr.alst2 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "ALST2");
-	state->f1.fld.can_tsr.terr2 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TERR2");
-	state->f1.fld.can_tsr.abrq2 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "ABRQ2");
-	state->f1.fld.can_tsr.code = cm_object_get_child_by_name(state->f1.reg.can_tsr, "CODE");
-	state->f1.fld.can_tsr.tme0 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TME0");
-	state->f1.fld.can_tsr.tme1 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TME1");
-	state->f1.fld.can_tsr.tme2 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "TME2");
-	state->f1.fld.can_tsr.low0 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "LOW0");
-	state->f1.fld.can_tsr.low1 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "LOW1");
-	state->f1.fld.can_tsr.low2 = cm_object_get_child_by_name(state->f1.reg.can_tsr, "LOW2");
+	state->u.f1.fld.can_tsr.rqcp0 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "RQCP0");
+	state->u.f1.fld.can_tsr.txok0 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TXOK0");
+	state->u.f1.fld.can_tsr.alst0 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "ALST0");
+	state->u.f1.fld.can_tsr.terr0 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TERR0");
+	state->u.f1.fld.can_tsr.abrq0 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "ABRQ0");
+	state->u.f1.fld.can_tsr.rqcp1 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "RQCP1");
+	state->u.f1.fld.can_tsr.txok1 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TXOK1");
+	state->u.f1.fld.can_tsr.alst1 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "ALST1");
+	state->u.f1.fld.can_tsr.terr1 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TERR1");
+	state->u.f1.fld.can_tsr.abrq1 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "ABRQ1");
+	state->u.f1.fld.can_tsr.rqcp2 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "RQCP2");
+	state->u.f1.fld.can_tsr.txok2 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TXOK2");
+	state->u.f1.fld.can_tsr.alst2 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "ALST2");
+	state->u.f1.fld.can_tsr.terr2 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TERR2");
+	state->u.f1.fld.can_tsr.abrq2 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "ABRQ2");
+	state->u.f1.fld.can_tsr.code = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "CODE");
+	state->u.f1.fld.can_tsr.tme0 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TME0");
+	state->u.f1.fld.can_tsr.tme1 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TME1");
+	state->u.f1.fld.can_tsr.tme2 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "TME2");
+	state->u.f1.fld.can_tsr.low0 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "LOW0");
+	state->u.f1.fld.can_tsr.low1 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "LOW1");
+	state->u.f1.fld.can_tsr.low2 = cm_object_get_child_by_name(state->u.f1.reg.can_tsr, "LOW2");
 
 	// CAN_RF0R bitfields.
-	state->f1.fld.can_rf0r.fmp0 = cm_object_get_child_by_name(state->f1.reg.can_rf0r, "FMP0");
-	state->f1.fld.can_rf0r.full0 = cm_object_get_child_by_name(state->f1.reg.can_rf0r, "FULL0");
-	state->f1.fld.can_rf0r.fovr0 = cm_object_get_child_by_name(state->f1.reg.can_rf0r, "FOVR0");
-	state->f1.fld.can_rf0r.rfom0 = cm_object_get_child_by_name(state->f1.reg.can_rf0r, "RFOM0");
+	state->u.f1.fld.can_rf0r.fmp0 = cm_object_get_child_by_name(state->u.f1.reg.can_rf0r, "FMP0");
+	state->u.f1.fld.can_rf0r.full0 = cm_object_get_child_by_name(state->u.f1.reg.can_rf0r, "FULL0");
+	state->u.f1.fld.can_rf0r.fovr0 = cm_object_get_child_by_name(state->u.f1.reg.can_rf0r, "FOVR0");
+	state->u.f1.fld.can_rf0r.rfom0 = cm_object_get_child_by_name(state->u.f1.reg.can_rf0r, "RFOM0");
 
 	// CAN_RF1R bitfields.
-	state->f1.fld.can_rf1r.fmp1 = cm_object_get_child_by_name(state->f1.reg.can_rf1r, "FMP1");
-	state->f1.fld.can_rf1r.full1 = cm_object_get_child_by_name(state->f1.reg.can_rf1r, "FULL1");
-	state->f1.fld.can_rf1r.fovr1 = cm_object_get_child_by_name(state->f1.reg.can_rf1r, "FOVR1");
-	state->f1.fld.can_rf1r.rfom1 = cm_object_get_child_by_name(state->f1.reg.can_rf1r, "RFOM1");
+	state->u.f1.fld.can_rf1r.fmp1 = cm_object_get_child_by_name(state->u.f1.reg.can_rf1r, "FMP1");
+	state->u.f1.fld.can_rf1r.full1 = cm_object_get_child_by_name(state->u.f1.reg.can_rf1r, "FULL1");
+	state->u.f1.fld.can_rf1r.fovr1 = cm_object_get_child_by_name(state->u.f1.reg.can_rf1r, "FOVR1");
+	state->u.f1.fld.can_rf1r.rfom1 = cm_object_get_child_by_name(state->u.f1.reg.can_rf1r, "RFOM1");
 
 	// CAN_IER bitfields.
-	state->f1.fld.can_ier.tmeie = cm_object_get_child_by_name(state->f1.reg.can_ier, "TMEIE");
-	state->f1.fld.can_ier.fmpie0 = cm_object_get_child_by_name(state->f1.reg.can_ier, "FMPIE0");
-	state->f1.fld.can_ier.ffie0 = cm_object_get_child_by_name(state->f1.reg.can_ier, "FFIE0");
-	state->f1.fld.can_ier.fovie0 = cm_object_get_child_by_name(state->f1.reg.can_ier, "FOVIE0");
-	state->f1.fld.can_ier.fmpie1 = cm_object_get_child_by_name(state->f1.reg.can_ier, "FMPIE1");
-	state->f1.fld.can_ier.ffie1 = cm_object_get_child_by_name(state->f1.reg.can_ier, "FFIE1");
-	state->f1.fld.can_ier.fovie1 = cm_object_get_child_by_name(state->f1.reg.can_ier, "FOVIE1");
-	state->f1.fld.can_ier.ewgie = cm_object_get_child_by_name(state->f1.reg.can_ier, "EWGIE");
-	state->f1.fld.can_ier.epvie = cm_object_get_child_by_name(state->f1.reg.can_ier, "EPVIE");
-	state->f1.fld.can_ier.bofie = cm_object_get_child_by_name(state->f1.reg.can_ier, "BOFIE");
-	state->f1.fld.can_ier.lecie = cm_object_get_child_by_name(state->f1.reg.can_ier, "LECIE");
-	state->f1.fld.can_ier.errie = cm_object_get_child_by_name(state->f1.reg.can_ier, "ERRIE");
-	state->f1.fld.can_ier.wkuie = cm_object_get_child_by_name(state->f1.reg.can_ier, "WKUIE");
-	state->f1.fld.can_ier.slkie = cm_object_get_child_by_name(state->f1.reg.can_ier, "SLKIE");
+	state->u.f1.fld.can_ier.tmeie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "TMEIE");
+	state->u.f1.fld.can_ier.fmpie0 = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "FMPIE0");
+	state->u.f1.fld.can_ier.ffie0 = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "FFIE0");
+	state->u.f1.fld.can_ier.fovie0 = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "FOVIE0");
+	state->u.f1.fld.can_ier.fmpie1 = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "FMPIE1");
+	state->u.f1.fld.can_ier.ffie1 = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "FFIE1");
+	state->u.f1.fld.can_ier.fovie1 = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "FOVIE1");
+	state->u.f1.fld.can_ier.ewgie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "EWGIE");
+	state->u.f1.fld.can_ier.epvie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "EPVIE");
+	state->u.f1.fld.can_ier.bofie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "BOFIE");
+	state->u.f1.fld.can_ier.lecie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "LECIE");
+	state->u.f1.fld.can_ier.errie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "ERRIE");
+	state->u.f1.fld.can_ier.wkuie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "WKUIE");
+	state->u.f1.fld.can_ier.slkie = cm_object_get_child_by_name(state->u.f1.reg.can_ier, "SLKIE");
 
 	// CAN_ESR bitfields.
-	state->f1.fld.can_esr.ewgf = cm_object_get_child_by_name(state->f1.reg.can_esr, "EWGF");
-	state->f1.fld.can_esr.epvf = cm_object_get_child_by_name(state->f1.reg.can_esr, "EPVF");
-	state->f1.fld.can_esr.boff = cm_object_get_child_by_name(state->f1.reg.can_esr, "BOFF");
-	state->f1.fld.can_esr.lec = cm_object_get_child_by_name(state->f1.reg.can_esr, "LEC");
-	state->f1.fld.can_esr.tec = cm_object_get_child_by_name(state->f1.reg.can_esr, "TEC");
-	state->f1.fld.can_esr.rec = cm_object_get_child_by_name(state->f1.reg.can_esr, "REC");
+	state->u.f1.fld.can_esr.ewgf = cm_object_get_child_by_name(state->u.f1.reg.can_esr, "EWGF");
+	state->u.f1.fld.can_esr.epvf = cm_object_get_child_by_name(state->u.f1.reg.can_esr, "EPVF");
+	state->u.f1.fld.can_esr.boff = cm_object_get_child_by_name(state->u.f1.reg.can_esr, "BOFF");
+	state->u.f1.fld.can_esr.lec = cm_object_get_child_by_name(state->u.f1.reg.can_esr, "LEC");
+	state->u.f1.fld.can_esr.tec = cm_object_get_child_by_name(state->u.f1.reg.can_esr, "TEC");
+	state->u.f1.fld.can_esr.rec = cm_object_get_child_by_name(state->u.f1.reg.can_esr, "REC");
 
 	// CAN_BTR bitfields.
-	state->f1.fld.can_btr.brp = cm_object_get_child_by_name(state->f1.reg.can_btr, "BRP");
-	state->f1.fld.can_btr.ts1 = cm_object_get_child_by_name(state->f1.reg.can_btr, "TS1");
-	state->f1.fld.can_btr.ts2 = cm_object_get_child_by_name(state->f1.reg.can_btr, "TS2");
-	state->f1.fld.can_btr.sjw = cm_object_get_child_by_name(state->f1.reg.can_btr, "SJW");
-	state->f1.fld.can_btr.lbkm = cm_object_get_child_by_name(state->f1.reg.can_btr, "LBKM");
-	state->f1.fld.can_btr.silm = cm_object_get_child_by_name(state->f1.reg.can_btr, "SILM");
+	state->u.f1.fld.can_btr.brp = cm_object_get_child_by_name(state->u.f1.reg.can_btr, "BRP");
+	state->u.f1.fld.can_btr.ts1 = cm_object_get_child_by_name(state->u.f1.reg.can_btr, "TS1");
+	state->u.f1.fld.can_btr.ts2 = cm_object_get_child_by_name(state->u.f1.reg.can_btr, "TS2");
+	state->u.f1.fld.can_btr.sjw = cm_object_get_child_by_name(state->u.f1.reg.can_btr, "SJW");
+	state->u.f1.fld.can_btr.lbkm = cm_object_get_child_by_name(state->u.f1.reg.can_btr, "LBKM");
+	state->u.f1.fld.can_btr.silm = cm_object_get_child_by_name(state->u.f1.reg.can_btr, "SILM");
 
 	// CAN_TI0R bitfields.
-	state->f1.fld.can_ti0r.txrq = cm_object_get_child_by_name(state->f1.reg.can_ti0r, "TXRQ");
-	state->f1.fld.can_ti0r.rtr = cm_object_get_child_by_name(state->f1.reg.can_ti0r, "RTR");
-	state->f1.fld.can_ti0r.ide = cm_object_get_child_by_name(state->f1.reg.can_ti0r, "IDE");
-	state->f1.fld.can_ti0r.exid = cm_object_get_child_by_name(state->f1.reg.can_ti0r, "EXID");
-	state->f1.fld.can_ti0r.stid = cm_object_get_child_by_name(state->f1.reg.can_ti0r, "STID");
+	state->u.f1.fld.can_ti0r.txrq = cm_object_get_child_by_name(state->u.f1.reg.can_ti0r, "TXRQ");
+	state->u.f1.fld.can_ti0r.rtr = cm_object_get_child_by_name(state->u.f1.reg.can_ti0r, "RTR");
+	state->u.f1.fld.can_ti0r.ide = cm_object_get_child_by_name(state->u.f1.reg.can_ti0r, "IDE");
+	state->u.f1.fld.can_ti0r.exid = cm_object_get_child_by_name(state->u.f1.reg.can_ti0r, "EXID");
+	state->u.f1.fld.can_ti0r.stid = cm_object_get_child_by_name(state->u.f1.reg.can_ti0r, "STID");
 
 	// CAN_TDT0R bitfields.
-	state->f1.fld.can_tdt0r.dlc = cm_object_get_child_by_name(state->f1.reg.can_tdt0r, "DLC");
-	state->f1.fld.can_tdt0r.tgt = cm_object_get_child_by_name(state->f1.reg.can_tdt0r, "TGT");
-	state->f1.fld.can_tdt0r.time = cm_object_get_child_by_name(state->f1.reg.can_tdt0r, "TIME");
+	state->u.f1.fld.can_tdt0r.dlc = cm_object_get_child_by_name(state->u.f1.reg.can_tdt0r, "DLC");
+	state->u.f1.fld.can_tdt0r.tgt = cm_object_get_child_by_name(state->u.f1.reg.can_tdt0r, "TGT");
+	state->u.f1.fld.can_tdt0r.time = cm_object_get_child_by_name(state->u.f1.reg.can_tdt0r, "TIME");
 
 	// CAN_TDL0R bitfields.
-	state->f1.fld.can_tdl0r.data0 = cm_object_get_child_by_name(state->f1.reg.can_tdl0r, "DATA0");
-	state->f1.fld.can_tdl0r.data1 = cm_object_get_child_by_name(state->f1.reg.can_tdl0r, "DATA1");
-	state->f1.fld.can_tdl0r.data2 = cm_object_get_child_by_name(state->f1.reg.can_tdl0r, "DATA2");
-	state->f1.fld.can_tdl0r.data3 = cm_object_get_child_by_name(state->f1.reg.can_tdl0r, "DATA3");
+	state->u.f1.fld.can_tdl0r.data0 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl0r, "DATA0");
+	state->u.f1.fld.can_tdl0r.data1 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl0r, "DATA1");
+	state->u.f1.fld.can_tdl0r.data2 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl0r, "DATA2");
+	state->u.f1.fld.can_tdl0r.data3 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl0r, "DATA3");
 
 	// CAN_TDH0R bitfields.
-	state->f1.fld.can_tdh0r.data4 = cm_object_get_child_by_name(state->f1.reg.can_tdh0r, "DATA4");
-	state->f1.fld.can_tdh0r.data5 = cm_object_get_child_by_name(state->f1.reg.can_tdh0r, "DATA5");
-	state->f1.fld.can_tdh0r.data6 = cm_object_get_child_by_name(state->f1.reg.can_tdh0r, "DATA6");
-	state->f1.fld.can_tdh0r.data7 = cm_object_get_child_by_name(state->f1.reg.can_tdh0r, "DATA7");
+	state->u.f1.fld.can_tdh0r.data4 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh0r, "DATA4");
+	state->u.f1.fld.can_tdh0r.data5 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh0r, "DATA5");
+	state->u.f1.fld.can_tdh0r.data6 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh0r, "DATA6");
+	state->u.f1.fld.can_tdh0r.data7 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh0r, "DATA7");
 
 	// CAN_TI1R bitfields.
-	state->f1.fld.can_ti1r.txrq = cm_object_get_child_by_name(state->f1.reg.can_ti1r, "TXRQ");
-	state->f1.fld.can_ti1r.rtr = cm_object_get_child_by_name(state->f1.reg.can_ti1r, "RTR");
-	state->f1.fld.can_ti1r.ide = cm_object_get_child_by_name(state->f1.reg.can_ti1r, "IDE");
-	state->f1.fld.can_ti1r.exid = cm_object_get_child_by_name(state->f1.reg.can_ti1r, "EXID");
-	state->f1.fld.can_ti1r.stid = cm_object_get_child_by_name(state->f1.reg.can_ti1r, "STID");
+	state->u.f1.fld.can_ti1r.txrq = cm_object_get_child_by_name(state->u.f1.reg.can_ti1r, "TXRQ");
+	state->u.f1.fld.can_ti1r.rtr = cm_object_get_child_by_name(state->u.f1.reg.can_ti1r, "RTR");
+	state->u.f1.fld.can_ti1r.ide = cm_object_get_child_by_name(state->u.f1.reg.can_ti1r, "IDE");
+	state->u.f1.fld.can_ti1r.exid = cm_object_get_child_by_name(state->u.f1.reg.can_ti1r, "EXID");
+	state->u.f1.fld.can_ti1r.stid = cm_object_get_child_by_name(state->u.f1.reg.can_ti1r, "STID");
 
 	// CAN_TDT1R bitfields.
-	state->f1.fld.can_tdt1r.dlc = cm_object_get_child_by_name(state->f1.reg.can_tdt1r, "DLC");
-	state->f1.fld.can_tdt1r.tgt = cm_object_get_child_by_name(state->f1.reg.can_tdt1r, "TGT");
-	state->f1.fld.can_tdt1r.time = cm_object_get_child_by_name(state->f1.reg.can_tdt1r, "TIME");
+	state->u.f1.fld.can_tdt1r.dlc = cm_object_get_child_by_name(state->u.f1.reg.can_tdt1r, "DLC");
+	state->u.f1.fld.can_tdt1r.tgt = cm_object_get_child_by_name(state->u.f1.reg.can_tdt1r, "TGT");
+	state->u.f1.fld.can_tdt1r.time = cm_object_get_child_by_name(state->u.f1.reg.can_tdt1r, "TIME");
 
 	// CAN_TDL1R bitfields.
-	state->f1.fld.can_tdl1r.data0 = cm_object_get_child_by_name(state->f1.reg.can_tdl1r, "DATA0");
-	state->f1.fld.can_tdl1r.data1 = cm_object_get_child_by_name(state->f1.reg.can_tdl1r, "DATA1");
-	state->f1.fld.can_tdl1r.data2 = cm_object_get_child_by_name(state->f1.reg.can_tdl1r, "DATA2");
-	state->f1.fld.can_tdl1r.data3 = cm_object_get_child_by_name(state->f1.reg.can_tdl1r, "DATA3");
+	state->u.f1.fld.can_tdl1r.data0 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl1r, "DATA0");
+	state->u.f1.fld.can_tdl1r.data1 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl1r, "DATA1");
+	state->u.f1.fld.can_tdl1r.data2 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl1r, "DATA2");
+	state->u.f1.fld.can_tdl1r.data3 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl1r, "DATA3");
 
 	// CAN_TDH1R bitfields.
-	state->f1.fld.can_tdh1r.data4 = cm_object_get_child_by_name(state->f1.reg.can_tdh1r, "DATA4");
-	state->f1.fld.can_tdh1r.data5 = cm_object_get_child_by_name(state->f1.reg.can_tdh1r, "DATA5");
-	state->f1.fld.can_tdh1r.data6 = cm_object_get_child_by_name(state->f1.reg.can_tdh1r, "DATA6");
-	state->f1.fld.can_tdh1r.data7 = cm_object_get_child_by_name(state->f1.reg.can_tdh1r, "DATA7");
+	state->u.f1.fld.can_tdh1r.data4 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh1r, "DATA4");
+	state->u.f1.fld.can_tdh1r.data5 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh1r, "DATA5");
+	state->u.f1.fld.can_tdh1r.data6 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh1r, "DATA6");
+	state->u.f1.fld.can_tdh1r.data7 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh1r, "DATA7");
 
 	// CAN_TI2R bitfields.
-	state->f1.fld.can_ti2r.txrq = cm_object_get_child_by_name(state->f1.reg.can_ti2r, "TXRQ");
-	state->f1.fld.can_ti2r.rtr = cm_object_get_child_by_name(state->f1.reg.can_ti2r, "RTR");
-	state->f1.fld.can_ti2r.ide = cm_object_get_child_by_name(state->f1.reg.can_ti2r, "IDE");
-	state->f1.fld.can_ti2r.exid = cm_object_get_child_by_name(state->f1.reg.can_ti2r, "EXID");
-	state->f1.fld.can_ti2r.stid = cm_object_get_child_by_name(state->f1.reg.can_ti2r, "STID");
+	state->u.f1.fld.can_ti2r.txrq = cm_object_get_child_by_name(state->u.f1.reg.can_ti2r, "TXRQ");
+	state->u.f1.fld.can_ti2r.rtr = cm_object_get_child_by_name(state->u.f1.reg.can_ti2r, "RTR");
+	state->u.f1.fld.can_ti2r.ide = cm_object_get_child_by_name(state->u.f1.reg.can_ti2r, "IDE");
+	state->u.f1.fld.can_ti2r.exid = cm_object_get_child_by_name(state->u.f1.reg.can_ti2r, "EXID");
+	state->u.f1.fld.can_ti2r.stid = cm_object_get_child_by_name(state->u.f1.reg.can_ti2r, "STID");
 
 	// CAN_TDT2R bitfields.
-	state->f1.fld.can_tdt2r.dlc = cm_object_get_child_by_name(state->f1.reg.can_tdt2r, "DLC");
-	state->f1.fld.can_tdt2r.tgt = cm_object_get_child_by_name(state->f1.reg.can_tdt2r, "TGT");
-	state->f1.fld.can_tdt2r.time = cm_object_get_child_by_name(state->f1.reg.can_tdt2r, "TIME");
+	state->u.f1.fld.can_tdt2r.dlc = cm_object_get_child_by_name(state->u.f1.reg.can_tdt2r, "DLC");
+	state->u.f1.fld.can_tdt2r.tgt = cm_object_get_child_by_name(state->u.f1.reg.can_tdt2r, "TGT");
+	state->u.f1.fld.can_tdt2r.time = cm_object_get_child_by_name(state->u.f1.reg.can_tdt2r, "TIME");
 
 	// CAN_TDL2R bitfields.
-	state->f1.fld.can_tdl2r.data0 = cm_object_get_child_by_name(state->f1.reg.can_tdl2r, "DATA0");
-	state->f1.fld.can_tdl2r.data1 = cm_object_get_child_by_name(state->f1.reg.can_tdl2r, "DATA1");
-	state->f1.fld.can_tdl2r.data2 = cm_object_get_child_by_name(state->f1.reg.can_tdl2r, "DATA2");
-	state->f1.fld.can_tdl2r.data3 = cm_object_get_child_by_name(state->f1.reg.can_tdl2r, "DATA3");
+	state->u.f1.fld.can_tdl2r.data0 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl2r, "DATA0");
+	state->u.f1.fld.can_tdl2r.data1 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl2r, "DATA1");
+	state->u.f1.fld.can_tdl2r.data2 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl2r, "DATA2");
+	state->u.f1.fld.can_tdl2r.data3 = cm_object_get_child_by_name(state->u.f1.reg.can_tdl2r, "DATA3");
 
 	// CAN_TDH2R bitfields.
-	state->f1.fld.can_tdh2r.data4 = cm_object_get_child_by_name(state->f1.reg.can_tdh2r, "DATA4");
-	state->f1.fld.can_tdh2r.data5 = cm_object_get_child_by_name(state->f1.reg.can_tdh2r, "DATA5");
-	state->f1.fld.can_tdh2r.data6 = cm_object_get_child_by_name(state->f1.reg.can_tdh2r, "DATA6");
-	state->f1.fld.can_tdh2r.data7 = cm_object_get_child_by_name(state->f1.reg.can_tdh2r, "DATA7");
+	state->u.f1.fld.can_tdh2r.data4 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh2r, "DATA4");
+	state->u.f1.fld.can_tdh2r.data5 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh2r, "DATA5");
+	state->u.f1.fld.can_tdh2r.data6 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh2r, "DATA6");
+	state->u.f1.fld.can_tdh2r.data7 = cm_object_get_child_by_name(state->u.f1.reg.can_tdh2r, "DATA7");
 
 	// CAN_RI0R bitfields.
-	state->f1.fld.can_ri0r.rtr = cm_object_get_child_by_name(state->f1.reg.can_ri0r, "RTR");
-	state->f1.fld.can_ri0r.ide = cm_object_get_child_by_name(state->f1.reg.can_ri0r, "IDE");
-	state->f1.fld.can_ri0r.exid = cm_object_get_child_by_name(state->f1.reg.can_ri0r, "EXID");
-	state->f1.fld.can_ri0r.stid = cm_object_get_child_by_name(state->f1.reg.can_ri0r, "STID");
+	state->u.f1.fld.can_ri0r.rtr = cm_object_get_child_by_name(state->u.f1.reg.can_ri0r, "RTR");
+	state->u.f1.fld.can_ri0r.ide = cm_object_get_child_by_name(state->u.f1.reg.can_ri0r, "IDE");
+	state->u.f1.fld.can_ri0r.exid = cm_object_get_child_by_name(state->u.f1.reg.can_ri0r, "EXID");
+	state->u.f1.fld.can_ri0r.stid = cm_object_get_child_by_name(state->u.f1.reg.can_ri0r, "STID");
 
 	// CAN_RDT0R bitfields.
-	state->f1.fld.can_rdt0r.dlc = cm_object_get_child_by_name(state->f1.reg.can_rdt0r, "DLC");
-	state->f1.fld.can_rdt0r.fmi = cm_object_get_child_by_name(state->f1.reg.can_rdt0r, "FMI");
-	state->f1.fld.can_rdt0r.time = cm_object_get_child_by_name(state->f1.reg.can_rdt0r, "TIME");
+	state->u.f1.fld.can_rdt0r.dlc = cm_object_get_child_by_name(state->u.f1.reg.can_rdt0r, "DLC");
+	state->u.f1.fld.can_rdt0r.fmi = cm_object_get_child_by_name(state->u.f1.reg.can_rdt0r, "FMI");
+	state->u.f1.fld.can_rdt0r.time = cm_object_get_child_by_name(state->u.f1.reg.can_rdt0r, "TIME");
 
 	// CAN_RDL0R bitfields.
-	state->f1.fld.can_rdl0r.data0 = cm_object_get_child_by_name(state->f1.reg.can_rdl0r, "DATA0");
-	state->f1.fld.can_rdl0r.data1 = cm_object_get_child_by_name(state->f1.reg.can_rdl0r, "DATA1");
-	state->f1.fld.can_rdl0r.data2 = cm_object_get_child_by_name(state->f1.reg.can_rdl0r, "DATA2");
-	state->f1.fld.can_rdl0r.data3 = cm_object_get_child_by_name(state->f1.reg.can_rdl0r, "DATA3");
+	state->u.f1.fld.can_rdl0r.data0 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl0r, "DATA0");
+	state->u.f1.fld.can_rdl0r.data1 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl0r, "DATA1");
+	state->u.f1.fld.can_rdl0r.data2 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl0r, "DATA2");
+	state->u.f1.fld.can_rdl0r.data3 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl0r, "DATA3");
 
 	// CAN_RDH0R bitfields.
-	state->f1.fld.can_rdh0r.data4 = cm_object_get_child_by_name(state->f1.reg.can_rdh0r, "DATA4");
-	state->f1.fld.can_rdh0r.data5 = cm_object_get_child_by_name(state->f1.reg.can_rdh0r, "DATA5");
-	state->f1.fld.can_rdh0r.data6 = cm_object_get_child_by_name(state->f1.reg.can_rdh0r, "DATA6");
-	state->f1.fld.can_rdh0r.data7 = cm_object_get_child_by_name(state->f1.reg.can_rdh0r, "DATA7");
+	state->u.f1.fld.can_rdh0r.data4 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh0r, "DATA4");
+	state->u.f1.fld.can_rdh0r.data5 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh0r, "DATA5");
+	state->u.f1.fld.can_rdh0r.data6 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh0r, "DATA6");
+	state->u.f1.fld.can_rdh0r.data7 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh0r, "DATA7");
 
 	// CAN_RI1R bitfields.
-	state->f1.fld.can_ri1r.rtr = cm_object_get_child_by_name(state->f1.reg.can_ri1r, "RTR");
-	state->f1.fld.can_ri1r.ide = cm_object_get_child_by_name(state->f1.reg.can_ri1r, "IDE");
-	state->f1.fld.can_ri1r.exid = cm_object_get_child_by_name(state->f1.reg.can_ri1r, "EXID");
-	state->f1.fld.can_ri1r.stid = cm_object_get_child_by_name(state->f1.reg.can_ri1r, "STID");
+	state->u.f1.fld.can_ri1r.rtr = cm_object_get_child_by_name(state->u.f1.reg.can_ri1r, "RTR");
+	state->u.f1.fld.can_ri1r.ide = cm_object_get_child_by_name(state->u.f1.reg.can_ri1r, "IDE");
+	state->u.f1.fld.can_ri1r.exid = cm_object_get_child_by_name(state->u.f1.reg.can_ri1r, "EXID");
+	state->u.f1.fld.can_ri1r.stid = cm_object_get_child_by_name(state->u.f1.reg.can_ri1r, "STID");
 
 	// CAN_RDT1R bitfields.
-	state->f1.fld.can_rdt1r.dlc = cm_object_get_child_by_name(state->f1.reg.can_rdt1r, "DLC");
-	state->f1.fld.can_rdt1r.fmi = cm_object_get_child_by_name(state->f1.reg.can_rdt1r, "FMI");
-	state->f1.fld.can_rdt1r.time = cm_object_get_child_by_name(state->f1.reg.can_rdt1r, "TIME");
+	state->u.f1.fld.can_rdt1r.dlc = cm_object_get_child_by_name(state->u.f1.reg.can_rdt1r, "DLC");
+	state->u.f1.fld.can_rdt1r.fmi = cm_object_get_child_by_name(state->u.f1.reg.can_rdt1r, "FMI");
+	state->u.f1.fld.can_rdt1r.time = cm_object_get_child_by_name(state->u.f1.reg.can_rdt1r, "TIME");
 
 	// CAN_RDL1R bitfields.
-	state->f1.fld.can_rdl1r.data0 = cm_object_get_child_by_name(state->f1.reg.can_rdl1r, "DATA0");
-	state->f1.fld.can_rdl1r.data1 = cm_object_get_child_by_name(state->f1.reg.can_rdl1r, "DATA1");
-	state->f1.fld.can_rdl1r.data2 = cm_object_get_child_by_name(state->f1.reg.can_rdl1r, "DATA2");
-	state->f1.fld.can_rdl1r.data3 = cm_object_get_child_by_name(state->f1.reg.can_rdl1r, "DATA3");
+	state->u.f1.fld.can_rdl1r.data0 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl1r, "DATA0");
+	state->u.f1.fld.can_rdl1r.data1 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl1r, "DATA1");
+	state->u.f1.fld.can_rdl1r.data2 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl1r, "DATA2");
+	state->u.f1.fld.can_rdl1r.data3 = cm_object_get_child_by_name(state->u.f1.reg.can_rdl1r, "DATA3");
 
 	// CAN_RDH1R bitfields.
-	state->f1.fld.can_rdh1r.data4 = cm_object_get_child_by_name(state->f1.reg.can_rdh1r, "DATA4");
-	state->f1.fld.can_rdh1r.data5 = cm_object_get_child_by_name(state->f1.reg.can_rdh1r, "DATA5");
-	state->f1.fld.can_rdh1r.data6 = cm_object_get_child_by_name(state->f1.reg.can_rdh1r, "DATA6");
-	state->f1.fld.can_rdh1r.data7 = cm_object_get_child_by_name(state->f1.reg.can_rdh1r, "DATA7");
+	state->u.f1.fld.can_rdh1r.data4 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh1r, "DATA4");
+	state->u.f1.fld.can_rdh1r.data5 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh1r, "DATA5");
+	state->u.f1.fld.can_rdh1r.data6 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh1r, "DATA6");
+	state->u.f1.fld.can_rdh1r.data7 = cm_object_get_child_by_name(state->u.f1.reg.can_rdh1r, "DATA7");
 
 	// CAN_FMR bitfields.
-	state->f1.fld.can_fmr.finit = cm_object_get_child_by_name(state->f1.reg.can_fmr, "FINIT");
+	state->u.f1.fld.can_fmr.finit = cm_object_get_child_by_name(state->u.f1.reg.can_fmr, "FINIT");
 
 	// CAN_FM1R bitfields.
-	state->f1.fld.can_fm1r.fbm0 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM0");
-	state->f1.fld.can_fm1r.fbm1 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM1");
-	state->f1.fld.can_fm1r.fbm2 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM2");
-	state->f1.fld.can_fm1r.fbm3 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM3");
-	state->f1.fld.can_fm1r.fbm4 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM4");
-	state->f1.fld.can_fm1r.fbm5 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM5");
-	state->f1.fld.can_fm1r.fbm6 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM6");
-	state->f1.fld.can_fm1r.fbm7 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM7");
-	state->f1.fld.can_fm1r.fbm8 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM8");
-	state->f1.fld.can_fm1r.fbm9 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM9");
-	state->f1.fld.can_fm1r.fbm10 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM10");
-	state->f1.fld.can_fm1r.fbm11 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM11");
-	state->f1.fld.can_fm1r.fbm12 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM12");
-	state->f1.fld.can_fm1r.fbm13 = cm_object_get_child_by_name(state->f1.reg.can_fm1r, "FBM13");
+	state->u.f1.fld.can_fm1r.fbm0 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM0");
+	state->u.f1.fld.can_fm1r.fbm1 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM1");
+	state->u.f1.fld.can_fm1r.fbm2 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM2");
+	state->u.f1.fld.can_fm1r.fbm3 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM3");
+	state->u.f1.fld.can_fm1r.fbm4 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM4");
+	state->u.f1.fld.can_fm1r.fbm5 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM5");
+	state->u.f1.fld.can_fm1r.fbm6 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM6");
+	state->u.f1.fld.can_fm1r.fbm7 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM7");
+	state->u.f1.fld.can_fm1r.fbm8 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM8");
+	state->u.f1.fld.can_fm1r.fbm9 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM9");
+	state->u.f1.fld.can_fm1r.fbm10 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM10");
+	state->u.f1.fld.can_fm1r.fbm11 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM11");
+	state->u.f1.fld.can_fm1r.fbm12 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM12");
+	state->u.f1.fld.can_fm1r.fbm13 = cm_object_get_child_by_name(state->u.f1.reg.can_fm1r, "FBM13");
 
 	// CAN_FS1R bitfields.
-	state->f1.fld.can_fs1r.fsc0 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC0");
-	state->f1.fld.can_fs1r.fsc1 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC1");
-	state->f1.fld.can_fs1r.fsc2 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC2");
-	state->f1.fld.can_fs1r.fsc3 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC3");
-	state->f1.fld.can_fs1r.fsc4 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC4");
-	state->f1.fld.can_fs1r.fsc5 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC5");
-	state->f1.fld.can_fs1r.fsc6 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC6");
-	state->f1.fld.can_fs1r.fsc7 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC7");
-	state->f1.fld.can_fs1r.fsc8 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC8");
-	state->f1.fld.can_fs1r.fsc9 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC9");
-	state->f1.fld.can_fs1r.fsc10 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC10");
-	state->f1.fld.can_fs1r.fsc11 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC11");
-	state->f1.fld.can_fs1r.fsc12 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC12");
-	state->f1.fld.can_fs1r.fsc13 = cm_object_get_child_by_name(state->f1.reg.can_fs1r, "FSC13");
+	state->u.f1.fld.can_fs1r.fsc0 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC0");
+	state->u.f1.fld.can_fs1r.fsc1 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC1");
+	state->u.f1.fld.can_fs1r.fsc2 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC2");
+	state->u.f1.fld.can_fs1r.fsc3 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC3");
+	state->u.f1.fld.can_fs1r.fsc4 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC4");
+	state->u.f1.fld.can_fs1r.fsc5 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC5");
+	state->u.f1.fld.can_fs1r.fsc6 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC6");
+	state->u.f1.fld.can_fs1r.fsc7 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC7");
+	state->u.f1.fld.can_fs1r.fsc8 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC8");
+	state->u.f1.fld.can_fs1r.fsc9 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC9");
+	state->u.f1.fld.can_fs1r.fsc10 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC10");
+	state->u.f1.fld.can_fs1r.fsc11 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC11");
+	state->u.f1.fld.can_fs1r.fsc12 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC12");
+	state->u.f1.fld.can_fs1r.fsc13 = cm_object_get_child_by_name(state->u.f1.reg.can_fs1r, "FSC13");
 
 	// CAN_FFA1R bitfields.
-	state->f1.fld.can_ffa1r.ffa0 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA0");
-	state->f1.fld.can_ffa1r.ffa1 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA1");
-	state->f1.fld.can_ffa1r.ffa2 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA2");
-	state->f1.fld.can_ffa1r.ffa3 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA3");
-	state->f1.fld.can_ffa1r.ffa4 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA4");
-	state->f1.fld.can_ffa1r.ffa5 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA5");
-	state->f1.fld.can_ffa1r.ffa6 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA6");
-	state->f1.fld.can_ffa1r.ffa7 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA7");
-	state->f1.fld.can_ffa1r.ffa8 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA8");
-	state->f1.fld.can_ffa1r.ffa9 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA9");
-	state->f1.fld.can_ffa1r.ffa10 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA10");
-	state->f1.fld.can_ffa1r.ffa11 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA11");
-	state->f1.fld.can_ffa1r.ffa12 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA12");
-	state->f1.fld.can_ffa1r.ffa13 = cm_object_get_child_by_name(state->f1.reg.can_ffa1r, "FFA13");
+	state->u.f1.fld.can_ffa1r.ffa0 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA0");
+	state->u.f1.fld.can_ffa1r.ffa1 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA1");
+	state->u.f1.fld.can_ffa1r.ffa2 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA2");
+	state->u.f1.fld.can_ffa1r.ffa3 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA3");
+	state->u.f1.fld.can_ffa1r.ffa4 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA4");
+	state->u.f1.fld.can_ffa1r.ffa5 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA5");
+	state->u.f1.fld.can_ffa1r.ffa6 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA6");
+	state->u.f1.fld.can_ffa1r.ffa7 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA7");
+	state->u.f1.fld.can_ffa1r.ffa8 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA8");
+	state->u.f1.fld.can_ffa1r.ffa9 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA9");
+	state->u.f1.fld.can_ffa1r.ffa10 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA10");
+	state->u.f1.fld.can_ffa1r.ffa11 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA11");
+	state->u.f1.fld.can_ffa1r.ffa12 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA12");
+	state->u.f1.fld.can_ffa1r.ffa13 = cm_object_get_child_by_name(state->u.f1.reg.can_ffa1r, "FFA13");
 
 	// CAN_FA1R bitfields.
-	state->f1.fld.can_fa1r.fact0 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT0");
-	state->f1.fld.can_fa1r.fact1 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT1");
-	state->f1.fld.can_fa1r.fact2 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT2");
-	state->f1.fld.can_fa1r.fact3 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT3");
-	state->f1.fld.can_fa1r.fact4 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT4");
-	state->f1.fld.can_fa1r.fact5 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT5");
-	state->f1.fld.can_fa1r.fact6 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT6");
-	state->f1.fld.can_fa1r.fact7 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT7");
-	state->f1.fld.can_fa1r.fact8 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT8");
-	state->f1.fld.can_fa1r.fact9 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT9");
-	state->f1.fld.can_fa1r.fact10 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT10");
-	state->f1.fld.can_fa1r.fact11 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT11");
-	state->f1.fld.can_fa1r.fact12 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT12");
-	state->f1.fld.can_fa1r.fact13 = cm_object_get_child_by_name(state->f1.reg.can_fa1r, "FACT13");
+	state->u.f1.fld.can_fa1r.fact0 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT0");
+	state->u.f1.fld.can_fa1r.fact1 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT1");
+	state->u.f1.fld.can_fa1r.fact2 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT2");
+	state->u.f1.fld.can_fa1r.fact3 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT3");
+	state->u.f1.fld.can_fa1r.fact4 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT4");
+	state->u.f1.fld.can_fa1r.fact5 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT5");
+	state->u.f1.fld.can_fa1r.fact6 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT6");
+	state->u.f1.fld.can_fa1r.fact7 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT7");
+	state->u.f1.fld.can_fa1r.fact8 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT8");
+	state->u.f1.fld.can_fa1r.fact9 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT9");
+	state->u.f1.fld.can_fa1r.fact10 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT10");
+	state->u.f1.fld.can_fa1r.fact11 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT11");
+	state->u.f1.fld.can_fa1r.fact12 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT12");
+	state->u.f1.fld.can_fa1r.fact13 = cm_object_get_child_by_name(state->u.f1.reg.can_fa1r, "FACT13");
 
 	// F0R1 bitfields.
-	state->f1.fld.f0r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB0");
-	state->f1.fld.f0r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB1");
-	state->f1.fld.f0r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB2");
-	state->f1.fld.f0r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB3");
-	state->f1.fld.f0r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB4");
-	state->f1.fld.f0r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB5");
-	state->f1.fld.f0r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB6");
-	state->f1.fld.f0r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB7");
-	state->f1.fld.f0r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB8");
-	state->f1.fld.f0r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB9");
-	state->f1.fld.f0r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB10");
-	state->f1.fld.f0r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB11");
-	state->f1.fld.f0r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB12");
-	state->f1.fld.f0r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB13");
-	state->f1.fld.f0r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB14");
-	state->f1.fld.f0r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB15");
-	state->f1.fld.f0r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB16");
-	state->f1.fld.f0r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB17");
-	state->f1.fld.f0r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB18");
-	state->f1.fld.f0r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB19");
-	state->f1.fld.f0r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB20");
-	state->f1.fld.f0r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB21");
-	state->f1.fld.f0r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB22");
-	state->f1.fld.f0r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB23");
-	state->f1.fld.f0r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB24");
-	state->f1.fld.f0r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB25");
-	state->f1.fld.f0r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB26");
-	state->f1.fld.f0r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB27");
-	state->f1.fld.f0r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB28");
-	state->f1.fld.f0r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB29");
-	state->f1.fld.f0r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB30");
-	state->f1.fld.f0r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f0r1, "FB31");
+	state->u.f1.fld.f0r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB0");
+	state->u.f1.fld.f0r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB1");
+	state->u.f1.fld.f0r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB2");
+	state->u.f1.fld.f0r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB3");
+	state->u.f1.fld.f0r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB4");
+	state->u.f1.fld.f0r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB5");
+	state->u.f1.fld.f0r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB6");
+	state->u.f1.fld.f0r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB7");
+	state->u.f1.fld.f0r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB8");
+	state->u.f1.fld.f0r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB9");
+	state->u.f1.fld.f0r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB10");
+	state->u.f1.fld.f0r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB11");
+	state->u.f1.fld.f0r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB12");
+	state->u.f1.fld.f0r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB13");
+	state->u.f1.fld.f0r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB14");
+	state->u.f1.fld.f0r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB15");
+	state->u.f1.fld.f0r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB16");
+	state->u.f1.fld.f0r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB17");
+	state->u.f1.fld.f0r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB18");
+	state->u.f1.fld.f0r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB19");
+	state->u.f1.fld.f0r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB20");
+	state->u.f1.fld.f0r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB21");
+	state->u.f1.fld.f0r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB22");
+	state->u.f1.fld.f0r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB23");
+	state->u.f1.fld.f0r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB24");
+	state->u.f1.fld.f0r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB25");
+	state->u.f1.fld.f0r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB26");
+	state->u.f1.fld.f0r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB27");
+	state->u.f1.fld.f0r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB28");
+	state->u.f1.fld.f0r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB29");
+	state->u.f1.fld.f0r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB30");
+	state->u.f1.fld.f0r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f0r1, "FB31");
 
 	// F0R2 bitfields.
-	state->f1.fld.f0r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB0");
-	state->f1.fld.f0r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB1");
-	state->f1.fld.f0r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB2");
-	state->f1.fld.f0r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB3");
-	state->f1.fld.f0r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB4");
-	state->f1.fld.f0r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB5");
-	state->f1.fld.f0r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB6");
-	state->f1.fld.f0r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB7");
-	state->f1.fld.f0r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB8");
-	state->f1.fld.f0r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB9");
-	state->f1.fld.f0r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB10");
-	state->f1.fld.f0r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB11");
-	state->f1.fld.f0r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB12");
-	state->f1.fld.f0r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB13");
-	state->f1.fld.f0r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB14");
-	state->f1.fld.f0r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB15");
-	state->f1.fld.f0r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB16");
-	state->f1.fld.f0r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB17");
-	state->f1.fld.f0r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB18");
-	state->f1.fld.f0r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB19");
-	state->f1.fld.f0r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB20");
-	state->f1.fld.f0r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB21");
-	state->f1.fld.f0r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB22");
-	state->f1.fld.f0r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB23");
-	state->f1.fld.f0r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB24");
-	state->f1.fld.f0r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB25");
-	state->f1.fld.f0r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB26");
-	state->f1.fld.f0r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB27");
-	state->f1.fld.f0r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB28");
-	state->f1.fld.f0r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB29");
-	state->f1.fld.f0r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB30");
-	state->f1.fld.f0r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f0r2, "FB31");
+	state->u.f1.fld.f0r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB0");
+	state->u.f1.fld.f0r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB1");
+	state->u.f1.fld.f0r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB2");
+	state->u.f1.fld.f0r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB3");
+	state->u.f1.fld.f0r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB4");
+	state->u.f1.fld.f0r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB5");
+	state->u.f1.fld.f0r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB6");
+	state->u.f1.fld.f0r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB7");
+	state->u.f1.fld.f0r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB8");
+	state->u.f1.fld.f0r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB9");
+	state->u.f1.fld.f0r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB10");
+	state->u.f1.fld.f0r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB11");
+	state->u.f1.fld.f0r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB12");
+	state->u.f1.fld.f0r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB13");
+	state->u.f1.fld.f0r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB14");
+	state->u.f1.fld.f0r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB15");
+	state->u.f1.fld.f0r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB16");
+	state->u.f1.fld.f0r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB17");
+	state->u.f1.fld.f0r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB18");
+	state->u.f1.fld.f0r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB19");
+	state->u.f1.fld.f0r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB20");
+	state->u.f1.fld.f0r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB21");
+	state->u.f1.fld.f0r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB22");
+	state->u.f1.fld.f0r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB23");
+	state->u.f1.fld.f0r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB24");
+	state->u.f1.fld.f0r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB25");
+	state->u.f1.fld.f0r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB26");
+	state->u.f1.fld.f0r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB27");
+	state->u.f1.fld.f0r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB28");
+	state->u.f1.fld.f0r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB29");
+	state->u.f1.fld.f0r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB30");
+	state->u.f1.fld.f0r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f0r2, "FB31");
 
 	// F1R1 bitfields.
-	state->f1.fld.f1r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB0");
-	state->f1.fld.f1r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB1");
-	state->f1.fld.f1r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB2");
-	state->f1.fld.f1r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB3");
-	state->f1.fld.f1r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB4");
-	state->f1.fld.f1r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB5");
-	state->f1.fld.f1r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB6");
-	state->f1.fld.f1r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB7");
-	state->f1.fld.f1r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB8");
-	state->f1.fld.f1r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB9");
-	state->f1.fld.f1r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB10");
-	state->f1.fld.f1r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB11");
-	state->f1.fld.f1r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB12");
-	state->f1.fld.f1r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB13");
-	state->f1.fld.f1r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB14");
-	state->f1.fld.f1r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB15");
-	state->f1.fld.f1r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB16");
-	state->f1.fld.f1r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB17");
-	state->f1.fld.f1r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB18");
-	state->f1.fld.f1r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB19");
-	state->f1.fld.f1r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB20");
-	state->f1.fld.f1r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB21");
-	state->f1.fld.f1r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB22");
-	state->f1.fld.f1r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB23");
-	state->f1.fld.f1r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB24");
-	state->f1.fld.f1r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB25");
-	state->f1.fld.f1r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB26");
-	state->f1.fld.f1r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB27");
-	state->f1.fld.f1r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB28");
-	state->f1.fld.f1r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB29");
-	state->f1.fld.f1r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB30");
-	state->f1.fld.f1r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f1r1, "FB31");
+	state->u.f1.fld.f1r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB0");
+	state->u.f1.fld.f1r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB1");
+	state->u.f1.fld.f1r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB2");
+	state->u.f1.fld.f1r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB3");
+	state->u.f1.fld.f1r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB4");
+	state->u.f1.fld.f1r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB5");
+	state->u.f1.fld.f1r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB6");
+	state->u.f1.fld.f1r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB7");
+	state->u.f1.fld.f1r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB8");
+	state->u.f1.fld.f1r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB9");
+	state->u.f1.fld.f1r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB10");
+	state->u.f1.fld.f1r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB11");
+	state->u.f1.fld.f1r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB12");
+	state->u.f1.fld.f1r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB13");
+	state->u.f1.fld.f1r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB14");
+	state->u.f1.fld.f1r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB15");
+	state->u.f1.fld.f1r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB16");
+	state->u.f1.fld.f1r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB17");
+	state->u.f1.fld.f1r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB18");
+	state->u.f1.fld.f1r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB19");
+	state->u.f1.fld.f1r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB20");
+	state->u.f1.fld.f1r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB21");
+	state->u.f1.fld.f1r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB22");
+	state->u.f1.fld.f1r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB23");
+	state->u.f1.fld.f1r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB24");
+	state->u.f1.fld.f1r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB25");
+	state->u.f1.fld.f1r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB26");
+	state->u.f1.fld.f1r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB27");
+	state->u.f1.fld.f1r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB28");
+	state->u.f1.fld.f1r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB29");
+	state->u.f1.fld.f1r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB30");
+	state->u.f1.fld.f1r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f1r1, "FB31");
 
 	// F1R2 bitfields.
-	state->f1.fld.f1r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB0");
-	state->f1.fld.f1r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB1");
-	state->f1.fld.f1r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB2");
-	state->f1.fld.f1r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB3");
-	state->f1.fld.f1r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB4");
-	state->f1.fld.f1r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB5");
-	state->f1.fld.f1r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB6");
-	state->f1.fld.f1r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB7");
-	state->f1.fld.f1r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB8");
-	state->f1.fld.f1r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB9");
-	state->f1.fld.f1r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB10");
-	state->f1.fld.f1r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB11");
-	state->f1.fld.f1r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB12");
-	state->f1.fld.f1r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB13");
-	state->f1.fld.f1r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB14");
-	state->f1.fld.f1r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB15");
-	state->f1.fld.f1r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB16");
-	state->f1.fld.f1r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB17");
-	state->f1.fld.f1r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB18");
-	state->f1.fld.f1r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB19");
-	state->f1.fld.f1r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB20");
-	state->f1.fld.f1r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB21");
-	state->f1.fld.f1r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB22");
-	state->f1.fld.f1r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB23");
-	state->f1.fld.f1r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB24");
-	state->f1.fld.f1r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB25");
-	state->f1.fld.f1r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB26");
-	state->f1.fld.f1r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB27");
-	state->f1.fld.f1r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB28");
-	state->f1.fld.f1r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB29");
-	state->f1.fld.f1r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB30");
-	state->f1.fld.f1r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f1r2, "FB31");
+	state->u.f1.fld.f1r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB0");
+	state->u.f1.fld.f1r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB1");
+	state->u.f1.fld.f1r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB2");
+	state->u.f1.fld.f1r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB3");
+	state->u.f1.fld.f1r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB4");
+	state->u.f1.fld.f1r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB5");
+	state->u.f1.fld.f1r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB6");
+	state->u.f1.fld.f1r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB7");
+	state->u.f1.fld.f1r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB8");
+	state->u.f1.fld.f1r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB9");
+	state->u.f1.fld.f1r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB10");
+	state->u.f1.fld.f1r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB11");
+	state->u.f1.fld.f1r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB12");
+	state->u.f1.fld.f1r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB13");
+	state->u.f1.fld.f1r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB14");
+	state->u.f1.fld.f1r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB15");
+	state->u.f1.fld.f1r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB16");
+	state->u.f1.fld.f1r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB17");
+	state->u.f1.fld.f1r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB18");
+	state->u.f1.fld.f1r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB19");
+	state->u.f1.fld.f1r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB20");
+	state->u.f1.fld.f1r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB21");
+	state->u.f1.fld.f1r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB22");
+	state->u.f1.fld.f1r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB23");
+	state->u.f1.fld.f1r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB24");
+	state->u.f1.fld.f1r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB25");
+	state->u.f1.fld.f1r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB26");
+	state->u.f1.fld.f1r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB27");
+	state->u.f1.fld.f1r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB28");
+	state->u.f1.fld.f1r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB29");
+	state->u.f1.fld.f1r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB30");
+	state->u.f1.fld.f1r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f1r2, "FB31");
 
 	// F2R1 bitfields.
-	state->f1.fld.f2r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB0");
-	state->f1.fld.f2r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB1");
-	state->f1.fld.f2r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB2");
-	state->f1.fld.f2r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB3");
-	state->f1.fld.f2r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB4");
-	state->f1.fld.f2r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB5");
-	state->f1.fld.f2r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB6");
-	state->f1.fld.f2r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB7");
-	state->f1.fld.f2r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB8");
-	state->f1.fld.f2r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB9");
-	state->f1.fld.f2r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB10");
-	state->f1.fld.f2r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB11");
-	state->f1.fld.f2r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB12");
-	state->f1.fld.f2r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB13");
-	state->f1.fld.f2r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB14");
-	state->f1.fld.f2r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB15");
-	state->f1.fld.f2r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB16");
-	state->f1.fld.f2r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB17");
-	state->f1.fld.f2r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB18");
-	state->f1.fld.f2r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB19");
-	state->f1.fld.f2r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB20");
-	state->f1.fld.f2r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB21");
-	state->f1.fld.f2r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB22");
-	state->f1.fld.f2r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB23");
-	state->f1.fld.f2r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB24");
-	state->f1.fld.f2r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB25");
-	state->f1.fld.f2r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB26");
-	state->f1.fld.f2r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB27");
-	state->f1.fld.f2r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB28");
-	state->f1.fld.f2r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB29");
-	state->f1.fld.f2r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB30");
-	state->f1.fld.f2r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f2r1, "FB31");
+	state->u.f1.fld.f2r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB0");
+	state->u.f1.fld.f2r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB1");
+	state->u.f1.fld.f2r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB2");
+	state->u.f1.fld.f2r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB3");
+	state->u.f1.fld.f2r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB4");
+	state->u.f1.fld.f2r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB5");
+	state->u.f1.fld.f2r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB6");
+	state->u.f1.fld.f2r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB7");
+	state->u.f1.fld.f2r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB8");
+	state->u.f1.fld.f2r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB9");
+	state->u.f1.fld.f2r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB10");
+	state->u.f1.fld.f2r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB11");
+	state->u.f1.fld.f2r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB12");
+	state->u.f1.fld.f2r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB13");
+	state->u.f1.fld.f2r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB14");
+	state->u.f1.fld.f2r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB15");
+	state->u.f1.fld.f2r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB16");
+	state->u.f1.fld.f2r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB17");
+	state->u.f1.fld.f2r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB18");
+	state->u.f1.fld.f2r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB19");
+	state->u.f1.fld.f2r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB20");
+	state->u.f1.fld.f2r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB21");
+	state->u.f1.fld.f2r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB22");
+	state->u.f1.fld.f2r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB23");
+	state->u.f1.fld.f2r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB24");
+	state->u.f1.fld.f2r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB25");
+	state->u.f1.fld.f2r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB26");
+	state->u.f1.fld.f2r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB27");
+	state->u.f1.fld.f2r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB28");
+	state->u.f1.fld.f2r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB29");
+	state->u.f1.fld.f2r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB30");
+	state->u.f1.fld.f2r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f2r1, "FB31");
 
 	// F2R2 bitfields.
-	state->f1.fld.f2r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB0");
-	state->f1.fld.f2r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB1");
-	state->f1.fld.f2r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB2");
-	state->f1.fld.f2r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB3");
-	state->f1.fld.f2r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB4");
-	state->f1.fld.f2r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB5");
-	state->f1.fld.f2r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB6");
-	state->f1.fld.f2r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB7");
-	state->f1.fld.f2r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB8");
-	state->f1.fld.f2r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB9");
-	state->f1.fld.f2r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB10");
-	state->f1.fld.f2r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB11");
-	state->f1.fld.f2r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB12");
-	state->f1.fld.f2r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB13");
-	state->f1.fld.f2r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB14");
-	state->f1.fld.f2r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB15");
-	state->f1.fld.f2r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB16");
-	state->f1.fld.f2r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB17");
-	state->f1.fld.f2r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB18");
-	state->f1.fld.f2r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB19");
-	state->f1.fld.f2r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB20");
-	state->f1.fld.f2r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB21");
-	state->f1.fld.f2r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB22");
-	state->f1.fld.f2r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB23");
-	state->f1.fld.f2r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB24");
-	state->f1.fld.f2r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB25");
-	state->f1.fld.f2r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB26");
-	state->f1.fld.f2r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB27");
-	state->f1.fld.f2r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB28");
-	state->f1.fld.f2r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB29");
-	state->f1.fld.f2r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB30");
-	state->f1.fld.f2r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f2r2, "FB31");
+	state->u.f1.fld.f2r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB0");
+	state->u.f1.fld.f2r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB1");
+	state->u.f1.fld.f2r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB2");
+	state->u.f1.fld.f2r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB3");
+	state->u.f1.fld.f2r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB4");
+	state->u.f1.fld.f2r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB5");
+	state->u.f1.fld.f2r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB6");
+	state->u.f1.fld.f2r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB7");
+	state->u.f1.fld.f2r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB8");
+	state->u.f1.fld.f2r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB9");
+	state->u.f1.fld.f2r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB10");
+	state->u.f1.fld.f2r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB11");
+	state->u.f1.fld.f2r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB12");
+	state->u.f1.fld.f2r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB13");
+	state->u.f1.fld.f2r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB14");
+	state->u.f1.fld.f2r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB15");
+	state->u.f1.fld.f2r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB16");
+	state->u.f1.fld.f2r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB17");
+	state->u.f1.fld.f2r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB18");
+	state->u.f1.fld.f2r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB19");
+	state->u.f1.fld.f2r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB20");
+	state->u.f1.fld.f2r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB21");
+	state->u.f1.fld.f2r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB22");
+	state->u.f1.fld.f2r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB23");
+	state->u.f1.fld.f2r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB24");
+	state->u.f1.fld.f2r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB25");
+	state->u.f1.fld.f2r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB26");
+	state->u.f1.fld.f2r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB27");
+	state->u.f1.fld.f2r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB28");
+	state->u.f1.fld.f2r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB29");
+	state->u.f1.fld.f2r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB30");
+	state->u.f1.fld.f2r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f2r2, "FB31");
 
 	// F3R1 bitfields.
-	state->f1.fld.f3r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB0");
-	state->f1.fld.f3r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB1");
-	state->f1.fld.f3r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB2");
-	state->f1.fld.f3r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB3");
-	state->f1.fld.f3r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB4");
-	state->f1.fld.f3r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB5");
-	state->f1.fld.f3r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB6");
-	state->f1.fld.f3r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB7");
-	state->f1.fld.f3r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB8");
-	state->f1.fld.f3r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB9");
-	state->f1.fld.f3r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB10");
-	state->f1.fld.f3r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB11");
-	state->f1.fld.f3r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB12");
-	state->f1.fld.f3r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB13");
-	state->f1.fld.f3r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB14");
-	state->f1.fld.f3r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB15");
-	state->f1.fld.f3r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB16");
-	state->f1.fld.f3r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB17");
-	state->f1.fld.f3r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB18");
-	state->f1.fld.f3r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB19");
-	state->f1.fld.f3r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB20");
-	state->f1.fld.f3r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB21");
-	state->f1.fld.f3r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB22");
-	state->f1.fld.f3r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB23");
-	state->f1.fld.f3r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB24");
-	state->f1.fld.f3r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB25");
-	state->f1.fld.f3r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB26");
-	state->f1.fld.f3r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB27");
-	state->f1.fld.f3r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB28");
-	state->f1.fld.f3r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB29");
-	state->f1.fld.f3r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB30");
-	state->f1.fld.f3r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f3r1, "FB31");
+	state->u.f1.fld.f3r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB0");
+	state->u.f1.fld.f3r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB1");
+	state->u.f1.fld.f3r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB2");
+	state->u.f1.fld.f3r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB3");
+	state->u.f1.fld.f3r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB4");
+	state->u.f1.fld.f3r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB5");
+	state->u.f1.fld.f3r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB6");
+	state->u.f1.fld.f3r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB7");
+	state->u.f1.fld.f3r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB8");
+	state->u.f1.fld.f3r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB9");
+	state->u.f1.fld.f3r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB10");
+	state->u.f1.fld.f3r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB11");
+	state->u.f1.fld.f3r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB12");
+	state->u.f1.fld.f3r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB13");
+	state->u.f1.fld.f3r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB14");
+	state->u.f1.fld.f3r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB15");
+	state->u.f1.fld.f3r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB16");
+	state->u.f1.fld.f3r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB17");
+	state->u.f1.fld.f3r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB18");
+	state->u.f1.fld.f3r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB19");
+	state->u.f1.fld.f3r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB20");
+	state->u.f1.fld.f3r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB21");
+	state->u.f1.fld.f3r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB22");
+	state->u.f1.fld.f3r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB23");
+	state->u.f1.fld.f3r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB24");
+	state->u.f1.fld.f3r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB25");
+	state->u.f1.fld.f3r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB26");
+	state->u.f1.fld.f3r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB27");
+	state->u.f1.fld.f3r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB28");
+	state->u.f1.fld.f3r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB29");
+	state->u.f1.fld.f3r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB30");
+	state->u.f1.fld.f3r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f3r1, "FB31");
 
 	// F3R2 bitfields.
-	state->f1.fld.f3r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB0");
-	state->f1.fld.f3r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB1");
-	state->f1.fld.f3r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB2");
-	state->f1.fld.f3r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB3");
-	state->f1.fld.f3r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB4");
-	state->f1.fld.f3r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB5");
-	state->f1.fld.f3r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB6");
-	state->f1.fld.f3r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB7");
-	state->f1.fld.f3r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB8");
-	state->f1.fld.f3r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB9");
-	state->f1.fld.f3r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB10");
-	state->f1.fld.f3r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB11");
-	state->f1.fld.f3r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB12");
-	state->f1.fld.f3r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB13");
-	state->f1.fld.f3r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB14");
-	state->f1.fld.f3r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB15");
-	state->f1.fld.f3r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB16");
-	state->f1.fld.f3r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB17");
-	state->f1.fld.f3r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB18");
-	state->f1.fld.f3r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB19");
-	state->f1.fld.f3r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB20");
-	state->f1.fld.f3r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB21");
-	state->f1.fld.f3r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB22");
-	state->f1.fld.f3r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB23");
-	state->f1.fld.f3r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB24");
-	state->f1.fld.f3r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB25");
-	state->f1.fld.f3r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB26");
-	state->f1.fld.f3r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB27");
-	state->f1.fld.f3r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB28");
-	state->f1.fld.f3r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB29");
-	state->f1.fld.f3r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB30");
-	state->f1.fld.f3r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f3r2, "FB31");
+	state->u.f1.fld.f3r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB0");
+	state->u.f1.fld.f3r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB1");
+	state->u.f1.fld.f3r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB2");
+	state->u.f1.fld.f3r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB3");
+	state->u.f1.fld.f3r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB4");
+	state->u.f1.fld.f3r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB5");
+	state->u.f1.fld.f3r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB6");
+	state->u.f1.fld.f3r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB7");
+	state->u.f1.fld.f3r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB8");
+	state->u.f1.fld.f3r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB9");
+	state->u.f1.fld.f3r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB10");
+	state->u.f1.fld.f3r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB11");
+	state->u.f1.fld.f3r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB12");
+	state->u.f1.fld.f3r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB13");
+	state->u.f1.fld.f3r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB14");
+	state->u.f1.fld.f3r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB15");
+	state->u.f1.fld.f3r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB16");
+	state->u.f1.fld.f3r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB17");
+	state->u.f1.fld.f3r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB18");
+	state->u.f1.fld.f3r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB19");
+	state->u.f1.fld.f3r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB20");
+	state->u.f1.fld.f3r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB21");
+	state->u.f1.fld.f3r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB22");
+	state->u.f1.fld.f3r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB23");
+	state->u.f1.fld.f3r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB24");
+	state->u.f1.fld.f3r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB25");
+	state->u.f1.fld.f3r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB26");
+	state->u.f1.fld.f3r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB27");
+	state->u.f1.fld.f3r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB28");
+	state->u.f1.fld.f3r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB29");
+	state->u.f1.fld.f3r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB30");
+	state->u.f1.fld.f3r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f3r2, "FB31");
 
 	// F4R1 bitfields.
-	state->f1.fld.f4r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB0");
-	state->f1.fld.f4r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB1");
-	state->f1.fld.f4r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB2");
-	state->f1.fld.f4r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB3");
-	state->f1.fld.f4r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB4");
-	state->f1.fld.f4r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB5");
-	state->f1.fld.f4r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB6");
-	state->f1.fld.f4r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB7");
-	state->f1.fld.f4r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB8");
-	state->f1.fld.f4r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB9");
-	state->f1.fld.f4r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB10");
-	state->f1.fld.f4r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB11");
-	state->f1.fld.f4r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB12");
-	state->f1.fld.f4r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB13");
-	state->f1.fld.f4r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB14");
-	state->f1.fld.f4r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB15");
-	state->f1.fld.f4r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB16");
-	state->f1.fld.f4r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB17");
-	state->f1.fld.f4r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB18");
-	state->f1.fld.f4r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB19");
-	state->f1.fld.f4r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB20");
-	state->f1.fld.f4r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB21");
-	state->f1.fld.f4r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB22");
-	state->f1.fld.f4r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB23");
-	state->f1.fld.f4r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB24");
-	state->f1.fld.f4r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB25");
-	state->f1.fld.f4r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB26");
-	state->f1.fld.f4r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB27");
-	state->f1.fld.f4r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB28");
-	state->f1.fld.f4r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB29");
-	state->f1.fld.f4r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB30");
-	state->f1.fld.f4r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f4r1, "FB31");
+	state->u.f1.fld.f4r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB0");
+	state->u.f1.fld.f4r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB1");
+	state->u.f1.fld.f4r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB2");
+	state->u.f1.fld.f4r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB3");
+	state->u.f1.fld.f4r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB4");
+	state->u.f1.fld.f4r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB5");
+	state->u.f1.fld.f4r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB6");
+	state->u.f1.fld.f4r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB7");
+	state->u.f1.fld.f4r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB8");
+	state->u.f1.fld.f4r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB9");
+	state->u.f1.fld.f4r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB10");
+	state->u.f1.fld.f4r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB11");
+	state->u.f1.fld.f4r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB12");
+	state->u.f1.fld.f4r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB13");
+	state->u.f1.fld.f4r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB14");
+	state->u.f1.fld.f4r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB15");
+	state->u.f1.fld.f4r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB16");
+	state->u.f1.fld.f4r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB17");
+	state->u.f1.fld.f4r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB18");
+	state->u.f1.fld.f4r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB19");
+	state->u.f1.fld.f4r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB20");
+	state->u.f1.fld.f4r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB21");
+	state->u.f1.fld.f4r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB22");
+	state->u.f1.fld.f4r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB23");
+	state->u.f1.fld.f4r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB24");
+	state->u.f1.fld.f4r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB25");
+	state->u.f1.fld.f4r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB26");
+	state->u.f1.fld.f4r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB27");
+	state->u.f1.fld.f4r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB28");
+	state->u.f1.fld.f4r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB29");
+	state->u.f1.fld.f4r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB30");
+	state->u.f1.fld.f4r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f4r1, "FB31");
 
 	// F4R2 bitfields.
-	state->f1.fld.f4r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB0");
-	state->f1.fld.f4r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB1");
-	state->f1.fld.f4r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB2");
-	state->f1.fld.f4r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB3");
-	state->f1.fld.f4r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB4");
-	state->f1.fld.f4r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB5");
-	state->f1.fld.f4r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB6");
-	state->f1.fld.f4r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB7");
-	state->f1.fld.f4r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB8");
-	state->f1.fld.f4r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB9");
-	state->f1.fld.f4r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB10");
-	state->f1.fld.f4r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB11");
-	state->f1.fld.f4r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB12");
-	state->f1.fld.f4r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB13");
-	state->f1.fld.f4r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB14");
-	state->f1.fld.f4r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB15");
-	state->f1.fld.f4r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB16");
-	state->f1.fld.f4r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB17");
-	state->f1.fld.f4r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB18");
-	state->f1.fld.f4r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB19");
-	state->f1.fld.f4r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB20");
-	state->f1.fld.f4r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB21");
-	state->f1.fld.f4r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB22");
-	state->f1.fld.f4r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB23");
-	state->f1.fld.f4r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB24");
-	state->f1.fld.f4r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB25");
-	state->f1.fld.f4r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB26");
-	state->f1.fld.f4r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB27");
-	state->f1.fld.f4r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB28");
-	state->f1.fld.f4r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB29");
-	state->f1.fld.f4r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB30");
-	state->f1.fld.f4r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f4r2, "FB31");
+	state->u.f1.fld.f4r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB0");
+	state->u.f1.fld.f4r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB1");
+	state->u.f1.fld.f4r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB2");
+	state->u.f1.fld.f4r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB3");
+	state->u.f1.fld.f4r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB4");
+	state->u.f1.fld.f4r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB5");
+	state->u.f1.fld.f4r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB6");
+	state->u.f1.fld.f4r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB7");
+	state->u.f1.fld.f4r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB8");
+	state->u.f1.fld.f4r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB9");
+	state->u.f1.fld.f4r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB10");
+	state->u.f1.fld.f4r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB11");
+	state->u.f1.fld.f4r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB12");
+	state->u.f1.fld.f4r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB13");
+	state->u.f1.fld.f4r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB14");
+	state->u.f1.fld.f4r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB15");
+	state->u.f1.fld.f4r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB16");
+	state->u.f1.fld.f4r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB17");
+	state->u.f1.fld.f4r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB18");
+	state->u.f1.fld.f4r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB19");
+	state->u.f1.fld.f4r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB20");
+	state->u.f1.fld.f4r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB21");
+	state->u.f1.fld.f4r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB22");
+	state->u.f1.fld.f4r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB23");
+	state->u.f1.fld.f4r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB24");
+	state->u.f1.fld.f4r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB25");
+	state->u.f1.fld.f4r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB26");
+	state->u.f1.fld.f4r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB27");
+	state->u.f1.fld.f4r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB28");
+	state->u.f1.fld.f4r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB29");
+	state->u.f1.fld.f4r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB30");
+	state->u.f1.fld.f4r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f4r2, "FB31");
 
 	// F5R1 bitfields.
-	state->f1.fld.f5r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB0");
-	state->f1.fld.f5r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB1");
-	state->f1.fld.f5r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB2");
-	state->f1.fld.f5r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB3");
-	state->f1.fld.f5r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB4");
-	state->f1.fld.f5r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB5");
-	state->f1.fld.f5r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB6");
-	state->f1.fld.f5r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB7");
-	state->f1.fld.f5r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB8");
-	state->f1.fld.f5r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB9");
-	state->f1.fld.f5r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB10");
-	state->f1.fld.f5r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB11");
-	state->f1.fld.f5r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB12");
-	state->f1.fld.f5r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB13");
-	state->f1.fld.f5r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB14");
-	state->f1.fld.f5r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB15");
-	state->f1.fld.f5r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB16");
-	state->f1.fld.f5r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB17");
-	state->f1.fld.f5r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB18");
-	state->f1.fld.f5r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB19");
-	state->f1.fld.f5r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB20");
-	state->f1.fld.f5r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB21");
-	state->f1.fld.f5r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB22");
-	state->f1.fld.f5r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB23");
-	state->f1.fld.f5r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB24");
-	state->f1.fld.f5r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB25");
-	state->f1.fld.f5r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB26");
-	state->f1.fld.f5r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB27");
-	state->f1.fld.f5r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB28");
-	state->f1.fld.f5r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB29");
-	state->f1.fld.f5r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB30");
-	state->f1.fld.f5r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f5r1, "FB31");
+	state->u.f1.fld.f5r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB0");
+	state->u.f1.fld.f5r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB1");
+	state->u.f1.fld.f5r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB2");
+	state->u.f1.fld.f5r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB3");
+	state->u.f1.fld.f5r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB4");
+	state->u.f1.fld.f5r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB5");
+	state->u.f1.fld.f5r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB6");
+	state->u.f1.fld.f5r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB7");
+	state->u.f1.fld.f5r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB8");
+	state->u.f1.fld.f5r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB9");
+	state->u.f1.fld.f5r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB10");
+	state->u.f1.fld.f5r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB11");
+	state->u.f1.fld.f5r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB12");
+	state->u.f1.fld.f5r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB13");
+	state->u.f1.fld.f5r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB14");
+	state->u.f1.fld.f5r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB15");
+	state->u.f1.fld.f5r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB16");
+	state->u.f1.fld.f5r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB17");
+	state->u.f1.fld.f5r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB18");
+	state->u.f1.fld.f5r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB19");
+	state->u.f1.fld.f5r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB20");
+	state->u.f1.fld.f5r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB21");
+	state->u.f1.fld.f5r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB22");
+	state->u.f1.fld.f5r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB23");
+	state->u.f1.fld.f5r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB24");
+	state->u.f1.fld.f5r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB25");
+	state->u.f1.fld.f5r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB26");
+	state->u.f1.fld.f5r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB27");
+	state->u.f1.fld.f5r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB28");
+	state->u.f1.fld.f5r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB29");
+	state->u.f1.fld.f5r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB30");
+	state->u.f1.fld.f5r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f5r1, "FB31");
 
 	// F5R2 bitfields.
-	state->f1.fld.f5r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB0");
-	state->f1.fld.f5r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB1");
-	state->f1.fld.f5r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB2");
-	state->f1.fld.f5r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB3");
-	state->f1.fld.f5r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB4");
-	state->f1.fld.f5r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB5");
-	state->f1.fld.f5r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB6");
-	state->f1.fld.f5r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB7");
-	state->f1.fld.f5r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB8");
-	state->f1.fld.f5r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB9");
-	state->f1.fld.f5r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB10");
-	state->f1.fld.f5r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB11");
-	state->f1.fld.f5r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB12");
-	state->f1.fld.f5r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB13");
-	state->f1.fld.f5r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB14");
-	state->f1.fld.f5r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB15");
-	state->f1.fld.f5r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB16");
-	state->f1.fld.f5r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB17");
-	state->f1.fld.f5r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB18");
-	state->f1.fld.f5r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB19");
-	state->f1.fld.f5r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB20");
-	state->f1.fld.f5r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB21");
-	state->f1.fld.f5r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB22");
-	state->f1.fld.f5r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB23");
-	state->f1.fld.f5r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB24");
-	state->f1.fld.f5r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB25");
-	state->f1.fld.f5r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB26");
-	state->f1.fld.f5r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB27");
-	state->f1.fld.f5r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB28");
-	state->f1.fld.f5r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB29");
-	state->f1.fld.f5r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB30");
-	state->f1.fld.f5r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f5r2, "FB31");
+	state->u.f1.fld.f5r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB0");
+	state->u.f1.fld.f5r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB1");
+	state->u.f1.fld.f5r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB2");
+	state->u.f1.fld.f5r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB3");
+	state->u.f1.fld.f5r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB4");
+	state->u.f1.fld.f5r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB5");
+	state->u.f1.fld.f5r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB6");
+	state->u.f1.fld.f5r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB7");
+	state->u.f1.fld.f5r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB8");
+	state->u.f1.fld.f5r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB9");
+	state->u.f1.fld.f5r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB10");
+	state->u.f1.fld.f5r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB11");
+	state->u.f1.fld.f5r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB12");
+	state->u.f1.fld.f5r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB13");
+	state->u.f1.fld.f5r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB14");
+	state->u.f1.fld.f5r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB15");
+	state->u.f1.fld.f5r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB16");
+	state->u.f1.fld.f5r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB17");
+	state->u.f1.fld.f5r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB18");
+	state->u.f1.fld.f5r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB19");
+	state->u.f1.fld.f5r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB20");
+	state->u.f1.fld.f5r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB21");
+	state->u.f1.fld.f5r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB22");
+	state->u.f1.fld.f5r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB23");
+	state->u.f1.fld.f5r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB24");
+	state->u.f1.fld.f5r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB25");
+	state->u.f1.fld.f5r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB26");
+	state->u.f1.fld.f5r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB27");
+	state->u.f1.fld.f5r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB28");
+	state->u.f1.fld.f5r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB29");
+	state->u.f1.fld.f5r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB30");
+	state->u.f1.fld.f5r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f5r2, "FB31");
 
 	// F6R1 bitfields.
-	state->f1.fld.f6r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB0");
-	state->f1.fld.f6r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB1");
-	state->f1.fld.f6r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB2");
-	state->f1.fld.f6r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB3");
-	state->f1.fld.f6r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB4");
-	state->f1.fld.f6r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB5");
-	state->f1.fld.f6r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB6");
-	state->f1.fld.f6r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB7");
-	state->f1.fld.f6r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB8");
-	state->f1.fld.f6r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB9");
-	state->f1.fld.f6r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB10");
-	state->f1.fld.f6r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB11");
-	state->f1.fld.f6r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB12");
-	state->f1.fld.f6r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB13");
-	state->f1.fld.f6r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB14");
-	state->f1.fld.f6r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB15");
-	state->f1.fld.f6r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB16");
-	state->f1.fld.f6r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB17");
-	state->f1.fld.f6r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB18");
-	state->f1.fld.f6r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB19");
-	state->f1.fld.f6r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB20");
-	state->f1.fld.f6r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB21");
-	state->f1.fld.f6r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB22");
-	state->f1.fld.f6r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB23");
-	state->f1.fld.f6r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB24");
-	state->f1.fld.f6r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB25");
-	state->f1.fld.f6r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB26");
-	state->f1.fld.f6r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB27");
-	state->f1.fld.f6r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB28");
-	state->f1.fld.f6r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB29");
-	state->f1.fld.f6r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB30");
-	state->f1.fld.f6r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f6r1, "FB31");
+	state->u.f1.fld.f6r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB0");
+	state->u.f1.fld.f6r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB1");
+	state->u.f1.fld.f6r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB2");
+	state->u.f1.fld.f6r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB3");
+	state->u.f1.fld.f6r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB4");
+	state->u.f1.fld.f6r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB5");
+	state->u.f1.fld.f6r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB6");
+	state->u.f1.fld.f6r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB7");
+	state->u.f1.fld.f6r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB8");
+	state->u.f1.fld.f6r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB9");
+	state->u.f1.fld.f6r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB10");
+	state->u.f1.fld.f6r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB11");
+	state->u.f1.fld.f6r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB12");
+	state->u.f1.fld.f6r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB13");
+	state->u.f1.fld.f6r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB14");
+	state->u.f1.fld.f6r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB15");
+	state->u.f1.fld.f6r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB16");
+	state->u.f1.fld.f6r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB17");
+	state->u.f1.fld.f6r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB18");
+	state->u.f1.fld.f6r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB19");
+	state->u.f1.fld.f6r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB20");
+	state->u.f1.fld.f6r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB21");
+	state->u.f1.fld.f6r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB22");
+	state->u.f1.fld.f6r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB23");
+	state->u.f1.fld.f6r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB24");
+	state->u.f1.fld.f6r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB25");
+	state->u.f1.fld.f6r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB26");
+	state->u.f1.fld.f6r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB27");
+	state->u.f1.fld.f6r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB28");
+	state->u.f1.fld.f6r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB29");
+	state->u.f1.fld.f6r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB30");
+	state->u.f1.fld.f6r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f6r1, "FB31");
 
 	// F6R2 bitfields.
-	state->f1.fld.f6r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB0");
-	state->f1.fld.f6r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB1");
-	state->f1.fld.f6r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB2");
-	state->f1.fld.f6r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB3");
-	state->f1.fld.f6r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB4");
-	state->f1.fld.f6r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB5");
-	state->f1.fld.f6r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB6");
-	state->f1.fld.f6r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB7");
-	state->f1.fld.f6r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB8");
-	state->f1.fld.f6r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB9");
-	state->f1.fld.f6r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB10");
-	state->f1.fld.f6r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB11");
-	state->f1.fld.f6r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB12");
-	state->f1.fld.f6r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB13");
-	state->f1.fld.f6r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB14");
-	state->f1.fld.f6r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB15");
-	state->f1.fld.f6r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB16");
-	state->f1.fld.f6r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB17");
-	state->f1.fld.f6r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB18");
-	state->f1.fld.f6r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB19");
-	state->f1.fld.f6r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB20");
-	state->f1.fld.f6r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB21");
-	state->f1.fld.f6r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB22");
-	state->f1.fld.f6r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB23");
-	state->f1.fld.f6r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB24");
-	state->f1.fld.f6r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB25");
-	state->f1.fld.f6r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB26");
-	state->f1.fld.f6r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB27");
-	state->f1.fld.f6r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB28");
-	state->f1.fld.f6r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB29");
-	state->f1.fld.f6r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB30");
-	state->f1.fld.f6r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f6r2, "FB31");
+	state->u.f1.fld.f6r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB0");
+	state->u.f1.fld.f6r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB1");
+	state->u.f1.fld.f6r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB2");
+	state->u.f1.fld.f6r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB3");
+	state->u.f1.fld.f6r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB4");
+	state->u.f1.fld.f6r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB5");
+	state->u.f1.fld.f6r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB6");
+	state->u.f1.fld.f6r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB7");
+	state->u.f1.fld.f6r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB8");
+	state->u.f1.fld.f6r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB9");
+	state->u.f1.fld.f6r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB10");
+	state->u.f1.fld.f6r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB11");
+	state->u.f1.fld.f6r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB12");
+	state->u.f1.fld.f6r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB13");
+	state->u.f1.fld.f6r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB14");
+	state->u.f1.fld.f6r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB15");
+	state->u.f1.fld.f6r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB16");
+	state->u.f1.fld.f6r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB17");
+	state->u.f1.fld.f6r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB18");
+	state->u.f1.fld.f6r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB19");
+	state->u.f1.fld.f6r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB20");
+	state->u.f1.fld.f6r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB21");
+	state->u.f1.fld.f6r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB22");
+	state->u.f1.fld.f6r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB23");
+	state->u.f1.fld.f6r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB24");
+	state->u.f1.fld.f6r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB25");
+	state->u.f1.fld.f6r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB26");
+	state->u.f1.fld.f6r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB27");
+	state->u.f1.fld.f6r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB28");
+	state->u.f1.fld.f6r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB29");
+	state->u.f1.fld.f6r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB30");
+	state->u.f1.fld.f6r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f6r2, "FB31");
 
 	// F7R1 bitfields.
-	state->f1.fld.f7r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB0");
-	state->f1.fld.f7r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB1");
-	state->f1.fld.f7r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB2");
-	state->f1.fld.f7r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB3");
-	state->f1.fld.f7r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB4");
-	state->f1.fld.f7r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB5");
-	state->f1.fld.f7r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB6");
-	state->f1.fld.f7r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB7");
-	state->f1.fld.f7r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB8");
-	state->f1.fld.f7r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB9");
-	state->f1.fld.f7r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB10");
-	state->f1.fld.f7r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB11");
-	state->f1.fld.f7r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB12");
-	state->f1.fld.f7r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB13");
-	state->f1.fld.f7r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB14");
-	state->f1.fld.f7r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB15");
-	state->f1.fld.f7r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB16");
-	state->f1.fld.f7r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB17");
-	state->f1.fld.f7r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB18");
-	state->f1.fld.f7r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB19");
-	state->f1.fld.f7r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB20");
-	state->f1.fld.f7r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB21");
-	state->f1.fld.f7r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB22");
-	state->f1.fld.f7r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB23");
-	state->f1.fld.f7r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB24");
-	state->f1.fld.f7r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB25");
-	state->f1.fld.f7r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB26");
-	state->f1.fld.f7r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB27");
-	state->f1.fld.f7r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB28");
-	state->f1.fld.f7r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB29");
-	state->f1.fld.f7r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB30");
-	state->f1.fld.f7r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f7r1, "FB31");
+	state->u.f1.fld.f7r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB0");
+	state->u.f1.fld.f7r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB1");
+	state->u.f1.fld.f7r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB2");
+	state->u.f1.fld.f7r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB3");
+	state->u.f1.fld.f7r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB4");
+	state->u.f1.fld.f7r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB5");
+	state->u.f1.fld.f7r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB6");
+	state->u.f1.fld.f7r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB7");
+	state->u.f1.fld.f7r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB8");
+	state->u.f1.fld.f7r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB9");
+	state->u.f1.fld.f7r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB10");
+	state->u.f1.fld.f7r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB11");
+	state->u.f1.fld.f7r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB12");
+	state->u.f1.fld.f7r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB13");
+	state->u.f1.fld.f7r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB14");
+	state->u.f1.fld.f7r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB15");
+	state->u.f1.fld.f7r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB16");
+	state->u.f1.fld.f7r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB17");
+	state->u.f1.fld.f7r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB18");
+	state->u.f1.fld.f7r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB19");
+	state->u.f1.fld.f7r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB20");
+	state->u.f1.fld.f7r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB21");
+	state->u.f1.fld.f7r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB22");
+	state->u.f1.fld.f7r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB23");
+	state->u.f1.fld.f7r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB24");
+	state->u.f1.fld.f7r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB25");
+	state->u.f1.fld.f7r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB26");
+	state->u.f1.fld.f7r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB27");
+	state->u.f1.fld.f7r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB28");
+	state->u.f1.fld.f7r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB29");
+	state->u.f1.fld.f7r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB30");
+	state->u.f1.fld.f7r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f7r1, "FB31");
 
 	// F7R2 bitfields.
-	state->f1.fld.f7r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB0");
-	state->f1.fld.f7r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB1");
-	state->f1.fld.f7r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB2");
-	state->f1.fld.f7r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB3");
-	state->f1.fld.f7r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB4");
-	state->f1.fld.f7r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB5");
-	state->f1.fld.f7r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB6");
-	state->f1.fld.f7r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB7");
-	state->f1.fld.f7r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB8");
-	state->f1.fld.f7r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB9");
-	state->f1.fld.f7r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB10");
-	state->f1.fld.f7r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB11");
-	state->f1.fld.f7r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB12");
-	state->f1.fld.f7r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB13");
-	state->f1.fld.f7r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB14");
-	state->f1.fld.f7r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB15");
-	state->f1.fld.f7r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB16");
-	state->f1.fld.f7r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB17");
-	state->f1.fld.f7r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB18");
-	state->f1.fld.f7r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB19");
-	state->f1.fld.f7r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB20");
-	state->f1.fld.f7r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB21");
-	state->f1.fld.f7r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB22");
-	state->f1.fld.f7r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB23");
-	state->f1.fld.f7r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB24");
-	state->f1.fld.f7r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB25");
-	state->f1.fld.f7r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB26");
-	state->f1.fld.f7r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB27");
-	state->f1.fld.f7r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB28");
-	state->f1.fld.f7r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB29");
-	state->f1.fld.f7r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB30");
-	state->f1.fld.f7r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f7r2, "FB31");
+	state->u.f1.fld.f7r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB0");
+	state->u.f1.fld.f7r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB1");
+	state->u.f1.fld.f7r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB2");
+	state->u.f1.fld.f7r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB3");
+	state->u.f1.fld.f7r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB4");
+	state->u.f1.fld.f7r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB5");
+	state->u.f1.fld.f7r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB6");
+	state->u.f1.fld.f7r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB7");
+	state->u.f1.fld.f7r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB8");
+	state->u.f1.fld.f7r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB9");
+	state->u.f1.fld.f7r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB10");
+	state->u.f1.fld.f7r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB11");
+	state->u.f1.fld.f7r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB12");
+	state->u.f1.fld.f7r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB13");
+	state->u.f1.fld.f7r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB14");
+	state->u.f1.fld.f7r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB15");
+	state->u.f1.fld.f7r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB16");
+	state->u.f1.fld.f7r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB17");
+	state->u.f1.fld.f7r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB18");
+	state->u.f1.fld.f7r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB19");
+	state->u.f1.fld.f7r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB20");
+	state->u.f1.fld.f7r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB21");
+	state->u.f1.fld.f7r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB22");
+	state->u.f1.fld.f7r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB23");
+	state->u.f1.fld.f7r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB24");
+	state->u.f1.fld.f7r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB25");
+	state->u.f1.fld.f7r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB26");
+	state->u.f1.fld.f7r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB27");
+	state->u.f1.fld.f7r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB28");
+	state->u.f1.fld.f7r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB29");
+	state->u.f1.fld.f7r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB30");
+	state->u.f1.fld.f7r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f7r2, "FB31");
 
 	// F8R1 bitfields.
-	state->f1.fld.f8r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB0");
-	state->f1.fld.f8r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB1");
-	state->f1.fld.f8r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB2");
-	state->f1.fld.f8r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB3");
-	state->f1.fld.f8r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB4");
-	state->f1.fld.f8r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB5");
-	state->f1.fld.f8r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB6");
-	state->f1.fld.f8r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB7");
-	state->f1.fld.f8r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB8");
-	state->f1.fld.f8r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB9");
-	state->f1.fld.f8r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB10");
-	state->f1.fld.f8r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB11");
-	state->f1.fld.f8r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB12");
-	state->f1.fld.f8r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB13");
-	state->f1.fld.f8r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB14");
-	state->f1.fld.f8r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB15");
-	state->f1.fld.f8r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB16");
-	state->f1.fld.f8r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB17");
-	state->f1.fld.f8r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB18");
-	state->f1.fld.f8r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB19");
-	state->f1.fld.f8r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB20");
-	state->f1.fld.f8r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB21");
-	state->f1.fld.f8r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB22");
-	state->f1.fld.f8r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB23");
-	state->f1.fld.f8r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB24");
-	state->f1.fld.f8r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB25");
-	state->f1.fld.f8r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB26");
-	state->f1.fld.f8r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB27");
-	state->f1.fld.f8r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB28");
-	state->f1.fld.f8r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB29");
-	state->f1.fld.f8r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB30");
-	state->f1.fld.f8r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f8r1, "FB31");
+	state->u.f1.fld.f8r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB0");
+	state->u.f1.fld.f8r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB1");
+	state->u.f1.fld.f8r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB2");
+	state->u.f1.fld.f8r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB3");
+	state->u.f1.fld.f8r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB4");
+	state->u.f1.fld.f8r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB5");
+	state->u.f1.fld.f8r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB6");
+	state->u.f1.fld.f8r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB7");
+	state->u.f1.fld.f8r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB8");
+	state->u.f1.fld.f8r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB9");
+	state->u.f1.fld.f8r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB10");
+	state->u.f1.fld.f8r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB11");
+	state->u.f1.fld.f8r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB12");
+	state->u.f1.fld.f8r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB13");
+	state->u.f1.fld.f8r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB14");
+	state->u.f1.fld.f8r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB15");
+	state->u.f1.fld.f8r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB16");
+	state->u.f1.fld.f8r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB17");
+	state->u.f1.fld.f8r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB18");
+	state->u.f1.fld.f8r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB19");
+	state->u.f1.fld.f8r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB20");
+	state->u.f1.fld.f8r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB21");
+	state->u.f1.fld.f8r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB22");
+	state->u.f1.fld.f8r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB23");
+	state->u.f1.fld.f8r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB24");
+	state->u.f1.fld.f8r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB25");
+	state->u.f1.fld.f8r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB26");
+	state->u.f1.fld.f8r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB27");
+	state->u.f1.fld.f8r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB28");
+	state->u.f1.fld.f8r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB29");
+	state->u.f1.fld.f8r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB30");
+	state->u.f1.fld.f8r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f8r1, "FB31");
 
 	// F8R2 bitfields.
-	state->f1.fld.f8r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB0");
-	state->f1.fld.f8r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB1");
-	state->f1.fld.f8r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB2");
-	state->f1.fld.f8r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB3");
-	state->f1.fld.f8r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB4");
-	state->f1.fld.f8r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB5");
-	state->f1.fld.f8r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB6");
-	state->f1.fld.f8r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB7");
-	state->f1.fld.f8r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB8");
-	state->f1.fld.f8r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB9");
-	state->f1.fld.f8r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB10");
-	state->f1.fld.f8r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB11");
-	state->f1.fld.f8r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB12");
-	state->f1.fld.f8r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB13");
-	state->f1.fld.f8r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB14");
-	state->f1.fld.f8r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB15");
-	state->f1.fld.f8r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB16");
-	state->f1.fld.f8r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB17");
-	state->f1.fld.f8r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB18");
-	state->f1.fld.f8r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB19");
-	state->f1.fld.f8r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB20");
-	state->f1.fld.f8r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB21");
-	state->f1.fld.f8r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB22");
-	state->f1.fld.f8r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB23");
-	state->f1.fld.f8r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB24");
-	state->f1.fld.f8r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB25");
-	state->f1.fld.f8r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB26");
-	state->f1.fld.f8r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB27");
-	state->f1.fld.f8r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB28");
-	state->f1.fld.f8r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB29");
-	state->f1.fld.f8r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB30");
-	state->f1.fld.f8r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f8r2, "FB31");
+	state->u.f1.fld.f8r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB0");
+	state->u.f1.fld.f8r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB1");
+	state->u.f1.fld.f8r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB2");
+	state->u.f1.fld.f8r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB3");
+	state->u.f1.fld.f8r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB4");
+	state->u.f1.fld.f8r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB5");
+	state->u.f1.fld.f8r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB6");
+	state->u.f1.fld.f8r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB7");
+	state->u.f1.fld.f8r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB8");
+	state->u.f1.fld.f8r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB9");
+	state->u.f1.fld.f8r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB10");
+	state->u.f1.fld.f8r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB11");
+	state->u.f1.fld.f8r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB12");
+	state->u.f1.fld.f8r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB13");
+	state->u.f1.fld.f8r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB14");
+	state->u.f1.fld.f8r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB15");
+	state->u.f1.fld.f8r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB16");
+	state->u.f1.fld.f8r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB17");
+	state->u.f1.fld.f8r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB18");
+	state->u.f1.fld.f8r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB19");
+	state->u.f1.fld.f8r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB20");
+	state->u.f1.fld.f8r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB21");
+	state->u.f1.fld.f8r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB22");
+	state->u.f1.fld.f8r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB23");
+	state->u.f1.fld.f8r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB24");
+	state->u.f1.fld.f8r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB25");
+	state->u.f1.fld.f8r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB26");
+	state->u.f1.fld.f8r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB27");
+	state->u.f1.fld.f8r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB28");
+	state->u.f1.fld.f8r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB29");
+	state->u.f1.fld.f8r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB30");
+	state->u.f1.fld.f8r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f8r2, "FB31");
 
 	// F9R1 bitfields.
-	state->f1.fld.f9r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB0");
-	state->f1.fld.f9r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB1");
-	state->f1.fld.f9r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB2");
-	state->f1.fld.f9r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB3");
-	state->f1.fld.f9r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB4");
-	state->f1.fld.f9r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB5");
-	state->f1.fld.f9r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB6");
-	state->f1.fld.f9r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB7");
-	state->f1.fld.f9r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB8");
-	state->f1.fld.f9r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB9");
-	state->f1.fld.f9r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB10");
-	state->f1.fld.f9r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB11");
-	state->f1.fld.f9r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB12");
-	state->f1.fld.f9r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB13");
-	state->f1.fld.f9r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB14");
-	state->f1.fld.f9r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB15");
-	state->f1.fld.f9r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB16");
-	state->f1.fld.f9r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB17");
-	state->f1.fld.f9r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB18");
-	state->f1.fld.f9r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB19");
-	state->f1.fld.f9r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB20");
-	state->f1.fld.f9r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB21");
-	state->f1.fld.f9r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB22");
-	state->f1.fld.f9r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB23");
-	state->f1.fld.f9r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB24");
-	state->f1.fld.f9r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB25");
-	state->f1.fld.f9r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB26");
-	state->f1.fld.f9r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB27");
-	state->f1.fld.f9r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB28");
-	state->f1.fld.f9r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB29");
-	state->f1.fld.f9r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB30");
-	state->f1.fld.f9r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f9r1, "FB31");
+	state->u.f1.fld.f9r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB0");
+	state->u.f1.fld.f9r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB1");
+	state->u.f1.fld.f9r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB2");
+	state->u.f1.fld.f9r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB3");
+	state->u.f1.fld.f9r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB4");
+	state->u.f1.fld.f9r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB5");
+	state->u.f1.fld.f9r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB6");
+	state->u.f1.fld.f9r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB7");
+	state->u.f1.fld.f9r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB8");
+	state->u.f1.fld.f9r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB9");
+	state->u.f1.fld.f9r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB10");
+	state->u.f1.fld.f9r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB11");
+	state->u.f1.fld.f9r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB12");
+	state->u.f1.fld.f9r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB13");
+	state->u.f1.fld.f9r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB14");
+	state->u.f1.fld.f9r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB15");
+	state->u.f1.fld.f9r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB16");
+	state->u.f1.fld.f9r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB17");
+	state->u.f1.fld.f9r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB18");
+	state->u.f1.fld.f9r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB19");
+	state->u.f1.fld.f9r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB20");
+	state->u.f1.fld.f9r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB21");
+	state->u.f1.fld.f9r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB22");
+	state->u.f1.fld.f9r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB23");
+	state->u.f1.fld.f9r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB24");
+	state->u.f1.fld.f9r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB25");
+	state->u.f1.fld.f9r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB26");
+	state->u.f1.fld.f9r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB27");
+	state->u.f1.fld.f9r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB28");
+	state->u.f1.fld.f9r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB29");
+	state->u.f1.fld.f9r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB30");
+	state->u.f1.fld.f9r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f9r1, "FB31");
 
 	// F9R2 bitfields.
-	state->f1.fld.f9r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB0");
-	state->f1.fld.f9r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB1");
-	state->f1.fld.f9r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB2");
-	state->f1.fld.f9r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB3");
-	state->f1.fld.f9r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB4");
-	state->f1.fld.f9r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB5");
-	state->f1.fld.f9r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB6");
-	state->f1.fld.f9r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB7");
-	state->f1.fld.f9r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB8");
-	state->f1.fld.f9r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB9");
-	state->f1.fld.f9r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB10");
-	state->f1.fld.f9r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB11");
-	state->f1.fld.f9r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB12");
-	state->f1.fld.f9r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB13");
-	state->f1.fld.f9r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB14");
-	state->f1.fld.f9r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB15");
-	state->f1.fld.f9r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB16");
-	state->f1.fld.f9r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB17");
-	state->f1.fld.f9r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB18");
-	state->f1.fld.f9r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB19");
-	state->f1.fld.f9r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB20");
-	state->f1.fld.f9r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB21");
-	state->f1.fld.f9r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB22");
-	state->f1.fld.f9r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB23");
-	state->f1.fld.f9r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB24");
-	state->f1.fld.f9r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB25");
-	state->f1.fld.f9r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB26");
-	state->f1.fld.f9r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB27");
-	state->f1.fld.f9r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB28");
-	state->f1.fld.f9r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB29");
-	state->f1.fld.f9r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB30");
-	state->f1.fld.f9r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f9r2, "FB31");
+	state->u.f1.fld.f9r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB0");
+	state->u.f1.fld.f9r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB1");
+	state->u.f1.fld.f9r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB2");
+	state->u.f1.fld.f9r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB3");
+	state->u.f1.fld.f9r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB4");
+	state->u.f1.fld.f9r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB5");
+	state->u.f1.fld.f9r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB6");
+	state->u.f1.fld.f9r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB7");
+	state->u.f1.fld.f9r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB8");
+	state->u.f1.fld.f9r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB9");
+	state->u.f1.fld.f9r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB10");
+	state->u.f1.fld.f9r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB11");
+	state->u.f1.fld.f9r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB12");
+	state->u.f1.fld.f9r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB13");
+	state->u.f1.fld.f9r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB14");
+	state->u.f1.fld.f9r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB15");
+	state->u.f1.fld.f9r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB16");
+	state->u.f1.fld.f9r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB17");
+	state->u.f1.fld.f9r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB18");
+	state->u.f1.fld.f9r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB19");
+	state->u.f1.fld.f9r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB20");
+	state->u.f1.fld.f9r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB21");
+	state->u.f1.fld.f9r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB22");
+	state->u.f1.fld.f9r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB23");
+	state->u.f1.fld.f9r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB24");
+	state->u.f1.fld.f9r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB25");
+	state->u.f1.fld.f9r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB26");
+	state->u.f1.fld.f9r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB27");
+	state->u.f1.fld.f9r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB28");
+	state->u.f1.fld.f9r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB29");
+	state->u.f1.fld.f9r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB30");
+	state->u.f1.fld.f9r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f9r2, "FB31");
 
 	// F10R1 bitfields.
-	state->f1.fld.f10r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB0");
-	state->f1.fld.f10r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB1");
-	state->f1.fld.f10r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB2");
-	state->f1.fld.f10r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB3");
-	state->f1.fld.f10r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB4");
-	state->f1.fld.f10r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB5");
-	state->f1.fld.f10r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB6");
-	state->f1.fld.f10r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB7");
-	state->f1.fld.f10r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB8");
-	state->f1.fld.f10r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB9");
-	state->f1.fld.f10r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB10");
-	state->f1.fld.f10r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB11");
-	state->f1.fld.f10r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB12");
-	state->f1.fld.f10r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB13");
-	state->f1.fld.f10r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB14");
-	state->f1.fld.f10r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB15");
-	state->f1.fld.f10r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB16");
-	state->f1.fld.f10r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB17");
-	state->f1.fld.f10r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB18");
-	state->f1.fld.f10r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB19");
-	state->f1.fld.f10r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB20");
-	state->f1.fld.f10r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB21");
-	state->f1.fld.f10r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB22");
-	state->f1.fld.f10r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB23");
-	state->f1.fld.f10r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB24");
-	state->f1.fld.f10r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB25");
-	state->f1.fld.f10r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB26");
-	state->f1.fld.f10r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB27");
-	state->f1.fld.f10r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB28");
-	state->f1.fld.f10r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB29");
-	state->f1.fld.f10r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB30");
-	state->f1.fld.f10r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f10r1, "FB31");
+	state->u.f1.fld.f10r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB0");
+	state->u.f1.fld.f10r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB1");
+	state->u.f1.fld.f10r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB2");
+	state->u.f1.fld.f10r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB3");
+	state->u.f1.fld.f10r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB4");
+	state->u.f1.fld.f10r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB5");
+	state->u.f1.fld.f10r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB6");
+	state->u.f1.fld.f10r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB7");
+	state->u.f1.fld.f10r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB8");
+	state->u.f1.fld.f10r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB9");
+	state->u.f1.fld.f10r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB10");
+	state->u.f1.fld.f10r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB11");
+	state->u.f1.fld.f10r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB12");
+	state->u.f1.fld.f10r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB13");
+	state->u.f1.fld.f10r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB14");
+	state->u.f1.fld.f10r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB15");
+	state->u.f1.fld.f10r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB16");
+	state->u.f1.fld.f10r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB17");
+	state->u.f1.fld.f10r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB18");
+	state->u.f1.fld.f10r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB19");
+	state->u.f1.fld.f10r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB20");
+	state->u.f1.fld.f10r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB21");
+	state->u.f1.fld.f10r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB22");
+	state->u.f1.fld.f10r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB23");
+	state->u.f1.fld.f10r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB24");
+	state->u.f1.fld.f10r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB25");
+	state->u.f1.fld.f10r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB26");
+	state->u.f1.fld.f10r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB27");
+	state->u.f1.fld.f10r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB28");
+	state->u.f1.fld.f10r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB29");
+	state->u.f1.fld.f10r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB30");
+	state->u.f1.fld.f10r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f10r1, "FB31");
 
 	// F10R2 bitfields.
-	state->f1.fld.f10r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB0");
-	state->f1.fld.f10r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB1");
-	state->f1.fld.f10r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB2");
-	state->f1.fld.f10r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB3");
-	state->f1.fld.f10r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB4");
-	state->f1.fld.f10r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB5");
-	state->f1.fld.f10r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB6");
-	state->f1.fld.f10r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB7");
-	state->f1.fld.f10r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB8");
-	state->f1.fld.f10r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB9");
-	state->f1.fld.f10r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB10");
-	state->f1.fld.f10r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB11");
-	state->f1.fld.f10r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB12");
-	state->f1.fld.f10r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB13");
-	state->f1.fld.f10r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB14");
-	state->f1.fld.f10r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB15");
-	state->f1.fld.f10r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB16");
-	state->f1.fld.f10r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB17");
-	state->f1.fld.f10r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB18");
-	state->f1.fld.f10r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB19");
-	state->f1.fld.f10r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB20");
-	state->f1.fld.f10r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB21");
-	state->f1.fld.f10r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB22");
-	state->f1.fld.f10r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB23");
-	state->f1.fld.f10r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB24");
-	state->f1.fld.f10r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB25");
-	state->f1.fld.f10r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB26");
-	state->f1.fld.f10r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB27");
-	state->f1.fld.f10r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB28");
-	state->f1.fld.f10r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB29");
-	state->f1.fld.f10r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB30");
-	state->f1.fld.f10r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f10r2, "FB31");
+	state->u.f1.fld.f10r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB0");
+	state->u.f1.fld.f10r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB1");
+	state->u.f1.fld.f10r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB2");
+	state->u.f1.fld.f10r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB3");
+	state->u.f1.fld.f10r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB4");
+	state->u.f1.fld.f10r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB5");
+	state->u.f1.fld.f10r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB6");
+	state->u.f1.fld.f10r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB7");
+	state->u.f1.fld.f10r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB8");
+	state->u.f1.fld.f10r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB9");
+	state->u.f1.fld.f10r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB10");
+	state->u.f1.fld.f10r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB11");
+	state->u.f1.fld.f10r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB12");
+	state->u.f1.fld.f10r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB13");
+	state->u.f1.fld.f10r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB14");
+	state->u.f1.fld.f10r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB15");
+	state->u.f1.fld.f10r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB16");
+	state->u.f1.fld.f10r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB17");
+	state->u.f1.fld.f10r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB18");
+	state->u.f1.fld.f10r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB19");
+	state->u.f1.fld.f10r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB20");
+	state->u.f1.fld.f10r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB21");
+	state->u.f1.fld.f10r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB22");
+	state->u.f1.fld.f10r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB23");
+	state->u.f1.fld.f10r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB24");
+	state->u.f1.fld.f10r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB25");
+	state->u.f1.fld.f10r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB26");
+	state->u.f1.fld.f10r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB27");
+	state->u.f1.fld.f10r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB28");
+	state->u.f1.fld.f10r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB29");
+	state->u.f1.fld.f10r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB30");
+	state->u.f1.fld.f10r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f10r2, "FB31");
 
 	// F11R1 bitfields.
-	state->f1.fld.f11r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB0");
-	state->f1.fld.f11r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB1");
-	state->f1.fld.f11r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB2");
-	state->f1.fld.f11r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB3");
-	state->f1.fld.f11r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB4");
-	state->f1.fld.f11r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB5");
-	state->f1.fld.f11r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB6");
-	state->f1.fld.f11r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB7");
-	state->f1.fld.f11r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB8");
-	state->f1.fld.f11r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB9");
-	state->f1.fld.f11r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB10");
-	state->f1.fld.f11r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB11");
-	state->f1.fld.f11r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB12");
-	state->f1.fld.f11r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB13");
-	state->f1.fld.f11r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB14");
-	state->f1.fld.f11r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB15");
-	state->f1.fld.f11r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB16");
-	state->f1.fld.f11r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB17");
-	state->f1.fld.f11r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB18");
-	state->f1.fld.f11r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB19");
-	state->f1.fld.f11r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB20");
-	state->f1.fld.f11r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB21");
-	state->f1.fld.f11r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB22");
-	state->f1.fld.f11r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB23");
-	state->f1.fld.f11r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB24");
-	state->f1.fld.f11r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB25");
-	state->f1.fld.f11r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB26");
-	state->f1.fld.f11r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB27");
-	state->f1.fld.f11r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB28");
-	state->f1.fld.f11r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB29");
-	state->f1.fld.f11r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB30");
-	state->f1.fld.f11r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f11r1, "FB31");
+	state->u.f1.fld.f11r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB0");
+	state->u.f1.fld.f11r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB1");
+	state->u.f1.fld.f11r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB2");
+	state->u.f1.fld.f11r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB3");
+	state->u.f1.fld.f11r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB4");
+	state->u.f1.fld.f11r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB5");
+	state->u.f1.fld.f11r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB6");
+	state->u.f1.fld.f11r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB7");
+	state->u.f1.fld.f11r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB8");
+	state->u.f1.fld.f11r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB9");
+	state->u.f1.fld.f11r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB10");
+	state->u.f1.fld.f11r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB11");
+	state->u.f1.fld.f11r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB12");
+	state->u.f1.fld.f11r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB13");
+	state->u.f1.fld.f11r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB14");
+	state->u.f1.fld.f11r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB15");
+	state->u.f1.fld.f11r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB16");
+	state->u.f1.fld.f11r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB17");
+	state->u.f1.fld.f11r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB18");
+	state->u.f1.fld.f11r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB19");
+	state->u.f1.fld.f11r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB20");
+	state->u.f1.fld.f11r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB21");
+	state->u.f1.fld.f11r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB22");
+	state->u.f1.fld.f11r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB23");
+	state->u.f1.fld.f11r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB24");
+	state->u.f1.fld.f11r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB25");
+	state->u.f1.fld.f11r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB26");
+	state->u.f1.fld.f11r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB27");
+	state->u.f1.fld.f11r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB28");
+	state->u.f1.fld.f11r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB29");
+	state->u.f1.fld.f11r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB30");
+	state->u.f1.fld.f11r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f11r1, "FB31");
 
 	// F11R2 bitfields.
-	state->f1.fld.f11r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB0");
-	state->f1.fld.f11r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB1");
-	state->f1.fld.f11r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB2");
-	state->f1.fld.f11r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB3");
-	state->f1.fld.f11r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB4");
-	state->f1.fld.f11r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB5");
-	state->f1.fld.f11r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB6");
-	state->f1.fld.f11r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB7");
-	state->f1.fld.f11r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB8");
-	state->f1.fld.f11r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB9");
-	state->f1.fld.f11r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB10");
-	state->f1.fld.f11r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB11");
-	state->f1.fld.f11r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB12");
-	state->f1.fld.f11r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB13");
-	state->f1.fld.f11r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB14");
-	state->f1.fld.f11r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB15");
-	state->f1.fld.f11r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB16");
-	state->f1.fld.f11r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB17");
-	state->f1.fld.f11r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB18");
-	state->f1.fld.f11r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB19");
-	state->f1.fld.f11r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB20");
-	state->f1.fld.f11r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB21");
-	state->f1.fld.f11r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB22");
-	state->f1.fld.f11r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB23");
-	state->f1.fld.f11r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB24");
-	state->f1.fld.f11r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB25");
-	state->f1.fld.f11r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB26");
-	state->f1.fld.f11r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB27");
-	state->f1.fld.f11r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB28");
-	state->f1.fld.f11r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB29");
-	state->f1.fld.f11r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB30");
-	state->f1.fld.f11r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f11r2, "FB31");
+	state->u.f1.fld.f11r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB0");
+	state->u.f1.fld.f11r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB1");
+	state->u.f1.fld.f11r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB2");
+	state->u.f1.fld.f11r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB3");
+	state->u.f1.fld.f11r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB4");
+	state->u.f1.fld.f11r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB5");
+	state->u.f1.fld.f11r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB6");
+	state->u.f1.fld.f11r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB7");
+	state->u.f1.fld.f11r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB8");
+	state->u.f1.fld.f11r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB9");
+	state->u.f1.fld.f11r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB10");
+	state->u.f1.fld.f11r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB11");
+	state->u.f1.fld.f11r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB12");
+	state->u.f1.fld.f11r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB13");
+	state->u.f1.fld.f11r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB14");
+	state->u.f1.fld.f11r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB15");
+	state->u.f1.fld.f11r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB16");
+	state->u.f1.fld.f11r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB17");
+	state->u.f1.fld.f11r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB18");
+	state->u.f1.fld.f11r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB19");
+	state->u.f1.fld.f11r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB20");
+	state->u.f1.fld.f11r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB21");
+	state->u.f1.fld.f11r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB22");
+	state->u.f1.fld.f11r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB23");
+	state->u.f1.fld.f11r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB24");
+	state->u.f1.fld.f11r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB25");
+	state->u.f1.fld.f11r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB26");
+	state->u.f1.fld.f11r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB27");
+	state->u.f1.fld.f11r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB28");
+	state->u.f1.fld.f11r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB29");
+	state->u.f1.fld.f11r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB30");
+	state->u.f1.fld.f11r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f11r2, "FB31");
 
 	// F12R1 bitfields.
-	state->f1.fld.f12r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB0");
-	state->f1.fld.f12r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB1");
-	state->f1.fld.f12r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB2");
-	state->f1.fld.f12r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB3");
-	state->f1.fld.f12r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB4");
-	state->f1.fld.f12r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB5");
-	state->f1.fld.f12r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB6");
-	state->f1.fld.f12r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB7");
-	state->f1.fld.f12r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB8");
-	state->f1.fld.f12r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB9");
-	state->f1.fld.f12r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB10");
-	state->f1.fld.f12r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB11");
-	state->f1.fld.f12r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB12");
-	state->f1.fld.f12r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB13");
-	state->f1.fld.f12r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB14");
-	state->f1.fld.f12r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB15");
-	state->f1.fld.f12r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB16");
-	state->f1.fld.f12r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB17");
-	state->f1.fld.f12r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB18");
-	state->f1.fld.f12r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB19");
-	state->f1.fld.f12r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB20");
-	state->f1.fld.f12r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB21");
-	state->f1.fld.f12r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB22");
-	state->f1.fld.f12r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB23");
-	state->f1.fld.f12r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB24");
-	state->f1.fld.f12r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB25");
-	state->f1.fld.f12r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB26");
-	state->f1.fld.f12r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB27");
-	state->f1.fld.f12r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB28");
-	state->f1.fld.f12r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB29");
-	state->f1.fld.f12r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB30");
-	state->f1.fld.f12r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f12r1, "FB31");
+	state->u.f1.fld.f12r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB0");
+	state->u.f1.fld.f12r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB1");
+	state->u.f1.fld.f12r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB2");
+	state->u.f1.fld.f12r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB3");
+	state->u.f1.fld.f12r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB4");
+	state->u.f1.fld.f12r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB5");
+	state->u.f1.fld.f12r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB6");
+	state->u.f1.fld.f12r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB7");
+	state->u.f1.fld.f12r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB8");
+	state->u.f1.fld.f12r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB9");
+	state->u.f1.fld.f12r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB10");
+	state->u.f1.fld.f12r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB11");
+	state->u.f1.fld.f12r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB12");
+	state->u.f1.fld.f12r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB13");
+	state->u.f1.fld.f12r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB14");
+	state->u.f1.fld.f12r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB15");
+	state->u.f1.fld.f12r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB16");
+	state->u.f1.fld.f12r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB17");
+	state->u.f1.fld.f12r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB18");
+	state->u.f1.fld.f12r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB19");
+	state->u.f1.fld.f12r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB20");
+	state->u.f1.fld.f12r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB21");
+	state->u.f1.fld.f12r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB22");
+	state->u.f1.fld.f12r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB23");
+	state->u.f1.fld.f12r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB24");
+	state->u.f1.fld.f12r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB25");
+	state->u.f1.fld.f12r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB26");
+	state->u.f1.fld.f12r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB27");
+	state->u.f1.fld.f12r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB28");
+	state->u.f1.fld.f12r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB29");
+	state->u.f1.fld.f12r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB30");
+	state->u.f1.fld.f12r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f12r1, "FB31");
 
 	// F12R2 bitfields.
-	state->f1.fld.f12r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB0");
-	state->f1.fld.f12r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB1");
-	state->f1.fld.f12r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB2");
-	state->f1.fld.f12r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB3");
-	state->f1.fld.f12r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB4");
-	state->f1.fld.f12r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB5");
-	state->f1.fld.f12r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB6");
-	state->f1.fld.f12r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB7");
-	state->f1.fld.f12r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB8");
-	state->f1.fld.f12r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB9");
-	state->f1.fld.f12r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB10");
-	state->f1.fld.f12r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB11");
-	state->f1.fld.f12r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB12");
-	state->f1.fld.f12r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB13");
-	state->f1.fld.f12r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB14");
-	state->f1.fld.f12r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB15");
-	state->f1.fld.f12r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB16");
-	state->f1.fld.f12r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB17");
-	state->f1.fld.f12r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB18");
-	state->f1.fld.f12r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB19");
-	state->f1.fld.f12r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB20");
-	state->f1.fld.f12r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB21");
-	state->f1.fld.f12r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB22");
-	state->f1.fld.f12r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB23");
-	state->f1.fld.f12r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB24");
-	state->f1.fld.f12r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB25");
-	state->f1.fld.f12r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB26");
-	state->f1.fld.f12r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB27");
-	state->f1.fld.f12r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB28");
-	state->f1.fld.f12r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB29");
-	state->f1.fld.f12r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB30");
-	state->f1.fld.f12r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f12r2, "FB31");
+	state->u.f1.fld.f12r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB0");
+	state->u.f1.fld.f12r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB1");
+	state->u.f1.fld.f12r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB2");
+	state->u.f1.fld.f12r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB3");
+	state->u.f1.fld.f12r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB4");
+	state->u.f1.fld.f12r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB5");
+	state->u.f1.fld.f12r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB6");
+	state->u.f1.fld.f12r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB7");
+	state->u.f1.fld.f12r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB8");
+	state->u.f1.fld.f12r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB9");
+	state->u.f1.fld.f12r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB10");
+	state->u.f1.fld.f12r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB11");
+	state->u.f1.fld.f12r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB12");
+	state->u.f1.fld.f12r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB13");
+	state->u.f1.fld.f12r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB14");
+	state->u.f1.fld.f12r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB15");
+	state->u.f1.fld.f12r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB16");
+	state->u.f1.fld.f12r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB17");
+	state->u.f1.fld.f12r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB18");
+	state->u.f1.fld.f12r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB19");
+	state->u.f1.fld.f12r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB20");
+	state->u.f1.fld.f12r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB21");
+	state->u.f1.fld.f12r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB22");
+	state->u.f1.fld.f12r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB23");
+	state->u.f1.fld.f12r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB24");
+	state->u.f1.fld.f12r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB25");
+	state->u.f1.fld.f12r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB26");
+	state->u.f1.fld.f12r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB27");
+	state->u.f1.fld.f12r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB28");
+	state->u.f1.fld.f12r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB29");
+	state->u.f1.fld.f12r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB30");
+	state->u.f1.fld.f12r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f12r2, "FB31");
 
 	// F13R1 bitfields.
-	state->f1.fld.f13r1.fb0 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB0");
-	state->f1.fld.f13r1.fb1 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB1");
-	state->f1.fld.f13r1.fb2 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB2");
-	state->f1.fld.f13r1.fb3 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB3");
-	state->f1.fld.f13r1.fb4 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB4");
-	state->f1.fld.f13r1.fb5 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB5");
-	state->f1.fld.f13r1.fb6 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB6");
-	state->f1.fld.f13r1.fb7 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB7");
-	state->f1.fld.f13r1.fb8 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB8");
-	state->f1.fld.f13r1.fb9 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB9");
-	state->f1.fld.f13r1.fb10 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB10");
-	state->f1.fld.f13r1.fb11 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB11");
-	state->f1.fld.f13r1.fb12 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB12");
-	state->f1.fld.f13r1.fb13 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB13");
-	state->f1.fld.f13r1.fb14 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB14");
-	state->f1.fld.f13r1.fb15 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB15");
-	state->f1.fld.f13r1.fb16 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB16");
-	state->f1.fld.f13r1.fb17 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB17");
-	state->f1.fld.f13r1.fb18 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB18");
-	state->f1.fld.f13r1.fb19 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB19");
-	state->f1.fld.f13r1.fb20 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB20");
-	state->f1.fld.f13r1.fb21 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB21");
-	state->f1.fld.f13r1.fb22 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB22");
-	state->f1.fld.f13r1.fb23 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB23");
-	state->f1.fld.f13r1.fb24 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB24");
-	state->f1.fld.f13r1.fb25 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB25");
-	state->f1.fld.f13r1.fb26 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB26");
-	state->f1.fld.f13r1.fb27 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB27");
-	state->f1.fld.f13r1.fb28 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB28");
-	state->f1.fld.f13r1.fb29 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB29");
-	state->f1.fld.f13r1.fb30 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB30");
-	state->f1.fld.f13r1.fb31 = cm_object_get_child_by_name(state->f1.reg.f13r1, "FB31");
+	state->u.f1.fld.f13r1.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB0");
+	state->u.f1.fld.f13r1.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB1");
+	state->u.f1.fld.f13r1.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB2");
+	state->u.f1.fld.f13r1.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB3");
+	state->u.f1.fld.f13r1.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB4");
+	state->u.f1.fld.f13r1.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB5");
+	state->u.f1.fld.f13r1.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB6");
+	state->u.f1.fld.f13r1.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB7");
+	state->u.f1.fld.f13r1.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB8");
+	state->u.f1.fld.f13r1.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB9");
+	state->u.f1.fld.f13r1.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB10");
+	state->u.f1.fld.f13r1.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB11");
+	state->u.f1.fld.f13r1.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB12");
+	state->u.f1.fld.f13r1.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB13");
+	state->u.f1.fld.f13r1.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB14");
+	state->u.f1.fld.f13r1.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB15");
+	state->u.f1.fld.f13r1.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB16");
+	state->u.f1.fld.f13r1.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB17");
+	state->u.f1.fld.f13r1.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB18");
+	state->u.f1.fld.f13r1.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB19");
+	state->u.f1.fld.f13r1.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB20");
+	state->u.f1.fld.f13r1.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB21");
+	state->u.f1.fld.f13r1.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB22");
+	state->u.f1.fld.f13r1.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB23");
+	state->u.f1.fld.f13r1.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB24");
+	state->u.f1.fld.f13r1.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB25");
+	state->u.f1.fld.f13r1.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB26");
+	state->u.f1.fld.f13r1.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB27");
+	state->u.f1.fld.f13r1.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB28");
+	state->u.f1.fld.f13r1.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB29");
+	state->u.f1.fld.f13r1.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB30");
+	state->u.f1.fld.f13r1.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f13r1, "FB31");
 
 	// F13R2 bitfields.
-	state->f1.fld.f13r2.fb0 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB0");
-	state->f1.fld.f13r2.fb1 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB1");
-	state->f1.fld.f13r2.fb2 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB2");
-	state->f1.fld.f13r2.fb3 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB3");
-	state->f1.fld.f13r2.fb4 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB4");
-	state->f1.fld.f13r2.fb5 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB5");
-	state->f1.fld.f13r2.fb6 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB6");
-	state->f1.fld.f13r2.fb7 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB7");
-	state->f1.fld.f13r2.fb8 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB8");
-	state->f1.fld.f13r2.fb9 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB9");
-	state->f1.fld.f13r2.fb10 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB10");
-	state->f1.fld.f13r2.fb11 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB11");
-	state->f1.fld.f13r2.fb12 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB12");
-	state->f1.fld.f13r2.fb13 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB13");
-	state->f1.fld.f13r2.fb14 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB14");
-	state->f1.fld.f13r2.fb15 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB15");
-	state->f1.fld.f13r2.fb16 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB16");
-	state->f1.fld.f13r2.fb17 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB17");
-	state->f1.fld.f13r2.fb18 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB18");
-	state->f1.fld.f13r2.fb19 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB19");
-	state->f1.fld.f13r2.fb20 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB20");
-	state->f1.fld.f13r2.fb21 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB21");
-	state->f1.fld.f13r2.fb22 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB22");
-	state->f1.fld.f13r2.fb23 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB23");
-	state->f1.fld.f13r2.fb24 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB24");
-	state->f1.fld.f13r2.fb25 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB25");
-	state->f1.fld.f13r2.fb26 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB26");
-	state->f1.fld.f13r2.fb27 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB27");
-	state->f1.fld.f13r2.fb28 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB28");
-	state->f1.fld.f13r2.fb29 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB29");
-	state->f1.fld.f13r2.fb30 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB30");
-	state->f1.fld.f13r2.fb31 = cm_object_get_child_by_name(state->f1.reg.f13r2, "FB31");
+	state->u.f1.fld.f13r2.fb0 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB0");
+	state->u.f1.fld.f13r2.fb1 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB1");
+	state->u.f1.fld.f13r2.fb2 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB2");
+	state->u.f1.fld.f13r2.fb3 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB3");
+	state->u.f1.fld.f13r2.fb4 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB4");
+	state->u.f1.fld.f13r2.fb5 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB5");
+	state->u.f1.fld.f13r2.fb6 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB6");
+	state->u.f1.fld.f13r2.fb7 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB7");
+	state->u.f1.fld.f13r2.fb8 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB8");
+	state->u.f1.fld.f13r2.fb9 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB9");
+	state->u.f1.fld.f13r2.fb10 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB10");
+	state->u.f1.fld.f13r2.fb11 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB11");
+	state->u.f1.fld.f13r2.fb12 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB12");
+	state->u.f1.fld.f13r2.fb13 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB13");
+	state->u.f1.fld.f13r2.fb14 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB14");
+	state->u.f1.fld.f13r2.fb15 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB15");
+	state->u.f1.fld.f13r2.fb16 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB16");
+	state->u.f1.fld.f13r2.fb17 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB17");
+	state->u.f1.fld.f13r2.fb18 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB18");
+	state->u.f1.fld.f13r2.fb19 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB19");
+	state->u.f1.fld.f13r2.fb20 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB20");
+	state->u.f1.fld.f13r2.fb21 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB21");
+	state->u.f1.fld.f13r2.fb22 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB22");
+	state->u.f1.fld.f13r2.fb23 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB23");
+	state->u.f1.fld.f13r2.fb24 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB24");
+	state->u.f1.fld.f13r2.fb25 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB25");
+	state->u.f1.fld.f13r2.fb26 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB26");
+	state->u.f1.fld.f13r2.fb27 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB27");
+	state->u.f1.fld.f13r2.fb28 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB28");
+	state->u.f1.fld.f13r2.fb29 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB29");
+	state->u.f1.fld.f13r2.fb30 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB30");
+	state->u.f1.fld.f13r2.fb31 = cm_object_get_child_by_name(state->u.f1.reg.f13r2, "FB31");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -9081,7 +9104,8 @@ static void stm32f103xx_can_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 DAC (Digital to analog converter) registers.
 		struct {
@@ -9200,75 +9224,75 @@ static void stm32f103xx_dac_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-	state->f1.reg.swtrigr = cm_object_get_child_by_name(obj, "SWTRIGR");
-	state->f1.reg.dhr12r1 = cm_object_get_child_by_name(obj, "DHR12R1");
-	state->f1.reg.dhr12l1 = cm_object_get_child_by_name(obj, "DHR12L1");
-	state->f1.reg.dhr8r1 = cm_object_get_child_by_name(obj, "DHR8R1");
-	state->f1.reg.dhr12r2 = cm_object_get_child_by_name(obj, "DHR12R2");
-	state->f1.reg.dhr12l2 = cm_object_get_child_by_name(obj, "DHR12L2");
-	state->f1.reg.dhr8r2 = cm_object_get_child_by_name(obj, "DHR8R2");
-	state->f1.reg.dhr12rd = cm_object_get_child_by_name(obj, "DHR12RD");
-	state->f1.reg.dhr12ld = cm_object_get_child_by_name(obj, "DHR12LD");
-	state->f1.reg.dhr8rd = cm_object_get_child_by_name(obj, "DHR8RD");
-	state->f1.reg.dor1 = cm_object_get_child_by_name(obj, "DOR1");
-	state->f1.reg.dor2 = cm_object_get_child_by_name(obj, "DOR2");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.swtrigr = cm_object_get_child_by_name(obj, "SWTRIGR");
+	state->u.f1.reg.dhr12r1 = cm_object_get_child_by_name(obj, "DHR12R1");
+	state->u.f1.reg.dhr12l1 = cm_object_get_child_by_name(obj, "DHR12L1");
+	state->u.f1.reg.dhr8r1 = cm_object_get_child_by_name(obj, "DHR8R1");
+	state->u.f1.reg.dhr12r2 = cm_object_get_child_by_name(obj, "DHR12R2");
+	state->u.f1.reg.dhr12l2 = cm_object_get_child_by_name(obj, "DHR12L2");
+	state->u.f1.reg.dhr8r2 = cm_object_get_child_by_name(obj, "DHR8R2");
+	state->u.f1.reg.dhr12rd = cm_object_get_child_by_name(obj, "DHR12RD");
+	state->u.f1.reg.dhr12ld = cm_object_get_child_by_name(obj, "DHR12LD");
+	state->u.f1.reg.dhr8rd = cm_object_get_child_by_name(obj, "DHR8RD");
+	state->u.f1.reg.dor1 = cm_object_get_child_by_name(obj, "DOR1");
+	state->u.f1.reg.dor2 = cm_object_get_child_by_name(obj, "DOR2");
 
 	// CR bitfields.
-	state->f1.fld.cr.en1 = cm_object_get_child_by_name(state->f1.reg.cr, "EN1");
-	state->f1.fld.cr.boff1 = cm_object_get_child_by_name(state->f1.reg.cr, "BOFF1");
-	state->f1.fld.cr.ten1 = cm_object_get_child_by_name(state->f1.reg.cr, "TEN1");
-	state->f1.fld.cr.tsel1 = cm_object_get_child_by_name(state->f1.reg.cr, "TSEL1");
-	state->f1.fld.cr.wave1 = cm_object_get_child_by_name(state->f1.reg.cr, "WAVE1");
-	state->f1.fld.cr.mamp1 = cm_object_get_child_by_name(state->f1.reg.cr, "MAMP1");
-	state->f1.fld.cr.dmaen1 = cm_object_get_child_by_name(state->f1.reg.cr, "DMAEN1");
-	state->f1.fld.cr.en2 = cm_object_get_child_by_name(state->f1.reg.cr, "EN2");
-	state->f1.fld.cr.boff2 = cm_object_get_child_by_name(state->f1.reg.cr, "BOFF2");
-	state->f1.fld.cr.ten2 = cm_object_get_child_by_name(state->f1.reg.cr, "TEN2");
-	state->f1.fld.cr.tsel2 = cm_object_get_child_by_name(state->f1.reg.cr, "TSEL2");
-	state->f1.fld.cr.wave2 = cm_object_get_child_by_name(state->f1.reg.cr, "WAVE2");
-	state->f1.fld.cr.mamp2 = cm_object_get_child_by_name(state->f1.reg.cr, "MAMP2");
-	state->f1.fld.cr.dmaen2 = cm_object_get_child_by_name(state->f1.reg.cr, "DMAEN2");
+	state->u.f1.fld.cr.en1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "EN1");
+	state->u.f1.fld.cr.boff1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "BOFF1");
+	state->u.f1.fld.cr.ten1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TEN1");
+	state->u.f1.fld.cr.tsel1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TSEL1");
+	state->u.f1.fld.cr.wave1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "WAVE1");
+	state->u.f1.fld.cr.mamp1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "MAMP1");
+	state->u.f1.fld.cr.dmaen1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "DMAEN1");
+	state->u.f1.fld.cr.en2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "EN2");
+	state->u.f1.fld.cr.boff2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "BOFF2");
+	state->u.f1.fld.cr.ten2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TEN2");
+	state->u.f1.fld.cr.tsel2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TSEL2");
+	state->u.f1.fld.cr.wave2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "WAVE2");
+	state->u.f1.fld.cr.mamp2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "MAMP2");
+	state->u.f1.fld.cr.dmaen2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "DMAEN2");
 
 	// SWTRIGR bitfields.
-	state->f1.fld.swtrigr.swtrig1 = cm_object_get_child_by_name(state->f1.reg.swtrigr, "SWTRIG1");
-	state->f1.fld.swtrigr.swtrig2 = cm_object_get_child_by_name(state->f1.reg.swtrigr, "SWTRIG2");
+	state->u.f1.fld.swtrigr.swtrig1 = cm_object_get_child_by_name(state->u.f1.reg.swtrigr, "SWTRIG1");
+	state->u.f1.fld.swtrigr.swtrig2 = cm_object_get_child_by_name(state->u.f1.reg.swtrigr, "SWTRIG2");
 
 	// DHR12R1 bitfields.
-	state->f1.fld.dhr12r1.dacc1dhr = cm_object_get_child_by_name(state->f1.reg.dhr12r1, "DACC1DHR");
+	state->u.f1.fld.dhr12r1.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12r1, "DACC1DHR");
 
 	// DHR12L1 bitfields.
-	state->f1.fld.dhr12l1.dacc1dhr = cm_object_get_child_by_name(state->f1.reg.dhr12l1, "DACC1DHR");
+	state->u.f1.fld.dhr12l1.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12l1, "DACC1DHR");
 
 	// DHR8R1 bitfields.
-	state->f1.fld.dhr8r1.dacc1dhr = cm_object_get_child_by_name(state->f1.reg.dhr8r1, "DACC1DHR");
+	state->u.f1.fld.dhr8r1.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8r1, "DACC1DHR");
 
 	// DHR12R2 bitfields.
-	state->f1.fld.dhr12r2.dacc2dhr = cm_object_get_child_by_name(state->f1.reg.dhr12r2, "DACC2DHR");
+	state->u.f1.fld.dhr12r2.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12r2, "DACC2DHR");
 
 	// DHR12L2 bitfields.
-	state->f1.fld.dhr12l2.dacc2dhr = cm_object_get_child_by_name(state->f1.reg.dhr12l2, "DACC2DHR");
+	state->u.f1.fld.dhr12l2.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12l2, "DACC2DHR");
 
 	// DHR8R2 bitfields.
-	state->f1.fld.dhr8r2.dacc2dhr = cm_object_get_child_by_name(state->f1.reg.dhr8r2, "DACC2DHR");
+	state->u.f1.fld.dhr8r2.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8r2, "DACC2DHR");
 
 	// DHR12RD bitfields.
-	state->f1.fld.dhr12rd.dacc1dhr = cm_object_get_child_by_name(state->f1.reg.dhr12rd, "DACC1DHR");
-	state->f1.fld.dhr12rd.dacc2dhr = cm_object_get_child_by_name(state->f1.reg.dhr12rd, "DACC2DHR");
+	state->u.f1.fld.dhr12rd.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12rd, "DACC1DHR");
+	state->u.f1.fld.dhr12rd.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12rd, "DACC2DHR");
 
 	// DHR12LD bitfields.
-	state->f1.fld.dhr12ld.dacc1dhr = cm_object_get_child_by_name(state->f1.reg.dhr12ld, "DACC1DHR");
-	state->f1.fld.dhr12ld.dacc2dhr = cm_object_get_child_by_name(state->f1.reg.dhr12ld, "DACC2DHR");
+	state->u.f1.fld.dhr12ld.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12ld, "DACC1DHR");
+	state->u.f1.fld.dhr12ld.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12ld, "DACC2DHR");
 
 	// DHR8RD bitfields.
-	state->f1.fld.dhr8rd.dacc1dhr = cm_object_get_child_by_name(state->f1.reg.dhr8rd, "DACC1DHR");
-	state->f1.fld.dhr8rd.dacc2dhr = cm_object_get_child_by_name(state->f1.reg.dhr8rd, "DACC2DHR");
+	state->u.f1.fld.dhr8rd.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8rd, "DACC1DHR");
+	state->u.f1.fld.dhr8rd.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8rd, "DACC2DHR");
 
 	// DOR1 bitfields.
-	state->f1.fld.dor1.dacc1dor = cm_object_get_child_by_name(state->f1.reg.dor1, "DACC1DOR");
+	state->u.f1.fld.dor1.dacc1dor = cm_object_get_child_by_name(state->u.f1.reg.dor1, "DACC1DOR");
 
 	// DOR2 bitfields.
-	state->f1.fld.dor2.dacc2dor = cm_object_get_child_by_name(state->f1.reg.dor2, "DACC2DOR");
+	state->u.f1.fld.dor2.dacc2dor = cm_object_get_child_by_name(state->u.f1.reg.dor2, "DACC2DOR");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -9277,7 +9301,8 @@ static void stm32f103xx_dac_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 DBG (Debug support) registers.
 		struct {
@@ -9332,33 +9357,33 @@ static void stm32f103xx_dbg_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.idcode = cm_object_get_child_by_name(obj, "IDCODE");
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.idcode = cm_object_get_child_by_name(obj, "IDCODE");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
 
 	// IDCODE bitfields.
-	state->f1.fld.idcode.dev_id = cm_object_get_child_by_name(state->f1.reg.idcode, "DEV_ID");
-	state->f1.fld.idcode.rev_id = cm_object_get_child_by_name(state->f1.reg.idcode, "REV_ID");
+	state->u.f1.fld.idcode.dev_id = cm_object_get_child_by_name(state->u.f1.reg.idcode, "DEV_ID");
+	state->u.f1.fld.idcode.rev_id = cm_object_get_child_by_name(state->u.f1.reg.idcode, "REV_ID");
 
 	// CR bitfields.
-	state->f1.fld.cr.dbg_sleep = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_SLEEP");
-	state->f1.fld.cr.dbg_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_STOP");
-	state->f1.fld.cr.dbg_standby = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_STANDBY");
-	state->f1.fld.cr.trace_ioen = cm_object_get_child_by_name(state->f1.reg.cr, "TRACE_IOEN");
-	state->f1.fld.cr.trace_mode = cm_object_get_child_by_name(state->f1.reg.cr, "TRACE_MODE");
-	state->f1.fld.cr.dbg_iwdg_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_IWDG_STOP");
-	state->f1.fld.cr.dbg_wwdg_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_WWDG_STOP");
-	state->f1.fld.cr.dbg_tim1_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM1_STOP");
-	state->f1.fld.cr.dbg_tim2_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM2_STOP");
-	state->f1.fld.cr.dbg_tim3_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM3_STOP");
-	state->f1.fld.cr.dbg_tim4_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM4_STOP");
-	state->f1.fld.cr.dbg_can1_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_CAN1_STOP");
-	state->f1.fld.cr.dbg_i2c1_smbus_timeout = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_I2C1_SMBUS_TIMEOUT");
-	state->f1.fld.cr.dbg_i2c2_smbus_timeout = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_I2C2_SMBUS_TIMEOUT");
-	state->f1.fld.cr.dbg_tim8_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM8_STOP");
-	state->f1.fld.cr.dbg_tim5_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM5_STOP");
-	state->f1.fld.cr.dbg_tim6_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM6_STOP");
-	state->f1.fld.cr.dbg_tim7_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_TIM7_STOP");
-	state->f1.fld.cr.dbg_can2_stop = cm_object_get_child_by_name(state->f1.reg.cr, "DBG_CAN2_STOP");
+	state->u.f1.fld.cr.dbg_sleep = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_SLEEP");
+	state->u.f1.fld.cr.dbg_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_STOP");
+	state->u.f1.fld.cr.dbg_standby = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_STANDBY");
+	state->u.f1.fld.cr.trace_ioen = cm_object_get_child_by_name(state->u.f1.reg.cr, "TRACE_IOEN");
+	state->u.f1.fld.cr.trace_mode = cm_object_get_child_by_name(state->u.f1.reg.cr, "TRACE_MODE");
+	state->u.f1.fld.cr.dbg_iwdg_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_IWDG_STOP");
+	state->u.f1.fld.cr.dbg_wwdg_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_WWDG_STOP");
+	state->u.f1.fld.cr.dbg_tim1_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM1_STOP");
+	state->u.f1.fld.cr.dbg_tim2_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM2_STOP");
+	state->u.f1.fld.cr.dbg_tim3_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM3_STOP");
+	state->u.f1.fld.cr.dbg_tim4_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM4_STOP");
+	state->u.f1.fld.cr.dbg_can1_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_CAN1_STOP");
+	state->u.f1.fld.cr.dbg_i2c1_smbus_timeout = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_I2C1_SMBUS_TIMEOUT");
+	state->u.f1.fld.cr.dbg_i2c2_smbus_timeout = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_I2C2_SMBUS_TIMEOUT");
+	state->u.f1.fld.cr.dbg_tim8_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM8_STOP");
+	state->u.f1.fld.cr.dbg_tim5_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM5_STOP");
+	state->u.f1.fld.cr.dbg_tim6_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM6_STOP");
+	state->u.f1.fld.cr.dbg_tim7_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM7_STOP");
+	state->u.f1.fld.cr.dbg_can2_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_CAN2_STOP");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -9367,7 +9392,8 @@ static void stm32f103xx_dbg_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 UART4 (Universal asynchronous receiver transmitter) registers.
 		struct {
@@ -9458,61 +9484,61 @@ static void stm32f103xx_uart4_create_objects(Object *obj, JSON_Object *svd, cons
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
-	state->f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
 
 	// SR bitfields.
-	state->f1.fld.sr.pe = cm_object_get_child_by_name(state->f1.reg.sr, "PE");
-	state->f1.fld.sr.fe = cm_object_get_child_by_name(state->f1.reg.sr, "FE");
-	state->f1.fld.sr.ne = cm_object_get_child_by_name(state->f1.reg.sr, "NE");
-	state->f1.fld.sr.ore = cm_object_get_child_by_name(state->f1.reg.sr, "ORE");
-	state->f1.fld.sr.idle = cm_object_get_child_by_name(state->f1.reg.sr, "IDLE");
-	state->f1.fld.sr.rxne = cm_object_get_child_by_name(state->f1.reg.sr, "RXNE");
-	state->f1.fld.sr.tc = cm_object_get_child_by_name(state->f1.reg.sr, "TC");
-	state->f1.fld.sr.txe = cm_object_get_child_by_name(state->f1.reg.sr, "TXE");
-	state->f1.fld.sr.lbd = cm_object_get_child_by_name(state->f1.reg.sr, "LBD");
+	state->u.f1.fld.sr.pe = cm_object_get_child_by_name(state->u.f1.reg.sr, "PE");
+	state->u.f1.fld.sr.fe = cm_object_get_child_by_name(state->u.f1.reg.sr, "FE");
+	state->u.f1.fld.sr.ne = cm_object_get_child_by_name(state->u.f1.reg.sr, "NE");
+	state->u.f1.fld.sr.ore = cm_object_get_child_by_name(state->u.f1.reg.sr, "ORE");
+	state->u.f1.fld.sr.idle = cm_object_get_child_by_name(state->u.f1.reg.sr, "IDLE");
+	state->u.f1.fld.sr.rxne = cm_object_get_child_by_name(state->u.f1.reg.sr, "RXNE");
+	state->u.f1.fld.sr.tc = cm_object_get_child_by_name(state->u.f1.reg.sr, "TC");
+	state->u.f1.fld.sr.txe = cm_object_get_child_by_name(state->u.f1.reg.sr, "TXE");
+	state->u.f1.fld.sr.lbd = cm_object_get_child_by_name(state->u.f1.reg.sr, "LBD");
 
 	// DR bitfields.
-	state->f1.fld.dr.dr = cm_object_get_child_by_name(state->f1.reg.dr, "DR");
+	state->u.f1.fld.dr.dr = cm_object_get_child_by_name(state->u.f1.reg.dr, "DR");
 
 	// BRR bitfields.
-	state->f1.fld.brr.div_fraction = cm_object_get_child_by_name(state->f1.reg.brr, "DIV_Fraction");
-	state->f1.fld.brr.div_mantissa = cm_object_get_child_by_name(state->f1.reg.brr, "DIV_Mantissa");
+	state->u.f1.fld.brr.div_fraction = cm_object_get_child_by_name(state->u.f1.reg.brr, "DIV_Fraction");
+	state->u.f1.fld.brr.div_mantissa = cm_object_get_child_by_name(state->u.f1.reg.brr, "DIV_Mantissa");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.sbk = cm_object_get_child_by_name(state->f1.reg.cr1, "SBK");
-	state->f1.fld.cr1.rwu = cm_object_get_child_by_name(state->f1.reg.cr1, "RWU");
-	state->f1.fld.cr1.re = cm_object_get_child_by_name(state->f1.reg.cr1, "RE");
-	state->f1.fld.cr1.te = cm_object_get_child_by_name(state->f1.reg.cr1, "TE");
-	state->f1.fld.cr1.idleie = cm_object_get_child_by_name(state->f1.reg.cr1, "IDLEIE");
-	state->f1.fld.cr1.rxneie = cm_object_get_child_by_name(state->f1.reg.cr1, "RXNEIE");
-	state->f1.fld.cr1.tcie = cm_object_get_child_by_name(state->f1.reg.cr1, "TCIE");
-	state->f1.fld.cr1.txeie = cm_object_get_child_by_name(state->f1.reg.cr1, "TXEIE");
-	state->f1.fld.cr1.peie = cm_object_get_child_by_name(state->f1.reg.cr1, "PEIE");
-	state->f1.fld.cr1.ps = cm_object_get_child_by_name(state->f1.reg.cr1, "PS");
-	state->f1.fld.cr1.pce = cm_object_get_child_by_name(state->f1.reg.cr1, "PCE");
-	state->f1.fld.cr1.wake = cm_object_get_child_by_name(state->f1.reg.cr1, "WAKE");
-	state->f1.fld.cr1.m = cm_object_get_child_by_name(state->f1.reg.cr1, "M");
-	state->f1.fld.cr1.ue = cm_object_get_child_by_name(state->f1.reg.cr1, "UE");
+	state->u.f1.fld.cr1.sbk = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SBK");
+	state->u.f1.fld.cr1.rwu = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RWU");
+	state->u.f1.fld.cr1.re = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RE");
+	state->u.f1.fld.cr1.te = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TE");
+	state->u.f1.fld.cr1.idleie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "IDLEIE");
+	state->u.f1.fld.cr1.rxneie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RXNEIE");
+	state->u.f1.fld.cr1.tcie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TCIE");
+	state->u.f1.fld.cr1.txeie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TXEIE");
+	state->u.f1.fld.cr1.peie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PEIE");
+	state->u.f1.fld.cr1.ps = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PS");
+	state->u.f1.fld.cr1.pce = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PCE");
+	state->u.f1.fld.cr1.wake = cm_object_get_child_by_name(state->u.f1.reg.cr1, "WAKE");
+	state->u.f1.fld.cr1.m = cm_object_get_child_by_name(state->u.f1.reg.cr1, "M");
+	state->u.f1.fld.cr1.ue = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UE");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.add = cm_object_get_child_by_name(state->f1.reg.cr2, "ADD");
-	state->f1.fld.cr2.lbdl = cm_object_get_child_by_name(state->f1.reg.cr2, "LBDL");
-	state->f1.fld.cr2.lbdie = cm_object_get_child_by_name(state->f1.reg.cr2, "LBDIE");
-	state->f1.fld.cr2.stop = cm_object_get_child_by_name(state->f1.reg.cr2, "STOP");
-	state->f1.fld.cr2.linen = cm_object_get_child_by_name(state->f1.reg.cr2, "LINEN");
+	state->u.f1.fld.cr2.add = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ADD");
+	state->u.f1.fld.cr2.lbdl = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LBDL");
+	state->u.f1.fld.cr2.lbdie = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LBDIE");
+	state->u.f1.fld.cr2.stop = cm_object_get_child_by_name(state->u.f1.reg.cr2, "STOP");
+	state->u.f1.fld.cr2.linen = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LINEN");
 
 	// CR3 bitfields.
-	state->f1.fld.cr3.eie = cm_object_get_child_by_name(state->f1.reg.cr3, "EIE");
-	state->f1.fld.cr3.iren = cm_object_get_child_by_name(state->f1.reg.cr3, "IREN");
-	state->f1.fld.cr3.irlp = cm_object_get_child_by_name(state->f1.reg.cr3, "IRLP");
-	state->f1.fld.cr3.hdsel = cm_object_get_child_by_name(state->f1.reg.cr3, "HDSEL");
-	state->f1.fld.cr3.dmar = cm_object_get_child_by_name(state->f1.reg.cr3, "DMAR");
-	state->f1.fld.cr3.dmat = cm_object_get_child_by_name(state->f1.reg.cr3, "DMAT");
+	state->u.f1.fld.cr3.eie = cm_object_get_child_by_name(state->u.f1.reg.cr3, "EIE");
+	state->u.f1.fld.cr3.iren = cm_object_get_child_by_name(state->u.f1.reg.cr3, "IREN");
+	state->u.f1.fld.cr3.irlp = cm_object_get_child_by_name(state->u.f1.reg.cr3, "IRLP");
+	state->u.f1.fld.cr3.hdsel = cm_object_get_child_by_name(state->u.f1.reg.cr3, "HDSEL");
+	state->u.f1.fld.cr3.dmar = cm_object_get_child_by_name(state->u.f1.reg.cr3, "DMAR");
+	state->u.f1.fld.cr3.dmat = cm_object_get_child_by_name(state->u.f1.reg.cr3, "DMAT");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -9521,7 +9547,8 @@ static void stm32f103xx_uart4_create_objects(Object *obj, JSON_Object *svd, cons
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 UART5 (Universal asynchronous receiver transmitter) registers.
 		struct {
@@ -9611,60 +9638,60 @@ static void stm32f103xx_uart5_create_objects(Object *obj, JSON_Object *svd, cons
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
-	state->f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
-	state->f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-	state->f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-	state->f1.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+	state->u.f1.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+	state->u.f1.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
+	state->u.f1.reg.cr3 = cm_object_get_child_by_name(obj, "CR3");
 
 	// SR bitfields.
-	state->f1.fld.sr.pe = cm_object_get_child_by_name(state->f1.reg.sr, "PE");
-	state->f1.fld.sr.fe = cm_object_get_child_by_name(state->f1.reg.sr, "FE");
-	state->f1.fld.sr.ne = cm_object_get_child_by_name(state->f1.reg.sr, "NE");
-	state->f1.fld.sr.ore = cm_object_get_child_by_name(state->f1.reg.sr, "ORE");
-	state->f1.fld.sr.idle = cm_object_get_child_by_name(state->f1.reg.sr, "IDLE");
-	state->f1.fld.sr.rxne = cm_object_get_child_by_name(state->f1.reg.sr, "RXNE");
-	state->f1.fld.sr.tc = cm_object_get_child_by_name(state->f1.reg.sr, "TC");
-	state->f1.fld.sr.txe = cm_object_get_child_by_name(state->f1.reg.sr, "TXE");
-	state->f1.fld.sr.lbd = cm_object_get_child_by_name(state->f1.reg.sr, "LBD");
+	state->u.f1.fld.sr.pe = cm_object_get_child_by_name(state->u.f1.reg.sr, "PE");
+	state->u.f1.fld.sr.fe = cm_object_get_child_by_name(state->u.f1.reg.sr, "FE");
+	state->u.f1.fld.sr.ne = cm_object_get_child_by_name(state->u.f1.reg.sr, "NE");
+	state->u.f1.fld.sr.ore = cm_object_get_child_by_name(state->u.f1.reg.sr, "ORE");
+	state->u.f1.fld.sr.idle = cm_object_get_child_by_name(state->u.f1.reg.sr, "IDLE");
+	state->u.f1.fld.sr.rxne = cm_object_get_child_by_name(state->u.f1.reg.sr, "RXNE");
+	state->u.f1.fld.sr.tc = cm_object_get_child_by_name(state->u.f1.reg.sr, "TC");
+	state->u.f1.fld.sr.txe = cm_object_get_child_by_name(state->u.f1.reg.sr, "TXE");
+	state->u.f1.fld.sr.lbd = cm_object_get_child_by_name(state->u.f1.reg.sr, "LBD");
 
 	// DR bitfields.
-	state->f1.fld.dr.dr = cm_object_get_child_by_name(state->f1.reg.dr, "DR");
+	state->u.f1.fld.dr.dr = cm_object_get_child_by_name(state->u.f1.reg.dr, "DR");
 
 	// BRR bitfields.
-	state->f1.fld.brr.div_fraction = cm_object_get_child_by_name(state->f1.reg.brr, "DIV_Fraction");
-	state->f1.fld.brr.div_mantissa = cm_object_get_child_by_name(state->f1.reg.brr, "DIV_Mantissa");
+	state->u.f1.fld.brr.div_fraction = cm_object_get_child_by_name(state->u.f1.reg.brr, "DIV_Fraction");
+	state->u.f1.fld.brr.div_mantissa = cm_object_get_child_by_name(state->u.f1.reg.brr, "DIV_Mantissa");
 
 	// CR1 bitfields.
-	state->f1.fld.cr1.sbk = cm_object_get_child_by_name(state->f1.reg.cr1, "SBK");
-	state->f1.fld.cr1.rwu = cm_object_get_child_by_name(state->f1.reg.cr1, "RWU");
-	state->f1.fld.cr1.re = cm_object_get_child_by_name(state->f1.reg.cr1, "RE");
-	state->f1.fld.cr1.te = cm_object_get_child_by_name(state->f1.reg.cr1, "TE");
-	state->f1.fld.cr1.idleie = cm_object_get_child_by_name(state->f1.reg.cr1, "IDLEIE");
-	state->f1.fld.cr1.rxneie = cm_object_get_child_by_name(state->f1.reg.cr1, "RXNEIE");
-	state->f1.fld.cr1.tcie = cm_object_get_child_by_name(state->f1.reg.cr1, "TCIE");
-	state->f1.fld.cr1.txeie = cm_object_get_child_by_name(state->f1.reg.cr1, "TXEIE");
-	state->f1.fld.cr1.peie = cm_object_get_child_by_name(state->f1.reg.cr1, "PEIE");
-	state->f1.fld.cr1.ps = cm_object_get_child_by_name(state->f1.reg.cr1, "PS");
-	state->f1.fld.cr1.pce = cm_object_get_child_by_name(state->f1.reg.cr1, "PCE");
-	state->f1.fld.cr1.wake = cm_object_get_child_by_name(state->f1.reg.cr1, "WAKE");
-	state->f1.fld.cr1.m = cm_object_get_child_by_name(state->f1.reg.cr1, "M");
-	state->f1.fld.cr1.ue = cm_object_get_child_by_name(state->f1.reg.cr1, "UE");
+	state->u.f1.fld.cr1.sbk = cm_object_get_child_by_name(state->u.f1.reg.cr1, "SBK");
+	state->u.f1.fld.cr1.rwu = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RWU");
+	state->u.f1.fld.cr1.re = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RE");
+	state->u.f1.fld.cr1.te = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TE");
+	state->u.f1.fld.cr1.idleie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "IDLEIE");
+	state->u.f1.fld.cr1.rxneie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "RXNEIE");
+	state->u.f1.fld.cr1.tcie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TCIE");
+	state->u.f1.fld.cr1.txeie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "TXEIE");
+	state->u.f1.fld.cr1.peie = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PEIE");
+	state->u.f1.fld.cr1.ps = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PS");
+	state->u.f1.fld.cr1.pce = cm_object_get_child_by_name(state->u.f1.reg.cr1, "PCE");
+	state->u.f1.fld.cr1.wake = cm_object_get_child_by_name(state->u.f1.reg.cr1, "WAKE");
+	state->u.f1.fld.cr1.m = cm_object_get_child_by_name(state->u.f1.reg.cr1, "M");
+	state->u.f1.fld.cr1.ue = cm_object_get_child_by_name(state->u.f1.reg.cr1, "UE");
 
 	// CR2 bitfields.
-	state->f1.fld.cr2.add = cm_object_get_child_by_name(state->f1.reg.cr2, "ADD");
-	state->f1.fld.cr2.lbdl = cm_object_get_child_by_name(state->f1.reg.cr2, "LBDL");
-	state->f1.fld.cr2.lbdie = cm_object_get_child_by_name(state->f1.reg.cr2, "LBDIE");
-	state->f1.fld.cr2.stop = cm_object_get_child_by_name(state->f1.reg.cr2, "STOP");
-	state->f1.fld.cr2.linen = cm_object_get_child_by_name(state->f1.reg.cr2, "LINEN");
+	state->u.f1.fld.cr2.add = cm_object_get_child_by_name(state->u.f1.reg.cr2, "ADD");
+	state->u.f1.fld.cr2.lbdl = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LBDL");
+	state->u.f1.fld.cr2.lbdie = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LBDIE");
+	state->u.f1.fld.cr2.stop = cm_object_get_child_by_name(state->u.f1.reg.cr2, "STOP");
+	state->u.f1.fld.cr2.linen = cm_object_get_child_by_name(state->u.f1.reg.cr2, "LINEN");
 
 	// CR3 bitfields.
-	state->f1.fld.cr3.eie = cm_object_get_child_by_name(state->f1.reg.cr3, "EIE");
-	state->f1.fld.cr3.iren = cm_object_get_child_by_name(state->f1.reg.cr3, "IREN");
-	state->f1.fld.cr3.irlp = cm_object_get_child_by_name(state->f1.reg.cr3, "IRLP");
-	state->f1.fld.cr3.hdsel = cm_object_get_child_by_name(state->f1.reg.cr3, "HDSEL");
-	state->f1.fld.cr3.dmat = cm_object_get_child_by_name(state->f1.reg.cr3, "DMAT");
+	state->u.f1.fld.cr3.eie = cm_object_get_child_by_name(state->u.f1.reg.cr3, "EIE");
+	state->u.f1.fld.cr3.iren = cm_object_get_child_by_name(state->u.f1.reg.cr3, "IREN");
+	state->u.f1.fld.cr3.irlp = cm_object_get_child_by_name(state->u.f1.reg.cr3, "IRLP");
+	state->u.f1.fld.cr3.hdsel = cm_object_get_child_by_name(state->u.f1.reg.cr3, "HDSEL");
+	state->u.f1.fld.cr3.dmat = cm_object_get_child_by_name(state->u.f1.reg.cr3, "DMAT");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -9673,7 +9700,8 @@ static void stm32f103xx_uart5_create_objects(Object *obj, JSON_Object *svd, cons
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 CRC (CRC calculation unit) registers.
 		struct {
@@ -9715,18 +9743,18 @@ static void stm32f103xx_crc_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
-	state->f1.reg.idr = cm_object_get_child_by_name(obj, "IDR");
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.dr = cm_object_get_child_by_name(obj, "DR");
+	state->u.f1.reg.idr = cm_object_get_child_by_name(obj, "IDR");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
 
 	// DR bitfields.
-	state->f1.fld.dr.dr = cm_object_get_child_by_name(state->f1.reg.dr, "DR");
+	state->u.f1.fld.dr.dr = cm_object_get_child_by_name(state->u.f1.reg.dr, "DR");
 
 	// IDR bitfields.
-	state->f1.fld.idr.idr = cm_object_get_child_by_name(state->f1.reg.idr, "IDR");
+	state->u.f1.fld.idr.idr = cm_object_get_child_by_name(state->u.f1.reg.idr, "IDR");
 
 	// CR bitfields.
-	state->f1.fld.cr.reset = cm_object_get_child_by_name(state->f1.reg.cr, "RESET");
+	state->u.f1.fld.cr.reset = cm_object_get_child_by_name(state->u.f1.reg.cr, "RESET");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -9735,7 +9763,8 @@ static void stm32f103xx_crc_create_objects(Object *obj, JSON_Object *svd, const 
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 FLASH (FLASH) registers.
 		struct {
@@ -9828,59 +9857,59 @@ static void stm32f103xx_flash_create_objects(Object *obj, JSON_Object *svd, cons
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.acr = cm_object_get_child_by_name(obj, "ACR");
-	state->f1.reg.keyr = cm_object_get_child_by_name(obj, "KEYR");
-	state->f1.reg.optkeyr = cm_object_get_child_by_name(obj, "OPTKEYR");
-	state->f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-	state->f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-	state->f1.reg.ar = cm_object_get_child_by_name(obj, "AR");
-	state->f1.reg.obr = cm_object_get_child_by_name(obj, "OBR");
-	state->f1.reg.wrpr = cm_object_get_child_by_name(obj, "WRPR");
+	state->u.f1.reg.acr = cm_object_get_child_by_name(obj, "ACR");
+	state->u.f1.reg.keyr = cm_object_get_child_by_name(obj, "KEYR");
+	state->u.f1.reg.optkeyr = cm_object_get_child_by_name(obj, "OPTKEYR");
+	state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
+	state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+	state->u.f1.reg.ar = cm_object_get_child_by_name(obj, "AR");
+	state->u.f1.reg.obr = cm_object_get_child_by_name(obj, "OBR");
+	state->u.f1.reg.wrpr = cm_object_get_child_by_name(obj, "WRPR");
 
 	// ACR bitfields.
-	state->f1.fld.acr.latency = cm_object_get_child_by_name(state->f1.reg.acr, "LATENCY");
-	state->f1.fld.acr.hlfcya = cm_object_get_child_by_name(state->f1.reg.acr, "HLFCYA");
-	state->f1.fld.acr.prftbe = cm_object_get_child_by_name(state->f1.reg.acr, "PRFTBE");
-	state->f1.fld.acr.prftbs = cm_object_get_child_by_name(state->f1.reg.acr, "PRFTBS");
+	state->u.f1.fld.acr.latency = cm_object_get_child_by_name(state->u.f1.reg.acr, "LATENCY");
+	state->u.f1.fld.acr.hlfcya = cm_object_get_child_by_name(state->u.f1.reg.acr, "HLFCYA");
+	state->u.f1.fld.acr.prftbe = cm_object_get_child_by_name(state->u.f1.reg.acr, "PRFTBE");
+	state->u.f1.fld.acr.prftbs = cm_object_get_child_by_name(state->u.f1.reg.acr, "PRFTBS");
 
 	// KEYR bitfields.
-	state->f1.fld.keyr.key = cm_object_get_child_by_name(state->f1.reg.keyr, "KEY");
+	state->u.f1.fld.keyr.key = cm_object_get_child_by_name(state->u.f1.reg.keyr, "KEY");
 
 	// OPTKEYR bitfields.
-	state->f1.fld.optkeyr.optkey = cm_object_get_child_by_name(state->f1.reg.optkeyr, "OPTKEY");
+	state->u.f1.fld.optkeyr.optkey = cm_object_get_child_by_name(state->u.f1.reg.optkeyr, "OPTKEY");
 
 	// SR bitfields.
-	state->f1.fld.sr.bsy = cm_object_get_child_by_name(state->f1.reg.sr, "BSY");
-	state->f1.fld.sr.pgerr = cm_object_get_child_by_name(state->f1.reg.sr, "PGERR");
-	state->f1.fld.sr.wrprterr = cm_object_get_child_by_name(state->f1.reg.sr, "WRPRTERR");
-	state->f1.fld.sr.eop = cm_object_get_child_by_name(state->f1.reg.sr, "EOP");
+	state->u.f1.fld.sr.bsy = cm_object_get_child_by_name(state->u.f1.reg.sr, "BSY");
+	state->u.f1.fld.sr.pgerr = cm_object_get_child_by_name(state->u.f1.reg.sr, "PGERR");
+	state->u.f1.fld.sr.wrprterr = cm_object_get_child_by_name(state->u.f1.reg.sr, "WRPRTERR");
+	state->u.f1.fld.sr.eop = cm_object_get_child_by_name(state->u.f1.reg.sr, "EOP");
 
 	// CR bitfields.
-	state->f1.fld.cr.pg = cm_object_get_child_by_name(state->f1.reg.cr, "PG");
-	state->f1.fld.cr.per = cm_object_get_child_by_name(state->f1.reg.cr, "PER");
-	state->f1.fld.cr.mer = cm_object_get_child_by_name(state->f1.reg.cr, "MER");
-	state->f1.fld.cr.optpg = cm_object_get_child_by_name(state->f1.reg.cr, "OPTPG");
-	state->f1.fld.cr.opter = cm_object_get_child_by_name(state->f1.reg.cr, "OPTER");
-	state->f1.fld.cr.strt = cm_object_get_child_by_name(state->f1.reg.cr, "STRT");
-	state->f1.fld.cr.lock = cm_object_get_child_by_name(state->f1.reg.cr, "LOCK");
-	state->f1.fld.cr.optwre = cm_object_get_child_by_name(state->f1.reg.cr, "OPTWRE");
-	state->f1.fld.cr.errie = cm_object_get_child_by_name(state->f1.reg.cr, "ERRIE");
-	state->f1.fld.cr.eopie = cm_object_get_child_by_name(state->f1.reg.cr, "EOPIE");
+	state->u.f1.fld.cr.pg = cm_object_get_child_by_name(state->u.f1.reg.cr, "PG");
+	state->u.f1.fld.cr.per = cm_object_get_child_by_name(state->u.f1.reg.cr, "PER");
+	state->u.f1.fld.cr.mer = cm_object_get_child_by_name(state->u.f1.reg.cr, "MER");
+	state->u.f1.fld.cr.optpg = cm_object_get_child_by_name(state->u.f1.reg.cr, "OPTPG");
+	state->u.f1.fld.cr.opter = cm_object_get_child_by_name(state->u.f1.reg.cr, "OPTER");
+	state->u.f1.fld.cr.strt = cm_object_get_child_by_name(state->u.f1.reg.cr, "STRT");
+	state->u.f1.fld.cr.lock = cm_object_get_child_by_name(state->u.f1.reg.cr, "LOCK");
+	state->u.f1.fld.cr.optwre = cm_object_get_child_by_name(state->u.f1.reg.cr, "OPTWRE");
+	state->u.f1.fld.cr.errie = cm_object_get_child_by_name(state->u.f1.reg.cr, "ERRIE");
+	state->u.f1.fld.cr.eopie = cm_object_get_child_by_name(state->u.f1.reg.cr, "EOPIE");
 
 	// AR bitfields.
-	state->f1.fld.ar.far = cm_object_get_child_by_name(state->f1.reg.ar, "FAR");
+	state->u.f1.fld.ar.far = cm_object_get_child_by_name(state->u.f1.reg.ar, "FAR");
 
 	// OBR bitfields.
-	state->f1.fld.obr.opterr = cm_object_get_child_by_name(state->f1.reg.obr, "OPTERR");
-	state->f1.fld.obr.rdprt = cm_object_get_child_by_name(state->f1.reg.obr, "RDPRT");
-	state->f1.fld.obr.wdg_sw = cm_object_get_child_by_name(state->f1.reg.obr, "WDG_SW");
-	state->f1.fld.obr.nrst_stop = cm_object_get_child_by_name(state->f1.reg.obr, "nRST_STOP");
-	state->f1.fld.obr.nrst_stdby = cm_object_get_child_by_name(state->f1.reg.obr, "nRST_STDBY");
-	state->f1.fld.obr.data0 = cm_object_get_child_by_name(state->f1.reg.obr, "Data0");
-	state->f1.fld.obr.data1 = cm_object_get_child_by_name(state->f1.reg.obr, "Data1");
+	state->u.f1.fld.obr.opterr = cm_object_get_child_by_name(state->u.f1.reg.obr, "OPTERR");
+	state->u.f1.fld.obr.rdprt = cm_object_get_child_by_name(state->u.f1.reg.obr, "RDPRT");
+	state->u.f1.fld.obr.wdg_sw = cm_object_get_child_by_name(state->u.f1.reg.obr, "WDG_SW");
+	state->u.f1.fld.obr.nrst_stop = cm_object_get_child_by_name(state->u.f1.reg.obr, "nRST_STOP");
+	state->u.f1.fld.obr.nrst_stdby = cm_object_get_child_by_name(state->u.f1.reg.obr, "nRST_STDBY");
+	state->u.f1.fld.obr.data0 = cm_object_get_child_by_name(state->u.f1.reg.obr, "Data0");
+	state->u.f1.fld.obr.data1 = cm_object_get_child_by_name(state->u.f1.reg.obr, "Data1");
 
 	// WRPR bitfields.
-	state->f1.fld.wrpr.wrp = cm_object_get_child_by_name(state->f1.reg.wrpr, "WRP");
+	state->u.f1.fld.wrpr.wrp = cm_object_get_child_by_name(state->u.f1.reg.wrpr, "WRP");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -9889,7 +9918,8 @@ static void stm32f103xx_flash_create_objects(Object *obj, JSON_Object *svd, cons
 struct {
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
-	// DO NOT EDIT! Automatically generated!
+	// DO NOT REMOVE FIELDS! Automatically generated!
+	// Merge fields from different family members.
 	struct {
 		// F1 USB (Universal serial bus full-speed device interface) registers.
 		struct {
@@ -10089,156 +10119,156 @@ static void stm32f103xx_usb_create_objects(Object *obj, JSON_Object *svd, const 
 	svd_add_peripheral_properties_and_children(obj, periph, svd);
 
 	// Registers.
-	state->f1.reg.ep0r = cm_object_get_child_by_name(obj, "EP0R");
-	state->f1.reg.ep1r = cm_object_get_child_by_name(obj, "EP1R");
-	state->f1.reg.ep2r = cm_object_get_child_by_name(obj, "EP2R");
-	state->f1.reg.ep3r = cm_object_get_child_by_name(obj, "EP3R");
-	state->f1.reg.ep4r = cm_object_get_child_by_name(obj, "EP4R");
-	state->f1.reg.ep5r = cm_object_get_child_by_name(obj, "EP5R");
-	state->f1.reg.ep6r = cm_object_get_child_by_name(obj, "EP6R");
-	state->f1.reg.ep7r = cm_object_get_child_by_name(obj, "EP7R");
-	state->f1.reg.cntr = cm_object_get_child_by_name(obj, "CNTR");
-	state->f1.reg.istr = cm_object_get_child_by_name(obj, "ISTR");
-	state->f1.reg.fnr = cm_object_get_child_by_name(obj, "FNR");
-	state->f1.reg.daddr = cm_object_get_child_by_name(obj, "DADDR");
-	state->f1.reg.btable = cm_object_get_child_by_name(obj, "BTABLE");
+	state->u.f1.reg.ep0r = cm_object_get_child_by_name(obj, "EP0R");
+	state->u.f1.reg.ep1r = cm_object_get_child_by_name(obj, "EP1R");
+	state->u.f1.reg.ep2r = cm_object_get_child_by_name(obj, "EP2R");
+	state->u.f1.reg.ep3r = cm_object_get_child_by_name(obj, "EP3R");
+	state->u.f1.reg.ep4r = cm_object_get_child_by_name(obj, "EP4R");
+	state->u.f1.reg.ep5r = cm_object_get_child_by_name(obj, "EP5R");
+	state->u.f1.reg.ep6r = cm_object_get_child_by_name(obj, "EP6R");
+	state->u.f1.reg.ep7r = cm_object_get_child_by_name(obj, "EP7R");
+	state->u.f1.reg.cntr = cm_object_get_child_by_name(obj, "CNTR");
+	state->u.f1.reg.istr = cm_object_get_child_by_name(obj, "ISTR");
+	state->u.f1.reg.fnr = cm_object_get_child_by_name(obj, "FNR");
+	state->u.f1.reg.daddr = cm_object_get_child_by_name(obj, "DADDR");
+	state->u.f1.reg.btable = cm_object_get_child_by_name(obj, "BTABLE");
 
 	// EP0R bitfields.
-	state->f1.fld.ep0r.ea = cm_object_get_child_by_name(state->f1.reg.ep0r, "EA");
-	state->f1.fld.ep0r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep0r, "STAT_TX");
-	state->f1.fld.ep0r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep0r, "DTOG_TX");
-	state->f1.fld.ep0r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep0r, "CTR_TX");
-	state->f1.fld.ep0r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep0r, "EP_KIND");
-	state->f1.fld.ep0r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep0r, "EP_TYPE");
-	state->f1.fld.ep0r.setup = cm_object_get_child_by_name(state->f1.reg.ep0r, "SETUP");
-	state->f1.fld.ep0r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep0r, "STAT_RX");
-	state->f1.fld.ep0r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep0r, "DTOG_RX");
-	state->f1.fld.ep0r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep0r, "CTR_RX");
+	state->u.f1.fld.ep0r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EA");
+	state->u.f1.fld.ep0r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "STAT_TX");
+	state->u.f1.fld.ep0r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "DTOG_TX");
+	state->u.f1.fld.ep0r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "CTR_TX");
+	state->u.f1.fld.ep0r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EP_KIND");
+	state->u.f1.fld.ep0r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EP_TYPE");
+	state->u.f1.fld.ep0r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "SETUP");
+	state->u.f1.fld.ep0r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "STAT_RX");
+	state->u.f1.fld.ep0r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "DTOG_RX");
+	state->u.f1.fld.ep0r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "CTR_RX");
 
 	// EP1R bitfields.
-	state->f1.fld.ep1r.ea = cm_object_get_child_by_name(state->f1.reg.ep1r, "EA");
-	state->f1.fld.ep1r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep1r, "STAT_TX");
-	state->f1.fld.ep1r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep1r, "DTOG_TX");
-	state->f1.fld.ep1r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep1r, "CTR_TX");
-	state->f1.fld.ep1r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep1r, "EP_KIND");
-	state->f1.fld.ep1r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep1r, "EP_TYPE");
-	state->f1.fld.ep1r.setup = cm_object_get_child_by_name(state->f1.reg.ep1r, "SETUP");
-	state->f1.fld.ep1r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep1r, "STAT_RX");
-	state->f1.fld.ep1r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep1r, "DTOG_RX");
-	state->f1.fld.ep1r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep1r, "CTR_RX");
+	state->u.f1.fld.ep1r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EA");
+	state->u.f1.fld.ep1r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "STAT_TX");
+	state->u.f1.fld.ep1r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "DTOG_TX");
+	state->u.f1.fld.ep1r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "CTR_TX");
+	state->u.f1.fld.ep1r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EP_KIND");
+	state->u.f1.fld.ep1r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EP_TYPE");
+	state->u.f1.fld.ep1r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "SETUP");
+	state->u.f1.fld.ep1r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "STAT_RX");
+	state->u.f1.fld.ep1r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "DTOG_RX");
+	state->u.f1.fld.ep1r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "CTR_RX");
 
 	// EP2R bitfields.
-	state->f1.fld.ep2r.ea = cm_object_get_child_by_name(state->f1.reg.ep2r, "EA");
-	state->f1.fld.ep2r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep2r, "STAT_TX");
-	state->f1.fld.ep2r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep2r, "DTOG_TX");
-	state->f1.fld.ep2r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep2r, "CTR_TX");
-	state->f1.fld.ep2r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep2r, "EP_KIND");
-	state->f1.fld.ep2r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep2r, "EP_TYPE");
-	state->f1.fld.ep2r.setup = cm_object_get_child_by_name(state->f1.reg.ep2r, "SETUP");
-	state->f1.fld.ep2r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep2r, "STAT_RX");
-	state->f1.fld.ep2r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep2r, "DTOG_RX");
-	state->f1.fld.ep2r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep2r, "CTR_RX");
+	state->u.f1.fld.ep2r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EA");
+	state->u.f1.fld.ep2r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "STAT_TX");
+	state->u.f1.fld.ep2r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "DTOG_TX");
+	state->u.f1.fld.ep2r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "CTR_TX");
+	state->u.f1.fld.ep2r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EP_KIND");
+	state->u.f1.fld.ep2r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EP_TYPE");
+	state->u.f1.fld.ep2r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "SETUP");
+	state->u.f1.fld.ep2r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "STAT_RX");
+	state->u.f1.fld.ep2r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "DTOG_RX");
+	state->u.f1.fld.ep2r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "CTR_RX");
 
 	// EP3R bitfields.
-	state->f1.fld.ep3r.ea = cm_object_get_child_by_name(state->f1.reg.ep3r, "EA");
-	state->f1.fld.ep3r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep3r, "STAT_TX");
-	state->f1.fld.ep3r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep3r, "DTOG_TX");
-	state->f1.fld.ep3r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep3r, "CTR_TX");
-	state->f1.fld.ep3r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep3r, "EP_KIND");
-	state->f1.fld.ep3r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep3r, "EP_TYPE");
-	state->f1.fld.ep3r.setup = cm_object_get_child_by_name(state->f1.reg.ep3r, "SETUP");
-	state->f1.fld.ep3r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep3r, "STAT_RX");
-	state->f1.fld.ep3r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep3r, "DTOG_RX");
-	state->f1.fld.ep3r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep3r, "CTR_RX");
+	state->u.f1.fld.ep3r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EA");
+	state->u.f1.fld.ep3r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "STAT_TX");
+	state->u.f1.fld.ep3r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "DTOG_TX");
+	state->u.f1.fld.ep3r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "CTR_TX");
+	state->u.f1.fld.ep3r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EP_KIND");
+	state->u.f1.fld.ep3r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EP_TYPE");
+	state->u.f1.fld.ep3r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "SETUP");
+	state->u.f1.fld.ep3r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "STAT_RX");
+	state->u.f1.fld.ep3r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "DTOG_RX");
+	state->u.f1.fld.ep3r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "CTR_RX");
 
 	// EP4R bitfields.
-	state->f1.fld.ep4r.ea = cm_object_get_child_by_name(state->f1.reg.ep4r, "EA");
-	state->f1.fld.ep4r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep4r, "STAT_TX");
-	state->f1.fld.ep4r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep4r, "DTOG_TX");
-	state->f1.fld.ep4r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep4r, "CTR_TX");
-	state->f1.fld.ep4r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep4r, "EP_KIND");
-	state->f1.fld.ep4r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep4r, "EP_TYPE");
-	state->f1.fld.ep4r.setup = cm_object_get_child_by_name(state->f1.reg.ep4r, "SETUP");
-	state->f1.fld.ep4r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep4r, "STAT_RX");
-	state->f1.fld.ep4r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep4r, "DTOG_RX");
-	state->f1.fld.ep4r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep4r, "CTR_RX");
+	state->u.f1.fld.ep4r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EA");
+	state->u.f1.fld.ep4r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "STAT_TX");
+	state->u.f1.fld.ep4r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "DTOG_TX");
+	state->u.f1.fld.ep4r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "CTR_TX");
+	state->u.f1.fld.ep4r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EP_KIND");
+	state->u.f1.fld.ep4r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EP_TYPE");
+	state->u.f1.fld.ep4r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "SETUP");
+	state->u.f1.fld.ep4r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "STAT_RX");
+	state->u.f1.fld.ep4r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "DTOG_RX");
+	state->u.f1.fld.ep4r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "CTR_RX");
 
 	// EP5R bitfields.
-	state->f1.fld.ep5r.ea = cm_object_get_child_by_name(state->f1.reg.ep5r, "EA");
-	state->f1.fld.ep5r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep5r, "STAT_TX");
-	state->f1.fld.ep5r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep5r, "DTOG_TX");
-	state->f1.fld.ep5r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep5r, "CTR_TX");
-	state->f1.fld.ep5r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep5r, "EP_KIND");
-	state->f1.fld.ep5r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep5r, "EP_TYPE");
-	state->f1.fld.ep5r.setup = cm_object_get_child_by_name(state->f1.reg.ep5r, "SETUP");
-	state->f1.fld.ep5r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep5r, "STAT_RX");
-	state->f1.fld.ep5r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep5r, "DTOG_RX");
-	state->f1.fld.ep5r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep5r, "CTR_RX");
+	state->u.f1.fld.ep5r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EA");
+	state->u.f1.fld.ep5r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "STAT_TX");
+	state->u.f1.fld.ep5r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "DTOG_TX");
+	state->u.f1.fld.ep5r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "CTR_TX");
+	state->u.f1.fld.ep5r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EP_KIND");
+	state->u.f1.fld.ep5r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EP_TYPE");
+	state->u.f1.fld.ep5r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "SETUP");
+	state->u.f1.fld.ep5r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "STAT_RX");
+	state->u.f1.fld.ep5r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "DTOG_RX");
+	state->u.f1.fld.ep5r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "CTR_RX");
 
 	// EP6R bitfields.
-	state->f1.fld.ep6r.ea = cm_object_get_child_by_name(state->f1.reg.ep6r, "EA");
-	state->f1.fld.ep6r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep6r, "STAT_TX");
-	state->f1.fld.ep6r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep6r, "DTOG_TX");
-	state->f1.fld.ep6r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep6r, "CTR_TX");
-	state->f1.fld.ep6r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep6r, "EP_KIND");
-	state->f1.fld.ep6r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep6r, "EP_TYPE");
-	state->f1.fld.ep6r.setup = cm_object_get_child_by_name(state->f1.reg.ep6r, "SETUP");
-	state->f1.fld.ep6r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep6r, "STAT_RX");
-	state->f1.fld.ep6r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep6r, "DTOG_RX");
-	state->f1.fld.ep6r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep6r, "CTR_RX");
+	state->u.f1.fld.ep6r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EA");
+	state->u.f1.fld.ep6r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "STAT_TX");
+	state->u.f1.fld.ep6r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "DTOG_TX");
+	state->u.f1.fld.ep6r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "CTR_TX");
+	state->u.f1.fld.ep6r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EP_KIND");
+	state->u.f1.fld.ep6r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EP_TYPE");
+	state->u.f1.fld.ep6r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "SETUP");
+	state->u.f1.fld.ep6r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "STAT_RX");
+	state->u.f1.fld.ep6r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "DTOG_RX");
+	state->u.f1.fld.ep6r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "CTR_RX");
 
 	// EP7R bitfields.
-	state->f1.fld.ep7r.ea = cm_object_get_child_by_name(state->f1.reg.ep7r, "EA");
-	state->f1.fld.ep7r.stat_tx = cm_object_get_child_by_name(state->f1.reg.ep7r, "STAT_TX");
-	state->f1.fld.ep7r.dtog_tx = cm_object_get_child_by_name(state->f1.reg.ep7r, "DTOG_TX");
-	state->f1.fld.ep7r.ctr_tx = cm_object_get_child_by_name(state->f1.reg.ep7r, "CTR_TX");
-	state->f1.fld.ep7r.ep_kind = cm_object_get_child_by_name(state->f1.reg.ep7r, "EP_KIND");
-	state->f1.fld.ep7r.ep_type = cm_object_get_child_by_name(state->f1.reg.ep7r, "EP_TYPE");
-	state->f1.fld.ep7r.setup = cm_object_get_child_by_name(state->f1.reg.ep7r, "SETUP");
-	state->f1.fld.ep7r.stat_rx = cm_object_get_child_by_name(state->f1.reg.ep7r, "STAT_RX");
-	state->f1.fld.ep7r.dtog_rx = cm_object_get_child_by_name(state->f1.reg.ep7r, "DTOG_RX");
-	state->f1.fld.ep7r.ctr_rx = cm_object_get_child_by_name(state->f1.reg.ep7r, "CTR_RX");
+	state->u.f1.fld.ep7r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EA");
+	state->u.f1.fld.ep7r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "STAT_TX");
+	state->u.f1.fld.ep7r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "DTOG_TX");
+	state->u.f1.fld.ep7r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "CTR_TX");
+	state->u.f1.fld.ep7r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EP_KIND");
+	state->u.f1.fld.ep7r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EP_TYPE");
+	state->u.f1.fld.ep7r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "SETUP");
+	state->u.f1.fld.ep7r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "STAT_RX");
+	state->u.f1.fld.ep7r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "DTOG_RX");
+	state->u.f1.fld.ep7r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "CTR_RX");
 
 	// CNTR bitfields.
-	state->f1.fld.cntr.fres = cm_object_get_child_by_name(state->f1.reg.cntr, "FRES");
-	state->f1.fld.cntr.pdwn = cm_object_get_child_by_name(state->f1.reg.cntr, "PDWN");
-	state->f1.fld.cntr.lpmode = cm_object_get_child_by_name(state->f1.reg.cntr, "LPMODE");
-	state->f1.fld.cntr.fsusp = cm_object_get_child_by_name(state->f1.reg.cntr, "FSUSP");
-	state->f1.fld.cntr.resume = cm_object_get_child_by_name(state->f1.reg.cntr, "RESUME");
-	state->f1.fld.cntr.esofm = cm_object_get_child_by_name(state->f1.reg.cntr, "ESOFM");
-	state->f1.fld.cntr.sofm = cm_object_get_child_by_name(state->f1.reg.cntr, "SOFM");
-	state->f1.fld.cntr.resetm = cm_object_get_child_by_name(state->f1.reg.cntr, "RESETM");
-	state->f1.fld.cntr.suspm = cm_object_get_child_by_name(state->f1.reg.cntr, "SUSPM");
-	state->f1.fld.cntr.wkupm = cm_object_get_child_by_name(state->f1.reg.cntr, "WKUPM");
-	state->f1.fld.cntr.errm = cm_object_get_child_by_name(state->f1.reg.cntr, "ERRM");
-	state->f1.fld.cntr.pmaovrm = cm_object_get_child_by_name(state->f1.reg.cntr, "PMAOVRM");
-	state->f1.fld.cntr.ctrm = cm_object_get_child_by_name(state->f1.reg.cntr, "CTRM");
+	state->u.f1.fld.cntr.fres = cm_object_get_child_by_name(state->u.f1.reg.cntr, "FRES");
+	state->u.f1.fld.cntr.pdwn = cm_object_get_child_by_name(state->u.f1.reg.cntr, "PDWN");
+	state->u.f1.fld.cntr.lpmode = cm_object_get_child_by_name(state->u.f1.reg.cntr, "LPMODE");
+	state->u.f1.fld.cntr.fsusp = cm_object_get_child_by_name(state->u.f1.reg.cntr, "FSUSP");
+	state->u.f1.fld.cntr.resume = cm_object_get_child_by_name(state->u.f1.reg.cntr, "RESUME");
+	state->u.f1.fld.cntr.esofm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "ESOFM");
+	state->u.f1.fld.cntr.sofm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "SOFM");
+	state->u.f1.fld.cntr.resetm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "RESETM");
+	state->u.f1.fld.cntr.suspm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "SUSPM");
+	state->u.f1.fld.cntr.wkupm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "WKUPM");
+	state->u.f1.fld.cntr.errm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "ERRM");
+	state->u.f1.fld.cntr.pmaovrm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "PMAOVRM");
+	state->u.f1.fld.cntr.ctrm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "CTRM");
 
 	// ISTR bitfields.
-	state->f1.fld.istr.ep_id = cm_object_get_child_by_name(state->f1.reg.istr, "EP_ID");
-	state->f1.fld.istr.dir = cm_object_get_child_by_name(state->f1.reg.istr, "DIR");
-	state->f1.fld.istr.esof = cm_object_get_child_by_name(state->f1.reg.istr, "ESOF");
-	state->f1.fld.istr.sof = cm_object_get_child_by_name(state->f1.reg.istr, "SOF");
-	state->f1.fld.istr.reset = cm_object_get_child_by_name(state->f1.reg.istr, "RESET");
-	state->f1.fld.istr.susp = cm_object_get_child_by_name(state->f1.reg.istr, "SUSP");
-	state->f1.fld.istr.wkup = cm_object_get_child_by_name(state->f1.reg.istr, "WKUP");
-	state->f1.fld.istr.err = cm_object_get_child_by_name(state->f1.reg.istr, "ERR");
-	state->f1.fld.istr.pmaovr = cm_object_get_child_by_name(state->f1.reg.istr, "PMAOVR");
-	state->f1.fld.istr.ctr = cm_object_get_child_by_name(state->f1.reg.istr, "CTR");
+	state->u.f1.fld.istr.ep_id = cm_object_get_child_by_name(state->u.f1.reg.istr, "EP_ID");
+	state->u.f1.fld.istr.dir = cm_object_get_child_by_name(state->u.f1.reg.istr, "DIR");
+	state->u.f1.fld.istr.esof = cm_object_get_child_by_name(state->u.f1.reg.istr, "ESOF");
+	state->u.f1.fld.istr.sof = cm_object_get_child_by_name(state->u.f1.reg.istr, "SOF");
+	state->u.f1.fld.istr.reset = cm_object_get_child_by_name(state->u.f1.reg.istr, "RESET");
+	state->u.f1.fld.istr.susp = cm_object_get_child_by_name(state->u.f1.reg.istr, "SUSP");
+	state->u.f1.fld.istr.wkup = cm_object_get_child_by_name(state->u.f1.reg.istr, "WKUP");
+	state->u.f1.fld.istr.err = cm_object_get_child_by_name(state->u.f1.reg.istr, "ERR");
+	state->u.f1.fld.istr.pmaovr = cm_object_get_child_by_name(state->u.f1.reg.istr, "PMAOVR");
+	state->u.f1.fld.istr.ctr = cm_object_get_child_by_name(state->u.f1.reg.istr, "CTR");
 
 	// FNR bitfields.
-	state->f1.fld.fnr.fn = cm_object_get_child_by_name(state->f1.reg.fnr, "FN");
-	state->f1.fld.fnr.lsof = cm_object_get_child_by_name(state->f1.reg.fnr, "LSOF");
-	state->f1.fld.fnr.lck = cm_object_get_child_by_name(state->f1.reg.fnr, "LCK");
-	state->f1.fld.fnr.rxdm = cm_object_get_child_by_name(state->f1.reg.fnr, "RXDM");
-	state->f1.fld.fnr.rxdp = cm_object_get_child_by_name(state->f1.reg.fnr, "RXDP");
+	state->u.f1.fld.fnr.fn = cm_object_get_child_by_name(state->u.f1.reg.fnr, "FN");
+	state->u.f1.fld.fnr.lsof = cm_object_get_child_by_name(state->u.f1.reg.fnr, "LSOF");
+	state->u.f1.fld.fnr.lck = cm_object_get_child_by_name(state->u.f1.reg.fnr, "LCK");
+	state->u.f1.fld.fnr.rxdm = cm_object_get_child_by_name(state->u.f1.reg.fnr, "RXDM");
+	state->u.f1.fld.fnr.rxdp = cm_object_get_child_by_name(state->u.f1.reg.fnr, "RXDP");
 
 	// DADDR bitfields.
-	state->f1.fld.daddr.add = cm_object_get_child_by_name(state->f1.reg.daddr, "ADD");
-	state->f1.fld.daddr.ef = cm_object_get_child_by_name(state->f1.reg.daddr, "EF");
+	state->u.f1.fld.daddr.add = cm_object_get_child_by_name(state->u.f1.reg.daddr, "ADD");
+	state->u.f1.fld.daddr.ef = cm_object_get_child_by_name(state->u.f1.reg.daddr, "EF");
 
 	// BTABLE bitfields.
-	state->f1.fld.btable.btable = cm_object_get_child_by_name(state->f1.reg.btable, "BTABLE");
+	state->u.f1.fld.btable.btable = cm_object_get_child_by_name(state->u.f1.reg.btable, "BTABLE");
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

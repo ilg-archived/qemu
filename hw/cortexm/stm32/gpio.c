@@ -54,392 +54,392 @@ static void stm32f0x1_gpio_create_objects(Object *obj, JSON_Object *svd,
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers.
-    state->f0.reg.moder = cm_object_get_child_by_name(obj, "MODER");
-    state->f0.reg.otyper = cm_object_get_child_by_name(obj, "OTYPER");
-    state->f0.reg.ospeedr = cm_object_get_child_by_name(obj, "OSPEEDR");
-    state->f0.reg.pupdr = cm_object_get_child_by_name(obj, "PUPDR");
-    state->f0.reg.idr = cm_object_get_child_by_name(obj, "IDR");
-    state->f0.reg.odr = cm_object_get_child_by_name(obj, "ODR");
-    state->f0.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
-    state->f0.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
-    state->f0.reg.afrl = cm_object_get_child_by_name(obj, "AFRL");
-    state->f0.reg.afrh = cm_object_get_child_by_name(obj, "AFRH");
-    state->f0.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+    state->u.f0.reg.moder = cm_object_get_child_by_name(obj, "MODER");
+    state->u.f0.reg.otyper = cm_object_get_child_by_name(obj, "OTYPER");
+    state->u.f0.reg.ospeedr = cm_object_get_child_by_name(obj, "OSPEEDR");
+    state->u.f0.reg.pupdr = cm_object_get_child_by_name(obj, "PUPDR");
+    state->u.f0.reg.idr = cm_object_get_child_by_name(obj, "IDR");
+    state->u.f0.reg.odr = cm_object_get_child_by_name(obj, "ODR");
+    state->u.f0.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
+    state->u.f0.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
+    state->u.f0.reg.afrl = cm_object_get_child_by_name(obj, "AFRL");
+    state->u.f0.reg.afrh = cm_object_get_child_by_name(obj, "AFRH");
+    state->u.f0.reg.brr = cm_object_get_child_by_name(obj, "BRR");
 
     // MODER bitfields.
-    state->f0.fld.moder.moder0 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER0");
-    state->f0.fld.moder.moder1 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER1");
-    state->f0.fld.moder.moder2 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER2");
-    state->f0.fld.moder.moder3 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER3");
-    state->f0.fld.moder.moder4 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER4");
-    state->f0.fld.moder.moder5 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER5");
-    state->f0.fld.moder.moder6 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER6");
-    state->f0.fld.moder.moder7 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER7");
-    state->f0.fld.moder.moder8 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER8");
-    state->f0.fld.moder.moder9 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER9");
-    state->f0.fld.moder.moder10 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER10");
-    state->f0.fld.moder.moder11 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER11");
-    state->f0.fld.moder.moder12 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER12");
-    state->f0.fld.moder.moder13 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER13");
-    state->f0.fld.moder.moder14 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER14");
-    state->f0.fld.moder.moder15 = cm_object_get_child_by_name(
-            state->f0.reg.moder, "MODER15");
+    state->u.f0.fld.moder.moder0 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER0");
+    state->u.f0.fld.moder.moder1 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER1");
+    state->u.f0.fld.moder.moder2 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER2");
+    state->u.f0.fld.moder.moder3 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER3");
+    state->u.f0.fld.moder.moder4 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER4");
+    state->u.f0.fld.moder.moder5 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER5");
+    state->u.f0.fld.moder.moder6 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER6");
+    state->u.f0.fld.moder.moder7 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER7");
+    state->u.f0.fld.moder.moder8 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER8");
+    state->u.f0.fld.moder.moder9 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER9");
+    state->u.f0.fld.moder.moder10 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER10");
+    state->u.f0.fld.moder.moder11 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER11");
+    state->u.f0.fld.moder.moder12 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER12");
+    state->u.f0.fld.moder.moder13 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER13");
+    state->u.f0.fld.moder.moder14 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER14");
+    state->u.f0.fld.moder.moder15 = cm_object_get_child_by_name(
+            state->u.f0.reg.moder, "MODER15");
 
     // OTYPER bitfields.
-    state->f0.fld.otyper.ot0 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT0");
-    state->f0.fld.otyper.ot1 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT1");
-    state->f0.fld.otyper.ot2 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT2");
-    state->f0.fld.otyper.ot3 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT3");
-    state->f0.fld.otyper.ot4 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT4");
-    state->f0.fld.otyper.ot5 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT5");
-    state->f0.fld.otyper.ot6 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT6");
-    state->f0.fld.otyper.ot7 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT7");
-    state->f0.fld.otyper.ot8 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT8");
-    state->f0.fld.otyper.ot9 = cm_object_get_child_by_name(state->f0.reg.otyper,
-            "OT9");
-    state->f0.fld.otyper.ot10 = cm_object_get_child_by_name(
-            state->f0.reg.otyper, "OT10");
-    state->f0.fld.otyper.ot11 = cm_object_get_child_by_name(
-            state->f0.reg.otyper, "OT11");
-    state->f0.fld.otyper.ot12 = cm_object_get_child_by_name(
-            state->f0.reg.otyper, "OT12");
-    state->f0.fld.otyper.ot13 = cm_object_get_child_by_name(
-            state->f0.reg.otyper, "OT13");
-    state->f0.fld.otyper.ot14 = cm_object_get_child_by_name(
-            state->f0.reg.otyper, "OT14");
-    state->f0.fld.otyper.ot15 = cm_object_get_child_by_name(
-            state->f0.reg.otyper, "OT15");
+    state->u.f0.fld.otyper.ot0 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT0");
+    state->u.f0.fld.otyper.ot1 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT1");
+    state->u.f0.fld.otyper.ot2 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT2");
+    state->u.f0.fld.otyper.ot3 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT3");
+    state->u.f0.fld.otyper.ot4 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT4");
+    state->u.f0.fld.otyper.ot5 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT5");
+    state->u.f0.fld.otyper.ot6 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT6");
+    state->u.f0.fld.otyper.ot7 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT7");
+    state->u.f0.fld.otyper.ot8 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT8");
+    state->u.f0.fld.otyper.ot9 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT9");
+    state->u.f0.fld.otyper.ot10 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT10");
+    state->u.f0.fld.otyper.ot11 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT11");
+    state->u.f0.fld.otyper.ot12 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT12");
+    state->u.f0.fld.otyper.ot13 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT13");
+    state->u.f0.fld.otyper.ot14 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT14");
+    state->u.f0.fld.otyper.ot15 = cm_object_get_child_by_name(
+            state->u.f0.reg.otyper, "OT15");
 
     // OSPEEDR bitfields.
-    state->f0.fld.ospeedr.ospeedr0 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR0");
-    state->f0.fld.ospeedr.ospeedr1 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR1");
-    state->f0.fld.ospeedr.ospeedr2 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR2");
-    state->f0.fld.ospeedr.ospeedr3 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR3");
-    state->f0.fld.ospeedr.ospeedr4 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR4");
-    state->f0.fld.ospeedr.ospeedr5 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR5");
-    state->f0.fld.ospeedr.ospeedr6 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR6");
-    state->f0.fld.ospeedr.ospeedr7 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR7");
-    state->f0.fld.ospeedr.ospeedr8 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR8");
-    state->f0.fld.ospeedr.ospeedr9 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR9");
-    state->f0.fld.ospeedr.ospeedr10 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR10");
-    state->f0.fld.ospeedr.ospeedr11 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR11");
-    state->f0.fld.ospeedr.ospeedr12 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR12");
-    state->f0.fld.ospeedr.ospeedr13 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR13");
-    state->f0.fld.ospeedr.ospeedr14 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR14");
-    state->f0.fld.ospeedr.ospeedr15 = cm_object_get_child_by_name(
-            state->f0.reg.ospeedr, "OSPEEDR15");
+    state->u.f0.fld.ospeedr.ospeedr0 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR0");
+    state->u.f0.fld.ospeedr.ospeedr1 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR1");
+    state->u.f0.fld.ospeedr.ospeedr2 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR2");
+    state->u.f0.fld.ospeedr.ospeedr3 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR3");
+    state->u.f0.fld.ospeedr.ospeedr4 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR4");
+    state->u.f0.fld.ospeedr.ospeedr5 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR5");
+    state->u.f0.fld.ospeedr.ospeedr6 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR6");
+    state->u.f0.fld.ospeedr.ospeedr7 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR7");
+    state->u.f0.fld.ospeedr.ospeedr8 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR8");
+    state->u.f0.fld.ospeedr.ospeedr9 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR9");
+    state->u.f0.fld.ospeedr.ospeedr10 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR10");
+    state->u.f0.fld.ospeedr.ospeedr11 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR11");
+    state->u.f0.fld.ospeedr.ospeedr12 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR12");
+    state->u.f0.fld.ospeedr.ospeedr13 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR13");
+    state->u.f0.fld.ospeedr.ospeedr14 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR14");
+    state->u.f0.fld.ospeedr.ospeedr15 = cm_object_get_child_by_name(
+            state->u.f0.reg.ospeedr, "OSPEEDR15");
 
     // PUPDR bitfields.
-    state->f0.fld.pupdr.pupdr0 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR0");
-    state->f0.fld.pupdr.pupdr1 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR1");
-    state->f0.fld.pupdr.pupdr2 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR2");
-    state->f0.fld.pupdr.pupdr3 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR3");
-    state->f0.fld.pupdr.pupdr4 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR4");
-    state->f0.fld.pupdr.pupdr5 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR5");
-    state->f0.fld.pupdr.pupdr6 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR6");
-    state->f0.fld.pupdr.pupdr7 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR7");
-    state->f0.fld.pupdr.pupdr8 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR8");
-    state->f0.fld.pupdr.pupdr9 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR9");
-    state->f0.fld.pupdr.pupdr10 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR10");
-    state->f0.fld.pupdr.pupdr11 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR11");
-    state->f0.fld.pupdr.pupdr12 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR12");
-    state->f0.fld.pupdr.pupdr13 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR13");
-    state->f0.fld.pupdr.pupdr14 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR14");
-    state->f0.fld.pupdr.pupdr15 = cm_object_get_child_by_name(
-            state->f0.reg.pupdr, "PUPDR15");
+    state->u.f0.fld.pupdr.pupdr0 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR0");
+    state->u.f0.fld.pupdr.pupdr1 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR1");
+    state->u.f0.fld.pupdr.pupdr2 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR2");
+    state->u.f0.fld.pupdr.pupdr3 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR3");
+    state->u.f0.fld.pupdr.pupdr4 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR4");
+    state->u.f0.fld.pupdr.pupdr5 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR5");
+    state->u.f0.fld.pupdr.pupdr6 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR6");
+    state->u.f0.fld.pupdr.pupdr7 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR7");
+    state->u.f0.fld.pupdr.pupdr8 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR8");
+    state->u.f0.fld.pupdr.pupdr9 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR9");
+    state->u.f0.fld.pupdr.pupdr10 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR10");
+    state->u.f0.fld.pupdr.pupdr11 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR11");
+    state->u.f0.fld.pupdr.pupdr12 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR12");
+    state->u.f0.fld.pupdr.pupdr13 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR13");
+    state->u.f0.fld.pupdr.pupdr14 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR14");
+    state->u.f0.fld.pupdr.pupdr15 = cm_object_get_child_by_name(
+            state->u.f0.reg.pupdr, "PUPDR15");
 
     // IDR bitfields.
-    state->f0.fld.idr.idr0 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr0 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR0");
-    state->f0.fld.idr.idr1 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr1 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR1");
-    state->f0.fld.idr.idr2 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr2 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR2");
-    state->f0.fld.idr.idr3 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr3 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR3");
-    state->f0.fld.idr.idr4 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr4 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR4");
-    state->f0.fld.idr.idr5 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr5 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR5");
-    state->f0.fld.idr.idr6 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr6 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR6");
-    state->f0.fld.idr.idr7 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr7 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR7");
-    state->f0.fld.idr.idr8 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr8 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR8");
-    state->f0.fld.idr.idr9 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr9 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR9");
-    state->f0.fld.idr.idr10 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr10 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR10");
-    state->f0.fld.idr.idr11 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr11 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR11");
-    state->f0.fld.idr.idr12 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr12 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR12");
-    state->f0.fld.idr.idr13 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr13 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR13");
-    state->f0.fld.idr.idr14 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr14 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR14");
-    state->f0.fld.idr.idr15 = cm_object_get_child_by_name(state->f0.reg.idr,
+    state->u.f0.fld.idr.idr15 = cm_object_get_child_by_name(state->u.f0.reg.idr,
             "IDR15");
 
     // ODR bitfields.
-    state->f0.fld.odr.odr0 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr0 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR0");
-    state->f0.fld.odr.odr1 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr1 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR1");
-    state->f0.fld.odr.odr2 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr2 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR2");
-    state->f0.fld.odr.odr3 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr3 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR3");
-    state->f0.fld.odr.odr4 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr4 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR4");
-    state->f0.fld.odr.odr5 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr5 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR5");
-    state->f0.fld.odr.odr6 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr6 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR6");
-    state->f0.fld.odr.odr7 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr7 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR7");
-    state->f0.fld.odr.odr8 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr8 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR8");
-    state->f0.fld.odr.odr9 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr9 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR9");
-    state->f0.fld.odr.odr10 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr10 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR10");
-    state->f0.fld.odr.odr11 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr11 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR11");
-    state->f0.fld.odr.odr12 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr12 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR12");
-    state->f0.fld.odr.odr13 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr13 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR13");
-    state->f0.fld.odr.odr14 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr14 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR14");
-    state->f0.fld.odr.odr15 = cm_object_get_child_by_name(state->f0.reg.odr,
+    state->u.f0.fld.odr.odr15 = cm_object_get_child_by_name(state->u.f0.reg.odr,
             "ODR15");
 
     // BSRR bitfields.
-    state->f0.fld.bsrr.bs0 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs0 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS0");
-    state->f0.fld.bsrr.bs1 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs1 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS1");
-    state->f0.fld.bsrr.bs2 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs2 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS2");
-    state->f0.fld.bsrr.bs3 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs3 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS3");
-    state->f0.fld.bsrr.bs4 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs4 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS4");
-    state->f0.fld.bsrr.bs5 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs5 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS5");
-    state->f0.fld.bsrr.bs6 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs6 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS6");
-    state->f0.fld.bsrr.bs7 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs7 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS7");
-    state->f0.fld.bsrr.bs8 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs8 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS8");
-    state->f0.fld.bsrr.bs9 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs9 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BS9");
-    state->f0.fld.bsrr.bs10 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BS10");
-    state->f0.fld.bsrr.bs11 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BS11");
-    state->f0.fld.bsrr.bs12 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BS12");
-    state->f0.fld.bsrr.bs13 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BS13");
-    state->f0.fld.bsrr.bs14 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BS14");
-    state->f0.fld.bsrr.bs15 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BS15");
-    state->f0.fld.bsrr.br0 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.bs10 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BS10");
+    state->u.f0.fld.bsrr.bs11 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BS11");
+    state->u.f0.fld.bsrr.bs12 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BS12");
+    state->u.f0.fld.bsrr.bs13 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BS13");
+    state->u.f0.fld.bsrr.bs14 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BS14");
+    state->u.f0.fld.bsrr.bs15 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BS15");
+    state->u.f0.fld.bsrr.br0 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR0");
-    state->f0.fld.bsrr.br1 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br1 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR1");
-    state->f0.fld.bsrr.br2 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br2 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR2");
-    state->f0.fld.bsrr.br3 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br3 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR3");
-    state->f0.fld.bsrr.br4 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br4 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR4");
-    state->f0.fld.bsrr.br5 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br5 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR5");
-    state->f0.fld.bsrr.br6 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br6 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR6");
-    state->f0.fld.bsrr.br7 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br7 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR7");
-    state->f0.fld.bsrr.br8 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br8 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR8");
-    state->f0.fld.bsrr.br9 = cm_object_get_child_by_name(state->f0.reg.bsrr,
+    state->u.f0.fld.bsrr.br9 = cm_object_get_child_by_name(state->u.f0.reg.bsrr,
             "BR9");
-    state->f0.fld.bsrr.br10 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BR10");
-    state->f0.fld.bsrr.br11 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BR11");
-    state->f0.fld.bsrr.br12 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BR12");
-    state->f0.fld.bsrr.br13 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BR13");
-    state->f0.fld.bsrr.br14 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BR14");
-    state->f0.fld.bsrr.br15 = cm_object_get_child_by_name(state->f0.reg.bsrr,
-            "BR15");
+    state->u.f0.fld.bsrr.br10 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BR10");
+    state->u.f0.fld.bsrr.br11 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BR11");
+    state->u.f0.fld.bsrr.br12 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BR12");
+    state->u.f0.fld.bsrr.br13 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BR13");
+    state->u.f0.fld.bsrr.br14 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BR14");
+    state->u.f0.fld.bsrr.br15 = cm_object_get_child_by_name(
+            state->u.f0.reg.bsrr, "BR15");
 
     // LCKR bitfields.
-    state->f0.fld.lckr.lck0 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK0");
-    state->f0.fld.lckr.lck1 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK1");
-    state->f0.fld.lckr.lck2 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK2");
-    state->f0.fld.lckr.lck3 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK3");
-    state->f0.fld.lckr.lck4 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK4");
-    state->f0.fld.lckr.lck5 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK5");
-    state->f0.fld.lckr.lck6 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK6");
-    state->f0.fld.lckr.lck7 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK7");
-    state->f0.fld.lckr.lck8 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK8");
-    state->f0.fld.lckr.lck9 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK9");
-    state->f0.fld.lckr.lck10 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK10");
-    state->f0.fld.lckr.lck11 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK11");
-    state->f0.fld.lckr.lck12 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK12");
-    state->f0.fld.lckr.lck13 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK13");
-    state->f0.fld.lckr.lck14 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK14");
-    state->f0.fld.lckr.lck15 = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCK15");
-    state->f0.fld.lckr.lckk = cm_object_get_child_by_name(state->f0.reg.lckr,
-            "LCKK");
+    state->u.f0.fld.lckr.lck0 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK0");
+    state->u.f0.fld.lckr.lck1 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK1");
+    state->u.f0.fld.lckr.lck2 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK2");
+    state->u.f0.fld.lckr.lck3 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK3");
+    state->u.f0.fld.lckr.lck4 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK4");
+    state->u.f0.fld.lckr.lck5 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK5");
+    state->u.f0.fld.lckr.lck6 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK6");
+    state->u.f0.fld.lckr.lck7 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK7");
+    state->u.f0.fld.lckr.lck8 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK8");
+    state->u.f0.fld.lckr.lck9 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK9");
+    state->u.f0.fld.lckr.lck10 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK10");
+    state->u.f0.fld.lckr.lck11 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK11");
+    state->u.f0.fld.lckr.lck12 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK12");
+    state->u.f0.fld.lckr.lck13 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK13");
+    state->u.f0.fld.lckr.lck14 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK14");
+    state->u.f0.fld.lckr.lck15 = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCK15");
+    state->u.f0.fld.lckr.lckk = cm_object_get_child_by_name(
+            state->u.f0.reg.lckr, "LCKK");
 
     // AFRL bitfields.
-    state->f0.fld.afrl.afrl0 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL0");
-    state->f0.fld.afrl.afrl1 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL1");
-    state->f0.fld.afrl.afrl2 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL2");
-    state->f0.fld.afrl.afrl3 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL3");
-    state->f0.fld.afrl.afrl4 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL4");
-    state->f0.fld.afrl.afrl5 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL5");
-    state->f0.fld.afrl.afrl6 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL6");
-    state->f0.fld.afrl.afrl7 = cm_object_get_child_by_name(state->f0.reg.afrl,
-            "AFRL7");
+    state->u.f0.fld.afrl.afrl0 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL0");
+    state->u.f0.fld.afrl.afrl1 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL1");
+    state->u.f0.fld.afrl.afrl2 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL2");
+    state->u.f0.fld.afrl.afrl3 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL3");
+    state->u.f0.fld.afrl.afrl4 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL4");
+    state->u.f0.fld.afrl.afrl5 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL5");
+    state->u.f0.fld.afrl.afrl6 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL6");
+    state->u.f0.fld.afrl.afrl7 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrl, "AFRL7");
 
     // AFRH bitfields.
-    state->f0.fld.afrh.afrh8 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH8");
-    state->f0.fld.afrh.afrh9 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH9");
-    state->f0.fld.afrh.afrh10 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH10");
-    state->f0.fld.afrh.afrh11 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH11");
-    state->f0.fld.afrh.afrh12 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH12");
-    state->f0.fld.afrh.afrh13 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH13");
-    state->f0.fld.afrh.afrh14 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH14");
-    state->f0.fld.afrh.afrh15 = cm_object_get_child_by_name(state->f0.reg.afrh,
-            "AFRH15");
+    state->u.f0.fld.afrh.afrh8 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH8");
+    state->u.f0.fld.afrh.afrh9 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH9");
+    state->u.f0.fld.afrh.afrh10 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH10");
+    state->u.f0.fld.afrh.afrh11 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH11");
+    state->u.f0.fld.afrh.afrh12 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH12");
+    state->u.f0.fld.afrh.afrh13 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH13");
+    state->u.f0.fld.afrh.afrh14 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH14");
+    state->u.f0.fld.afrh.afrh15 = cm_object_get_child_by_name(
+            state->u.f0.reg.afrh, "AFRH15");
 
     // BRR bitfields.
-    state->f0.fld.brr.br0 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br0 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR0");
-    state->f0.fld.brr.br1 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br1 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR1");
-    state->f0.fld.brr.br2 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br2 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR2");
-    state->f0.fld.brr.br3 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br3 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR3");
-    state->f0.fld.brr.br4 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br4 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR4");
-    state->f0.fld.brr.br5 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br5 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR5");
-    state->f0.fld.brr.br6 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br6 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR6");
-    state->f0.fld.brr.br7 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br7 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR7");
-    state->f0.fld.brr.br8 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br8 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR8");
-    state->f0.fld.brr.br9 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br9 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR9");
-    state->f0.fld.brr.br10 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br10 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR10");
-    state->f0.fld.brr.br11 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br11 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR11");
-    state->f0.fld.brr.br12 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br12 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR12");
-    state->f0.fld.brr.br13 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br13 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR13");
-    state->f0.fld.brr.br14 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br14 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR14");
-    state->f0.fld.brr.br15 = cm_object_get_child_by_name(state->f0.reg.brr,
+    state->u.f0.fld.brr.br15 = cm_object_get_child_by_name(state->u.f0.reg.brr,
             "BR15");
 }
 
@@ -457,285 +457,285 @@ static void stm32f103xx_gpio_create_objects(Object *obj, JSON_Object *svd,
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers.
-    state->f1.reg.crl = cm_object_get_child_by_name(obj, "CRL");
-    state->f1.reg.crh = cm_object_get_child_by_name(obj, "CRH");
-    state->f1.reg.idr = cm_object_get_child_by_name(obj, "IDR");
-    state->f1.reg.odr = cm_object_get_child_by_name(obj, "ODR");
-    state->f1.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
-    state->f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
-    state->f1.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
+    state->u.f1.reg.crl = cm_object_get_child_by_name(obj, "CRL");
+    state->u.f1.reg.crh = cm_object_get_child_by_name(obj, "CRH");
+    state->u.f1.reg.idr = cm_object_get_child_by_name(obj, "IDR");
+    state->u.f1.reg.odr = cm_object_get_child_by_name(obj, "ODR");
+    state->u.f1.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
+    state->u.f1.reg.brr = cm_object_get_child_by_name(obj, "BRR");
+    state->u.f1.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
 
     // CRL bitfields.
-    state->f1.fld.crl.mode0 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode0 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE0");
-    state->f1.fld.crl.cnf0 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf0 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF0");
-    state->f1.fld.crl.mode1 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode1 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE1");
-    state->f1.fld.crl.cnf1 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf1 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF1");
-    state->f1.fld.crl.mode2 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode2 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE2");
-    state->f1.fld.crl.cnf2 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf2 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF2");
-    state->f1.fld.crl.mode3 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode3 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE3");
-    state->f1.fld.crl.cnf3 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf3 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF3");
-    state->f1.fld.crl.mode4 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode4 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE4");
-    state->f1.fld.crl.cnf4 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf4 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF4");
-    state->f1.fld.crl.mode5 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode5 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE5");
-    state->f1.fld.crl.cnf5 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf5 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF5");
-    state->f1.fld.crl.mode6 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode6 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE6");
-    state->f1.fld.crl.cnf6 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf6 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF6");
-    state->f1.fld.crl.mode7 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.mode7 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "MODE7");
-    state->f1.fld.crl.cnf7 = cm_object_get_child_by_name(state->f1.reg.crl,
+    state->u.f1.fld.crl.cnf7 = cm_object_get_child_by_name(state->u.f1.reg.crl,
             "CNF7");
 
     // CRH bitfields.
-    state->f1.fld.crh.mode8 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode8 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "MODE8");
-    state->f1.fld.crh.cnf8 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.cnf8 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF8");
-    state->f1.fld.crh.mode9 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode9 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "MODE9");
-    state->f1.fld.crh.cnf9 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.cnf9 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF9");
-    state->f1.fld.crh.mode10 = cm_object_get_child_by_name(state->f1.reg.crh,
-            "MODE10");
-    state->f1.fld.crh.cnf10 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode10 = cm_object_get_child_by_name(
+            state->u.f1.reg.crh, "MODE10");
+    state->u.f1.fld.crh.cnf10 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF10");
-    state->f1.fld.crh.mode11 = cm_object_get_child_by_name(state->f1.reg.crh,
-            "MODE11");
-    state->f1.fld.crh.cnf11 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode11 = cm_object_get_child_by_name(
+            state->u.f1.reg.crh, "MODE11");
+    state->u.f1.fld.crh.cnf11 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF11");
-    state->f1.fld.crh.mode12 = cm_object_get_child_by_name(state->f1.reg.crh,
-            "MODE12");
-    state->f1.fld.crh.cnf12 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode12 = cm_object_get_child_by_name(
+            state->u.f1.reg.crh, "MODE12");
+    state->u.f1.fld.crh.cnf12 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF12");
-    state->f1.fld.crh.mode13 = cm_object_get_child_by_name(state->f1.reg.crh,
-            "MODE13");
-    state->f1.fld.crh.cnf13 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode13 = cm_object_get_child_by_name(
+            state->u.f1.reg.crh, "MODE13");
+    state->u.f1.fld.crh.cnf13 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF13");
-    state->f1.fld.crh.mode14 = cm_object_get_child_by_name(state->f1.reg.crh,
-            "MODE14");
-    state->f1.fld.crh.cnf14 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode14 = cm_object_get_child_by_name(
+            state->u.f1.reg.crh, "MODE14");
+    state->u.f1.fld.crh.cnf14 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF14");
-    state->f1.fld.crh.mode15 = cm_object_get_child_by_name(state->f1.reg.crh,
-            "MODE15");
-    state->f1.fld.crh.cnf15 = cm_object_get_child_by_name(state->f1.reg.crh,
+    state->u.f1.fld.crh.mode15 = cm_object_get_child_by_name(
+            state->u.f1.reg.crh, "MODE15");
+    state->u.f1.fld.crh.cnf15 = cm_object_get_child_by_name(state->u.f1.reg.crh,
             "CNF15");
 
     // IDR bitfields.
-    state->f1.fld.idr.idr0 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr0 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR0");
-    state->f1.fld.idr.idr1 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr1 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR1");
-    state->f1.fld.idr.idr2 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr2 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR2");
-    state->f1.fld.idr.idr3 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr3 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR3");
-    state->f1.fld.idr.idr4 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr4 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR4");
-    state->f1.fld.idr.idr5 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr5 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR5");
-    state->f1.fld.idr.idr6 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr6 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR6");
-    state->f1.fld.idr.idr7 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr7 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR7");
-    state->f1.fld.idr.idr8 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr8 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR8");
-    state->f1.fld.idr.idr9 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr9 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR9");
-    state->f1.fld.idr.idr10 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr10 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR10");
-    state->f1.fld.idr.idr11 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr11 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR11");
-    state->f1.fld.idr.idr12 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr12 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR12");
-    state->f1.fld.idr.idr13 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr13 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR13");
-    state->f1.fld.idr.idr14 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr14 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR14");
-    state->f1.fld.idr.idr15 = cm_object_get_child_by_name(state->f1.reg.idr,
+    state->u.f1.fld.idr.idr15 = cm_object_get_child_by_name(state->u.f1.reg.idr,
             "IDR15");
 
     // ODR bitfields.
-    state->f1.fld.odr.odr0 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr0 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR0");
-    state->f1.fld.odr.odr1 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr1 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR1");
-    state->f1.fld.odr.odr2 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr2 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR2");
-    state->f1.fld.odr.odr3 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr3 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR3");
-    state->f1.fld.odr.odr4 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr4 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR4");
-    state->f1.fld.odr.odr5 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr5 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR5");
-    state->f1.fld.odr.odr6 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr6 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR6");
-    state->f1.fld.odr.odr7 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr7 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR7");
-    state->f1.fld.odr.odr8 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr8 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR8");
-    state->f1.fld.odr.odr9 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr9 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR9");
-    state->f1.fld.odr.odr10 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr10 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR10");
-    state->f1.fld.odr.odr11 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr11 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR11");
-    state->f1.fld.odr.odr12 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr12 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR12");
-    state->f1.fld.odr.odr13 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr13 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR13");
-    state->f1.fld.odr.odr14 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr14 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR14");
-    state->f1.fld.odr.odr15 = cm_object_get_child_by_name(state->f1.reg.odr,
+    state->u.f1.fld.odr.odr15 = cm_object_get_child_by_name(state->u.f1.reg.odr,
             "ODR15");
 
     // BSRR bitfields.
-    state->f1.fld.bsrr.bs0 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs0 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS0");
-    state->f1.fld.bsrr.bs1 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs1 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS1");
-    state->f1.fld.bsrr.bs2 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs2 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS2");
-    state->f1.fld.bsrr.bs3 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs3 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS3");
-    state->f1.fld.bsrr.bs4 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs4 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS4");
-    state->f1.fld.bsrr.bs5 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs5 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS5");
-    state->f1.fld.bsrr.bs6 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs6 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS6");
-    state->f1.fld.bsrr.bs7 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs7 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS7");
-    state->f1.fld.bsrr.bs8 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs8 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS8");
-    state->f1.fld.bsrr.bs9 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs9 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BS9");
-    state->f1.fld.bsrr.bs10 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BS10");
-    state->f1.fld.bsrr.bs11 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BS11");
-    state->f1.fld.bsrr.bs12 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BS12");
-    state->f1.fld.bsrr.bs13 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BS13");
-    state->f1.fld.bsrr.bs14 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BS14");
-    state->f1.fld.bsrr.bs15 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BS15");
-    state->f1.fld.bsrr.br0 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.bs10 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BS10");
+    state->u.f1.fld.bsrr.bs11 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BS11");
+    state->u.f1.fld.bsrr.bs12 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BS12");
+    state->u.f1.fld.bsrr.bs13 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BS13");
+    state->u.f1.fld.bsrr.bs14 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BS14");
+    state->u.f1.fld.bsrr.bs15 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BS15");
+    state->u.f1.fld.bsrr.br0 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR0");
-    state->f1.fld.bsrr.br1 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br1 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR1");
-    state->f1.fld.bsrr.br2 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br2 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR2");
-    state->f1.fld.bsrr.br3 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br3 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR3");
-    state->f1.fld.bsrr.br4 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br4 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR4");
-    state->f1.fld.bsrr.br5 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br5 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR5");
-    state->f1.fld.bsrr.br6 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br6 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR6");
-    state->f1.fld.bsrr.br7 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br7 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR7");
-    state->f1.fld.bsrr.br8 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br8 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR8");
-    state->f1.fld.bsrr.br9 = cm_object_get_child_by_name(state->f1.reg.bsrr,
+    state->u.f1.fld.bsrr.br9 = cm_object_get_child_by_name(state->u.f1.reg.bsrr,
             "BR9");
-    state->f1.fld.bsrr.br10 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BR10");
-    state->f1.fld.bsrr.br11 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BR11");
-    state->f1.fld.bsrr.br12 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BR12");
-    state->f1.fld.bsrr.br13 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BR13");
-    state->f1.fld.bsrr.br14 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BR14");
-    state->f1.fld.bsrr.br15 = cm_object_get_child_by_name(state->f1.reg.bsrr,
-            "BR15");
+    state->u.f1.fld.bsrr.br10 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BR10");
+    state->u.f1.fld.bsrr.br11 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BR11");
+    state->u.f1.fld.bsrr.br12 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BR12");
+    state->u.f1.fld.bsrr.br13 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BR13");
+    state->u.f1.fld.bsrr.br14 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BR14");
+    state->u.f1.fld.bsrr.br15 = cm_object_get_child_by_name(
+            state->u.f1.reg.bsrr, "BR15");
 
     // BRR bitfields.
-    state->f1.fld.brr.br0 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br0 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR0");
-    state->f1.fld.brr.br1 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br1 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR1");
-    state->f1.fld.brr.br2 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br2 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR2");
-    state->f1.fld.brr.br3 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br3 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR3");
-    state->f1.fld.brr.br4 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br4 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR4");
-    state->f1.fld.brr.br5 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br5 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR5");
-    state->f1.fld.brr.br6 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br6 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR6");
-    state->f1.fld.brr.br7 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br7 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR7");
-    state->f1.fld.brr.br8 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br8 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR8");
-    state->f1.fld.brr.br9 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br9 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR9");
-    state->f1.fld.brr.br10 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br10 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR10");
-    state->f1.fld.brr.br11 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br11 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR11");
-    state->f1.fld.brr.br12 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br12 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR12");
-    state->f1.fld.brr.br13 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br13 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR13");
-    state->f1.fld.brr.br14 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br14 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR14");
-    state->f1.fld.brr.br15 = cm_object_get_child_by_name(state->f1.reg.brr,
+    state->u.f1.fld.brr.br15 = cm_object_get_child_by_name(state->u.f1.reg.brr,
             "BR15");
 
     // LCKR bitfields.
-    state->f1.fld.lckr.lck0 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK0");
-    state->f1.fld.lckr.lck1 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK1");
-    state->f1.fld.lckr.lck2 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK2");
-    state->f1.fld.lckr.lck3 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK3");
-    state->f1.fld.lckr.lck4 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK4");
-    state->f1.fld.lckr.lck5 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK5");
-    state->f1.fld.lckr.lck6 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK6");
-    state->f1.fld.lckr.lck7 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK7");
-    state->f1.fld.lckr.lck8 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK8");
-    state->f1.fld.lckr.lck9 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK9");
-    state->f1.fld.lckr.lck10 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK10");
-    state->f1.fld.lckr.lck11 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK11");
-    state->f1.fld.lckr.lck12 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK12");
-    state->f1.fld.lckr.lck13 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK13");
-    state->f1.fld.lckr.lck14 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK14");
-    state->f1.fld.lckr.lck15 = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCK15");
-    state->f1.fld.lckr.lckk = cm_object_get_child_by_name(state->f1.reg.lckr,
-            "LCKK");
+    state->u.f1.fld.lckr.lck0 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK0");
+    state->u.f1.fld.lckr.lck1 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK1");
+    state->u.f1.fld.lckr.lck2 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK2");
+    state->u.f1.fld.lckr.lck3 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK3");
+    state->u.f1.fld.lckr.lck4 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK4");
+    state->u.f1.fld.lckr.lck5 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK5");
+    state->u.f1.fld.lckr.lck6 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK6");
+    state->u.f1.fld.lckr.lck7 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK7");
+    state->u.f1.fld.lckr.lck8 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK8");
+    state->u.f1.fld.lckr.lck9 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK9");
+    state->u.f1.fld.lckr.lck10 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK10");
+    state->u.f1.fld.lckr.lck11 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK11");
+    state->u.f1.fld.lckr.lck12 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK12");
+    state->u.f1.fld.lckr.lck13 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK13");
+    state->u.f1.fld.lckr.lck14 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK14");
+    state->u.f1.fld.lckr.lck15 = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCK15");
+    state->u.f1.fld.lckr.lckk = cm_object_get_child_by_name(
+            state->u.f1.reg.lckr, "LCKK");
 }
 
 // ----------------------------------------------------------------------------
@@ -751,358 +751,358 @@ static void stm32f40x_gpio_create_objects(Object *obj, JSON_Object *svd,
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers.
-    state->f4.reg.moder = cm_object_get_child_by_name(obj, "MODER");
-    state->f4.reg.otyper = cm_object_get_child_by_name(obj, "OTYPER");
-    state->f4.reg.ospeedr = cm_object_get_child_by_name(obj, "OSPEEDR");
-    state->f4.reg.pupdr = cm_object_get_child_by_name(obj, "PUPDR");
-    state->f4.reg.idr = cm_object_get_child_by_name(obj, "IDR");
-    state->f4.reg.odr = cm_object_get_child_by_name(obj, "ODR");
-    state->f4.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
-    state->f4.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
-    state->f4.reg.afrl = cm_object_get_child_by_name(obj, "AFRL");
-    state->f4.reg.afrh = cm_object_get_child_by_name(obj, "AFRH");
+    state->u.f4.reg.moder = cm_object_get_child_by_name(obj, "MODER");
+    state->u.f4.reg.otyper = cm_object_get_child_by_name(obj, "OTYPER");
+    state->u.f4.reg.ospeedr = cm_object_get_child_by_name(obj, "OSPEEDR");
+    state->u.f4.reg.pupdr = cm_object_get_child_by_name(obj, "PUPDR");
+    state->u.f4.reg.idr = cm_object_get_child_by_name(obj, "IDR");
+    state->u.f4.reg.odr = cm_object_get_child_by_name(obj, "ODR");
+    state->u.f4.reg.bsrr = cm_object_get_child_by_name(obj, "BSRR");
+    state->u.f4.reg.lckr = cm_object_get_child_by_name(obj, "LCKR");
+    state->u.f4.reg.afrl = cm_object_get_child_by_name(obj, "AFRL");
+    state->u.f4.reg.afrh = cm_object_get_child_by_name(obj, "AFRH");
 
     // MODER bitfields.
-    state->f4.fld.moder.moder0 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER0");
-    state->f4.fld.moder.moder1 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER1");
-    state->f4.fld.moder.moder2 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER2");
-    state->f4.fld.moder.moder3 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER3");
-    state->f4.fld.moder.moder4 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER4");
-    state->f4.fld.moder.moder5 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER5");
-    state->f4.fld.moder.moder6 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER6");
-    state->f4.fld.moder.moder7 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER7");
-    state->f4.fld.moder.moder8 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER8");
-    state->f4.fld.moder.moder9 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER9");
-    state->f4.fld.moder.moder10 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER10");
-    state->f4.fld.moder.moder11 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER11");
-    state->f4.fld.moder.moder12 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER12");
-    state->f4.fld.moder.moder13 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER13");
-    state->f4.fld.moder.moder14 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER14");
-    state->f4.fld.moder.moder15 = cm_object_get_child_by_name(
-            state->f4.reg.moder, "MODER15");
+    state->u.f4.fld.moder.moder0 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER0");
+    state->u.f4.fld.moder.moder1 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER1");
+    state->u.f4.fld.moder.moder2 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER2");
+    state->u.f4.fld.moder.moder3 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER3");
+    state->u.f4.fld.moder.moder4 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER4");
+    state->u.f4.fld.moder.moder5 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER5");
+    state->u.f4.fld.moder.moder6 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER6");
+    state->u.f4.fld.moder.moder7 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER7");
+    state->u.f4.fld.moder.moder8 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER8");
+    state->u.f4.fld.moder.moder9 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER9");
+    state->u.f4.fld.moder.moder10 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER10");
+    state->u.f4.fld.moder.moder11 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER11");
+    state->u.f4.fld.moder.moder12 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER12");
+    state->u.f4.fld.moder.moder13 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER13");
+    state->u.f4.fld.moder.moder14 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER14");
+    state->u.f4.fld.moder.moder15 = cm_object_get_child_by_name(
+            state->u.f4.reg.moder, "MODER15");
 
     // OTYPER bitfields.
-    state->f4.fld.otyper.ot0 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT0");
-    state->f4.fld.otyper.ot1 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT1");
-    state->f4.fld.otyper.ot2 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT2");
-    state->f4.fld.otyper.ot3 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT3");
-    state->f4.fld.otyper.ot4 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT4");
-    state->f4.fld.otyper.ot5 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT5");
-    state->f4.fld.otyper.ot6 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT6");
-    state->f4.fld.otyper.ot7 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT7");
-    state->f4.fld.otyper.ot8 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT8");
-    state->f4.fld.otyper.ot9 = cm_object_get_child_by_name(state->f4.reg.otyper,
-            "OT9");
-    state->f4.fld.otyper.ot10 = cm_object_get_child_by_name(
-            state->f4.reg.otyper, "OT10");
-    state->f4.fld.otyper.ot11 = cm_object_get_child_by_name(
-            state->f4.reg.otyper, "OT11");
-    state->f4.fld.otyper.ot12 = cm_object_get_child_by_name(
-            state->f4.reg.otyper, "OT12");
-    state->f4.fld.otyper.ot13 = cm_object_get_child_by_name(
-            state->f4.reg.otyper, "OT13");
-    state->f4.fld.otyper.ot14 = cm_object_get_child_by_name(
-            state->f4.reg.otyper, "OT14");
-    state->f4.fld.otyper.ot15 = cm_object_get_child_by_name(
-            state->f4.reg.otyper, "OT15");
+    state->u.f4.fld.otyper.ot0 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT0");
+    state->u.f4.fld.otyper.ot1 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT1");
+    state->u.f4.fld.otyper.ot2 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT2");
+    state->u.f4.fld.otyper.ot3 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT3");
+    state->u.f4.fld.otyper.ot4 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT4");
+    state->u.f4.fld.otyper.ot5 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT5");
+    state->u.f4.fld.otyper.ot6 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT6");
+    state->u.f4.fld.otyper.ot7 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT7");
+    state->u.f4.fld.otyper.ot8 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT8");
+    state->u.f4.fld.otyper.ot9 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT9");
+    state->u.f4.fld.otyper.ot10 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT10");
+    state->u.f4.fld.otyper.ot11 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT11");
+    state->u.f4.fld.otyper.ot12 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT12");
+    state->u.f4.fld.otyper.ot13 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT13");
+    state->u.f4.fld.otyper.ot14 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT14");
+    state->u.f4.fld.otyper.ot15 = cm_object_get_child_by_name(
+            state->u.f4.reg.otyper, "OT15");
 
     // OSPEEDR bitfields.
-    state->f4.fld.ospeedr.ospeedr0 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR0");
-    state->f4.fld.ospeedr.ospeedr1 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR1");
-    state->f4.fld.ospeedr.ospeedr2 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR2");
-    state->f4.fld.ospeedr.ospeedr3 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR3");
-    state->f4.fld.ospeedr.ospeedr4 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR4");
-    state->f4.fld.ospeedr.ospeedr5 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR5");
-    state->f4.fld.ospeedr.ospeedr6 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR6");
-    state->f4.fld.ospeedr.ospeedr7 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR7");
-    state->f4.fld.ospeedr.ospeedr8 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR8");
-    state->f4.fld.ospeedr.ospeedr9 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR9");
-    state->f4.fld.ospeedr.ospeedr10 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR10");
-    state->f4.fld.ospeedr.ospeedr11 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR11");
-    state->f4.fld.ospeedr.ospeedr12 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR12");
-    state->f4.fld.ospeedr.ospeedr13 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR13");
-    state->f4.fld.ospeedr.ospeedr14 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR14");
-    state->f4.fld.ospeedr.ospeedr15 = cm_object_get_child_by_name(
-            state->f4.reg.ospeedr, "OSPEEDR15");
+    state->u.f4.fld.ospeedr.ospeedr0 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR0");
+    state->u.f4.fld.ospeedr.ospeedr1 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR1");
+    state->u.f4.fld.ospeedr.ospeedr2 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR2");
+    state->u.f4.fld.ospeedr.ospeedr3 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR3");
+    state->u.f4.fld.ospeedr.ospeedr4 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR4");
+    state->u.f4.fld.ospeedr.ospeedr5 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR5");
+    state->u.f4.fld.ospeedr.ospeedr6 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR6");
+    state->u.f4.fld.ospeedr.ospeedr7 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR7");
+    state->u.f4.fld.ospeedr.ospeedr8 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR8");
+    state->u.f4.fld.ospeedr.ospeedr9 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR9");
+    state->u.f4.fld.ospeedr.ospeedr10 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR10");
+    state->u.f4.fld.ospeedr.ospeedr11 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR11");
+    state->u.f4.fld.ospeedr.ospeedr12 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR12");
+    state->u.f4.fld.ospeedr.ospeedr13 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR13");
+    state->u.f4.fld.ospeedr.ospeedr14 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR14");
+    state->u.f4.fld.ospeedr.ospeedr15 = cm_object_get_child_by_name(
+            state->u.f4.reg.ospeedr, "OSPEEDR15");
 
     // PUPDR bitfields.
-    state->f4.fld.pupdr.pupdr0 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR0");
-    state->f4.fld.pupdr.pupdr1 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR1");
-    state->f4.fld.pupdr.pupdr2 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR2");
-    state->f4.fld.pupdr.pupdr3 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR3");
-    state->f4.fld.pupdr.pupdr4 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR4");
-    state->f4.fld.pupdr.pupdr5 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR5");
-    state->f4.fld.pupdr.pupdr6 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR6");
-    state->f4.fld.pupdr.pupdr7 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR7");
-    state->f4.fld.pupdr.pupdr8 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR8");
-    state->f4.fld.pupdr.pupdr9 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR9");
-    state->f4.fld.pupdr.pupdr10 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR10");
-    state->f4.fld.pupdr.pupdr11 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR11");
-    state->f4.fld.pupdr.pupdr12 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR12");
-    state->f4.fld.pupdr.pupdr13 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR13");
-    state->f4.fld.pupdr.pupdr14 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR14");
-    state->f4.fld.pupdr.pupdr15 = cm_object_get_child_by_name(
-            state->f4.reg.pupdr, "PUPDR15");
+    state->u.f4.fld.pupdr.pupdr0 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR0");
+    state->u.f4.fld.pupdr.pupdr1 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR1");
+    state->u.f4.fld.pupdr.pupdr2 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR2");
+    state->u.f4.fld.pupdr.pupdr3 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR3");
+    state->u.f4.fld.pupdr.pupdr4 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR4");
+    state->u.f4.fld.pupdr.pupdr5 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR5");
+    state->u.f4.fld.pupdr.pupdr6 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR6");
+    state->u.f4.fld.pupdr.pupdr7 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR7");
+    state->u.f4.fld.pupdr.pupdr8 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR8");
+    state->u.f4.fld.pupdr.pupdr9 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR9");
+    state->u.f4.fld.pupdr.pupdr10 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR10");
+    state->u.f4.fld.pupdr.pupdr11 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR11");
+    state->u.f4.fld.pupdr.pupdr12 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR12");
+    state->u.f4.fld.pupdr.pupdr13 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR13");
+    state->u.f4.fld.pupdr.pupdr14 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR14");
+    state->u.f4.fld.pupdr.pupdr15 = cm_object_get_child_by_name(
+            state->u.f4.reg.pupdr, "PUPDR15");
 
     // IDR bitfields.
-    state->f4.fld.idr.idr0 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr0 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR0");
-    state->f4.fld.idr.idr1 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr1 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR1");
-    state->f4.fld.idr.idr2 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr2 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR2");
-    state->f4.fld.idr.idr3 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr3 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR3");
-    state->f4.fld.idr.idr4 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr4 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR4");
-    state->f4.fld.idr.idr5 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr5 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR5");
-    state->f4.fld.idr.idr6 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr6 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR6");
-    state->f4.fld.idr.idr7 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr7 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR7");
-    state->f4.fld.idr.idr8 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr8 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR8");
-    state->f4.fld.idr.idr9 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr9 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR9");
-    state->f4.fld.idr.idr10 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr10 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR10");
-    state->f4.fld.idr.idr11 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr11 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR11");
-    state->f4.fld.idr.idr12 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr12 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR12");
-    state->f4.fld.idr.idr13 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr13 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR13");
-    state->f4.fld.idr.idr14 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr14 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR14");
-    state->f4.fld.idr.idr15 = cm_object_get_child_by_name(state->f4.reg.idr,
+    state->u.f4.fld.idr.idr15 = cm_object_get_child_by_name(state->u.f4.reg.idr,
             "IDR15");
 
     // ODR bitfields.
-    state->f4.fld.odr.odr0 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr0 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR0");
-    state->f4.fld.odr.odr1 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr1 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR1");
-    state->f4.fld.odr.odr2 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr2 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR2");
-    state->f4.fld.odr.odr3 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr3 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR3");
-    state->f4.fld.odr.odr4 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr4 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR4");
-    state->f4.fld.odr.odr5 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr5 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR5");
-    state->f4.fld.odr.odr6 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr6 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR6");
-    state->f4.fld.odr.odr7 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr7 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR7");
-    state->f4.fld.odr.odr8 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr8 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR8");
-    state->f4.fld.odr.odr9 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr9 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR9");
-    state->f4.fld.odr.odr10 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr10 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR10");
-    state->f4.fld.odr.odr11 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr11 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR11");
-    state->f4.fld.odr.odr12 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr12 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR12");
-    state->f4.fld.odr.odr13 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr13 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR13");
-    state->f4.fld.odr.odr14 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr14 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR14");
-    state->f4.fld.odr.odr15 = cm_object_get_child_by_name(state->f4.reg.odr,
+    state->u.f4.fld.odr.odr15 = cm_object_get_child_by_name(state->u.f4.reg.odr,
             "ODR15");
 
     // BSRR bitfields.
-    state->f4.fld.bsrr.bs0 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs0 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS0");
-    state->f4.fld.bsrr.bs1 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs1 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS1");
-    state->f4.fld.bsrr.bs2 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs2 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS2");
-    state->f4.fld.bsrr.bs3 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs3 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS3");
-    state->f4.fld.bsrr.bs4 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs4 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS4");
-    state->f4.fld.bsrr.bs5 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs5 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS5");
-    state->f4.fld.bsrr.bs6 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs6 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS6");
-    state->f4.fld.bsrr.bs7 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs7 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS7");
-    state->f4.fld.bsrr.bs8 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs8 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS8");
-    state->f4.fld.bsrr.bs9 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs9 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BS9");
-    state->f4.fld.bsrr.bs10 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BS10");
-    state->f4.fld.bsrr.bs11 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BS11");
-    state->f4.fld.bsrr.bs12 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BS12");
-    state->f4.fld.bsrr.bs13 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BS13");
-    state->f4.fld.bsrr.bs14 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BS14");
-    state->f4.fld.bsrr.bs15 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BS15");
-    state->f4.fld.bsrr.br0 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.bs10 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BS10");
+    state->u.f4.fld.bsrr.bs11 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BS11");
+    state->u.f4.fld.bsrr.bs12 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BS12");
+    state->u.f4.fld.bsrr.bs13 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BS13");
+    state->u.f4.fld.bsrr.bs14 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BS14");
+    state->u.f4.fld.bsrr.bs15 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BS15");
+    state->u.f4.fld.bsrr.br0 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR0");
-    state->f4.fld.bsrr.br1 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br1 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR1");
-    state->f4.fld.bsrr.br2 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br2 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR2");
-    state->f4.fld.bsrr.br3 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br3 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR3");
-    state->f4.fld.bsrr.br4 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br4 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR4");
-    state->f4.fld.bsrr.br5 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br5 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR5");
-    state->f4.fld.bsrr.br6 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br6 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR6");
-    state->f4.fld.bsrr.br7 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br7 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR7");
-    state->f4.fld.bsrr.br8 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br8 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR8");
-    state->f4.fld.bsrr.br9 = cm_object_get_child_by_name(state->f4.reg.bsrr,
+    state->u.f4.fld.bsrr.br9 = cm_object_get_child_by_name(state->u.f4.reg.bsrr,
             "BR9");
-    state->f4.fld.bsrr.br10 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BR10");
-    state->f4.fld.bsrr.br11 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BR11");
-    state->f4.fld.bsrr.br12 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BR12");
-    state->f4.fld.bsrr.br13 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BR13");
-    state->f4.fld.bsrr.br14 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BR14");
-    state->f4.fld.bsrr.br15 = cm_object_get_child_by_name(state->f4.reg.bsrr,
-            "BR15");
+    state->u.f4.fld.bsrr.br10 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BR10");
+    state->u.f4.fld.bsrr.br11 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BR11");
+    state->u.f4.fld.bsrr.br12 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BR12");
+    state->u.f4.fld.bsrr.br13 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BR13");
+    state->u.f4.fld.bsrr.br14 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BR14");
+    state->u.f4.fld.bsrr.br15 = cm_object_get_child_by_name(
+            state->u.f4.reg.bsrr, "BR15");
 
     // LCKR bitfields.
-    state->f4.fld.lckr.lck0 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK0");
-    state->f4.fld.lckr.lck1 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK1");
-    state->f4.fld.lckr.lck2 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK2");
-    state->f4.fld.lckr.lck3 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK3");
-    state->f4.fld.lckr.lck4 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK4");
-    state->f4.fld.lckr.lck5 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK5");
-    state->f4.fld.lckr.lck6 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK6");
-    state->f4.fld.lckr.lck7 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK7");
-    state->f4.fld.lckr.lck8 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK8");
-    state->f4.fld.lckr.lck9 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK9");
-    state->f4.fld.lckr.lck10 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK10");
-    state->f4.fld.lckr.lck11 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK11");
-    state->f4.fld.lckr.lck12 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK12");
-    state->f4.fld.lckr.lck13 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK13");
-    state->f4.fld.lckr.lck14 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK14");
-    state->f4.fld.lckr.lck15 = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCK15");
-    state->f4.fld.lckr.lckk = cm_object_get_child_by_name(state->f4.reg.lckr,
-            "LCKK");
+    state->u.f4.fld.lckr.lck0 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK0");
+    state->u.f4.fld.lckr.lck1 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK1");
+    state->u.f4.fld.lckr.lck2 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK2");
+    state->u.f4.fld.lckr.lck3 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK3");
+    state->u.f4.fld.lckr.lck4 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK4");
+    state->u.f4.fld.lckr.lck5 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK5");
+    state->u.f4.fld.lckr.lck6 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK6");
+    state->u.f4.fld.lckr.lck7 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK7");
+    state->u.f4.fld.lckr.lck8 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK8");
+    state->u.f4.fld.lckr.lck9 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK9");
+    state->u.f4.fld.lckr.lck10 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK10");
+    state->u.f4.fld.lckr.lck11 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK11");
+    state->u.f4.fld.lckr.lck12 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK12");
+    state->u.f4.fld.lckr.lck13 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK13");
+    state->u.f4.fld.lckr.lck14 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK14");
+    state->u.f4.fld.lckr.lck15 = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCK15");
+    state->u.f4.fld.lckr.lckk = cm_object_get_child_by_name(
+            state->u.f4.reg.lckr, "LCKK");
 
     // AFRL bitfields.
-    state->f4.fld.afrl.afrl0 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL0");
-    state->f4.fld.afrl.afrl1 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL1");
-    state->f4.fld.afrl.afrl2 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL2");
-    state->f4.fld.afrl.afrl3 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL3");
-    state->f4.fld.afrl.afrl4 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL4");
-    state->f4.fld.afrl.afrl5 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL5");
-    state->f4.fld.afrl.afrl6 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL6");
-    state->f4.fld.afrl.afrl7 = cm_object_get_child_by_name(state->f4.reg.afrl,
-            "AFRL7");
+    state->u.f4.fld.afrl.afrl0 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL0");
+    state->u.f4.fld.afrl.afrl1 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL1");
+    state->u.f4.fld.afrl.afrl2 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL2");
+    state->u.f4.fld.afrl.afrl3 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL3");
+    state->u.f4.fld.afrl.afrl4 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL4");
+    state->u.f4.fld.afrl.afrl5 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL5");
+    state->u.f4.fld.afrl.afrl6 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL6");
+    state->u.f4.fld.afrl.afrl7 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrl, "AFRL7");
 
     // AFRH bitfields.
-    state->f4.fld.afrh.afrh8 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH8");
-    state->f4.fld.afrh.afrh9 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH9");
-    state->f4.fld.afrh.afrh10 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH10");
-    state->f4.fld.afrh.afrh11 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH11");
-    state->f4.fld.afrh.afrh12 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH12");
-    state->f4.fld.afrh.afrh13 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH13");
-    state->f4.fld.afrh.afrh14 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH14");
-    state->f4.fld.afrh.afrh15 = cm_object_get_child_by_name(state->f4.reg.afrh,
-            "AFRH15");
+    state->u.f4.fld.afrh.afrh8 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH8");
+    state->u.f4.fld.afrh.afrh9 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH9");
+    state->u.f4.fld.afrh.afrh10 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH10");
+    state->u.f4.fld.afrh.afrh11 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH11");
+    state->u.f4.fld.afrh.afrh12 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH12");
+    state->u.f4.fld.afrh.afrh13 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH13");
+    state->u.f4.fld.afrh.afrh14 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH14");
+    state->u.f4.fld.afrh.afrh15 = cm_object_get_child_by_name(
+            state->u.f4.reg.afrh, "AFRH15");
 }
 
 // ----- Public ---------------------------------------------------------------
@@ -1225,13 +1225,13 @@ static void stm32f1_gpio_odr_post_write_callback(Object *reg, Object *periph,
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
-    Object *odr = state->f1.reg.odr;
+    Object *odr = state->u.f1.reg.odr;
     assert(odr);
 
     uint16_t prev_value = peripheral_register_get_raw_prev_value(odr);
 
     stm32_gpio_set_odr_irqs(state, prev_value, full_value);
-    stm32_gpio_update_idr(state, state->f1.reg.idr, full_value);
+    stm32_gpio_update_idr(state, state->u.f1.reg.idr, full_value);
 }
 
 static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
@@ -1240,7 +1240,7 @@ static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
-    Object *odr = state->f1.reg.odr;
+    Object *odr = state->u.f1.reg.odr;
     assert(odr);
 
     /* Although 'value' is known to be 32-bits, for consistency use full_value */
@@ -1250,7 +1250,7 @@ static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     /* Clear the BR bits and set the BS bits. */
     uint32_t new_value = (peripheral_register_get_raw_value(odr)
             & (~bits_to_reset)) | bits_to_set;
-    stm32_gpio_update_odr_and_idr(state, odr, state->f1.reg.idr, new_value);
+    stm32_gpio_update_odr_and_idr(state, odr, state->u.f1.reg.idr, new_value);
 }
 
 static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
@@ -1259,7 +1259,7 @@ static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
 {
     STM32GPIOState *state = STM32_GPIO_STATE(periph);
 
-    Object *odr = state->f1.reg.odr;
+    Object *odr = state->u.f1.reg.odr;
     assert(odr);
 
     /* Although 'value' is known to be 32-bits, for consistency use full_value */
@@ -1268,7 +1268,7 @@ static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
     /* Clear the BR bits. */
     uint32_t new_value = peripheral_register_get_raw_value(odr)
             & ~bits_to_reset;
-    stm32_gpio_update_odr_and_idr(state, odr, state->f1.reg.idr, new_value);
+    stm32_gpio_update_odr_and_idr(state, odr, state->u.f1.reg.idr, new_value);
 }
 
 // ----------------------------------------------------------------------------
@@ -1283,11 +1283,10 @@ static uint32_t stm32f1_gpio_get_pin_config(STM32GPIOState *state, unsigned pin)
      * Simplify extract logic by combining both 32 bit registers into
      * one 64 bit value.
      */
-    uint64_t cr_64 =
-            ((uint64_t) peripheral_register_get_raw_value(state->f1.reg.crh)
-                    << 32)
-                    | (peripheral_register_get_raw_value(state->f1.reg.crl)
-                            & 0xFFFFFFFF);
+    uint64_t cr_64 = ((uint64_t) peripheral_register_get_raw_value(
+            state->u.f1.reg.crh) << 32)
+            | (peripheral_register_get_raw_value(state->u.f1.reg.crl)
+                    & 0xFFFFFFFF);
     return extract64(cr_64, pin * 4, 4);
 }
 
@@ -1567,7 +1566,7 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
 
     case STM32_FAMILY_F1:
 
-        idr = state->f1.reg.idr;
+        idr = state->u.f1.reg.idr;
         break;
 
     case STM32_FAMILY_F4:
@@ -1680,17 +1679,17 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
             stm32f0x1_gpio_create_objects(obj, cm_state->svd_json, periph_name);
 
-            state->reg.moder = state->f0.reg.moder;
-            state->reg.otyper = state->f0.reg.otyper;
-            state->reg.ospeeder = state->f0.reg.ospeedr;
-            state->reg.pupdr = state->f0.reg.pupdr;
-            state->reg.idr = state->f0.reg.idr;
-            state->reg.odr = state->f0.reg.odr;
-            state->reg.bsrr = state->f0.reg.bsrr;
-            state->reg.lckr = state->f0.reg.lckr;
-            state->reg.afrl = state->f0.reg.afrl;
-            state->reg.afrh = state->f0.reg.afrh;
-            state->reg.brr = state->f0.reg.brr;
+            state->reg.moder = state->u.f0.reg.moder;
+            state->reg.otyper = state->u.f0.reg.otyper;
+            state->reg.ospeeder = state->u.f0.reg.ospeedr;
+            state->reg.pupdr = state->u.f0.reg.pupdr;
+            state->reg.idr = state->u.f0.reg.idr;
+            state->reg.odr = state->u.f0.reg.odr;
+            state->reg.bsrr = state->u.f0.reg.bsrr;
+            state->reg.lckr = state->u.f0.reg.lckr;
+            state->reg.afrl = state->u.f0.reg.afrl;
+            state->reg.afrh = state->u.f0.reg.afrh;
+            state->reg.brr = state->u.f0.reg.brr;
 
             /* Add callbacks. Use some of the F4 callbacks.*/
             peripheral_register_set_post_write(state->reg.moder,
@@ -1725,15 +1724,15 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
                     periph_name);
 
             /* Add callbacks. */
-            peripheral_register_set_post_write(state->f1.reg.crl,
+            peripheral_register_set_post_write(state->u.f1.reg.crl,
                     &stm32f1_gpio_crl_post_write_callback);
-            peripheral_register_set_post_write(state->f1.reg.crh,
+            peripheral_register_set_post_write(state->u.f1.reg.crh,
                     &stm32f1_gpio_crh_post_write_callback);
-            peripheral_register_set_post_write(state->f1.reg.odr,
+            peripheral_register_set_post_write(state->u.f1.reg.odr,
                     &stm32f1_gpio_odr_post_write_callback);
-            peripheral_register_set_post_write(state->f1.reg.bsrr,
+            peripheral_register_set_post_write(state->u.f1.reg.bsrr,
                     &stm32f1_gpio_bsrr_post_write_callback);
-            peripheral_register_set_post_write(state->f1.reg.brr,
+            peripheral_register_set_post_write(state->u.f1.reg.brr,
                     &stm32f1_gpio_brr_post_write_callback);
         } else {
             assert(false);
@@ -1751,16 +1750,16 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
             stm32f40x_gpio_create_objects(obj, cm_state->svd_json, periph_name);
 
-            state->reg.moder = state->f4.reg.moder;
-            state->reg.otyper = state->f4.reg.otyper;
-            state->reg.ospeeder = state->f4.reg.ospeedr;
-            state->reg.pupdr = state->f4.reg.pupdr;
-            state->reg.idr = state->f4.reg.idr;
-            state->reg.odr = state->f4.reg.odr;
-            state->reg.bsrr = state->f4.reg.bsrr;
-            state->reg.lckr = state->f4.reg.lckr;
-            state->reg.afrl = state->f4.reg.afrl;
-            state->reg.afrh = state->f4.reg.afrh;
+            state->reg.moder = state->u.f4.reg.moder;
+            state->reg.otyper = state->u.f4.reg.otyper;
+            state->reg.ospeeder = state->u.f4.reg.ospeedr;
+            state->reg.pupdr = state->u.f4.reg.pupdr;
+            state->reg.idr = state->u.f4.reg.idr;
+            state->reg.odr = state->u.f4.reg.odr;
+            state->reg.bsrr = state->u.f4.reg.bsrr;
+            state->reg.lckr = state->u.f4.reg.lckr;
+            state->reg.afrl = state->u.f4.reg.afrl;
+            state->reg.afrh = state->u.f4.reg.afrh;
 
             /* Add callbacks. */
             peripheral_register_set_post_write(state->reg.moder,
@@ -1820,7 +1819,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
         break;
 
     case STM32_FAMILY_F1:
-        odr = state->f1.reg.odr;
+        odr = state->u.f1.reg.odr;
         break;
 
     case STM32_FAMILY_F4:
