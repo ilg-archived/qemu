@@ -18,69 +18,121 @@
         "peripherals": [
             {
                 "name": "GPIOA",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOB",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOC",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOD",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOE",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOF",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOG",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOH",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOI",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "USART1",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART2",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART3",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART6",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "UART4",
-                "groupName": "UART",
+                "qemuGroupName": "UART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "UART5",
-                "groupName": "UART",
+                "qemuGroupName": "UART",
                 "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "ADC1",
+                "qemuGroupName": "ADC"
+            },
+            {
+                "name": "ADC2",
+                "qemuGroupName": "ADC"
+            },
+            {
+                "name": "ADC3",
+                "qemuGroupName": "ADC"
+            },
+            {
+                "name": "I2C1",
+                "qemuGroupName": "I2C"
+            },
+            {
+                "name": "I2C2",
+                "qemuGroupName": "I2C"
+            },
+            {
+                "name": "I2C3",
+                "qemuGroupName": "I2C"
+            },
+            {
+                "name": "CAN1",
+                "qemuGroupName": "CAN"
+            },
+            {
+                "name": "CAN2",
+                "qemuGroupName": "CAN"
+            },
+            {
+                "name": "DMA1",
+                "qemuGroupName": "DMA"
+            },
+            {
+                "name": "DMA2",
+                "qemuGroupName": "DMA"
+            },
+            {
+                "name": "SPI1",
+                "qemuGroupName": "SPI"
+            },
+            {
+                "name": "SPI2",
+                "qemuGroupName": "SPI"
+            },
+            {
+                "name": "SPI3",
+                "qemuGroupName": "SPI"
             }
         ]
     }

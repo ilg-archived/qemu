@@ -31,6 +31,7 @@
 #include "exec/address-spaces.h"
 #include <hw/cortexm/stm32/rcc.h>
 #include <hw/cortexm/stm32/syscfg.h>
+#include <hw/cortexm/stm32/afio.h>
 #include <hw/cortexm/peripheral.h>
 
 // ----------------------------------------------------------------------------
@@ -108,10 +109,11 @@ typedef struct {
 
     stm32_gpio_index_t port_index;
 
-    STM32SYSCFGState *syscfg;
-
     // Points to one RCC bitfield that enables the GPIO.
     Object *enabling_bit;
+
+    STM32SYSCFGState *syscfg;
+    STM32AFIOState *afio;
 
     /*
      * IRQs used to communicate with the machine implementation, for

@@ -220,6 +220,21 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
         state->syscfg = DEVICE(syscfg);
     }
 
+    // AFIO; assume the presence in SVD is enough.
+    if (svd_has_named_peripheral(cm_state->svd_json, "AFIO")) {
+        /*
+         * SYSCFG will be named "/machine/mcu/stm32/AFIO".
+         * It controls, among other, which GPIO pins are
+         * connected to EXTI.
+         */
+        Object *afio = cm_object_new(state->container, "AFIO",
+        TYPE_STM32_AFIO);
+
+        cm_object_realize(afio);
+
+        state->afio = DEVICE(afio);
+    }
+
     // EXTI; assume the presence in SVD is enough.
     if (svd_has_named_peripheral(cm_state->svd_json, "EXTI")) {
         /* EXTI will be named "/machine/mcu/stm32/EXTI".
@@ -368,6 +383,14 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
 }
 
+static int stm32_mcu_reset_object(Object *obj, void *opaque)
+{
+    if (cm_object_is_instance_of_typename(obj, TYPE_DEVICE)) {
+        device_reset(DEVICE(obj));
+    }
+    return 0; // Non-0 will break the iterator.
+}
+
 static void stm32_mcu_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
@@ -376,26 +399,8 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
     cm_device_parent_reset(dev, TYPE_STM32_MCU);
 
     STM32MCUState *state = STM32_MCU_STATE(dev);
-    if (state->rcc) {
-        device_reset(state->rcc);
-    }
 
-    if (state->flash) {
-        device_reset(state->flash);
-    }
-
-    int i;
-    for (i = 0; i < STM32_MAX_GPIO; ++i) {
-        if (state->gpio[i]) {
-            device_reset(state->gpio[i]);
-        }
-    }
-
-    for (i = 0; i < STM32_MAX_USART; ++i) {
-        if (state->usart[i]) {
-            device_reset(state->usart[i]);
-        }
-    }
+    object_child_foreach(state->container, stm32_mcu_reset_object, NULL);
 }
 
 /*

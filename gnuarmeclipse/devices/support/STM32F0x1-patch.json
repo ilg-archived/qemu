@@ -39,73 +39,97 @@
             {
                 "name": "GPIOA",
                 "qemuAlignment": "any",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOB",
                 "qemuAlignment": "any",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOC",
                 "qemuAlignment": "any",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOD",
                 "qemuAlignment": "any",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOE",
                 "qemuAlignment": "any",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "GPIOF",
                 "qemuAlignment": "any",
-                "groupName": "GPIO"
+                "qemuGroupName": "GPIO"
             },
             {
                 "name": "USART1",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART2",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART3",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART4",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART5",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART6",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART7",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
             },
             {
                 "name": "USART8",
-                "groupName": "USART",
+                "qemuGroupName": "USART",
                 "qemuAlignment": "word-halfWord"
+            },
+            {
+                "name": "SPI1",
+                "qemuGroupName": "SPI"
+            },
+            {
+                "name": "SPI2",
+                "qemuGroupName": "SPI"
+            },
+            {
+                "name": "I2C1",
+                "qemuGroupName": "I2C"
+            },
+            {
+                "name": "I2C2",
+                "qemuGroupName": "I2C"
+            },
+            {
+                "name": "DMA1",
+                "qemuGroupName": "DMA"
+            },
+            {
+                "name": "DMA2",
+                "qemuGroupName": "DMA"
             }
-        ]
+       ]
     }
 }

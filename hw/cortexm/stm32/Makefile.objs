@@ -9,6 +9,8 @@ obj-$(CONFIG_STM32) += pwr.o
 obj-$(CONFIG_STM32) += gpio.o
 obj-$(CONFIG_STM32) += usart.o
 obj-$(CONFIG_STM32) += exti.o
+
 obj-$(CONFIG_STM32) += syscfg.o
+obj-$(CONFIG_STM32) += afio.o
 
 # [GNU ARM Eclipse]

@@ -31,6 +31,7 @@
 #include <hw/cortexm/stm32/usart.h>
 #include <hw/cortexm/stm32/exti.h>
 #include <hw/cortexm/stm32/syscfg.h>
+#include <hw/cortexm/stm32/afio.h>
 #include <hw/cortexm/parson.h>
 
 /* ------------------------------------------------------------------------- */
@@ -88,10 +89,14 @@ typedef struct STM32MCUState {
     DeviceState *flash;
     DeviceState *pwr;
     DeviceState *exti;
+
     DeviceState *syscfg;
+    DeviceState *afio; // For STM32F1 only.
+
     DeviceState *gpio[STM32_MAX_GPIO];
     int num_gpio;
     DeviceState *usart[STM32_MAX_USART];
+
 } STM32MCUState;
 
 /* ------ Public ----------------------------------------------------------- */

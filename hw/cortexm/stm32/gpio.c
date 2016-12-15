@@ -1480,8 +1480,10 @@ static void stm32_gpio_set_exti_irq(STM32GPIOState *state, int pin, int level)
      */
 
     if (capabilities->family == STM32_FAMILY_F1) {
-        // TODO: for F1, use AFIO.
-        cm_irq_set(state->exti_irq[pin], level);
+        if (register_bitfield_read_value(state->afio->exticr.exti[pin])
+                == pin) {
+            cm_irq_set(state->exti_irq[pin], level);
+        }
     } else {
         if (register_bitfield_read_value(state->syscfg->exticr.exti[pin])
                 == pin) {
@@ -1620,8 +1622,10 @@ static void stm32_gpio_instance_init_callback(Object *obj)
     cm_irq_init_out(DEVICE(obj), state->odr_irq, STM32_IRQ_GPIO_ODR_OUT,
     STM32_GPIO_PIN_COUNT);
 
-    state->syscfg = NULL;
     state->enabling_bit = NULL;
+
+    state->syscfg = NULL;
+    state->afio = NULL;
 
     state->dir_mask = 0;
 
@@ -1737,6 +1741,9 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         } else {
             assert(false);
         }
+
+        state->afio = STM32_AFIO_STATE(
+                cm_device_by_name(DEVICE_PATH_STM32_AFIO));
 
         snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/APB2ENR/IOP%cEN",

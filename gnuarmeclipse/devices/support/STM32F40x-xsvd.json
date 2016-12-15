@@ -3,14 +3,15 @@
 	"generators": [
 		{
 			"tool": "xcdl",
+			"version": "1.6.2",
 			"command": [
-				"generate-xsvd",
-				"--ifile",
+				"svd-convert",
+				"--file",
 				"/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd",
-				"--ofile",
-				"support/STM32F40x-xsvd.json"
+				"--output",
+				"STM32F40x-xsvd.json"
 			],
-			"date": "2016-12-12T19:22:43.449Z"
+			"date": "2016-12-14T22:50:52.397Z"
 		}
 	],
 	"device": {

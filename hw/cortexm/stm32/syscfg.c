@@ -222,6 +222,7 @@ static void stm32_syscfg_instance_init_callback(Object *obj)
     STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
 
     /* capabilities are not yet available. */
+
     int i;
     for (i = 0; i < sizeof(state->exticr.exti) / sizeof(state->exticr.exti[0]);
             ++i) {

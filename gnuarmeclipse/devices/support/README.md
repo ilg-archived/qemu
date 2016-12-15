@@ -5,7 +5,7 @@ The `*-svd.json` files were generated from the original CMSIS files:
 The `*-patch.json` are patches to add content required by QEMU.
 
 ```
-cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices
+cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
 ```
 
 The development version of `xcdl` is:
@@ -41,6 +41,21 @@ QEMU extensions
 - `qemuItmPresent` (true/**false**)
 - `qemuEtmPresent` (true/**false**)
 
+### qemuAlignment
+
+The alignment extension can be defined for the device, peripherals, clusters or registers nodes. If the peripheral does not define it but is derived, the value of the original peripheral is checked.
+
+Possible values are:
+
+- `any`
+- `word-halfWord`
+- `word`
+
+### qemuGroupName
+
+This property is added to peripherals that have multiple instances, like GPIOA, GPIOB, USART1, USART2, etc.
+
+It is used to correctly generate the support code.
 
 ## Devices
 
@@ -50,19 +65,19 @@ The commands used to generate the specifc xsvd files are:
 
 ```
 xcdl \
-generate-xsvd \
---ifile /Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd \
---ofile support/STM32F0x1-xsvd.json
+svd-convert \
+--file "/Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd" \
+--output "STM32F0x1-xsvd.json"
 
 xcdl \
-patch-xsvd \
---ifile "support/STM32F0x1-xsvd.json" \
---patch-file "support/STM32F0x1-patch.json" \
---ofile "STM32F0x1-qemu.json" \
---code "support/STM32F0x1-code.c" \
+svd-patch \
+--file "STM32F0x1-xsvd.json" \
+--patch "STM32F0x1-patch.json" \
+--output "../STM32F0x1-qemu.json" \
+--code "STM32F0x1-code.c" \
 --vendor-prefix "STM32" \
 --device-family "F0" \
---remove "NVIC" \
+--remove "NVIC" 
 
 ```
 
@@ -70,19 +85,19 @@ patch-xsvd \
 
 ```
 xcdl \
-generate-xsvd \
---ifile /Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd \
---ofile support/STM32F103xx-xsvd.json
+svd-convert \
+--file "/Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd" \
+--output "STM32F103xx-xsvd.json"
 
 xcdl \
-patch-xsvd \
---ifile "support/STM32F103xx-xsvd.json" \
---patch-file "support/STM32F103xx-patch.json" \
---ofile "STM32F103xx-qemu.json" \
---code "support/STM32F103xx-code.c" \
+svd-patch \
+--file "STM32F103xx-xsvd.json" \
+--patch "STM32F103xx-patch.json" \
+--output "../STM32F103xx-qemu.json" \
+--code "STM32F103xx-code.c" \
 --vendor-prefix "STM32" \
 --device-family "F1" \
---remove "NVIC" \
+--remove "NVIC" 
 
 ```
 
@@ -90,16 +105,16 @@ patch-xsvd \
 
 ```
 xcdl \
-generate-xsvd \
---ifile /Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd \
---ofile support/STM32F40x-xsvd.json
+svd-convert \
+--file "/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd" \
+--output "STM32F40x-xsvd.json"
 
 xcdl \
-patch-xsvd \
---ifile "support/STM32F40x-xsvd.json" \
---patch-file "support/STM32F40x-patch.json" \
---ofile "STM32F40xx-qemu.json" \
---code "support/STM32F40x-code.c" \
+svd-patch \
+--file "STM32F40x-xsvd.json" \
+--patch "STM32F40x-patch.json" \
+--output "../STM32F40xx-qemu.json" \
+--code "STM32F40x-code.c" \
 --vendor-prefix "STM32" \
 --device-family "F4" \
 --remove "NVIC" \
@@ -109,7 +124,7 @@ patch-xsvd \
 --group-bitfield "RCC/PLLCFGR/PLLM" \
 --group-bitfield "RCC/CFGR/SWS" \
 --group-bitfield "RCC/CFGR/SW" \
---group-bitfield "RCC/BDCR/RTCSEL" \
+--group-bitfield "RCC/BDCR/RTCSEL" 
 
 ```
 

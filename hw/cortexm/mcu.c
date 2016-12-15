@@ -416,6 +416,14 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 #endif
 }
 
+static int cortexm_mcu_reset_object(Object *obj, void *opaque)
+{
+    if (cm_object_is_instance_of_typename(obj, TYPE_DEVICE)) {
+        device_reset(DEVICE(obj));
+    }
+    return 0; // Non-0 will break the iterator.
+}
+
 static void cortexm_mcu_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
@@ -443,11 +451,7 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
      */
     cpu_reset(CPU(cm_state->cpu));
 
-    device_reset(cm_state->nvic);
-
-    if (cm_state->itm) {
-        device_reset(cm_state->itm);
-    }
+    object_child_foreach(cm_state->container, cortexm_mcu_reset_object, NULL);
 }
 
 static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)

@@ -3,27 +3,29 @@
 	"generators": [
 		{
 			"tool": "xcdl",
+			"version": "1.6.2",
 			"command": [
-				"generate-xsvd",
-				"--ifile",
+				"svd-convert",
+				"--file",
 				"/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd",
-				"--ofile",
-				"support/STM32F40x-xsvd.json"
+				"--output",
+				"STM32F40x-xsvd.json"
 			],
-			"date": "2016-12-12T19:22:43.449Z"
+			"date": "2016-12-14T22:50:52.397Z"
 		},
 		{
 			"tool": "xcdl",
+			"version": "1.6.3",
 			"command": [
-				"patch-xsvd",
-				"--ifile",
-				"support/STM32F40x-xsvd.json",
-				"--patch-file",
-				"support/STM32F40x-patch.json",
-				"--ofile",
-				"STM32F40xx-qemu.json",
+				"svd-patch",
+				"--file",
+				"STM32F40x-xsvd.json",
+				"--patch",
+				"STM32F40x-patch.json",
+				"--output",
+				"../STM32F40xx-qemu.json",
 				"--code",
-				"support/STM32F40x-code.c",
+				"STM32F40x-code.c",
 				"--vendor-prefix",
 				"STM32",
 				"--device-family",
@@ -45,7 +47,7 @@
 				"--group-bitfield",
 				"RCC/BDCR/RTCSEL"
 			],
-			"date": "2016-12-13T15:20:23.718Z"
+			"date": "2016-12-15T16:44:01.991Z"
 		}
 	],
 	"device": {
@@ -4768,7 +4770,8 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "DMA"
 			},
 			{
 				"name": "DMA1",
@@ -4815,7 +4818,8 @@
 						"description": "DMA1 Stream7 global interrupt",
 						"value": "47"
 					}
-				]
+				],
+				"qemuGroupName": "DMA"
 			},
 			{
 				"name": "RCC",
@@ -7693,37 +7697,44 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOH",
 				"derivedFrom": "GPIOI",
-				"baseAddress": "0x40021C00"
+				"baseAddress": "0x40021C00",
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOG",
 				"derivedFrom": "GPIOI",
-				"baseAddress": "0x40021800"
+				"baseAddress": "0x40021800",
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOF",
 				"derivedFrom": "GPIOI",
-				"baseAddress": "0x40021400"
+				"baseAddress": "0x40021400",
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOE",
 				"derivedFrom": "GPIOI",
-				"baseAddress": "0x40021000"
+				"baseAddress": "0x40021000",
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOD",
 				"derivedFrom": "GPIOI",
-				"baseAddress": "0X40020C00"
+				"baseAddress": "0X40020C00",
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOC",
 				"derivedFrom": "GPIOI",
-				"baseAddress": "0x40020800"
+				"baseAddress": "0x40020800",
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOB",
@@ -8814,7 +8825,8 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "GPIOA",
@@ -9905,7 +9917,8 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "GPIO"
 			},
 			{
 				"name": "SYSCFG",
@@ -10516,7 +10529,8 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "SPI"
 			},
 			{
 				"name": "SPI2",
@@ -10528,7 +10542,8 @@
 						"description": "SPI2 global interrupt",
 						"value": "36"
 					}
-				]
+				],
+				"qemuGroupName": "SPI"
 			},
 			{
 				"name": "SPI3",
@@ -10540,7 +10555,8 @@
 						"description": "SPI3 global interrupt",
 						"value": "51"
 					}
-				]
+				],
+				"qemuGroupName": "SPI"
 			},
 			{
 				"name": "I2S2ext",
@@ -12002,7 +12018,8 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "ADC"
 			},
 			{
 				"name": "ADC2",
@@ -12014,7 +12031,8 @@
 						"description": "ADC2 global interrupts",
 						"value": "18"
 					}
-				]
+				],
+				"qemuGroupName": "ADC"
 			},
 			{
 				"name": "ADC3",
@@ -12026,7 +12044,8 @@
 						"description": "ADC3 global interrupts",
 						"value": "18"
 					}
-				]
+				],
+				"qemuGroupName": "ADC"
 			},
 			{
 				"name": "USART6",
@@ -12440,7 +12459,9 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuAlignment": "word-halfWord",
+				"qemuGroupName": "USART"
 			},
 			{
 				"name": "USART1",
@@ -12452,7 +12473,9 @@
 						"description": "USART1 global interrupt",
 						"value": "37"
 					}
-				]
+				],
+				"qemuAlignment": "word-halfWord",
+				"qemuGroupName": "USART"
 			},
 			{
 				"name": "USART2",
@@ -12464,7 +12487,9 @@
 						"description": "USART2 global interrupt",
 						"value": "38"
 					}
-				]
+				],
+				"qemuAlignment": "word-halfWord",
+				"qemuGroupName": "USART"
 			},
 			{
 				"name": "USART3",
@@ -12476,7 +12501,9 @@
 						"description": "USART3 global interrupt",
 						"value": "39"
 					}
-				]
+				],
+				"qemuAlignment": "word-halfWord",
+				"qemuGroupName": "USART"
 			},
 			{
 				"name": "DAC",
@@ -13453,7 +13480,8 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "I2C"
 			},
 			{
 				"name": "I2C2",
@@ -13470,7 +13498,8 @@
 						"description": "I2C2 error interrupt",
 						"value": "34"
 					}
-				]
+				],
+				"qemuGroupName": "I2C"
 			},
 			{
 				"name": "I2C1",
@@ -13487,7 +13516,8 @@
 						"description": "I2C1 error interrupt",
 						"value": "32"
 					}
-				]
+				],
+				"qemuGroupName": "I2C"
 			},
 			{
 				"name": "IWDG",
@@ -15308,7 +15338,9 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuAlignment": "word-halfWord",
+				"qemuGroupName": "UART"
 			},
 			{
 				"name": "UART5",
@@ -15320,7 +15352,9 @@
 						"description": "UART5 global interrupt",
 						"value": "53"
 					}
-				]
+				],
+				"qemuAlignment": "word-halfWord",
+				"qemuGroupName": "UART"
 			},
 			{
 				"name": "C_ADC",
@@ -41004,7 +41038,8 @@
 							}
 						]
 					}
-				]
+				],
+				"qemuGroupName": "CAN"
 			},
 			{
 				"name": "CAN2",
@@ -41031,7 +41066,8 @@
 						"description": "CAN2 SCE interrupt",
 						"value": "66"
 					}
-				]
+				],
+				"qemuGroupName": "CAN"
 			},
 			{
 				"name": "FLASH",
@@ -50991,6 +51027,7 @@
 			"deviceNumInterrupts": "82",
 			"vendorSystickConfig": "false",
 			"qemuItmPresent": "true"
-		}
+		},
+		"qemuAlignment": "any"
 	}
 }

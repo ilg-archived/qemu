@@ -20,4 +20,4 @@ Some vendors also provide definitions for some system devices in the SVD files (
 
 ## Data lifetime
 
-During MCU object creation, the JSON is parsed and kept in memory during the entire lifetime of the process. To simplify things, object names currently refer to strings in the parsed tree (this may be changed in a future version).
+During MCU object creation, the JSON is parsed and kept in memory during the entire lifetime of the process. To simplify things, object may refer to strings in the parsed tree (this may be changed in a future version).
