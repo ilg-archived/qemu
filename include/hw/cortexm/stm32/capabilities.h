@@ -600,7 +600,7 @@ typedef struct {
     unsigned int has_tsc :1;
 
     /* Keep them together */
-    // unsigned char num_exti;
+    unsigned char num_exti;
     unsigned char num_dma1;
     unsigned char num_dma2;
     unsigned char num_dma;

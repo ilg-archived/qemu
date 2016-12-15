@@ -903,7 +903,7 @@ static void stm32f40x_exti_create_objects(Object *obj, JSON_Object *svd,
  * Called for each pin changed in the board (like buttons)
  * and for GPIO output changes.
  */
-static void stm32f_exti_in_irq_handler(void *opaque, int index, int level)
+static void stm32_exti_in_irq_handler(void *opaque, int index, int level)
 {
     qemu_log_mask(LOG_FUNC, "%s(%d,%d) \n", __FUNCTION__, index, level);
 
@@ -938,7 +938,7 @@ static void stm32f_exti_in_irq_handler(void *opaque, int index, int level)
 /*
  * Pass only bits corresponding to enabled interrupts.
  */
-static peripheral_register_t stm32f_exti_swier_pre_write_callback(Object *reg,
+static peripheral_register_t stm32_exti_swier_pre_write_callback(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
 {
@@ -953,7 +953,7 @@ static peripheral_register_t stm32f_exti_swier_pre_write_callback(Object *reg,
  * Set pending bits programmatically. Raising bits pend interrupts.
  * Lowering bits does nothing.
  */
-static void stm32f_exti_swier_post_write_callback(Object *reg, Object *periph,
+static void stm32_exti_swier_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
 {
@@ -967,7 +967,7 @@ static void stm32f_exti_swier_post_write_callback(Object *reg, Object *periph,
     int i;
     for (i = 0; i < state->num_exti; ++i, mask <<= 1) {
         if ((raised & mask) != 0) {
-            stm32f_exti_in_irq_handler(reg, i, 1);
+            stm32_exti_in_irq_handler(reg, i, 1);
         }
     }
 }
@@ -975,7 +975,7 @@ static void stm32f_exti_swier_post_write_callback(Object *reg, Object *periph,
 /*
  * Implement 'rc_w1', clear bits by writing 1.
  */
-static peripheral_register_t stm32f_exti_pr_pre_write_callback(Object *reg,
+static peripheral_register_t stm32_exti_pr_pre_write_callback(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
 {
@@ -993,6 +993,9 @@ static peripheral_register_t stm32f_exti_pr_pre_write_callback(Object *reg,
     int i;
     for (i = 0; i < state->num_exti; ++i, mask <<= 1) {
         if ((acknowledged & mask) != 0) {
+#if 0
+            qemu_log_mask(LOG_FUNC, "%s() %d exti ack\n", __FUNCTION__, i);
+#endif
             /* Notify NVIC that the interrupt was acknowledged. */
             cm_irq_lower(state->irq_out[i]);
         }
@@ -1021,7 +1024,7 @@ static void stm32_exti_instance_init_callback(Object *obj)
      * one source. To simplify things (hopefully), the multiplexer
      * is implemented in each GPIO.
      */
-    cm_irq_init_in(DEVICE(obj), stm32f_exti_in_irq_handler, STM32_IRQ_EXTI_IN,
+    cm_irq_init_in(DEVICE(obj), stm32_exti_in_irq_handler, STM32_IRQ_EXTI_IN,
     STM32_EXTI_MAX_NUM);
 
     /*
@@ -1063,14 +1066,15 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     const char *periph_name = "EXTI";
 
-    // assert(capabilities->num_exti <= STM32_EXTI_MAX_NUM);
-    // cm_object_property_set_int(obj, capabilities->num_exti, "num_exti");
+    assert(
+            capabilities->num_exti > 0 && capabilities->num_exti <= STM32_EXTI_MAX_NUM);
+    cm_object_property_set_int(obj, capabilities->num_exti, "num_exti");
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        // capabilities->num_exti = 23;
         if (capabilities->f0.is_0x1) {
+
             stm32f0x1_exti_create_objects(obj, cm_state->svd_json, periph_name);
 
             state->reg.imr = state->u.f0.reg.imr;
@@ -1089,7 +1093,6 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
         if (capabilities->f1.is_103xx) {
 
-            // capabilities->num_exti = 20;
             stm32f103xx_exti_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
@@ -1108,7 +1111,6 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     case STM32_FAMILY_F4:
 
-        // capabilities->num_exti = 23;
         if (capabilities->f4.is_40x) {
 
             stm32f40x_exti_create_objects(obj, cm_state->svd_json, periph_name);
@@ -1130,12 +1132,12 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     }
 
     peripheral_register_set_pre_write(state->reg.swier,
-            stm32f_exti_swier_pre_write_callback);
+            stm32_exti_swier_pre_write_callback);
     peripheral_register_set_post_write(state->reg.swier,
-            stm32f_exti_swier_post_write_callback);
+            stm32_exti_swier_post_write_callback);
 
     peripheral_register_set_pre_write(state->reg.pr,
-            stm32f_exti_pr_pre_write_callback);
+            stm32_exti_pr_pre_write_callback);
 
     DeviceState *nvic = DEVICE(cm_device_by_name(DEVICE_PATH_CORTEXM_NVIC));
 

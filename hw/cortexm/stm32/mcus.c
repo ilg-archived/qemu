@@ -133,8 +133,8 @@ static const STM32Capabilities stm32f051x8 = {
     .has_syscfg = true,
 
     .has_exti = true,
-    // .num_exti = 23,
 #endif
+    .num_exti = 23,
 
     .has_crc = true,
 
@@ -207,8 +207,8 @@ static const STM32Capabilities stm32f103x8b = {
     .has_pwr = true,
     .has_afio = true,
     .has_exti = true,
-    .num_exti = 20,
 #endif
+    .num_exti = 20,
 
     .has_rtc = true,
     .num_back_bytes = 20,
@@ -481,9 +481,10 @@ static const STM32Capabilities stm32f407xx = {
     .has_rcc = true,
     .has_pwr = true,
     .has_exti = true,
-    .num_exti = 23,
     .has_syscfg = true,
 #endif
+
+    .num_exti = 23,
 
     .has_rtc = true,
     .num_back_bytes = 80,

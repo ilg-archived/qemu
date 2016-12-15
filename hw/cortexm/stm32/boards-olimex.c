@@ -20,6 +20,8 @@
 #include <hw/cortexm/board.h>
 #include <hw/cortexm/stm32/mcus.h>
 #include <hw/cortexm/gpio-led.h>
+#include <hw/cortexm/button-gpio.h>
+#include <hw/cortexm/button-reset.h>
 #include <hw/cortexm/helper.h>
 
 /*
@@ -43,6 +45,31 @@ static GPIOLEDInfo stm32_h103_leds_info[] = {
     /**/
     },
     { },
+/**/
+};
+
+static ButtonGPIOInfo stm32_h103_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 178,
+        .y = 172,
+        .w = 20,
+        .h = 20,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 0,
+    /**/
+    },
+    { }, /**/
+};
+
+static ButtonResetInfo stm32_h103_button_reset_info = {
+    .x = 176,
+    .y = 112,
+    .w = 20,
+    .h = 10,
 /**/
 };
 
@@ -70,15 +97,13 @@ static void stm32_h103_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, stm32_h103_leds_info,
             board_graphic_context);
 
-#if 0
     if (board_graphic_context != NULL) {
         /* Create board buttons. */
-        button_reset_create_from_info(peripheral,
-                &stm32f0_discovery_button_reset_info, board_graphic_context);
-        button_gpio_create_from_info(peripheral,
-                stm32f0_discovery_buttons_user_info, board_graphic_context);
+        button_reset_create_from_info(peripheral, &stm32_h103_button_reset_info,
+                board_graphic_context);
+        button_gpio_create_from_info(peripheral, stm32_h103_buttons_user_info,
+                board_graphic_context);
     }
-#endif
 }
 
 static void stm32_h103_board_class_init_callback(ObjectClass *oc, void *data)
