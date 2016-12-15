@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+
+# -----------------------------------------------------------------------------
+# Safety settings (see https://gist.github.com/ilg-ul/383869cbb01f61a51c4d).
+
+if [[ ! -z ${DEBUG} ]]
+then
+  set ${DEBUG} # Activate the expand mode if DEBUG is -x.
+else
+  DEBUG=""
+fi
+
+set -o errexit # Exit if command failed.
+set -o pipefail # Exit if pipe failed.
+set -o nounset # Exit if variable not set.
+
+# Remove the initial space and instead use '\n'.
+IFS=$'\n\t'
+
+# ------------------------------------------------------------------
+
+cd "$(dirname "$0")"
+
+echo
+xcdl \
+svd-patch \
+--file "STM32F0x1-xsvd.json" \
+--patch "STM32F0x1-patch.json" \
+--output "../STM32F0x1-qemu.json" \
+--code "STM32F0x1-code.c" \
+--vendor-prefix "STM32" \
+--device-family "F0" \
+--remove "NVIC" 
+
+echo
+xcdl \
+svd-patch \
+--file "STM32F103xx-xsvd.json" \
+--patch "STM32F103xx-patch.json" \
+--output "../STM32F103xx-qemu.json" \
+--code "STM32F103xx-code.c" \
+--vendor-prefix "STM32" \
+--device-family "F1" \
+--remove "NVIC" 
+
+echo
+xcdl \
+svd-patch \
+--file "STM32F40x-xsvd.json" \
+--patch "STM32F40x-patch.json" \
+--output "../STM32F40xx-qemu.json" \
+--code "STM32F40x-code.c" \
+--vendor-prefix "STM32" \
+--device-family "F4" \
+--remove "NVIC" \
+--group-bitfield "RCC/PLLCFGR/PLLQ" \
+--group-bitfield "RCC/PLLCFGR/PLLP" \
+--group-bitfield "RCC/PLLCFGR/PLLN" \
+--group-bitfield "RCC/PLLCFGR/PLLM" \
+--group-bitfield "RCC/CFGR/SWS" \
+--group-bitfield "RCC/CFGR/SW" \
+--group-bitfield "RCC/BDCR/RTCSEL" 
+
+echo
+
+
