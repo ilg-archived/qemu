@@ -7,9 +7,9 @@ The `*-patch.json` are patches to add content required by QEMU.
 
 ## CPUID
 
-The `cpu.revision` value (a string like r0p0) is taken from SCB.CPUID, address 0xE000ED00.
+The `cpu.revision` value (a string like r0p0) is the value that should be read from SCB.CPUID, address 0xE000ED00.
 
-For the STM devices, this value is usually gives in the _Programming manual_, the _Core peripherals_ chapter.
+For the STM devices, this value is usually given in the _Programming manual_, the _Core peripherals_ chapter.
 
 ## Custom definitions
 
@@ -18,8 +18,8 @@ For the STM devices, this value is usually gives in the _Programming manual_, th
 These definitions are from the [CMSIS SVD](http://www.keil.com/pack/doc/CMSIS/SVD/html/elem_cpu.html) `<cpu>` element, with some extensions.
 
 - `name` (CM0, CM0PLUS, CM0+, CM1, CM3, CM4, CM7)
-- `revision` (r0p0, values 0-99)
-- `endian` (little/big/selectable)
+- `revision` (r0p0, values 0-15)
+- `endian` (**little**/big/selectable)
 - `mpuPresent` (true/**false**)
 - `fpuPresent` (true/**false**)
 - `fpuDP` (true/false, but only when FPU present) 
@@ -129,15 +129,17 @@ svd-code \
 - bitband regions (array of {name, address})
 
 
-# Development details
+# Development environment details
 
-These details are relevant in my development environments, and are here as a convenience for myself.
+These details are relevant in my development environments, and are here as a convenience for myself, to easily copy/paste them to the terminal.
+
+The location of the folder:
 
 ```
 cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
 ```
 
-The development version of `xcdl` is:
+Before installing a new `xcdl` version, run the development version with:
 
 ```
 /Users/ilg/My\ Files/MacBookPro\ Projects/XCDL/xcdl-js.git/bin/xcdl \
