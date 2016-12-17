@@ -142,8 +142,12 @@ File "${INSTALL_FOLDER}\gnuarmeclipse\CHANGES.txt"
 SetOutPath "$INSTDIR\keymaps"
 File "${INSTALL_FOLDER}\keymaps\*"
 
-SetOutPath "$INSTDIR\images"
-File /r "${INSTALL_FOLDER}\share\qemu\images\*"
+SetOutPath "$INSTDIR\graphics"
+File "${INSTALL_FOLDER}\share\qemu\graphics\*.*"
+
+SetOutPath "$INSTDIR\devices"
+File "${INSTALL_FOLDER}\share\qemu\devices\*.json"
+File "${INSTALL_FOLDER}\share\qemu\devices\README.md"
 
 ; Write the uninstaller file
 WriteUninstaller "${UNINSTALL_EXE}"
