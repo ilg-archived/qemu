@@ -15,7 +15,7 @@
 		},
 		{
 			"tool": "xcdl",
-			"version": "1.6.3",
+			"version": "1.6.5",
 			"command": [
 				"svd-patch",
 				"--file",
@@ -24,12 +24,6 @@
 				"STM32F40x-patch.json",
 				"--output",
 				"../STM32F40xx-qemu.json",
-				"--code",
-				"STM32F40x-code.c",
-				"--vendor-prefix",
-				"STM32",
-				"--device-family",
-				"F4",
 				"--remove",
 				"NVIC",
 				"--group-bitfield",
@@ -47,7 +41,7 @@
 				"--group-bitfield",
 				"RCC/BDCR/RTCSEL"
 			],
-			"date": "2016-12-15T16:44:01.991Z"
+			"date": "2016-12-17T00:10:48.046Z"
 		}
 	],
 	"device": {

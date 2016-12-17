@@ -4,15 +4,6 @@ The `*-svd.json` files were generated from the original CMSIS files:
 
 The `*-patch.json` are patches to add content required by QEMU.
 
-```
-cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
-```
-
-The development version of `xcdl` is:
-
-```
-/Users/ilg/My\ Files/MacBookPro\ Projects/XCDL/xcdl-js.git/bin/xcdl \
-```
 
 ## CPUID
 
@@ -74,10 +65,11 @@ svd-patch \
 --file "STM32F0x1-xsvd.json" \
 --patch "STM32F0x1-patch.json" \
 --output "../STM32F0x1-qemu.json" \
---code "STM32F0x1-code.c" \
---vendor-prefix "STM32" \
---device-family "F0" \
 --remove "NVIC" 
+
+xcdl \
+svd-code \
+--file "../STM32F0x1-qemu.json" 
 
 ```
 
@@ -94,10 +86,11 @@ svd-patch \
 --file "STM32F103xx-xsvd.json" \
 --patch "STM32F103xx-patch.json" \
 --output "../STM32F103xx-qemu.json" \
---code "STM32F103xx-code.c" \
---vendor-prefix "STM32" \
---device-family "F1" \
 --remove "NVIC" 
+
+xcdl \
+svd-code \
+--file "../STM32F103xx-qemu.json" 
 
 ```
 
@@ -114,9 +107,6 @@ svd-patch \
 --file "STM32F40x-xsvd.json" \
 --patch "STM32F40x-patch.json" \
 --output "../STM32F40xx-qemu.json" \
---code "STM32F40x-code.c" \
---vendor-prefix "STM32" \
---device-family "F4" \
 --remove "NVIC" \
 --group-bitfield "RCC/PLLCFGR/PLLQ" \
 --group-bitfield "RCC/PLLCFGR/PLLP" \
@@ -126,11 +116,30 @@ svd-patch \
 --group-bitfield "RCC/CFGR/SW" \
 --group-bitfield "RCC/BDCR/RTCSEL" 
 
+xcdl \
+svd-code \
+--file "../STM32F40xx-qemu.json" 
+
 ```
 
 # Missing from CMSIS SVD
 
-- alignment for registers & peripherals: choice of word/word-halfword/any
+- alignment for registers & peripherals: choice of word/word-halfword/any (see `qemuAlignment`)
 
 - bitband regions (array of {name, address})
+
+
+# Development details
+
+These details are relevant in my development environments, and are here as a convenience for myself.
+
+```
+cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
+```
+
+The development version of `xcdl` is:
+
+```
+/Users/ilg/My\ Files/MacBookPro\ Projects/XCDL/xcdl-js.git/bin/xcdl \
+```
 

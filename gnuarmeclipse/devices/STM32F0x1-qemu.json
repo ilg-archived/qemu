@@ -15,7 +15,7 @@
 		},
 		{
 			"tool": "xcdl",
-			"version": "1.6.3",
+			"version": "1.6.5",
 			"command": [
 				"svd-patch",
 				"--file",
@@ -24,16 +24,10 @@
 				"STM32F0x1-patch.json",
 				"--output",
 				"../STM32F0x1-qemu.json",
-				"--code",
-				"STM32F0x1-code.c",
-				"--vendor-prefix",
-				"STM32",
-				"--device-family",
-				"F0",
 				"--remove",
 				"NVIC"
 			],
-			"date": "2016-12-15T16:43:55.391Z"
+			"date": "2016-12-17T00:10:47.484Z"
 		}
 	],
 	"device": {
