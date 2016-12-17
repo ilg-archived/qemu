@@ -1112,9 +1112,9 @@ static void stm32f40x_gpio_create_objects(Object *obj, JSON_Object *svd,
  */
 Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
 {
-    if ((int) index >= STM32_GPIO_PORT_UNDEFINED) {
+    if ((int) index >= STM32_PORT_GPIO_UNDEFINED) {
         hw_error("Cannot assign GPIO%c: QEMU supports only %d ports\n",
-                'A' + index, STM32_GPIO_PORT_UNDEFINED);
+                'A' + index, STM32_PORT_GPIO_UNDEFINED);
     }
 
     char child_name[10];
@@ -1604,7 +1604,7 @@ static void stm32_gpio_instance_init_callback(Object *obj)
 
     cm_object_property_add_int(obj, "port-index",
             (const int *) &state->port_index);
-    state->port_index = STM32_GPIO_PORT_UNDEFINED;
+    state->port_index = STM32_PORT_GPIO_UNDEFINED;
 
     cm_irq_init_in(DEVICE(obj), stm32_gpio_in_irq_handler,
     STM32_IRQ_GPIO_IDR_IN, STM32_GPIO_PIN_COUNT);

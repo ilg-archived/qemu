@@ -68,27 +68,27 @@ typedef struct {
 // ----------------------------------------------------------------------------
 
 typedef enum {
-    STM32_USART_1 = 0,
-    STM32_USART_2,
-    STM32_USART_3,
-    STM32_USART_4,
-    STM32_USART_5,
-    STM32_USART_6,
-    STM32_USART_7,
-    STM32_USART_8,
-    STM32_USART_PORT_UNDEFINED,
+    STM32_PORT_USART1 = 0,
+    STM32_PORT_USART2,
+    STM32_PORT_USART3,
+    STM32_PORT_USART4,
+    STM32_PORT_USART5,
+    STM32_PORT_USART6,
+    STM32_PORT_USART7,
+    STM32_PORT_USART8,
+    STM32_PORT_USART_UNDEFINED,
 } stm32_usart_index_t;
 
 typedef enum {
-    STM32_UART_1 = 0,
-    STM32_UART_2,
-    STM32_UART_3,
-    STM32_UART_4,
-    STM32_UART_5,
-    STM32_UART_6,
-    STM32_UART_7,
-    STM32_UART_8,
-    STM32_UART_PORT_UNDEFINED,
+    STM32_PORT_UART1 = 0,
+    STM32_PORT_UART2,
+    STM32_PORT_UART3,
+    STM32_PORT_UART4,
+    STM32_PORT_UART5,
+    STM32_PORT_UART6,
+    STM32_PORT_UART7,
+    STM32_PORT_UART8,
+    STM32_PORT_UART_UNDEFINED,
 } stm32_uart_index_t;
 
 #define STM32_EXCP_USART_1   53

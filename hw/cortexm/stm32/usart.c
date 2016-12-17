@@ -582,14 +582,14 @@ static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
  */
 Object* stm32_usart_create(Object *parent, stm32_usart_index_t index)
 {
-    if ((int) index >= STM32_USART_PORT_UNDEFINED) {
+    if ((int) index >= STM32_PORT_USART_UNDEFINED) {
         hw_error("Cannot assign USART %d: QEMU supports only %d ports\n",
-                index + 1, STM32_USART_PORT_UNDEFINED);
+                index + 1, STM32_PORT_USART_UNDEFINED);
     }
 
     char child_name[10];
     snprintf(child_name, sizeof(child_name) - 1, "USART%d",
-            index - STM32_USART_1 + 1);
+            index - STM32_PORT_USART1 + 1);
     // Passing a local string is ok.
     Object *usart = cm_object_new(parent, child_name,
     TYPE_STM32_USART);
@@ -623,17 +623,17 @@ static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
      * for different variants.
      */
     switch (state->port_index) {
-    case STM32_USART_1:
+    case STM32_PORT_USART1:
         return STM32F4_01_57_XX_USART1_IRQn;
-    case STM32_USART_2:
+    case STM32_PORT_USART2:
         return STM32F4_01_57_XX_USART2_IRQn;
-    case STM32_USART_3:
+    case STM32_PORT_USART3:
         return STM32F4_01_57_XX_USART3_IRQn;
-    case STM32_UART_4:
+    case STM32_PORT_USART4:
         return STM32F4_01_57_XX_UART4_IRQn;
-    case STM32_UART_5:
+    case STM32_PORT_USART5:
         return STM32F4_01_57_XX_UART5_IRQn;
-    case STM32_USART_6:
+    case STM32_PORT_USART6:
         return STM32F4_01_57_XX_USART6_IRQn;
     default:
         return 1023; /* Whatever... */
@@ -739,7 +739,7 @@ static void stm32_usart_instance_init_callback(Object *obj)
 
     cm_object_property_add_int(obj, "port-index",
             (const int *) &state->port_index);
-    state->port_index = STM32_USART_PORT_UNDEFINED;
+    state->port_index = STM32_PORT_USART_UNDEFINED;
 
 }
 
@@ -762,7 +762,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     char periph_name[10];
     snprintf(periph_name, sizeof(periph_name) - 1, "USART%d",
-            state->port_index - STM32_USART_1 + 1);
+            state->port_index - STM32_PORT_USART1 + 1);
 
     /* Must be defined before creating registers. */
     cm_object_property_set_int(obj, 4, "register-size-bytes");
@@ -791,16 +791,16 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
         switch (state->port_index) {
 
-        case STM32_USART_1:
+        case STM32_PORT_USART1:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
                     state->port_index);
             break;
 
-        case STM32_USART_2:
-        case STM32_USART_3:
-        case STM32_USART_4:
-        case STM32_USART_5:
+        case STM32_PORT_USART2:
+        case STM32_PORT_USART3:
+        case STM32_PORT_USART4:
+        case STM32_PORT_USART5:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
                     state->port_index);
@@ -835,14 +835,14 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
         switch (state->port_index) {
 
-        case STM32_USART_1:
+        case STM32_PORT_USART1:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
                     state->port_index);
             break;
 
-        case STM32_USART_2:
-        case STM32_USART_3:
+        case STM32_PORT_USART2:
+        case STM32_PORT_USART3:
             // UART_4, UART_5:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
@@ -891,15 +891,15 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
         switch (state->port_index) {
 
-        case STM32_USART_1:
-        case STM32_USART_6:
+        case STM32_PORT_USART1:
+        case STM32_PORT_USART6:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
                     state->port_index);
             break;
 
-        case STM32_USART_2:
-        case STM32_USART_3:
+        case STM32_PORT_USART2:
+        case STM32_PORT_USART3:
             // UART_4, UART_5:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",

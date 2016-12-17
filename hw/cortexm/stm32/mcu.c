@@ -254,77 +254,77 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     // GPIOA
     if (capabilities->has_gpioa
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOA")) {
-        create_gpio(state, STM32_GPIO_PORT_A);
+        create_gpio(state, STM32_PORT_GPIOA);
         state->num_gpio = 1;
     }
 
     // GPIOB
     if (capabilities->has_gpiob
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOB")) {
-        create_gpio(state, STM32_GPIO_PORT_B);
+        create_gpio(state, STM32_PORT_GPIOB);
         state->num_gpio = 2;
     }
 
     // GPIOC
     if (capabilities->has_gpioc
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOC")) {
-        create_gpio(state, STM32_GPIO_PORT_C);
+        create_gpio(state, STM32_PORT_GPIOC);
         state->num_gpio = 3;
     }
 
     // GPIOD
     if (capabilities->has_gpiod
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOD")) {
-        create_gpio(state, STM32_GPIO_PORT_D);
+        create_gpio(state, STM32_PORT_GPIOD);
         state->num_gpio = 4;
     }
 
     // GPIOE
     if (capabilities->has_gpioe
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOE")) {
-        create_gpio(state, STM32_GPIO_PORT_E);
+        create_gpio(state, STM32_PORT_GPIOE);
         state->num_gpio = 5;
     }
 
     // GPIOF
     if (capabilities->has_gpiof
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOF")) {
-        create_gpio(state, STM32_GPIO_PORT_F);
+        create_gpio(state, STM32_PORT_GPIOF);
         state->num_gpio = 6;
     }
 
     // GPIOG
     if (capabilities->has_gpiog
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOG")) {
-        create_gpio(state, STM32_GPIO_PORT_G);
+        create_gpio(state, STM32_PORT_GPIOG);
         state->num_gpio = 7;
     }
 
     // GPIOH
     if (capabilities->has_gpioh
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOH")) {
-        create_gpio(state, STM32_GPIO_PORT_H);
+        create_gpio(state, STM32_PORT_GPIOH);
         state->num_gpio = 8;
     }
 
     // GPIOI
     if (capabilities->has_gpioi
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOI")) {
-        create_gpio(state, STM32_GPIO_PORT_I);
+        create_gpio(state, STM32_PORT_GPIOI);
         state->num_gpio = 9;
     }
 
     // GPIOJ
     if (capabilities->has_gpioj
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOJ")) {
-        create_gpio(state, STM32_GPIO_PORT_J);
+        create_gpio(state, STM32_PORT_GPIOJ);
         state->num_gpio = 10;
     }
 
     // GPIOK
     if (capabilities->has_gpiok
             && svd_has_named_peripheral(cm_state->svd_json, "GPIOK")) {
-        create_gpio(state, STM32_GPIO_PORT_K);
+        create_gpio(state, STM32_PORT_GPIOK);
         state->num_gpio = 11;
     }
 
@@ -332,49 +332,49 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     // USART1
     if (capabilities->has_usart1
             && svd_has_named_peripheral(cm_state->svd_json, "USART1")) {
-        create_usart(state, STM32_USART_1);
+        create_usart(state, STM32_PORT_USART1);
     }
 
     // USART2
     if (capabilities->has_usart2
             && svd_has_named_peripheral(cm_state->svd_json, "USART2")) {
-        create_usart(state, STM32_USART_2);
+        create_usart(state, STM32_PORT_USART2);
     }
 
     // USART3
     if (capabilities->has_usart3
             && svd_has_named_peripheral(cm_state->svd_json, "USART3")) {
-        create_usart(state, STM32_USART_3);
+        create_usart(state, STM32_PORT_USART3);
     }
 
     // USART4
     if (capabilities->has_usart4
             && svd_has_named_peripheral(cm_state->svd_json, "USART4")) {
-        create_usart(state, STM32_USART_4);
+        create_usart(state, STM32_PORT_USART4);
     }
 
     // USART5
     if (capabilities->has_usart5
             && svd_has_named_peripheral(cm_state->svd_json, "USART5")) {
-        create_usart(state, STM32_USART_5);
+        create_usart(state, STM32_PORT_USART5);
     }
 
     // USART6
     if (capabilities->has_usart6
             && svd_has_named_peripheral(cm_state->svd_json, "USART6")) {
-        create_usart(state, STM32_USART_6);
+        create_usart(state, STM32_PORT_USART6);
     }
 
     // USART7
     if (capabilities->has_usart7
             && svd_has_named_peripheral(cm_state->svd_json, "USART7")) {
-        create_usart(state, STM32_USART_7);
+        create_usart(state, STM32_PORT_USART7);
     }
 
     // USART8
     if (capabilities->has_usart8
             && svd_has_named_peripheral(cm_state->svd_json, "USART8")) {
-        create_usart(state, STM32_USART_8);
+        create_usart(state, STM32_PORT_USART8);
     }
 
     // UARTS are separate from USARTS
