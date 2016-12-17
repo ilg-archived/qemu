@@ -119,3 +119,4 @@ common.env
 .project
 *.orig
 .vscode
+vscode.mac.command
