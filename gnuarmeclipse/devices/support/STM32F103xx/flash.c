@@ -76,7 +76,7 @@ static void stm32f103xx_flash_create_objects(Object *obj, JSON_Object *svd, cons
     state->u.f1.fld.cr.eopie = cm_object_get_child_by_name(state->u.f1.reg.cr, "EOPIE");  
     
     // AR bitfields.
-    state->u.f1.fld.ar.far = cm_object_get_child_by_name(state->u.f1.reg.ar, "FAR");  
+    state->u.f1.fld.ar.far_ = cm_object_get_child_by_name(state->u.f1.reg.ar, "FAR");  
     
     // OBR bitfields.
     state->u.f1.fld.obr.opterr = cm_object_get_child_by_name(state->u.f1.reg.obr, "OPTERR"); 

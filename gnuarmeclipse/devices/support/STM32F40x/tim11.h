@@ -103,7 +103,7 @@ typedef struct {
           Object *psc; // 0x28 (Prescaler) 
           Object *arr; // 0x2C (Auto-reload register) 
           Object *ccr1; // 0x34 (Capture/compare register 1) 
-          Object *or; // 0x50 (Option register) 
+          Object *or_; // 0x50 (Option register) 
         } reg;
 
         struct { 
@@ -181,7 +181,7 @@ typedef struct {
           // OR (Option register) bitfields.
           struct { 
             Object *rmp; // [0:1] Input 1 remapping capability  
-          } or; 
+          } or_; 
         } fld;
       } f4;
 

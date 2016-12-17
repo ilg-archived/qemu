@@ -76,7 +76,7 @@ static void stm32f0x1_flash_create_objects(Object *obj, JSON_Object *svd, const 
     state->u.f0.fld.cr.force_optload = cm_object_get_child_by_name(state->u.f0.reg.cr, "FORCE_OPTLOAD");  
     
     // AR bitfields.
-    state->u.f0.fld.ar.far = cm_object_get_child_by_name(state->u.f0.reg.ar, "FAR");  
+    state->u.f0.fld.ar.far_ = cm_object_get_child_by_name(state->u.f0.reg.ar, "FAR");  
     
     // OBR bitfields.
     state->u.f0.fld.obr.opterr = cm_object_get_child_by_name(state->u.f0.reg.obr, "OPTERR"); 

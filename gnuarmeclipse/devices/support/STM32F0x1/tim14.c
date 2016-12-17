@@ -46,7 +46,7 @@ static void stm32f0x1_tim14_create_objects(Object *obj, JSON_Object *svd, const 
     state->u.f0.reg.psc = cm_object_get_child_by_name(obj, "PSC");
     state->u.f0.reg.arr = cm_object_get_child_by_name(obj, "ARR");
     state->u.f0.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
-    state->u.f0.reg.or = cm_object_get_child_by_name(obj, "OR");
+    state->u.f0.reg.or_ = cm_object_get_child_by_name(obj, "OR");
     
     
     // CR1 bitfields.
@@ -98,7 +98,7 @@ static void stm32f0x1_tim14_create_objects(Object *obj, JSON_Object *svd, const 
     state->u.f0.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->u.f0.reg.ccr1, "CCR1");  
     
     // OR bitfields.
-    state->u.f0.fld.or.rmp = cm_object_get_child_by_name(state->u.f0.reg.or, "RMP");  
+    state->u.f0.fld.or_.rmp = cm_object_get_child_by_name(state->u.f0.reg.or_, "RMP");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

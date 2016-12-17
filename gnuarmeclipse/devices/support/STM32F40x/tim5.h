@@ -112,7 +112,7 @@ typedef struct {
           Object *ccr4; // 0x40 (Capture/compare register 4) 
           Object *dcr; // 0x48 (DMA control register) 
           Object *dmar; // 0x4C (DMA address for full transfer) 
-          Object *or; // 0x50 (TIM5 option register) 
+          Object *or_; // 0x50 (TIM5 option register) 
         } reg;
 
         struct { 
@@ -306,7 +306,7 @@ typedef struct {
           // OR (TIM5 option register) bitfields.
           struct { 
             Object *it4_rmp; // [6:7] Timer Input 4 remap  
-          } or; 
+          } or_; 
         } fld;
       } f4;
 

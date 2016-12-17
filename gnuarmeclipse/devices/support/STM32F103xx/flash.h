@@ -146,7 +146,7 @@ typedef struct {
           
           // AR (Flash address register) bitfields.
           struct { 
-            Object *far; // [0:31] Flash Address  
+            Object *far_; // [0:31] Flash Address  
           } ar; 
           
           // OBR (Option byte register) bitfields.
