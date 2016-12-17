@@ -191,7 +191,7 @@ static void stm32_spi_instance_init_callback(Object *obj)
 
     cm_object_property_add_int(obj, "port-index",
             (const int *) &state->port_index);
-    state->port_index = STM32_SPI_PORT_UNDEFINED;
+    state->port_index = STM32_PORT_SPI_UNDEFINED;
 
     // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
@@ -242,10 +242,9 @@ static void stm32_spi_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/SPI%dEN",
-                state->port_index - STM32_SPI_PORT_A + 1);
+                state->port_index - STM32_PORT_SPI1 + 1);
 
 
         } else {

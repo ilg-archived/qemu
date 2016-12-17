@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_Ethernet_MAC DEVICE_PATH_STM32 "Ethernet_MAC"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_Ethernet_MAC_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_Ethernet_MAC_PORT_UNDEFINED = 0xFF,
-} stm32_ethernet_mac_index_t;
 
 // ----------------------------------------------------------------------------
 

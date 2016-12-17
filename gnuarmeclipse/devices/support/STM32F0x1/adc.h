@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_ADC DEVICE_PATH_STM32 "ADC"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_ADC_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_ADC_PORT_UNDEFINED = 0xFF,
-} stm32_adc_index_t;
 
 // ----------------------------------------------------------------------------
 

@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_OTG_HS_PWRCLK DEVICE_PATH_STM32 "OTG_HS_PWRCLK"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_OTG_HS_PWRCLK_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_OTG_HS_PWRCLK_PORT_UNDEFINED = 0xFF,
-} stm32_otg_hs_pwrclk_index_t;
 
 // ----------------------------------------------------------------------------
 

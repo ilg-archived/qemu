@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_TIM11 DEVICE_PATH_STM32 "TIM11"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_TIM11_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_TIM11_PORT_UNDEFINED = 0xFF,
-} stm32_tim11_index_t;
 
 // ----------------------------------------------------------------------------
 

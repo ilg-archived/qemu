@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_RNG DEVICE_PATH_STM32 "RNG"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_RNG_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_RNG_PORT_UNDEFINED = 0xFF,
-} stm32_rng_index_t;
 
 // ----------------------------------------------------------------------------
 

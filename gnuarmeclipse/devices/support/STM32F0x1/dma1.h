@@ -33,9 +33,10 @@
 
 // Note: the "port-index" property has type "int".
 typedef enum {
-    STM32_DMA_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_DMA_PORT_UNDEFINED = 0xFF,
+    // TODO: keep this list ordered.
+    STM32_PORT_DMA1,
+    STM32_PORT_DMA2,
+    STM32_PORT_DMA_UNDEFINED = 0xFF,
 } stm32_dma_index_t;
 
 // ----------------------------------------------------------------------------

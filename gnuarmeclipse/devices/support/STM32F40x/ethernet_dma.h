@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_Ethernet_DMA DEVICE_PATH_STM32 "Ethernet_DMA"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_Ethernet_DMA_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_Ethernet_DMA_PORT_UNDEFINED = 0xFF,
-} stm32_ethernet_dma_index_t;
 
 // ----------------------------------------------------------------------------
 

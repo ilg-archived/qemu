@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_OTG_FS_GLOBAL DEVICE_PATH_STM32 "OTG_FS_GLOBAL"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_OTG_FS_GLOBAL_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_OTG_FS_GLOBAL_PORT_UNDEFINED = 0xFF,
-} stm32_otg_fs_global_index_t;
 
 // ----------------------------------------------------------------------------
 

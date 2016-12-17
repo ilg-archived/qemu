@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_EXTI DEVICE_PATH_STM32 "EXTI"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_EXTI_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_EXTI_PORT_UNDEFINED = 0xFF,
-} stm32_exti_index_t;
 
 // ----------------------------------------------------------------------------
 

@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_CRC DEVICE_PATH_STM32 "CRC"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_CRC_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_CRC_PORT_UNDEFINED = 0xFF,
-} stm32_crc_index_t;
 
 // ----------------------------------------------------------------------------
 

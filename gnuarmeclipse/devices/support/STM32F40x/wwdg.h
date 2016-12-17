@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_WWDG DEVICE_PATH_STM32 "WWDG"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_WWDG_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_WWDG_PORT_UNDEFINED = 0xFF,
-} stm32_wwdg_index_t;
 
 // ----------------------------------------------------------------------------
 

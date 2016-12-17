@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_COMP DEVICE_PATH_STM32 "COMP"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_COMP_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_COMP_PORT_UNDEFINED = 0xFF,
-} stm32_comp_index_t;
 
 // ----------------------------------------------------------------------------
 

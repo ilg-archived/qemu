@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_RTC DEVICE_PATH_STM32 "RTC"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_RTC_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_RTC_PORT_UNDEFINED = 0xFF,
-} stm32_rtc_index_t;
 
 // ----------------------------------------------------------------------------
 

@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_SDIO DEVICE_PATH_STM32 "SDIO"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_SDIO_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_SDIO_PORT_UNDEFINED = 0xFF,
-} stm32_sdio_index_t;
 
 // ----------------------------------------------------------------------------
 

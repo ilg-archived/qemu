@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_USB DEVICE_PATH_STM32 "USB"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_USB_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_USB_PORT_UNDEFINED = 0xFF,
-} stm32_usb_index_t;
 
 // ----------------------------------------------------------------------------
 

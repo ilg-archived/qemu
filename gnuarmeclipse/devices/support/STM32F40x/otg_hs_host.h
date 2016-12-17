@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_OTG_HS_HOST DEVICE_PATH_STM32 "OTG_HS_HOST"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_OTG_HS_HOST_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_OTG_HS_HOST_PORT_UNDEFINED = 0xFF,
-} stm32_otg_hs_host_index_t;
 
 // ----------------------------------------------------------------------------
 

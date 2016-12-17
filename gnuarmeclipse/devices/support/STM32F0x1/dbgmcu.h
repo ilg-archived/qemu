@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_DBGMCU DEVICE_PATH_STM32 "DBGMCU"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_DBGMCU_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_DBGMCU_PORT_UNDEFINED = 0xFF,
-} stm32_dbgmcu_index_t;
 
 // ----------------------------------------------------------------------------
 

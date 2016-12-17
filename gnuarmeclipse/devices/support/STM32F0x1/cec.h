@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_CEC DEVICE_PATH_STM32 "CEC"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_CEC_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_CEC_PORT_UNDEFINED = 0xFF,
-} stm32_cec_index_t;
 
 // ----------------------------------------------------------------------------
 

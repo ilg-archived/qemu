@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_FLASH DEVICE_PATH_STM32 "FLASH"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_FLASH_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_FLASH_PORT_UNDEFINED = 0xFF,
-} stm32_flash_index_t;
 
 // ----------------------------------------------------------------------------
 

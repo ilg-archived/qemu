@@ -29,14 +29,7 @@
 
 #define DEVICE_PATH_STM32_BKP DEVICE_PATH_STM32 "BKP"
 
-// ----------------------------------------------------------------------------
 
-// Note: the "port-index" property has type "int".
-typedef enum {
-    STM32_BKP_PORT_1 = 0,
-    // TODO add all other peripherals in this group
-    STM32_BKP_PORT_UNDEFINED = 0xFF,
-} stm32_bkp_index_t;
 
 // ----------------------------------------------------------------------------
 
