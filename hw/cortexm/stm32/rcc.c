@@ -1296,12 +1296,11 @@ static void stm32f40x_rcc_create_objects(Object *obj, JSON_Object *svd,
 
 // ----- Private --------------------------------------------------------------
 
-/*
- * For all other peripherals,
- * when the peripheral clock is not active,
- * the peripheral register values may not
- * be readable by software and the returned
- * value is always 0x0. */
+// For all other peripherals,
+// when the peripheral clock is not active,
+// the peripheral register values may not
+// be readable by software and the returned
+// value is always 0x0.
 
 static uint8_t AHBPrescTable[16] = {
     0,
@@ -1327,10 +1326,8 @@ extern int system_clock_scale;
 
 // ----------------------------------------------------------------------------
 
-/*
- * Recompute the system clock, after each change in the RCC registers.
- * The code is inspired by CMSIS init sequences.
- */
+// Recompute the system clock, after each change in the RCC registers.
+// The code is inspired by CMSIS init sequences.
 static void stm32_rcc_update_clocks(STM32RCCState *state)
 {
     const STM32Capabilities *capabilities = state->capabilities;
@@ -1340,22 +1337,22 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        /* The following code was copied from the CMSIS system_stm32f0xx.c  */
+        // The following code was copied from the CMSIS system_stm32f0xx.c
 
         switch (register_bitfield_read_value(state->u.f0.fld.cfgr.sws)) {
         case 0:
-            /* HSI used as system clock. */
+            // HSI used as system clock.
             cpu_freq_hz = state->hsi_freq_hz;
             break;
 
         case 1:
-            /* HSE used as system clock. */
+            // HSE used as system clock.
             cpu_freq_hz = state->hse_freq_hz;
             break;
 
         case 2: {
-            /* PLL used as system clock. */
-            /* Get PLL clock source and multiplication factor. */
+            // PLL used as system clock.
+            // Get PLL clock source and multiplication factor.
             uint32_t pllmul = register_bitfield_read_value(
                     state->u.f0.fld.cfgr.pllmul) + 2;
             uint32_t pllsrc = register_bitfield_read_value(
@@ -1367,8 +1364,8 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
 
             switch (pllsrc) {
             case 0:
-                /* HSI oscillator clock divided by 2 selected as PLL
-                 * clock entry */
+                // HSI oscillator clock divided by 2 selected as PLL
+                // clock entry
                 cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmul;
                 break;
 
@@ -1390,58 +1387,56 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
         }
         pre_scaler = AHBPrescTable[register_bitfield_read_value(
                 state->u.f0.fld.cfgr.hpre)];
-        /* HCLK frequency */
+        // HCLK frequency
         cpu_freq_hz >>= pre_scaler;
 
         break;
 
     case STM32_FAMILY_F1:
 
-        /* The following code was copied from the CMSIS system_stm32f10x.c  */
+        // The following code was copied from the CMSIS system_stm32f10x.c
 
         switch (register_bitfield_read_value(state->u.f1.fld.cfgr.sws)) {
         case 0:
-            /* HSI used as system clock. */
+            // HSI used as system clock.
             cpu_freq_hz = state->hsi_freq_hz;
             break;
 
         case 1:
-            /* HSE used as system clock. */
+            // HSE used as system clock.
             cpu_freq_hz = state->hse_freq_hz;
             break;
 
         case 2:
-            /* PLL used as system clock. */
+            // PLL used as system clock.
             if (!capabilities->f1.is_cl) {
-                /* Most F1 families, except CL. */
+                // Most F1 families, except CL.
 
-                /* Get PLL clock source and multiplication factor. */
+                // Get PLL clock source and multiplication factor.
                 uint32_t pllmul = register_bitfield_read_value(
                         state->u.f1.fld.cfgr.pllmul) + 2;
                 if (register_bitfield_is_zero(state->u.f1.fld.cfgr.pllsrc)) {
-                    /* HSI oscillator clock divided by 2 selected as PLL
-                     * clock entry */
+                    // HSI oscillator clock divided by 2 selected as PLL
+                    // clock entry
                     cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmul;
                 } else {
 #if 0
                     if (capabilities->f1.is_ldvl || capabilities->f1.is_mdvl
                             || capabilities->f1.is_hdvl) {
-                        /* The value line families use the CFGR2. */
+                        // The value line families use the CFGR2.
                         uint32_t prediv1factor = 0;
                         prediv1factor = register_bitfield_read_value(
                                 state->u.f1.fld.cfgr2.prediv1) + 1;
-                        /*
-                         * HSE oscillator clock selected as PREDIV1
-                         * clock entry.
-                         */
+                        // HSE oscillator clock selected as PREDIV1
+                        // clock entry.
                         cpu_freq_hz = (state->hse_freq_hz / prediv1factor)
                         * pllmul;
                     } else {
 #endif
-                    /* HSE selected as PLL clock entry. */
+                    // HSE selected as PLL clock entry.
                     if (!register_bitfield_is_zero(
                             state->u.f1.fld.cfgr.pllxtpre)) {
-                        /* HSE oscillator clock divided by 2. */
+                        // HSE oscillator clock divided by 2.
                         cpu_freq_hz = (state->hse_freq_hz >> 1) * pllmul;
                     } else {
                         cpu_freq_hz = state->hse_freq_hz * pllmul;
@@ -1452,44 +1447,36 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
                 }
 #if 0
             } else {
-                /* The F1 CL family. */
+                // The F1 CL family.
                 uint32_t pllmul = register_bitfield_read_value(
                         state->u.f1.fld.cfgr.pllmul);
 
                 if (pllmul != 13) {
                     pllmul += 2;
                 } else {
-                    /* PLL multiplication factor = PLL input clock * 6.5 */
+                    // PLL multiplication factor = PLL input clock * 6.5
                     pllmul = 13 / 2;
                 }
 
                 if (register_bitfield_is_zero(state->u.f1.fld.cfgr.pllsrc)) {
-                    /*
-                     * HSI oscillator clock divided by 2 selected as PLL
-                     * clock entry.
-                     */
+                    // HSI oscillator clock divided by 2 selected as PLL
+                    // clock entry.
                     cpu_freq_hz = (state->hsi_freq_hz >> 1) * pllmul;
                 } else {
-                    /*
-                     * PREDIV1 selected as PLL clock entry.
-                     * Get PREDIV1 clock source and division factor.
-                     */
+                    // PREDIV1 selected as PLL clock entry.
+                    // Get PREDIV1 clock source and division factor.
                     uint32_t prediv1factor = register_bitfield_read_value(
                             state->u.f1.fld.cfgr2.prediv1) + 1;
 
                     if (register_bitfield_is_zero(state->u.f1.fld.cfgr2.prediv1src)) {
-                        /*
-                         * HSE oscillator clock selected as PREDIV1
-                         * clock entry.
-                         */
+                        // HSE oscillator clock selected as PREDIV1
+                        // clock entry.
                         cpu_freq_hz = (state->hse_freq_hz / prediv1factor)
                         * pllmul;
                     } else {
-                        /*
-                         * PLL2 clock selected as PREDIV1 clock entry.
-                         * Get PREDIV2 division factor and PLL2
-                         * multiplication factor.
-                         */
+                        // PLL2 clock selected as PREDIV1 clock entry.
+                        // Get PREDIV2 division factor and PLL2
+                        // multiplication factor.
                         uint32_t prediv2factor = register_bitfield_read_value(
                                 state->u.f1.fld.cfgr2.prediv2) + 1;
                         uint32_t pll2mull = register_bitfield_read_value(
@@ -1508,50 +1495,46 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
             break;
         }
 
-        /*
-         * Compute HCLK clock frequency. Get HCLK pre-scaler.
-         */
+        // Compute HCLK clock frequency. Get HCLK pre-scaler.
         pre_scaler = AHBPrescTable[register_bitfield_read_value(
                 state->u.f1.fld.cfgr.hpre)];
-        /* HCLK clock frequency */
+        // HCLK clock frequency
         cpu_freq_hz >>= pre_scaler;
 
         break;
 
     case STM32_FAMILY_F4:
 
-        /* The following code was copied from the CMSIS system_stm32f4xx.c  */
+        // The following code was copied from the CMSIS system_stm32f4xx.c
 
-        /* Get SYSCLK source */
+        // Get SYSCLK source
         switch (register_bitfield_read_value(state->u.f4.fld.cfgr.sws)) {
         case 0:
-            /* HSI used as system clock source */
+            // HSI used as system clock source
             cpu_freq_hz = state->hsi_freq_hz;
             break;
 
         case 1:
-            /* HSE used as system clock source */
+            // HSE used as system clock source
             cpu_freq_hz = state->hse_freq_hz;
             break;
 
         case 2:
 
-            /* PLL used as system clock source */
+            // PLL used as system clock source
         {
             uint32_t pllm;
             uint32_t pllvco = 0;
-            /*
-             * PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N
-             * SYSCLK = PLL_VCO / PLL_P
-             */
+            // PLL_VCO = (HSE_VALUE or HSI_VALUE / PLL_M) * PLL_N
+            // SYSCLK = PLL_VCO / PLL_P
             pllm = register_bitfield_read_value(state->u.f4.fld.pllcfgr.pllm);
             if (!register_bitfield_is_zero(state->u.f4.fld.pllcfgr.pllsrc)) {
-                /* HSE used as PLL clock source */
+                // HSE used as PLL clock source
                 pllvco = (state->hse_freq_hz / pllm)
                         * register_bitfield_read_value(
                                 state->u.f4.fld.pllcfgr.plln);
             } else {
-                /* HSI used as PLL clock source */
+                // HSI used as PLL clock source
                 pllvco = (state->hsi_freq_hz / pllm)
                         * register_bitfield_read_value(
                                 state->u.f4.fld.pllcfgr.plln);
@@ -1567,12 +1550,10 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
             cpu_freq_hz = state->hsi_freq_hz;
             break;
         }
-        /*
-         * Compute HCLK clock frequency. Get HCLK pre-scaler.
-         */
+        // Compute HCLK clock frequency. Get HCLK pre-scaler.
         pre_scaler = AHBPrescTable[register_bitfield_read_value(
                 state->u.f4.fld.cfgr.hpre)];
-        /* HCLK frequency */
+        // HCLK frequency
         cpu_freq_hz >>= pre_scaler;
 
         break;
@@ -1583,7 +1564,7 @@ static void stm32_rcc_update_clocks(STM32RCCState *state)
     }
 
     if (cpu_freq_hz == 0) {
-        cpu_freq_hz = state->hsi_freq_hz; /* Should be non-zero. */
+        cpu_freq_hz = state->hsi_freq_hz; // Should be non-zero.
     }
     state->cpu_freq_hz = cpu_freq_hz;
 
@@ -1628,16 +1609,14 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /*
-     * Parent realize() is called after setting properties and creating
-     * registers.
-     */
+    // Parent realize() is called after setting properties and creating
+    // registers.
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32RCCState *state = STM32_RCC_STATE(dev);
-    /* First thing first: get capabilities from MCU, needed everywhere. */
+    // First thing first: get capabilities from MCU, needed everywhere.
     state->capabilities = mcu->capabilities;
 
     const STM32Capabilities *capabilities = state->capabilities;
@@ -1647,16 +1626,16 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
     const char *periph_name = "RCC";
 
-    /* Must be defined before creating registers. */
+    // Must be defined before creating registers.
     cm_object_property_set_int(obj, 4, "register-size-bytes");
 
-    /* TODO: get it from MCU */
+    // TODO: get it from MCU
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
     assert(capabilities->hsi_freq_hz);
     assert(capabilities->lsi_freq_hz);
 
-    /* Set defaults, need to be non-zero */
+    // Set defaults, need to be non-zero
     if (state->hsi_freq_hz == 0) {
         state->hsi_freq_hz = capabilities->hsi_freq_hz;
     }
@@ -1672,7 +1651,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
             stm32f0x1_rcc_create_objects(obj, cm_state->svd_json, periph_name);
 
-            /* Add callbacks. */
+            // Add callbacks.
             peripheral_register_set_post_write(state->u.f0.reg.cr,
                     &stm32_rcc_post_write_callback);
             peripheral_register_set_post_write(state->u.f0.reg.cfgr,
@@ -1684,7 +1663,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             peripheral_register_set_post_write(state->u.f0.reg.cfgr2,
                     &stm32_rcc_post_write_callback);
 
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f0.fld.cr.hsirdy, "HSION",
                     "follows");
             if (state->hse_freq_hz) {
@@ -1749,7 +1728,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             stm32f103xx_rcc_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
-            /* Callbacks. */
+            // Callbacks.
             peripheral_register_set_post_write(state->u.f1.reg.cr,
                     &stm32_rcc_post_write_callback);
             peripheral_register_set_post_write(state->u.f1.reg.cfgr,
@@ -1759,7 +1738,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             peripheral_register_set_post_write(state->u.f1.reg.csr,
                     &stm32_rcc_post_write_callback);
 
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f1.fld.cr.hsirdy, "HSION",
                     "follows");
 
@@ -1809,7 +1788,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
             stm32f1cl_rcc_create_objects(obj, mcu->family_json);
 
-            /* Add callbacks. */
+            // Add callbacks.
             peripheral_register_set_post_write(state->u.f1.reg.cr,
                     &stm32_rcc_post_write_callback);
             peripheral_register_set_post_write(state->u.f1.reg.cfgr,
@@ -1821,7 +1800,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
             peripheral_register_set_post_write(state->u.f1.reg.cfgr2,
                     &stm32_rcc_post_write_callback);
 
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f1.cr.hsirdy, "hsion", "follows");
             if (state->hse_freq_hz) {
                 cm_object_property_set_str(state->u.f1.cr.hserdy, "hseon",
@@ -1882,13 +1861,13 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
             stm32f40x_rcc_create_objects(obj, cm_state->svd_json, periph_name);
 
-            /* Add callbacks. */
+            // Add callbacks.
             peripheral_register_set_post_write(state->u.f4.reg.pllcfgr,
                     &stm32_rcc_post_write_callback);
             peripheral_register_set_post_write(state->u.f4.reg.cfgr,
                     &stm32_rcc_post_write_callback);
 
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f4.fld.cr.hsirdy, "HSION",
                     "follows");
             if (state->hse_freq_hz) {
@@ -1946,13 +1925,13 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
             stm32f411_rcc_create_objects(obj, mcu->family_json);
 
-            /* Add callbacks. */
+            // Add callbacks.
             peripheral_register_set_post_write(state->u.f4.reg.pllcfgr,
                     &stm32_rcc_post_write_callback);
             peripheral_register_set_post_write(state->u.f4.reg.cfgr,
                     &stm32_rcc_post_write_callback);
 
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f4.fld.cr.hsirdy, "hsion",
                     "follows");
             if (state->hse_freq_hz) {
@@ -2004,13 +1983,13 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
             stm32f4_23_x_rcc_create_objects(obj, mcu->family_json);
 
-            /* Add callbacks. */
+            // Add callbacks.
             peripheral_register_set_post_write(state->u.f4.reg.pllcfgr,
                     &stm32_rcc_post_write_callback);
             peripheral_register_set_post_write(state->u.f4.reg.cfgr,
                     &stm32_rcc_post_write_callback);
 
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f4.fld.cr.hsirdy, "hsion",
                     "follows");
             if (state->hse_freq_hz) {
@@ -2077,7 +2056,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_RCC)) {
         return;
     }
@@ -2087,7 +2066,7 @@ static void stm32_rcc_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_STM32_RCC);
 
     STM32RCCState *state = STM32_RCC_STATE(dev);
@@ -2108,7 +2087,8 @@ static const TypeInfo stm32_rcc_type_info = {
     .instance_init = stm32_rcc_instance_init_callback,
     .instance_size = sizeof(STM32RCCState),
     .class_init = stm32_rcc_class_init_callback,
-    .class_size = sizeof(STM32RCCState) /**/
+    .class_size = sizeof(STM32RCCState)
+/**/
 };
 
 static void stm32_rcc_register_types(void)

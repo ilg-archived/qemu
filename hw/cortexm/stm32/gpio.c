@@ -1107,9 +1107,8 @@ static void stm32f40x_gpio_create_objects(Object *obj, JSON_Object *svd,
 
 // ----- Public ---------------------------------------------------------------
 
-/*
- * Create GPIO%c and return it.
- */
+// Create GPIO%c and return it.
+
 Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
 {
     if ((int) index >= STM32_PORT_GPIO_UNDEFINED) {
@@ -1137,9 +1136,8 @@ Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
     return gpio;
 }
 
-/*
- * Return a pointer to the GPIO%c object, or null if not found.
- */
+// Return a pointer to the GPIO%c object, or null if not found.
+
 Object* stm32_gpio_get(int index)
 {
     char gpio_name[40];
@@ -1182,10 +1180,10 @@ static void stm32f0_gpio_brr_post_write_callback(Object *reg, Object *periph,
     Object *odr = state->reg.odr;
     assert(odr);
 
-    /* 'value' may be have any size, use full_word. */
+    // 'value' may be have any size, use full_word.
     uint32_t bits_to_reset = (full_value & 0x0000FFFF);
 
-    /* Clear the BR bits. */
+    // Clear the BR bits.
     uint32_t new_value = (peripheral_register_get_raw_value(odr)
             & (~bits_to_reset));
     stm32_gpio_update_odr_and_idr(state, odr, state->reg.idr, new_value);
@@ -1193,11 +1191,9 @@ static void stm32f0_gpio_brr_post_write_callback(Object *reg, Object *periph,
 
 // ----------------------------------------------------------------------------
 
-/* STM32F1[LMHX]D, STM32F1CL */
+// STM32F1[LMHX]D, STM32F1CL
 
-/*
- *  The F1 peripheral registers must be accessed only as words (32-bit).
- */
+//  The F1 peripheral registers must be accessed only as words (32-bit).
 
 static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index);
 
@@ -1243,11 +1239,11 @@ static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     Object *odr = state->u.f1.reg.odr;
     assert(odr);
 
-    /* Although 'value' is known to be 32-bits, for consistency use full_value */
+    // Although 'value' is known to be 32-bits, for consistency use full_value
     uint32_t bits_to_set = (full_value & 0x0000FFFF);
     uint32_t bits_to_reset = ((full_value >> 16) & 0x0000FFFF);
 
-    /* Clear the BR bits and set the BS bits. */
+    // Clear the BR bits and set the BS bits.
     uint32_t new_value = (peripheral_register_get_raw_value(odr)
             & (~bits_to_reset)) | bits_to_set;
     stm32_gpio_update_odr_and_idr(state, odr, state->u.f1.reg.idr, new_value);
@@ -1262,10 +1258,10 @@ static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
     Object *odr = state->u.f1.reg.odr;
     assert(odr);
 
-    /* Although 'value' is known to be 32-bits, for consistency use full_value */
+    // Although 'value' is known to be 32-bits, for consistency use full_value
     uint32_t bits_to_reset = (full_value & 0x0000FFFF);
 
-    /* Clear the BR bits. */
+    // Clear the BR bits.
     uint32_t new_value = peripheral_register_get_raw_value(odr)
             & ~bits_to_reset;
     stm32_gpio_update_odr_and_idr(state, odr, state->u.f1.reg.idr, new_value);
@@ -1273,16 +1269,14 @@ static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
 
 // ----------------------------------------------------------------------------
 
-/*
- * Gets the four configuration bits for the pin from the CRL or CRH
- * register.
- */
+// Gets the four configuration bits for the pin from the CRL or CRH
+// register.
+
 static uint32_t stm32f1_gpio_get_pin_config(STM32GPIOState *state, unsigned pin)
 {
-    /*
-     * Simplify extract logic by combining both 32 bit registers into
-     * one 64 bit value.
-     */
+    // Simplify extract logic by combining both 32 bit registers into
+    // one 64 bit value.
+
     uint64_t cr_64 = ((uint64_t) peripheral_register_get_raw_value(
             state->u.f1.reg.crh) << 32)
             | (peripheral_register_get_raw_value(state->u.f1.reg.crl)
@@ -1339,10 +1333,8 @@ static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index)
 
     for (pin = start_pin; pin < start_pin + 8; pin++) {
         pin_dir = stm32f1_gpio_get_mode_bits(state, pin);
-        /*
-         * If the mode is 0, the pin is input.  Otherwise, it
-         * is output.
-         */
+        // If the mode is 0, the pin is input.  Otherwise, it
+        // is output.
         if (pin_dir == 0) {
             state->dir_mask &= ~(1 << pin); /* Input pin */
         } else {
@@ -1353,7 +1345,7 @@ static void stm32f1_gpio_update_dir_mask(STM32GPIOState *state, int index)
 
 // ----------------------------------------------------------------------------
 
-/* STM32F4[01][57]xx, STM32F4[23]xxx, STM32F411xx */
+// STM32F4[01][57]xx, STM32F4[23]xxx, STM32F411xx
 
 static uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit);
 static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state);
@@ -1378,7 +1370,7 @@ static void stm32f4_gpio_odr_post_write_callback(Object *reg, Object *periph,
 
     uint16_t prev_value = peripheral_register_get_raw_prev_value(odr);
 
-    /* 'value' may be have any size, use full_word. */
+    // 'value' may be have any size, use full_word.
     stm32_gpio_set_odr_irqs(state, prev_value, full_value);
     stm32_gpio_update_idr(state, state->reg.idr, full_value);
 }
@@ -1392,11 +1384,11 @@ static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     Object *odr = state->reg.odr;
     assert(odr);
 
-    /* 'value' may be have any size, use full_word. */
+    // 'value' may be have any size, use full_word.
     uint32_t bits_to_set = (full_value & 0x0000FFFF);
     uint32_t bits_to_reset = ((full_value >> 16) & 0x0000FFFF);
 
-    /* Clear the BR bits and set the BS bits. */
+    // Clear the BR bits and set the BS bits.
     uint32_t new_value = (peripheral_register_get_raw_value(odr)
             & (~bits_to_reset)) | bits_to_set;
     stm32_gpio_update_odr_and_idr(state, odr, state->reg.idr, new_value);
@@ -1404,80 +1396,69 @@ static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
 
 /* ------------------------------------------------------------------------- */
 
-/*
- * The F4 family has more uniform configuration registers, each
- * register bit has a 2-bits slice in a register.
- */
+// The F4 family has more uniform configuration registers, each
+// register bit has a 2-bits slice in a register.
 static uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit)
 {
     assert(bit < 16);
     return (value >> (bit * 2)) & 0x3;
 }
 
-/*
- * Update the cached direction mask on MODER changes.
- */
+// Update the cached direction mask on MODER changes.
+
 static void stm32f4_gpio_update_dir_mask(STM32GPIOState *state)
 {
     uint32_t moder = peripheral_register_get_raw_value(state->reg.moder);
 
-    /* Fully recompute the direction mask. */
+    // Fully recompute the direction mask.
     int bit;
     uint32_t mode;
     for (bit = 0; bit < 16; bit++) {
         mode = stm32f4_gpio_get_config_bits(moder, bit);
-        /*
-         * If the mode is 1, the bit is output. Otherwise, it
-         * is input or has alternate functions.
-         */
+        // If the mode is 1, the bit is output. Otherwise, it
+        // is input or has alternate functions.
+
         if (mode == 1) {
-            state->dir_mask |= (1 << bit); /* Output pin */
+            state->dir_mask |= (1 << bit); // Output pin
         } else {
-            state->dir_mask &= ~(1 << bit); /* Input pin */
+            state->dir_mask &= ~(1 << bit); // Input pin
         }
     }
 }
 
 // ----------------------------------------------------------------------------
 
-/*
- * Write the ODR register and trigger interrupts for changed pins
- * (output only).
- *
- * The odr pointer is passed to make the function useful for other
- * families too.
- */
+// Write the ODR register and trigger interrupts for changed pins
+// (output only).
+//
+// The odr pointer is passed to make the function useful for other
+// families too.
+
 static void stm32_gpio_update_odr_and_idr(STM32GPIOState *state, Object *odr,
         Object *idr, uint16_t new_value)
 {
     assert(odr);
 
-    /* Preserve old value, to compute changed bits */
+    // Preserve old value, to compute changed bits
     uint16_t old_value = peripheral_register_get_raw_value(odr);
 
-    /*
-     * Update register value. Per documentation, the upper 16 bits
-     * always read as 0, so write is used, to apply the mask.
-     */
+    // Update register value. Per documentation, the upper 16 bits
+    // always read as 0, so write is used, to apply the mask.
     peripheral_register_write_value(odr, new_value);
 
     stm32_gpio_set_odr_irqs(state, old_value, new_value);
     stm32_gpio_update_idr(state, idr, new_value);
 }
 
-/*
- * If EXTI is sensitive to this GPIO pin, set interrupt.
- */
+// If EXTI is sensitive to this GPIO pin, set interrupt.
 static void stm32_gpio_set_exti_irq(STM32GPIOState *state, int pin, int level)
 {
     assert(pin < 16);
 
     const STM32Capabilities *capabilities = state->capabilities;
 
-    /*
-     * Implement the SYSCFG/AFIO multiplexers at origin, in GPIO,
-     * instead of forwarding all interrupts to EXTI to be rejected there.
-     */
+    // Implement the SYSCFG/AFIO multiplexers at origin, in GPIO,
+    // instead of forwarding all interrupts to EXTI to be rejected there.
 
     if (capabilities->family == STM32_FAMILY_F1) {
         if (register_bitfield_read_value(state->afio->exticr.exti[pin])
@@ -1492,27 +1473,23 @@ static void stm32_gpio_set_exti_irq(STM32GPIOState *state, int pin, int level)
     }
 }
 
-/*
- * Identify ODR bits that changed, then notify listeners (like LEDs)
- * and trigger interrupts.
- */
+// Identify ODR bits that changed, then notify listeners (like LEDs)
+// and trigger interrupts.
 static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
         uint16_t new_odr)
 {
-    /* Compute pins that changed value. */
+    // Compute pins that changed value.
     uint16_t changed = old_odr ^ new_odr;
 
-    /* Filter changed pins that are outputs - do not touch input pins. */
+    // Filter changed pins that are outputs - do not touch input pins.
     uint16_t changed_out = changed & state->dir_mask;
 
     uint16_t mask = 1;
     if (changed_out) {
         int pin;
         for (pin = 0; pin < STM32_GPIO_PIN_COUNT; pin++, mask <<= 1) {
-            /*
-             * If the value of this pin has changed, then update
-             * the output IRQ.
-             */
+            // If the value of this pin has changed, then update
+            // the output IRQ.
             if ((changed_out & mask) != 0) {
                 int level = (new_odr & mask) ? 1 : 0;
 
@@ -1524,26 +1501,23 @@ static void stm32_gpio_set_odr_irqs(STM32GPIOState *state, uint16_t old_odr,
     }
 }
 
-/*
- * For output pins, make them read back the written value.
- *
- * TODO: check if there is anything special for open-drain pins.
- */
+// For output pins, make them read back the written value.
+//
+// TODO: check if there is anything special for open-drain pins.
+
 static void stm32_gpio_update_idr(STM32GPIOState *state, Object *idr,
         uint16_t new_odr)
 {
     assert(idr);
 
-    /* Clear output bits. */
+    // Clear output bits.
     peripheral_register_and_raw_value(idr, ~state->dir_mask);
-    /* Copy output bits from ODR. */
+    // Copy output bits from ODR.
     peripheral_register_or_raw_value(idr, (new_odr & state->dir_mask));
 }
 
-/*
- * Callback fired when a GPIO input pin changes state (based
- * on an external stimulus from the machine).
- */
+// Callback fired when a GPIO input pin changes state (based
+// on an external stimulus from the machine).
 static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
 {
     qemu_log_mask(LOG_FUNC, "%s(%d,%d) \n", __FUNCTION__, n, level);
@@ -1559,7 +1533,7 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
     assert(capabilities != NULL);
 
     Object *idr;
-    /* Update internal pin state. */
+    // Update internal pin state.
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
@@ -1584,10 +1558,10 @@ static void stm32_gpio_in_irq_handler(void *opaque, int n, int level)
     // TODO: check if a mutex is needed,
     // this can be called from the graphic thread.
     if (level == 0) {
-        /* Clear the IDR bit. */
+        // Clear the IDR bit.
         peripheral_register_and_raw_value(idr, ~(1 << pin));
     } else {
-        /* Set the IDR bit. */
+        // Set the IDR bit.
         peripheral_register_or_raw_value(idr, (1 << pin));
     }
 
@@ -1609,16 +1583,12 @@ static void stm32_gpio_instance_init_callback(Object *obj)
     cm_irq_init_in(DEVICE(obj), stm32_gpio_in_irq_handler,
     STM32_IRQ_GPIO_IDR_IN, STM32_GPIO_PIN_COUNT);
 
-    /*
-     * Outgoing interrupts, will be later connected to EXTI.
-     */
+    // Outgoing interrupts, will be later connected to EXTI.
     cm_irq_init_out(DEVICE(obj), state->exti_irq, STM32_IRQ_GPIO_EXTI_OUT,
     STM32_GPIO_PIN_COUNT);
 
-    /*
-     * Outgoing interrupts, machine devices like LEDs might
-     * be connected here.
-     */
+    // Outgoing interrupts, machine devices like LEDs might
+    // be connected here.
     cm_irq_init_out(DEVICE(obj), state->odr_irq, STM32_IRQ_GPIO_ODR_OUT,
     STM32_GPIO_PIN_COUNT);
 
@@ -1646,17 +1616,15 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /*
-     * Parent realize() is called after setting properties and creating
-     * registers.
-     * TODO: use separate methods and bring realize() at the top.
-     */
+    // Parent realize() is called after setting properties and creating
+    // registers.
+    // TODO: use separate methods and bring realize() at the top.
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
-    /* First thing first: get capabilities from MCU, needed everywhere. */
+    // First thing first: get capabilities from MCU, needed everywhere.
     state->capabilities = mcu->capabilities;
 
     const STM32Capabilities *capabilities = state->capabilities;
@@ -1668,10 +1636,10 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     snprintf(periph_name, sizeof(periph_name) - 1, "GPIO%c",
             'A' + state->port_index);
 
-    /* Must be defined before creating registers. */
+    // Must be defined before creating registers.
     cm_object_property_set_int(obj, 4, "register-size-bytes");
 
-    /* TODO: get it from MCU */
+    // TODO: get it from MCU
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
     char enabling_bit_name[STM32_RCC_SIZEOF_ENABLING_BITFIELD];
@@ -1695,7 +1663,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
             state->reg.afrh = state->u.f0.reg.afrh;
             state->reg.brr = state->u.f0.reg.brr;
 
-            /* Add callbacks. Use some of the F4 callbacks.*/
+            // Add callbacks. Use some of the F4 callbacks.
             peripheral_register_set_post_write(state->reg.moder,
                     &stm32f4_gpio_moder_post_write_callback);
             peripheral_register_set_post_write(state->reg.odr,
@@ -1703,7 +1671,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
             peripheral_register_set_post_write(state->reg.bsrr,
                     &stm32f4_gpio_bsrr_post_write_callback);
 
-            /* F0 specific. */
+            // F0 specific.
             peripheral_register_set_post_write(state->reg.brr,
                     &stm32f0_gpio_brr_post_write_callback);
 
@@ -1727,7 +1695,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
             stm32f103xx_gpio_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
-            /* Add callbacks. */
+            // Add callbacks.
             peripheral_register_set_post_write(state->u.f1.reg.crl,
                     &stm32f1_gpio_crl_post_write_callback);
             peripheral_register_set_post_write(state->u.f1.reg.crh,
@@ -1768,7 +1736,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
             state->reg.afrl = state->u.f4.reg.afrl;
             state->reg.afrh = state->u.f4.reg.afrh;
 
-            /* Add callbacks. */
+            // Add callbacks.
             peripheral_register_set_post_write(state->reg.moder,
                     &stm32f4_gpio_moder_post_write_callback);
             peripheral_register_set_post_write(state->reg.odr,
@@ -1802,7 +1770,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     // can realize parent.
     // TODO: decouple memory creation from realize().
 
-    // Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_GPIO)) {
         return;
     }
@@ -1812,7 +1780,8 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* No need to call parent reset(). */
+    // Call parent reset().
+    cm_device_parent_reset(dev, TYPE_STM32_GPIO);
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
 
@@ -1841,19 +1810,16 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
     assert(odr);
     uint16_t prev_odr = peripheral_register_get_raw_value(odr);
 
-    /* Call parent reset(). */
-    cm_device_parent_reset(dev, TYPE_STM32_GPIO);
-
     uint16_t new_odr = peripheral_register_get_raw_value(odr);
 
-    /* Update connected devices, like LEDs, to new ODR. */
+    // Update connected devices, like LEDs, to new ODR.
     stm32_gpio_set_odr_irqs(state, prev_odr, new_odr);
 
     state->dir_mask = 0;
 
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
-        /* Use the F4 code */
+        // Use the F4 code
         stm32f4_gpio_update_dir_mask(state);
         break;
 
@@ -1889,7 +1855,8 @@ static const TypeInfo stm32_gpio_type_info = {
     .instance_init = stm32_gpio_instance_init_callback,
     .instance_size = sizeof(STM32GPIOState),
     .class_init = stm32_gpio_class_init_callback,
-    .class_size = sizeof(STM32GPIOClass) /**/
+    .class_size = sizeof(STM32GPIOClass)
+/**/
 };
 
 static void stm32_gpio_register_types(void)

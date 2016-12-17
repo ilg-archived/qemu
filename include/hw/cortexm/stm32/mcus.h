@@ -26,17 +26,15 @@
 
 /* ------------------------------------------------------------------------- */
 
-/*
- * For compatibility with some development tools, it is
- * strongly recommended to use the CMSIS names.
- */
+// For compatibility with some development tools, it is
+// strongly recommended to use the CMSIS names.
 #define TYPE_STM32F051R8 "STM32F051R8"
 #define TYPE_STM32F100RB "STM32F100RB"
 
-/* Medium density */
+// Medium density
 #define TYPE_STM32F103RB "STM32F103RB"
 
-/* Connectivity line */
+// Connectivity line
 #define TYPE_STM32F107VC "STM32F107VC"
 
 #define TYPE_STM32L152RE "STM32L152RE"
@@ -49,28 +47,26 @@
 #define TYPE_STM32F411RE "STM32F411RE"
 #define TYPE_STM32F429ZI "STM32F429ZI"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_STM32_DEVICE_PARENT TYPE_STM32_MCU
 typedef STM32MCUClass STM32DeviceParentClass;
 typedef STM32MCUState STM32DeviceParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Class definitions. */
-/* Warning, this cast does not check the type! */
+// Class definitions.
+// Warning, this cast must not check the type!
 #define STM32_DEVICE_GET_CLASS(obj) \
     ((STM32DeviceClass *)object_get_class(OBJECT(obj)))
 
-/*
- * Structure to define the specifics of each MCU. Capabilities are
- * split between core & stm32; they care processed by parent class
- * constructors.
- */
+// Structure to define the specifics of each MCU. Capabilities are
+// split between core & stm32; they care processed by parent class
+// constructors.
 typedef struct {
 
-    const char *name; /* CMSIS device name */
+    const char *name; // CMSIS device name
 
     const CortexMCapabilities cortexm;
     const STM32Capabilities *stm32;
@@ -78,23 +74,23 @@ typedef struct {
 } STM32PartInfo;
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32DeviceParentClass parent_class;
-    /*< public >*/
+    // public:
 
     STM32PartInfo *part_info;
 } STM32DeviceClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 typedef struct {
-    /*< private >*/
+    // private:
     STM32DeviceParentState parent_class;
-    /*< public >*/
+    // public:
 
 } STM32DeviceState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_MCUS_H_ */

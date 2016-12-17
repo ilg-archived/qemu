@@ -899,10 +899,9 @@ static void stm32f40x_exti_create_objects(Object *obj, JSON_Object *svd,
 
 // ----- Private --------------------------------------------------------------
 
-/*
- * Called for each pin changed in the board (like buttons)
- * and for GPIO output changes.
- */
+// Called for each pin changed in the board (like buttons)
+// and for GPIO output changes.
+
 static void stm32_exti_in_irq_handler(void *opaque, int index, int level)
 {
     qemu_log_mask(LOG_FUNC, "%s(%d,%d) \n", __FUNCTION__, index, level);
@@ -919,9 +918,9 @@ static void stm32_exti_in_irq_handler(void *opaque, int index, int level)
                         && ((peripheral_register_read_value(state->reg.ftsr)
                                 & mask) != 0)))) {
 
-            /* Set the corresponding bit in the pending register.
-             * Must be cleared by the application when the interrupt
-             * is acknowledged. */
+            // Set the corresponding bit in the pending register.
+            // Must be cleared by the application when the interrupt
+            // is acknowledged.
             peripheral_register_or_raw_value(state->reg.pr, mask);
 
 #if 0
@@ -935,9 +934,7 @@ static void stm32_exti_in_irq_handler(void *opaque, int index, int level)
     }
 }
 
-/*
- * Pass only bits corresponding to enabled interrupts.
- */
+// Pass only bits corresponding to enabled interrupts.
 static peripheral_register_t stm32_exti_swier_pre_write_callback(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
@@ -949,10 +946,9 @@ static peripheral_register_t stm32_exti_swier_pre_write_callback(Object *reg,
     return (full_value & imr_value);
 }
 
-/*
- * Set pending bits programmatically. Raising bits pend interrupts.
- * Lowering bits does nothing.
- */
+// Set pending bits programmatically. Raising bits pend interrupts.
+// Lowering bits does nothing.
+
 static void stm32_exti_swier_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
@@ -960,7 +956,7 @@ static void stm32_exti_swier_post_write_callback(Object *reg, Object *periph,
     STM32EXTIState *state = STM32_EXTI_STATE(periph);
     peripheral_register_t prev_value = peripheral_register_get_raw_prev_value(
             reg);
-    /* Bits that were 0 and now are 1. */
+    // Bits that were 0 and now are 1.
     uint32_t raised = (~prev_value) & full_value;
 
     uint32_t mask = 1;
@@ -972,9 +968,8 @@ static void stm32_exti_swier_post_write_callback(Object *reg, Object *periph,
     }
 }
 
-/*
- * Implement 'rc_w1', clear bits by writing 1.
- */
+// Implement 'rc_w1', clear bits by writing 1.
+
 static peripheral_register_t stm32_exti_pr_pre_write_callback(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
@@ -986,7 +981,7 @@ static peripheral_register_t stm32_exti_pr_pre_write_callback(Object *reg,
     peripheral_register_t imr_value = peripheral_register_read_value(
             state->reg.imr);
 
-    /* Compute enabled bits that were 1 and were requested to clear. */
+    // Compute enabled bits that were 1 and were requested to clear.
     uint32_t acknowledged = (imr_value & prev_value & full_value);
 
     uint32_t mask = 1;
@@ -996,12 +991,12 @@ static peripheral_register_t stm32_exti_pr_pre_write_callback(Object *reg,
 #if 0
             qemu_log_mask(LOG_FUNC, "%s() %d exti ack\n", __FUNCTION__, i);
 #endif
-            /* Notify NVIC that the interrupt was acknowledged. */
+            // Notify NVIC that the interrupt was acknowledged.
             cm_irq_lower(state->irq_out[i]);
         }
     }
 
-    /* Clear bits. */
+    // Clear bits.
     return (prev_value & (~full_value));
 }
 
@@ -1016,20 +1011,18 @@ static void stm32_exti_instance_init_callback(Object *obj)
     cm_object_property_add_uint32(obj, "num_exti", &state->num_exti);
     state->num_exti = 0;
 
-    /* capabilities are not yet available. */
+    // capabilities are not yet available.
 
-    /*
-     * Incoming interrupts. There is only one set of incoming,
-     * all GPIOs are connected here, but each pin can have only
-     * one source. To simplify things (hopefully), the multiplexer
-     * is implemented in each GPIO.
-     */
+    // Incoming interrupts. There is only one set of incoming,
+    // all GPIOs are connected here, but each pin can have only
+    // one source. To simplify things (hopefully), the multiplexer
+    // is implemented in each GPIO.
+
     cm_irq_init_in(DEVICE(obj), stm32_exti_in_irq_handler, STM32_IRQ_EXTI_IN,
     STM32_EXTI_MAX_NUM);
 
-    /*
-     * Outgoing interrupts, will be later connected to NVIC.
-     */
+    // Outgoing interrupts, will be later connected to NVIC.
+
     cm_irq_init_out(DEVICE(obj), state->irq_out, STM32_IRQ_EXTI_OUT,
     STM32_EXTI_MAX_NUM);
 
@@ -1045,20 +1038,18 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /*
-     * Parent realize() is called after setting the the
-     * mmio-address & mmio-size properties (required to init the mmio)
-     * and creating registers (to create the array of registers).
-     */
+    // Parent realize() is called after setting the the
+    // mmio-address & mmio-size properties (required to init the mmio)
+    // and creating registers (to create the array of registers).
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32EXTIState *state = STM32_EXTI_STATE(dev);
-    /* First thing first: get capabilities from MCU, needed everywhere. */
+    // First thing first: get capabilities from MCU, needed everywhere.
     state->capabilities = mcu->capabilities;
 
-    /* Also keep a local pointer, to access them easier. */
+    // Also keep a local pointer, to access them easier.
     const STM32Capabilities *capabilities = state->capabilities;
     assert(capabilities != NULL);
 
@@ -1320,7 +1311,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
 
-    /* Finally call parent realize(). */
+    // Finally call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_EXTI)) {
         return;
     }
@@ -1330,7 +1321,7 @@ static void stm32_exti_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_STM32_EXTI);
 }
 
@@ -1348,7 +1339,9 @@ static const TypeInfo stm32_exti_type_info = {
     .instance_init = stm32_exti_instance_init_callback,
     .instance_size = sizeof(STM32EXTIState),
     .class_init = stm32_exti_class_init_callback,
-    .class_size = sizeof(STM32EXTIClass) };
+    .class_size = sizeof(STM32EXTIClass)
+/**/
+};
 
 static void stm32_exti_register_types(void)
 {

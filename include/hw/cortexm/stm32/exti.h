@@ -44,44 +44,44 @@
 
 // ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_STM32_EXTI_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32EXTIParentClass;
 typedef PeripheralState STM32EXTIParentState;
 
 // ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define STM32_EXTI_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32EXTIClass, (obj), TYPE_STM32_EXTI)
 #define STM32_EXTI_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32EXTIClass, (klass), TYPE_STM32_EXTI)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32EXTIParentClass parent_class;
-    /*< public >*/
+    // public:
 
-    /* None, so far. */
+    // None, so far.
 } STM32EXTIClass;
 
 // ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define STM32_EXTI_STATE(obj) \
     OBJECT_CHECK(STM32EXTIState, (obj), TYPE_STM32_EXTI)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32EXTIParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 
     MemoryRegion mmio;
     uint32_t num_exti;
 
-    /* Output IRQs, connected to NVIC interrupts. */
+    // Output IRQs, connected to NVIC interrupts.
     qemu_irq irq_out[STM32_EXTI_MAX_NUM];
 
     struct {
@@ -90,7 +90,7 @@ typedef struct {
         Object *rtsr;
         Object *ftsr;
         Object *swier;
-        Object *pr; /* rc_w1 */
+        Object *pr; // rc_w1
     } reg;
 
     union {

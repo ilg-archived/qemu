@@ -48,7 +48,7 @@
 #define DEVICE_PATH_STM32_GPIO_J DEVICE_PATH_STM32 "GPIOJ"
 #define DEVICE_PATH_STM32_GPIO_K DEVICE_PATH_STM32 "GPIOK"
 
-/* Note: the "port-index" property has type "int". */
+// Note: the "port-index" property has type "int".
 typedef enum {
     STM32_PORT_GPIOA = 0,
     STM32_PORT_GPIOB,
@@ -76,32 +76,37 @@ typedef enum {
 
 // ----------------------------------------------------------------------------
 
+// Parent definitions.
 #define TYPE_STM32_GPIO_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32GPIOParentClass;
 typedef PeripheralState STM32GPIOParentState;
 
 // ----------------------------------------------------------------------------
 
+// Class definitions.
 #define STM32_GPIO_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32GPIOClass, (obj), TYPE_STM32_GPIO)
 #define STM32_GPIO_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32GPIOClass, (klass), TYPE_STM32_GPIO)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32GPIOParentClass parent_class;
-    /*< public >*/
+    // public:
+
+    // None, so far.
 } STM32GPIOClass;
 
 // ----------------------------------------------------------------------------
 
+// Instance definitions.
 #define STM32_GPIO_STATE(obj) \
     OBJECT_CHECK(STM32GPIOState, (obj), TYPE_STM32_GPIO)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32GPIOParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 
@@ -115,27 +120,21 @@ typedef struct {
     STM32SYSCFGState *syscfg;
     STM32AFIOState *afio;
 
-    /*
-     * IRQs used to communicate with the machine implementation, for
-     * cases like blinking a LED.
-     * There is one IRQ for each pin.  Note that for pins configured
-     * as inputs, the output IRQ state has no meaning.  Perhaps
-     * the output should be updated to match the input in this case....
-     */
+    // IRQs used to communicate with the machine implementation, for
+    // cases like blinking a LED.
+    // There is one IRQ for each pin.  Note that for pins configured
+    // as inputs, the output IRQ state has no meaning.  Perhaps
+    // the output should be updated to match the input in this case...
     qemu_irq odr_irq[STM32_GPIO_PIN_COUNT];
 
-    /*
-     * IRQs used to communicate with EXTI.
-     */
+    // IRQs used to communicate with EXTI.
     qemu_irq exti_irq[STM32_GPIO_PIN_COUNT];
 
-    /*
-     * Cached direction mask. 1 = output pin.
-     * No more than 16 bits/port.
-     */
+    // Cached direction mask. 1 = output pin.
+    // No more than 16 bits/port.
     uint16_t dir_mask;
 
-    /* Common to F4 and F0. */
+    // Common to F4 and F0.
     struct {
         Object *moder;
         Object *otyper;
@@ -147,15 +146,14 @@ typedef struct {
         Object *lckr;
         Object *afrl;
         Object *afrh;
-        Object *brr; /* Not used in F4 */
+        Object *brr; // Not used in F4
     } reg;
 
-    /*
-     * Mutually exclusive all families registers.
-     * Address them like status->u.f1.reg.crl.
-     * The 'reg' structure was used to mark explicitly that the member is
-     * a MCU processor and also in case other family variables are needed.
-     */
+    // Mutually exclusive families.
+    // Address registers like status->u.f1.reg.crl.
+    // The 'reg' structure was used to mark explicitly that the member is
+    // a MCU processor and also in case other family variables are needed.
+
     union {
         // DO NOT EDIT! Automatically generated!
         struct {

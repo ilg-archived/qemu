@@ -30,7 +30,7 @@
 #include "verbosity.h"
 #endif
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 /*
  * Define all STM32 MCUs, based on table capabilities.
@@ -147,11 +147,11 @@ static const STM32Capabilities stm32f051x8 = {
     .has_dma = true,
     .num_dma = 5,
 
-    .has_adc = true, /* 12-bits, 16+3 channels, Vref = ADC_IN17 */
+    .has_adc = true, // 12-bits, 16+3 channels, Vref = ADC_IN17
 
-    .has_ts = 1, /* ADC12_IN16 */
+    .has_ts = 1, // ADC12_IN16
 
-    .has_dac = true, /* 12-bits, 5 channels  */
+    .has_dac = true, // 12-bits, 5 channels
 
     .has_comp = true,
     .num_comp = 2,
@@ -176,8 +176,8 @@ static const STM32Capabilities stm32f051x8 = {
     .has_i2c1 = true,
     .has_i2c2 = true,
 
-    .has_usart1 = true, /* 6 Mb/s */
-    .has_usart2 = true, /* 6 Mb/s */
+    .has_usart1 = true, // 6 Mb/s
+    .has_usart2 = true, // 6 Mb/s
 
     .has_spi1 = true,
     .has_spi2 = true,
@@ -241,11 +241,11 @@ static const STM32Capabilities stm32f103x8b = {
     .has_gpiod = true,
     .has_gpioe = true,
 
-    .has_adc1 = true, /* 12-bits, 16-ch */
-    .has_adc2 = true, /* 12-bits, 16-ch */
+    .has_adc1 = true, // 12-bits, 16-ch
+    .has_adc2 = true, // 12-bits, 16-ch
 
-    .has_ts = 1, /* ADC12_IN16 */
-};
+    .has_ts = 1, // ADC12_IN16
+        };
 
 #if 0
 static const STM32Capabilities stm32f10_57_xx = {
@@ -537,7 +537,7 @@ static const STM32Capabilities stm32f407xx = {
     .has_bx_can2 = true,
     .has_usb_otg_fs = true,
     .has_usb_otg_hs = true,
-    .has_dcmi = true, /* Only 407, not 405 */
+    .has_dcmi = true, // Only 407, not 405
     .has_rng = true,
 
     .has_gpioa = true,
@@ -550,12 +550,12 @@ static const STM32Capabilities stm32f407xx = {
     .has_gpioh = true,
     .has_gpioi = true,
 
-    .has_adc1 = true, /* 12-bits, 16 channels */
+    .has_adc1 = true, // 12-bits, 16 channels
     .has_adc2 = true,
     .has_adc3 = true,
-    .has_ts = true, /* ADC1_IN16 */
+    .has_ts = true, // ADC1_IN16
 
-    .has_dac1 = true, /* 12-bits */
+    .has_dac1 = true, // 12-bits
     .has_dac2 = true,
 /**/
 };
@@ -716,7 +716,7 @@ static const STM32Capabilities stm32f429xx = {
 };
 #endif
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #if 0
 static const CortexMCoreCapabilities stm32f100_core = {
@@ -793,7 +793,7 @@ static const CortexMCoreCapabilities stm32f411xx_core = {
 };
 #endif
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static const STM32PartInfo stm32_mcus[] = {
     {
@@ -821,7 +821,7 @@ static const STM32PartInfo stm32_mcus[] = {
     },
 #endif
     {
-        .name = TYPE_STM32F103RB, /* STM32F103x[8B] */
+        .name = TYPE_STM32F103RB, // STM32F103x[8B]
         .cortexm = {
             .flash_size_kb = 128,
             .sram_size_kb = 20,
@@ -939,11 +939,11 @@ static const STM32PartInfo stm32_mcus[] = {
         /**/
     },
 #endif
-    { } /* End of array. */
+    { }
 /**/
 };
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void stm32_mcus_instance_init_callback(Object *obj)
 {
@@ -959,19 +959,16 @@ static void stm32_mcus_realize_callback(DeviceState *dev, Error **errp)
     STM32DeviceClass *st_class = STM32_DEVICE_GET_CLASS(dev);
     STM32PartInfo *part_info = st_class->part_info;
 
-    /*
-     * Set additional constructor parameters, that were passed via
-     * the .class_data and copied to custom class member.
-     */
+    // Set additional constructor parameters, that were passed via
+    // the .class_data and copied to custom class member.
     qdev_prop_set_ptr(dev, "cortexm-capabilities",
             (void *) &part_info->cortexm);
     qdev_prop_set_ptr(dev, "stm32-capabilities", (void *) part_info->stm32);
 
-    /*
-     * Call parent realize().
-     * We do not know the current typename, since it was generated
-     * with a table, so we use the parent typename.
-     */
+    // Call parent realize().
+    // We do not know the current typename, since it was generated
+    // with a table, so we use the parent typename.
+
     if (!cm_device_by_name_realize(dev, errp, TYPE_STM32_DEVICE_PARENT)) {
         return;
     }
@@ -993,18 +990,15 @@ static void stm32_mcus_class_init_callback(ObjectClass *klass, void *data)
     // dc->props = stm32_mcus_properties;
 
     STM32DeviceClass *st_class = (STM32DeviceClass *) (klass);
-    /*
-     * Copy the 'data' param, pointing to a ParamInfo, to the class
-     * structure, to be retrieved by the constructor.
-     */
+    // Copy the 'data' param, pointing to a ParamInfo, to the class
+    // structure, to be retrieved by the constructor.
     st_class->part_info = data;
 }
 
-/*
- * Register all devices described in the table.
- * Pass the pointer to the table element as .class_data
- * to the .class_init.
- */
+// Register all devices described in the table.
+// Pass the pointer to the table element as .class_data
+// to the .class_init.
+
 static void stm32_mcus_types_init(void)
 {
     int i;
@@ -1024,4 +1018,4 @@ static void stm32_mcus_types_init(void)
 
 type_init(stm32_mcus_types_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

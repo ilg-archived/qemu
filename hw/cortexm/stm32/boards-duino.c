@@ -45,7 +45,7 @@ static void netduino2_board_init_callback(MachineState *machine)
 }
 #endif
 
-/* ----- Netduino Plus 2 ----- */
+// ----- Netduino Plus 2 ------------------------------------------------------
 
 static GPIOLEDInfo netduinoplus2_leds_info[] = {
     {
@@ -57,8 +57,11 @@ static GPIOLEDInfo netduinoplus2_leds_info[] = {
         .w = 12,
         .h = 14,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .gpio_bit = 10, },
-    { }, /**/
+        .gpio_bit = 10,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void netduinoplus2_board_init_callback(MachineState *machine)
@@ -68,12 +71,12 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F405RG);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
-        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); // 25.0 MHz
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); // N/A
 
         cm_object_realize(mcu);
     }
@@ -96,9 +99,11 @@ static void netduinoplus2_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo netduinoplus2_machine = {
     .name = BOARD_TYPE_NAME("NetduinoPlus2"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = netduinoplus2_board_class_init_callback };
+    .class_init = netduinoplus2_board_class_init_callback
+/**/
+};
 
-/* ----- Netduino Go ----- */
+// ----- Netduino Go ----------------------------------------------------------
 
 static GPIOLEDInfo netduinogo_leds_info[] = {
     {
@@ -112,7 +117,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED1 On]\n",
         .on_message = "[White LED1 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
-        .gpio_bit = 6, },
+        .gpio_bit = 6,
+    /**/
+    },
     {
         .name = "white-led2",
         .active_low = false,
@@ -124,7 +131,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED2 On]\n",
         .on_message = "[White LED2 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
-        .gpio_bit = 7, },
+        .gpio_bit = 7,
+    /**/
+    },
     {
         .name = "white-led3",
         .active_low = false,
@@ -136,7 +145,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED3 On]\n",
         .on_message = "[White LED3 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
-        .gpio_bit = 8, },
+        .gpio_bit = 8,
+    /**/
+    },
     {
         .name = "white-led4",
         .active_low = false,
@@ -148,7 +159,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED4 On]\n",
         .on_message = "[White LED4 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[b]",
-        .gpio_bit = 9, },
+        .gpio_bit = 9,
+    /**/
+    },
     {
         .name = "white-led5",
         .active_low = false,
@@ -160,7 +173,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED5 On]\n",
         .on_message = "[White LED5 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 6, },
+        .gpio_bit = 6,
+    /**/
+    },
     {
         .name = "white-led6",
         .active_low = false,
@@ -172,7 +187,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED6 On]\n",
         .on_message = "[White LED6 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 7, },
+        .gpio_bit = 7,
+    /**/
+    },
     {
         .name = "white-led7",
         .colour_message = "White",
@@ -184,7 +201,9 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED7 On]\n",
         .on_message = "[White LED7 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 8, },
+        .gpio_bit = 8,
+    /**/
+    },
     {
         .name = "white-led8",
         .active_low = false,
@@ -196,8 +215,11 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
         .on_message = "[White LED8 On]\n",
         .on_message = "[White LED8 Off]\n",
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 9, },
-    { }, /**/
+        .gpio_bit = 9,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void netduinogo_board_init_callback(MachineState *machine)
@@ -207,12 +229,12 @@ static void netduinogo_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F405RG);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
-        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); // 25.0 MHz
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); // N/A
 
         cm_object_realize(mcu);
     }
@@ -235,9 +257,11 @@ static void netduinogo_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo netduinogo_machine = {
     .name = BOARD_TYPE_NAME("NetduinoGo"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = netduinogo_board_class_init_callback };
+    .class_init = netduinogo_board_class_init_callback
+/**/
+};
 
-/* ----- Maple r5 ----- */
+// ----- Maple r5 -------------------------------------------------------------
 
 static GPIOLEDInfo maple_leds_info[] = {
     {
@@ -249,8 +273,11 @@ static GPIOLEDInfo maple_leds_info[] = {
         .w = 10,
         .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .gpio_bit = 5, },
-    { }, /**/
+        .gpio_bit = 5,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void maple_board_init_callback(MachineState *machine)
@@ -260,12 +287,12 @@ static void maple_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
-        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); // 8.0 MHz
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); // N/A
 
         cm_object_realize(mcu);
     }
@@ -288,9 +315,12 @@ static void maple_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo maple_machine = {
     .name = BOARD_TYPE_NAME("Maple"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = maple_board_class_init_callback };
+    .class_init = maple_board_class_init_callback
+/**/
+};
 
-/* ----- Boards inits ----- */
+// ----- Boards inits ---------------------------------------------------------
+
 static void stm32_duino_machines_init(void)
 {
 #if 0

@@ -37,41 +37,41 @@
 
 // ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_STM32_RCC_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32RCCParentClass;
 typedef PeripheralState STM32RCCParentState;
 
 // ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define STM32_RCC_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32RCCClass, (obj), TYPE_STM32_RCC)
 #define STM32_RCC_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32RCCClass, (klass), TYPE_STM32_RCC)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32RCCParentClass parent_class;
-    /*< public >*/
+    // public:
 
-    /* None, so far. */
+    // None, so far.
 } STM32RCCClass;
 
 // ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define STM32_RCC_STATE(obj) \
     OBJECT_CHECK(STM32RCCState, (obj), TYPE_STM32_RCC)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32RCCParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 
-    /* Properties */
+    // Properties
     uint32_t cpu_freq_hz;
     uint32_t hse_freq_hz;
     uint32_t lse_freq_hz;

@@ -71,7 +71,7 @@ typedef struct {
 
     MemoryRegion mmio;
 
-    /* Used in GPIOs, it is easier to make it common to all families. */
+    // Used in GPIOs, it is easier to make it common to all families.
     struct {
         Object *exti[16];
     } exticr;

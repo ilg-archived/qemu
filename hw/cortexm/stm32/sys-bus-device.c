@@ -41,7 +41,9 @@ static const TypeInfo stm32_sys_bus_device_type_info = {
     .parent = TYPE_STM32_SYS_BUS_DEVICE_PARENT,
     .instance_size = sizeof(STM32SysBusDeviceState),
     .class_init = stm32_sys_bus_device_class_init_callback,
-    .class_size = sizeof(STM32SysBusDeviceClass) };
+    .class_size = sizeof(STM32SysBusDeviceClass)
+/**/
+};
 
 static void stm32_types_init(void)
 {
@@ -50,4 +52,4 @@ static void stm32_types_init(void)
 
 type_init(stm32_types_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

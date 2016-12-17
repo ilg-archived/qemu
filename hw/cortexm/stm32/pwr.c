@@ -193,16 +193,14 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /*
-     * Parent realize() is called after setting properties and creating
-     * registers.
-     */
+    // Parent realize() is called after setting properties and creating
+    // registers.
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32PWRState *state = STM32_PWR_STATE(dev);
-    /* First thing first: get capabilities from MCU, needed everywhere. */
+    // First thing first: get capabilities from MCU, needed everywhere.
     state->capabilities = mcu->capabilities;
 
     const STM32Capabilities *capabilities = state->capabilities;
@@ -241,7 +239,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
         if (capabilities->f4.is_40x) {
 
             stm32f40x_pwr_create_objects(obj, cm_state->svd_json, periph_name);
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f4.fld.csr.brr, "BRE",
                     "follows");
 
@@ -258,7 +256,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
 
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_PWR)) {
         return;
     }
@@ -268,7 +266,7 @@ static void stm32_pwr_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_STM32_PWR);
 }
 
@@ -286,7 +284,9 @@ static const TypeInfo stm32_pwr_type_info = {
     .instance_init = stm32_pwr_instance_init_callback,
     .instance_size = sizeof(STM32PWRState),
     .class_init = stm32_pwr_class_init_callback,
-    .class_size = sizeof(STM32PWRClass) };
+    .class_size = sizeof(STM32PWRClass)
+/**/
+};
 
 static void stm32_pwr_register_types(void)
 {
@@ -295,5 +295,5 @@ static void stm32_pwr_register_types(void)
 
 type_init(stm32_pwr_register_types);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 

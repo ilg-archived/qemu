@@ -35,37 +35,37 @@
 
 // ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_STM32_FLASH_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32FLASHParentClass;
 typedef PeripheralState STM32FLASHParentState;
 
 // ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define STM32_FLASH_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32FLASHClass, (obj), TYPE_STM32_FLASH)
 #define STM32_FLASH_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32FLASHClass, (klass), TYPE_STM32_FLASH)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32FLASHParentClass parent_class;
-    /*< public >*/
+    // public:
 
-    /* None, so far. */
+    // None, so far.
 } STM32FLASHClass;
 
 // ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define STM32_FLASH_STATE(obj) \
     OBJECT_CHECK(STM32FLASHState, (obj), TYPE_STM32_FLASH)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32FLASHParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 

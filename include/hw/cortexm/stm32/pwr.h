@@ -35,37 +35,37 @@
 
 // ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_STM32_PWR_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32PWRParentClass;
 typedef PeripheralState STM32PWRParentState;
 
 // ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define STM32_PWR_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32PWRClass, (obj), TYPE_STM32_PWR)
 #define STM32_PWR_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32PWRClass, (klass), TYPE_STM32_PWR)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32PWRParentClass parent_class;
-    /*< public >*/
+    // public:
 
-    /* None, so far. */
+    // None, so far.
 } STM32PWRClass;
 
 // ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define STM32_PWR_STATE(obj) \
     OBJECT_CHECK(STM32PWRState, (obj), TYPE_STM32_PWR)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32PWRParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 

@@ -221,33 +221,31 @@ static void stm32_syscfg_instance_init_callback(Object *obj)
 
     STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
 
-    /* capabilities are not yet available. */
+    // capabilities are not yet available.
 
     int i;
     for (i = 0; i < sizeof(state->exticr.exti) / sizeof(state->exticr.exti[0]);
             ++i) {
         state->exticr.exti[i] = NULL;
     }
-    /* No interrupts for now, maybe add boot mode bits. */
+    // No interrupts for now, maybe add boot mode bits.
 }
 
 static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /*
-     * Parent realize() is called after setting properties and creating
-     * registers.
-     */
+    // Parent realize() is called after setting properties and creating
+    // registers.
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32SYSCFGState *state = STM32_SYSCFG_STATE(dev);
-    /* First thing first: get capabilities from MCU, needed everywhere. */
+    // First thing first: get capabilities from MCU, needed everywhere.
     state->capabilities = mcu->capabilities;
 
-    /* Also keep a local pointer, to access them easier. */
+    // Also keep a local pointer, to access them easier.
     const STM32Capabilities *capabilities = state->capabilities;
     assert(capabilities != NULL);
 
@@ -331,7 +329,7 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
 
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_SYSCFG)) {
         return;
     }
@@ -341,7 +339,7 @@ static void stm32_syscfg_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_STM32_SYSCFG);
 }
 
@@ -359,7 +357,9 @@ static const TypeInfo stm32_syscfg_type_info = {
     .instance_init = stm32_syscfg_instance_init_callback,
     .instance_size = sizeof(STM32SYSCFGState),
     .class_init = stm32_syscfg_class_init_callback,
-    .class_size = sizeof(STM32SYSCFGClass) };
+    .class_size = sizeof(STM32SYSCFGClass)
+/**/
+};
 
 static void stm32_syscfg_register_types(void)
 {
@@ -368,5 +368,5 @@ static void stm32_syscfg_register_types(void)
 
 type_init(stm32_syscfg_register_types);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 

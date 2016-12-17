@@ -34,55 +34,55 @@
 #include <hw/cortexm/stm32/afio.h>
 #include <hw/cortexm/parson.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_STM32_MCU "stm32-mcu"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_STM32_MCU_PARENT TYPE_CORTEXM_MCU
 typedef CortexMClass STM32MCUParentClass;
 typedef CortexMState STM32MCUParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define STM32_MCU_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32MCUClass, (obj), TYPE_STM32_MCU)
 #define STM32_MCU_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32MCUClass, (klass), TYPE_STM32_MCU)
 
 typedef struct STM32MCUClass {
-    /*< private >*/
+    // private:
     STM32MCUParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } STM32MCUClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define STM32_MCU_STATE(obj) \
     OBJECT_CHECK(STM32MCUState, (obj), TYPE_STM32_MCU)
 
 typedef struct STM32MCUState {
-    /*< private >*/
+    // private:
     STM32MCUParentState parent_obj;
-    /*< public >*/
+    // public:
 
-    /* Constructor parameters. */
+    // Constructor parameters.
     const STM32Capabilities *param_capabilities;
 
-    /* Specific STM32 capabilities; Cortex-M capabilities are separate. */
+    // Specific STM32 capabilities; Cortex-M capabilities are separate.
     const STM32Capabilities *capabilities;
 
     Object *container;
 
     DeviceState *rcc;
 
-    /* These two properties are duplicated from RCC, to allow
-     * setting them before the object exist. */
+    // These two properties are duplicated from RCC, to allow
+    // setting them before the object exist.
     uint32_t hse_freq_hz;
     uint32_t lse_freq_hz;
 
@@ -99,7 +99,7 @@ typedef struct STM32MCUState {
 
 } STM32MCUState;
 
-/* ------ Public ----------------------------------------------------------- */
+// ------ Public --------------------------------------------------------------
 
 /*
  * Might be deprecated in the future; peripherals are named and can be
@@ -123,6 +123,6 @@ G_INLINE_FUNC STM32MCUState *stm32_mcu_get(void)
     return STM32_MCU_STATE(object_resolve_path("/machine/mcu", NULL));
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_MCU_H_ */

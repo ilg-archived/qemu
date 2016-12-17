@@ -29,8 +29,7 @@
  * Where available, the board names follow the CMSIS Packs names.
  */
 
-/* ----- ST STM32F0-Discovery ---------------------------------------------- */
-
+// ----- ST STM32F0-Discovery -------------------------------------------------
 // C8 blue, C9 green, active high
 static GPIOLEDInfo stm32f0_discovery_leds_info[] = {
     {
@@ -59,7 +58,8 @@ static GPIOLEDInfo stm32f0_discovery_leds_info[] = {
         .gpio_bit = 9,
     /**/
     },
-    { }, /**/
+    { },
+/**/
 };
 
 static ButtonGPIOInfo stm32f0_discovery_buttons_user_info[] = {
@@ -76,7 +76,8 @@ static ButtonGPIOInfo stm32f0_discovery_buttons_user_info[] = {
         .gpio_bit = 0,
     /**/
     },
-    { }, /**/
+    { },
+/**/
 };
 
 static ButtonResetInfo stm32f0_discovery_button_reset_info = {
@@ -96,22 +97,22 @@ static void stm32f0_discovery_board_init_callback(MachineState *machine)
             cortexm_board_init_graphic_image(board, "STM32F0-Discovery.jpg");
 
     {
-        /* Create the MCU. */
+        // Create the MCU.
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F051R8);
 
-        /* The standard board does not have external oscillators,
-         * they can be installed by the user. */
+        // The standard board does not have external oscillators,
+        // they can be installed by the user.
 
         cm_object_realize(mcu);
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    /* Create board LEDs. */
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, stm32f0_discovery_leds_info,
             board_graphic_context);
 
     if (board_graphic_context != NULL) {
-        /* Create board buttons. */
+        // Create board buttons.
         button_reset_create_from_info(peripheral,
                 &stm32f0_discovery_button_reset_info, board_graphic_context);
         button_gpio_create_from_info(peripheral,
@@ -135,7 +136,7 @@ static const TypeInfo stm32f0_discovery_machine = {
 /**/
 };
 
-/* ----- ST STM32F4-Discovery ---------------------------------------------- */
+// ----- ST STM32F4-Discovery -------------------------------------------------
 
 static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
     {
@@ -190,7 +191,8 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
         .gpio_bit = 15,
     /**/
     },
-    { }, /**/
+    { },
+/**/
 };
 
 static ButtonGPIOInfo stm32f4_discovery_buttons_user_info[] = {
@@ -207,7 +209,8 @@ static ButtonGPIOInfo stm32f4_discovery_buttons_user_info[] = {
         .gpio_bit = 0,
     /**/
     },
-    { }, /**/
+    { },
+/**/
 };
 
 static ButtonResetInfo stm32f4_discovery_button_reset_info = {
@@ -227,23 +230,23 @@ static void stm32f4_discovery_board_init_callback(MachineState *machine)
             cortexm_board_init_graphic_image(board, "STM32F4-Discovery.jpg");
 
     {
-        /* Create the MCU. */
+        // Create the MCU.
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F407VG);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); // 8.0 MHz
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // 32 kHz
 
         cm_object_realize(mcu);
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    /* Create board LEDs. */
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, stm32f4_discovery_leds_info,
             board_graphic_context);
 
     if (board_graphic_context != NULL) {
-        /* Create board buttons. */
+        // Create board buttons.
         button_reset_create_from_info(peripheral,
                 &stm32f4_discovery_button_reset_info, board_graphic_context);
         button_gpio_create_from_info(peripheral,
@@ -267,7 +270,7 @@ static const TypeInfo stm32f4_discovery_machine = {
 /**/
 };
 
-/* ----- ST STM32F429I-Discovery ------------------------------------------- */
+// ----- ST STM32F429I-Discovery ----------------------------------------------
 
 static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
     {
@@ -279,7 +282,9 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .w = 10,
         .h = 8,
         .gpio_path = DEVICE_PATH_STM32_GPIO_G,
-        .gpio_bit = 13, },
+        .gpio_bit = 13,
+    /**/
+    },
     {
         .name = "red-led",
         .active_low = false,
@@ -289,8 +294,11 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .w = 10,
         .h = 8,
         .gpio_path = DEVICE_PATH_STM32_GPIO_G,
-        .gpio_bit = 14, },
-    { }, /**/
+        .gpio_bit = 14,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void stm32f429i_discovery_board_init_callback(MachineState *machine)
@@ -300,12 +308,12 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F429ZI);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); // 8.0 MHz
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // 32 kHz
 
         cm_object_realize(mcu);
     }
@@ -369,7 +377,8 @@ static void stm32vl_discovery_init_callback(MachineState *machine)
 }
 #endif
 
-/* ----- Boards inits ----- */
+// ----- Boards inits ---------------------------------------------------------
+
 static void stm32_machines_init(void)
 {
     type_register_static(&stm32f0_discovery_machine);

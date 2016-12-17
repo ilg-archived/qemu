@@ -337,16 +337,14 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /*
-     * Parent realize() is called after setting properties and creating
-     * registers.
-     */
+    // Parent realize() is called after setting properties and creating
+    // registers.
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32FLASHState *state = STM32_FLASH_STATE(dev);
-    /* First thing first: get capabilities from MCU, needed everywhere. */
+    // First thing first: get capabilities from MCU, needed everywhere.
     state->capabilities = mcu->capabilities;
 
     const STM32Capabilities *capabilities = state->capabilities;
@@ -356,10 +354,10 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
     const char *periph_name = "FLASH";
 
-    /* Must be defined before creating registers. */
+    // Must be defined before creating registers.
     cm_object_property_set_int(obj, 4, "register-size-bytes");
 
-    /* TODO: get it from MCU */
+    // TODO: get it from MCU
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
     switch (capabilities->family) {
@@ -379,7 +377,7 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
             stm32f103xx_flash_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
-            /* Auto bits. */
+            // Auto bits.
             cm_object_property_set_str(state->u.f1.fld.acr.prftbs, "PRFTBE",
                     "follows");
         } else {
@@ -404,7 +402,7 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_FLASH)) {
         return;
     }
@@ -414,7 +412,7 @@ static void stm32_flash_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_STM32_FLASH);
 }
 
@@ -431,7 +429,8 @@ static const TypeInfo stm32_flash_type_info = {
     .instance_init = stm32_flash_instance_init_callback,
     .instance_size = sizeof(STM32FLASHState),
     .class_init = stm32_flash_class_init_callback,
-    .class_size = sizeof(STM32FLASHClass) /**/
+    .class_size = sizeof(STM32FLASHClass)
+/**/
 };
 
 static void stm32_flash_register_types(void)

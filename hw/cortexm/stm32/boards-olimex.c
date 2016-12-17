@@ -28,8 +28,7 @@
  * This file defines several Olimex STM32 boards.
  */
 
-/* ----- Olimex STM32-H103 ----- */
-
+// ----- Olimex STM32-H103 ----------------------------------------------------
 static GPIOLEDInfo stm32_h103_leds_info[] = {
     {
         .name = "led:green",
@@ -82,23 +81,23 @@ static void stm32_h103_board_init_callback(MachineState *machine)
             cortexm_board_init_graphic_image(board, "STM32-H103.jpg");
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); // 8.0 MHz
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // 32 kHz
 
         cm_object_realize(mcu);
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    /* Create board LEDs. */
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, stm32_h103_leds_info,
             board_graphic_context);
 
     if (board_graphic_context != NULL) {
-        /* Create board buttons. */
+        // Create board buttons.
         button_reset_create_from_info(peripheral, &stm32_h103_button_reset_info,
                 board_graphic_context);
         button_gpio_create_from_info(peripheral, stm32_h103_buttons_user_info,
@@ -121,7 +120,7 @@ static const TypeInfo stm32_h103_machine = {
 /**/
 };
 
-/* ----- Olimex STM32-P103 ----- */
+// ----- Olimex STM32-P103 ----------------------------------------------------
 
 static GPIOLEDInfo stm32_p103_leds_info[] = {
     {
@@ -150,18 +149,18 @@ static void stm32_p103_board_init_callback(MachineState *machine)
             cortexm_board_init_graphic_image(board, "STM32-P103.jpg");
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); // 8.0 MHz
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // 32 kHz
 
         cm_object_realize(mcu);
     }
 
     Object *peripheral = cm_container_get_peripheral();
-    /* Create board LEDs. */
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, stm32_p103_leds_info,
             board_graphic_context);
 
@@ -182,7 +181,7 @@ static const TypeInfo stm32_p103_machine = {
 /**/
 };
 
-/* ----- Olimex OLIMEXINO-STM32 ----- */
+// ----- Olimex OLIMEXINO-STM32 -----------------------------------------------
 
 static GPIOLEDInfo olimexino_stm32_leds_info[] = {
     {
@@ -194,7 +193,9 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
         .w = 10,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .gpio_bit = 5, },
+        .gpio_bit = 5,
+    /**/
+    },
     {
         .name = "yellow-led",
         .active_low = false,
@@ -204,8 +205,11 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
         .w = 10,
         .h = 10,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .gpio_bit = 1, },
-    { }, /**/
+        .gpio_bit = 1,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void olimexino_stm32_board_init_callback(MachineState *machine)
@@ -215,12 +219,12 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); /* 8.0 MHz */
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 8000000, "hse-freq-hz"); // 8.0 MHz
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // 32 kHz
 
         cm_object_realize(mcu);
     }
@@ -244,9 +248,11 @@ static void olimexino_stm32_board_class_init_callback(ObjectClass *oc,
 static const TypeInfo olimexino_stm32_machine = {
     .name = BOARD_TYPE_NAME("OLIMEXINO-STM32"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = olimexino_stm32_board_class_init_callback };
+    .class_init = olimexino_stm32_board_class_init_callback
+/**/
+};
 
-/* ----- Olimex STM32-P107 ----- */
+// ----- Olimex STM32-P107 ----------------------------------------------------
 
 static GPIOLEDInfo stm32_p107_leds_info[] = {
     {
@@ -258,7 +264,9 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
         .w = 6,
         .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 6, },
+        .gpio_bit = 6,
+    /**/
+    },
     {
         .name = "yellow-led",
         .active_low = false,
@@ -268,8 +276,11 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
         .w = 6,
         .h = 8,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 7, },
-    { }, /**/
+        .gpio_bit = 7,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void stm32_p107_board_init_callback(MachineState *machine)
@@ -279,12 +290,12 @@ static void stm32_p107_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F107VC);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); /* 25.0 MHz */
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 25000000, "hse-freq-hz"); // 25.0 MHz
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // 32 kHz
 
         cm_object_realize(mcu);
     }
@@ -307,9 +318,11 @@ static void stm32_p107_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo stm32_p107_machine = {
     .name = BOARD_TYPE_NAME("STM32-P107"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = stm32_p107_board_class_init_callback };
+    .class_init = stm32_p107_board_class_init_callback
+/**/
+};
 
-/* ----- Olimex STM32-P407 ----- */
+// ----- Olimex STM32-P407 ----------------------------------------------------
 
 static GPIOLEDInfo stm32_e407_leds_info[] = {
     {
@@ -321,8 +334,11 @@ static GPIOLEDInfo stm32_e407_leds_info[] = {
         .w = 8,
         .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[c]",
-        .gpio_bit = 13, },
-    { }, /**/
+        .gpio_bit = 13,
+    /**/
+    },
+    { },
+/**/
 };
 
 static void stm32_e407_board_init_callback(MachineState *machine)
@@ -332,12 +348,12 @@ static void stm32_e407_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F407ZG);
 
-        /* Set the board specific oscillator frequencies. */
-        cm_object_property_set_int(mcu, 12000000, "hse-freq-hz"); /* 12.0 MHz */
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); /* 32 kHz */
+        // Set the board specific oscillator frequencies.
+        cm_object_property_set_int(mcu, 12000000, "hse-freq-hz"); // 12.0 MHz
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // 32 kHz
 
         cm_object_realize(mcu);
     }
@@ -360,9 +376,12 @@ static void stm32_e407_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo stm32_e407_machine = {
     .name = BOARD_TYPE_NAME("STM32-E407"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = stm32_e407_board_class_init_callback };
+    .class_init = stm32_e407_board_class_init_callback
+/**/
+};
 
-/* ----- Boards inits ----- */
+// ----- Boards inits ---------------------------------------------------------
+
 static void stm32_olimex_machines_init(void)
 {
     type_register_static(&stm32_e407_machine);

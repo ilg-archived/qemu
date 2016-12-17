@@ -30,40 +30,34 @@
 #include "verbosity.h"
 #endif
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
-/*
- * Create children GPIO nodes.
- * Public names are "/machine/stm32/GPIO%c".
- */
+// Create children GPIO nodes.
+// Public names are "/machine/stm32/GPIO%c".
 static void create_gpio(STM32MCUState *state, stm32_gpio_index_t index)
 {
     state->gpio[index] = DEVICE(stm32_gpio_create(state->container, index));
 }
 
-/*
- * Create children USART nodes.
- * Public names are "/machine/stm32/USART%d".
- */
+// Create children USART nodes.
+// Public names are "/machine/stm32/USART%d".
 static void create_usart(STM32MCUState *state, stm32_usart_index_t index)
 {
     state->usart[index] = DEVICE(stm32_usart_create(state->container, index));
 }
 
-/*
- * Constructor for all STM32 devices, based on capabilities.
- *
- * Alias the flash memory to 0x08000000.
- *
- * TODO: define the special CCM region for the models that include it.
- */
+// Constructor for all STM32 devices, based on capabilities.
+//
+// Alias the flash memory to 0x08000000.
+//
+// TODO: define the special CCM region for the models that include it.
 static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_MCU)) {
         return;
     }
@@ -72,7 +66,7 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
     STM32Capabilities *capabilities = g_new0(STM32Capabilities, 1);
 
     if (state->param_capabilities) {
-        /* Copy R/O structure to a local R/W copy, to update it. */
+        // Copy R/O structure to a local R/W copy, to update it.
         memcpy(capabilities, state->param_capabilities,
                 sizeof(STM32Capabilities));
     }
@@ -125,19 +119,17 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     // Memory alias
     {
-        /*
-         * The STM32 family stores its Flash memory at some base address
-         * in memory (0x08000000 for medium density devices), and then
-         * aliases it to the boot memory space, which starts at 0x00000000
-         * (the "System Memory" can also be aliased to 0x00000000,
-         * but this is not implemented here).
-         * The processor executes the code in the aliased memory at 0x00000000.
-         * We need to make a QEMU alias so that reads in the 0x08000000 area
-         * are passed through to the 0x00000000 area. Note that this is the
-         * opposite of real hardware, where the memory at 0x00000000 passes
-         * reads through the "real" flash memory at 0x08000000, but it works
-         * the same either way.
-         */
+        // The STM32 family stores its Flash memory at some base address
+        // in memory (0x08000000 for medium density devices), and then
+        // aliases it to the boot memory space, which starts at 0x00000000
+        // (the "System Memory" can also be aliased to 0x00000000,
+        // but this is not implemented here).
+        // The processor executes the code in the aliased memory at 0x00000000.
+        // We need to make a QEMU alias so that reads in the 0x08000000 area
+        // are passed through to the 0x00000000 area. Note that this is the
+        // opposite of real hardware, where the memory at 0x00000000 passes
+        // reads through the "real" flash memory at 0x08000000, but it works
+        // the same either way.
         int flash_size = cm_state->flash_size_kb * 1024;
 
         // Allocate a new region for the alias
@@ -207,11 +199,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     // SYSCFG; assume the presence in SVD is enough.
     if (svd_has_named_peripheral(cm_state->svd_json, "SYSCFG")) {
-        /*
-         * SYSCFG will be named "/machine/mcu/stm32/SYSCFG".
-         * It controls, among other, which GPIO pins are
-         * connected to EXTI.
-         */
+        // SYSCFG will be named "/machine/mcu/stm32/SYSCFG".
+        // It controls, among other, which GPIO pins are
+        // connected to EXTI.
         Object *syscfg = cm_object_new(state->container, "SYSCFG",
         TYPE_STM32_SYSCFG);
 
@@ -222,11 +212,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     // AFIO; assume the presence in SVD is enough.
     if (svd_has_named_peripheral(cm_state->svd_json, "AFIO")) {
-        /*
-         * SYSCFG will be named "/machine/mcu/stm32/AFIO".
-         * It controls, among other, which GPIO pins are
-         * connected to EXTI.
-         */
+        // SYSCFG will be named "/machine/mcu/stm32/AFIO".
+        // It controls, among other, which GPIO pins are
+        // connected to EXTI.
         Object *afio = cm_object_new(state->container, "AFIO",
         TYPE_STM32_AFIO);
 
@@ -237,9 +225,9 @@ static void stm32_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     // EXTI; assume the presence in SVD is enough.
     if (svd_has_named_peripheral(cm_state->svd_json, "EXTI")) {
-        /* EXTI will be named "/machine/mcu/stm32/EXTI".
-         * It is referred by the GPIOs, to forward interrupts, so
-         * it must be constructed before the GPIOs. */
+        // EXTI will be named "/machine/mcu/stm32/EXTI".
+        // It is referred by the GPIOs, to forward interrupts, so
+        // it must be constructed before the GPIOs.
         Object *exti = cm_object_new(state->container, "EXTI",
         TYPE_STM32_EXTI);
 
@@ -403,9 +391,7 @@ static void stm32_mcu_reset_callback(DeviceState *dev)
     object_child_foreach(state->container, stm32_mcu_reset_object, NULL);
 }
 
-/*
- * Virtual function, overriding (in fact extending) the Cortex-M code.
- */
+// Virtual function, overriding (in fact extending) the Cortex-M code.
 static void stm32_mcu_memory_regions_create_callback(DeviceState *dev)
 {
     qemu_log_function_name();
@@ -458,7 +444,8 @@ static const TypeInfo stm32_mcu_type_info = {
     .instance_init = stm32_mcu_instance_init_callback,
     .instance_size = sizeof(STM32MCUState),
     .class_init = stm32_mcu_class_init_callback,
-    .class_size = sizeof(STM32MCUClass) /**/
+    .class_size = sizeof(STM32MCUClass)
+/**/
 };
 
 // ----- Type inits. -----
@@ -470,5 +457,5 @@ static void stm32_type_init(void)
 
 type_init(stm32_type_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 

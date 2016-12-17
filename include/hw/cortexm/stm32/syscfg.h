@@ -35,41 +35,41 @@
 
 // ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_STM32_SYSCFG_PARENT TYPE_PERIPHERAL
 typedef PeripheralClass STM32SYSCFGParentClass;
 typedef PeripheralState STM32SYSCFGParentState;
 
 // ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define STM32_SYSCFG_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32SYSCFGClass, (obj), TYPE_STM32_SYSCFG)
 #define STM32_SYSCFG_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32SYSCFGClass, (klass), TYPE_STM32_SYSCFG)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32SYSCFGParentClass parent_class;
-    /*< public >*/
+    // public:
 
-    /* None, so far. */
+    // None, so far.
 } STM32SYSCFGClass;
 
 // ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define STM32_SYSCFG_STATE(obj) \
     OBJECT_CHECK(STM32SYSCFGState, (obj), TYPE_STM32_SYSCFG)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32SYSCFGParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 
-    /* Used in GPIOs, it is easier to make it common to all families. */
+    // Used in GPIOs, it is easier to make it common to all families.
     struct {
         Object *exti[16];
     } exticr;

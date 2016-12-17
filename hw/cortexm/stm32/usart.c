@@ -577,9 +577,7 @@ static void stm32f40x_usart_create_objects(Object *obj, JSON_Object *svd,
 
 // ----- Public ---------------------------------------------------------------
 
-/*
- * Create GPIO%c and return it.
- */
+// Create GPIO%c and return it.
 Object* stm32_usart_create(Object *parent, stm32_usart_index_t index)
 {
     if ((int) index >= STM32_PORT_USART_UNDEFINED) {
@@ -619,9 +617,9 @@ static bool stm32_usart_is_enabled(Object *obj)
 
 static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
 {
-    /* TODO: use capabilities to select interrupt numbers
-     * for different variants.
-     */
+    // TODO: use capabilities to select interrupt numbers
+    // for different variants.
+
     switch (state->port_index) {
     case STM32_PORT_USART1:
         return STM32F4_01_57_XX_USART1_IRQn;
@@ -636,7 +634,7 @@ static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
     case STM32_PORT_USART6:
         return STM32F4_01_57_XX_USART6_IRQn;
     default:
-        return 1023; /* Whatever... */
+        return 1023; // Whatever...
     }
 }
 
@@ -660,7 +658,7 @@ static void stm32f4_usart_receive(void *obj, const uint8_t *buf, int size)
 
     if (!stm32_usart_is_enabled(obj) || !(cr1 & USART_CR1_UE)
             || !(cr1 & USART_CR1_RE)) {
-        /* USART not enabled - drop the chars */
+        // USART not enabled - drop the chars
         return;
     }
 
@@ -693,13 +691,13 @@ static void stm32f4_usart_dr_post_write_callback(Object *reg, Object *periph,
 
     int32_t cr1 = peripheral_register_get_raw_value(state->reg.cr1);
 
-    /* 'value' may be half-word, use full_word. */
+    // 'value' may be half-word, use full_word.
     if ((cr1 & USART_CR1_UE) && (cr1 & USART_CR1_TE)) {
         if (state->chr) {
             ch = full_value; /* Use only the lower 8 bits */
             qemu_chr_fe_write_all(state->chr, &ch, 1);
         }
-        /* transmission is immediately complete */
+        // transmission is immediately complete
         peripheral_register_or_raw_value(state->reg.sr,
         USART_SR_TC | USART_SR_TXE);
         if ((cr1 & USART_CR1_TXEIE) || (cr1 & USART_CR1_TCIE)) {
@@ -717,7 +715,7 @@ static void stm32f4_usart_cr1_post_write_callback(Object *reg, Object *periph,
 
     int32_t sr = peripheral_register_get_raw_value(state->reg.sr);
 
-    /* 'value' may be half-word, use full_word. */
+    // 'value' may be half-word, use full_word.
     if (((full_value & USART_CR1_RXNEIE) && (sr & USART_SR_RXNE))
             || ((full_value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))
             || ((full_value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
@@ -734,8 +732,8 @@ static void stm32_usart_instance_init_callback(Object *obj)
 
     STM32USARTState *state = STM32_USART_STATE(obj);
 
-    /* FIXME use a qdev char-device prop instead of qemu_char_get_next_serial() */
-    /* state->chr = qemu_char_get_next_serial(); */
+    // FIXME use a qdev char-device prop instead of qemu_char_get_next_serial()
+    // state->chr = qemu_char_get_next_serial();
 
     cm_object_property_add_int(obj, "port-index",
             (const int *) &state->port_index);
@@ -747,13 +745,14 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* No need to call parent realize(). */
+    // Parent realize() is called at the end, after setting properties
+    // and creating registers.
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
 
     STM32USARTState *state = STM32_USART_STATE(dev);
-    /* First thing first: get capabilities from MCU, needed everywhere. */
+    // First thing first: get capabilities from MCU, needed everywhere.
     state->capabilities = mcu->capabilities;
 
     Object *obj = OBJECT(dev);
@@ -764,10 +763,10 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     snprintf(periph_name, sizeof(periph_name) - 1, "USART%d",
             state->port_index - STM32_PORT_USART1 + 1);
 
-    /* Must be defined before creating registers. */
+    // Must be defined before creating registers.
     cm_object_property_set_int(obj, 4, "register-size-bytes");
 
-    /* TODO: get it from MCU */
+    // TODO: get it from MCU
     cm_object_property_set_bool(obj, true, "is-little-endian");
 
     const STM32Capabilities *capabilities =
@@ -871,7 +870,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
             state->reg.cr3 = state->u.f4.reg.cr3;
             state->reg.gtpr = state->u.f4.reg.gtpr;
 
-            /* Register callbacks. */
+            // Register callbacks.
             peripheral_register_set_post_read(state->reg.dr,
                     &stm32f4_usart_dr_post_read_callback);
             peripheral_register_set_post_write(state->reg.dr,
@@ -879,7 +878,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
             peripheral_register_set_post_write(state->reg.cr1,
                     &stm32f4_usart_cr1_post_write_callback);
 
-            /* char-device callbacks. */
+            // char-device callbacks.
             if (state->chr) {
                 qemu_chr_add_handlers(state->chr, stm32f4_usart_can_receive,
                         stm32f4_usart_receive, NULL, obj);
@@ -932,7 +931,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     }
     state->chr = chr;
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_STM32_USART)) {
         return;
     }
@@ -944,7 +943,7 @@ static void stm32_usart_reset_callback(DeviceState *dev)
 
     STM32USARTState *state = STM32_USART_STATE(dev);
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_STM32_USART);
 
     if (state->chr) {
@@ -959,8 +958,8 @@ static void stm32_usart_reset_callback(DeviceState *dev)
     case STM32_FAMILY_F4:
 
         // TODO:
-        /* FIXME: We should certainly clear the interrupt state.
-         * Don't know how to do that: implement cortexm_nvic_clear_pending ??? */
+        // FIXME: We should certainly clear the interrupt state.
+        // Don't know how to do that: implement cortexm_nvic_clear_pending ???
         break;
 
     default:
@@ -984,8 +983,8 @@ static void stm32_usart_class_init_callback(ObjectClass *klass, void *data)
 
     // dc->props = stm32_usart_properties;
 
-    /* Reason: instance_init() method uses qemu_char_get_next_serial()
-     dc->cannot_instantiate_with_device_add_yet = true;*/
+    // Reason: instance_init() method uses qemu_char_get_next_serial()
+    // dc->cannot_instantiate_with_device_add_yet = true;
 
     PeripheralClass *per_class = PERIPHERAL_CLASS(klass);
     per_class->is_enabled = stm32_usart_is_enabled;
@@ -997,16 +996,13 @@ static const TypeInfo stm32_usart_type_info = {
     .instance_init = stm32_usart_instance_init_callback,
     .instance_size = sizeof(STM32USARTState),
     .class_init = stm32_usart_class_init_callback,
-    .class_size = sizeof(STM32USARTClass) /**/
+    .class_size = sizeof(STM32USARTClass)
+/**/
 };
 
 static void stm32_usart_register_types(void)
 {
     type_register_static(&stm32_usart_type_info);
-
-#if 0
-    peripheral_serialize_info("f4xx-usart.json", "stm32f4xx:usart", &stm32f4_usart_info);
-#endif
 }
 
 type_init(stm32_usart_register_types);

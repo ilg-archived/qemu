@@ -31,42 +31,44 @@
  * Define a field to differentiate between different STM32 families.
  */
 
-/* ------------------------------------------------------------------------- */
-
+// ----------------------------------------------------------------------------
 #define TYPE_STM32_SYS_BUS_DEVICE "stm32-sys-bus-device"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// Parent definitions.
 #define TYPE_STM32_SYS_BUS_DEVICE_PARENT TYPE_SYS_BUS_DEVICE
 typedef SysBusDeviceClass STM32SysBusDeviceParentClass;
 typedef SysBusDevice STM32SysBusDeviceParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// Class definitions.
 #define STM32_SYS_BUS_DEVICE_GET_CLASS(obj) \
     OBJECT_GET_CLASS(STM32SysBusDeviceClass, (obj), TYPE_STM32_SYS_BUS_DEVICE)
 #define STM32_SYS_BUS_DEVICE_CLASS(klass) \
     OBJECT_CLASS_CHECK(STM32SysBusDeviceClass, (klass), TYPE_STM32_SYS_BUS_DEVICE)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32SysBusDeviceParentClass parent_class;
-    /*< public >*/
+    // public:
 } STM32SysBusDeviceClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// Instance definitions.
 #define STM32_SYS_BUS_DEVICE_STATE(obj) \
     OBJECT_CHECK(STM32SysBusDeviceState, (obj), TYPE_STM32_SYS_BUS_DEVICE)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32SysBusDeviceParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 } STM32SysBusDeviceState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* STM32_SYS_BUS_DEVICE_H_ */

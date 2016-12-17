@@ -42,31 +42,6 @@
 
 #define DEVICE_PATH_STM32_USART DEVICE_PATH_STM32 "USART"
 
-// ----------------------------------------------------------------------------
-
-#define TYPE_STM32_USART TYPE_STM32_PREFIX "usart" TYPE_PERIPHERAL_SUFFIX
-
-// ----------------------------------------------------------------------------
-
-#define TYPE_STM32_USART_PARENT TYPE_PERIPHERAL
-typedef PeripheralClass STM32USARTParentClass;
-typedef PeripheralState STM32USARTParentState;
-
-// ----------------------------------------------------------------------------
-
-#define STM32_USART_GET_CLASS(obj) \
-    OBJECT_GET_CLASS(STM32USARTClass, (obj), TYPE_STM32_USART)
-#define STM32_USART_CLASS(klass) \
-    OBJECT_CLASS_CHECK(STM32USARTClass, (klass), TYPE_STM32_USART)
-
-typedef struct {
-    /*< private >*/
-    STM32USARTParentClass parent_class;
-    /*< public >*/
-} STM32USARTClass;
-
-// ----------------------------------------------------------------------------
-
 typedef enum {
     STM32_PORT_USART1 = 0,
     STM32_PORT_USART2,
@@ -98,13 +73,43 @@ typedef enum {
 #define STM32_EXCP_UART_5    69
 #define STM32_EXCP_USART_6   87
 
+// ----------------------------------------------------------------------------
+
+#define TYPE_STM32_USART TYPE_STM32_PREFIX "usart" TYPE_PERIPHERAL_SUFFIX
+
+// ----------------------------------------------------------------------------
+
+// Parent definitions.
+#define TYPE_STM32_USART_PARENT TYPE_PERIPHERAL
+typedef PeripheralClass STM32USARTParentClass;
+typedef PeripheralState STM32USARTParentState;
+
+// ----------------------------------------------------------------------------
+
+// Class definitions.
+#define STM32_USART_GET_CLASS(obj) \
+    OBJECT_GET_CLASS(STM32USARTClass, (obj), TYPE_STM32_USART)
+#define STM32_USART_CLASS(klass) \
+    OBJECT_CLASS_CHECK(STM32USARTClass, (klass), TYPE_STM32_USART)
+
+typedef struct {
+    // private:
+    STM32USARTParentClass parent_class;
+    // public:
+
+    // None, so far.
+} STM32USARTClass;
+
+// ----------------------------------------------------------------------------
+
+// Instance definitions.
 #define STM32_USART_STATE(obj) \
     OBJECT_CHECK(STM32USARTState, (obj), TYPE_STM32_USART)
 
 typedef struct {
-    /*< private >*/
+    // private:
     STM32USARTParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const STM32Capabilities *capabilities;
 
@@ -119,10 +124,9 @@ typedef struct {
 
     CharDriverState *chr;
 
-    /*
-     * USART/UART peripherals seem to be very similar among all families,
-     * so we have a common struct for all mcus.
-     */
+    // USART/UART peripherals seem to be very similar among all families,
+    // so we have a common struct for all mcus.
+
     struct {
         Object *sr;
         Object *dr;
@@ -132,6 +136,7 @@ typedef struct {
         Object *cr3;
         Object *gtpr;
     } reg;
+
     union {
         // DO NOT EDIT! Automatically generated!
         struct {

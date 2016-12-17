@@ -26,8 +26,7 @@
  * This file defines several STM32 Nucleo boards.
  */
 
-/* ----- ST NUCLEO-F103RB ----- */
-
+// ----- ST NUCLEO-F103RB -----------------------------------------------------
 static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
     {
         .name = "green-led",
@@ -39,7 +38,8 @@ static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
         .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .gpio_bit = 5, },
-    { }, /**/
+    { },
+/**/
 };
 
 static void nucleo_f103rb_board_init_callback(MachineState *machine)
@@ -49,12 +49,12 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F103RB);
 
-        /* The board has no oscillators. */
-        cm_object_property_set_int(mcu, 0, "hse-freq-hz"); /* N/A */
-        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+        // The board has no oscillators.
+        cm_object_property_set_int(mcu, 0, "hse-freq-hz"); // N/A
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); // N/A
 
         cm_object_realize(mcu);
     }
@@ -77,7 +77,9 @@ static void nucleo_f103rb_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo nucleo_f103rb_machine = {
     .name = BOARD_TYPE_NAME("NUCLEO-F103RB"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = nucleo_f103rb_board_class_init_callback };
+    .class_init = nucleo_f103rb_board_class_init_callback
+/**/
+};
 
 #if 0
 /* ----- ST NUCLEO-L152RE ----- */
@@ -97,7 +99,8 @@ static void nucleo_l152re_board_init_callback(MachineState *machine)
 }
 #endif
 
-/* ----- ST NUCLEO-F411RE ----- */
+// ----- ST NUCLEO-F411RE -----------------------------------------------------
+
 static GPIOLEDInfo nucleo_f411re_leds_info[] = {
     {
         .name = "green-led",
@@ -109,7 +112,8 @@ static GPIOLEDInfo nucleo_f411re_leds_info[] = {
         .h = 6,
         .gpio_path = "/machine/mcu/stm32/gpio[a]",
         .gpio_bit = 5, },
-    { }, /**/
+    { },
+/**/
 };
 
 static void nucleo_f411re_board_init_callback(MachineState *machine)
@@ -119,12 +123,12 @@ static void nucleo_f411re_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F411RE);
 
-        /* The board has no oscillators. */
-        cm_object_property_set_int(mcu, 0, "hse-freq-hz"); /* N/A */
-        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); /* N/A */
+        // The board has no oscillators.
+        cm_object_property_set_int(mcu, 0, "hse-freq-hz"); // N/A
+        cm_object_property_set_int(mcu, 0, "lse-freq-hz"); // N/A
 
         cm_object_realize(mcu);
     }
@@ -147,7 +151,9 @@ static void nucleo_f411re_board_class_init_callback(ObjectClass *oc, void *data)
 static const TypeInfo nucleo_f411re_machine = {
     .name = BOARD_TYPE_NAME("NUCLEO-F411RE"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = nucleo_f411re_board_class_init_callback };
+    .class_init = nucleo_f411re_board_class_init_callback
+/**/
+};
 
 #if 0
 /* ----- ST NUCLEO-F334R8 ----- */
@@ -167,7 +173,8 @@ static void nucleo_f334r8_board_init_callback(MachineState *machine)
 }
 #endif
 
-/* ----- Boards inits ----- */
+// ----- Boards inits ---------------------------------------------------------
+
 static void stm32_machines_init(void)
 {
     type_register_static(&nucleo_f103rb_machine);
