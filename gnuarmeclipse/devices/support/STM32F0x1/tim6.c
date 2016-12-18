@@ -158,6 +158,7 @@ static void stm32_tim6_instance_init_callback(Object *obj)
 
     // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
+    
     // TODO: Add code to initialise all members.
 }
 
@@ -165,8 +166,10 @@ static void stm32_tim6_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    // Parent realize() is called at the end, after setting properties 
-    // and creating registers.
+    // Call parent realize().
+    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_TIM6)) {
+        return;
+    }
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
@@ -182,6 +185,9 @@ static void stm32_tim6_realize_callback(DeviceState *dev, Error **errp)
     Object *obj = OBJECT(dev);
 
     const char *periph_name = "TIM6";
+
+    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
+    peripheral_create_memory_region(obj);
 
     // TODO: remove this if the peripheral is always enabled.
     char enabling_bit_name[STM32_RCC_SIZEOF_ENABLING_BITFIELD];
@@ -221,14 +227,10 @@ static void stm32_tim6_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = OBJECT(cm_device_by_name(enabling_bit_name));
 
-    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
-
-    // Call parent realize().
-    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_TIM6)) {
-        return;
-    }
+    peripheral_prepare_registers(obj);
 }
 
 static void stm32_tim6_reset_callback(DeviceState *dev)
