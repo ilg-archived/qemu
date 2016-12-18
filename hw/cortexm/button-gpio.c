@@ -26,7 +26,7 @@
 #include "verbosity.h"
 #endif
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
 void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
         BoardGraphicContext *graphic_context)
@@ -34,14 +34,14 @@ void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
     ButtonGPIOInfo *info;
 
     for (info = info_array; info->name; info++) {
-        /* Create the button. */
 
+        // Create the button.
         Object *button = cm_object_new(parent, info->name, TYPE_BUTTON_GPIO);
 
         cm_object_property_set_bool(button, info->active_low, "active-low");
 
         if (info->w && info->h) {
-            /* Compute corner coordinates from centre coordinate. */
+            // Compute corner coordinates from centre coordinate.
             cm_object_property_set_int(button, info->x - (info->w / 2),
                     "x-left");
             cm_object_property_set_int(button, info->x + (info->w / 2),
@@ -55,7 +55,7 @@ void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
         cm_object_realize(button);
 
         if (info->gpio_path) {
-            /* Connect this button to the GPIO incoming interrupt. */
+            // Connect this button to the GPIO incoming interrupt.
             cm_irq_connect(DEVICE(button), IRQ_BUTTON_GPIO_OUT, 0,
                     cm_device_by_name(info->gpio_path), info->irq_name,
                     info->gpio_bit);
@@ -80,9 +80,9 @@ void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
     }
 }
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
-/* Action when the button is pushed down. */
+// Action when the button is pushed down.
 static void button_gpio_down_callback(ButtonState *button)
 {
     qemu_log_function_name();
@@ -94,7 +94,7 @@ static void button_gpio_down_callback(ButtonState *button)
     cm_irq_set(state->irq_out, button->value);
 }
 
-/* Action when the button is released. */
+// Action when the button is released.
 static void button_gpio_up_callback(ButtonState *button)
 {
     qemu_log_function_name();
@@ -120,22 +120,25 @@ static void button_gpio_instance_init_callback(Object *obj)
     cm_irq_init_out(DEVICE(obj), &state->irq_out, IRQ_BUTTON_GPIO_OUT, 1);
 }
 
-// Currently not used.
-static void button_gpio_reset_callback(DeviceState *dev)
-{
-    qemu_log_function_name();
-}
-
 static void button_gpio_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_BUTTON_GPIO)) {
         return;
     }
 
     // ButtonGPIOState *state = BUTTON_GPIO_STATE(dev);
+}
+
+// Currently not used.
+static void button_gpio_reset_callback(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    // Call parent reset(); this will reset all children registers.
+    cm_device_parent_reset(dev, TYPE_BUTTON_GPIO);
 }
 
 static void button_gpio_class_init_callback(ObjectClass *klass, void *data)
@@ -155,7 +158,9 @@ static const TypeInfo button_gpio_type_info = {
     .instance_size = sizeof(ButtonGPIOState),
     .instance_init = button_gpio_instance_init_callback,
     .class_init = button_gpio_class_init_callback,
-    .class_size = sizeof(ButtonGPIOClass) };
+    .class_size = sizeof(ButtonGPIOClass)
+/**/
+};
 
 static void button_gpio_type_init(void)
 {
@@ -164,4 +169,4 @@ static void button_gpio_type_init(void)
 
 type_init(button_gpio_type_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

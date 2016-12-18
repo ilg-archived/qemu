@@ -28,11 +28,8 @@
  * This class implements a LED connected to a GPIO device.
  */
 
-/* ----- Public ------------------------------------------------------------ */
-
-/*
- * Create a number of LEDs, using details from an array of Info structures.
- */
+// ----- Public ---------------------------------------------------------------
+// Create a number of LEDs, using details from an array of Info structures.
 Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         BoardGraphicContext *graphic_context)
 {
@@ -49,7 +46,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
     Object **p = arr;
 
     for (info = info_array; info->name; info++) {
-        /* Create the board LED */
+        // Create the board LED
         Object *led = cm_object_new(parent, info->name, TYPE_GPIO_LED);
 
         cm_object_property_set_bool(led, info->active_low, "active-low");
@@ -85,7 +82,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
 #if defined(CONFIG_SDL)
 
         if (info->w && info->h) {
-            /* Compute corner coordinate from centre coordinate. */
+            // Compute corner coordinate from centre coordinate.
             cm_object_property_set_int(led, info->x - (info->w / 2), "x");
             cm_object_property_set_int(led, info->y - (info->h / 2), "y");
             cm_object_property_set_int(led, info->w, "w");
@@ -110,15 +107,15 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
                 cm_object_property_set_int(led, 153, "colour.green");
                 cm_object_property_set_int(led, 51, "colour.blue");
             } else {
-                /* White LED */
+                // White LED
                 cm_object_property_set_int(led, 255, "colour.red");
                 cm_object_property_set_int(led, 255, "colour.green");
                 cm_object_property_set_int(led, 255, "colour.blue");
             }
 
         }
-        /* Remember the graphic context in each LED */
-        /* Remember the board graphic context in each LED. */
+        // Remember the graphic context in each LED
+        // Remember the board graphic context in each LED.
         GPIO_LED_STATE(led)->board_graphic_context = graphic_context;
 
 #endif /* defined(CONFIG_SDL) */
@@ -126,10 +123,8 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         cm_object_realize(led);
 
         if (info->gpio_path) {
-            /*
-             * Connect the outgoing interrupt of the GPIO bit to the (only)
-             * incoming interrupt of this LED.
-             */
+            // Connect the outgoing interrupt of the GPIO bit to the (only)
+            // incoming interrupt of this LED.
             cm_irq_connect(cm_device_by_name(info->gpio_path), info->irq_name,
                     info->gpio_bit, DEVICE(led), IRQ_GPIO_LED_IN, 0);
         }
@@ -157,7 +152,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
     return arr;
 }
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
 #define LED_ON true
 #define LED_OFF false
@@ -176,20 +171,16 @@ static void gpio_led_turn(GPIOLEDState *state, bool is_on)
 #endif /* defined(CONFIG_SDL) */
 }
 
-/*
- * Callback used to notify the LED status change.
- */
+// Callback used to notify the LED status change.
 static void gpio_led_irq_handler(void *opaque, int n, int level)
 {
     GPIOLEDState *state = GPIO_LED_STATE(opaque);
 
-    /* There should be only one IRQ for the LED */
+    // There should be only one IRQ for the LED
     assert(n == 0);
 
-    /*
-     * Assume that the IRQ is only triggered if the LED has changed state.
-     * If this is not correct, we may get multiple LED Off's or On's in a row.
-     */
+    // Assume that the IRQ is only triggered if the LED has changed state.
+    // If this is not correct, we may get multiple LED Off's or On's in a row.
     switch (level) {
     case 0:
 
@@ -240,15 +231,11 @@ static void gpio_led_instance_init_callback(Object *obj)
 
 #endif /* defined(CONFIG_SDL) */
 
-    /*
-     * Create a single incoming irq.
-     */
+    // Create a single incoming irq.
     cm_irq_init_in(DEVICE(obj), gpio_led_irq_handler, IRQ_GPIO_LED_IN, 1);
 
-    /*
-     * The connection will be done by the machine.
-     * A helper class is gpio_led_connect().
-     */
+    // The connection will be done by the machine.
+    // A helper class is gpio_led_connect().
 
     // Explicitly start with the graphic context cleared.
     cortexm_graphic_led_clear_graphic_context(&(state->led_graphic_context));
@@ -258,7 +245,7 @@ static void gpio_led_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_GPIO_LED)) {
         return;
     }
@@ -288,7 +275,9 @@ static const TypeInfo gpio_led_type_info = {
     .instance_size = sizeof(GPIOLEDState),
     .instance_init = gpio_led_instance_init_callback,
     .class_init = gpio_led_class_init_callback,
-    .class_size = sizeof(GPIOLEDClass) };
+    .class_size = sizeof(GPIOLEDClass)
+/**/
+};
 
 static void gpio_led_type_init(void)
 {
@@ -297,4 +286,4 @@ static void gpio_led_type_init(void)
 
 type_init(gpio_led_type_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

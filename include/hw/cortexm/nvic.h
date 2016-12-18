@@ -27,7 +27,7 @@
 #include "hw/intc/gic_internal.h"
 #include <hw/cortexm/peripheral.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_CORTEXM_NVIC "/machine/mcu/cortexm/nvic"
 
@@ -48,52 +48,50 @@
 #define NVIC_EXCEPTION_PENDSV           14
 #define NVIC_EXCEPTION_SYSTICK          15
 
-/*
- * In addition to these 16 exceptions, each device also has a vendor specific
- * number of peripheral interrupts (`num_irq`).
- */
+// In addition to these 16 exceptions, each device also has a vendor specific
+// number of peripheral interrupts (`num_irq`).
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_CORTEXM_NVIC TYPE_CORTEXM_PREFIX "nvic" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_CORTEXM_NVIC_PARENT TYPE_ARM_GIC_COMMON
 typedef ARMGICClass CortexMNVICParentClass;
 typedef GICState CortexMNVICParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef struct {
 
 } CortexMNVICConstruct;
 
-/* Class definitions. */
+// Class definitions.
 #define CORTEXM_NVIC_GET_CLASS(obj) \
     OBJECT_GET_CLASS(CortexMNVICClass, (obj), TYPE_CORTEXM_NVIC)
 #define CORTEXM_NVIC_CLASS(klass) \
     OBJECT_CLASS_CHECK(CortexMNVICClass, (klass), TYPE_CORTEXM_NVIC)
 
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMNVICParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } CortexMNVICClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define CORTEXM_NVIC_STATE(obj) \
     OBJECT_CHECK(CortexMNVICState, (obj), TYPE_CORTEXM_NVIC)
 
-/* Inspired by the nvic_state defined in hw/intc/armv7m_nvic.c */
+// Inspired by the nvic_state defined in hw/intc/armv7m_nvic.c
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMNVICParentState gic;
-    /*< public >*/
+    // public:
 
     struct {
         uint32_t control;
@@ -105,7 +103,7 @@ typedef struct {
     MemoryRegion gic_iomem_alias;
     MemoryRegion container;
 
-    /* Number of vendor specific interrupts, multiple of 32. */
+    // Number of vendor specific interrupts, multiple of 32.
     uint32_t num_irq;
 
     qemu_irq sysresetreq;
@@ -134,7 +132,7 @@ typedef struct {
 
 } CortexMNVICState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void cortexm_nvic_set_pending_exception(void *opaque, int exception);
 void cortexm_nvic_set_pending_interrupt(void *opaque, int irq);
@@ -143,6 +141,6 @@ void cortexm_nvic_set_pending_interrupt(void *opaque, int irq);
 int cortexm_nvic_acknowledge_irq(void *opaque);
 void cortexm_nvic_complete_irq(void *opaque, int irq);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_NVIC_H */

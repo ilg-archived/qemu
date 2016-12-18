@@ -37,7 +37,7 @@
 #include "verbosity.h"
 #endif
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_mcu_help_foreach(gpointer data, gpointer user_data)
 {
@@ -96,12 +96,10 @@ bool cm_board_help_func(const char *name)
     return true;
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/*
- * A version of cpu_generic_init() that does only the object creation and
- * initialisation, without calling realize().
- */
+// A version of cpu_generic_init() that does only the object creation and
+// initialisation, without calling realize().
 static CPUState *cm_cpu_generic_create(const char *typename,
         const char *cpu_model)
 {
@@ -122,9 +120,8 @@ static CPUState *cm_cpu_generic_create(const char *typename,
 
     cc = CPU_CLASS(oc);
     featurestr = strtok(NULL, ",");
-    /* TODO: all callers of cpu_generic_init() need to be converted to
-     * call parse_features() only once, before calling cpu_generic_init().
-     */
+    // TODO: all callers of cpu_generic_init() need to be converted to
+    // call parse_features() only once, before calling cpu_generic_init().
     cc->parse_features(object_class_get_name(oc), featurestr, &err);
     g_free(str);
     if (err != NULL) {
@@ -143,10 +140,8 @@ static CPUState *cm_cpu_generic_create(const char *typename,
     return cpu;
 }
 
-/*
- * A version of cpu_arm_init() that does only the object creation and
- * initialisation, without calling realize().
- */
+// A version of cpu_arm_init() that does only the object creation and
+// initialisation, without calling realize().
 void *cm_cpu_arm_create(Object *parent, const char *cpu_model)
 {
     ARMCPU *cpu;
@@ -167,9 +162,7 @@ Object *cm_object_get_parent(Object *obj)
     return obj->parent;
 }
 
-/*
- * Return true if the node is of given type. Go up the class hierarchy.
- */
+// Return true if the node is of given type. Go up the class hierarchy.
 bool cm_object_is_instance_of_typename(Object *obj, const char *type_name)
 {
     ObjectClass *klass = object_get_class(obj);
@@ -218,14 +211,12 @@ Object *cm_object_get_child_by_name(Object *obj, const char *name)
     return tmp.child;
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/*
- *  Realize object. Errors are fatal.
- *  Similar to qdev_init_nofail(), but with a less-confusing name, since
- *  qdev_init_nofail not only that it does not call init(), but realize(),
- *  and it may fail, and when it does it exits.
- */
+//  Realize object. Errors are fatal.
+//  Similar to qdev_init_nofail(), but with a less-confusing name, since
+//  qdev_init_nofail not only that it does not call init(), but realize(),
+//  and it may fail, and when it does it exits.
 void cm_object_realize(Object *obj)
 {
     Error *err = NULL;
@@ -267,9 +258,7 @@ Object *cm_object_new_mcu(MachineState *machine, const char *board_device_name)
     return cm_object_new((Object*) cortexm_board_get(), "mcu", device_name);
 }
 
-/*
- * Reset the device, if it exists.
- */
+// Reset the device, if it exists.
 void cm_device_reset(DeviceState *dev)
 {
     if (dev != NULL) {
@@ -277,13 +266,11 @@ void cm_device_reset(DeviceState *dev)
     }
 }
 
-/*
- *  Call the parent realize() of a given type.
- */
+//  Call the parent realize() of a given type.
 bool cm_device_parent_realize(DeviceState *dev, Error **errp,
         const char *type_name)
 {
-    /* Identify parent class. */
+    // Identify parent class.
     DeviceClass *klass = DEVICE_CLASS(
             object_class_get_parent(object_class_by_name(type_name)));
 
@@ -298,10 +285,8 @@ bool cm_device_parent_realize(DeviceState *dev, Error **errp,
     return true;
 }
 
-/*
- * Return a device pointer for a fully qualified path, like
- * "/machine/mcu/stm32/gpio[a]".
- */
+// Return a device pointer for a fully qualified path, like
+// "/machine/mcu/stm32/gpio[a]".
 DeviceState *cm_device_by_name(const char *path)
 {
     DeviceState *dev = DEVICE(object_resolve_path(path, NULL));
@@ -313,13 +298,11 @@ DeviceState *cm_device_by_name(const char *path)
     return dev;
 }
 
-/*
- *  Call the realize() of a given type.
- */
+//  Call the realize() of a given type.
 bool cm_device_by_name_realize(DeviceState *dev, Error **errp,
         const char *type_name)
 {
-    /* Identify class. */
+    // Identify class.
     DeviceClass *klass = DEVICE_CLASS(object_class_by_name(type_name));
 
     if (klass->realize) {
@@ -333,12 +316,10 @@ bool cm_device_by_name_realize(DeviceState *dev, Error **errp,
     return true;
 }
 
-/*
- * Call the parent reset() of a given type.
- */
+// Call the parent reset() of a given type.
 void cm_device_parent_reset(DeviceState *dev, const char *type_name)
 {
-    /* Identify parent class. */
+    // Identify parent class.
     DeviceClass *klass = DEVICE_CLASS(
             object_class_get_parent(object_class_by_name(type_name)));
 
@@ -347,12 +328,10 @@ void cm_device_parent_reset(DeviceState *dev, const char *type_name)
     }
 }
 
-/*
- * Call the reset() of a given type.
- */
+// Call the reset() of a given type.
 void cm_device_by_name_reset(DeviceState *dev, const char *type_name)
 {
-    /* Identify class. */
+    // Identify class.
     DeviceClass *klass = DEVICE_CLASS(object_class_by_name(type_name));
 
     if (klass->reset) {
@@ -360,9 +339,7 @@ void cm_device_by_name_reset(DeviceState *dev, const char *type_name)
     }
 }
 
-/*
- * Setter for any integer property (uint*, int).
- */
+// Setter for any integer property (uint*, int).
 void cm_object_property_set_int(Object *obj, int64_t value, const char *name)
 {
     Error *err = NULL;
@@ -374,9 +351,7 @@ void cm_object_property_set_int(Object *obj, int64_t value, const char *name)
     }
 }
 
-/*
- * Setter for boolean properties.
- */
+// Setter for boolean properties.
 void cm_object_property_set_bool(Object *obj, bool value, const char *name)
 {
     Error *err = NULL;
@@ -388,11 +363,9 @@ void cm_object_property_set_bool(Object *obj, bool value, const char *name)
     }
 }
 
-/*
- * Setter for string properties. Makes a copy of the value string,
- * so the initial value may be allocated anywhere, for example
- * on stack or on a temporary parsed json value.
- */
+// Setter for string properties. Makes a copy of the value string,
+// so the initial value may be allocated anywhere, for example
+// on stack or on a temporary parsed json value.
 void cm_object_property_set_str(Object *obj, const char *value,
         const char *name)
 {
@@ -437,7 +410,7 @@ char *cm_object_property_get_str_with_parent(Object *obj, const char *name,
     return NULL;
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void cm_object_property_add_child(Object *obj, const char *node_name,
         Object *child)
@@ -456,7 +429,7 @@ Object *cm_container_get_peripheral(void)
     return container_get(object_get_root(), "/peripheral");
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 ObjectProperty *
 cm_object_property_add(Object *obj, const char *name, const char *type,
@@ -476,7 +449,7 @@ cm_object_property_add(Object *obj, const char *name, const char *type,
     return prop;
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_str_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -524,7 +497,7 @@ void cm_object_property_add_const_str(Object *obj, const char *name,
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_bool_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -559,7 +532,7 @@ void cm_object_property_add_bool(Object *obj, const char *name, const bool *v)
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_uint64_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -594,7 +567,7 @@ void cm_object_property_add_uint64_callback(Object *obj, const char *name,
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_uint32_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -629,7 +602,7 @@ void cm_object_property_add_uint32(Object *obj, const char *name,
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_uint16_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -664,7 +637,7 @@ void cm_object_property_add_uint16(Object *obj, const char *name,
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_uint8_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -698,7 +671,7 @@ void cm_object_property_add_uint8(Object *obj, const char *name,
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_int16_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -732,7 +705,7 @@ void cm_object_property_add_int16(Object *obj, const char *name,
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cm_property_get_int_ptr_callback(Object *obj, Visitor *v,
         const char *name, void *opaque, Error **errp)
@@ -777,13 +750,11 @@ void cm_object_property_add_int(Object *obj, const char *name, const int *v)
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/*
- * Initialise `num` incoming interrupts in the device lists
- * and assign the same handler to all.
- * Incoming interrupts are usually named "irq-in".
- */
+// Initialise `num` incoming interrupts in the device lists
+// and assign the same handler to all.
+// Incoming interrupts are usually named "irq-in".
 void cm_irq_init_in(DeviceState *dev, qemu_irq_handler handler,
         const char *name, int num)
 {
@@ -797,20 +768,16 @@ qemu_irq cm_irq_get_in(DeviceState *dev, const char *name, int index)
     return qdev_get_gpio_in_named(dev, name, index);
 }
 
-/*
- * Initialise `num` outgoing interrupts in the device lists.
- * Outgoing interrupts are usually named "irq-out".
- */
+// Initialise `num` outgoing interrupts in the device lists.
+// Outgoing interrupts are usually named "irq-out".
 void cm_irq_init_out(DeviceState *dev, qemu_irq *irqs, const char *name,
         int num)
 {
     qdev_init_gpio_out_named(dev, irqs, name, num);
 }
 
-/*
- * Connect the outgoing interrupt of one device to the incoming interrupt
- * of the other.
- */
+// Connect the outgoing interrupt of one device to the incoming interrupt
+// of the other.
 void cm_irq_connect(DeviceState *dev_out, const char *name_out, int index_out,
         DeviceState *dev_in, const char *name_in, int index_in)
 {
@@ -818,18 +785,14 @@ void cm_irq_connect(DeviceState *dev_out, const char *name_out, int index_out,
     qdev_connect_gpio_out_named(dev_out, name_out, index_out, irq_in);
 }
 
-/*
- * Connect the device outgoing irq to the local incoming irq.
- */
+// Connect the device outgoing irq to the local incoming irq.
 void cm_irq_connect_out(DeviceState *dev, const char *name_out, int index_out,
         qemu_irq irq_in)
 {
     qdev_connect_gpio_out_named(dev, name_out, index_out, irq_in);
 }
 
-/*
- * Create a new incoming irq, using the given handler.
- */
+// Create a new incoming irq, using the given handler.
 qemu_irq cm_irq_create_in(qemu_irq_handler handler, void *opaque, int index)
 {
     return qemu_allocate_irq(handler, opaque, index);
@@ -849,3 +812,5 @@ void cm_irq_lower(qemu_irq irq)
 {
     qemu_set_irq(irq, 0);
 }
+
+// ----------------------------------------------------------------------------

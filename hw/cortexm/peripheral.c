@@ -26,12 +26,11 @@
 #include "qapi/qmp/qstring.h"
 #include "migration/qjson.h"
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
-/*
- * Set the peripheral properties and add children registers from the
- * info structure.
- */
+// Set the peripheral properties and add children registers from the
+// info structure.
+
 Object *peripheral_add_properties_and_children(Object *obj,
         PeripheralInfo *info)
 {
@@ -52,7 +51,7 @@ Object *peripheral_add_properties_and_children(Object *obj,
             Object *reg = cm_object_new(obj, regs_info->name,
             TYPE_PERIPHERAL_REGISTER);
 
-            /* Store a local copy of the node name, for easier access.  */
+            // Store a local copy of the node name, for easier access.
             cm_object_property_set_str(reg, regs_info->name, "name");
 
             peripheral_register_add_properties_and_children(reg, regs_info);
@@ -91,209 +90,46 @@ static int peripheral_compute_max_offset_foreach(Object *obj, void *opaque);
 static int peripheral_populate_registers_array_foreach(Object *obj,
         void *opaque);
 
+// For fast access, create an array of registers, indexed by
+// offset, aligned to register size (4 or 8).
+//
+// Warning: for large, sparse, peripherals, this might use a lot
+// of memory.
+
 void peripheral_prepare_registers(Object *obj)
 {
-    /*
-     * For fast access, create an array of registers, indexed by
-     * offset, aligned to register size (4 or 8).
-     *
-     * Warning: for large, sparse, peripherals, this might use a lot
-     * of memory.
-     */
-
     PeripheralState *state = PERIPHERAL_STATE(obj);
     DeviceState *dev = DEVICE(obj);
 
-    /* Iterate children and determine the last register. */
+    // Iterate children and determine the last register.
     state->max_offset_bytes = 0;
     object_child_foreach(OBJECT(dev), peripheral_compute_max_offset_foreach,
             (void *) dev);
 
     assert(state->max_offset_bytes < state->mmio_size_bytes);
 
-    /* Compute the number of pointers the array should contain. */
+    // Compute the number of pointers the array should contain.
     state->registers_size_ptrs = (state->max_offset_bytes
             / state->register_size_bytes) + 1;
 
-    /* Allocate the array of pointers to registers. */
+    // Allocate the array of pointers to registers.
     state->registers = g_malloc0_n(state->registers_size_ptrs, sizeof(Object*));
 
-    /* Fill in the array with pointers to registers. */
+    // Fill in the array with pointers to registers.
     object_child_foreach(OBJECT(dev),
             peripheral_populate_registers_array_foreach, (void *) dev);
 }
 
-/* ------------------------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
-static void cm_json_prop_hex(QJSON *json, const char *name, uint32_t value,
-        uint32_t width)
-{
-    char buf[20];
-
-    if (width > 0) {
-        snprintf(buf, sizeof(buf) - 1, "0x%0*X", width, value);
-    } else {
-        snprintf(buf, sizeof(buf) - 1, "0x%0X", value);
-    }
-    json_prop_str(json, name, buf);
-}
-
-static void cm_json_prop_access_flags(QJSON *json, const char *name,
-        uint64_t access_flags)
-{
-    char buf[30];
-
-    if (access_flags == PERIPHERAL_REGISTER_32BITS_ALL) {
-        strncpy(buf, "32_all", sizeof(buf) - 1);
-    } else if (access_flags == PERIPHERAL_REGISTER_32BITS_WORD) {
-        strncpy(buf, "32_word", sizeof(buf) - 1);
-    } else if (access_flags == PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD) {
-        strncpy(buf, "32_word_halfword", sizeof(buf) - 1);
-    } else {
-        snprintf(buf, sizeof(buf) - 1, "0x%016" PRIX64, access_flags);
-    }
-    json_prop_str(json, name, buf);
-}
-
-static void cm_json_prop_rw_mode(QJSON *json, const char *name, uint32_t mode)
-{
-    char buf[8];
-
-    if (mode == REGISTER_RW_MODE_READ) {
-        strncpy(buf, "r", sizeof(buf) - 1);
-    } else if (mode == REGISTER_RW_MODE_WRITE) {
-        strncpy(buf, "w", sizeof(buf) - 1);
-    } else if (mode == REGISTER_RW_MODE_WRITE) {
-        strncpy(buf, "rw", sizeof(buf) - 1);
-    }
-    json_prop_str(json, name, buf);
-}
-
-void peripheral_serialize_info(const char* file_name, const char* periph_name,
-        PeripheralInfo *info)
-{
-    QJSON *json_info = qjson_new();
-
-    assert(periph_name != NULL);
-    json_prop_str(json_info, "name", periph_name);
-    if (info->desc != NULL) {
-        json_prop_str(json_info, "desc", info->desc);
-    }
-    if (info->register_size_bytes > 0) {
-        json_prop_int(json_info, "register_size_bytes",
-                info->register_size_bytes);
-    }
-    if (info->default_access_flags) {
-        cm_json_prop_access_flags(json_info, "default_access_flags",
-                info->default_access_flags);
-    }
-    assert(info->registers != NULL);
-
-    PeripheralRegisterInfo *reg_info;
-    json_start_array(json_info, "registers");
-
-    for (reg_info = info->registers; reg_info->name; ++reg_info) {
-
-        json_start_object(json_info, NULL);
-
-        json_prop_str(json_info, "name", reg_info->name);
-        if (reg_info->desc != NULL) {
-            json_prop_str(json_info, "desc", reg_info->desc);
-        }
-        cm_json_prop_hex(json_info, "offset_bytes", reg_info->offset_bytes, 3);
-        cm_json_prop_hex(json_info, "reset_value", reg_info->reset_value, 8);
-        if (reg_info->reset_mask > 0) {
-            cm_json_prop_hex(json_info, "reset_mask", reg_info->reset_mask, 8);
-        }
-
-        if (reg_info->readable_bits > 0) {
-            cm_json_prop_hex(json_info, "readable_bits",
-                    reg_info->readable_bits, 8);
-        }
-        if (reg_info->writable_bits > 0) {
-            cm_json_prop_hex(json_info, "writable_bits",
-                    reg_info->writable_bits, 8);
-        }
-
-        if (reg_info->access_flags) {
-            cm_json_prop_access_flags(json_info, "access_flags",
-                    reg_info->access_flags);
-        }
-
-        if (reg_info->rw_mode) {
-            cm_json_prop_rw_mode(json_info, "rw_mode", reg_info->rw_mode);
-        }
-
-        if (reg_info->size_bits) {
-            json_prop_int(json_info, "size_bits", reg_info->size_bits);
-        }
-
-        if (reg_info->bitfields) {
-
-            RegisterBitfieldInfo *bifi_info;
-            json_start_array(json_info, "bitfields");
-
-            for (bifi_info = reg_info->bitfields; bifi_info->name;
-                    ++bifi_info) {
-
-                json_start_object(json_info, NULL);
-
-                json_prop_str(json_info, "name", bifi_info->name);
-                if (bifi_info->desc != NULL) {
-                    json_prop_str(json_info, "desc", bifi_info->desc);
-                }
-
-                json_prop_int(json_info, "first_bit", bifi_info->first_bit);
-                if (bifi_info->width_bits > 0) {
-                    json_prop_int(json_info, "width_bits",
-                            bifi_info->width_bits);
-                }
-
-                if (bifi_info->rw_mode) {
-                    cm_json_prop_rw_mode(json_info, "rw_mode",
-                            bifi_info->rw_mode);
-                }
-
-                json_end_object(json_info);
-            }
-
-            json_end_array(json_info);
-        }
-
-        json_end_object(json_info);
-    }
-
-    json_end_array(json_info);
-
-    qjson_finish(json_info);
-
-    {
-        FILE *fout = fopen(file_name, "w");
-
-        const char* p = qjson_get_str(json_info);
-        size_t len = strlen(p);
-        while (len > 0) {
-            size_t written = fwrite(p, 1, len, fout);
-            len -= written;
-            p += written;
-        }
-        fclose(fout);
-    }
-
-    qjson_destroy(json_info);
-}
-
-/* ----- Private ----------------------------------------------------------- */
-
-/*
- * Memory region read callback.
- *
- * Forward the read to the register. The basic register will do the
- * endianness and size magic and return the value from the internal storage.
- *
- * For special processing, create a new derived type with custom read()
- * and add the required actions.
- */
+// Memory region read callback.
+//
+// Forward the read to the register. The basic register will do the
+// endianness and size magic and return the value from the internal storage.
+//
+// For special processing, create a new derived type with custom read()
+// and add the required actions.
+//
 static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
         unsigned size)
 {
@@ -302,11 +138,9 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
 
     if (per_class->is_enabled) {
         if (!per_class->is_enabled(OBJECT(state))) {
-            /*
-             * For all peripherals, when the peripheral is not active,
-             * the peripheral register values may not be readable by
-             * software and the returned value is always 0x0.
-             */
+            // For all peripherals, when the peripheral is not active,
+            // the peripheral register values may not be readable by
+            // software and the returned value is always 0x0.
             qemu_log_mask(LOG_GUEST_ERROR,
                     "%s: Peripheral read of size %d at offset " "0x%"PRIX64 " on disabled peripheral, returns 0.\n",
                     object_get_typename(OBJECT(state)), size, addr);
@@ -336,13 +170,13 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
         return 0;
     }
 
-    /* Align address to register margin and pass offset separately. */
+    // Align address to register margin and pass offset separately.
     uint32_t reg_addr = addr & ~(state->register_size_bytes - 1);
     uint32_t reg_offset = addr & (state->register_size_bytes - 1);
 
     PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
 
-    /* Read the register value. */
+    // Read the register value.
     uint64_t value = 0;
     if (reg_class->read) {
         value = reg_class->read(OBJECT(reg), OBJECT(state), reg_addr,
@@ -352,15 +186,14 @@ static uint64_t peripheral_read_callback(void *opaque, hwaddr addr,
     return value;
 }
 
-/*
- * Memory region write callback.
- *
- * Forward the write to the register. The basic register will do the
- * endianness and size magic and store the value internally.
- *
- * For special processing, create a new derived type with custom write()
- * and add the required actions.
- */
+// Memory region write callback.
+//
+// Forward the write to the register. The basic register will do the
+// endianness and size magic and store the value internally.
+//
+// For special processing, create a new derived type with custom write()
+// and add the required actions.
+//
 static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
         unsigned size)
 {
@@ -370,11 +203,9 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
 
     if (per_class->is_enabled) {
         if (!per_class->is_enabled(OBJECT(state))) {
-            /*
-             * For all peripherals, when the peripheral is not active,
-             * the peripheral register values may not be written by
-             * software.
-             */
+            // For all peripherals, when the peripheral is not active,
+            // the peripheral register values may not be written by
+            // software.
             qemu_log_mask(LOG_GUEST_ERROR,
                     "%s: Write of size %d at offset 0x%"PRIX64 " on disabled peripheral, ignored.\n",
                     object_get_typename(OBJECT(state)), size, addr);
@@ -404,12 +235,12 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
         return;
     }
 
-    /* Align address to register margin and pass offset separately. */
+    // Align address to register margin and pass offset separately.
     uint32_t reg_addr = addr & ~(state->register_size_bytes - 1);
     uint32_t reg_offset = addr & (state->register_size_bytes - 1);
 
     PeripheralRegisterClass *reg_class = PERIPHERAL_REGISTER_GET_CLASS(reg);
-    /* Write the value to the register. */
+    // Write the value to the register.
     if (reg_class->write) {
         reg_class->write(OBJECT(reg), OBJECT(state), reg_addr, reg_offset, size,
                 value);
@@ -446,7 +277,7 @@ static void peripheral_instance_init_callback(Object *obj)
 
     cm_object_property_add_uint64_callback(obj, "default-access-flags",
             &state->default_access_flags);
-    /* Allow all */
+    // Allow all
     state->default_access_flags = PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS;
 
     cm_object_property_add_uint32(obj, "register-size-bytes",
@@ -474,7 +305,6 @@ static void peripheral_instance_init_callback(Object *obj)
     cm_object_property_add_const_str(obj, "svd-reset-mask",
             &state->svd.reset_mask);
     state->svd.reset_mask = NULL;
-
 }
 
 static int peripheral_compute_max_offset_foreach(Object *obj, void *opaque)
@@ -482,7 +312,7 @@ static int peripheral_compute_max_offset_foreach(Object *obj, void *opaque)
     PeripheralState *periph = PERIPHERAL_STATE(opaque);
 
     int count = 0;
-    /* Process only children that descend from a register. */
+    // Process only children that descend from a register.
     if (cm_object_is_instance_of_typename(obj, TYPE_PERIPHERAL_REGISTER)) {
         PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj);
         if (reg->offset_bytes > periph->max_offset_bytes) {
@@ -499,7 +329,7 @@ static int peripheral_populate_registers_array_foreach(Object *obj,
 {
     PeripheralState *periph = PERIPHERAL_STATE(opaque);
 
-    /* Process only children that descend from a register. */
+    // Process only children that descend from a register.
     if (cm_object_is_instance_of_typename(obj, TYPE_PERIPHERAL_REGISTER)) {
         PeripheralRegisterState *reg = PERIPHERAL_REGISTER_STATE(obj);
 
@@ -523,7 +353,7 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_PERIPHERAL)) {
         return;
     }
@@ -540,12 +370,12 @@ static void peripheral_reset_callback(DeviceState *dev)
     qemu_log_mask(LOG_FUNC, "%s() '%s', address: 0x%08"PRIX64"\n", __FUNCTION__,
             state->mmio_node_name, state->mmio_address);
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_PERIPHERAL);
 
     assert(state->registers != NULL);
 
-    /* No bus used, explicitly reset all children registers. */
+    // No bus used, explicitly reset all children registers.
     int i;
     for (i = 0; i < state->registers_size_ptrs; ++i) {
         if (state->registers[i] != NULL) {
@@ -569,7 +399,9 @@ static const TypeInfo peripheral_type_info = {
     .instance_init = peripheral_instance_init_callback,
     .instance_size = sizeof(PeripheralState),
     .class_init = peripheral_class_init,
-    .class_size = sizeof(PeripheralClass) };
+    .class_size = sizeof(PeripheralClass)
+/**/
+};
 
 static void peripheral_register_types(void)
 {
@@ -578,5 +410,5 @@ static void peripheral_register_types(void)
 
 type_init(peripheral_register_types);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 

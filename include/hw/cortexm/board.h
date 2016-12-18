@@ -26,53 +26,50 @@
 #include <hw/cortexm/helper.h>
 #include "hw/boards.h"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_CORTEXM_BOARD TYPE_CORTEXM_PREFIX "machine"
 
 #define BOARD_TYPE_NAME(board_name) (board_name TYPE_MACHINE_SUFFIX)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_CORTEXM_BOARD_PARENT TYPE_MACHINE
 typedef MachineClass CortexMBoardParentClass;
 typedef MachineState CortexMBoardParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define CORTEXM_BOARD_GET_CLASS(obj) \
     OBJECT_GET_CLASS(CortexMBoardClass, (obj), TYPE_CORTEXM_BOARD)
 #define CORTEXM_BOARD_CLASS(klass) \
     OBJECT_CLASS_CHECK(CortexMBoardClass, (klass), TYPE_CORTEXM_BOARD)
 
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMBoardParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } CortexMBoardClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define CORTEXM_BOARD_STATE(obj) \
     OBJECT_CHECK(CortexMBoardState, (obj), TYPE_CORTEXM_BOARD)
 
-/*
- * Structure used to store the Cortex-M state.
- */
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMBoardParentState parent_obj;
-    /*< public >*/
+    // public:
 
     BoardGraphicContext graphic_context;
 
 } CortexMBoardState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 bool cortexm_board_is_initialized(void);
 
@@ -89,6 +86,6 @@ void cortexm_board_greeting(CortexMBoardState *board);
 BoardGraphicContext * cortexm_board_init_graphic_image(CortexMBoardState *board,
         const char *file_name);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_BOARD_H_ */

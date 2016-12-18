@@ -41,8 +41,7 @@
  * that follow enable/disable bitfields.
  */
 
-/* ------------------------------------------------------------------------- */
-
+// ----------------------------------------------------------------------------
 /*
  * Access bits are grouped by size and offset.
  *
@@ -55,37 +54,35 @@
  * Checked by peripheral_register_check_access().
  */
 
-/* Allow all unaligned accesses, of all sizes. */
+// Allow all unaligned accesses, of all sizes.
 #define PERIPHERAL_REGISTER_DEFAULT_ACCESS_FLAGS        (0xFFFFFFFFFFFFFFFF)
 #define PERIPHERAL_REGISTER_64BITS_ALL                  (0xFFFFFFFFFFFFFFFF)
 #define PERIPHERAL_REGISTER_32BITS_ALL                  (0x0F0F0F0F)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Allow word access aligned at 4 byte margin (reg-offset 0) */
+// Allow word access aligned at 4 byte margin (reg-offset 0)
 #define PERIPHERAL_REGISTER_32BITS_WORD                 (0x01000000)
-/* Allow word access aligned at 4 byte margin and half word access
- * aligned at 2 and 4 byte margin  (reg-offset 0 or 2) */
+// Allow word access aligned at 4 byte margin and half word access
+// aligned at 2 and 4 byte margin  (reg-offset 0 or 2)
 #define PERIPHERAL_REGISTER_32BITS_WORD_HALFWORD        (0x01000500)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define PERIPHERAL_REGISTER_DEFAULT_SIZE_BYTES          (4)
 #define PERIPHERAL_REGISTER_MAX_SIZE_BITS               (64)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define REGISTER_RW_MODE_READ          (0x01)
 #define REGISTER_RW_MODE_WRITE         (0x02)
 #define REGISTER_RW_MODE_READ_WRITE    \
     (REGISTER_RW_MODE_READ | REGISTER_RW_MODE_WRITE)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/*
- * Pass both the register and the peripheral, to allow
- * inter-registers settings.
- */
+// Pass both the register and the peripheral, to allow
+// inter-registers settings.
 typedef peripheral_register_t (*register_read_callback_t)(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size);
 
@@ -107,41 +104,39 @@ typedef void (*register_post_write_callback_t)(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value);
 
-/*
- * Info structure used to create new register types.
- */
+// Info structure used to create new register types.
 typedef struct {
-    /* Register description; copied from reference manual. */
+    // Register description; copied from reference manual.
     const char *desc;
 
-    /* Register abbreviation; lower case, short word. */
+    // Register abbreviation; lower case, short word.
     const char *name;
 
-    /* Register offset inside peripheral, in bytes. */
+    // Register offset inside peripheral, in bytes.
     uint32_t offset_bytes;
 
-    /* Register value at reset. */
+    // Register value at reset.
     peripheral_register_t reset_value;
-    /* Mask with the bits affected by reset; default all. */
+    // Mask with the bits affected by reset; default all.
     peripheral_register_t reset_mask;
-    /* Mask with the bits that can be read; the other return 0. */
+    // Mask with the bits that can be read; the other return 0.
     peripheral_register_t readable_bits;
-    /* mask with the bits that can be written; the other are unchanged. */
+    // mask with the bits that can be written; the other are unchanged.
     peripheral_register_t writable_bits;
 
-    /* Each byte encodes which accesses are allowed, for different alignments. */
+    // Each byte encodes which accesses are allowed, for different alignments.
     uint64_t access_flags;
 
-    /* Register size in bits; default is inherited from peripheral. */
+    // Register size in bits; default is inherited from peripheral.
     uint32_t size_bits;
 
-    /* Read, write or read & write; default both. */
+    // Read, write or read & write; default both.
     uint32_t rw_mode;
 
-    /* Pointer to array of bitfields. */
+    // Pointer to array of bitfields.
     RegisterBitfieldInfo *bitfields;
 
-    /* Copied to instance. */
+    // Copied to instance.
     //register_read_callback_t pre_read;
     //register_write_callback_t post_write;
 } PeripheralRegisterInfo;
@@ -166,51 +161,51 @@ typedef enum {
 typedef struct {
     peripheral_register_t mask;
     int shift;
-    /* follows, cleared by, set by */
+    // follows, cleared by, set by
     peripheral_register_auto_bits_type_t type;
 } PeripheralRegisterAutoBits;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_PERIPHERAL_REGISTER "peripheral-register"
 
 #define TYPE_PERIPHERAL_REGISTER_SUFFIX "-register"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_PERIPHERAL_REGISTER_PARENT TYPE_DEVICE
 typedef DeviceClass PeripheralRegisterParentClass;
 typedef DeviceState PeripheralRegisterParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define PERIPHERAL_REGISTER_GET_CLASS(obj) \
     OBJECT_GET_CLASS(PeripheralRegisterClass, (obj), TYPE_PERIPHERAL_REGISTER)
 #define PERIPHERAL_REGISTER_CLASS(klass) \
     OBJECT_CLASS_CHECK(PeripheralRegisterClass, (klass), TYPE_PERIPHERAL_REGISTER)
 
 typedef struct {
-    /*< private >*/
+    // private:
     PeripheralRegisterParentClass parent_class;
-    /*< public >*/
+    // public:
 
     register_read_callback_t read;
     register_write_callback_t write;
 
 } PeripheralRegisterClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define PERIPHERAL_REGISTER_STATE(obj) \
     OBJECT_CHECK(PeripheralRegisterState, (obj), TYPE_PERIPHERAL_REGISTER)
 
 typedef struct {
-    /*< private >*/
+    // private:
     PeripheralRegisterParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const char *name;
 
@@ -228,10 +223,10 @@ typedef struct {
 
     PeripheralRegisterAutoBits *auto_bits;
 
-    /* Current register value; returned (masked) by reads. */
+    // Current register value; returned (masked) by reads.
     peripheral_register_t value;
 
-    /* Previous value, used to compute changes. */
+    // Previous value, used to compute changes.
     peripheral_register_t prev_value;
 
     /*
@@ -241,17 +236,17 @@ typedef struct {
      * hundreds of such objects, mostly used only once.
      */
 
-    /* Called to retrieve the value before read.
-     * Name the function xxx_pre_read_callback(). */
+    // Called to retrieve the value before read.
+    // Name the function xxx_pre_read_callback().
     register_pre_read_callback_t pre_read;
-    /* Called for further processing after read.
-     * Name the function xxx_post_read_callback(). */
+    // Called for further processing after read.
+    // Name the function xxx_post_read_callback().
     register_post_read_callback_t post_read;
 
-    /* Called for further processing before write. */
+    // Called for further processing before write.
     register_pre_write_callback_t pre_write;
-    /* Called after storing the new value in the write callback.
-     * Name the function xxx_post_write_callback(). */
+    // Called after storing the new value in the write callback.
+    // Name the function xxx_post_write_callback().
     register_post_write_callback_t post_write;
 
     struct {
@@ -264,7 +259,7 @@ typedef struct {
 
 } PeripheralRegisterState;
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
 Object *peripheral_register_add_properties_and_children(Object *obj,
         PeripheralRegisterInfo *info);
@@ -306,6 +301,6 @@ void peripheral_register_set_pre_read(Object* obj,
 void peripheral_register_set_post_read(Object* obj,
         register_post_read_callback_t ptr);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* PERIPHERAL_REGISTER_H_ */

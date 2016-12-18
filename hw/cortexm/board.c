@@ -25,7 +25,7 @@
 #include "verbosity.h"
 #endif
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
 static Object *board;
 
@@ -39,9 +39,7 @@ void cortexm_board_clear(void)
     board = NULL;
 }
 
-/*
- * Return a pointer to the current board.
- */
+// Return a pointer to the current board.
 CortexMBoardState *cortexm_board_get(void)
 {
     if (board == NULL) {
@@ -55,25 +53,19 @@ CortexMBoardState *cortexm_board_get(void)
     return CORTEXM_BOARD_STATE(board);
 }
 
-/*
- * Return the board name.
- */
+// Return the board name.
 const char *cortexm_board_get_name(CortexMBoardState *board)
 {
     return object_class_get_name(OBJECT_CLASS(board));
 }
 
-/*
- * Return the board description.
- */
+// Return the board description.
 const char *cortexm_board_get_desc(CortexMBoardState *board)
 {
     return MACHINE_GET_CLASS(board)->desc;
 }
 
-/*
- * When verbose, display a line to identify the board (name, description).
- */
+// When verbose, display a line to identify the board (name, description).
 void cortexm_board_greeting(CortexMBoardState *board)
 {
 #if defined(CONFIG_VERBOSE)
@@ -134,7 +126,7 @@ BoardGraphicContext *cortexm_board_init_graphic_image(CortexMBoardState *board,
 #endif /* defined(CONFIG_SDL) */
 }
 
-/* ===== Private class implementation ====================================== */
+// ----- Private --------------------------------------------------------------
 
 static void cortexm_board_class_init_callback(ObjectClass *klass, void *data)
 {
@@ -149,8 +141,6 @@ static const TypeInfo cortexm_board_type_init = {
     .class_init = cortexm_board_class_init_callback,
     .class_size = sizeof(CortexMBoardClass) };
 
-/* ===== Private class implementation ====================================== */
-
 static void cortexm_generic_board_init_callback(MachineState *machine)
 {
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
@@ -158,7 +148,7 @@ static void cortexm_generic_board_init_callback(MachineState *machine)
     cortexm_board_greeting(board);
 
     {
-        /* Create the MCU */
+        // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, NULL);
 
         cm_object_realize(mcu);
@@ -177,9 +167,11 @@ static void cortexm_generic_board_class_init_callback(ObjectClass *oc,
 static const TypeInfo cortexm_generic_board_type_init = {
     .name = BOARD_TYPE_NAME("generic"),
     .parent = TYPE_CORTEXM_BOARD,
-    .class_init = cortexm_generic_board_class_init_callback, };
+    .class_init = cortexm_generic_board_class_init_callback,
+/**/
+};
 
-/* -------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cortexm_board_types_init(void)
 {
@@ -189,4 +181,4 @@ static void cortexm_board_types_init(void)
 
 type_init(cortexm_board_types_init);
 
-/* -------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

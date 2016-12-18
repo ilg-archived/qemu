@@ -23,10 +23,14 @@
 #include "qemu/osdep.h"
 #include <hw/cortexm/parson.h>
 
+// ----------------------------------------------------------------------------
+
 JSON_Object *cm_json_parser_get_peripheral(JSON_Value *family,
         const char *name);
 uint64_t cm_json_parser_parse_access_flags(const char *str);
 
 uint64_t cm_json_parser_parse_hex(const char *str);
+
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_JSON_PARSER_H_ */

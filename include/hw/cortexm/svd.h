@@ -27,6 +27,8 @@
 
 #include "qom/object.h"
 
+// ----------------------------------------------------------------------------
+
 void svd_validate_device_name(JSON_Object *svd, const char *name);
 bool svd_has_named_peripheral(JSON_Object *svd, const char *name);
 JSON_Object *svd_get_peripheral_by_name(JSON_Object *svd, const char *name);
@@ -47,6 +49,8 @@ uint64_t svd_parse_uint(const char *str);
 bool svd_parse_bool(const char *str);
 
 void svd_process_cpu(JSON_Object *svd, CortexMCoreCapabilities *core);
+
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_SVD_H_ */
 

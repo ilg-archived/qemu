@@ -22,9 +22,9 @@
 
 #include "qemu/log.h"
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
 static void button_instance_init_callback(Object *obj)
 {
@@ -69,7 +69,9 @@ static const TypeInfo button_type_info = {
     .instance_size = sizeof(ButtonState),
     .instance_init = button_instance_init_callback,
     .class_init = button_class_init_callback,
-    .class_size = sizeof(ButtonClass) };
+    .class_size = sizeof(ButtonClass)
+/**/
+};
 
 static void button_type_init(void)
 {
@@ -78,4 +80,4 @@ static void button_type_init(void)
 
 type_init(button_type_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

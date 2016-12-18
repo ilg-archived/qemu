@@ -36,12 +36,9 @@
  * Bitfields are automatically created when creating registers.
  */
 
-/* ------------------------------------------------------------------------- */
-
-/*
- * Info structure used to define the bitfield when creating
- * registers.
- */
+// ----------------------------------------------------------------------------
+// Info structure used to define the bitfield when creating
+// registers.
 typedef struct {
     const char *name;
     const char *desc;
@@ -50,43 +47,43 @@ typedef struct {
     uint32_t rw_mode;
 } RegisterBitfieldInfo;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_REGISTER_BITFIELD "register-bitfield"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_REGISTER_BITFIELD_PARENT TYPE_DEVICE
 typedef DeviceClass RegisterBitfieldParentClass;
 typedef DeviceState RegisterBitfieldParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define REGISTER_BITFIELD_GET_CLASS(obj) \
     OBJECT_GET_CLASS(RegisterBitfieldClass, (obj), TYPE_REGISTER_BITFIELD)
 #define REGISTER_BITFIELD_CLASS(klass) \
     OBJECT_CLASS_CHECK(RegisterBitfieldClass, (klass), TYPE_REGISTER_BITFIELD)
 
 typedef struct {
-    /*< private >*/
+    // private:
     RegisterBitfieldParentClass parent_class;
-    /*< public >*/
+    // public:
 
-    /* None, so far. */
+    // None, so far.
 } RegisterBitfieldClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define REGISTER_BITFIELD_STATE(obj) \
     OBJECT_CHECK(RegisterBitfieldState, (obj), TYPE_REGISTER_BITFIELD)
 
 typedef struct {
-    /*< private >*/
+    // private:
     RegisterBitfieldParentState parent_obj;
-    /*< public >*/
+    // public:
 
     const char *name;
 
@@ -100,7 +97,7 @@ typedef struct {
     const char *cleared_by;
     const char *set_by;
 
-    /* The field value is ((parent->value & mask) >> shift) */
+    // The field value is ((parent->value & mask) >> shift)
     peripheral_register_t mask;
     uint32_t shift;
 
@@ -110,7 +107,7 @@ typedef struct {
 
 } RegisterBitfieldState;
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
 Object *register_bitfield_add_properties_and_children(Object *obj,
         RegisterBitfieldInfo *bifi_info);
@@ -120,6 +117,6 @@ bool register_bitfield_is_non_zero(Object* obj);
 
 peripheral_register_t register_bitfield_read_value(Object* obj);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* REGISTER_BITFIELD_H_ */

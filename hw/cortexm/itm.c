@@ -24,13 +24,10 @@
  * the trace messages sent via byte writes to stimulus port 0.
  */
 
-/* ===== Private class implementation ====================================== */
-
-/*
- * Read from ITM registers.
- *
- * Only word operations are currently supported.
- */
+// ----- Private --------------------------------------------------------------
+// Read from ITM registers.
+//
+// Only word operations are currently supported.
 static uint64_t cortexm_itm_read_callback(void *opaque, hwaddr addr,
         unsigned size)
 {
@@ -39,8 +36,8 @@ static uint64_t cortexm_itm_read_callback(void *opaque, hwaddr addr,
 
     if (offset < 0x400) {
         if ((offset & 0x3) == 0) {
-            /* Word aligned reads return the busy flag */
-            return 1; /* All ports are set as not busy */
+            // Word aligned reads return the busy flag
+            return 1; // All ports are set as not busy
         } else {
             return 1;
         }
@@ -61,20 +58,18 @@ static uint64_t cortexm_itm_read_callback(void *opaque, hwaddr addr,
     } else if (offset == 0xE80) {
         return state->reg.tcr & 0x007F00F1F; /* BUSY = 0 */
     } else if (offset == 0xE84) {
-        /* TODO: check if some special value must be returned */
+        // TODO: check if some special value must be returned
         return state->reg.lsr;
     } else {
         return 0;
     }
 }
 
-/*
- * Write to ITM registers.
- *
- * Byte writes to stimulus port 0 are forwarded to stderr.
- *
- * Word writes to the other registers
- */
+// Write to ITM registers.
+//
+// Byte writes to stimulus port 0 are forwarded to stderr.
+//
+// Word writes to the other registers
 static void cortexm_itm_write_callback(void *opaque, hwaddr addr,
         uint64_t value, unsigned size)
 {
@@ -84,24 +79,24 @@ static void cortexm_itm_write_callback(void *opaque, hwaddr addr,
     if (offset < 0x400) {
 
         if ((state->reg.tcr & 0x00000001) == 0) {
-            return; /* Ignore writes if ITM disabled */
+            return; // Ignore writes if ITM disabled
         }
 
-        /* Compute index of stimulus port (4 bytes each)  */
+        // Compute index of stimulus port (4 bytes each)
         int ix = (offset - 0x000) / 4;
 
         if (ix >= state->num_ports) {
-            return; /* Ignore unsupported stimulus ports */
+            return; // Ignore unsupported stimulus ports
         }
-        /* Compute index of Enable register (32 stimulus ports / register) */
+        // Compute index of Enable register (32 stimulus ports / register)
         int eix = ix / 32;
         uint32_t mask = 1 << (ix - eix * 32);
         if ((state->reg.ter[ix] & mask) == 0) {
-            return; /* Ignore not enabled stimulus ports */
+            return; // Ignore not enabled stimulus ports
         }
 
         if (ix == 0) {
-            /* Currently only stimulus port 0 is used for trace, byte size */
+            // Currently only stimulus port 0 is used for trace, byte size
             if (size == 1) {
                 uint8_t byte;
                 byte = value;
@@ -135,7 +130,7 @@ static void cortexm_itm_write_callback(void *opaque, hwaddr addr,
     if ((offset >= 0xE00) && (offset < 0xE20)) {
         int ix = (offset - 0xE00) / 4;
         if (ix >= (state->num_ports + 31) / 32) {
-            return; /* Ignore unsupported stimulus ports */
+            return; // Ignore unsupported stimulus ports
         }
 
         state->reg.ter[ix] = value;
@@ -149,9 +144,11 @@ static void cortexm_itm_write_callback(void *opaque, hwaddr addr,
 static const MemoryRegionOps armv7m_itm_ops = {
     .read = cortexm_itm_read_callback,
     .write = cortexm_itm_write_callback,
-    .endianness = DEVICE_NATIVE_ENDIAN, };
+    .endianness = DEVICE_NATIVE_ENDIAN,
+/**/
+};
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cortexm_itm_instance_init_callback(Object *obj)
 {
@@ -159,7 +156,7 @@ static void cortexm_itm_instance_init_callback(Object *obj)
 
     CortexMITMState *state = CORTEXM_ITM_STATE(obj);
 
-    /* TODO: make it configurable */
+    // TODO: make it configurable
     state->num_ports = CORTEXM_ITM_DEFAULT_NUM_PORTS;
 }
 
@@ -167,7 +164,7 @@ static void cortexm_itm_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_CORTEXM_ITM)) {
         return;
     }
@@ -203,7 +200,7 @@ static void cortexm_itm_reset_callback(DeviceState *dev)
 
     state->reg.lsr = 0x00000000;
 
-    /* To simplify startup, enable port and stimulus[0] */
+    // To simplify startup, enable port and stimulus[0]
     state->reg.ter[0] = 0x0000001;
     state->reg.tcr = 0x00000001; /* ITMENA=1 */
 }
@@ -222,7 +219,9 @@ static const TypeInfo cortexm_itm_type_info = {
     .instance_init = cortexm_itm_instance_init_callback,
     .instance_size = sizeof(CortexMITMState),
     .class_init = cortexm_itm_class_init_callback,
-    .class_size = sizeof(CortexMITMClass) };
+    .class_size = sizeof(CortexMITMClass)
+/**/
+};
 
 static void cortexm_itm_register_types(void)
 {
@@ -231,4 +230,4 @@ static void cortexm_itm_register_types(void)
 
 type_init(cortexm_itm_register_types);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

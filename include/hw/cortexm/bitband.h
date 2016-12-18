@@ -26,55 +26,55 @@
 
 #include "hw/sysbus.h"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define CORTEXM_BITBAND_OFFSET (0x02000000)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_CORTEXM_BITBAND TYPE_CORTEXM_PREFIX "bitband-memory"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_CORTEXM_BITBAND_PARENT TYPE_SYS_BUS_DEVICE
 typedef SysBusDeviceClass CortexMBitBandParentClass;
 typedef SysBusDevice CortexMBitBandParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define CORTEXM_BITBAND_GET_CLASS(obj) \
     OBJECT_GET_CLASS(CortexMBitBandClass, (obj), TYPE_CORTEXM_BITBAND)
 #define CORTEXM_BITBAND_CLASS(klass) \
     OBJECT_CLASS_CHECK(CortexMBitBandClass, (klass), TYPE_CORTEXM_BITBAND)
 
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMBitBandParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } CortexMBitBandClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define CORTEXM_BITBAND_STATE(obj) \
     OBJECT_CHECK(CortexMBitBandState, (obj), TYPE_CORTEXM_BITBAND)
 
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMBitBandParentState parent_obj;
-    /*< public >*/
+    // public:
 
     MemoryRegion iomem;
     uint32_t base;
 } CortexMBitBandState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void cortexm_bitband_init(Object *parent, const char *node_name,
         uint32_t address);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_BITBAND_H_ */

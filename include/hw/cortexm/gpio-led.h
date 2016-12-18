@@ -28,16 +28,16 @@
 
 #include <hw/cortexm/graphic.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define IRQ_GPIO_LED_IN     "led-in"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEFINE_PROP_GPIO_LED_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, GPIOLEDInfo*)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef struct {
 
@@ -67,31 +67,34 @@ typedef struct {
 
 } GPIOLEDInfo;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_GPIO_LED "gpio-led"
 
+// Parent definitions.
 // TODO: Change this to TYPE_DEVICE
 #define TYPE_GPIO_LED_PARENT TYPE_SYS_BUS_DEVICE
 typedef SysBusDeviceClass GPIOLEDParentClass;
 typedef SysBusDevice GPIOLEDParentState;
 
+// ----------------------------------------------------------------------------
+
+// Class definitions.
 #define GPIO_LED_GET_CLASS(obj) \
     OBJECT_GET_CLASS(GPIOLEDClass, (obj), TYPE_GPIO_LED)
 #define GPIO_LED_CLASS(klass) \
     OBJECT_CLASS_CHECK(GPIOLEDClass, (klass), TYPE_GPIO_LED)
 
-/* ------------------------------------------------------------------------- */
-
 typedef struct {
-    /*< private >*/
+    // private:
     GPIOLEDParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } GPIOLEDClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// Instance definitions.
 #define GPIO_LED_STATE(obj) \
     OBJECT_CHECK(GPIOLEDState, (obj), TYPE_GPIO_LED)
 
@@ -107,9 +110,9 @@ typedef struct {
  * - colour.red, colour.green, colour.blue (int)
  */
 typedef struct {
-    /*< private >*/
+    // private:
     GPIOLEDParentState parent_obj;
-    /*< public >*/
+    // public:
 
     bool active_low;
     const char *on_message;
@@ -130,6 +133,6 @@ typedef struct {
 Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         BoardGraphicContext *graphic_context);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* GPIO_LED_H_ */

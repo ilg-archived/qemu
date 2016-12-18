@@ -31,7 +31,7 @@
 #include "verbosity.h"
 #endif
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cortexm_graphic_board_init_graphic_context(
         BoardGraphicContext *board_graphic_context);
@@ -50,7 +50,7 @@ static void cortexm_graphic_process_mouse_button_down(void);
 
 static void cortexm_graphic_process_mouse_button_up(void);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static bool is_not_nographic = false;
 static bool is_terminated = false;
@@ -59,7 +59,7 @@ static SDL_Cursor *button_cursor = NULL;
 static ButtonState *current_button = NULL;
 static ButtonState *pushed_button = NULL;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef struct {
     int x;
@@ -82,7 +82,7 @@ static void cortexm_graphic_process_event(SDL_Event* event)
         break;
 
     case SDL_WINDOWEVENT:
-        /* Window state change */
+        // Window state change
         break;
 #elif defined(CONFIG_SDLABI_1_2)
 
@@ -90,7 +90,7 @@ static void cortexm_graphic_process_event(SDL_Event* event)
 
     case SDL_KEYDOWN:
     case SDL_KEYUP:
-        /* Nothing for now */
+        // Nothing for now
         break;
 
     case SDL_MOUSEMOTION:
@@ -117,7 +117,7 @@ static void cortexm_graphic_process_event(SDL_Event* event)
         // case SDL_DOLLARGESTURE:
         // case SDL_DOLLARRECORD:
         // case SDL_MULTIGESTURE:
-        /* Nothing for now */
+        // Nothing for now
         break;
 
     case SDL_QUIT:
@@ -200,7 +200,7 @@ void cortexm_graphic_init_timer(void)
         return;
     }
 
-    /* The event loop will be processed from time to time. */
+    // The event loop will be processed from time to time.
     event_loop_timer = timer_new_ms(QEMU_CLOCK_REALTIME,
             (void (*)(void *)) cortexm_graphic_event_loop, &event_loop_timer);
     timer_mod(event_loop_timer, qemu_clock_get_ms(QEMU_CLOCK_REALTIME));
@@ -241,10 +241,8 @@ void cortexm_graphic_event_loop(void)
 #endif /* defined(CONFIG_SDL) */
 }
 
-/*
- * Called from different threads to enqueue jobs via the event loop.
- * This ensures all graphic primitives are executed on the allowed thread.
- */
+// Called from different threads to enqueue jobs via the event loop.
+// This ensures all graphic primitives are executed on the allowed thread.
 int cortexm_graphic_enqueue_event(int code, void *data1, void *data2)
 {
     qemu_log_mask(LOG_FUNC, "%s(%d)\n", __FUNCTION__, code);
@@ -275,7 +273,7 @@ int cortexm_graphic_enqueue_event(int code, void *data1, void *data2)
 #endif /* defined(CONFIG_SDL) */
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static inline bool cortexm_graphic_mouse_is_in_button(MousePosition *mp,
         ButtonState *button_state)
@@ -353,11 +351,9 @@ static void cortexm_graphic_process_mouse_button_up(void)
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/*
- * Called indirectly via the event loop, to clean the board graphic context.
- */
+// Called indirectly via the event loop, to clean the board graphic context.
 void cortexm_graphic_quit(void)
 {
     qemu_log_function_name();
@@ -379,7 +375,7 @@ void cortexm_graphic_quit(void)
 
 #if defined(CONFIG_SDLABI_2_0)
 
-                /* Destroy in reverse order of creation */
+                // Destroy in reverse order of creation
                 if (board_graphic_context->texture != NULL) {
                     qemu_log_mask(LOG_FUNC, "%s() SDL_DestroyTexture()\n",
                             __FUNCTION__);
@@ -404,7 +400,7 @@ void cortexm_graphic_quit(void)
 
             }
         }
-        /* Prevent subsequent destroys. */
+        // Prevent subsequent destroys.
         cortexm_board_clear();
     }
 
@@ -416,13 +412,11 @@ void cortexm_graphic_quit(void)
 #endif /* defined(CONFIG_SDL) */
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static QemuThread start_thread;
 
-/*
- * Called via the atexit() mechanism, to clean the board graphic context.
- */
+// Called via the atexit() mechanism, to clean the board graphic context.
 static void cortexm_graphic_atexit(void)
 {
     if (qemu_thread_is_self(&start_thread)) {
@@ -439,11 +433,9 @@ static void cortexm_graphic_atexit(void)
     }
 }
 
-/*
- * Start the graphic subsystem. From this moment on, the event queue
- * must be available to enqueue requests, even if the requests will
- * be processed when the event loop is entered (at the end of main()).
- */
+// Start the graphic subsystem. From this moment on, the event queue
+// must be available to enqueue requests, even if the requests will
+// be processed when the event loop is entered (at the end of main()).
 void cortexm_graphic_start(bool nographic)
 {
     qemu_log_function_name();
@@ -468,7 +460,7 @@ void cortexm_graphic_start(bool nographic)
     qemu_thread_get_self(&start_thread);
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void cortexm_graphic_board_clear_graphic_context(
         BoardGraphicContext *board_graphic_context)
@@ -526,7 +518,7 @@ static void cortexm_graphic_board_init_graphic_context(
         error_printf("IMG_init failed (%s).\n", IMG_GetError());
         exit(1);
     }
-    /* A better SDL_LoadBMP(). */
+    // A better SDL_LoadBMP().
     SDL_Surface* board_bitmap = IMG_Load(
             board_graphic_context->picture_file_absolute_path);
     if (board_bitmap == NULL) {
@@ -606,7 +598,6 @@ static void cortexm_graphic_board_init_graphic_context(
 void cortexm_graphic_board_add_button(
         BoardGraphicContext *board_graphic_context, ButtonState *button_state)
 {
-
     if (board_graphic_context->buttons_array_length
             >= board_graphic_context->buttons_array_capacity) {
         if (board_graphic_context->buttons_array_capacity == 0) {
@@ -633,7 +624,7 @@ void cortexm_graphic_board_add_button(
             button_state;
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void cortexm_graphic_led_clear_graphic_context(
         LEDGraphicContext *led_graphic_context)
@@ -684,14 +675,14 @@ static void cortexm_graphic_led_init_graphic_context(
 
 #endif
 
-    /* Copy bitmap from original picture. */
+    // Copy bitmap from original picture.
     SDL_BlitSurface(board_graphic_context->surface, rectangle,
             led_graphic_context->crop_off, 0);
 
     Uint32 colour = SDL_MapRGB(led_graphic_context->crop_on->format, red, green,
             blue);
 
-    /* Fill with uniform colour. */
+    // Fill with uniform colour.
     SDL_FillRect(led_graphic_context->crop_on, NULL, colour);
 
 #endif /* defined(CONFIG_SDL) */
@@ -725,5 +716,5 @@ static void cortexm_graphic_led_turn(BoardGraphicContext *board_graphic_context,
 #endif /* defined(CONFIG_SDL) */
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 

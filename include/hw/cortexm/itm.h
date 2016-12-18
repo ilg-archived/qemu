@@ -27,56 +27,54 @@
 #include <hw/cortexm/peripheral.h>
 #include <hw/cortexm/helper.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEVICE_PATH_CORTEXM_ITM "/machine/mcu/cortexm/itm"
 
 #define CORTEXM_ITM_DEFAULT_NUM_PORTS	32
 #define CORTEXM_ITM_MAX_NUM_PORTS		256
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_CORTEXM_ITM TYPE_CORTEXM_PREFIX "itm" TYPE_PERIPHERAL_SUFFIX
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Parent definitions. */
+// Parent definitions.
 #define TYPE_CORTEXM_ITM_PARENT TYPE_SYS_BUS_DEVICE
 typedef SysBusDeviceClass CortexMITMParentClass;
 typedef SysBusDevice CortexMITMParentState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Class definitions. */
+// Class definitions.
 #define CORTEXM_ITM_GET_CLASS(obj) \
     OBJECT_GET_CLASS(CortexMITMClass, (obj), TYPE_CORTEXM_ITM)
 #define CORTEXM_ITM_CLASS(klass) \
     OBJECT_CLASS_CHECK(CortexMITMClass, (klass), TYPE_CORTEXM_ITM)
 
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMITMParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } CortexMITMClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Instance definitions. */
+// Instance definitions.
 #define CORTEXM_ITM_STATE(obj) \
     OBJECT_CHECK(CortexMITMState, (obj), TYPE_CORTEXM_ITM)
 
 typedef struct {
-    /*< private >*/
+    // private:
     CortexMITMParentState parent_obj;
-    /*< public >*/
+    // public:
 
-    /* Must be a multiple of 8 */
+    // Must be a multiple of 8
     int num_ports;
 
-    /*
-     * The memory area 0xE0000000-0xE0000FFF.
-     */
+    // The memory area 0xE0000000-0xE0000FFF.
     MemoryRegion mmio;
 
     struct {
@@ -126,6 +124,6 @@ typedef struct {
 
 } CortexMITMState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_ITM_H_ */

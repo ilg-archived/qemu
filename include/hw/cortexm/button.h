@@ -24,44 +24,47 @@
 
 #include "hw/sysbus.h"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_BUTTON "button"
 
+// Parent definitions.
 #define TYPE_BUTTON_PARENT TYPE_SYS_BUS_DEVICE
 typedef SysBusDeviceClass ButtonParentClass;
 typedef SysBusDevice ButtonParentState;
 
+// ----------------------------------------------------------------------------
+
+// Class definitions.
 #define BUTTON_GET_CLASS(obj) \
     OBJECT_GET_CLASS(ButtonClass, (obj), TYPE_BUTTON)
 #define BUTTON_CLASS(klass) \
     OBJECT_CLASS_CHECK(ButtonClass, (klass), TYPE_BUTTON)
 
-/* ------------------------------------------------------------------------- */
-
 typedef struct ButtonState ButtonState;
 
 typedef struct ButtonClass {
-    /*< private >*/
+    // private:
     ButtonParentClass parent_class;
-    /*< public >*/
+    // public:
 
-    /* Action when the button is pushed down. */
+    // Action when the button is pushed down.
     void (*down)(ButtonState *dev);
-    /* Action when the button is released. */
+    // Action when the button is released.
     void (*up)(ButtonState *dev);
 
 } ButtonClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// Instance definitions.
 #define BUTTON_STATE(obj) \
     OBJECT_CHECK(ButtonState, (obj), TYPE_BUTTON)
 
 typedef struct ButtonState {
-    /*< private >*/
+    // private:
     ButtonParentState parent_obj;
-    /*< public >*/
+    // public:
 
     unsigned int value;
 
@@ -78,6 +81,6 @@ typedef struct ButtonState {
 
 } ButtonState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_BUTTON_H_ */

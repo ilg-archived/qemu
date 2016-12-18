@@ -25,58 +25,63 @@
 #include <hw/cortexm/button.h>
 #include <hw/cortexm/graphic.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef struct {
 
-    /* Centre of the button. */
+    // Centre coordinates of the button.
     uint32_t x;
     uint32_t y;
-    /* Size of the rectangle where the button is active. */
+    // Size of the rectangle where the button is active.
     uint32_t w;
     uint32_t h;
 
 } ButtonResetInfo;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_BUTTON_RESET "button-reset"
 
+// ----------------------------------------------------------------------------
+
+// Parent definitions.
 #define TYPE_BUTTON_RESET_PARENT TYPE_BUTTON
 typedef ButtonClass ButtonResetParentClass;
 typedef ButtonState ButtonResetParentState;
 
+// ----------------------------------------------------------------------------
+
+// Class definitions.
 #define BUTTON_RESET_GET_CLASS(obj) \
     OBJECT_GET_CLASS(ButtonResetClass, (obj), TYPE_BUTTON_RESET)
 #define BUTTON_RESET_CLASS(klass) \
     OBJECT_CLASS_CHECK(ButtonResetClass, (klass), TYPE_BUTTON_RESET)
 
-/* ------------------------------------------------------------------------- */
-
 typedef struct ButtonResetClass {
-    /*< private >*/
+    // private:
     ButtonResetParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } ButtonResetClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// Instance definitions.
 #define BUTTON_RESET_STATE(obj) \
     OBJECT_CHECK(ButtonResetState, (obj), TYPE_BUTTON_RESET)
 
 typedef struct ButtonResetState {
-    /*< private >*/
+    // private:
     ButtonResetParentState parent_obj;
-    /*< public >*/
+    // public:
 
 } ButtonResetState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void button_reset_create_from_info(Object *parent, ButtonResetInfo *info,
         BoardGraphicContext *graphic_context);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_BUTTON_RESET_H_ */

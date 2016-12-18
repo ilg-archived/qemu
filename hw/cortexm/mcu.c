@@ -44,7 +44,7 @@
 
 #define DEFAULT_NUM_IRQ		256
 
-/* ===== Private class implementation ====================================== */
+// ----- Private --------------------------------------------------------------
 
 static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
         hwaddr addr,
@@ -58,36 +58,36 @@ static void cortexm_mcu_do_unassigned_access_callback(CPUState *cpu,
     //CPUARMState *env;
     //env = cpu->env_ptr;
 
-    /* TODO: check for flag and raise ARMV7M_EXCP_MEM */
+    // TODO: check for flag and raise ARMV7M_EXCP_MEM
     // cortexm_nvic_set_pending(???, ARMV7M_EXCP_HARD);
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cortexm_mcu_registered_reset_callback(void *opaque)
 {
     DeviceState *dev = opaque;
 
-    /* This will actually go to derived class reset. */
+    // This will actually go to derived class reset.
     device_reset(dev);
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_CORTEXM_MCU)) {
         return;
     }
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
-    /* The param_capabilities property was set in `*_mcus_realize()`
-     * to &part_info->cortexm , which is R/O; to be able to update it,
-     * make a local copy in RAM. */
+    // The param_capabilities property was set in `*_mcus_realize()`
+    // to &part_info->cortexm , which is R/O; to be able to update it,
+    // make a local copy in RAM. */
     CortexMCapabilities* capabilities = g_new(CortexMCapabilities, 1);
     memcpy(capabilities, cm_state->param_capabilities,
             sizeof(CortexMCapabilities));
@@ -102,7 +102,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
     capabilities->core = core_capabilities;
 
-    /* Remember the local copy for future use. */
+    // Remember the local copy for future use.
     cm_state->capabilities = (const CortexMCapabilities*) capabilities;
 
     // TODO: in the end make this mandatory.
@@ -136,7 +136,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     const MachineState *machine = MACHINE(cortexm_board_get());
     const char *image_filename = NULL;
-    /* Use either the --image or the --kernel */
+    // Use either the --image or the --kernel
     if (machine->image_filename) {
         image_filename = machine->image_filename;
     } else if (machine->kernel_filename) {
@@ -154,36 +154,34 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     cm_state->cpu_model = cpu_model;
 
-    /*
-     * The /machine/mcu/cortexm container will hold all
-     * ARM internal peripherals.
-     */
+    // The /machine/mcu/cortexm container will hold all
+    // ARM internal peripherals.
     cm_state->container = container_get(OBJECT(dev), "/cortexm");
 
     CPUARMState *env;
     {
-        /* ----- Create CPU based on model. ----- */
+        // ----- Create CPU based on model. -----
         ARMCPU *cpu;
         // TODO: pass version bits.
         cpu = cm_cpu_arm_create(cm_state->container, cm_state->cpu_model);
 
         CPUClass *cc;
         cc = CPU_GET_CLASS(cpu);
-        /* Hook on the CPU unassigned access */
+        // Hook on the CPU unassigned access
         cc->do_unassigned_access = cortexm_mcu_do_unassigned_access_callback;
 
         cm_state->cpu = cpu;
         env = &cpu->env;
     }
 
-    /* There may be 3 substrings, like "cortex-m3-r2p1" */
+    // There may be 3 substrings, like "cortex-m3-r2p1"
     char **substr = g_strsplit(cpu_model, "-", 3);
 
     const char *display_model = "?";
 
     int max_num_irq = 496;
 
-    /* Some capabilities are hard-wired. */
+    // Some capabilities are hard-wired.
     char *sub_model = substr[1];
     if (strcmp(sub_model, "m0") == 0) {
         display_model = "Cortex-M0";
@@ -248,20 +246,20 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
     cm_state->display_model = display_model_rp;
 
-    /* The cm_state value might have been set by --global */
+    // The cm_state value might have been set by --global
     int sram_size_kb = cm_state->sram_size_kb;
     if (sram_size_kb == 0) {
         /* Otherwise use the MCU value */
         sram_size_kb = capabilities->sram_size_kb;
     }
 
-    /* Max 32 MB ram, to avoid overlapping with the bit-banding area */
+    // Max 32 MB ram, to avoid overlapping with the bit-banding area
     if (sram_size_kb > 32 * 1024) {
         sram_size_kb = 32 * 1024;
     }
     cm_state->sram_size_kb = sram_size_kb;
 
-    /* The cm_state value might have been set by --global */
+    // The cm_state value might have been set by --global
     int flash_size_kb = cm_state->flash_size_kb;
     if (flash_size_kb == 0) {
         /* Otherwise use the MCU value */
@@ -302,12 +300,12 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     }
 #endif
 
-    /* ----- Realize the CPU (derived from a device). ----- */
+    // ----- Realize the CPU (derived from a device). -----
     cm_object_realize(OBJECT(cm_state->cpu));
 
-    /* ----- Construct the NVIC object. ----- */
+    // ----- Construct the NVIC object. -----
     {
-        /* The NVIC will be available via "/machine/mcu/cortexm/nvic" */
+        // The NVIC will be available via "/machine/mcu/cortexm/nvic"
         Object *nvic = cm_object_new(cm_state->container, "nvic",
         TYPE_CORTEXM_NVIC);
 
@@ -321,11 +319,11 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         if (num_irq > max_num_irq) {
             num_irq = max_num_irq;
         }
-        /* Must be a multiple of 32 */
+        // Must be a multiple of 32
         num_irq = (num_irq + 31) & (~31);
         cm_state->num_irq = num_irq;
 
-        /* This currently goes to GIC, which uses a different numbering. */
+        // This currently goes to GIC, which uses a different numbering.
         object_property_set_int(nvic, num_irq + 32, "num-irq", NULL);
 
         cm_object_realize(nvic);
@@ -333,7 +331,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 
         env->nvic = nvic;
 
-        /* Route the ARM CPU_INTERRUPT_HARD to NVIC 0 */
+        // Route the ARM CPU_INTERRUPT_HARD to NVIC 0
         sysbus_connect_irq(SYS_BUS_DEVICE(cm_state->nvic), 0,
                 qdev_get_gpio_in(DEVICE(cm_state->cpu), ARM_CPU_IRQ));
 
@@ -341,11 +339,9 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         gs->basepri_ptr = &env->v7m.basepri;
 
 #if 0
-        /*
-         * Create the CPU exception handler interrupts. Peripherals
-         * will connect to them and set interrupts to be delivered to
-         * the guest application.
-         */
+        // Create the CPU exception handler interrupts. Peripherals
+        // will connect to them and set interrupts to be delivered to
+        // the guest application.
         qemu_irq *pic = g_new(qemu_irq, num_irq);
         int i;
         for (i = 0; i < num_irq; i++) {
@@ -355,7 +351,7 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
 #endif
     }
 
-    /* ----- Construct the ITM object. ----- */
+    // ----- Construct the ITM object. -----
     if (capabilities->core->has_itm) {
         /* The ITM will be available via "/machine/cortexm/itm" */
         Object *itm = cm_object_new(cm_state->container, "itm",
@@ -366,47 +362,41 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
         cm_state->itm = DEVICE(itm);
     }
 
-    /* ----- Create memory regions. ----- */
+    // ----- Create memory regions. -----
     {
         CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(dev);
         (*cm_class->memory_regions_create)(dev);
     }
 
-    /* ----- Connect peripheral interrupts to NVIC ----- */
+    // ----- Connect peripheral interrupts to NVIC -----
     {
 
     }
 
-    /* ----- Load image. ----- */
+    // ----- Load image. -----
     if (!cm_state->image_filename && !qtest_enabled() && !with_gdb) {
         error_report("Guest image must be specified (using --image)");
         exit(1);
     }
 
     if (cm_state->image_filename) {
-        /*
-         * The image is loaded in two steps, first here
-         * in some local structures then in rom_reset(),
-         * after all memory regions are mapped.
-         */
+        // The image is loaded in two steps, first here
+        // in some local structures then in rom_reset(),
+        // after all memory regions are mapped.
         CortexMClass *cm_class = CORTEXM_MCU_GET_CLASS(cm_state);
         cm_class->image_load(DEVICE(cm_state));
     }
 
-    /*
-     * Arrange for the MCU to be reset.
-     * The reset itself is not needed if the image is not given
-     * and will be loaded by GDB, but the reset needs to be
-     * registered, for the system_reset to be effective.
-     */
+    // Arrange for the MCU to be reset.
+    // The reset itself is not needed if the image is not given
+    // and will be loaded by GDB, but the reset needs to be
+    // registered, for the system_reset to be effective.
     qemu_register_reset(cortexm_mcu_registered_reset_callback, cm_state);
 
-    /*
-     * The default processor clock is 8000000 Hz.
-     *
-     * The scale should be recomputed later, in the vendor clock
-     * related peripherals.
-     */
+    // The default processor clock is 8000000 Hz.
+    //
+    // The scale should be recomputed later, in the vendor clock
+    // related peripherals.
     system_clock_scale = NANOSECONDS_PER_SECOND / 8000000;
 
 #if defined(CONFIG_VERBOSE)
@@ -428,7 +418,7 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_CORTEXM_MCU);
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
@@ -439,16 +429,12 @@ static void cortexm_mcu_reset_callback(DeviceState *dev)
     }
 #endif
 
-    /*
-     * Ensure the image is copied into memory before reset
-     * fetches MSP & PC
-     */
+    // Ensure the image is copied into memory before reset
+    // fetches MSP & PC
     rom_reset(NULL);
 
-    /*
-     * With the new image available, MSP & PC are correct
-     * and execution will start.
-     */
+    // With the new image available, MSP & PC are correct
+    // and execution will start.
     cpu_reset(CPU(cm_state->cpu));
 
     object_child_foreach(cm_state->container, cortexm_mcu_reset_object, NULL);
@@ -460,7 +446,7 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
 
     CortexMState *cm_state = CORTEXM_MCU_STATE(dev);
 
-    /* Get the system memory region, it must start at 0. */
+    // Get the system memory region, it must start at 0.
     MemoryRegion *system_memory = get_system_memory();
 
     int flash_size = cm_state->flash_size_kb * 1024;
@@ -469,7 +455,7 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
     Object *mem_container = container_get(cm_state->container, "/memory");
 
     MemoryRegion *flash_mem = &cm_state->flash_mem;
-    /* Flash programming is done via the SCU, so pretend it is ROM.  */
+    // Flash programming is done via the SCU, so pretend it is ROM.
     memory_region_init_ram(flash_mem, mem_container, "flash", flash_size,
             &error_fatal);
     vmstate_register_ram_global(flash_mem);
@@ -482,23 +468,21 @@ static void cortexm_mcu_memory_regions_create_callback(DeviceState *dev)
     vmstate_register_ram_global(sram_mem);
     memory_region_add_subregion(system_memory, 0x20000000, sram_mem);
 
-    /*
-     * Bitband the 1 MB from 0x20000000-0x200FFFFF area to
-     * 32 MB at 0x22000000-0x23FFFFFF.
-     */
+    // Bitband the 1 MB from 0x20000000-0x200FFFFF area to
+    // 32 MB at 0x22000000-0x23FFFFFF.
     cortexm_bitband_init(mem_container, "sram-bitband", 0x20000000);
 
     MemoryRegion *hack_mem = &cm_state->hack_mem;
-    /* Hack to map an additional page of ram at the top of the address
-     * space.  This stops qemu complaining about executing code outside RAM
-     * when returning from an exception.  */
+    // Hack to map an additional page of ram at the top of the address
+    // space.  This stops qemu complaining about executing code outside RAM
+    // when returning from an exception.  */
     memory_region_init_ram(hack_mem, mem_container, "hack", 0x1000,
             &error_fatal);
     vmstate_register_ram_global(hack_mem);
     memory_region_add_subregion(system_memory, 0xFFFFF000, hack_mem);
 }
 
-/* TODO: check if this really needs to be a callback. */
+// TODO: check if this really needs to be a callback.
 static void cortexm_mcu_image_load_callback(DeviceState *dev)
 {
     qemu_log_function_name();
@@ -530,7 +514,7 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define DEFINE_PROP_MACHINE_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const MachineState*)
@@ -538,10 +522,8 @@ static void cortexm_mcu_image_load_callback(DeviceState *dev)
 #define DEFINE_PROP_CORTEXMCAPABILITIES_PTR(_n, _s, _f) \
     DEFINE_PROP(_n, _s, _f, qdev_prop_ptr, const CortexMCapabilities*)
 
-/*
- * Properties for the 'cortexm_mcu' object, used as parent for
- * all vendor MCUs.
- */
+// Properties for the 'cortexm_mcu' object, used as parent for
+// all vendor MCUs.
 static Property cortexm_mcu_properties[] = {
         DEFINE_PROP_CORTEXMCAPABILITIES_PTR("cortexm-capabilities",
                 CortexMState, param_capabilities),
@@ -583,10 +565,8 @@ static void cortexm_mcu_instance_init_callback(Object *obj)
 
 }
 
-/*
- * Initialise the "cortexm-mcu" object. Currently there is no input data.
- * Called during module_call_init() in main().
- */
+// Initialise the "cortexm-mcu" object. Currently there is no input data.
+// Called during module_call_init() in main().
 static void cortexm_mcu_class_init_callback(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
@@ -608,7 +588,9 @@ static const TypeInfo cortexm_mcu_type_init = {
     .instance_init = cortexm_mcu_instance_init_callback,
     .instance_size = sizeof(CortexMState),
     .class_init = cortexm_mcu_class_init_callback,
-    .class_size = sizeof(CortexMClass) };
+    .class_size = sizeof(CortexMClass)
+/**/
+};
 
 static void cortexm_types_init(void)
 {
@@ -617,44 +599,44 @@ static void cortexm_types_init(void)
 
 type_init(cortexm_types_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* TODO: remove all following functions */
+// TODO: remove all following functions
 
-/* Cortex-M0 initialisation routine.  */
+// Cortex-M0 initialisation routine.
 qemu_irq *
 cortex_m0_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
-/* Cortex-M0+ initialisation routine.  */
+// Cortex-M0+ initialisation routine.
 qemu_irq *
 cortex_m0p_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
-/* Cortex-M3 initialisation routine.  */
+// Cortex-M3 initialisation routine.
 qemu_irq *
 cortex_m3_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
-/* Cortex-M4 initialisation routine.  */
+// Cortex-M4 initialisation routine.
 qemu_irq *
 cortex_m4_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
-/* Cortex-M7 initialisation routine.  */
+// Cortex-M7 initialisation routine.
 qemu_irq *
 cortex_m7_core_init(CortexMCoreCapabilities *cm_info, MachineState *machine)
 {
     return NULL;
 }
 
-/* -------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 

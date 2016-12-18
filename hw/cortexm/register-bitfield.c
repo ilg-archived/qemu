@@ -34,11 +34,8 @@
  * register.
  */
 
-/* ----- Public ------------------------------------------------------------ */
-
-/*
- * Set register bitfield properties from the info structure.
- */
+// ----- Public ---------------------------------------------------------------
+// Set register bitfield properties from the info structure.
 Object *register_bitfield_add_properties_and_children(Object *obj,
         RegisterBitfieldInfo *info)
 {
@@ -62,11 +59,9 @@ Object *register_bitfield_add_properties_and_children(Object *obj,
             cm_object_property_set_bool(obj, false, "is-writable");
         }
     } else {
-        /*
-         * Leave both false, as set by the option defaults,
-         * in bitfield realize() this dual condition is tested to
-         * compute the actual values using parent values.
-         */
+        // Leave both false, as set by the option defaults,
+        // in bitfield realize() this dual condition is tested to
+        // compute the actual values using parent values.
     }
 
     int size_bits = 0;
@@ -79,10 +74,8 @@ Object *register_bitfield_add_properties_and_children(Object *obj,
     return obj;
 }
 
-/*
- * Get the value of a bitfield. Bitfields do not keep a separate value,
- * but get it from the parent register, by masking and shifting.
- */
+// Get the value of a bitfield. Bitfields do not keep a separate value,
+// but get it from the parent register, by masking and shifting.
 peripheral_register_t register_bitfield_read_value(Object* obj)
 {
     assert(obj);
@@ -95,9 +88,7 @@ peripheral_register_t register_bitfield_read_value(Object* obj)
     return (reg->value & state->mask) >> state->shift;
 }
 
-/*
- * Return true if a bitfield is zero.
- */
+// Return true if a bitfield is zero.
 bool register_bitfield_is_zero(Object* obj)
 {
     assert(obj);
@@ -110,9 +101,7 @@ bool register_bitfield_is_zero(Object* obj)
     return (reg->value & state->mask) == 0;
 }
 
-/*
- * Return true if a bitfield is non-zero.
- */
+// Return true if a bitfield is non-zero.
 bool register_bitfield_is_non_zero(Object* obj)
 {
     assert(obj);
@@ -125,7 +114,7 @@ bool register_bitfield_is_non_zero(Object* obj)
     return (reg->value & state->mask) != 0;
 }
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
 static void register_bitfield_instance_init_callback(Object *obj)
 {
@@ -133,9 +122,7 @@ static void register_bitfield_instance_init_callback(Object *obj)
 
     RegisterBitfieldState *state = REGISTER_BITFIELD_STATE(obj);
 
-    /*
-     * Add properties and set the default values.
-     */
+    // Add properties and set the default values.
     cm_object_property_add_const_str(obj, "name", &state->name);
     state->name = NULL;
 
@@ -172,7 +159,7 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_REGISTER_BITFIELD)) {
         return;
     }
@@ -205,61 +192,49 @@ static void register_bitfield_realize_callback(DeviceState *dev, Error **errp)
 
     state->shift = state->first_bit;
 
-    /*
-     * Compute a mask that covers all bitfield bits.
-     * The mask is shifted to the bitfield real position and can be
-     * used on the register value.
-     */
+    // Compute a mask that covers all bitfield bits.
+    // The mask is shifted to the bitfield real position and can be
+    // used on the register value.
     peripheral_register_t mask = -1;
     mask >>= ((sizeof(peripheral_register_t) * 8) - state->width_bits);
     mask <<= state->shift;
     state->mask = mask;
 
-    /*
-     * Compute if readable/writable, based on bitfield and parent register.
-     * The parent register was not realized yet.
-     */
+    // Compute if readable/writable, based on bitfield and parent register.
+    // The parent register was not realized yet.
     if ((!state->is_readable) && (!state->is_writable)) {
-        /* Bitfield mode bits not defined, get from register. */
+        // Bitfield mode bits not defined, get from register.
 
         if (!state->is_readable) {
             if (reg->readable_bits != 0) {
-                /*
-                 * The register has some bits set, check the one specified
-                 * in the bitfield mask.
-                 */
+                // The register has some bits set, check the one specified
+                // in the bitfield mask.
                 if (reg->readable_bits & mask) {
                     state->is_readable = true;
                 }
             } else {
-                /*
-                 * Both register and field are not defined.
-                 * Default is readable.
-                 */
+                // Both register and field are not defined.
+                // Default is readable.
                 state->is_readable = true;
             }
         }
 
         if (!state->is_writable) {
             if (reg->writable_bits != 0) {
-                /*
-                 * The register has some bits set, check the one specified
-                 * in the bitfield mask.
-                 */
+                // The register has some bits set, check the one specified
+                // in the bitfield mask.
                 if (reg->writable_bits & mask) {
                     state->is_writable = true;
                 }
             } else {
-                /*
-                 * Both register and field are not defined.
-                 * Default is writable.
-                 */
+                // Both register and field are not defined.
+                // Default is writable.
                 state->is_writable = true;
             }
         }
     }
 
-    /* Update back the register readable & writable bits */
+    // Update back the register readable & writable bits
     if (state->is_readable) {
         if (!reg->is_readable) {
             error_setg(errp,
@@ -298,7 +273,9 @@ static const TypeInfo register_bitfield_type_info = {
     .instance_init = register_bitfield_instance_init_callback,
     .instance_size = sizeof(RegisterBitfieldState),
     .class_init = register_bitfield_class_init,
-    .class_size = sizeof(RegisterBitfieldClass) };
+    .class_size = sizeof(RegisterBitfieldClass)
+/**/
+};
 
 static void register_bitfield_register_types(void)
 {
@@ -307,5 +284,5 @@ static void register_bitfield_register_types(void)
 
 type_init(register_bitfield_register_types);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 

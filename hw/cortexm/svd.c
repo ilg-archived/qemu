@@ -273,7 +273,7 @@ Object *svd_add_peripheral_register_properties_and_children(Object *obj,
 
             svd_add_register_bitfield_properties_and_children(obifi, bitfield);
 
-            /* Should we delay until the register is realized()? */
+            // Should we delay until the register is realized()?
             cm_object_realize(obifi);
         }
     } else {
@@ -566,4 +566,6 @@ void svd_process_cpu(JSON_Object *svd, CortexMCoreCapabilities *core)
 
     // TODO: parse vendorSystickConfig
 }
+
+// ----------------------------------------------------------------------------
 

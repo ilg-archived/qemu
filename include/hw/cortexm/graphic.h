@@ -32,7 +32,7 @@
 #endif
 #endif /* defined(CONFIG_SDL) */
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 // Use polling on the QEMU I/O thread instead of a separate thread.
 #define USE_GRAPHIC_POLL_EVENT
@@ -41,11 +41,11 @@
 #define USE_GRAPHIC_POLL_EVENT
 #endif
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef struct ButtonState ButtonState;
 
-/* Storage for board graphic context, stored in CortexMBoardState */
+// Storage for board graphic context, stored in CortexMBoardState
 typedef struct BoardGraphicContext {
 
     const char *picture_file_name;
@@ -70,18 +70,18 @@ typedef struct BoardGraphicContext {
 
 } BoardGraphicContext;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef struct {
 
-    const char *name; /* NULL for table end. */
+    const char *name; // NULL for table end.
 
     bool active_low;
 
-    /* Centre of the button. */
+    // Centre coordinates of the button.
     uint32_t x;
     uint32_t y;
-    /* Size of the rectangle where the button is active. */
+    // Size of the rectangle where the button is active.
     uint32_t w;
     uint32_t h;
 
@@ -90,16 +90,16 @@ typedef struct {
 
 } GraphicButtonInfo;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/* Storage for LED graphic context, stored in GPIOLEDState */
+// Storage for LED graphic context, stored in GPIOLEDState
 typedef struct {
     SDL_Rect rectangle;
     SDL_Surface *crop_off;
     SDL_Surface *crop_on;
 } LEDGraphicContext;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 enum {
     GRAPHIC_EVENT_NONE = 0,
@@ -110,7 +110,7 @@ enum {
     GRAPHIC_EVENT_LED_TURN,
 };
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void cortexm_graphic_start(bool nographic);
 
@@ -126,7 +126,7 @@ void cortexm_graphic_event_loop(void);
 
 //void cortexm_graphic_init_timer(void);
 
-/* ----- Board graphic functions ----- */
+// ----- Board graphic functions -----
 void cortexm_graphic_board_clear_graphic_context(
         BoardGraphicContext *board_graphic_context);
 
@@ -136,14 +136,14 @@ bool cortexm_graphic_board_is_graphic_context_initialised(
 void cortexm_graphic_board_add_button(
         BoardGraphicContext *board_graphic_context, ButtonState *button_state);
 
-/* ----- LED graphic function ----- */
+// ----- LED graphic function -----
 void cortexm_graphic_led_clear_graphic_context(
         LEDGraphicContext *led_graphic_context);
 
 bool cortexm_graphic_led_is_graphic_context_initialised(
         LEDGraphicContext *led_graphic_context);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_GRAPHIC_H_ */
 

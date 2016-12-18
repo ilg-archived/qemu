@@ -27,7 +27,7 @@
 #include "verbosity.h"
 #endif
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
 void button_reset_create_from_info(Object *parent, ButtonResetInfo *info,
         BoardGraphicContext *graphic_context)
@@ -57,9 +57,9 @@ void button_reset_create_from_info(Object *parent, ButtonResetInfo *info,
 #endif /* defined(CONFIG_VERBOSE) */
 }
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
-/* Action when the button is pushed down. */
+// Action when the button is pushed down.
 static void button_reset_down_callback(ButtonState *dev)
 {
     qemu_log_function_name();
@@ -67,7 +67,7 @@ static void button_reset_down_callback(ButtonState *dev)
     qemu_reset_halt_request();
 }
 
-/* Action when the button is released. */
+// Action when the button is released.
 static void button_reset_up_callback(ButtonState *dev)
 {
     qemu_log_function_name();
@@ -80,21 +80,24 @@ static void button_reset_instance_init_callback(Object *obj)
     qemu_log_function_name();
 }
 
-// Currently not used.
-static void button_reset_reset_callback(DeviceState *dev)
-{
-    qemu_log_function_name();
-}
-
 static void button_reset_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_BUTTON_RESET)) {
         return;
     }
 
+}
+
+// Currently not used.
+static void button_reset_reset_callback(DeviceState *dev)
+{
+    qemu_log_function_name();
+
+    // Call parent reset(); this will reset all children registers.
+    cm_device_parent_reset(dev, TYPE_BUTTON_RESET);
 }
 
 static void button_reset_class_init_callback(ObjectClass *klass, void *data)
@@ -123,4 +126,4 @@ static void button_reset_type_init(void)
 
 type_init(button_reset_type_init);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

@@ -25,20 +25,20 @@
 #include <hw/cortexm/button.h>
 #include <hw/cortexm/graphic.h>
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define IRQ_BUTTON_GPIO_OUT     "button-out"
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 typedef struct {
 
-    const char *name; /* NULL for table end. */
+    const char *name; // NULL for table end.
 
-    /* Centre of the button. */
+    // Centre coordinates of the button.
     uint32_t x;
     uint32_t y;
-    /* Size of the rectangle where the button is active. */
+    // Size of the rectangle where the button is active.
     uint32_t w;
     uint32_t h;
 
@@ -50,48 +50,51 @@ typedef struct {
 
 } ButtonGPIOInfo;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #define TYPE_BUTTON_GPIO "button-gpio"
 
+// Parent definitions.
 #define TYPE_BUTTON_GPIO_PARENT TYPE_BUTTON
 typedef ButtonClass ButtonGPIOParentClass;
 typedef ButtonState ButtonGPIOParentState;
 
+// ----------------------------------------------------------------------------
+
+// Class definitions.
 #define BUTTON_GPIO_GET_CLASS(obj) \
     OBJECT_GET_CLASS(ButtonGPIOClass, (obj), TYPE_BUTTON_GPIO)
 #define BUTTON_GPIO_CLASS(klass) \
     OBJECT_CLASS_CHECK(ButtonGPIOClass, (klass), TYPE_BUTTON_GPIO)
 
-/* ------------------------------------------------------------------------- */
-
 typedef struct ButtonGPIOClass {
-    /*< private >*/
+    // private:
     ButtonGPIOParentClass parent_class;
-    /*< public >*/
+    // public:
 
 } ButtonGPIOClass;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
+// Instance definitions.
 #define BUTTON_GPIO_STATE(obj) \
     OBJECT_CHECK(ButtonGPIOState, (obj), TYPE_BUTTON_GPIO)
 
 typedef struct ButtonGPIOState {
-    /*< private >*/
+    // private:
     ButtonGPIOParentState parent_obj;
-    /*< public >*/
+    // public:
 
     bool active_low;
     qemu_irq irq_out;
 
 } ButtonGPIOState;
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
         BoardGraphicContext *graphic_context);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 #endif /* CORTEXM_BUTTON_GPIO_H_ */

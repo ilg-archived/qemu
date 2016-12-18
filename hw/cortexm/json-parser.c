@@ -22,6 +22,8 @@
 
 #include "qemu/error-report.h"
 
+// ----- Public ---------------------------------------------------------------
+
 JSON_Object *cm_json_parser_get_peripheral(JSON_Value *family, const char *name)
 {
     JSON_Object *object = json_value_get_object(family);
@@ -68,3 +70,4 @@ uint64_t cm_json_parser_parse_hex(const char *str)
     exit(1);
 }
 
+// ----------------------------------------------------------------------------

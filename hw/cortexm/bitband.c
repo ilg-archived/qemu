@@ -22,16 +22,16 @@
 
 #include "cpu.h"
 
-/* Bitbanded IO.  Each word corresponds to a single bit.  */
+// Bitbanded IO.  Each word corresponds to a single bit.
 
-/* ------------------------------------------------------------------------- */
+// ----- Public ---------------------------------------------------------------
 
 void cortexm_bitband_init(Object *parent, const char *node_name,
         uint32_t address)
 {
     DeviceState *dev;
 
-    /* Make address a multiple of 32MB */
+    // Make address a multiple of 32MB
     address &= ~(CORTEXM_BITBAND_OFFSET - 1);
     dev = qdev_create(NULL, TYPE_CORTEXM_BITBAND);
     cm_object_property_add_child(parent, node_name, OBJECT(dev));
@@ -40,9 +40,9 @@ void cortexm_bitband_init(Object *parent, const char *node_name,
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0, address + CORTEXM_BITBAND_OFFSET);
 }
 
-/* ===== Private class implementation ====================================== */
+// ----- Private --------------------------------------------------------------
 
-/* Get the byte address of the real memory for a bitband access.  */
+// Get the byte address of the real memory for a bitband access.
 static inline uint32_t cortexm_bitband_addr(void * opaque, uint32_t addr)
 {
     uint32_t res;
@@ -147,14 +147,22 @@ static const MemoryRegionOps cortexm_bitband_ops = {
         .read = {
             cortexm_bitband_readb,
             cortexm_bitband_readw,
-            cortexm_bitband_readl, },
+            cortexm_bitband_readl,
+        /**/
+        },
         .write = {
             cortexm_bitband_writeb,
             cortexm_bitband_writew,
-            cortexm_bitband_writel, }, },
-    .endianness = DEVICE_NATIVE_ENDIAN, };
+            cortexm_bitband_writel,
+        /**/
+        },
+    /**/
+    },
+    .endianness = DEVICE_NATIVE_ENDIAN,
+/**/
+};
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void cortexm_bitband_instance_init_callback(Object *obj)
 {
@@ -172,19 +180,19 @@ static void cortexm_bitband_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_CORTEXM_BITBAND)) {
         return;
     }
 
-    /* Currently nothing to do. */
+    // Currently nothing to do.
 }
 
 static void cortexm_bitband_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    /* Currently nothing to do. */
+    // Currently nothing to do.
 }
 
 static Property cortexm_bitband_properties[] = {
@@ -207,7 +215,9 @@ static const TypeInfo cortexm_bitband_type_info = {
     .instance_init = cortexm_bitband_instance_init_callback,
     .instance_size = sizeof(CortexMBitBandState),
     .class_init = cortexm_bitband_class_init_callback,
-    .class_size = sizeof(CortexMBitBandClass) };
+    .class_size = sizeof(CortexMBitBandClass)
+/**/
+};
 
 static void cortexm_bitband_register_types(void)
 {
@@ -216,4 +226,4 @@ static void cortexm_bitband_register_types(void)
 
 type_init(cortexm_bitband_register_types)
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------

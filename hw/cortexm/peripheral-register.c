@@ -40,19 +40,16 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque);
 static int peripheral_register_check_access(unsigned size, unsigned offset,
         uint64_t access);
 
-/* ----- Public ------------------------------------------------------------ */
+// ----- Public ---------------------------------------------------------------
 
-/*
- * Set the register properties and add children bitfields from the
- * info structure.
- */
+// Set the register properties and add children bitfields from the
+// info structure.
 Object *peripheral_register_add_properties_and_children(Object *obj,
         PeripheralRegisterInfo *info)
 {
-    /*
-     * After properties are set to default values by .instance_init,
-     * copy actual values from info.
-     */
+    // After properties are set to default values by .instance_init,
+    // copy actual values from info.
+
     PeripheralState *parent = PERIPHERAL_STATE(cm_object_get_parent(obj));
 
     cm_object_property_set_int(obj, info->offset_bytes, "offset-bytes");
@@ -120,7 +117,7 @@ Object *peripheral_register_add_properties_and_children(Object *obj,
 
             register_bitfield_add_properties_and_children(bifi, bifi_info);
 
-            /* Should we delay until the register is realized()? */
+            // Should we delay until the register is realized()?
             cm_object_realize(bifi);
         }
     }
@@ -128,10 +125,8 @@ Object *peripheral_register_add_properties_and_children(Object *obj,
     return obj;
 }
 
-/*
- * Internal structure with temporary storage,
- * used to compute the auto_bits array.
- */
+// Internal structure with temporary storage,
+// used to compute the auto_bits array.
 typedef struct {
     peripheral_register_t left_shift_follows_masks[sizeof(peripheral_register_t)
             * 8];
@@ -159,11 +154,10 @@ void peripheral_register_compute_auto_bits(Object *obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
-    /*
-     * Scan children bitfields to identify those that follow other
-     * bitfields. Compute the signed distance between bitfields
-     * and for each distance accumulate a bitmask.
-     */
+    // Scan children bitfields to identify those that follow other
+    // bitfields. Compute the signed distance between bitfields
+    // and for each distance accumulate a bitmask.
+
     PeripheralRegisterAutoTmp *auto_tmp = g_malloc0(
             sizeof(PeripheralRegisterAutoTmp));
     auto_tmp->reg = state;
@@ -204,7 +198,7 @@ void peripheral_register_compute_auto_bits(Object *obj)
         }
 
         if (count) {
-            count++; /* One more for the terminator. */
+            count++; // One more for the terminator.
             PeripheralRegisterAutoBits *auto_bits = g_malloc_n(count,
                     sizeof(PeripheralRegisterAutoBits));
 
@@ -249,7 +243,7 @@ void peripheral_register_compute_auto_bits(Object *obj)
                 }
             }
 
-            /* End of array. */
+            // End of array.
             p->mask = 0;
             p->shift = 0;
 
@@ -259,11 +253,9 @@ void peripheral_register_compute_auto_bits(Object *obj)
     g_free(auto_tmp);
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
-/*
- * Return the readable bits of the register.
- */
+// Return the readable bits of the register.
 peripheral_register_t peripheral_register_read_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
@@ -278,9 +270,7 @@ void peripheral_register_write_value(Object* obj, peripheral_register_t value)
     state->value = value & state->writable_bits;
 }
 
-/*
- * Return the full register, as is.
- */
+// Return the full register, as is.
 peripheral_register_t peripheral_register_get_raw_value(Object* obj)
 {
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
@@ -347,13 +337,11 @@ void peripheral_register_set_post_read(Object* obj,
     state->post_read = ptr;
 }
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
-/*
- * Validate the access, using the bits defined for each register.
- * Each byte encodes one size and inside the byte each bit encodes
- * one unaligned offset.
- */
+// Validate the access, using the bits defined for each register.
+// Each byte encodes one size and inside the byte each bit encodes
+// one unaligned offset.
 static int peripheral_register_check_access(unsigned size, unsigned offset,
         uint64_t access)
 {
@@ -364,10 +352,8 @@ static int peripheral_register_check_access(unsigned size, unsigned offset,
     return false;
 }
 
-/*
- * Structure used to process endianness.
- * It overlaps a long long with an array of bytes.
- */
+// Structure used to process endianness.
+// It overlaps a long long with an array of bytes.
 typedef union {
     peripheral_register_t ll;
     uint8_t b[sizeof(peripheral_register_t)];
@@ -382,46 +368,37 @@ peripheral_register_t peripheral_register_shorten(peripheral_register_t value,
     EndiannessUnion result;
     result.ll = 0; /* Start with a zero value. */
 
-    /*
-     * Copy 'size' bytes from register to response.
-     * The other bytes remain zero.
-     * Working at byte level, it copes well with any alignment.
-     */
+    // Copy 'size' bytes from register to response.
+    // The other bytes remain zero.
+    // Working at byte level, it copes well with any alignment.
+
     int i;
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     if (is_little_endian) {
         for (i = 0; i < size; ++i) {
-            /*
-             * Source: little-endian (guest register)
-             * Destination: little-endian (host result)
-             */
+            // Source: little-endian (guest register)
+            // Destination: little-endian (host result)
             result.b[i] = tmp.b[i + offset];
         }
     } else {
-        /*
-         * Source: big-endian (guest register)
-         * Destination: little-endian (host result)
-         */
+        // Source: big-endian (guest register)
+        // Destination: little-endian (host result)
         for (i = 0; i < size; ++i) {
             result.b[i] = tmp.b[8 - (i + offset)];
         }
     }
 #else
-    /* Warning: Not tested! */
+    // Warning: Not tested!
     if (periph_state->is_little_endian) {
         for (i = 0; i < size; ++i) {
-            /*
-             * Source: little-endian (guest register)
-             * Destination: big-endian (host result)
-             */
+            // Source: little-endian (guest register)
+            // Destination: big-endian (host result)
             result.b[8 - i] = tmp.b[i + offset];
         }
     } else {
         for (i = 0; i < size; ++i) {
-            /*
-             * Source: big-endian (guest register)
-             * Destination: big-endian (host result)
-             */
+            // Source: big-endian (guest register)
+            // Destination: big-endian (host result)
             result.b[8 - i] = tmp.b[8 - (i + offset)];
         }
     }
@@ -439,46 +416,36 @@ peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
     EndiannessUnion new_value;
     new_value.ll = old_value; /* Start with the original value. */
 
-    /*
-     * Overwrite 'size' bytes in new_value with bytes from in_value.
-     * The other bytes remain with their original values.
-     * Working at byte level, it copes well with any alignment.
-     */
+    // Overwrite 'size' bytes in new_value with bytes from in_value.
+    // The other bytes remain with their original values.
+    // Working at byte level, it copes well with any alignment.
     int i;
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     if (is_little_endian) {
         for (i = 0; i < size; ++i) {
-            /*
-             * Source: little-endian (host in value)
-             * Destination: little-endian (guest register)
-             */
+            // Source: little-endian (host in value)
+            // Destination: little-endian (guest register)
             new_value.b[i + offset] = in_value.b[i];
         }
     } else {
         for (i = 0; i < size; ++i) {
-            /*
-             * Source: little-endian (host in value)
-             * Destination: big-endian (guest register)
-             */
+            // Source: little-endian (host in value)
+            // Destination: big-endian (guest register)
             new_value.b[8 - (i + offset)] = in_value.b[i];
         }
     }
 #else
-    /* Warning: Not tested! */
+    // Warning: Not tested!
     if (periph_state->is_little_endian) {
         for (i = 0; i < size; ++i) {
-            /*
-             * Source: big-endian (host in value)
-             * Destination: little-endian (guest register)
-             */
+            // Source: big-endian (host in value)
+            // Destination: little-endian (guest register)
             new_value.b[i + offset] = in_value.b[8 - i];
         }
     } else {
         for (i = 0; i < size; ++i) {
-            /*
-             * Source: big-endian (host in value)
-             * Destination: big-endian (guest register)
-             */
+            // Source: big-endian (host in value)
+            // Destination: big-endian (guest register)
             new_value.b[8 - (i + offset)] = in_value.b[8 - i];
         }
     }
@@ -486,7 +453,7 @@ peripheral_register_t peripheral_register_widen(peripheral_register_t old_value,
     return new_value.ll;
 }
 
-/* ----- Private ----------------------------------------------------------- */
+// ----- Private --------------------------------------------------------------
 
 static peripheral_register_t peripheral_register_read_callback(Object *reg,
         Object *periph, uint32_t addr, uint32_t offset, unsigned size)
@@ -494,7 +461,7 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(reg);
     PeripheralState *periph_state = PERIPHERAL_STATE(periph);
 
-    /* Validate alignment */
+    // Validate alignment
     if (!peripheral_register_check_access(size, offset, state->access_flags)) {
         qemu_log_mask(LOG_GUEST_ERROR,
                 "%s: Peripheral register read of size %d at offset " "0x%"PRIX32" not aligned.\n",
@@ -502,11 +469,10 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
         return 0;
     }
 
-    /*
-     * Specific actions required to get the actual values are implemented
-     * with pre read callbacks. These should prepare the value in the
-     * register.
-     */
+    // Specific actions required to get the actual values are implemented
+    // with pre read callbacks. These should prepare the value in the
+    // register.
+
     if (state->pre_read) {
         peripheral_register_t new_value;
         new_value = state->pre_read(reg, periph, addr, offset, size);
@@ -548,7 +514,7 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
             __func__, state->name, periph_state->mmio_node_name, addr, offset,
             size, value);
 
-    /* Validate alignment */
+    // Validate alignment
     if (!peripheral_register_check_access(size, offset, state->access_flags)) {
         qemu_log_mask(LOG_GUEST_ERROR,
                 "%s: Peripheral register write of size %d at offset " "0x%"PRIX32" not aligned.\n",
@@ -560,16 +526,16 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
             value, offset, size, periph_state->is_little_endian);
 
     peripheral_register_t full_value;
-    /* Clear all writable bits, preserve the rest. */
+    // Clear all writable bits, preserve the rest.
     full_value = state->value & (~state->writable_bits);
-    /* Set all writable bits with the new values. */
+    // Set all writable bits with the new values.
     full_value |= (new_value & state->writable_bits);
 
     PeripheralRegisterAutoBits *auto_bits;
     for (auto_bits = state->auto_bits; auto_bits && auto_bits->mask;
             auto_bits++) {
         if (auto_bits->type == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_FOLLOWS) {
-            /* Clear the linked bits and copy those from the referred bits. */
+            // Clear the linked bits and copy those from the referred bits.
             if (auto_bits->shift > 0) {
                 full_value &= ~(auto_bits->mask << auto_bits->shift);
                 full_value |= ((full_value & auto_bits->mask)
@@ -581,7 +547,7 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
             }
         } else if (auto_bits->type
                 == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_CLEARED_BY) {
-            /* If the referred bits are set, clear the linked bits. */
+            // If the referred bits are set, clear the linked bits.
             if (auto_bits->shift > 0) {
                 full_value &= ~((full_value & auto_bits->mask)
                         << auto_bits->shift);
@@ -591,7 +557,7 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
             }
         } else if (auto_bits->type
                 == PERIPHERAL_REGISTER_AUTO_BITS_TYPE_SET_BY) {
-            /* If the referred bits are set, set the linked bits. */
+            // If the referred bits are set, set the linked bits.
             if (auto_bits->shift > 0) {
                 full_value |= ((full_value & auto_bits->mask)
                         << auto_bits->shift);
@@ -611,17 +577,16 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
         state->value = full_value;
     }
 
-    /*
-     * Actions associated with registers are implemented with post write
-     * callbacks. The original value, possibly short and unaligned, is
-     * passed first, then the full register value.
-     */
+    // Actions associated with registers are implemented with post write
+    // callbacks. The original value, possibly short and unaligned, is
+    // passed first, then the full register value.
+
     if (state->post_write) {
         state->post_write(reg, periph, addr, offset, size, value, full_value);
     }
 }
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
 static void peripheral_register_instance_init_callback(Object *obj)
 {
@@ -629,9 +594,8 @@ static void peripheral_register_instance_init_callback(Object *obj)
 
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(obj);
 
-    /*
-     * Add properties and set the default values.
-     */
+    // Add properties and set the default values.
+
     cm_object_property_add_const_str(obj, "name", &state->name);
     state->name = NULL;
 
@@ -705,17 +669,16 @@ typedef struct {
     Error *local_err;
 } PeripheralRegisterValidateTmp;
 
-/*
- * Create the auto_bits array, by concatenating masks of
- * followed bitfields and grouping based on shift steps.
- */
+// Create the auto_bits array, by concatenating masks of
+// followed bitfields and grouping based on shift steps.
+
 static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
 {
     PeripheralRegisterValidateTmp *validate_tmp =
             (PeripheralRegisterValidateTmp *) opaque;
     PeripheralRegisterState *reg = validate_tmp->reg;
 
-    /* Process only children that descend from a bitfield. */
+    // Process only children that descend from a bitfield.
     if (cm_object_is_instance_of_typename(obj, TYPE_REGISTER_BITFIELD)) {
         RegisterBitfieldState *bifi = REGISTER_BITFIELD_STATE(obj);
 
@@ -725,63 +688,60 @@ static int peripheral_register_validate_bitfields(Object *obj, void *opaque)
             return 1;
         }
 
-        /* Collect more bits in the mask. */
+        // Collect more bits in the mask.
         validate_tmp->mask |= bifi->mask;
 
-        /* Collect readable bits. */
+        // Collect readable bits.
         if (bifi->is_readable) {
             validate_tmp->readable_bits |= bifi->mask;
         }
-        /* Collect writable bits. */
+        // Collect writable bits.
         if (bifi->is_writable) {
             validate_tmp->writable_bits |= bifi->mask;
         }
 
     }
-    return 0; /* Continue iterations. */
+    return 0; // Continue iterations.
 }
 
-/*
- * Find the followed bitfield among its siblings.
- * Use the temporary structure to pass input/output values.
- * When found, break the iteration.
- */
+// Find the followed bitfield among its siblings.
+// Use the temporary structure to pass input/output values.
+// When found, break the iteration.
+
 static int peripheral_register_find_bifi(Object *obj, void *opaque)
 {
     PeripheralRegisterAutoTmp *auto_tmp = (PeripheralRegisterAutoTmp *) opaque;
 
-    /* Process only children that descend from a bitfield. */
+    // Process only children that descend from a bitfield.
     if (cm_object_is_instance_of_typename(obj, TYPE_REGISTER_BITFIELD)) {
         RegisterBitfieldState *bifi = REGISTER_BITFIELD_STATE(obj);
 
         if (strcmp(auto_tmp->to_find_bifi, bifi->name) == 0) {
             auto_tmp->found_bifi = bifi;
-            return 1; /* Break iterations. */
+            return 1; // Break iterations.
         }
     }
 
-    return 0; /* Continue iterations. */
+    return 0; // Continue iterations.
 }
 
-/*
- * Create the auto_bits array, by concatenating masks of
- * followed bitfields and grouping based on shift steps.
- */
+// Create the auto_bits array, by concatenating masks of
+// followed bitfields and grouping based on shift steps.
 static int peripheral_register_create_auto_array(Object *obj, void *opaque)
 {
     PeripheralRegisterAutoTmp *auto_tmp = (PeripheralRegisterAutoTmp *) opaque;
     PeripheralRegisterState *reg = auto_tmp->reg;
 
-    /* Process only children that descend from a bitfield. */
+    // Process only children that descend from a bitfield.
     if (cm_object_is_instance_of_typename(obj, TYPE_REGISTER_BITFIELD)) {
         RegisterBitfieldState *bifi = REGISTER_BITFIELD_STATE(obj);
 
         if (bifi->follows) {
-            /* Find the followed bitfield. */
+            // Find the followed bitfield.
             auto_tmp->to_find_bifi = bifi->follows;
             auto_tmp->found_bifi = NULL;
 
-            /* Try to find the followed bitfield among its siblings. */
+            // Try to find the followed bitfield among its siblings.
             object_child_foreach(OBJECT(reg), peripheral_register_find_bifi,
                     (void *) auto_tmp);
 
@@ -793,7 +753,7 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque)
                 return 1;
             }
 
-            /* Positive values means shift left, negative shift right. */
+            // Positive values means shift left, negative shift right.
             int delta_shift = bifi->first_bit - auto_tmp->found_bifi->first_bit;
             if (delta_shift > 0) {
                 auto_tmp->left_shift_follows_masks[delta_shift] |=
@@ -803,11 +763,11 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque)
                         auto_tmp->found_bifi->mask;
             }
         } else if (bifi->cleared_by) {
-            /* Find the .cleared_by bitfield. */
+            // Find the .cleared_by bitfield.
             auto_tmp->to_find_bifi = bifi->cleared_by;
             auto_tmp->found_bifi = NULL;
 
-            /* Try to find the followed bitfield among its siblings. */
+            // Try to find the followed bitfield among its siblings.
             object_child_foreach(OBJECT(reg), peripheral_register_find_bifi,
                     (void *) auto_tmp);
 
@@ -819,7 +779,7 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque)
                 return 1;
             }
 
-            /* Positive values means shift left, negative shift right. */
+            // Positive values means shift left, negative shift right.
             int delta_shift = bifi->first_bit - auto_tmp->found_bifi->first_bit;
             if (delta_shift > 0) {
                 auto_tmp->left_shift_cleared_by_masks[delta_shift] |=
@@ -829,11 +789,11 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque)
                         auto_tmp->found_bifi->mask;
             }
         } else if (bifi->set_by) {
-            /* Find the .set_by bitfield. */
+            // Find the .set_by bitfield.
             auto_tmp->to_find_bifi = bifi->cleared_by;
             auto_tmp->found_bifi = NULL;
 
-            /* Try to find the followed bitfield among its siblings. */
+            // Try to find the followed bitfield among its siblings.
             object_child_foreach(OBJECT(reg), peripheral_register_find_bifi,
                     (void *) auto_tmp);
 
@@ -845,7 +805,7 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque)
                 return 1;
             }
 
-            /* Positive values means shift left, negative shift right. */
+            // Positive values means shift left, negative shift right.
             int delta_shift = bifi->first_bit - auto_tmp->found_bifi->first_bit;
             if (delta_shift > 0) {
                 auto_tmp->left_shift_set_by_masks[delta_shift] |=
@@ -857,36 +817,29 @@ static int peripheral_register_create_auto_array(Object *obj, void *opaque)
         }
     }
 
-    return 0; /* Continue iterations. */
+    return 0; // Continue iterations.
 }
 
 static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    /* Call parent realize(). */
+    // Call parent realize().
     if (!cm_device_parent_realize(dev, errp, TYPE_PERIPHERAL_REGISTER)) {
         return;
     }
 
-    /*
-     * By the time we reach here, the bitfields were already realized().
-     * This also means the readable/writable masks might have been
-     * updated.
-     */
-
+    // By the time we reach here, the bitfields were already realized().
+    // This also means the readable/writable masks might have been
+    // updated.
     PeripheralRegisterState *state = PERIPHERAL_REGISTER_STATE(dev);
 
-    /*
-     * The size should have been already computed by derived_realize(),
-     * which is executed before this function.
-     */
+    // The size should have been already computed by derived_realize(),
+    // which is executed before this function.
     assert(state->size_bits != 0);
 
     int ret;
-    /*
-     * Scan bitfields and validate by checking if masks do not overlap.
-     */
+    // Scan bitfields and validate by checking if masks do not overlap.
     PeripheralRegisterValidateTmp *validate_tmp = g_malloc0(
             sizeof(PeripheralRegisterValidateTmp));
     validate_tmp->reg = state;
@@ -911,35 +864,31 @@ static void peripheral_register_realize_callback(DeviceState *dev, Error **errp)
     }
 
     if (has_bitfields) {
-        /*
-         * If it has bitfields, to the defined readable/writable masks
-         * the bitfields will contribute more bits.
-         */
+        // If it has bitfields, to the defined readable/writable masks
+        // the bitfields will contribute more bits.
         state->readable_bits |= bitfields_readable_bits;
         state->writable_bits |= bitfields_writable_bits;
     } else {
-        /*
-         * It has no bitfields, we might need to do our best to
-         * determine if there are some bitmasks, otherwise set
-         * them to allow all bits.
-         */
+        // It has no bitfields, we might need to do our best to
+        // determine if there are some bitmasks, otherwise set
+        // them to allow all bits.
         if (state->readable_bits == 0 && state->is_readable) {
-            /* Default all bits readable. */
+            // Default all bits readable.
             state->readable_bits = 0xFFFFFFFFFFFFFFFF;
         }
 
         if (state->writable_bits == 0 && state->is_writable) {
-            /* Default all bits writable. */
+            // Default all bits writable.
             state->writable_bits = 0xFFFFFFFFFFFFFFFF;
         }
     }
 
-    /* Clear readable bits if entire register is non-readable. */
+    // Clear readable bits if entire register is non-readable.
     if (!state->is_readable) {
         state->readable_bits = 0;
     }
 
-    /* Clear writable bits if entire register is non-writable. */
+    // Clear writable bits if entire register is non-writable.
     if (!state->is_writable) {
         state->writable_bits = 0;
     }
@@ -958,13 +907,13 @@ static void peripheral_register_reset_callback(DeviceState *dev)
     qemu_log_mask(LOG_FUNC, "%s() '%s', reset: 0x%08"PRIX64"\n", __FUNCTION__,
             state->name, state->reset_value);
 
-    /* Call parent reset(). */
+    // Call parent reset().
     cm_device_parent_reset(dev, TYPE_PERIPHERAL_REGISTER);
 
-    /* Clear the value according to the reset mask. */
+    // Clear the value according to the reset mask.
     state->value &= ~(state->reset_mask);
 
-    /* Copy bits from reset value. */
+    // Copy bits from reset value.
     state->value |= (state->reset_value & state->reset_mask);
 }
 
@@ -986,7 +935,9 @@ static const TypeInfo peripheral_register_type_info = {
     .instance_init = peripheral_register_instance_init_callback,
     .instance_size = sizeof(PeripheralRegisterState),
     .class_init = peripheral_register_class_init,
-    .class_size = sizeof(PeripheralRegisterClass) };
+    .class_size = sizeof(PeripheralRegisterClass)
+/**/
+};
 
 static void register_peripheral_register_types(void)
 {
@@ -995,5 +946,5 @@ static void register_peripheral_register_types(void)
 
 type_init(register_peripheral_register_types);
 
-/* ------------------------------------------------------------------------- */
+// ----------------------------------------------------------------------------
 
