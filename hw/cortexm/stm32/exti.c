@@ -1038,9 +1038,10 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    // Parent realize() is called after setting the the
-    // mmio-address & mmio-size properties (required to init the mmio)
-    // and creating registers (to create the array of registers).
+    // Call parent realize().
+    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_EXTI)) {
+        return;
+    }
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
@@ -1056,6 +1057,8 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     Object *obj = OBJECT(dev);
 
     const char *periph_name = "EXTI";
+    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
+    peripheral_create_memory_region(obj);
 
     assert(
             capabilities->num_exti > 0 && capabilities->num_exti <= STM32_EXTI_MAX_NUM);
@@ -1309,12 +1312,7 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
-    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
-
-    // Finally call parent realize().
-    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_EXTI)) {
-        return;
-    }
+    peripheral_prepare_registers(obj);
 }
 
 static void stm32_exti_reset_callback(DeviceState *dev)

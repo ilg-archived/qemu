@@ -64,6 +64,65 @@ Object *peripheral_add_properties_and_children(Object *obj,
     return obj;
 }
 
+static const MemoryRegionOps register_ops;
+
+void peripheral_create_memory_region(Object *obj)
+{
+    PeripheralState *state = PERIPHERAL_STATE(obj);
+    DeviceState *dev = DEVICE(obj);
+
+    const char *node_name = state->mmio_node_name;
+    if (node_name == NULL) {
+        node_name = "mmio";
+    }
+    memory_region_init_io(&state->mmio, OBJECT(dev), &register_ops, state,
+            node_name, state->mmio_size_bytes);
+
+    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
+    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0x0, state->mmio_address);
+
+    qemu_log_mask(LOG_FUNC,
+            "%s() '%s', address: 0x%08"PRIX64", size: 0x%08"PRIX32"\n",
+            __FUNCTION__, state->mmio_node_name, state->mmio_address,
+            state->mmio_size_bytes);
+}
+
+static int peripheral_compute_max_offset_foreach(Object *obj, void *opaque);
+static int peripheral_populate_registers_array_foreach(Object *obj,
+        void *opaque);
+
+void peripheral_prepare_registers(Object *obj)
+{
+    /*
+     * For fast access, create an array of registers, indexed by
+     * offset, aligned to register size (4 or 8).
+     *
+     * Warning: for large, sparse, peripherals, this might use a lot
+     * of memory.
+     */
+
+    PeripheralState *state = PERIPHERAL_STATE(obj);
+    DeviceState *dev = DEVICE(obj);
+
+    /* Iterate children and determine the last register. */
+    state->max_offset_bytes = 0;
+    object_child_foreach(OBJECT(dev), peripheral_compute_max_offset_foreach,
+            (void *) dev);
+
+    assert(state->max_offset_bytes < state->mmio_size_bytes);
+
+    /* Compute the number of pointers the array should contain. */
+    state->registers_size_ptrs = (state->max_offset_bytes
+            / state->register_size_bytes) + 1;
+
+    /* Allocate the array of pointers to registers. */
+    state->registers = g_malloc0_n(state->registers_size_ptrs, sizeof(Object*));
+
+    /* Fill in the array with pointers to registers. */
+    object_child_foreach(OBJECT(dev),
+            peripheral_populate_registers_array_foreach, (void *) dev);
+}
+
 /* ------------------------------------------------------------------------- */
 
 static void cm_json_prop_hex(QJSON *json, const char *name, uint32_t value,
@@ -361,7 +420,9 @@ static void peripheral_write_callback(void *opaque, hwaddr addr, uint64_t value,
 static const MemoryRegionOps register_ops = {
     .read = peripheral_read_callback,
     .write = peripheral_write_callback,
-    .endianness = DEVICE_NATIVE_ENDIAN, };
+    .endianness = DEVICE_NATIVE_ENDIAN,
+/**/
+};
 
 static void peripheral_instance_init_callback(Object *obj)
 {
@@ -467,47 +528,7 @@ static void peripheral_realize_callback(DeviceState *dev, Error **errp)
         return;
     }
 
-    PeripheralState *state = PERIPHERAL_STATE(dev);
-    const char *node_name = state->mmio_node_name;
-    if (node_name == NULL) {
-        node_name = "mmio";
-    }
-    memory_region_init_io(&state->mmio, OBJECT(dev), &register_ops, state,
-            node_name, state->mmio_size_bytes);
-
-    sysbus_init_mmio(SYS_BUS_DEVICE(dev), &state->mmio);
-    sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0x0, state->mmio_address);
-
-    /*
-     * For fast access, create an array of registers, indexed by
-     * offset, aligned to register size (4 or 8).
-     *
-     * Warning: for large, sparse, peripherals, this might use a lot
-     * of memory.
-     */
-
-    /* Iterate children and determine the last register. */
-    state->max_offset_bytes = 0;
-    object_child_foreach(OBJECT(dev), peripheral_compute_max_offset_foreach,
-            (void *) dev);
-
-    assert(state->max_offset_bytes < state->mmio_size_bytes);
-
-    /* Compute the number of pointers the array should contain. */
-    state->registers_size_ptrs = (state->max_offset_bytes
-            / state->register_size_bytes) + 1;
-
-    /* Allocate the array of pointers to registers. */
-    state->registers = g_malloc0_n(state->registers_size_ptrs, sizeof(Object*));
-
-    /* Fill in the array with pointers to registers. */
-    object_child_foreach(OBJECT(dev),
-            peripheral_populate_registers_array_foreach, (void *) dev);
-
-    qemu_log_mask(LOG_FUNC,
-            "%s() '%s', address: 0x%08"PRIX64", size: 0x%08"PRIX32"\n",
-            __FUNCTION__, node_name, state->mmio_address,
-            state->mmio_size_bytes);
+    // PeripheralState *state = PERIPHERAL_STATE(dev);
 }
 
 static void peripheral_reset_callback(DeviceState *dev)

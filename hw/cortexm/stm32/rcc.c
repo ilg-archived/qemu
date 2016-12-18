@@ -1609,8 +1609,10 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
 {
     qemu_log_function_name();
 
-    // Parent realize() is called after setting properties and creating
-    // registers.
+    // Call parent realize().
+    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_RCC)) {
+        return;
+    }
 
     STM32MCUState *mcu = stm32_mcu_get();
     CortexMState *cm_state = CORTEXM_MCU_STATE(mcu);
@@ -1625,6 +1627,8 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
     Object *obj = OBJECT(dev);
 
     const char *periph_name = "RCC";
+    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
+    peripheral_create_memory_region(obj);
 
     // Must be defined before creating registers.
     cm_object_property_set_int(obj, 4, "register-size-bytes");
@@ -2054,12 +2058,7 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
-    svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
-
-    // Call parent realize().
-    if (!cm_device_parent_realize(dev, errp, TYPE_STM32_RCC)) {
-        return;
-    }
+    peripheral_prepare_registers(obj);
 }
 
 static void stm32_rcc_reset_callback(DeviceState *dev)
