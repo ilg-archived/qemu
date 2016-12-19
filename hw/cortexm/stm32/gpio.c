@@ -1117,7 +1117,8 @@ Object* stm32_gpio_create(Object *parent, stm32_gpio_index_t index)
     }
 
     char child_name[10];
-    snprintf(child_name, sizeof(child_name) - 1, "GPIO%c", 'A' + index);
+    snprintf(child_name, sizeof(child_name) - 1, "GPIO%c",
+            'A' + index - STM32_PORT_GPIOA);
     // Passing a local string is ok.
     Object *gpio = cm_object_new(parent, child_name, TYPE_STM32_GPIO);
     int i;
@@ -1142,7 +1143,7 @@ Object* stm32_gpio_get(int index)
 {
     char gpio_name[40];
     snprintf(gpio_name, sizeof(gpio_name), DEVICE_PATH_STM32 "GPIO%c",
-            'A' + index);
+            'A' + index - STM32_PORT_GPIOA);
     return object_resolve_path(gpio_name, NULL);
 }
 
@@ -1688,7 +1689,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
         snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHBENR/IOP%cEN",
-                'A' + state->port_index);
+                'A' + state->port_index - STM32_PORT_GPIOA);
 
         break;
 
@@ -1719,7 +1720,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
         snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/APB2ENR/IOP%cEN",
-                'A' + state->port_index);
+                'A' + state->port_index - STM32_PORT_GPIOA);
 
         break;
 
@@ -1757,7 +1758,7 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
 
         snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/GPIO%cEN",
-                'A' + state->port_index);
+                'A' + state->port_index - STM32_PORT_GPIOA);
 
         break;
 

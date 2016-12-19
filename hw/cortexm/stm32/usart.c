@@ -582,12 +582,12 @@ Object* stm32_usart_create(Object *parent, stm32_usart_index_t index)
 {
     if ((int) index >= STM32_PORT_USART_UNDEFINED) {
         hw_error("Cannot assign USART %d: QEMU supports only %d ports\n",
-                index + 1, STM32_PORT_USART_UNDEFINED);
+                1 + index - STM32_PORT_USART1, STM32_PORT_USART_UNDEFINED);
     }
 
     char child_name[10];
     snprintf(child_name, sizeof(child_name) - 1, "USART%d",
-            index - STM32_PORT_USART1 + 1);
+            1 + index - STM32_PORT_USART1);
     // Passing a local string is ok.
     Object *usart = cm_object_new(parent, child_name,
     TYPE_STM32_USART);
@@ -763,7 +763,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
     char periph_name[10];
     snprintf(periph_name, sizeof(periph_name) - 1, "USART%d",
-            state->port_index - STM32_PORT_USART1 + 1);
+            1 + state->port_index - STM32_PORT_USART1);
 
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
     peripheral_create_memory_region(obj);
@@ -798,7 +798,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         case STM32_PORT_USART1:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
-                    state->port_index);
+                    1 + state->port_index - STM32_PORT_USART1);
             break;
 
         case STM32_PORT_USART2:
@@ -807,7 +807,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         case STM32_PORT_USART5:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
-                    state->port_index);
+                    1 + state->port_index - STM32_PORT_USART1);
             break;
 
         default:
@@ -842,7 +842,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         case STM32_PORT_USART1:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
-                    state->port_index);
+                    1 + state->port_index - STM32_PORT_USART1);
             break;
 
         case STM32_PORT_USART2:
@@ -850,7 +850,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
             // UART_4, UART_5:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
-                    state->port_index);
+                    1 + state->port_index - STM32_PORT_USART1);
             break;
 
         default:
@@ -899,7 +899,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         case STM32_PORT_USART6:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB2ENR/USART%dEN",
-                    state->port_index);
+                    1 + state->port_index - STM32_PORT_USART1);
             break;
 
         case STM32_PORT_USART2:
@@ -907,7 +907,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
             // UART_4, UART_5:
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                     DEVICE_PATH_STM32_RCC "/APB1ENR/USART%dEN",
-                    state->port_index);
+                    1 + state->port_index - STM32_PORT_USART1);
             break;
 
         default:
@@ -929,8 +929,9 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
     CharDriverState *chr = serial_hds[state->port_index];
     if (!chr) {
         char chardev_name[10];
+
         snprintf(chardev_name, ARRAY_SIZE(chardev_name)-1, "serial%d",
-                state->port_index);
+                0 + state->port_index - STM32_PORT_USART1);
         chr = qemu_chr_new(chardev_name, "null", NULL);
         if (!(chr)) {
             hw_error("Can't assign serial port to %s.\n", periph_name);
