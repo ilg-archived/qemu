@@ -1776,8 +1776,7 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
 {
     qemu_log_function_name();
 
-    // Call parent reset().
-    cm_device_parent_reset(dev, TYPE_STM32_GPIO);
+    // Defer parent reset to read the previous value.
 
     STM32GPIOState *state = STM32_GPIO_STATE(dev);
 
@@ -1806,10 +1805,16 @@ static void stm32_gpio_reset_callback(DeviceState *dev)
     assert(odr);
     uint16_t prev_odr = peripheral_register_get_raw_value(odr);
 
+    // Call parent reset().
+    // Must be exactly here, between reading the old and the new values.
+    cm_device_parent_reset(dev, TYPE_STM32_GPIO);
+
     uint16_t new_odr = peripheral_register_get_raw_value(odr);
 
     // Update connected devices, like LEDs, to new ODR.
     stm32_gpio_set_odr_irqs(state, prev_odr, new_odr);
+
+    // ------------------------------------------------------------------------
 
     state->dir_mask = 0;
 
