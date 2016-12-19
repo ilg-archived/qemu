@@ -33,10 +33,10 @@
 
 // Note: the "port-index" property has type "int".
 typedef enum {
-    // TODO: keep this list ordered.
-    STM32_PORT_I2C3,
-    STM32_PORT_I2C2,
+    // TODO: keep this list in ascending order.
     STM32_PORT_I2C1,
+    STM32_PORT_I2C2,
+    STM32_PORT_I2C3,
     STM32_PORT_I2C_UNDEFINED = 0xFF,
 } stm32_i2c_index_t;
 

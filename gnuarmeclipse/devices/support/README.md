@@ -131,7 +131,7 @@ svd-code \
 
 # Development environment details
 
-These details are relevant in my development environments, and are here as a convenience for myself, to easily copy/paste them to the terminal.
+These details are relevant in my development environments, and are here as a convenience, to easily copy/paste them to the terminal.
 
 The location of the folder:
 

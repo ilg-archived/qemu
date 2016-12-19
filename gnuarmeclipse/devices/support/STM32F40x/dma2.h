@@ -33,9 +33,9 @@
 
 // Note: the "port-index" property has type "int".
 typedef enum {
-    // TODO: keep this list ordered.
-    STM32_PORT_DMA2,
+    // TODO: keep this list in ascending order.
     STM32_PORT_DMA1,
+    STM32_PORT_DMA2,
     STM32_PORT_DMA_UNDEFINED = 0xFF,
 } stm32_dma_index_t;
 

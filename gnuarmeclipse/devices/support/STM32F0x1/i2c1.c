@@ -295,7 +295,7 @@ static void stm32_i2c_realize_callback(DeviceState *dev, Error **errp)
            // TODO: remove this if the peripheral is always enabled.
            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/I2C%dEN",
-                state->port_index - STM32_PORT_I2C1 + 1);
+                1 + state->port_index - STM32_PORT_I2C1);
 
 
         } else {

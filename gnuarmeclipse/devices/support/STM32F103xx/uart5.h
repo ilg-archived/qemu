@@ -33,7 +33,7 @@
 
 // Note: the "port-index" property has type "int".
 typedef enum {
-    // TODO: keep this list ordered.
+    // TODO: keep this list in ascending order.
     STM32_PORT_UART4,
     STM32_PORT_UART5,
     STM32_PORT_UART_UNDEFINED = 0xFF,
