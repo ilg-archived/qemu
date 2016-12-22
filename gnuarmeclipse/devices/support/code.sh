@@ -34,7 +34,7 @@ svd-code \
 echo
 xcdl \
 svd-code \
---file "../STM32F40xx-qemu.json" 
+--file "../STM32F40x-qemu.json" 
 
 echo
 xcdl \

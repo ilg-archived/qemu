@@ -42,7 +42,7 @@ xcdl \
 svd-patch \
 --file "STM32F40x-xsvd.json" \
 --patch "STM32F40x-patch.json" \
---output "../STM32F40xx-qemu.json" \
+--output "../STM32F40x-qemu.json" \
 --remove "NVIC" \
 --group-bitfield "RCC/PLLCFGR/PLLQ" \
 --group-bitfield "RCC/PLLCFGR/PLLP" \
