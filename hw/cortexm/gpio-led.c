@@ -123,6 +123,12 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         cm_object_realize(led);
 
         if (info->gpio_path) {
+            if (info->irq_name == NULL) {
+                fprintf(stderr,
+                        "Missing mandatory irq_name in '%s' definition\n",
+                        info->name);
+                exit(1);
+            }
             // Connect the outgoing interrupt of the GPIO bit to the (only)
             // incoming interrupt of this LED.
             cm_irq_connect(cm_device_by_name(info->gpio_path), info->irq_name,
