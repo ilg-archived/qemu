@@ -608,6 +608,11 @@ typedef struct {
                 Object *csr; // 0x74 Clock control & status register
                 Object *sscgr; // 0x80 Spread spectrum clock generation register
                 Object *plli2scfgr; // 0x84 PLLI2S configuration register
+
+                // F429
+                Object *pllsaicfgr; // 0x88 (PLLSAICFGR)
+                Object *dckcfgr; // 0x8C (DCKCFGR)
+
             } reg;
 
             struct {
@@ -659,6 +664,10 @@ typedef struct {
                     Object *hserdyf; // [3:3] HSE ready interrupt flag
                     Object *pllrdyf; // [4:4] Main PLL (PLL) ready interrupt flag
                     Object *plli2srdyf; // [5:5] PLLI2S ready interrupt flag
+
+                    // F429
+                    Object *pllsairdyf; // [6:6] PLLSAI ready interrupt flag
+
                     Object *cssf; // [7:7] Clock security system interrupt flag
                     Object *lsirdyie; // [8:8] LSI ready interrupt enable
                     Object *lserdyie; // [9:9] LSE ready interrupt enable
@@ -666,12 +675,20 @@ typedef struct {
                     Object *hserdyie; // [11:11] HSE ready interrupt enable
                     Object *pllrdyie; // [12:12] Main PLL (PLL) ready interrupt enable
                     Object *plli2srdyie; // [13:13] PLLI2S ready interrupt enable
+
+                    // F429
+                    Object *pllsairdyie; // [14:14] PLLSAI Ready Interrupt Enable
+
                     Object *lsirdyc; // [16:16] LSI ready interrupt clear
                     Object *lserdyc; // [17:17] LSE ready interrupt clear
                     Object *hsirdyc; // [18:18] HSI ready interrupt clear
                     Object *hserdyc; // [19:19] HSE ready interrupt clear
                     Object *pllrdyc; // [20:20] Main PLL(PLL) ready interrupt clear
                     Object *plli2srdyc; // [21:21] PLLI2S ready interrupt clear
+
+                    // F429
+                    Object *pllsairdyc; // [22:22] PLLSAI Ready Interrupt Clear
+
                     Object *cssc; // [23:23] Clock security system interrupt clear
                 } cir;
 
@@ -686,9 +703,18 @@ typedef struct {
                     Object *gpiogrst; // [6:6] IO port G reset
                     Object *gpiohrst; // [7:7] IO port H reset
                     Object *gpioirst; // [8:8] IO port I reset
+
+                    //F429
+                    Object *gpiojrst; // [9:9] IO port J reset
+                    Object *gpiokrst; // [10:10] IO port K reset
+
                     Object *crcrst; // [12:12] CRC reset
                     Object *dma1rst; // [21:21] DMA2 reset
                     Object *dma2rst; // [22:22] DMA2 reset
+
+                    // F429
+                    Object *dma2drst; // [23:23] DMA2D reset
+
                     Object *ethmacrst; // [25:25] Ethernet MAC reset
                     Object *otghsrst; // [29:29] USB OTG HS module reset
                 } ahb1rstr;
@@ -703,6 +729,10 @@ typedef struct {
                 // AHB3RSTR (AHB3 peripheral reset register) bitfields.
                 struct {
                     Object *fsmcrst; // [0:0] Flexible static memory controller module reset
+
+                    // F429
+                    Object *fmcrst; // [0:0] Flexible memory controller module reset
+
                 } ahb3rstr;
 
                 // APB1RSTR (APB1 peripheral reset register) bitfields.
@@ -730,6 +760,11 @@ typedef struct {
                     Object *can2rst; // [26:26] CAN2 reset
                     Object *pwrrst; // [28:28] Power interface reset
                     Object *dacrst; // [29:29] DAC reset
+
+                    // F429
+                    Object *uart7rst; // [30:30] UART7 reset
+                    Object *uart8rst; // [31:31] UART8 reset
+
                 } apb1rstr;
 
                 // APB2RSTR (APB2 peripheral reset register) bitfields.
@@ -741,10 +776,21 @@ typedef struct {
                     Object *adcrst; // [8:8] ADC interface reset (common to all ADCs)
                     Object *sdiorst; // [11:11] SDIO reset
                     Object *spi1rst; // [12:12] SPI 1 reset
+
+                    // F429
+                    Object *spi4rst; // [13:13] SPI4 reset
+
                     Object *syscfgrst; // [14:14] System configuration controller reset
                     Object *tim9rst; // [16:16] TIM9 reset
                     Object *tim10rst; // [17:17] TIM10 reset
                     Object *tim11rst; // [18:18] TIM11 reset
+
+                    // F429
+                    Object *spi5rst; // [20:20] SPI5 reset
+                    Object *spi6rst; // [21:21] SPI6 reset
+                    Object *sai1rst; // [22:22] SAI1 reset
+                    Object *ltdcrst; // [26:26] LTDC reset
+
                 } apb2rstr;
 
                 // AHB1ENR (AHB1 peripheral clock register) bitfields.
@@ -758,10 +804,23 @@ typedef struct {
                     Object *gpiogen; // [6:6] IO port G clock enable
                     Object *gpiohen; // [7:7] IO port H clock enable
                     Object *gpioien; // [8:8] IO port I clock enable
+
+                    // F429
+                    Object *gpiojen; // [9:9] IO port J clock enable
+                    Object *gpioken; // [10:10] IO port K clock enable
+
                     Object *crcen; // [12:12] CRC clock enable
                     Object *bkpsramen; // [18:18] Backup SRAM interface clock enable
+
+                    // F429
+                    Object *ccmdataramen; // [20:20] CCM data RAM clock enable
+
                     Object *dma1en; // [21:21] DMA1 clock enable
                     Object *dma2en; // [22:22] DMA2 clock enable
+
+                    // F429
+                    Object *dma2den; // [23:23] DMA2D clock enable
+
                     Object *ethmacen; // [25:25] Ethernet MAC clock enable
                     Object *ethmactxen; // [26:26] Ethernet Transmission clock enable
                     Object *ethmacrxen; // [27:27] Ethernet Reception clock enable
@@ -780,6 +839,10 @@ typedef struct {
                 // AHB3ENR (AHB3 peripheral clock enable register) bitfields.
                 struct {
                     Object *fsmcen; // [0:0] Flexible static memory controller module clock enable
+
+                    // F429
+                    Object *fmcen; // [0:0] Flexible memory controller module clock enable
+
                 } ahb3enr;
 
                 // APB1ENR (APB1 peripheral clock enable register) bitfields.
@@ -807,6 +870,11 @@ typedef struct {
                     Object *can2en; // [26:26] CAN 2 clock enable
                     Object *pwren; // [28:28] Power interface clock enable
                     Object *dacen; // [29:29] DAC interface clock enable
+
+                    // F429
+                    Object *uart7enr; // [30:30] UART7 clock enable
+                    Object *uart8enr; // [31:31] UART8 clock enable
+
                 } apb1enr;
 
                 // APB2ENR (APB2 peripheral clock enable register) bitfields.
@@ -820,10 +888,21 @@ typedef struct {
                     Object *adc3en; // [10:10] ADC3 clock enable
                     Object *sdioen; // [11:11] SDIO clock enable
                     Object *spi1en; // [12:12] SPI1 clock enable
+
+                    // F429
+                    Object *spi4enr; // [13:13] SPI4 clock enable
+
                     Object *syscfgen; // [14:14] System configuration controller clock enable
                     Object *tim9en; // [16:16] TIM9 clock enable
                     Object *tim10en; // [17:17] TIM10 clock enable
                     Object *tim11en; // [18:18] TIM11 clock enable
+
+                    // F429
+                    Object *spi5enr; // [20:20] SPI5 clock enable
+                    Object *spi6enr; // [21:21] SPI6 clock enable
+                    Object *sai1en; // [22:22] SAI1 clock enable
+                    Object *ltdcen; // [26:26] LTDC clock enable
+
                 } apb2enr;
 
                 // AHB1LPENR (AHB1 peripheral clock enable in low power mode register) bitfields.
@@ -837,13 +916,26 @@ typedef struct {
                     Object *gpioglpen; // [6:6] IO port G clock enable during Sleep mode
                     Object *gpiohlpen; // [7:7] IO port H clock enable during Sleep mode
                     Object *gpioilpen; // [8:8] IO port I clock enable during Sleep mode
+
+                    // F429
+                    Object *gpiojlpen; // [9:9] IO port J clock enable during Sleep mode
+                    Object *gpioklpen; // [10:10] IO port K clock enable during Sleep mode
+
                     Object *crclpen; // [12:12] CRC clock enable during Sleep mode
                     Object *flitflpen; // [15:15] Flash interface clock enable during Sleep mode
                     Object *sram1lpen; // [16:16] SRAM 1interface clock enable during Sleep mode
                     Object *sram2lpen; // [17:17] SRAM 2 interface clock enable during Sleep mode
                     Object *bkpsramlpen; // [18:18] Backup SRAM interface clock enable during Sleep mode
+
+                    // F429
+                    Object *sram3lpen; // [19:19] SRAM 3 interface clock enable during Sleep mode
+
                     Object *dma1lpen; // [21:21] DMA1 clock enable during Sleep mode
                     Object *dma2lpen; // [22:22] DMA2 clock enable during Sleep mode
+
+                    // F429
+                    Object *dma2dlpen; // [23:23] DMA2D clock enable during Sleep mode
+
                     Object *ethmaclpen; // [25:25] Ethernet MAC clock enable during Sleep mode
                     Object *ethmactxlpen; // [26:26] Ethernet transmission clock enable during Sleep mode
                     Object *ethmacrxlpen; // [27:27] Ethernet reception clock enable during Sleep mode
@@ -862,6 +954,10 @@ typedef struct {
                 // AHB3LPENR (AHB3 peripheral clock enable in low power mode register) bitfields.
                 struct {
                     Object *fsmclpen; // [0:0] Flexible static memory controller module clock enable during Sleep mode
+
+                    // F429
+                    Object *fmclpen; // [0:0] Flexible memory controller module clock enable during Sleep mode
+
                 } ahb3lpenr;
 
                 // APB1LPENR (APB1 peripheral clock enable in low power mode register) bitfields.
@@ -889,6 +985,11 @@ typedef struct {
                     Object *can2lpen; // [26:26] CAN 2 clock enable during Sleep mode
                     Object *pwrlpen; // [28:28] Power interface clock enable during Sleep mode
                     Object *daclpen; // [29:29] DAC interface clock enable during Sleep mode
+
+                    // F429
+                    Object *uart7lpen; // [30:30] UART7 clock enable during Sleep mode
+                    Object *uart8lpen; // [31:31] UART8 clock enable during Sleep mode
+
                 } apb1lpenr;
 
                 // APB2LPENR (APB2 peripheral clock enabled in low power mode register) bitfields.
@@ -902,10 +1003,21 @@ typedef struct {
                     Object *adc3lpen; // [10:10] ADC 3 clock enable during Sleep mode
                     Object *sdiolpen; // [11:11] SDIO clock enable during Sleep mode
                     Object *spi1lpen; // [12:12] SPI 1 clock enable during Sleep mode
+
+                    // F429
+                    Object *spi4lpen; // [13:13] SPI 4 clock enable during Sleep mode
+
                     Object *syscfglpen; // [14:14] System configuration controller clock enable during Sleep mode
                     Object *tim9lpen; // [16:16] TIM9 clock enable during sleep mode
                     Object *tim10lpen; // [17:17] TIM10 clock enable during Sleep mode
                     Object *tim11lpen; // [18:18] TIM11 clock enable during Sleep mode
+
+                    // F429
+                    Object *spi5lpen; // [20:20] SPI 5 clock enable during Sleep mode
+                    Object *spi6lpen; // [21:21] SPI 6 clock enable during Sleep mode
+                    Object *sai1lpen; // [22:22] SAI1 clock enable
+                    Object *ltdclpen; // [26:26] LTDC clock enable
+
                 } apb2lpenr;
 
                 // BDCR (Backup domain control register) bitfields.
@@ -945,7 +1057,32 @@ typedef struct {
                 struct {
                     Object *plli2snx; // [6:14] PLLI2S multiplication factor for VCO
                     Object *plli2srx; // [28:30] PLLI2S division factor for I2S clocks
+
+                    // F429
+                    Object *plli2sn; // [6:14] PLLI2S multiplication factor for VCO
+                    Object *plli2sq; // [24:27] PLLI2S division factor for SAI1 clock
+                    Object *plli2sr; // [28:30] PLLI2S division factor for I2S clocks
+
                 } plli2scfgr;
+
+                // F429
+                // PLLSAICFGR (PLLSAICFGR) bitfields.
+                struct {
+                    Object *pllsain; // [6:14] PLLSAIN
+                    Object *pllsaiq; // [24:27] PLLSAIN
+                    Object *pllsair; // [28:30] PLLSAIN
+                } pllsaicfgr;
+
+                // F429
+                // DCKCFGR (DCKCFGR) bitfields.
+                struct {
+                    Object *plli2sdivq; // [0:4] PLLI2SDIVQ
+                    Object *pllsaidivq; // [8:12] PLLSAIDIVQ
+                    Object *pllsaidivr; // [16:17] PLLSAIDIVR
+                    Object *sai1asrc; // [20:21] SAI1ASRC
+                    Object *sai1bsrc; // [22:23] SAI1BSRC
+                    Object *timpre; // [24:24] TIMPRE
+                } dckcfgr;
 
             } fld;
         } f4;

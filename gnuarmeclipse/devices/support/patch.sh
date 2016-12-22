@@ -53,5 +53,20 @@ svd-patch \
 --group-bitfield "RCC/BDCR/RTCSEL" 
 
 echo
+xcdl \
+svd-patch \
+--file "STM32F429x-xsvd.json" \
+--patch "STM32F429x-patch.json" \
+--output "../STM32F429x-qemu.json" \
+--remove "NVIC" \
+--group-bitfield "RCC/PLLCFGR/PLLQ" \
+--group-bitfield "RCC/PLLCFGR/PLLP" \
+--group-bitfield "RCC/PLLCFGR/PLLN" \
+--group-bitfield "RCC/PLLCFGR/PLLM" \
+--group-bitfield "RCC/CFGR/SWS" \
+--group-bitfield "RCC/CFGR/SW" \
+--group-bitfield "RCC/BDCR/RTCSEL" 
+
+echo
 
 

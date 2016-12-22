@@ -627,16 +627,28 @@ static const STM32Capabilities stm32f411xx = {
 
 };
 
+#endif
+
 static const STM32Capabilities stm32f429xx = {
 
     .family = STM32_FAMILY_F4,
     .f4 = {
-        .is_23_xxx = true},
+        .is_429x = true
+    /**/
+    },
 
     .hsi_freq_hz = 16000000,
     .lsi_freq_hz = 32000,
+
+#if 0
     .has_rcc = true,
     .has_pwr = true,
+    .has_exti = true,
+    .has_syscfg = true,
+#endif
+
+    .num_exti = 23,
+
     .has_rtc = true,
     .num_back_bytes = 80,
     .has_periph_bitband = true,
@@ -650,9 +662,6 @@ static const STM32Capabilities stm32f429xx = {
     .has_dma2 = true,
     .num_dma2 = 8,
     .has_fsmc = true,
-    .has_exti = true,
-    .num_exti = 23,
-    .has_syscfg = true,
 
     .has_ac_tim1 = true,
     .has_ac_tim8 = true,
@@ -712,9 +721,8 @@ static const STM32Capabilities stm32f429xx = {
 
     .has_dac1 = true, /* 12-bits */
     .has_dac2 = true,
-    /**/
+/**/
 };
-#endif
 
 // ----------------------------------------------------------------------------
 
@@ -928,17 +936,18 @@ static const STM32PartInfo stm32_mcus[] = {
         .stm32 = &stm32f411xx,
         /**/
     },
+#endif
     {
         .name = TYPE_STM32F429ZI,
         .cortexm = {
             .flash_size_kb = 2048,
             .sram_size_kb = 192, /* 64K CCM not counted */
-            .core = &stm32f4_23_xxx_core, /* TODO: Add .stm32 */
-        },
+
+            .svd_file_name = "STM32F429x-qemu.json",
+            .svd_device_name = "STM32F429x", },
         .stm32 = &stm32f429xx,
-        /**/
+    /**/
     },
-#endif
     { }
 /**/
 };

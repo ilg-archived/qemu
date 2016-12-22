@@ -122,6 +122,33 @@ svd-code \
 
 ```
 
+### STM32F429x
+
+```
+xcdl \
+svd-convert \
+--file "/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F429x.svd" \
+--output "STM32F429x-xsvd.json"
+
+xcdl \
+svd-patch \
+--file "STM32F429x-xsvd.json" \
+--patch "STM32F429x-patch.json" \
+--output "../STM32F429x-qemu.json" \
+--group-bitfield "RCC/PLLCFGR/PLLQ" \
+--group-bitfield "RCC/PLLCFGR/PLLP" \
+--group-bitfield "RCC/PLLCFGR/PLLN" \
+--group-bitfield "RCC/PLLCFGR/PLLM" \
+--group-bitfield "RCC/CFGR/SWS" \
+--group-bitfield "RCC/CFGR/SW" \
+--group-bitfield "RCC/BDCR/RTCSEL" 
+
+xcdl \
+svd-code \
+--file "../STM32F429x-qemu.json" 
+
+```
+
 # Missing from CMSIS SVD
 
 - alignment for registers & peripherals: choice of word/word-halfword/any (see `qemuAlignment`)

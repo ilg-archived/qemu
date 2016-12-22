@@ -241,6 +241,9 @@ typedef struct {
                 Object *sr; // 0xC Status register
                 Object *cr; // 0x10 Control register
                 Object *optcr; // 0x14 Flash option control register
+
+                // F429
+                Object *optcr1; // 0x18 (Flash option control register 1)
             } reg;
 
             struct {
@@ -283,6 +286,10 @@ typedef struct {
                     Object *mer; // [2:2] Mass Erase
                     Object *snb; // [3:6] Sector number
                     Object *psize; // [8:9] Program size
+
+                    // F429
+                    Object *mer1; // [15:15] Mass Erase of sectors 12 to 23
+
                     Object *strt; // [16:16] Start
                     Object *eopie; // [24:24] End of operation interrupt enable
                     Object *errie; // [25:25] Error interrupt enable
@@ -300,6 +307,11 @@ typedef struct {
                     Object *rdp; // [8:15] Read protect
                     Object *nwrp; // [16:27] Not write protect
                 } optcr;
+
+                // OPTCR1 (Flash option control register 1) bitfields.
+                struct {
+                    Object *nwrp; // [16:27] Not write protect
+                } optcr1;
             } fld;
         } f4;
     } u;

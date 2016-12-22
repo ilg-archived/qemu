@@ -172,10 +172,21 @@ typedef struct {
                 // MEMRM (Memory remap register) bitfields.
                 struct {
                     Object *mem_mode; // [0:1] MEM_MODE
+
+                    // F429
+                    Object *fb_mode; // [8:8] Flash bank mode selection
+                    Object *swp_fmc; // [10:11] FMC memory mapping swap
+
                 } memrm;
 
                 // PMC (Peripheral mode configuration register) bitfields.
                 struct {
+
+                    // F429
+                    Object *adc1dc2; // [16:16] ADC1DC2
+                    Object *adc2dc2; // [17:17] ADC2DC2
+                    Object *adc3dc2; // [18:18] ADC3DC2
+
                     Object *mii_rmii_sel; // [23:23] Ethernet PHY interface selection
                 } pmc;
 

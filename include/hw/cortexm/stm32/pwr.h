@@ -208,6 +208,16 @@ typedef struct {
                     Object *pls; // [5:7] PVD level selection
                     Object *dbp; // [8:8] Disable backup domain write protection
                     Object *fpds; // [9:9] Flash power down in Stop mode
+
+                    // F429
+                    Object *lpuds; // [10:10] Low-Power Regulator Low Voltage in deepsleep
+                    Object *mruds; // [11:11] Main regulator low voltage in deepsleep mode
+                    Object *adcdc1; // [13:13] ADCDC1
+                    Object *vos; // [14:15] Regulator voltage scaling output selection
+                    Object *oden; // [16:16] Over-drive enable
+                    Object *odswen; // [17:17] Over-drive switching enabled
+                    Object *uden; // [18:19] Under-drive enable in stop mode
+
                 } cr;
 
                 // CSR (Power control/status register) bitfields.
@@ -219,6 +229,12 @@ typedef struct {
                     Object *ewup; // [8:8] Enable WKUP pin
                     Object *bre; // [9:9] Backup regulator enable
                     Object *vosrdy; // [14:14] Regulator voltage scaling output selection ready bit
+
+                    // F429
+                    Object *odrdy; // [16:16] Over-drive mode ready
+                    Object *odswrdy; // [17:17] Over-drive mode switching ready
+                    Object *udrdy; // [18:19] Under-drive ready flag
+
                 } csr;
             } fld;
         } f4;

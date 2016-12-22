@@ -138,6 +138,8 @@ static const TypeInfo stm32f0_discovery_machine = {
 
 // ----- ST STM32F4-Discovery -------------------------------------------------
 
+// http://www.st.com/content/st_com/en/products/evaluation-tools/product-evaluation-tools/mcu-eval-tools/stm32-mcu-eval-tools/stm32-mcu-discovery-kits/stm32f4discovery.html
+
 static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
     {
         .name = "led:green",
@@ -272,6 +274,8 @@ static const TypeInfo stm32f4_discovery_machine = {
 
 // ----- ST STM32F429I-Discovery ----------------------------------------------
 
+// http://www.st.com/content/st_com/en/products/evaluation-tools/product-evaluation-tools/mcu-eval-tools/stm32-mcu-eval-tools/stm32-mcu-discovery-kits/32f429idiscovery.html
+
 static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
     {
         .name = "led:green",
@@ -282,11 +286,12 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .w = 10,
         .h = 8,
         .gpio_path = DEVICE_PATH_STM32_GPIO_G,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 13,
     /**/
     },
     {
-        .name = "red-led",
+        .name = "led:red",
         .active_low = false,
         .colour_message = "Red",
         .x = 519,
@@ -294,10 +299,37 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
         .w = 10,
         .h = 8,
         .gpio_path = DEVICE_PATH_STM32_GPIO_G,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 14,
     /**/
     },
     { },
+/**/
+};
+
+static ButtonGPIOInfo stm32f429i_discovery_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 578,
+        .y = 158,
+        .w = 28,
+        .h = 28,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 0,
+    /**/
+    },
+    { },
+/**/
+};
+
+static ButtonResetInfo stm32f429i_discovery_button_reset_info = {
+    .x = 578,
+    .y = 324,
+    .w = 28,
+    .h = 28,
 /**/
 };
 
@@ -306,6 +338,8 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "STM32F429I-Discovery.jpg");
 
     {
         // Create the MCU
@@ -318,11 +352,18 @@ static void stm32f429i_discovery_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "STM32F429I-Discovery.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, stm32f429i_discovery_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral,
+                &stm32f429i_discovery_button_reset_info, board_graphic_context);
+        button_gpio_create_from_info(peripheral,
+                stm32f429i_discovery_buttons_user_info, board_graphic_context);
+    }
 }
 
 static void stm32f429i_discovery_board_class_init_callback(ObjectClass *oc,
