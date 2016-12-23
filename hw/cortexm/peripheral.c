@@ -26,6 +26,10 @@
 #include "qapi/qmp/qstring.h"
 #include "migration/qjson.h"
 
+#if defined(CONFIG_VERBOSE)
+#include "verbosity.h"
+#endif
+
 // ----- Public ---------------------------------------------------------------
 
 // Set the peripheral properties and add children registers from the
@@ -81,9 +85,18 @@ void peripheral_create_memory_region(Object *obj)
     sysbus_mmio_map(SYS_BUS_DEVICE(dev), 0x0, state->mmio_address);
 
     qemu_log_mask(LOG_FUNC,
-            "%s() '%s', address: 0x%08"PRIX64", size: 0x%08"PRIX32"\n",
+            "%s() '%s', address: 0x%08"PRIX64", size: 0x%04"PRIX32"\n",
             __FUNCTION__, state->mmio_node_name, state->mmio_address,
             state->mmio_size_bytes);
+
+#if defined(CONFIG_VERBOSE)
+    if (verbosity_level >= VERBOSITY_DETAILED) {
+        printf("'%s', address: 0x%08"PRIX64", size: 0x%04"PRIX32"\n",
+                object_get_canonical_path(obj), state->mmio_address,
+                state->mmio_size_bytes);
+    }
+#endif /* defined(CONFIG_VERBOSE) */
+
 }
 
 static int peripheral_compute_max_offset_foreach(Object *obj, void *opaque);

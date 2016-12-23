@@ -65,7 +65,7 @@ void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
 
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level >= VERBOSITY_DETAILED) {
-            printf("'%s'", info->name);
+            printf("'%s'", object_get_canonical_path(button));
             if (info->w && info->h) {
                 printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
             }

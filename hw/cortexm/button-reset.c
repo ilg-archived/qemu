@@ -48,7 +48,7 @@ void button_reset_create_from_info(Object *parent, ButtonResetInfo *info,
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_DETAILED) {
-        printf("'button:reset'");
+        printf("'%s'", object_get_canonical_path(button));
         if (info->w && info->h) {
             printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
         }

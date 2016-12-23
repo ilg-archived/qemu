@@ -129,7 +129,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
 
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level >= VERBOSITY_DETAILED) {
-            printf("'%s'", info->name);
+            printf("'%s'", object_get_canonical_path(led));
             if (info->w && info->h) {
                 printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
             }
