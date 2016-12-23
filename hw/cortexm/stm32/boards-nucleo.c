@@ -31,7 +31,7 @@ static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
     {
         .name = "green-led",
         .active_low = false,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 277,
         .y = 271,
         .w = 8,
@@ -105,7 +105,7 @@ static GPIOLEDInfo nucleo_f411re_leds_info[] = {
     {
         .name = "green-led",
         .active_low = false,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 316,
         .y = 307,
         .w = 8,

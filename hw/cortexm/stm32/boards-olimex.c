@@ -33,7 +33,7 @@ static GPIOLEDInfo stm32_h103_leds_info[] = {
     {
         .name = "led:green",
         .active_low = true,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 97,
         .y = 243,
         .w = 14,
@@ -126,7 +126,7 @@ static GPIOLEDInfo stm32_p103_leds_info[] = {
     {
         .name = "led:red",
         .active_low = true,
-        .colour_message = "Red",
+        .colour_name = "red",
         .x = 331,
         .y = 362,
         .w = 12,
@@ -187,7 +187,7 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
     {
         .name = "green-led",
         .active_low = false,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 137,
         .y = 40,
         .w = 10,
@@ -199,7 +199,7 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
     {
         .name = "yellow-led",
         .active_low = false,
-        .colour_message = "Yellow",
+        .colour_name = "yellow",
         .x = 168,
         .y = 40,
         .w = 10,
@@ -258,7 +258,7 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
     {
         .name = "green-led",
         .active_low = false,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 227,
         .y = 354,
         .w = 6,
@@ -270,7 +270,7 @@ static GPIOLEDInfo stm32_p107_leds_info[] = {
     {
         .name = "yellow-led",
         .active_low = false,
-        .colour_message = "Yellow",
+        .colour_name = "yellow",
         .x = 171,
         .y = 354,
         .w = 6,
@@ -328,7 +328,7 @@ static GPIOLEDInfo stm32_e407_leds_info[] = {
     {
         .name = "green-led",
         .active_low = true,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 73,
         .y = 408,
         .w = 8,

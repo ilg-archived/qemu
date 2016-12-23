@@ -54,30 +54,22 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         size_t len;
         if (info->on_message) {
             msg = info->on_message;
-        } else if (info->colour_message) {
-            len = strlen(info->colour_message) + 16;
-            msg = g_malloc(len);
-            snprintf((char * )msg, len, "[%s LED On]\n", info->colour_message);
-        }
-        if (msg) {
-            cm_object_property_set_str(led, msg, "on-message");
         } else {
-            cm_object_property_set_str(led, "[Green LED On]\n", "on-message");
+            len = strlen(info->name) + 16;
+            msg = g_malloc(len);
+            snprintf((char * )msg, len, "[%s on]\n", info->name);
         }
+        cm_object_property_set_str(led, msg, "on-message");
 
         msg = NULL;
         if (info->off_message) {
             msg = info->off_message;
-        } else if (info->colour_message) {
-            len = strlen(info->colour_message) + 16;
-            msg = g_malloc(len);
-            snprintf((char * )msg, len, "[%s LED Off]\n", info->colour_message);
-        }
-        if (msg) {
-            cm_object_property_set_str(led, msg, "off-message");
         } else {
-            cm_object_property_set_str(led, "[Green LED Off]\n", "off-message");
+            len = strlen(info->name) + 16;
+            msg = g_malloc(len);
+            snprintf((char * )msg, len, "[%s off]\n", info->name);
         }
+        cm_object_property_set_str(led, msg, "off-message");
 
 #if defined(CONFIG_SDL)
 
@@ -92,17 +84,17 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
         if (info->colour.red == 0 && info->colour.green == 0
                 && info->colour.blue == 0) {
 
-            if (strcasecmp(info->colour_message, "red") == 0) {
+            if (strcasecmp(info->colour_name, "red") == 0) {
                 cm_object_property_set_int(led, 255, "colour.red");
-            } else if (strcasecmp(info->colour_message, "green") == 0) {
+            } else if (strcasecmp(info->colour_name, "green") == 0) {
                 cm_object_property_set_int(led, 255, "colour.green");
-            } else if (strcasecmp(info->colour_message, "blue") == 0) {
+            } else if (strcasecmp(info->colour_name, "blue") == 0) {
                 cm_object_property_set_int(led, 255, "colour.blue");
                 cm_object_property_set_int(led, 128, "colour.green");
-            } else if (strcasecmp(info->colour_message, "yellow") == 0) {
+            } else if (strcasecmp(info->colour_name, "yellow") == 0) {
                 cm_object_property_set_int(led, 255, "colour.red");
                 cm_object_property_set_int(led, 255, "colour.green");
-            } else if (strcasecmp(info->colour_message, "orange") == 0) {
+            } else if (strcasecmp(info->colour_name, "orange") == 0) {
                 cm_object_property_set_int(led, 255, "colour.red");
                 cm_object_property_set_int(led, 153, "colour.green");
                 cm_object_property_set_int(led, 51, "colour.blue");
@@ -137,10 +129,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
 
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level >= VERBOSITY_DETAILED) {
-            printf("LED:");
-            if (info->colour_message) {
-                printf(" %s", info->colour_message);
-            }
+            printf("'%s'", info->name);
             if (info->w && info->h) {
                 printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
             }
@@ -165,7 +154,7 @@ Object **gpio_led_create_from_info(Object *parent, GPIOLEDInfo *info_array,
 
 static void gpio_led_turn(GPIOLEDState *state, bool is_on)
 {
-    fprintf(stderr, "%s", is_on ? state->on_message : state->off_message);
+    printf("%s", is_on ? state->on_message : state->off_message);
 
 #if defined(CONFIG_SDL)
 
@@ -217,8 +206,8 @@ static void gpio_led_instance_init_callback(Object *obj)
     cm_object_property_add_const_str(obj, "on-message", &state->on_message);
     cm_object_property_add_const_str(obj, "off-message", &state->off_message);
 
-    cm_object_property_set_str(obj, "[LED On]\n", "on-message");
-    cm_object_property_set_str(obj, "[LED Off]\n", "off-message");
+    cm_object_property_set_str(obj, "[led on]\n", "on-message");
+    cm_object_property_set_str(obj, "[led off]\n", "off-message");
 
 #if defined(CONFIG_SDL)
 

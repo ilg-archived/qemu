@@ -32,7 +32,7 @@
 void button_reset_create_from_info(Object *parent, ButtonResetInfo *info,
         BoardGraphicContext *graphic_context)
 {
-    Object *button = cm_object_new(parent, "reset", TYPE_BUTTON_RESET);
+    Object *button = cm_object_new(parent, "button:reset", TYPE_BUTTON_RESET);
 
     if (info->w && info->h) {
         /* Compute corner coordinates from centre coordinate. */
@@ -48,7 +48,7 @@ void button_reset_create_from_info(Object *parent, ButtonResetInfo *info,
 
 #if defined(CONFIG_VERBOSE)
     if (verbosity_level >= VERBOSITY_DETAILED) {
-        printf("Reset button:");
+        printf("'button:reset'");
         if (info->w && info->h) {
             printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
         }
@@ -60,17 +60,21 @@ void button_reset_create_from_info(Object *parent, ButtonResetInfo *info,
 // ----- Private --------------------------------------------------------------
 
 // Action when the button is pushed down.
-static void button_reset_down_callback(ButtonState *dev)
+static void button_reset_down_callback(ButtonState *button)
 {
     qemu_log_function_name();
+
+    printf("[%s down]", object_get_canonical_path_component(OBJECT(button)));
 
     qemu_reset_halt_request();
 }
 
 // Action when the button is released.
-static void button_reset_up_callback(ButtonState *dev)
+static void button_reset_up_callback(ButtonState *button)
 {
     qemu_log_function_name();
+
+    printf("[%s up]", object_get_canonical_path_component(OBJECT(button)));
 
     qemu_resume_request();
 }

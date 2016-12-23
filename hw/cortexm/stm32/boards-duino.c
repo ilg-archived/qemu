@@ -51,7 +51,7 @@ static GPIOLEDInfo netduinoplus2_leds_info[] = {
     {
         .name = "blue-led",
         .active_low = false,
-        .colour_message = "Blue",
+        .colour_name = "blue",
         .x = 507,
         .y = 183,
         .w = 12,
@@ -109,7 +109,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led1",
         .active_low = false,
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 140,
         .y = 457,
         .w = 8,
@@ -123,7 +123,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led2",
         .active_low = false,
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 286,
         .y = 457,
         .w = 8,
@@ -137,7 +137,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led3",
         .active_low = false,
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 432,
         .y = 457,
         .w = 8,
@@ -151,7 +151,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led4",
         .active_low = false,
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 614,
         .y = 405,
         .w = 12,
@@ -165,7 +165,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led5",
         .active_low = false,
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 614,
         .y = 259,
         .w = 12,
@@ -179,7 +179,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led6",
         .active_low = false,
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 564,
         .y = 70,
         .w = 8,
@@ -192,7 +192,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     },
     {
         .name = "white-led7",
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 419,
         .y = 70,
         .w = 8,
@@ -207,7 +207,7 @@ static GPIOLEDInfo netduinogo_leds_info[] = {
     {
         .name = "white-led8",
         .active_low = false,
-        .colour_message = "White",
+        .colour_name = "white",
         .x = 274,
         .y = 70,
         .w = 8,
@@ -267,7 +267,7 @@ static GPIOLEDInfo maple_leds_info[] = {
     {
         .name = "blue-led",
         .active_low = false,
-        .colour_message = "Blue",
+        .colour_name = "blue",
         .x = 215,
         .y = 161,
         .w = 10,

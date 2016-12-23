@@ -35,7 +35,7 @@ static GPIOLEDInfo stm32f0_discovery_leds_info[] = {
     {
         .name = "led:blue",
         .active_low = false,
-        .colour_message = "Blue",
+        .colour_name = "blue",
         .x = 75,
         .y = 253,
         .w = 8,
@@ -48,7 +48,7 @@ static GPIOLEDInfo stm32f0_discovery_leds_info[] = {
     {
         .name = "led:green",
         .active_low = false,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 75,
         .y = 76,
         .w = 8,
@@ -144,7 +144,7 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
     {
         .name = "led:green",
         .active_low = false,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 258,
         .y = 218,
         .w = 8,
@@ -157,7 +157,7 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
     {
         .name = "led:orange",
         .active_low = false,
-        .colour_message = "Orange",
+        .colour_name = "orange",
         .x = 287,
         .y = 246,
         .w = 8,
@@ -170,7 +170,7 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
     {
         .name = "led:red",
         .active_low = false,
-        .colour_message = "Red",
+        .colour_name = "Red",
         .x = 258,
         .y = 274,
         .w = 8,
@@ -183,7 +183,7 @@ static GPIOLEDInfo stm32f4_discovery_leds_info[] = {
     {
         .name = "led:blue",
         .active_low = false,
-        .colour_message = "Blue",
+        .colour_name = "blue",
         .x = 230,
         .y = 246,
         .w = 8,
@@ -280,7 +280,7 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
     {
         .name = "led:green",
         .active_low = false,
-        .colour_message = "Green",
+        .colour_name = "green",
         .x = 519,
         .y = 109,
         .w = 10,
@@ -293,7 +293,7 @@ static GPIOLEDInfo stm32f429i_discovery_leds_info[] = {
     {
         .name = "led:red",
         .active_low = false,
-        .colour_message = "Red",
+        .colour_name = "red",
         .x = 519,
         .y = 130,
         .w = 10,

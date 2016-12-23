@@ -44,7 +44,7 @@ typedef struct {
     const char *name; /* NULL for table end. */
 
     bool active_low;
-    const char *colour_message;
+    const char *colour_name;
     const char *on_message;
     const char *off_message;
 

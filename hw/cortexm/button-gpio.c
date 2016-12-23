@@ -65,8 +65,7 @@ void button_gpio_create_from_info(Object *parent, ButtonGPIOInfo *info_array,
 
 #if defined(CONFIG_VERBOSE)
         if (verbosity_level >= VERBOSITY_DETAILED) {
-            printf("Button:");
-            printf(" '%s\'", info->name);
+            printf("'%s'", info->name);
             if (info->w && info->h) {
                 printf(" %d*%d @(%d,%d)", info->w, info->h, info->x, info->y);
             }
@@ -91,6 +90,9 @@ static void button_gpio_down_callback(ButtonState *button)
 
     button->value = state->active_low ? 0 : 1;
 
+    printf("[%s down=%d]", object_get_canonical_path_component(OBJECT(button)),
+            button->value);
+
     cm_irq_set(state->irq_out, button->value);
 }
 
@@ -102,6 +104,9 @@ static void button_gpio_up_callback(ButtonState *button)
     ButtonGPIOState *state = BUTTON_GPIO_STATE(button);
 
     button->value = state->active_low ? 1 : 0;
+
+    printf("[%s up=%d]", object_get_canonical_path_component(OBJECT(button)),
+            button->value);
 
     cm_irq_set(state->irq_out, button->value);
 }
