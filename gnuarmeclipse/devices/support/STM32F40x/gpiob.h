@@ -86,8 +86,6 @@ typedef struct {
 
     const STM32Capabilities *capabilities;
 
-    MemoryRegion mmio;
-
     // TODO: remove this if the peripheral is always enabled.
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
