@@ -494,7 +494,7 @@ static peripheral_register_t peripheral_register_read_callback(Object *reg,
         state->post_read(reg, periph, addr, offset, size);
     }
 
-#if 0
+#if 1
     qemu_log_mask(LOG_FUNC, "%s('%s','%s',0x%04X,%u,%u)=0x%"PRIX64"\n",
             __func__, state->name, periph_state->mmio_node_name, addr, offset,
             size, ret);
