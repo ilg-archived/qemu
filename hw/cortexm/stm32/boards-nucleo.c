@@ -20,6 +20,8 @@
 #include <hw/cortexm/board.h>
 #include <hw/cortexm/stm32/mcus.h>
 #include <hw/cortexm/gpio-led.h>
+#include <hw/cortexm/button-gpio.h>
+#include <hw/cortexm/button-reset.h>
 #include <hw/cortexm/helper.h>
 
 /*
@@ -29,16 +31,45 @@
 // ----- ST NUCLEO-F103RB -----------------------------------------------------
 static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
     {
-        .name = "green-led",
+        .name = "led:green",
         .active_low = false,
         .colour_name = "green",
         .x = 277,
         .y = 271,
         .w = 8,
         .h = 6,
-        .gpio_path = "/machine/mcu/stm32/gpio[a]",
-        .gpio_bit = 5, },
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 5,
+    /**/
+    },
     { },
+/**/
+};
+
+static ButtonGPIOInfo nucleo_f103rb_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 176,
+        .y = 194,
+        .w = 28,
+        .h = 28,
+
+        .active_low = true,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 13,
+    /**/
+    },
+    { },
+/**/
+};
+
+static ButtonResetInfo nucleo_f103rb_button_reset_info = {
+    .x = 272,
+    .y = 194,
+    .w = 28,
+    .h = 28,
 /**/
 };
 
@@ -47,6 +78,8 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "NUCLEO-F103RB.jpg");
 
     {
         // Create the MCU
@@ -59,11 +92,18 @@ static void nucleo_f103rb_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "NUCLEO-F103RB.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, nucleo_f103rb_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral,
+                &nucleo_f103rb_button_reset_info, board_graphic_context);
+        button_gpio_create_from_info(peripheral,
+                nucleo_f103rb_buttons_user_info, board_graphic_context);
+    }
 }
 
 static void nucleo_f103rb_board_class_init_callback(ObjectClass *oc, void *data)
