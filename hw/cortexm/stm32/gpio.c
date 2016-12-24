@@ -1828,16 +1828,14 @@ static void stm32_gpio_set_exti_irq(STM32GPIOState *state, int pin, int level)
     // Implement the SYSCFG/AFIO multiplexers at origin, in GPIO,
     // instead of forwarding all interrupts to EXTI to be rejected there.
 
+    peripheral_register_t exti = 0;
     if (capabilities->family == STM32_FAMILY_F1) {
-        if (register_bitfield_read_value(state->afio->exticr.exti[pin])
-                == pin) {
-            cm_irq_set(state->exti_irq[pin], level);
-        }
+        exti = register_bitfield_read_value(state->afio->exticr.exti[pin]);
     } else {
-        if (register_bitfield_read_value(state->syscfg->exticr.exti[pin])
-                == pin) {
-            cm_irq_set(state->exti_irq[pin], level);
-        }
+        exti = register_bitfield_read_value(state->syscfg->exticr.exti[pin]);
+    }
+    if (exti == (state->port_index - STM32_PORT_GPIOA)) {
+        cm_irq_set(state->exti_irq[pin], level);
     }
 }
 
