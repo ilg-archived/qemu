@@ -69,7 +69,8 @@ typedef struct {
 
     const STM32Capabilities *capabilities;
 
-    MemoryRegion mmio;
+    // Points to one RCC bitfield that enables the peripheral.
+    Object *enabling_bit;
 
     // Used in GPIOs, it is easier to make it common to all families.
     struct {

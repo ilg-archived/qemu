@@ -301,6 +301,18 @@ static void stm32f429x_syscfg_create_objects(Object *obj, JSON_Object *svd,
 
 // ----- Private --------------------------------------------------------------
 
+static bool stm32_syscfg_is_enabled(Object *obj)
+{
+    STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
+
+    if (register_bitfield_is_non_zero(state->enabling_bit)) {
+        return true; // Positive logic, bit == 1 means enabled.
+    }
+
+    // Not enabled
+    return false;
+}
+
 static void stm32_syscfg_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
@@ -309,12 +321,15 @@ static void stm32_syscfg_instance_init_callback(Object *obj)
 
     // capabilities are not yet available.
 
+    state->enabling_bit = NULL;
+
     int i;
     for (i = 0; i < sizeof(state->exticr.exti) / sizeof(state->exticr.exti[0]);
             ++i) {
         state->exticr.exti[i] = NULL;
     }
     // No interrupts for now, maybe add boot mode bits.
+
 }
 
 static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
@@ -343,6 +358,8 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
     peripheral_create_memory_region(obj);
 
+    char enabling_bit_name[STM32_RCC_SIZEOF_ENABLING_BITFIELD];
+
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
         if (capabilities->f0.is_0x1) {
@@ -369,6 +386,9 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
             state->exticr.exti[14] = state->u.f0.fld.exticr4.exti14;
             state->exticr.exti[15] = state->u.f0.fld.exticr4.exti15;
 
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB2ENR/SYSCFGEN");
+
         } else {
             assert(false);
         }
@@ -382,58 +402,39 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
             stm32f40x_syscfg_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
-            // For easier access, also maintain an array.
-            state->exticr.exti[0] = state->u.f4.fld.exticr1.exti0;
-            state->exticr.exti[1] = state->u.f4.fld.exticr1.exti1;
-            state->exticr.exti[2] = state->u.f4.fld.exticr1.exti2;
-            state->exticr.exti[3] = state->u.f4.fld.exticr1.exti3;
-            state->exticr.exti[4] = state->u.f4.fld.exticr2.exti4;
-            state->exticr.exti[5] = state->u.f4.fld.exticr2.exti5;
-            state->exticr.exti[6] = state->u.f4.fld.exticr2.exti6;
-            state->exticr.exti[7] = state->u.f4.fld.exticr2.exti7;
-            state->exticr.exti[8] = state->u.f4.fld.exticr3.exti8;
-            state->exticr.exti[9] = state->u.f4.fld.exticr3.exti9;
-            state->exticr.exti[10] = state->u.f4.fld.exticr3.exti10;
-            state->exticr.exti[11] = state->u.f4.fld.exticr3.exti11;
-            state->exticr.exti[12] = state->u.f4.fld.exticr4.exti12;
-            state->exticr.exti[13] = state->u.f4.fld.exticr4.exti13;
-            state->exticr.exti[14] = state->u.f4.fld.exticr4.exti14;
-            state->exticr.exti[15] = state->u.f4.fld.exticr4.exti15;
-
-            // Actions.
-            cm_object_property_set_str(state->u.f4.fld.cmpcr.ready, "CMP_PD",
-                    "follows");
-
         } else if (capabilities->f4.is_429x) {
 
             stm32f429x_syscfg_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
-            // For easier access, also maintain an array.
-            state->exticr.exti[0] = state->u.f4.fld.exticr1.exti0;
-            state->exticr.exti[1] = state->u.f4.fld.exticr1.exti1;
-            state->exticr.exti[2] = state->u.f4.fld.exticr1.exti2;
-            state->exticr.exti[3] = state->u.f4.fld.exticr1.exti3;
-            state->exticr.exti[4] = state->u.f4.fld.exticr2.exti4;
-            state->exticr.exti[5] = state->u.f4.fld.exticr2.exti5;
-            state->exticr.exti[6] = state->u.f4.fld.exticr2.exti6;
-            state->exticr.exti[7] = state->u.f4.fld.exticr2.exti7;
-            state->exticr.exti[8] = state->u.f4.fld.exticr3.exti8;
-            state->exticr.exti[9] = state->u.f4.fld.exticr3.exti9;
-            state->exticr.exti[10] = state->u.f4.fld.exticr3.exti10;
-            state->exticr.exti[11] = state->u.f4.fld.exticr3.exti11;
-            state->exticr.exti[12] = state->u.f4.fld.exticr4.exti12;
-            state->exticr.exti[13] = state->u.f4.fld.exticr4.exti13;
-            state->exticr.exti[14] = state->u.f4.fld.exticr4.exti14;
-            state->exticr.exti[15] = state->u.f4.fld.exticr4.exti15;
-
-            // Actions.
-            cm_object_property_set_str(state->u.f4.fld.cmpcr.ready, "CMP_PD",
-                    "follows");
-
         } else {
             assert(false);
         }
+
+        // For easier access, also maintain an array.
+        state->exticr.exti[0] = state->u.f4.fld.exticr1.exti0;
+        state->exticr.exti[1] = state->u.f4.fld.exticr1.exti1;
+        state->exticr.exti[2] = state->u.f4.fld.exticr1.exti2;
+        state->exticr.exti[3] = state->u.f4.fld.exticr1.exti3;
+        state->exticr.exti[4] = state->u.f4.fld.exticr2.exti4;
+        state->exticr.exti[5] = state->u.f4.fld.exticr2.exti5;
+        state->exticr.exti[6] = state->u.f4.fld.exticr2.exti6;
+        state->exticr.exti[7] = state->u.f4.fld.exticr2.exti7;
+        state->exticr.exti[8] = state->u.f4.fld.exticr3.exti8;
+        state->exticr.exti[9] = state->u.f4.fld.exticr3.exti9;
+        state->exticr.exti[10] = state->u.f4.fld.exticr3.exti10;
+        state->exticr.exti[11] = state->u.f4.fld.exticr3.exti11;
+        state->exticr.exti[12] = state->u.f4.fld.exticr4.exti12;
+        state->exticr.exti[13] = state->u.f4.fld.exticr4.exti13;
+        state->exticr.exti[14] = state->u.f4.fld.exticr4.exti14;
+        state->exticr.exti[15] = state->u.f4.fld.exticr4.exti15;
+
+        // Actions.
+        cm_object_property_set_str(state->u.f4.fld.cmpcr.ready, "CMP_PD",
+                "follows");
+
+        snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                DEVICE_PATH_STM32_RCC "/APB2ENR/SYSCFGEN");
 
         break;
 
@@ -441,6 +442,8 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
         assert(false);
         break;
     }
+
+    state->enabling_bit = OBJECT(cm_device_by_name(enabling_bit_name));
 
     peripheral_prepare_registers(obj);
 }
@@ -459,6 +462,9 @@ static void stm32_syscfg_class_init_callback(ObjectClass *klass, void *data)
 
     dc->reset = stm32_syscfg_reset_callback;
     dc->realize = stm32_syscfg_realize_callback;
+
+    PeripheralClass *per_class = PERIPHERAL_CLASS(klass);
+    per_class->is_enabled = stm32_syscfg_is_enabled;
 }
 
 static const TypeInfo stm32_syscfg_type_info = {

@@ -199,6 +199,18 @@ static void stm32_afio_xxx_post_read_callback(Object *reg, Object *periph,
 
 // ----------------------------------------------------------------------------
 
+static bool stm32_afio_is_enabled(Object *obj)
+{
+    STM32AFIOState *state = STM32_AFIO_STATE(obj);
+
+    if (register_bitfield_is_non_zero(state->enabling_bit)) {
+        return true; // Positive logic, bit == 1 means enabled.
+    }
+
+    // Not enabled
+    return false;
+}
+
 static void stm32_afio_instance_init_callback(Object *obj)
 {
     qemu_log_function_name();
@@ -206,6 +218,8 @@ static void stm32_afio_instance_init_callback(Object *obj)
     STM32AFIOState *state = STM32_AFIO_STATE(obj);
 
     // Capabilities are not yet available.
+
+    state->enabling_bit = NULL;
 
     int i;
     for (i = 0; i < sizeof(state->exticr.exti) / sizeof(state->exticr.exti[0]);
@@ -243,6 +257,8 @@ static void stm32_afio_realize_callback(DeviceState *dev, Error **errp)
     svd_set_peripheral_address_block(cm_state->svd_json, periph_name, obj);
     peripheral_create_memory_region(obj);
 
+    char enabling_bit_name[STM32_RCC_SIZEOF_ENABLING_BITFIELD];
+
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
@@ -269,6 +285,9 @@ static void stm32_afio_realize_callback(DeviceState *dev, Error **errp)
             state->exticr.exti[14] = state->u.f1.fld.exticr4.exti14;
             state->exticr.exti[15] = state->u.f1.fld.exticr4.exti15;
 
+            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+                    DEVICE_PATH_STM32_RCC "/APB2ENR/AFIOEN");
+
             // TODO: add callbacks.
             // peripheral_register_set_pre_read(state->f1.reg.xxx, &stm32_afio_xxx_pre_read_callback);
             // peripheral_register_set_post_read(state->f1.reg.xxx, &stm32_afio_xxx_post_read_callback);
@@ -288,6 +307,8 @@ static void stm32_afio_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
+    state->enabling_bit = OBJECT(cm_device_by_name(enabling_bit_name));
+
     peripheral_prepare_registers(obj);
 }
 
@@ -305,6 +326,9 @@ static void stm32_afio_class_init_callback(ObjectClass *klass, void *data)
 
     dc->reset = stm32_afio_reset_callback;
     dc->realize = stm32_afio_realize_callback;
+
+    PeripheralClass *per_class = PERIPHERAL_CLASS(klass);
+    per_class->is_enabled = stm32_afio_is_enabled;
 }
 
 static const TypeInfo stm32_afio_type_info = {
@@ -313,7 +337,9 @@ static const TypeInfo stm32_afio_type_info = {
     .instance_init = stm32_afio_instance_init_callback,
     .instance_size = sizeof(STM32AFIOState),
     .class_init = stm32_afio_class_init_callback,
-    .class_size = sizeof(STM32AFIOClass) };
+    .class_size = sizeof(STM32AFIOClass)
+/**/
+};
 
 static void stm32_afio_register_types(void)
 {
