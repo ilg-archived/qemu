@@ -78,7 +78,6 @@ typedef struct {
 
     const STM32Capabilities *capabilities;
 
-    MemoryRegion mmio;
     uint32_t num_exti;
 
     // Output IRQs, connected to NVIC interrupts.

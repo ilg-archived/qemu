@@ -113,11 +113,9 @@ typedef struct {
 
     const STM32Capabilities *capabilities;
 
-    MemoryRegion mmio;
-
     stm32_usart_index_t port_index;
 
-    // Points to one RCC bitfield that enables the GPIO.
+    // Points to one RCC bitfield that enables the peripheral.
     Object *enabling_bit;
 
     CortexMNVICState *nvic;

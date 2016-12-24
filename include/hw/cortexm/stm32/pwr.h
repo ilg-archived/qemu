@@ -69,8 +69,6 @@ typedef struct {
 
     const STM32Capabilities *capabilities;
 
-    MemoryRegion mmio;
-
     union {
         // DO NOT EDIT! Automatically generated!
         struct {
