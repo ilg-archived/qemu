@@ -140,6 +140,31 @@ static GPIOLEDInfo stm32_p103_leds_info[] = {
 /**/
 };
 
+static ButtonGPIOInfo stm32_p103_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 278,
+        .y = 438,
+        .w = 36,
+        .h = 36,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 0,
+    /**/
+    },
+    { }, /**/
+};
+
+static ButtonResetInfo stm32_p103_button_reset_info = {
+    .x = 167,
+    .y = 210,
+    .w = 10,
+    .h = 18,
+/**/
+};
+
 static void stm32_p103_board_init_callback(MachineState *machine)
 {
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
@@ -164,6 +189,13 @@ static void stm32_p103_board_init_callback(MachineState *machine)
     gpio_led_create_from_info(peripheral, stm32_p103_leds_info,
             board_graphic_context);
 
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral, &stm32_p103_button_reset_info,
+                board_graphic_context);
+        button_gpio_create_from_info(peripheral, stm32_p103_buttons_user_info,
+                board_graphic_context);
+    }
 }
 
 static void stm32_p103_board_class_init_callback(ObjectClass *oc, void *data)
@@ -185,26 +217,28 @@ static const TypeInfo stm32_p103_machine = {
 
 static GPIOLEDInfo olimexino_stm32_leds_info[] = {
     {
-        .name = "green-led",
+        .name = "led:green",
         .active_low = false,
         .colour_name = "green",
         .x = 137,
         .y = 40,
         .w = 10,
         .h = 10,
-        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 5,
     /**/
     },
     {
-        .name = "yellow-led",
+        .name = "led:yellow",
         .active_low = false,
         .colour_name = "yellow",
         .x = 168,
         .y = 40,
         .w = 10,
         .h = 10,
-        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 1,
     /**/
     },
