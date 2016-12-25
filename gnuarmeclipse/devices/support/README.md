@@ -122,6 +122,34 @@ svd-code \
 
 ```
 
+### STM32F411xx
+
+```
+xcdl \
+svd-convert \
+--file "/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F411xx.svd" \
+--output "STM32F411xx-xsvd.json"
+
+xcdl \
+svd-patch \
+--file "STM32F411xx-xsvd.json" \
+--patch "STM32F411xx-patch.json" \
+--output "../STM32F411xx-qemu.json" \
+--remove "NVIC" \
+--group-bitfield "RCC/PLLCFGR/PLLQ" \
+--group-bitfield "RCC/PLLCFGR/PLLP" \
+--group-bitfield "RCC/PLLCFGR/PLLN" \
+--group-bitfield "RCC/PLLCFGR/PLLM" \
+--group-bitfield "RCC/CFGR/SWS" \
+--group-bitfield "RCC/CFGR/SW" \
+--group-bitfield "RCC/BDCR/RTCSEL" 
+
+xcdl \
+svd-code \
+--file "../STM32F411xx-qemu.json" 
+
+```
+
 ### STM32F429x
 
 ```

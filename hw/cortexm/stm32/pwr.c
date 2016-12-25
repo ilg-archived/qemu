@@ -183,6 +183,61 @@ static void stm32f40x_pwr_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
+// STM32F411RE
+// DO NOT EDIT! Automatically generated!
+static void stm32f411xx_pwr_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    STM32PWRState *state = STM32_PWR_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->u.f4.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f4.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+
+    // CR bitfields.
+    state->u.f4.fld.cr.lpds = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "LPDS");
+    state->u.f4.fld.cr.pdds = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "PDDS");
+    state->u.f4.fld.cr.cwuf = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "CWUF");
+    state->u.f4.fld.cr.csbf = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "CSBF");
+    state->u.f4.fld.cr.pvde = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "PVDE");
+    state->u.f4.fld.cr.pls = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "PLS");
+    state->u.f4.fld.cr.dbp = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "DBP");
+    state->u.f4.fld.cr.fpds = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "FPDS");
+    state->u.f4.fld.cr.adcdc1 = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "ADCDC1");
+    state->u.f4.fld.cr.vos = cm_object_get_child_by_name(state->u.f4.reg.cr,
+            "VOS");
+
+    // CSR bitfields.
+    state->u.f4.fld.csr.wuf = cm_object_get_child_by_name(state->u.f4.reg.csr,
+            "WUF");
+    state->u.f4.fld.csr.sbf = cm_object_get_child_by_name(state->u.f4.reg.csr,
+            "SBF");
+    state->u.f4.fld.csr.pvdo = cm_object_get_child_by_name(state->u.f4.reg.csr,
+            "PVDO");
+    state->u.f4.fld.csr.brr = cm_object_get_child_by_name(state->u.f4.reg.csr,
+            "BRR");
+    state->u.f4.fld.csr.ewup = cm_object_get_child_by_name(state->u.f4.reg.csr,
+            "EWUP");
+    state->u.f4.fld.csr.bre = cm_object_get_child_by_name(state->u.f4.reg.csr,
+            "BRE");
+    state->u.f4.fld.csr.vosrdy = cm_object_get_child_by_name(
+            state->u.f4.reg.csr, "VOSRDY");
+}
+
+// ----------------------------------------------------------------------------
+
 // STM32F429ZI
 // DO NOT EDIT! Automatically generated!
 static void stm32f429x_pwr_create_objects(Object *obj, JSON_Object *svd,
@@ -288,6 +343,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
 
     case STM32_FAMILY_F0:
+
         if (capabilities->f0.is_0x1) {
 
             stm32f0x1_pwr_create_objects(obj, cm_state->svd_json, periph_name);
@@ -299,6 +355,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F1:
+
         if (capabilities->f1.is_103xx) {
 
             stm32f103xx_pwr_create_objects(obj, cm_state->svd_json,
@@ -311,23 +368,26 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
         break;
 
     case STM32_FAMILY_F4:
+
         if (capabilities->f4.is_40x) {
 
             stm32f40x_pwr_create_objects(obj, cm_state->svd_json, periph_name);
-            // Auto bits.
-            cm_object_property_set_str(state->u.f4.fld.csr.brr, "BRE",
-                    "follows");
+
+        } else if (capabilities->f4.is_411xx) {
+
+            stm32f411xx_pwr_create_objects(obj, cm_state->svd_json,
+                    periph_name);
 
         } else if (capabilities->f4.is_429x) {
 
             stm32f429x_pwr_create_objects(obj, cm_state->svd_json, periph_name);
-            // Auto bits.
-            cm_object_property_set_str(state->u.f4.fld.csr.brr, "BRE",
-                    "follows");
 
         } else {
             assert(false);
         }
+
+        // Auto bits.
+        cm_object_property_set_str(state->u.f4.fld.csr.brr, "BRE", "follows");
 
         break;
 

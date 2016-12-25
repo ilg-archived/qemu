@@ -560,20 +560,30 @@ static const STM32Capabilities stm32f407xx = {
 /**/
 };
 
-#if 0
 static const STM32Capabilities stm32f411xx = {
 
     .family = STM32_FAMILY_F4,
     .f4 = {
-        .is11xx = true},
+        .is_411xx = true
+    /**/
+    },
 
     .hsi_freq_hz = 16000000,
     .lsi_freq_hz = 32000,
+
+    .has_periph_bitband = true,
+
+#if 0
     .has_rcc = true,
     .has_pwr = true,
+    .has_exti = true,
+    .has_syscfg = true,
+#endif
+
+    .num_exti = 23, // actually 21, but the missing ones are 19 & 20.
+
     .has_rtc = true,
     .num_back_bytes = 80,
-    .has_periph_bitband = true,
 
     .has_crc = true,
     .has_dma1 = true,
@@ -581,9 +591,6 @@ static const STM32Capabilities stm32f411xx = {
     .has_dma2 = true,
     .num_dma2 = 8,
     //.has_fsmc = true,
-    .has_exti = true,
-    .num_exti = 23,// actually 21, but the missing ones are 19 & 20.
-    .has_syscfg = true,
 
     .has_ac_tim1 = true,
     .has_gp_tim2 = true,
@@ -620,14 +627,12 @@ static const STM32Capabilities stm32f411xx = {
     .has_gpiod = true,
     .has_gpioe = true,
 
-    .has_gpioh = true,// TODO: only H0 & H1 are present
+    .has_gpioh = true, // TODO: only H0 & H1 are present
 
     .has_adc1 = true, /* 12-bits, 16 channels */
     .has_ts = true, /* ADC1_IN16 */
 
 };
-
-#endif
 
 static const STM32Capabilities stm32f429xx = {
 
@@ -927,16 +932,18 @@ static const STM32PartInfo stm32_mcus[] = {
         .stm32 = &stm32f407xx,
         /**/
     },
+#endif
     {
         .name = TYPE_STM32F411RE,
         .cortexm = {
             .flash_size_kb = 512,
             .sram_size_kb = 128, /* No CCM */
-            .core = &stm32f411xx_core,},
+
+            .svd_file_name = "STM32F411xx-qemu.json",
+            .svd_device_name = "STM32F411xx", },
         .stm32 = &stm32f411xx,
-        /**/
+    /**/
     },
-#endif
     {
         .name = TYPE_STM32F429ZI,
         .cortexm = {

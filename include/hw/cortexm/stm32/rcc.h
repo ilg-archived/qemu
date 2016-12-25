@@ -887,6 +887,8 @@ typedef struct {
                     Object *sdioen; // [11:11] SDIO clock enable
                     Object *spi1en; // [12:12] SPI1 clock enable
 
+                    // F411
+                    Object *spi4en; // [13:13] SPI4 clock enable
                     // F429
                     Object *spi4enr; // [13:13] SPI4 clock enable
 
