@@ -231,7 +231,7 @@ static void stm32f103xx_flash_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
-// STM32F407VG
+// STM32F407VG, STM32F407ZG
 // DO NOT EDIT! Automatically generated!
 static void stm32f40x_flash_create_objects(Object *obj, JSON_Object *svd,
         const char *name)

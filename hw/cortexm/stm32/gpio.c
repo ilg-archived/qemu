@@ -446,7 +446,6 @@ static void stm32f0x1_gpio_create_objects(Object *obj, JSON_Object *svd,
 // ----------------------------------------------------------------------------
 
 // STM32F103RB
-
 // DO NOT EDIT! Automatically generated!
 static void stm32f103xx_gpio_create_objects(Object *obj, JSON_Object *svd,
         const char *name)
@@ -740,7 +739,7 @@ static void stm32f103xx_gpio_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
-// STM32F407VG
+// STM32F407VG, STM32F407ZG
 // DO NOT EDIT! Automatically generated!
 static void stm32f40x_gpio_create_objects(Object *obj, JSON_Object *svd,
         const char *name)

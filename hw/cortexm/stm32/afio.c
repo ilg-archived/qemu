@@ -24,6 +24,7 @@
 
 // ----- Generated code -------------------------------------------------------
 //
+// STM32F103RB
 // DO NOT EDIT! Automatically generated!
 static void stm32f103xx_afio_create_objects(Object *obj, JSON_Object *svd,
         const char *name)

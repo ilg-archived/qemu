@@ -922,17 +922,18 @@ static const STM32PartInfo stm32_mcus[] = {
         .stm32 = &stm32f407xx,
     /**/
     },
-#if 0
     {
         .name = TYPE_STM32F407ZG,
         .cortexm = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
-            .core = &stm32f4_01_57_xx_core,},
+
+            .svd_file_name = "STM32F40x-qemu.json",
+            .svd_device_name = "STM32F40x",
+        /**/},
         .stm32 = &stm32f407xx,
-        /**/
+    /**/
     },
-#endif
     {
         .name = TYPE_STM32F411RE,
         .cortexm = {
