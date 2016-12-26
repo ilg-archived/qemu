@@ -948,6 +948,7 @@ static void ncq_cb(void *opaque, int ret)
     NCQTransferState *ncq_tfs = (NCQTransferState *)opaque;
     IDEState *ide_state = &ncq_tfs->drive->port.ifs[0];
 
+    ncq_tfs->aiocb = NULL;
     if (ret == -ECANCELED) {
         return;
     }
@@ -1008,6 +1009,7 @@ static void execute_ncq_command(NCQTransferState *ncq_tfs)
                        &ncq_tfs->sglist, BLOCK_ACCT_READ);
         ncq_tfs->aiocb = dma_blk_read(ide_state->blk, &ncq_tfs->sglist,
                                       ncq_tfs->lba << BDRV_SECTOR_BITS,
+                                      BDRV_SECTOR_SIZE,
                                       ncq_cb, ncq_tfs);
         break;
     case WRITE_FPDMA_QUEUED:
@@ -1021,6 +1023,7 @@ static void execute_ncq_command(NCQTransferState *ncq_tfs)
                        &ncq_tfs->sglist, BLOCK_ACCT_WRITE);
         ncq_tfs->aiocb = dma_blk_write(ide_state->blk, &ncq_tfs->sglist,
                                        ncq_tfs->lba << BDRV_SECTOR_BITS,
+                                       BDRV_SECTOR_SIZE,
                                        ncq_cb, ncq_tfs);
         break;
     default:

@@ -15,6 +15,7 @@
 #include "qemu/notify.h"
 #include "qemu/main-loop.h"
 #include "qemu/bitmap.h"
+#include "qemu/uuid.h"
 #include "qom/object.h"
 
 /* vl.c */
@@ -22,12 +23,8 @@
 extern const char *bios_name;
 
 extern const char *qemu_name;
-extern uint8_t qemu_uuid[];
+extern QemuUUID qemu_uuid;
 extern bool qemu_uuid_set;
-int qemu_uuid_parse(const char *str, uint8_t *uuid);
-
-#define UUID_FMT "%02hhx%02hhx%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx-%02hhx%02hhx%02hhx%02hhx%02hhx%02hhx"
-#define UUID_NONE "00000000-0000-0000-0000-000000000000"
 
 bool runstate_check(RunState state);
 void runstate_set(RunState new_state);
@@ -192,7 +189,7 @@ extern int mem_prealloc;
  *
  * Note that cpu->get_arch_id() may be larger than MAX_CPUMASK_BITS.
  */
-#define MAX_CPUMASK_BITS 255
+#define MAX_CPUMASK_BITS 288
 
 #define MAX_OPTION_ROMS 16
 typedef struct QEMUOptionRom {
@@ -258,6 +255,7 @@ bool defaults_enabled(void);
 extern QemuOptsList qemu_legacy_drive_opts;
 extern QemuOptsList qemu_common_drive_opts;
 extern QemuOptsList qemu_drive_opts;
+extern QemuOptsList bdrv_runtime_opts;
 extern QemuOptsList qemu_chardev_opts;
 extern QemuOptsList qemu_device_opts;
 extern QemuOptsList qemu_netdev_opts;

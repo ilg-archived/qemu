@@ -141,7 +141,8 @@ out_err:
 int css_create_css_image(uint8_t cssid, bool default_image)
 {
     trace_css_new_image(cssid, default_image ? "(default)" : "");
-    if (cssid > MAX_CSSID) {
+    /* 255 is reserved */
+    if (cssid == 255) {
         return -EINVAL;
     }
     if (channel_subsys.css[cssid]) {
@@ -774,7 +775,7 @@ int css_do_xsch(SubchDev *sch)
     PMCW *p = &sch->curr_status.pmcw;
     int ret;
 
-    if (!(p->flags & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA))) {
+    if (~(p->flags) & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA)) {
         ret = -ENODEV;
         goto out;
     }
@@ -814,7 +815,7 @@ int css_do_csch(SubchDev *sch)
     PMCW *p = &sch->curr_status.pmcw;
     int ret;
 
-    if (!(p->flags & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA))) {
+    if (~(p->flags) & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA)) {
         ret = -ENODEV;
         goto out;
     }
@@ -836,7 +837,7 @@ int css_do_hsch(SubchDev *sch)
     PMCW *p = &sch->curr_status.pmcw;
     int ret;
 
-    if (!(p->flags & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA))) {
+    if (~(p->flags) & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA)) {
         ret = -ENODEV;
         goto out;
     }
@@ -912,7 +913,7 @@ int css_do_ssch(SubchDev *sch, ORB *orb)
     PMCW *p = &sch->curr_status.pmcw;
     int ret;
 
-    if (!(p->flags & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA))) {
+    if (~(p->flags) & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA)) {
         ret = -ENODEV;
         goto out;
     }
@@ -989,7 +990,7 @@ int css_do_tsch_get_irb(SubchDev *sch, IRB *target_irb, int *irb_len)
     uint16_t stctl;
     IRB irb;
 
-    if (!(p->flags & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA))) {
+    if (~(p->flags) & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA)) {
         return 3;
     }
 
@@ -1195,7 +1196,7 @@ int css_do_rsch(SubchDev *sch)
     PMCW *p = &sch->curr_status.pmcw;
     int ret;
 
-    if (!(p->flags & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA))) {
+    if (~(p->flags) & (PMCW_FLAGS_MASK_DNV | PMCW_FLAGS_MASK_ENA)) {
         ret = -ENODEV;
         goto out;
     }
@@ -1267,7 +1268,7 @@ bool css_schid_final(int m, uint8_t cssid, uint8_t ssid, uint16_t schid)
     uint8_t real_cssid;
 
     real_cssid = (!m && (cssid == 0)) ? channel_subsys.default_cssid : cssid;
-    if (real_cssid > MAX_CSSID || ssid > MAX_SSID ||
+    if (ssid > MAX_SSID ||
         !channel_subsys.css[real_cssid] ||
         !channel_subsys.css[real_cssid]->sch_set[ssid]) {
         return true;
@@ -1282,9 +1283,6 @@ static int css_add_virtual_chpid(uint8_t cssid, uint8_t chpid, uint8_t type)
     CssImage *css;
 
     trace_css_chpid_add(cssid, chpid, type);
-    if (cssid > MAX_CSSID) {
-        return -EINVAL;
-    }
     css = channel_subsys.css[cssid];
     if (!css) {
         return -EINVAL;

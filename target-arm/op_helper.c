@@ -194,7 +194,7 @@ void arm_cpu_do_unaligned_access(CPUState *cs, vaddr vaddr,
      * the LPAE long descriptor format, or the short descriptor format
      */
     if (arm_s1_regime_using_lpae_format(env, cpu_mmu_index(env, false))) {
-        env->exception.fsr = 0x21;
+        env->exception.fsr = (1 << 9) | 0x21;
     } else {
         env->exception.fsr = 0x1;
     }
@@ -478,6 +478,13 @@ void HELPER(cpsr_write)(CPUARMState *env, uint32_t val, uint32_t mask)
 void HELPER(cpsr_write_eret)(CPUARMState *env, uint32_t val)
 {
     cpsr_write(env, val, CPSR_ERET_MASK, CPSRWriteExceptionReturn);
+
+    /* Generated code has already stored the new PC value, but
+     * without masking out its low bits, because which bits need
+     * masking depends on whether we're returning to Thumb or ARM
+     * state. Do the masking now.
+     */
+    env->regs[15] &= (env->thumb ? ~1 : ~3);
 
     arm_call_el_change_hook(arm_env_get_cpu(env));
 }

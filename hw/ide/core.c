@@ -882,15 +882,15 @@ static void ide_dma_cb(void *opaque, int ret)
     switch (s->dma_cmd) {
     case IDE_DMA_READ:
         s->bus->dma->aiocb = dma_blk_read(s->blk, &s->sg, offset,
-                                          ide_dma_cb, s);
+                                          BDRV_SECTOR_SIZE, ide_dma_cb, s);
         break;
     case IDE_DMA_WRITE:
         s->bus->dma->aiocb = dma_blk_write(s->blk, &s->sg, offset,
-                                           ide_dma_cb, s);
+                                           BDRV_SECTOR_SIZE, ide_dma_cb, s);
         break;
     case IDE_DMA_TRIM:
         s->bus->dma->aiocb = dma_blk_io(blk_get_aio_context(s->blk),
-                                        &s->sg, offset,
+                                        &s->sg, offset, BDRV_SECTOR_SIZE,
                                         ide_issue_trim, s->blk, ide_dma_cb, s,
                                         DMA_DIRECTION_TO_DEVICE);
         break;
@@ -908,7 +908,7 @@ eot:
 
 static void ide_sector_start_dma(IDEState *s, enum ide_dma_cmd dma_cmd)
 {
-    s->status = READY_STAT | SEEK_STAT | DRQ_STAT | BUSY_STAT;
+    s->status = READY_STAT | SEEK_STAT | DRQ_STAT;
     s->io_buffer_size = 0;
     s->dma_cmd = dma_cmd;
 
@@ -2582,7 +2582,7 @@ static void ide_restart_cb(void *opaque, int running, RunState state)
 void ide_register_restart_cb(IDEBus *bus)
 {
     if (bus->dma->ops->restart_dma) {
-        qemu_add_vm_change_state_handler(ide_restart_cb, bus);
+        bus->vmstate = qemu_add_vm_change_state_handler(ide_restart_cb, bus);
     }
 }
 
@@ -2619,10 +2619,12 @@ void ide_init_ioport(IDEBus *bus, ISADevice *dev, int iobase, int iobase2)
 {
     /* ??? Assume only ISA and PCI configurations, and that the PCI-ISA
        bridge has been setup properly to always register with ISA.  */
-    isa_register_portio_list(dev, iobase, ide_portio_list, bus, "ide");
+    isa_register_portio_list(dev, &bus->portio_list,
+                             iobase, ide_portio_list, bus, "ide");
 
     if (iobase2) {
-        isa_register_portio_list(dev, iobase2, ide_portio2_list, bus, "ide");
+        isa_register_portio_list(dev, &bus->portio2_list,
+                                 iobase2, ide_portio2_list, bus, "ide");
     }
 }
 

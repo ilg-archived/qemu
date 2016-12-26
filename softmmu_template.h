@@ -21,12 +21,6 @@
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
-#include "qemu/timer.h"
-#include "exec/address-spaces.h"
-#include "exec/memory.h"
-
-#define DATA_SIZE (1 << SHIFT)
-
 #if DATA_SIZE == 8
 #define SUFFIX q
 #define LSUFFIX q
@@ -84,14 +78,6 @@
 # define BSWAP(X)  (X)
 #endif
 
-#ifdef TARGET_WORDS_BIGENDIAN
-# define TGT_BE(X)  (X)
-# define TGT_LE(X)  BSWAP(X)
-#else
-# define TGT_BE(X)  BSWAP(X)
-# define TGT_LE(X)  (X)
-#endif
-
 #if DATA_SIZE == 1
 # define helper_le_ld_name  glue(glue(helper_ret_ld, USUFFIX), MMUSUFFIX)
 # define helper_be_ld_name  helper_le_ld_name
@@ -108,35 +94,14 @@
 # define helper_be_st_name  glue(glue(helper_be_st, SUFFIX), MMUSUFFIX)
 #endif
 
-#ifdef TARGET_WORDS_BIGENDIAN
-# define helper_te_ld_name  helper_be_ld_name
-# define helper_te_st_name  helper_be_st_name
-#else
-# define helper_te_ld_name  helper_le_ld_name
-# define helper_te_st_name  helper_le_st_name
-#endif
-
 #ifndef SOFTMMU_CODE_ACCESS
 static inline DATA_TYPE glue(io_read, SUFFIX)(CPUArchState *env,
-                                              CPUIOTLBEntry *iotlbentry,
+                                              size_t mmu_idx, size_t index,
                                               target_ulong addr,
                                               uintptr_t retaddr)
 {
-    uint64_t val;
-    CPUState *cpu = ENV_GET_CPU(env);
-    hwaddr physaddr = iotlbentry->addr;
-    MemoryRegion *mr = iotlb_to_region(cpu, physaddr, iotlbentry->attrs);
-
-    physaddr = (physaddr & TARGET_PAGE_MASK) + addr;
-    cpu->mem_io_pc = retaddr;
-    if (mr != &io_mem_rom && mr != &io_mem_notdirty && !cpu->can_do_io) {
-        cpu_io_recompile(cpu, retaddr);
-    }
-
-    cpu->mem_io_vaddr = addr;
-    memory_region_dispatch_read(mr, physaddr, &val, 1 << SHIFT,
-                                iotlbentry->attrs);
-    return val;
+    CPUIOTLBEntry *iotlbentry = &env->iotlb[mmu_idx][index];
+    return io_readx(env, iotlbentry, addr, retaddr, DATA_SIZE);
 }
 #endif
 
@@ -146,14 +111,11 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
     unsigned mmu_idx = get_mmuidx(oi);
     int index = (addr >> TARGET_PAGE_BITS) & (CPU_TLB_SIZE - 1);
     target_ulong tlb_addr = env->tlb_table[mmu_idx][index].ADDR_READ;
-    int a_bits = get_alignment_bits(get_memop(oi));
+    unsigned a_bits = get_alignment_bits(get_memop(oi));
     uintptr_t haddr;
     DATA_TYPE res;
 
-    /* Adjust the given return address.  */
-    retaddr -= GETPC_ADJ;
-
-    if (a_bits > 0 && (addr & ((1 << a_bits) - 1)) != 0) {
+    if (addr & ((1 << a_bits) - 1)) {
         cpu_unaligned_access(ENV_GET_CPU(env), addr, READ_ACCESS_TYPE,
                              mmu_idx, retaddr);
     }
@@ -170,15 +132,13 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
 
     /* Handle an IO access.  */
     if (unlikely(tlb_addr & ~TARGET_PAGE_MASK)) {
-        CPUIOTLBEntry *iotlbentry;
         if ((addr & (DATA_SIZE - 1)) != 0) {
             goto do_unaligned_access;
         }
-        iotlbentry = &env->iotlb[mmu_idx][index];
 
         /* ??? Note that the io helpers always read data in the target
            byte ordering.  We should push the LE/BE request down into io.  */
-        res = glue(io_read, SUFFIX)(env, iotlbentry, addr, retaddr);
+        res = glue(io_read, SUFFIX)(env, mmu_idx, index, addr, retaddr);
         res = TGT_LE(res);
         return res;
     }
@@ -193,10 +153,8 @@ WORD_TYPE helper_le_ld_name(CPUArchState *env, target_ulong addr,
     do_unaligned_access:
         addr1 = addr & ~(DATA_SIZE - 1);
         addr2 = addr1 + DATA_SIZE;
-        /* Note the adjustment at the beginning of the function.
-           Undo that for the recursion.  */
-        res1 = helper_le_ld_name(env, addr1, oi, retaddr + GETPC_ADJ);
-        res2 = helper_le_ld_name(env, addr2, oi, retaddr + GETPC_ADJ);
+        res1 = helper_le_ld_name(env, addr1, oi, retaddr);
+        res2 = helper_le_ld_name(env, addr2, oi, retaddr);
         shift = (addr & (DATA_SIZE - 1)) * 8;
 
         /* Little-endian combine.  */
@@ -220,14 +178,11 @@ WORD_TYPE helper_be_ld_name(CPUArchState *env, target_ulong addr,
     unsigned mmu_idx = get_mmuidx(oi);
     int index = (addr >> TARGET_PAGE_BITS) & (CPU_TLB_SIZE - 1);
     target_ulong tlb_addr = env->tlb_table[mmu_idx][index].ADDR_READ;
-    int a_bits = get_alignment_bits(get_memop(oi));
+    unsigned a_bits = get_alignment_bits(get_memop(oi));
     uintptr_t haddr;
     DATA_TYPE res;
 
-    /* Adjust the given return address.  */
-    retaddr -= GETPC_ADJ;
-
-    if (a_bits > 0 && (addr & ((1 << a_bits) - 1)) != 0) {
+    if (addr & ((1 << a_bits) - 1)) {
         cpu_unaligned_access(ENV_GET_CPU(env), addr, READ_ACCESS_TYPE,
                              mmu_idx, retaddr);
     }
@@ -244,15 +199,13 @@ WORD_TYPE helper_be_ld_name(CPUArchState *env, target_ulong addr,
 
     /* Handle an IO access.  */
     if (unlikely(tlb_addr & ~TARGET_PAGE_MASK)) {
-        CPUIOTLBEntry *iotlbentry;
         if ((addr & (DATA_SIZE - 1)) != 0) {
             goto do_unaligned_access;
         }
-        iotlbentry = &env->iotlb[mmu_idx][index];
 
         /* ??? Note that the io helpers always read data in the target
            byte ordering.  We should push the LE/BE request down into io.  */
-        res = glue(io_read, SUFFIX)(env, iotlbentry, addr, retaddr);
+        res = glue(io_read, SUFFIX)(env, mmu_idx, index, addr, retaddr);
         res = TGT_BE(res);
         return res;
     }
@@ -267,10 +220,8 @@ WORD_TYPE helper_be_ld_name(CPUArchState *env, target_ulong addr,
     do_unaligned_access:
         addr1 = addr & ~(DATA_SIZE - 1);
         addr2 = addr1 + DATA_SIZE;
-        /* Note the adjustment at the beginning of the function.
-           Undo that for the recursion.  */
-        res1 = helper_be_ld_name(env, addr1, oi, retaddr + GETPC_ADJ);
-        res2 = helper_be_ld_name(env, addr2, oi, retaddr + GETPC_ADJ);
+        res1 = helper_be_ld_name(env, addr1, oi, retaddr);
+        res2 = helper_be_ld_name(env, addr2, oi, retaddr);
         shift = (addr & (DATA_SIZE - 1)) * 8;
 
         /* Big-endian combine.  */
@@ -305,24 +256,13 @@ WORD_TYPE helper_be_lds_name(CPUArchState *env, target_ulong addr,
 #endif
 
 static inline void glue(io_write, SUFFIX)(CPUArchState *env,
-                                          CPUIOTLBEntry *iotlbentry,
+                                          size_t mmu_idx, size_t index,
                                           DATA_TYPE val,
                                           target_ulong addr,
                                           uintptr_t retaddr)
 {
-    CPUState *cpu = ENV_GET_CPU(env);
-    hwaddr physaddr = iotlbentry->addr;
-    MemoryRegion *mr = iotlb_to_region(cpu, physaddr, iotlbentry->attrs);
-
-    physaddr = (physaddr & TARGET_PAGE_MASK) + addr;
-    if (mr != &io_mem_rom && mr != &io_mem_notdirty && !cpu->can_do_io) {
-        cpu_io_recompile(cpu, retaddr);
-    }
-
-    cpu->mem_io_vaddr = addr;
-    cpu->mem_io_pc = retaddr;
-    memory_region_dispatch_write(mr, physaddr, val, 1 << SHIFT,
-                                 iotlbentry->attrs);
+    CPUIOTLBEntry *iotlbentry = &env->iotlb[mmu_idx][index];
+    return io_writex(env, iotlbentry, val, addr, retaddr, DATA_SIZE);
 }
 
 void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
@@ -331,13 +271,10 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     unsigned mmu_idx = get_mmuidx(oi);
     int index = (addr >> TARGET_PAGE_BITS) & (CPU_TLB_SIZE - 1);
     target_ulong tlb_addr = env->tlb_table[mmu_idx][index].addr_write;
-    int a_bits = get_alignment_bits(get_memop(oi));
+    unsigned a_bits = get_alignment_bits(get_memop(oi));
     uintptr_t haddr;
 
-    /* Adjust the given return address.  */
-    retaddr -= GETPC_ADJ;
-
-    if (a_bits > 0 && (addr & ((1 << a_bits) - 1)) != 0) {
+    if (addr & ((1 << a_bits) - 1)) {
         cpu_unaligned_access(ENV_GET_CPU(env), addr, MMU_DATA_STORE,
                              mmu_idx, retaddr);
     }
@@ -353,16 +290,14 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
 
     /* Handle an IO access.  */
     if (unlikely(tlb_addr & ~TARGET_PAGE_MASK)) {
-        CPUIOTLBEntry *iotlbentry;
         if ((addr & (DATA_SIZE - 1)) != 0) {
             goto do_unaligned_access;
         }
-        iotlbentry = &env->iotlb[mmu_idx][index];
 
         /* ??? Note that the io helpers always read data in the target
            byte ordering.  We should push the LE/BE request down into io.  */
         val = TGT_LE(val);
-        glue(io_write, SUFFIX)(env, iotlbentry, val, addr, retaddr);
+        glue(io_write, SUFFIX)(env, mmu_idx, index, val, addr, retaddr);
         return;
     }
 
@@ -391,10 +326,8 @@ void helper_le_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
         for (i = 0; i < DATA_SIZE; ++i) {
             /* Little-endian extract.  */
             uint8_t val8 = val >> (i * 8);
-            /* Note the adjustment at the beginning of the function.
-               Undo that for the recursion.  */
             glue(helper_ret_stb, MMUSUFFIX)(env, addr + i, val8,
-                                            oi, retaddr + GETPC_ADJ);
+                                            oi, retaddr);
         }
         return;
     }
@@ -414,13 +347,10 @@ void helper_be_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     unsigned mmu_idx = get_mmuidx(oi);
     int index = (addr >> TARGET_PAGE_BITS) & (CPU_TLB_SIZE - 1);
     target_ulong tlb_addr = env->tlb_table[mmu_idx][index].addr_write;
-    int a_bits = get_alignment_bits(get_memop(oi));
+    unsigned a_bits = get_alignment_bits(get_memop(oi));
     uintptr_t haddr;
 
-    /* Adjust the given return address.  */
-    retaddr -= GETPC_ADJ;
-
-    if (a_bits > 0 && (addr & ((1 << a_bits) - 1)) != 0) {
+    if (addr & ((1 << a_bits) - 1)) {
         cpu_unaligned_access(ENV_GET_CPU(env), addr, MMU_DATA_STORE,
                              mmu_idx, retaddr);
     }
@@ -436,16 +366,14 @@ void helper_be_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
 
     /* Handle an IO access.  */
     if (unlikely(tlb_addr & ~TARGET_PAGE_MASK)) {
-        CPUIOTLBEntry *iotlbentry;
         if ((addr & (DATA_SIZE - 1)) != 0) {
             goto do_unaligned_access;
         }
-        iotlbentry = &env->iotlb[mmu_idx][index];
 
         /* ??? Note that the io helpers always read data in the target
            byte ordering.  We should push the LE/BE request down into io.  */
         val = TGT_BE(val);
-        glue(io_write, SUFFIX)(env, iotlbentry, val, addr, retaddr);
+        glue(io_write, SUFFIX)(env, mmu_idx, index, val, addr, retaddr);
         return;
     }
 
@@ -474,10 +402,8 @@ void helper_be_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
         for (i = 0; i < DATA_SIZE; ++i) {
             /* Big-endian extract.  */
             uint8_t val8 = val >> (((DATA_SIZE - 1) * 8) - (i * 8));
-            /* Note the adjustment at the beginning of the function.
-               Undo that for the recursion.  */
             glue(helper_ret_stb, MMUSUFFIX)(env, addr + i, val8,
-                                            oi, retaddr + GETPC_ADJ);
+                                            oi, retaddr);
         }
         return;
     }
@@ -486,33 +412,9 @@ void helper_be_st_name(CPUArchState *env, target_ulong addr, DATA_TYPE val,
     glue(glue(st, SUFFIX), _be_p)((uint8_t *)haddr, val);
 }
 #endif /* DATA_SIZE > 1 */
-
-#if DATA_SIZE == 1
-/* Probe for whether the specified guest write access is permitted.
- * If it is not permitted then an exception will be taken in the same
- * way as if this were a real write access (and we will not return).
- * Otherwise the function will return, and there will be a valid
- * entry in the TLB for this access.
- */
-void probe_write(CPUArchState *env, target_ulong addr, int mmu_idx,
-                 uintptr_t retaddr)
-{
-    int index = (addr >> TARGET_PAGE_BITS) & (CPU_TLB_SIZE - 1);
-    target_ulong tlb_addr = env->tlb_table[mmu_idx][index].addr_write;
-
-    if ((addr & TARGET_PAGE_MASK)
-        != (tlb_addr & (TARGET_PAGE_MASK | TLB_INVALID_MASK))) {
-        /* TLB entry is for a different page */
-        if (!VICTIM_TLB_HIT(addr_write, addr)) {
-            tlb_fill(ENV_GET_CPU(env), addr, MMU_DATA_STORE, mmu_idx, retaddr);
-        }
-    }
-}
-#endif
 #endif /* !defined(SOFTMMU_CODE_ACCESS) */
 
 #undef READ_ACCESS_TYPE
-#undef SHIFT
 #undef DATA_TYPE
 #undef SUFFIX
 #undef LSUFFIX
@@ -523,15 +425,9 @@ void probe_write(CPUArchState *env, target_ulong addr, int mmu_idx,
 #undef USUFFIX
 #undef SSUFFIX
 #undef BSWAP
-#undef TGT_BE
-#undef TGT_LE
-#undef CPU_BE
-#undef CPU_LE
 #undef helper_le_ld_name
 #undef helper_be_ld_name
 #undef helper_le_lds_name
 #undef helper_be_lds_name
 #undef helper_le_st_name
 #undef helper_be_st_name
-#undef helper_te_ld_name
-#undef helper_te_st_name

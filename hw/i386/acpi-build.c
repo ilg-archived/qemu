@@ -53,13 +53,13 @@
 #include "hw/pci/pci_bus.h"
 #include "hw/pci-host/q35.h"
 #include "hw/i386/x86-iommu.h"
-#include "hw/timer/hpet.h"
 
 #include "hw/acpi/aml-build.h"
 
 #include "qapi/qmp/qint.h"
 #include "qom/qom-qobject.h"
-#include "hw/i386/x86-iommu.h"
+#include "hw/i386/amd_iommu.h"
+#include "hw/i386/intel_iommu.h"
 
 #include "hw/acpi/ipmi.h"
 
@@ -339,24 +339,38 @@ build_fadt(GArray *table_data, BIOSLinker *linker, AcpiPmInfo *pm,
 void pc_madt_cpu_entry(AcpiDeviceIf *adev, int uid,
                        CPUArchIdList *apic_ids, GArray *entry)
 {
-    int apic_id;
-    AcpiMadtProcessorApic *apic = acpi_data_push(entry, sizeof *apic);
+    uint32_t apic_id = apic_ids->cpus[uid].arch_id;
 
-    apic_id = apic_ids->cpus[uid].arch_id;
-    apic->type = ACPI_APIC_PROCESSOR;
-    apic->length = sizeof(*apic);
-    apic->processor_id = uid;
-    apic->local_apic_id = apic_id;
-    if (apic_ids->cpus[uid].cpu != NULL) {
-        apic->flags = cpu_to_le32(1);
+    /* ACPI spec says that LAPIC entry for non present
+     * CPU may be omitted from MADT or it must be marked
+     * as disabled. However omitting non present CPU from
+     * MADT breaks hotplug on linux. So possible CPUs
+     * should be put in MADT but kept disabled.
+     */
+    if (apic_id < 255) {
+        AcpiMadtProcessorApic *apic = acpi_data_push(entry, sizeof *apic);
+
+        apic->type = ACPI_APIC_PROCESSOR;
+        apic->length = sizeof(*apic);
+        apic->processor_id = uid;
+        apic->local_apic_id = apic_id;
+        if (apic_ids->cpus[uid].cpu != NULL) {
+            apic->flags = cpu_to_le32(1);
+        } else {
+            apic->flags = cpu_to_le32(0);
+        }
     } else {
-        /* ACPI spec says that LAPIC entry for non present
-         * CPU may be omitted from MADT or it must be marked
-         * as disabled. However omitting non present CPU from
-         * MADT breaks hotplug on linux. So possible CPUs
-         * should be put in MADT but kept disabled.
-         */
-        apic->flags = cpu_to_le32(0);
+        AcpiMadtProcessorX2Apic *apic = acpi_data_push(entry, sizeof *apic);
+
+        apic->type = ACPI_APIC_LOCAL_X2APIC;
+        apic->length = sizeof(*apic);
+        apic->uid = cpu_to_le32(uid);
+        apic->x2apic_id = cpu_to_le32(apic_id);
+        if (apic_ids->cpus[uid].cpu != NULL) {
+            apic->flags = cpu_to_le32(1);
+        } else {
+            apic->flags = cpu_to_le32(0);
+        }
     }
 }
 
@@ -368,11 +382,11 @@ build_madt(GArray *table_data, BIOSLinker *linker, PCMachineState *pcms)
     int madt_start = table_data->len;
     AcpiDeviceIfClass *adevc = ACPI_DEVICE_IF_GET_CLASS(pcms->acpi_dev);
     AcpiDeviceIf *adev = ACPI_DEVICE_IF(pcms->acpi_dev);
+    bool x2apic_mode = false;
 
     AcpiMultipleApicTable *madt;
     AcpiMadtIoApic *io_apic;
     AcpiMadtIntsrcovr *intsrcovr;
-    AcpiMadtLocalNmi *local_nmi;
     int i;
 
     madt = acpi_data_push(table_data, sizeof *madt);
@@ -381,6 +395,9 @@ build_madt(GArray *table_data, BIOSLinker *linker, PCMachineState *pcms)
 
     for (i = 0; i < apic_ids->len; i++) {
         adevc->madt_cpu(adev, i, apic_ids, table_data);
+        if (apic_ids->cpus[i].arch_id > 254) {
+            x2apic_mode = true;
+        }
     }
     g_free(apic_ids);
 
@@ -413,12 +430,25 @@ build_madt(GArray *table_data, BIOSLinker *linker, PCMachineState *pcms)
         intsrcovr->flags  = cpu_to_le16(0xd); /* active high, level triggered */
     }
 
-    local_nmi = acpi_data_push(table_data, sizeof *local_nmi);
-    local_nmi->type         = ACPI_APIC_LOCAL_NMI;
-    local_nmi->length       = sizeof(*local_nmi);
-    local_nmi->processor_id = 0xff; /* all processors */
-    local_nmi->flags        = cpu_to_le16(0);
-    local_nmi->lint         = 1; /* ACPI_LINT1 */
+    if (x2apic_mode) {
+        AcpiMadtLocalX2ApicNmi *local_nmi;
+
+        local_nmi = acpi_data_push(table_data, sizeof *local_nmi);
+        local_nmi->type   = ACPI_APIC_LOCAL_X2APIC_NMI;
+        local_nmi->length = sizeof(*local_nmi);
+        local_nmi->uid    = 0xFFFFFFFF; /* all processors */
+        local_nmi->flags  = cpu_to_le16(0);
+        local_nmi->lint   = 1; /* ACPI_LINT1 */
+    } else {
+        AcpiMadtLocalNmi *local_nmi;
+
+        local_nmi = acpi_data_push(table_data, sizeof *local_nmi);
+        local_nmi->type         = ACPI_APIC_LOCAL_NMI;
+        local_nmi->length       = sizeof(*local_nmi);
+        local_nmi->processor_id = 0xff; /* all processors */
+        local_nmi->flags        = cpu_to_le16(0);
+        local_nmi->lint         = 1; /* ACPI_LINT1 */
+    }
 
     build_header(linker, table_data,
                  (void *)(table_data->data + madt_start), "APIC",
@@ -789,7 +819,7 @@ static gint crs_range_compare(gconstpointer a, gconstpointer b)
 static void crs_replace_with_free_ranges(GPtrArray *ranges,
                                          uint64_t start, uint64_t end)
 {
-    GPtrArray *free_ranges = g_ptr_array_new_with_free_func(crs_range_free);
+    GPtrArray *free_ranges = g_ptr_array_new();
     uint64_t free_base = start;
     int i;
 
@@ -813,7 +843,7 @@ static void crs_replace_with_free_ranges(GPtrArray *ranges,
         g_ptr_array_add(ranges, g_ptr_array_index(free_ranges, i));
     }
 
-    g_ptr_array_free(free_ranges, false);
+    g_ptr_array_free(free_ranges, true);
 }
 
 /*
@@ -2038,6 +2068,13 @@ build_dsdt(GArray *table_data, BIOSLinker *linker,
         method = aml_method("_E03", 0, AML_NOTSERIALIZED);
         aml_append(method, aml_call0(MEMORY_HOTPLUG_HANDLER_PATH));
         aml_append(scope, method);
+
+        if (pcms->acpi_nvdimm_state.is_enabled) {
+            method = aml_method("_E04", 0, AML_NOTSERIALIZED);
+            aml_append(method, aml_notify(aml_name("\\_SB.NVDR"),
+                                          aml_int(0x80)));
+            aml_append(scope, method);
+        }
     }
     aml_append(dsdt, scope);
 
@@ -2390,7 +2427,6 @@ static void
 build_srat(GArray *table_data, BIOSLinker *linker, MachineState *machine)
 {
     AcpiSystemResourceAffinityTable *srat;
-    AcpiSratProcessorAffinity *core;
     AcpiSratMemoryAffinity *numamem;
 
     int i;
@@ -2409,22 +2445,34 @@ build_srat(GArray *table_data, BIOSLinker *linker, MachineState *machine)
     srat->reserved1 = cpu_to_le32(1);
 
     for (i = 0; i < apic_ids->len; i++) {
-        int j;
-        int apic_id = apic_ids->cpus[i].arch_id;
+        int j = numa_get_node_for_cpu(i);
+        uint32_t apic_id = apic_ids->cpus[i].arch_id;
 
-        core = acpi_data_push(table_data, sizeof *core);
-        core->type = ACPI_SRAT_PROCESSOR_APIC;
-        core->length = sizeof(*core);
-        core->local_apic_id = apic_id;
-        for (j = 0; j < nb_numa_nodes; j++) {
-            if (test_bit(i, numa_info[j].node_cpu)) {
+        if (apic_id < 255) {
+            AcpiSratProcessorAffinity *core;
+
+            core = acpi_data_push(table_data, sizeof *core);
+            core->type = ACPI_SRAT_PROCESSOR_APIC;
+            core->length = sizeof(*core);
+            core->local_apic_id = apic_id;
+            if (j < nb_numa_nodes) {
                 core->proximity_lo = j;
-                break;
             }
+            memset(core->proximity_hi, 0, 3);
+            core->local_sapic_eid = 0;
+            core->flags = cpu_to_le32(1);
+        } else {
+            AcpiSratProcessorX2ApicAffinity *core;
+
+            core = acpi_data_push(table_data, sizeof *core);
+            core->type = ACPI_SRAT_PROCESSOR_x2APIC;
+            core->length = sizeof(*core);
+            core->x2apic_id = cpu_to_le32(apic_id);
+            if (j < nb_numa_nodes) {
+                core->proximity_domain = cpu_to_le32(j);
+            }
+            core->flags = cpu_to_le32(1);
         }
-        memset(core->proximity_hi, 0, 3);
-        core->local_sapic_eid = 0;
-        core->flags = cpu_to_le32(1);
     }
 
 
@@ -2557,10 +2605,67 @@ build_dmar_q35(GArray *table_data, BIOSLinker *linker)
     scope->length = ioapic_scope_size;
     scope->enumeration_id = ACPI_BUILD_IOAPIC_ID;
     scope->bus = Q35_PSEUDO_BUS_PLATFORM;
-    scope->path[0] = cpu_to_le16(Q35_PSEUDO_DEVFN_IOAPIC);
+    scope->path[0].device = PCI_SLOT(Q35_PSEUDO_DEVFN_IOAPIC);
+    scope->path[0].function = PCI_FUNC(Q35_PSEUDO_DEVFN_IOAPIC);
 
     build_header(linker, table_data, (void *)(table_data->data + dmar_start),
                  "DMAR", table_data->len - dmar_start, 1, NULL, NULL);
+}
+/*
+ *   IVRS table as specified in AMD IOMMU Specification v2.62, Section 5.2
+ *   accessible here http://support.amd.com/TechDocs/48882_IOMMU.pdf
+ */
+static void
+build_amd_iommu(GArray *table_data, BIOSLinker *linker)
+{
+    int iommu_start = table_data->len;
+    AMDVIState *s = AMD_IOMMU_DEVICE(x86_iommu_get_default());
+
+    /* IVRS header */
+    acpi_data_push(table_data, sizeof(AcpiTableHeader));
+    /* IVinfo - IO virtualization information common to all
+     * IOMMU units in a system
+     */
+    build_append_int_noprefix(table_data, 40UL << 8/* PASize */, 4);
+    /* reserved */
+    build_append_int_noprefix(table_data, 0, 8);
+
+    /* IVHD definition - type 10h */
+    build_append_int_noprefix(table_data, 0x10, 1);
+    /* virtualization flags */
+    build_append_int_noprefix(table_data,
+                             (1UL << 0) | /* HtTunEn      */
+                             (1UL << 4) | /* iotblSup     */
+                             (1UL << 6) | /* PrefSup      */
+                             (1UL << 7),  /* PPRSup       */
+                             1);
+    /* IVHD length */
+    build_append_int_noprefix(table_data, 0x24, 2);
+    /* DeviceID */
+    build_append_int_noprefix(table_data, s->devid, 2);
+    /* Capability offset */
+    build_append_int_noprefix(table_data, s->capab_offset, 2);
+    /* IOMMU base address */
+    build_append_int_noprefix(table_data, s->mmio.addr, 8);
+    /* PCI Segment Group */
+    build_append_int_noprefix(table_data, 0, 2);
+    /* IOMMU info */
+    build_append_int_noprefix(table_data, 0, 2);
+    /* IOMMU Feature Reporting */
+    build_append_int_noprefix(table_data,
+                             (48UL << 30) | /* HATS   */
+                             (48UL << 28) | /* GATS   */
+                             (1UL << 2),    /* GTSup  */
+                             4);
+    /*
+     *   Type 1 device entry reporting all devices
+     *   These are 4-byte device entries currently reporting the range of
+     *   Refer to Spec - Table 95:IVHD Device Entry Type Codes(4-byte)
+     */
+    build_append_int_noprefix(table_data, 0x0000001, 4);
+
+    build_header(linker, table_data, (void *)(table_data->data + iommu_start),
+                 "IVRS", table_data->len - iommu_start, 1, NULL, NULL);
 }
 
 static GArray *
@@ -2620,11 +2725,6 @@ static bool acpi_get_mcfg(AcpiMcfgInfo *mcfg)
     mcfg->mcfg_size = qint_get_int(qobject_to_qint(o));
     qobject_decref(o);
     return true;
-}
-
-static bool acpi_has_iommu(void)
-{
-    return !!x86_iommu_get_default();
 }
 
 static
@@ -2706,13 +2806,19 @@ void acpi_build(AcpiBuildTables *tables, MachineState *machine)
         acpi_add_table(table_offsets, tables_blob);
         build_mcfg_q35(tables_blob, tables->linker, &mcfg);
     }
-    if (acpi_has_iommu()) {
-        acpi_add_table(table_offsets, tables_blob);
-        build_dmar_q35(tables_blob, tables->linker);
+    if (x86_iommu_get_default()) {
+        IommuType IOMMUType = x86_iommu_get_type();
+        if (IOMMUType == TYPE_AMD) {
+            acpi_add_table(table_offsets, tables_blob);
+            build_amd_iommu(tables_blob, tables->linker);
+        } else if (IOMMUType == TYPE_INTEL) {
+            acpi_add_table(table_offsets, tables_blob);
+            build_dmar_q35(tables_blob, tables->linker);
+        }
     }
     if (pcms->acpi_nvdimm_state.is_enabled) {
         nvdimm_build_acpi(table_offsets, tables_blob, tables->linker,
-                          pcms->acpi_nvdimm_state.dsm_mem);
+                          &pcms->acpi_nvdimm_state, machine->ram_slots);
     }
 
     /* Add tables supplied by user (if any) */
@@ -2754,7 +2860,7 @@ void acpi_build(AcpiBuildTables *tables, MachineState *machine)
          */
         int legacy_aml_len =
             pcmc->legacy_acpi_table_size +
-            ACPI_BUILD_LEGACY_CPU_AML_SIZE * max_cpus;
+            ACPI_BUILD_LEGACY_CPU_AML_SIZE * pcms->apic_id_limit;
         int legacy_table_size =
             ROUND_UP(tables_blob->len - aml_len + legacy_aml_len,
                      ACPI_BUILD_ALIGN_SIZE);
@@ -2830,7 +2936,7 @@ static MemoryRegion *acpi_add_rom_blob(AcpiBuildState *build_state,
                                        uint64_t max_size)
 {
     return rom_add_blob(name, blob->data, acpi_data_len(blob), max_size, -1,
-                        name, acpi_build_update, build_state);
+                        name, acpi_build_update, build_state, NULL);
 }
 
 static const VMStateDescription vmstate_acpi_build = {
@@ -2855,7 +2961,7 @@ void acpi_setup(void)
         return;
     }
 
-    if (!pcmc->has_acpi_build) {
+    if (!pcms->acpi_build_enabled) {
         ACPI_BUILD_DPRINTF("ACPI build disabled. Bailing out.\n");
         return;
     }

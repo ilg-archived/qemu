@@ -73,7 +73,7 @@ static void virtio_pci_notify(DeviceState *d, uint16_t vector)
         msix_notify(&proxy->pci_dev, vector);
     else {
         VirtIODevice *vdev = virtio_bus_get_device(&proxy->bus);
-        pci_set_irq(&proxy->pci_dev, vdev->isr & 1);
+        pci_set_irq(&proxy->pci_dev, atomic_read(&vdev->isr) & 1);
     }
 }
 
@@ -262,37 +262,20 @@ static int virtio_pci_load_queue(DeviceState *d, int n, QEMUFile *f)
     return 0;
 }
 
-static bool virtio_pci_ioeventfd_started(DeviceState *d)
+static bool virtio_pci_ioeventfd_enabled(DeviceState *d)
 {
     VirtIOPCIProxy *proxy = to_virtio_pci_proxy(d);
 
-    return proxy->ioeventfd_started;
-}
-
-static void virtio_pci_ioeventfd_set_started(DeviceState *d, bool started,
-                                             bool err)
-{
-    VirtIOPCIProxy *proxy = to_virtio_pci_proxy(d);
-
-    proxy->ioeventfd_started = started;
-}
-
-static bool virtio_pci_ioeventfd_disabled(DeviceState *d)
-{
-    VirtIOPCIProxy *proxy = to_virtio_pci_proxy(d);
-
-    return proxy->ioeventfd_disabled ||
-        !(proxy->flags & VIRTIO_PCI_FLAG_USE_IOEVENTFD);
-}
-
-static void virtio_pci_ioeventfd_set_disabled(DeviceState *d, bool disabled)
-{
-    VirtIOPCIProxy *proxy = to_virtio_pci_proxy(d);
-
-    proxy->ioeventfd_disabled = disabled;
+    return (proxy->flags & VIRTIO_PCI_FLAG_USE_IOEVENTFD) != 0;
 }
 
 #define QEMU_VIRTIO_PCI_QUEUE_MEM_MULT 0x1000
+
+static inline int virtio_pci_queue_mem_mult(struct VirtIOPCIProxy *proxy)
+{
+    return (proxy->flags & VIRTIO_PCI_FLAG_PAGE_PER_VQ) ?
+        QEMU_VIRTIO_PCI_QUEUE_MEM_MULT : 4;
+}
 
 static int virtio_pci_ioeventfd_assign(DeviceState *d, EventNotifier *notifier,
                                        int n, bool assign)
@@ -307,7 +290,7 @@ static int virtio_pci_ioeventfd_assign(DeviceState *d, EventNotifier *notifier,
     MemoryRegion *modern_mr = &proxy->notify.mr;
     MemoryRegion *modern_notify_mr = &proxy->notify_pio.mr;
     MemoryRegion *legacy_mr = &proxy->bar;
-    hwaddr modern_addr = QEMU_VIRTIO_PCI_QUEUE_MEM_MULT *
+    hwaddr modern_addr = virtio_pci_queue_mem_mult(proxy) *
                          virtio_get_queue_index(vq);
     hwaddr legacy_addr = VIRTIO_PCI_QUEUE_NOTIFY;
 
@@ -466,8 +449,7 @@ static uint32_t virtio_ioport_read(VirtIOPCIProxy *proxy, uint32_t addr)
         break;
     case VIRTIO_PCI_ISR:
         /* reading from the ISR also clears it. */
-        ret = vdev->isr;
-        vdev->isr = 0;
+        ret = atomic_xchg(&vdev->isr, 0);
         pci_irq_deassert(&proxy->pci_dev);
         break;
     case VIRTIO_MSI_CONFIG_VECTOR:
@@ -1192,7 +1174,9 @@ static uint64_t virtio_pci_common_read(void *opaque, hwaddr addr,
         break;
     case VIRTIO_PCI_COMMON_DF:
         if (proxy->dfselect <= 1) {
-            val = (vdev->host_features & ~VIRTIO_LEGACY_FEATURES) >>
+            VirtioDeviceClass *vdc = VIRTIO_DEVICE_GET_CLASS(vdev);
+
+            val = (vdev->host_features & ~vdc->legacy_features) >>
                 (32 * proxy->dfselect);
         }
         break;
@@ -1370,7 +1354,8 @@ static void virtio_pci_notify_write(void *opaque, hwaddr addr,
                                     uint64_t val, unsigned size)
 {
     VirtIODevice *vdev = opaque;
-    unsigned queue = addr / QEMU_VIRTIO_PCI_QUEUE_MEM_MULT;
+    VirtIOPCIProxy *proxy = VIRTIO_PCI(DEVICE(vdev)->parent_bus->parent);
+    unsigned queue = addr / virtio_pci_queue_mem_mult(proxy);
 
     if (queue < VIRTIO_QUEUE_MAX) {
         virtio_queue_notify(vdev, queue);
@@ -1393,9 +1378,7 @@ static uint64_t virtio_pci_isr_read(void *opaque, hwaddr addr,
 {
     VirtIOPCIProxy *proxy = opaque;
     VirtIODevice *vdev = virtio_bus_get_device(&proxy->bus);
-    uint64_t val = vdev->isr;
-
-    vdev->isr = 0;
+    uint64_t val = atomic_xchg(&vdev->isr, 0);
     pci_irq_deassert(&proxy->pci_dev);
 
     return val;
@@ -1520,7 +1503,7 @@ static void virtio_pci_modern_regions_init(VirtIOPCIProxy *proxy)
                           &notify_pio_ops,
                           virtio_bus_get_device(&proxy->bus),
                           "virtio-pci-notify-pio",
-                          proxy->notify.size);
+                          proxy->notify_pio.size);
 }
 
 static void virtio_pci_modern_region_map(VirtIOPCIProxy *proxy,
@@ -1544,7 +1527,7 @@ static void virtio_pci_modern_mem_region_map(VirtIOPCIProxy *proxy,
                                              struct virtio_pci_cap *cap)
 {
     virtio_pci_modern_region_map(proxy, region, cap,
-                                 &proxy->modern_bar, proxy->modern_mem_bar);
+                                 &proxy->modern_bar, proxy->modern_mem_bar_idx);
 }
 
 static void virtio_pci_modern_io_region_map(VirtIOPCIProxy *proxy,
@@ -1552,7 +1535,7 @@ static void virtio_pci_modern_io_region_map(VirtIOPCIProxy *proxy,
                                             struct virtio_pci_cap *cap)
 {
     virtio_pci_modern_region_map(proxy, region, cap,
-                                 &proxy->io_bar, proxy->modern_io_bar);
+                                 &proxy->io_bar, proxy->modern_io_bar_idx);
 }
 
 static void virtio_pci_modern_mem_region_unmap(VirtIOPCIProxy *proxy,
@@ -1569,17 +1552,48 @@ static void virtio_pci_modern_io_region_unmap(VirtIOPCIProxy *proxy,
                                 &region->mr);
 }
 
+static void virtio_pci_pre_plugged(DeviceState *d, Error **errp)
+{
+    VirtIOPCIProxy *proxy = VIRTIO_PCI(d);
+    VirtIODevice *vdev = virtio_bus_get_device(&proxy->bus);
+
+    if (virtio_pci_modern(proxy)) {
+        virtio_add_feature(&vdev->host_features, VIRTIO_F_VERSION_1);
+    }
+
+    virtio_add_feature(&vdev->host_features, VIRTIO_F_BAD_FEATURE);
+}
+
 /* This is called by virtio-bus just after the device is plugged. */
 static void virtio_pci_device_plugged(DeviceState *d, Error **errp)
 {
     VirtIOPCIProxy *proxy = VIRTIO_PCI(d);
     VirtioBusState *bus = &proxy->bus;
     bool legacy = virtio_pci_legacy(proxy);
-    bool modern = virtio_pci_modern(proxy);
+    bool modern;
     bool modern_pio = proxy->flags & VIRTIO_PCI_FLAG_MODERN_PIO_NOTIFY;
     uint8_t *config;
     uint32_t size;
     VirtIODevice *vdev = virtio_bus_get_device(&proxy->bus);
+
+    /*
+     * Virtio capabilities present without
+     * VIRTIO_F_VERSION_1 confuses guests
+     */
+    if (!proxy->ignore_backend_features &&
+            !virtio_has_feature(vdev->host_features, VIRTIO_F_VERSION_1)) {
+        virtio_pci_disable_modern(proxy);
+
+        if (!legacy) {
+            error_setg(errp, "Device doesn't support modern mode, and legacy"
+                             " mode is disabled");
+            error_append_hint(errp, "Set disable-legacy to off\n");
+
+            return;
+        }
+    }
+
+    modern = virtio_pci_modern(proxy);
 
     config = proxy->pci_dev.config;
     if (proxy->class_code) {
@@ -1609,7 +1623,7 @@ static void virtio_pci_device_plugged(DeviceState *d, Error **errp)
         struct virtio_pci_notify_cap notify = {
             .cap.cap_len = sizeof notify,
             .notify_off_multiplier =
-                cpu_to_le32(QEMU_VIRTIO_PCI_QUEUE_MEM_MULT),
+                cpu_to_le32(virtio_pci_queue_mem_mult(proxy)),
         };
         struct virtio_pci_cfg_cap cfg = {
             .cap.cap_len = sizeof cfg,
@@ -1622,7 +1636,6 @@ static void virtio_pci_device_plugged(DeviceState *d, Error **errp)
 
         struct virtio_pci_cfg_cap *cfg_mask;
 
-        virtio_add_feature(&vdev->host_features, VIRTIO_F_VERSION_1);
         virtio_pci_modern_regions_init(proxy);
 
         virtio_pci_modern_mem_region_map(proxy, &proxy->common, &cap);
@@ -1634,14 +1647,14 @@ static void virtio_pci_device_plugged(DeviceState *d, Error **errp)
             memory_region_init(&proxy->io_bar, OBJECT(proxy),
                                "virtio-pci-io", 0x4);
 
-            pci_register_bar(&proxy->pci_dev, proxy->modern_io_bar,
+            pci_register_bar(&proxy->pci_dev, proxy->modern_io_bar_idx,
                              PCI_BASE_ADDRESS_SPACE_IO, &proxy->io_bar);
 
             virtio_pci_modern_io_region_map(proxy, &proxy->notify_pio,
                                             &notify_pio.cap);
         }
 
-        pci_register_bar(&proxy->pci_dev, proxy->modern_mem_bar,
+        pci_register_bar(&proxy->pci_dev, proxy->modern_mem_bar_idx,
                          PCI_BASE_ADDRESS_SPACE_MEMORY |
                          PCI_BASE_ADDRESS_MEM_PREFETCH |
                          PCI_BASE_ADDRESS_MEM_TYPE_64,
@@ -1657,7 +1670,7 @@ static void virtio_pci_device_plugged(DeviceState *d, Error **errp)
 
     if (proxy->nvectors) {
         int err = msix_init_exclusive_bar(&proxy->pci_dev, proxy->nvectors,
-                                          proxy->msix_bar);
+                                          proxy->msix_bar_idx);
         if (err) {
             /* Notice when a system that supports MSIx can't initialize it.  */
             if (err != -ENOTSUP) {
@@ -1680,15 +1693,9 @@ static void virtio_pci_device_plugged(DeviceState *d, Error **errp)
                               &virtio_pci_config_ops,
                               proxy, "virtio-pci", size);
 
-        pci_register_bar(&proxy->pci_dev, proxy->legacy_io_bar,
+        pci_register_bar(&proxy->pci_dev, proxy->legacy_io_bar_idx,
                          PCI_BASE_ADDRESS_SPACE_IO, &proxy->bar);
     }
-
-    if (!kvm_has_many_ioeventfds()) {
-        proxy->flags &= ~VIRTIO_PCI_FLAG_USE_IOEVENTFD;
-    }
-
-    virtio_add_feature(&vdev->host_features, VIRTIO_F_BAD_FEATURE);
 }
 
 static void virtio_pci_device_unplugged(DeviceState *d)
@@ -1717,6 +1724,10 @@ static void virtio_pci_realize(PCIDevice *pci_dev, Error **errp)
     bool pcie_port = pci_bus_is_express(pci_dev->bus) &&
                      !pci_bus_is_root(pci_dev->bus);
 
+    if (!kvm_has_many_ioeventfds()) {
+        proxy->flags &= ~VIRTIO_PCI_FLAG_USE_IOEVENTFD;
+    }
+
     /*
      * virtio pci bar layout used by default.
      * subclasses can re-arrange things if needed.
@@ -1726,10 +1737,10 @@ static void virtio_pci_realize(PCIDevice *pci_dev, Error **errp)
      *   region 4+5 --  virtio modern memory (64bit) bar
      *
      */
-    proxy->legacy_io_bar  = 0;
-    proxy->msix_bar       = 1;
-    proxy->modern_io_bar  = 2;
-    proxy->modern_mem_bar = 4;
+    proxy->legacy_io_bar_idx  = 0;
+    proxy->msix_bar_idx       = 1;
+    proxy->modern_io_bar_idx  = 2;
+    proxy->modern_mem_bar_idx = 4;
 
     proxy->common.offset = 0x0;
     proxy->common.size = 0x1000;
@@ -1744,8 +1755,7 @@ static void virtio_pci_realize(PCIDevice *pci_dev, Error **errp)
     proxy->device.type = VIRTIO_PCI_CAP_DEVICE_CFG;
 
     proxy->notify.offset = 0x3000;
-    proxy->notify.size =
-        QEMU_VIRTIO_PCI_QUEUE_MEM_MULT * VIRTIO_QUEUE_MAX;
+    proxy->notify.size = virtio_pci_queue_mem_mult(proxy) * VIRTIO_QUEUE_MAX;
     proxy->notify.type = VIRTIO_PCI_CAP_NOTIFY_CFG;
 
     proxy->notify_pio.offset = 0x0;
@@ -1754,8 +1764,8 @@ static void virtio_pci_realize(PCIDevice *pci_dev, Error **errp)
 
     /* subclasses can enforce modern, so do this unconditionally */
     memory_region_init(&proxy->modern_bar, OBJECT(proxy), "virtio-pci",
-                       2 * QEMU_VIRTIO_PCI_QUEUE_MEM_MULT *
-                       VIRTIO_QUEUE_MAX);
+                       /* PCI BAR regions must be powers of 2 */
+                       pow2ceil(proxy->notify.offset + proxy->notify.size));
 
     memory_region_init_alias(&proxy->modern_cfg,
                              OBJECT(proxy),
@@ -1768,6 +1778,14 @@ static void virtio_pci_realize(PCIDevice *pci_dev, Error **errp)
 
     if (proxy->disable_legacy == ON_OFF_AUTO_AUTO) {
         proxy->disable_legacy = pcie_port ? ON_OFF_AUTO_ON : ON_OFF_AUTO_OFF;
+    }
+
+    if (!virtio_pci_modern(proxy) && !virtio_pci_legacy(proxy)) {
+        error_setg(errp, "device cannot work as neither modern nor legacy mode"
+                   " is enabled");
+        error_append_hint(errp, "Set either disable-modern or disable-legacy"
+                          " to off\n");
+        return;
     }
 
     if (pcie_port && pci_is_express(pci_dev)) {
@@ -1833,6 +1851,10 @@ static Property virtio_pci_properties[] = {
                     VIRTIO_PCI_FLAG_MODERN_PIO_NOTIFY_BIT, false),
     DEFINE_PROP_BIT("x-disable-pcie", VirtIOPCIProxy, flags,
                     VIRTIO_PCI_FLAG_DISABLE_PCIE_BIT, false),
+    DEFINE_PROP_BIT("page-per-vq", VirtIOPCIProxy, flags,
+                    VIRTIO_PCI_FLAG_PAGE_PER_VQ_BIT, false),
+    DEFINE_PROP_BOOL("x-ignore-backend-features", VirtIOPCIProxy,
+                     ignore_backend_features, false),
     DEFINE_PROP_END_OF_LIST(),
 };
 
@@ -2052,6 +2074,54 @@ static const TypeInfo vhost_scsi_pci_info = {
     .instance_size = sizeof(VHostSCSIPCI),
     .instance_init = vhost_scsi_pci_instance_init,
     .class_init    = vhost_scsi_pci_class_init,
+};
+#endif
+
+/* vhost-vsock-pci */
+
+#ifdef CONFIG_VHOST_VSOCK
+static Property vhost_vsock_pci_properties[] = {
+    DEFINE_PROP_UINT32("vectors", VirtIOPCIProxy, nvectors, 3),
+    DEFINE_PROP_END_OF_LIST(),
+};
+
+static void vhost_vsock_pci_realize(VirtIOPCIProxy *vpci_dev, Error **errp)
+{
+    VHostVSockPCI *dev = VHOST_VSOCK_PCI(vpci_dev);
+    DeviceState *vdev = DEVICE(&dev->vdev);
+
+    qdev_set_parent_bus(vdev, BUS(&vpci_dev->bus));
+    object_property_set_bool(OBJECT(vdev), true, "realized", errp);
+}
+
+static void vhost_vsock_pci_class_init(ObjectClass *klass, void *data)
+{
+    DeviceClass *dc = DEVICE_CLASS(klass);
+    VirtioPCIClass *k = VIRTIO_PCI_CLASS(klass);
+    PCIDeviceClass *pcidev_k = PCI_DEVICE_CLASS(klass);
+    k->realize = vhost_vsock_pci_realize;
+    set_bit(DEVICE_CATEGORY_MISC, dc->categories);
+    dc->props = vhost_vsock_pci_properties;
+    pcidev_k->vendor_id = PCI_VENDOR_ID_REDHAT_QUMRANET;
+    pcidev_k->device_id = PCI_DEVICE_ID_VIRTIO_VSOCK;
+    pcidev_k->revision = 0x00;
+    pcidev_k->class_id = PCI_CLASS_COMMUNICATION_OTHER;
+}
+
+static void vhost_vsock_pci_instance_init(Object *obj)
+{
+    VHostVSockPCI *dev = VHOST_VSOCK_PCI(obj);
+
+    virtio_instance_init_common(obj, &dev->vdev, sizeof(dev->vdev),
+                                TYPE_VHOST_VSOCK);
+}
+
+static const TypeInfo vhost_vsock_pci_info = {
+    .name          = TYPE_VHOST_VSOCK_PCI,
+    .parent        = TYPE_VIRTIO_PCI,
+    .instance_size = sizeof(VHostVSockPCI),
+    .instance_init = vhost_vsock_pci_instance_init,
+    .class_init    = vhost_vsock_pci_class_init,
 };
 #endif
 
@@ -2444,13 +2514,11 @@ static void virtio_pci_bus_class_init(ObjectClass *klass, void *data)
     k->query_guest_notifiers = virtio_pci_query_guest_notifiers;
     k->set_guest_notifiers = virtio_pci_set_guest_notifiers;
     k->vmstate_change = virtio_pci_vmstate_change;
+    k->pre_plugged = virtio_pci_pre_plugged;
     k->device_plugged = virtio_pci_device_plugged;
     k->device_unplugged = virtio_pci_device_unplugged;
     k->query_nvectors = virtio_pci_query_nvectors;
-    k->ioeventfd_started = virtio_pci_ioeventfd_started;
-    k->ioeventfd_set_started = virtio_pci_ioeventfd_set_started;
-    k->ioeventfd_disabled = virtio_pci_ioeventfd_disabled;
-    k->ioeventfd_set_disabled = virtio_pci_ioeventfd_set_disabled;
+    k->ioeventfd_enabled = virtio_pci_ioeventfd_enabled;
     k->ioeventfd_assign = virtio_pci_ioeventfd_assign;
 }
 
@@ -2484,6 +2552,9 @@ static void virtio_pci_register_types(void)
     type_register_static(&virtio_net_pci_info);
 #ifdef CONFIG_VHOST_SCSI
     type_register_static(&vhost_scsi_pci_info);
+#endif
+#ifdef CONFIG_VHOST_VSOCK
+    type_register_static(&vhost_vsock_pci_info);
 #endif
 }
 

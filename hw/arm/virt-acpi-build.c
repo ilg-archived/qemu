@@ -44,6 +44,7 @@
 #include "hw/pci/pcie_host.h"
 #include "hw/pci/pci.h"
 #include "sysemu/numa.h"
+#include "kvm_arm.h"
 
 #define ARM_SPI_BASE 32
 #define ACPI_POWER_BUTTON_DEVICE "PWRB"
@@ -53,7 +54,7 @@ static void acpi_dsdt_add_cpus(Aml *scope, int smp_cpus)
     uint16_t i;
 
     for (i = 0; i < smp_cpus; i++) {
-        Aml *dev = aml_device("C%03x", i);
+        Aml *dev = aml_device("C%.03X", i);
         aml_append(dev, aml_name_decl("_HID", aml_string("ACPI0007")));
         aml_append(dev, aml_name_decl("_UID", aml_int(i)));
         aml_append(scope, dev);
@@ -383,6 +384,61 @@ build_rsdp(GArray *rsdp_table, BIOSLinker *linker, unsigned rsdt_tbl_offset)
 }
 
 static void
+build_iort(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
+{
+    int iort_start = table_data->len;
+    AcpiIortIdMapping *idmap;
+    AcpiIortItsGroup *its;
+    AcpiIortTable *iort;
+    size_t node_size, iort_length;
+    AcpiIortRC *rc;
+
+    iort = acpi_data_push(table_data, sizeof(*iort));
+
+    iort_length = sizeof(*iort);
+    iort->node_count = cpu_to_le32(2); /* RC and ITS nodes */
+    iort->node_offset = cpu_to_le32(sizeof(*iort));
+
+    /* ITS group node */
+    node_size =  sizeof(*its) + sizeof(uint32_t);
+    iort_length += node_size;
+    its = acpi_data_push(table_data, node_size);
+
+    its->type = ACPI_IORT_NODE_ITS_GROUP;
+    its->length = cpu_to_le16(node_size);
+    its->its_count = cpu_to_le32(1);
+    its->identifiers[0] = 0; /* MADT translation_id */
+
+    /* Root Complex Node */
+    node_size = sizeof(*rc) + sizeof(*idmap);
+    iort_length += node_size;
+    rc = acpi_data_push(table_data, node_size);
+
+    rc->type = ACPI_IORT_NODE_PCI_ROOT_COMPLEX;
+    rc->length = cpu_to_le16(node_size);
+    rc->mapping_count = cpu_to_le32(1);
+    rc->mapping_offset = cpu_to_le32(sizeof(*rc));
+
+    /* fully coherent device */
+    rc->memory_properties.cache_coherency = cpu_to_le32(1);
+    rc->memory_properties.memory_flags = 0x3; /* CCA = CPM = DCAS = 1 */
+    rc->pci_segment_number = 0; /* MCFG pci_segment */
+
+    /* Identity RID mapping covering the whole input RID range */
+    idmap = &rc->id_mapping_array[0];
+    idmap->input_base = 0;
+    idmap->id_count = cpu_to_le32(0xFFFF);
+    idmap->output_base = 0;
+    /* output IORT node is the ITS group node (the first node) */
+    idmap->output_reference = cpu_to_le32(iort->node_offset);
+
+    iort->length = cpu_to_le32(iort_length);
+
+    build_header(linker, table_data, (void *)(table_data->data + iort_start),
+                 "IORT", table_data->len - iort_start, 0, NULL, NULL);
+}
+
+static void
 build_spcr(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
 {
     AcpiSerialPortConsoleRedirection *spcr;
@@ -426,11 +482,9 @@ build_srat(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
     uint32_t *cpu_node = g_malloc0(guest_info->smp_cpus * sizeof(uint32_t));
 
     for (i = 0; i < guest_info->smp_cpus; i++) {
-        for (j = 0; j < nb_numa_nodes; j++) {
-            if (test_bit(i, numa_info[j].node_cpu)) {
+        j = numa_get_node_for_cpu(i);
+        if (j < nb_numa_nodes) {
                 cpu_node[i] = j;
-                break;
-            }
         }
     }
 
@@ -540,12 +594,13 @@ build_madt(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
         gicc->uid = i;
         gicc->flags = cpu_to_le32(ACPI_GICC_ENABLED);
 
-        if (armcpu->has_pmu) {
+        if (arm_feature(&armcpu->env, ARM_FEATURE_PMU)) {
             gicc->performance_interrupt = cpu_to_le32(PPI(VIRTUAL_PMU_IRQ));
         }
     }
 
     if (guest_info->gic_version == 3) {
+        AcpiMadtGenericTranslator *gic_its;
         AcpiMadtGenericRedistributor *gicr = acpi_data_push(table_data,
                                                          sizeof *gicr);
 
@@ -553,6 +608,14 @@ build_madt(GArray *table_data, BIOSLinker *linker, VirtGuestInfo *guest_info)
         gicr->length = sizeof(*gicr);
         gicr->base_address = cpu_to_le64(memmap[VIRT_GIC_REDIST].base);
         gicr->range_length = cpu_to_le32(memmap[VIRT_GIC_REDIST].size);
+
+        if (its_class_name() && !guest_info->no_its) {
+            gic_its = acpi_data_push(table_data, sizeof *gic_its);
+            gic_its->type = ACPI_APIC_GENERIC_TRANSLATOR;
+            gic_its->length = sizeof(*gic_its);
+            gic_its->translation_id = 0;
+            gic_its->base_address = cpu_to_le64(memmap[VIRT_GIC_ITS].base);
+        }
     } else {
         gic_msi = acpi_data_push(table_data, sizeof *gic_msi);
         gic_msi->type = ACPI_APIC_GENERIC_MSI_FRAME;
@@ -659,17 +722,6 @@ void virt_acpi_build(VirtGuestInfo *guest_info, AcpiBuildTables *tables)
                              ACPI_BUILD_TABLE_FILE, tables_blob,
                              64, false /* high memory */);
 
-    /*
-     * The ACPI v5.1 tables for Hardware-reduced ACPI platform are:
-     * RSDP
-     * RSDT
-     * FADT
-     * GTDT
-     * MADT
-     * MCFG
-     * DSDT
-     */
-
     /* DSDT is pointed to by FADT */
     dsdt = tables_blob->len;
     build_dsdt(tables_blob, tables->linker, guest_info);
@@ -693,6 +745,11 @@ void virt_acpi_build(VirtGuestInfo *guest_info, AcpiBuildTables *tables)
     if (nb_numa_nodes > 0) {
         acpi_add_table(table_offsets, tables_blob);
         build_srat(tables_blob, tables->linker, guest_info);
+    }
+
+    if (its_class_name() && !guest_info->no_its) {
+        acpi_add_table(table_offsets, tables_blob);
+        build_iort(tables_blob, tables->linker, guest_info);
     }
 
     /* RSDT is pointed to by RSDP */
@@ -752,7 +809,7 @@ static MemoryRegion *acpi_add_rom_blob(AcpiBuildState *build_state,
                                        uint64_t max_size)
 {
     return rom_add_blob(name, blob->data, acpi_data_len(blob), max_size, -1,
-                        name, virt_acpi_build_update, build_state);
+                        name, virt_acpi_build_update, build_state, NULL);
 }
 
 static const VMStateDescription vmstate_virt_acpi_build = {

@@ -16,6 +16,7 @@ block-obj-$(CONFIG_POSIX) += aio-posix.o
 block-obj-$(CONFIG_WIN32) += aio-win32.o
 block-obj-y += block/
 block-obj-y += qemu-io-cmds.o
+block-obj-$(CONFIG_REPLICATION) += replication.o
 
 block-obj-m = block/
 
@@ -97,7 +98,7 @@ endif
 
 #######################################################################
 # Target-independent parts used in system and user emulation
-common-obj-y += tcg-runtime.o
+common-obj-y += cpus-common.o
 common-obj-y += hw/
 common-obj-y += qom/
 common-obj-y += disas/
@@ -150,6 +151,7 @@ trace-events-y += hw/dma/trace-events
 trace-events-y += hw/sparc/trace-events
 trace-events-y += hw/sd/trace-events
 trace-events-y += hw/isa/trace-events
+trace-events-y += hw/mem/trace-events
 trace-events-y += hw/i386/trace-events
 trace-events-y += hw/9pfs/trace-events
 trace-events-y += hw/ppc/trace-events
@@ -162,9 +164,11 @@ trace-events-y += hw/alpha/trace-events
 trace-events-y += ui/trace-events
 trace-events-y += audio/trace-events
 trace-events-y += net/trace-events
+trace-events-y += target-arm/trace-events
 trace-events-y += target-i386/trace-events
 trace-events-y += target-sparc/trace-events
 trace-events-y += target-s390x/trace-events
 trace-events-y += target-ppc/trace-events
 trace-events-y += qom/trace-events
 trace-events-y += linux-user/trace-events
+trace-events-y += qapi/trace-events

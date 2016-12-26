@@ -150,13 +150,16 @@ The trace backends are chosen at configure time:
 For a list of supported trace backends, try ./configure --help or see below.
 If multiple backends are enabled, the trace is sent to them all.
 
+If no backends are explicitly selected, configure will default to the
+"log" backend.
+
 The following subsections describe the supported trace backends.
 
 === Nop ===
 
 The "nop" backend generates empty trace event functions so that the compiler
-can optimize out trace events completely.  This is the default and imposes no
-performance penalty.
+can optimize out trace events completely.  This imposes no performance
+penalty.
 
 Note that regardless of the selected trace backend, events with the "disable"
 property will be generated with the "nop" backend.
@@ -191,6 +194,18 @@ After running qemu by root user, you can get the trace:
    # cat /sys/kernel/debug/tracing/trace
 
 Restriction: "ftrace" backend is restricted to Linux only.
+
+=== Syslog ===
+
+The "syslog" backend sends trace events using the POSIX syslog API. The log
+is opened specifying the LOG_DAEMON facility and LOG_PID option (so events
+are tagged with the pid of the particular QEMU process that generated
+them). All events are logged at LOG_INFO level.
+
+NOTE: syslog may squash duplicate consecutive trace events and apply rate
+      limiting.
+
+Restriction: "syslog" backend is restricted to POSIX compliant OS.
 
 ==== Monitor commands ====
 

@@ -128,6 +128,9 @@ extern int daemon(int, int);
 #if !defined(EMEDIUMTYPE)
 #define EMEDIUMTYPE 4098
 #endif
+#if !defined(ESHUTDOWN)
+#define ESHUTDOWN 4099
+#endif
 #ifndef TIME_MAX
 #define TIME_MAX LONG_MAX
 #endif
@@ -139,6 +142,14 @@ extern int daemon(int, int);
 # define HOST_LONG_BITS 64
 #else
 # error Unknown pointer size
+#endif
+
+/* Mac OSX has a <stdint.h> bug that incorrectly defines SIZE_MAX with
+ * the wrong type. Our replacement isn't usable in preprocessor
+ * expressions, but it is sufficient for our needs. */
+#if defined(HAVE_BROKEN_SIZE_MAX) && HAVE_BROKEN_SIZE_MAX
+#undef SIZE_MAX
+#define SIZE_MAX ((size_t)-1)
 #endif
 
 #ifndef MIN
@@ -386,6 +397,16 @@ void qemu_set_tty_echo(int fd, bool echo);
 void os_mem_prealloc(int fd, char *area, size_t sz, Error **errp);
 
 int qemu_read_password(char *buf, int buf_size);
+
+/**
+ * qemu_get_pid_name:
+ * @pid: pid of a process
+ *
+ * For given @pid fetch its name. Caller is responsible for
+ * freeing the string when no longer needed.
+ * Returns allocated string on success, NULL on failure.
+ */
+char *qemu_get_pid_name(pid_t pid);
 
 /**
  * qemu_fork:

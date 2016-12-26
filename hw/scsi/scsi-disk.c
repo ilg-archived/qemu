@@ -341,6 +341,7 @@ static void scsi_do_read(SCSIDiskReq *r, int ret)
         r->req.resid -= r->req.sg->size;
         r->req.aiocb = dma_blk_io(blk_get_aio_context(s->qdev.conf.blk),
                                   r->req.sg, r->sector << BDRV_SECTOR_BITS,
+                                  BDRV_SECTOR_SIZE,
                                   sdc->dma_readv, r, scsi_dma_complete, r,
                                   DMA_DIRECTION_FROM_DEVICE);
     } else {
@@ -396,7 +397,7 @@ static void scsi_read_data(SCSIRequest *req)
         return;
     }
 
-    if (s->tray_open) {
+    if (!blk_is_available(req->dev->conf.blk)) {
         scsi_read_complete(r, -ENOMEDIUM);
         return;
     }
@@ -519,7 +520,7 @@ static void scsi_write_data(SCSIRequest *req)
         scsi_write_complete_noio(r, 0);
         return;
     }
-    if (s->tray_open) {
+    if (!blk_is_available(req->dev->conf.blk)) {
         scsi_write_complete_noio(r, -ENOMEDIUM);
         return;
     }
@@ -539,6 +540,7 @@ static void scsi_write_data(SCSIRequest *req)
         r->req.resid -= r->req.sg->size;
         r->req.aiocb = dma_blk_io(blk_get_aio_context(s->qdev.conf.blk),
                                   r->req.sg, r->sector << BDRV_SECTOR_BITS,
+                                  BDRV_SECTOR_SIZE,
                                   sdc->dma_writev, r, scsi_dma_complete, r,
                                   DMA_DIRECTION_TO_DEVICE);
     } else {
@@ -599,8 +601,8 @@ static int scsi_disk_emulate_inquiry(SCSIRequest *req, uint8_t *outbuf)
             }
 
             l = strlen(s->serial);
-            if (l > 20) {
-                l = 20;
+            if (l > 36) {
+                l = 36;
             }
 
             DPRINTF("Inquiry EVPD[Serial number] "
@@ -792,10 +794,7 @@ static inline bool media_is_dvd(SCSIDiskState *s)
     if (s->qdev.type != TYPE_ROM) {
         return false;
     }
-    if (!blk_is_inserted(s->qdev.conf.blk)) {
-        return false;
-    }
-    if (s->tray_open) {
+    if (!blk_is_available(s->qdev.conf.blk)) {
         return false;
     }
     blk_get_geometry(s->qdev.conf.blk, &nb_sectors);
@@ -808,10 +807,7 @@ static inline bool media_is_cd(SCSIDiskState *s)
     if (s->qdev.type != TYPE_ROM) {
         return false;
     }
-    if (!blk_is_inserted(s->qdev.conf.blk)) {
-        return false;
-    }
-    if (s->tray_open) {
+    if (!blk_is_available(s->qdev.conf.blk)) {
         return false;
     }
     blk_get_geometry(s->qdev.conf.blk, &nb_sectors);
@@ -875,7 +871,7 @@ static int scsi_read_dvd_structure(SCSIDiskState *s, SCSIDiskReq *r,
     }
 
     if (format != 0xff) {
-        if (s->tray_open || !blk_is_inserted(s->qdev.conf.blk)) {
+        if (!blk_is_available(s->qdev.conf.blk)) {
             scsi_check_condition(r, SENSE_CODE(NO_MEDIUM));
             return -1;
         }
@@ -1857,7 +1853,7 @@ static int32_t scsi_disk_emulate_command(SCSIRequest *req, uint8_t *buf)
         break;
 
     default:
-        if (s->tray_open || !blk_is_inserted(s->qdev.conf.blk)) {
+        if (!blk_is_available(s->qdev.conf.blk)) {
             scsi_check_condition(r, SENSE_CODE(NO_MEDIUM));
             return 0;
         }
@@ -1886,7 +1882,7 @@ static int32_t scsi_disk_emulate_command(SCSIRequest *req, uint8_t *buf)
     memset(outbuf, 0, r->buflen);
     switch (req->cmd.buf[0]) {
     case TEST_UNIT_READY:
-        assert(!s->tray_open && blk_is_inserted(s->qdev.conf.blk));
+        assert(blk_is_available(s->qdev.conf.blk));
         break;
     case INQUIRY:
         buflen = scsi_disk_emulate_inquiry(req, outbuf);
@@ -2126,7 +2122,7 @@ static int32_t scsi_disk_dma_command(SCSIRequest *req, uint8_t *buf)
 
     command = buf[0];
 
-    if (s->tray_open || !blk_is_inserted(s->qdev.conf.blk)) {
+    if (!blk_is_available(s->qdev.conf.blk)) {
         scsi_check_condition(r, SENSE_CODE(NO_MEDIUM));
         return 0;
     }
@@ -2359,6 +2355,11 @@ static void scsi_hd_realize(SCSIDevice *dev, Error **errp)
 static void scsi_cd_realize(SCSIDevice *dev, Error **errp)
 {
     SCSIDiskState *s = DO_UPCAST(SCSIDiskState, qdev, dev);
+
+    if (!dev->conf.blk) {
+        dev->conf.blk = blk_new();
+    }
+
     s->qdev.blocksize = 2048;
     s->qdev.type = TYPE_ROM;
     s->features |= 1 << SCSI_DISK_F_REMOVABLE;

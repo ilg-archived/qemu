@@ -1190,6 +1190,7 @@ static int ehci_init_transfer(EHCIPacket *p)
     while (bytes > 0) {
         if (cpage > 4) {
             fprintf(stderr, "cpage out of range (%d)\n", cpage);
+            qemu_sglist_destroy(&p->sgl);
             return -1;
         }
 
@@ -1426,6 +1427,7 @@ static int ehci_process_itd(EHCIState *ehci,
             if (off + len > 4096) {
                 /* transfer crosses page border */
                 if (pg == 6) {
+                    qemu_sglist_destroy(&ehci->isgl);
                     return -1;  /* avoid page pg + 1 */
                 }
                 ptr2 = (itd->bufptr[pg + 1] & ITD_BUFPTR_MASK);

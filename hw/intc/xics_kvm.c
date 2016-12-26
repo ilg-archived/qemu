@@ -272,7 +272,7 @@ static void ics_kvm_set_irq(void *opaque, int srcno, int val)
 
 static void ics_kvm_reset(DeviceState *dev)
 {
-    ICSState *ics = ICS(dev);
+    ICSState *ics = ICS_SIMPLE(dev);
     int i;
     uint8_t flags[ics->nr_irqs];
 
@@ -293,7 +293,7 @@ static void ics_kvm_reset(DeviceState *dev)
 
 static void ics_kvm_realize(DeviceState *dev, Error **errp)
 {
-    ICSState *ics = ICS(dev);
+    ICSState *ics = ICS_SIMPLE(dev);
 
     if (!ics->nr_irqs) {
         error_setg(errp, "Number of interrupts needs to be greater 0");
@@ -306,7 +306,7 @@ static void ics_kvm_realize(DeviceState *dev, Error **errp)
 static void ics_kvm_class_init(ObjectClass *klass, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(klass);
-    ICSStateClass *icsc = ICS_CLASS(klass);
+    ICSStateClass *icsc = ICS_BASE_CLASS(klass);
 
     dc->realize = ics_kvm_realize;
     dc->reset = ics_kvm_reset;
@@ -315,8 +315,8 @@ static void ics_kvm_class_init(ObjectClass *klass, void *data)
 }
 
 static const TypeInfo ics_kvm_info = {
-    .name = TYPE_KVM_ICS,
-    .parent = TYPE_ICS,
+    .name = TYPE_ICS_KVM,
+    .parent = TYPE_ICS_SIMPLE,
     .instance_size = sizeof(ICSState),
     .class_init = ics_kvm_class_init,
 };
@@ -329,6 +329,7 @@ static void xics_kvm_cpu_setup(XICSState *xics, PowerPCCPU *cpu)
     CPUState *cs;
     ICPState *ss;
     KVMXICSState *xicskvm = XICS_SPAPR_KVM(xics);
+    int ret;
 
     cs = CPU(cpu);
     ss = &xics->ss[cs->cpu_index];
@@ -347,42 +348,32 @@ static void xics_kvm_cpu_setup(XICSState *xics, PowerPCCPU *cpu)
         return;
     }
 
-    if (xicskvm->kernel_xics_fd != -1) {
-        int ret;
-
-        ret = kvm_vcpu_enable_cap(cs, KVM_CAP_IRQ_XICS, 0,
-                                  xicskvm->kernel_xics_fd,
-                                  kvm_arch_vcpu_id(cs));
-        if (ret < 0) {
-            error_report("Unable to connect CPU%ld to kernel XICS: %s",
-                    kvm_arch_vcpu_id(cs), strerror(errno));
-            exit(1);
-        }
-        ss->cap_irq_xics_enabled = true;
+    ret = kvm_vcpu_enable_cap(cs, KVM_CAP_IRQ_XICS, 0, xicskvm->kernel_xics_fd,
+                              kvm_arch_vcpu_id(cs));
+    if (ret < 0) {
+        error_report("Unable to connect CPU%ld to kernel XICS: %s",
+                     kvm_arch_vcpu_id(cs), strerror(errno));
+        exit(1);
     }
+    ss->cap_irq_xics_enabled = true;
 }
 
 static void xics_kvm_set_nr_irqs(XICSState *xics, uint32_t nr_irqs,
                                  Error **errp)
 {
-    xics->nr_irqs = xics->ics->nr_irqs = nr_irqs;
+    ICSState *ics = QLIST_FIRST(&xics->ics);
+
+    /* This needs to be deprecated ... */
+    xics->nr_irqs = nr_irqs;
+    if (ics) {
+        ics->nr_irqs = nr_irqs;
+    }
 }
 
 static void xics_kvm_set_nr_servers(XICSState *xics, uint32_t nr_servers,
                                     Error **errp)
 {
-    int i;
-
-    xics->nr_servers = nr_servers;
-
-    xics->ss = g_malloc0(xics->nr_servers * sizeof(ICPState));
-    for (i = 0; i < xics->nr_servers; i++) {
-        char buffer[32];
-        object_initialize(&xics->ss[i], sizeof(xics->ss[i]), TYPE_KVM_ICP);
-        snprintf(buffer, sizeof(buffer), "icp[%d]", i);
-        object_property_add_child(OBJECT(xics), buffer, OBJECT(&xics->ss[i]),
-                                  errp);
-    }
+    xics_set_nr_servers(xics, nr_servers, TYPE_KVM_ICP, errp);
 }
 
 static void rtas_dummy(PowerPCCPU *cpu, sPAPRMachineState *spapr,
@@ -398,6 +389,7 @@ static void xics_kvm_realize(DeviceState *dev, Error **errp)
 {
     KVMXICSState *xicskvm = XICS_SPAPR_KVM(dev);
     XICSState *xics = XICS_COMMON(dev);
+    ICSState *ics;
     int i, rc;
     Error *error = NULL;
     struct kvm_create_device xics_create_device = {
@@ -449,10 +441,12 @@ static void xics_kvm_realize(DeviceState *dev, Error **errp)
 
     xicskvm->kernel_xics_fd = xics_create_device.fd;
 
-    object_property_set_bool(OBJECT(xics->ics), true, "realized", &error);
-    if (error) {
-        error_propagate(errp, error);
-        goto fail;
+    QLIST_FOREACH(ics, &xics->ics, list) {
+        object_property_set_bool(OBJECT(ics), true, "realized", &error);
+        if (error) {
+            error_propagate(errp, error);
+            goto fail;
+        }
     }
 
     assert(xics->nr_servers);
@@ -481,10 +475,12 @@ fail:
 static void xics_kvm_initfn(Object *obj)
 {
     XICSState *xics = XICS_COMMON(obj);
+    ICSState *ics;
 
-    xics->ics = ICS(object_new(TYPE_KVM_ICS));
-    object_property_add_child(obj, "ics", OBJECT(xics->ics), NULL);
-    xics->ics->xics = xics;
+    ics = ICS_SIMPLE(object_new(TYPE_ICS_KVM));
+    object_property_add_child(obj, "ics", OBJECT(ics), NULL);
+    ics->xics = xics;
+    QLIST_INSERT_HEAD(&xics->ics, ics, list);
 }
 
 static void xics_kvm_class_init(ObjectClass *oc, void *data)

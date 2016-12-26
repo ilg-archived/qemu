@@ -21,13 +21,14 @@ PUBLIC = True
 
 def is_string(arg):
     strtype = ('const char*', 'char*', 'const char *', 'char *')
-    if arg.lstrip().startswith(strtype):
+    arg_strip = arg.lstrip()
+    if arg_strip.startswith(strtype) and arg_strip.count('*') == 1:
         return True
     else:
         return False
 
 
-def generate_h_begin(events):
+def generate_h_begin(events, group):
     for event in events:
         out('void _simple_%(api)s(%(args)s);',
             api=event.api(),
@@ -35,13 +36,13 @@ def generate_h_begin(events):
     out('')
 
 
-def generate_h(event):
+def generate_h(event, group):
     out('        _simple_%(api)s(%(args)s);',
         api=event.api(),
         args=", ".join(event.args.names()))
 
 
-def generate_c_begin(events):
+def generate_c_begin(events, group):
     out('#include "qemu/osdep.h"',
         '#include "trace.h"',
         '#include "trace/control.h"',
@@ -49,7 +50,7 @@ def generate_c_begin(events):
         '')
 
 
-def generate_c(event):
+def generate_c(event, group):
     out('void _simple_%(api)s(%(args)s)',
         '{',
         '    TraceBufferRecord rec;',
@@ -80,11 +81,11 @@ def generate_c(event):
         '        return;',
         '    }',
         '',
-        '    if (trace_record_start(&rec, %(event_id)s, %(size_str)s)) {',
+        '    if (trace_record_start(&rec, %(event_obj)s.id, %(size_str)s)) {',
         '        return; /* Trace Buffer Full, Event Dropped ! */',
         '    }',
         cond=cond,
-        event_id=event_id,
+        event_obj=event.api(event.QEMU_EVENT),
         size_str=sizestr)
 
     if len(event.args) > 0:

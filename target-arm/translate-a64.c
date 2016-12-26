@@ -41,6 +41,7 @@ static TCGv_i64 cpu_pc;
 
 /* Load/store exclusive handling */
 static TCGv_i64 cpu_exclusive_high;
+static TCGv_i64 cpu_reg(DisasContext *s, int reg);
 
 static const char *regnames[] = {
     "x0", "x1", "x2", "x3", "x4", "x5", "x6", "x7",
@@ -174,6 +175,76 @@ void aarch64_cpu_dump_state(CPUState *cs, FILE *f,
 void gen_a64_set_pc_im(uint64_t val)
 {
     tcg_gen_movi_i64(cpu_pc, val);
+}
+
+/* Load the PC from a generic TCG variable.
+ *
+ * If address tagging is enabled via the TCR TBI bits, then loading
+ * an address into the PC will clear out any tag in the it:
+ *  + for EL2 and EL3 there is only one TBI bit, and if it is set
+ *    then the address is zero-extended, clearing bits [63:56]
+ *  + for EL0 and EL1, TBI0 controls addresses with bit 55 == 0
+ *    and TBI1 controls addressses with bit 55 == 1.
+ *    If the appropriate TBI bit is set for the address then
+ *    the address is sign-extended from bit 55 into bits [63:56]
+ *
+ * We can avoid doing this for relative-branches, because the
+ * PC + offset can never overflow into the tag bits (assuming
+ * that virtual addresses are less than 56 bits wide, as they
+ * are currently), but we must handle it for branch-to-register.
+ */
+static void gen_a64_set_pc(DisasContext *s, TCGv_i64 src)
+{
+
+    if (s->current_el <= 1) {
+        /* Test if NEITHER or BOTH TBI values are set.  If so, no need to
+         * examine bit 55 of address, can just generate code.
+         * If mixed, then test via generated code
+         */
+        if (s->tbi0 && s->tbi1) {
+            TCGv_i64 tmp_reg = tcg_temp_new_i64();
+            /* Both bits set, sign extension from bit 55 into [63:56] will
+             * cover both cases
+             */
+            tcg_gen_shli_i64(tmp_reg, src, 8);
+            tcg_gen_sari_i64(cpu_pc, tmp_reg, 8);
+            tcg_temp_free_i64(tmp_reg);
+        } else if (!s->tbi0 && !s->tbi1) {
+            /* Neither bit set, just load it as-is */
+            tcg_gen_mov_i64(cpu_pc, src);
+        } else {
+            TCGv_i64 tcg_tmpval = tcg_temp_new_i64();
+            TCGv_i64 tcg_bit55  = tcg_temp_new_i64();
+            TCGv_i64 tcg_zero   = tcg_const_i64(0);
+
+            tcg_gen_andi_i64(tcg_bit55, src, (1ull << 55));
+
+            if (s->tbi0) {
+                /* tbi0==1, tbi1==0, so 0-fill upper byte if bit 55 = 0 */
+                tcg_gen_andi_i64(tcg_tmpval, src,
+                                 0x00FFFFFFFFFFFFFFull);
+                tcg_gen_movcond_i64(TCG_COND_EQ, cpu_pc, tcg_bit55, tcg_zero,
+                                    tcg_tmpval, src);
+            } else {
+                /* tbi0==0, tbi1==1, so 1-fill upper byte if bit 55 = 1 */
+                tcg_gen_ori_i64(tcg_tmpval, src,
+                                0xFF00000000000000ull);
+                tcg_gen_movcond_i64(TCG_COND_NE, cpu_pc, tcg_bit55, tcg_zero,
+                                    tcg_tmpval, src);
+            }
+            tcg_temp_free_i64(tcg_zero);
+            tcg_temp_free_i64(tcg_bit55);
+            tcg_temp_free_i64(tcg_tmpval);
+        }
+    } else {  /* EL > 1 */
+        if (s->tbi0) {
+            /* Force tag byte to all zero */
+            tcg_gen_andi_i64(cpu_pc, src, 0x00FFFFFFFFFFFFFFull);
+        } else {
+            /* Load unmodified address */
+            tcg_gen_mov_i64(cpu_pc, src);
+        }
+    }
 }
 
 typedef struct DisasCompare64 {
@@ -1294,6 +1365,8 @@ static void gen_clrex(DisasContext *s, uint32_t insn)
 static void handle_sync(DisasContext *s, uint32_t insn,
                         unsigned int op1, unsigned int op2, unsigned int crm)
 {
+    TCGBar bar;
+
     if (op1 != 3) {
         unallocated_encoding(s);
         return;
@@ -1305,7 +1378,18 @@ static void handle_sync(DisasContext *s, uint32_t insn,
         return;
     case 4: /* DSB */
     case 5: /* DMB */
-        /* We don't emulate caches so barriers are no-ops */
+        switch (crm & 3) {
+        case 1: /* MBReqTypes_Reads */
+            bar = TCG_BAR_SC | TCG_MO_LD_LD | TCG_MO_LD_ST;
+            break;
+        case 2: /* MBReqTypes_Writes */
+            bar = TCG_BAR_SC | TCG_MO_ST_ST;
+            break;
+        default: /* MBReqTypes_All */
+            bar = TCG_BAR_SC | TCG_MO_ALL;
+            break;
+        }
+        tcg_gen_mb(bar);
         return;
     case 6: /* ISB */
         /* We need to break the TB after this insn to execute
@@ -1583,12 +1667,12 @@ static void disas_exc(DisasContext *s, uint32_t insn)
          * instruction works properly.
          */
         switch (op2_ll) {
-        case 1:
+        case 1:                                                     /* SVC */
             gen_ss_advance(s);
             gen_exception_insn(s, 0, EXCP_SWI, syn_aa64_svc(imm16),
                                default_exception_el(s));
             break;
-        case 2:
+        case 2:                                                     /* HVC */
             if (s->current_el == 0) {
                 unallocated_encoding(s);
                 break;
@@ -1601,7 +1685,7 @@ static void disas_exc(DisasContext *s, uint32_t insn)
             gen_ss_advance(s);
             gen_exception_insn(s, 0, EXCP_HVC, syn_aa64_hvc(imm16), 2);
             break;
-        case 3:
+        case 3:                                                     /* SMC */
             if (s->current_el == 0) {
                 unallocated_encoding(s);
                 break;
@@ -1691,12 +1775,13 @@ static void disas_uncond_b_reg(DisasContext *s, uint32_t insn)
 
     switch (opc) {
     case 0: /* BR */
-    case 2: /* RET */
-        tcg_gen_mov_i64(cpu_pc, cpu_reg(s, rn));
-        break;
     case 1: /* BLR */
-        tcg_gen_mov_i64(cpu_pc, cpu_reg(s, rn));
-        tcg_gen_movi_i64(cpu_reg(s, 30), s->pc);
+    case 2: /* RET */
+        gen_a64_set_pc(s, cpu_reg(s, rn));
+        /* BLR also needs to load return address */
+        if (opc == 1) {
+            tcg_gen_movi_i64(cpu_reg(s, 30), s->pc);
+        }
         break;
     case 4: /* ERET */
         if (s->current_el == 0) {
@@ -1761,9 +1846,9 @@ static void disas_b_exc_sys(DisasContext *s, uint32_t insn)
  * mandated semantics, but it works for typical guest code sequences
  * and avoids having to monitor regular stores.
  *
- * In system emulation mode only one CPU will be running at once, so
- * this sequence is effectively atomic.  In user emulation mode we
- * throw an exception and handle the atomic operation elsewhere.
+ * The store exclusive uses the atomic cmpxchg primitives to avoid
+ * races in multi-threaded linux-user and when MTTCG softmmu is
+ * enabled.
  */
 static void gen_load_exclusive(DisasContext *s, int rt, int rt2,
                                TCGv_i64 addr, int size, bool is_pair)
@@ -1794,16 +1879,6 @@ static void gen_load_exclusive(DisasContext *s, int rt, int rt2,
     tcg_gen_mov_i64(cpu_exclusive_addr, addr);
 }
 
-#ifdef CONFIG_USER_ONLY
-static void gen_store_exclusive(DisasContext *s, int rd, int rt, int rt2,
-                                TCGv_i64 addr, int size, int is_pair)
-{
-    tcg_gen_mov_i64(cpu_exclusive_test, addr);
-    tcg_gen_movi_i32(cpu_exclusive_info,
-                     size | is_pair << 2 | (rd << 4) | (rt << 9) | (rt2 << 14));
-    gen_exception_internal_insn(s, 4, EXCP_STREX);
-}
-#else
 static void gen_store_exclusive(DisasContext *s, int rd, int rt, int rt2,
                                 TCGv_i64 inaddr, int size, int is_pair)
 {
@@ -1831,46 +1906,42 @@ static void gen_store_exclusive(DisasContext *s, int rd, int rt, int rt2,
     tcg_gen_brcond_i64(TCG_COND_NE, addr, cpu_exclusive_addr, fail_label);
 
     tmp = tcg_temp_new_i64();
-    tcg_gen_qemu_ld_i64(tmp, addr, get_mem_index(s), s->be_data + size);
-    tcg_gen_brcond_i64(TCG_COND_NE, tmp, cpu_exclusive_val, fail_label);
-    tcg_temp_free_i64(tmp);
-
     if (is_pair) {
-        TCGv_i64 addrhi = tcg_temp_new_i64();
-        TCGv_i64 tmphi = tcg_temp_new_i64();
-
-        tcg_gen_addi_i64(addrhi, addr, 1 << size);
-        tcg_gen_qemu_ld_i64(tmphi, addrhi, get_mem_index(s),
-                            s->be_data + size);
-        tcg_gen_brcond_i64(TCG_COND_NE, tmphi, cpu_exclusive_high, fail_label);
-
-        tcg_temp_free_i64(tmphi);
-        tcg_temp_free_i64(addrhi);
-    }
-
-    /* We seem to still have the exclusive monitor, so do the store */
-    tcg_gen_qemu_st_i64(cpu_reg(s, rt), addr, get_mem_index(s),
-                        s->be_data + size);
-    if (is_pair) {
-        TCGv_i64 addrhi = tcg_temp_new_i64();
-
-        tcg_gen_addi_i64(addrhi, addr, 1 << size);
-        tcg_gen_qemu_st_i64(cpu_reg(s, rt2), addrhi,
-                            get_mem_index(s), s->be_data + size);
-        tcg_temp_free_i64(addrhi);
+        if (size == 2) {
+            TCGv_i64 val = tcg_temp_new_i64();
+            tcg_gen_concat32_i64(tmp, cpu_reg(s, rt), cpu_reg(s, rt2));
+            tcg_gen_concat32_i64(val, cpu_exclusive_val, cpu_exclusive_high);
+            tcg_gen_atomic_cmpxchg_i64(tmp, addr, val, tmp,
+                                       get_mem_index(s),
+                                       size | MO_ALIGN | s->be_data);
+            tcg_gen_setcond_i64(TCG_COND_NE, tmp, tmp, val);
+            tcg_temp_free_i64(val);
+        } else if (s->be_data == MO_LE) {
+            gen_helper_paired_cmpxchg64_le(tmp, cpu_env, addr, cpu_reg(s, rt),
+                                           cpu_reg(s, rt2));
+        } else {
+            gen_helper_paired_cmpxchg64_be(tmp, cpu_env, addr, cpu_reg(s, rt),
+                                           cpu_reg(s, rt2));
+        }
+    } else {
+        TCGv_i64 val = cpu_reg(s, rt);
+        tcg_gen_atomic_cmpxchg_i64(tmp, addr, cpu_exclusive_val, val,
+                                   get_mem_index(s),
+                                   size | MO_ALIGN | s->be_data);
+        tcg_gen_setcond_i64(TCG_COND_NE, tmp, tmp, cpu_exclusive_val);
     }
 
     tcg_temp_free_i64(addr);
 
-    tcg_gen_movi_i64(cpu_reg(s, rd), 0);
+    tcg_gen_mov_i64(cpu_reg(s, rd), tmp);
+    tcg_temp_free_i64(tmp);
     tcg_gen_br(done_label);
+
     gen_set_label(fail_label);
     tcg_gen_movi_i64(cpu_reg(s, rd), 1);
     gen_set_label(done_label);
     tcg_gen_movi_i64(cpu_exclusive_addr, -1);
-
 }
-#endif
 
 /* Update the Sixty-Four bit (SF) registersize. This logic is derived
  * from the ARMv8 specs for LDR (Shared decode for all encodings).
@@ -1934,7 +2005,13 @@ static void disas_ldst_excl(DisasContext *s, uint32_t insn)
         if (!is_store) {
             s->is_ldex = true;
             gen_load_exclusive(s, rt, rt2, tcg_addr, size, is_pair);
+            if (is_lasr) {
+                tcg_gen_mb(TCG_MO_ALL | TCG_BAR_LDAQ);
+            }
         } else {
+            if (is_lasr) {
+                tcg_gen_mb(TCG_MO_ALL | TCG_BAR_STRL);
+            }
             gen_store_exclusive(s, rs, rt, rt2, tcg_addr, size, is_pair);
         }
     } else {
@@ -1943,11 +2020,17 @@ static void disas_ldst_excl(DisasContext *s, uint32_t insn)
 
         /* Generate ISS for non-exclusive accesses including LASR.  */
         if (is_store) {
+            if (is_lasr) {
+                tcg_gen_mb(TCG_MO_ALL | TCG_BAR_STRL);
+            }
             do_gpr_st(s, tcg_rt, tcg_addr, size,
                       true, rt, iss_sf, is_lasr);
         } else {
             do_gpr_ld(s, tcg_rt, tcg_addr, size, false, false,
                       true, rt, iss_sf, is_lasr);
+            if (is_lasr) {
+                tcg_gen_mb(TCG_MO_ALL | TCG_BAR_LDAQ);
+            }
         }
     }
 }
@@ -2000,7 +2083,7 @@ static void disas_ld_lit(DisasContext *s, uint32_t insn)
         do_fp_ld(s, rt, tcg_addr, size);
     } else {
         /* Only unsigned 32bit loads target 32bit registers.  */
-        bool iss_sf = opc == 0 ? 32 : 64;
+        bool iss_sf = opc != 0;
 
         do_gpr_ld(s, tcg_rt, tcg_addr, size, is_signed, false,
                   true, rt, iss_sf, false);
@@ -11150,6 +11233,8 @@ void gen_intermediate_code_a64(ARMCPU *cpu, TranslationBlock *tb)
     dc->condexec_mask = 0;
     dc->condexec_cond = 0;
     dc->mmu_idx = ARM_TBFLAG_MMUIDX(tb->flags);
+    dc->tbi0 = ARM_TBFLAG_TBI0(tb->flags);
+    dc->tbi1 = ARM_TBFLAG_TBI1(tb->flags);
     dc->current_el = arm_mmu_idx_to_el(dc->mmu_idx);
 #if !defined(CONFIG_USER_ONLY)
     dc->user = (dc->current_el == 0);
@@ -11331,11 +11416,13 @@ done_generating:
 #ifdef DEBUG_DISAS
     if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM) &&
         qemu_log_in_addr_range(pc_start)) {
+        qemu_log_lock();
         qemu_log("----------------\n");
         qemu_log("IN: %s\n", lookup_symbol(pc_start));
         log_target_disas(cs, pc_start, dc->pc - pc_start,
                          4 | (bswap_code(dc->sctlr_b) ? 2 : 0));
         qemu_log("\n");
+        qemu_log_unlock();
     }
 #endif
     tb->size = dc->pc - pc_start;

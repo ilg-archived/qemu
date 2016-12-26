@@ -76,16 +76,12 @@ struct VIOsPAPRDevice {
 struct VIOsPAPRBus {
     BusState bus;
     uint32_t next_reg;
-    int (*init)(VIOsPAPRDevice *dev);
-    int (*devnode)(VIOsPAPRDevice *dev, void *fdt, int node_off);
 };
 
 extern VIOsPAPRBus *spapr_vio_bus_init(void);
 extern VIOsPAPRDevice *spapr_vio_find_by_reg(VIOsPAPRBus *bus, uint32_t reg);
-extern int spapr_populate_vdevice(VIOsPAPRBus *bus, void *fdt);
-extern int spapr_populate_chosen_stdout(void *fdt, VIOsPAPRBus *bus);
-
-extern int spapr_vio_signal(VIOsPAPRDevice *dev, target_ulong mode);
+void spapr_dt_vdevice(VIOsPAPRBus *bus, void *fdt);
+extern gchar *spapr_vio_stdout_path(VIOsPAPRBus *bus);
 
 static inline qemu_irq spapr_vio_qirq(VIOsPAPRDevice *dev)
 {
@@ -136,8 +132,6 @@ void spapr_vlan_create(VIOsPAPRBus *bus, NICInfo *nd);
 void spapr_vscsi_create(VIOsPAPRBus *bus);
 
 VIOsPAPRDevice *spapr_vty_get_default(VIOsPAPRBus *bus);
-
-void spapr_vio_quiesce(void);
 
 extern const VMStateDescription vmstate_spapr_vio;
 

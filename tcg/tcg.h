@@ -287,20 +287,19 @@ typedef enum TCGMemOp {
      * MO_ALIGN accesses will result in a call to the CPU's
      * do_unaligned_access hook if the guest address is not aligned.
      * The default depends on whether the target CPU defines ALIGNED_ONLY.
+     *
      * Some architectures (e.g. ARMv8) need the address which is aligned
      * to a size more than the size of the memory access.
-     * To support such check it's enough the current costless alignment
-     * check implementation in QEMU, but we need to support
-     * an alignment size specifying.
-     * MO_ALIGN supposes a natural alignment
-     * (i.e. the alignment size is the size of a memory access).
-     * Note that an alignment size must be equal or greater
-     * than an access size.
+     * Some architectures (e.g. SPARCv9) need an address which is aligned,
+     * but less strictly than the natural alignment.
+     *
+     * MO_ALIGN supposes the alignment size is the size of a memory access.
+     *
      * There are three options:
-     * - an alignment to the size of an access (MO_ALIGN);
-     * - an alignment to the specified size that is equal or greater than
-     *   an access size (MO_ALIGN_x where 'x' is a size in bytes);
      * - unaligned access permitted (MO_UNALN).
+     * - an alignment to the size of an access (MO_ALIGN);
+     * - an alignment to a specified size, which may be more or less than
+     *   the access size (MO_ALIGN_x where 'x' is a size in bytes);
      */
     MO_ASHIFT = 4,
     MO_AMASK = 7 << MO_ASHIFT,
@@ -353,50 +352,60 @@ typedef enum TCGMemOp {
  * @memop: TCGMemOp value
  *
  * Extract the alignment size from the memop.
- *
- * Returns: 0 in case of byte access (which is always aligned);
- *          positive value - number of alignment bits;
- *          negative value if unaligned access enabled
- *          and this is not a byte access.
  */
-static inline int get_alignment_bits(TCGMemOp memop)
+static inline unsigned get_alignment_bits(TCGMemOp memop)
 {
-    int a = memop & MO_AMASK;
-    int s = memop & MO_SIZE;
-    int r;
+    unsigned a = memop & MO_AMASK;
 
     if (a == MO_UNALN) {
-        /* Negative value if unaligned access enabled,
-         * or zero value in case of byte access.
-         */
-        return -s;
+        /* No alignment required.  */
+        a = 0;
     } else if (a == MO_ALIGN) {
-        /* A natural alignment: return a number of access size bits */
-        r = s;
+        /* A natural alignment requirement.  */
+        a = memop & MO_SIZE;
     } else {
-        /* Specific alignment size. It must be equal or greater
-         * than the access size.
-         */
-        r = a >> MO_ASHIFT;
-        tcg_debug_assert(r >= s);
+        /* A specific alignment requirement.  */
+        a = a >> MO_ASHIFT;
     }
 #if defined(CONFIG_SOFTMMU)
     /* The requested alignment cannot overlap the TLB flags.  */
-    tcg_debug_assert((TLB_FLAGS_MASK & ((1 << r) - 1)) == 0);
+    tcg_debug_assert((TLB_FLAGS_MASK & ((1 << a) - 1)) == 0);
 #endif
-    return r;
+    return a;
 }
 
 typedef tcg_target_ulong TCGArg;
 
-/* Define a type and accessor macros for variables.  Using pointer types
-   is nice because it gives some level of type safely.  Converting to and
-   from intptr_t rather than int reduces the number of sign-extension
-   instructions that get implied on 64-bit hosts.  Users of tcg_gen_* don't
-   need to know about any of this, and should treat TCGv as an opaque type.
-   In addition we do typechecking for different types of variables.  TCGv_i32
-   and TCGv_i64 are 32/64-bit variables respectively.  TCGv and TCGv_ptr
-   are aliases for target_ulong and host pointer sized values respectively.  */
+/* Define type and accessor macros for TCG variables.
+
+   TCG variables are the inputs and outputs of TCG ops, as described
+   in tcg/README. Target CPU front-end code uses these types to deal
+   with TCG variables as it emits TCG code via the tcg_gen_* functions.
+   They come in several flavours:
+    * TCGv_i32 : 32 bit integer type
+    * TCGv_i64 : 64 bit integer type
+    * TCGv_ptr : a host pointer type
+    * TCGv : an integer type the same size as target_ulong
+             (an alias for either TCGv_i32 or TCGv_i64)
+   The compiler's type checking will complain if you mix them
+   up and pass the wrong sized TCGv to a function.
+
+   Users of tcg_gen_* don't need to know about any of the internal
+   details of these, and should treat them as opaque types.
+   You won't be able to look inside them in a debugger either.
+
+   Internal implementation details follow:
+
+   Note that there is no definition of the structs TCGv_i32_d etc anywhere.
+   This is deliberate, because the values we store in variables of type
+   TCGv_i32 are not really pointers-to-structures. They're just small
+   integers, but keeping them in pointer types like this means that the
+   compiler will complain if you accidentally pass a TCGv_i32 to a
+   function which takes a TCGv_i64, and so on. Only the internals of
+   TCG need to care about the actual contents of the types, and they always
+   box and unbox via the MAKE_TCGV_* and GET_TCGV_* functions.
+   Converting to and from intptr_t rather than int reduces the number
+   of sign-extension instructions that get implied on 64-bit hosts.  */
 
 typedef struct TCGv_i32_d *TCGv_i32;
 typedef struct TCGv_i64_d *TCGv_i64;
@@ -477,6 +486,23 @@ static inline intptr_t QEMU_ARTIFICIAL GET_TCGV_PTR(TCGv_ptr t)
 /* used to align parameters */
 #define TCG_CALL_DUMMY_TCGV     MAKE_TCGV_I32(-1)
 #define TCG_CALL_DUMMY_ARG      ((TCGArg)(-1))
+
+typedef enum {
+    /* Used to indicate the type of accesses on which ordering
+       is to be ensured.  Modeled after SPARC barriers.  */
+    TCG_MO_LD_LD  = 0x01,
+    TCG_MO_ST_LD  = 0x02,
+    TCG_MO_LD_ST  = 0x04,
+    TCG_MO_ST_ST  = 0x08,
+    TCG_MO_ALL    = 0x0F,  /* OR of the above */
+
+    /* Used to indicate the kind of ordering which is to be ensured by the
+       instruction.  These types are derived from x86/aarch64 instructions.
+       It should be noted that these are different from C11 semantics.  */
+    TCG_BAR_LDAQ  = 0x10,  /* Following ops will not come forward */
+    TCG_BAR_STRL  = 0x20,  /* Previous ops will not be delayed */
+    TCG_BAR_SC    = 0x30,  /* No ops cross barrier; OR of the above */
+} TCGBar;
 
 /* Conditions.  Note that these are laid out for easy manipulation by
    the functions below:
@@ -700,6 +726,7 @@ struct TCGContext {
 };
 
 extern TCGContext tcg_ctx;
+extern bool parallel_cpus;
 
 static inline void tcg_set_insn_param(int op_idx, int arg, TCGArg v)
 {
@@ -721,14 +748,15 @@ static inline bool tcg_op_buf_full(void)
 
 /* pool based memory allocation */
 
+/* tb_lock must be held for tcg_malloc_internal. */
 void *tcg_malloc_internal(TCGContext *s, int size);
 void tcg_pool_reset(TCGContext *s);
-void tcg_pool_delete(TCGContext *s);
 
 void tb_lock(void);
 void tb_unlock(void);
 void tb_lock_reset(void);
 
+/* Called with tb_lock held.  */
 static inline void *tcg_malloc(int size)
 {
     TCGContext *s = &tcg_ctx;
@@ -907,7 +935,6 @@ void tcg_optimize(TCGContext *s);
 /* only used for debugging purposes */
 void tcg_dump_ops(TCGContext *s);
 
-void dump_ops(const uint16_t *opc_buf, const TCGArg *opparam_buf);
 TCGv_i32 tcg_const_i32(int32_t val);
 TCGv_i64 tcg_const_i64(int64_t val);
 TCGv_i32 tcg_const_local_i32(int32_t val);
@@ -1174,6 +1201,90 @@ uint64_t helper_be_ldq_cmmu(CPUArchState *env, target_ulong addr,
 # define helper_ret_ldq_cmmu  helper_le_ldq_cmmu
 #endif
 
+uint32_t helper_atomic_cmpxchgb_mmu(CPUArchState *env, target_ulong addr,
+                                    uint32_t cmpv, uint32_t newv,
+                                    TCGMemOpIdx oi, uintptr_t retaddr);
+uint32_t helper_atomic_cmpxchgw_le_mmu(CPUArchState *env, target_ulong addr,
+                                       uint32_t cmpv, uint32_t newv,
+                                       TCGMemOpIdx oi, uintptr_t retaddr);
+uint32_t helper_atomic_cmpxchgl_le_mmu(CPUArchState *env, target_ulong addr,
+                                       uint32_t cmpv, uint32_t newv,
+                                       TCGMemOpIdx oi, uintptr_t retaddr);
+uint64_t helper_atomic_cmpxchgq_le_mmu(CPUArchState *env, target_ulong addr,
+                                       uint64_t cmpv, uint64_t newv,
+                                       TCGMemOpIdx oi, uintptr_t retaddr);
+uint32_t helper_atomic_cmpxchgw_be_mmu(CPUArchState *env, target_ulong addr,
+                                       uint32_t cmpv, uint32_t newv,
+                                       TCGMemOpIdx oi, uintptr_t retaddr);
+uint32_t helper_atomic_cmpxchgl_be_mmu(CPUArchState *env, target_ulong addr,
+                                       uint32_t cmpv, uint32_t newv,
+                                       TCGMemOpIdx oi, uintptr_t retaddr);
+uint64_t helper_atomic_cmpxchgq_be_mmu(CPUArchState *env, target_ulong addr,
+                                       uint64_t cmpv, uint64_t newv,
+                                       TCGMemOpIdx oi, uintptr_t retaddr);
+
+#define GEN_ATOMIC_HELPER(NAME, TYPE, SUFFIX)         \
+TYPE helper_atomic_ ## NAME ## SUFFIX ## _mmu         \
+    (CPUArchState *env, target_ulong addr, TYPE val,  \
+     TCGMemOpIdx oi, uintptr_t retaddr);
+
+#ifdef CONFIG_ATOMIC64
+#define GEN_ATOMIC_HELPER_ALL(NAME)          \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, b)     \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, w_le)  \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, w_be)  \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, l_le)  \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, l_be)  \
+    GEN_ATOMIC_HELPER(NAME, uint64_t, q_le)  \
+    GEN_ATOMIC_HELPER(NAME, uint64_t, q_be)
+#else
+#define GEN_ATOMIC_HELPER_ALL(NAME)          \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, b)     \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, w_le)  \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, w_be)  \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, l_le)  \
+    GEN_ATOMIC_HELPER(NAME, uint32_t, l_be)
+#endif
+
+GEN_ATOMIC_HELPER_ALL(fetch_add)
+GEN_ATOMIC_HELPER_ALL(fetch_sub)
+GEN_ATOMIC_HELPER_ALL(fetch_and)
+GEN_ATOMIC_HELPER_ALL(fetch_or)
+GEN_ATOMIC_HELPER_ALL(fetch_xor)
+
+GEN_ATOMIC_HELPER_ALL(add_fetch)
+GEN_ATOMIC_HELPER_ALL(sub_fetch)
+GEN_ATOMIC_HELPER_ALL(and_fetch)
+GEN_ATOMIC_HELPER_ALL(or_fetch)
+GEN_ATOMIC_HELPER_ALL(xor_fetch)
+
+GEN_ATOMIC_HELPER_ALL(xchg)
+
+#undef GEN_ATOMIC_HELPER_ALL
+#undef GEN_ATOMIC_HELPER
 #endif /* CONFIG_SOFTMMU */
+
+#ifdef CONFIG_ATOMIC128
+#include "qemu/int128.h"
+
+/* These aren't really a "proper" helpers because TCG cannot manage Int128.
+   However, use the same format as the others, for use by the backends. */
+Int128 helper_atomic_cmpxchgo_le_mmu(CPUArchState *env, target_ulong addr,
+                                     Int128 cmpv, Int128 newv,
+                                     TCGMemOpIdx oi, uintptr_t retaddr);
+Int128 helper_atomic_cmpxchgo_be_mmu(CPUArchState *env, target_ulong addr,
+                                     Int128 cmpv, Int128 newv,
+                                     TCGMemOpIdx oi, uintptr_t retaddr);
+
+Int128 helper_atomic_ldo_le_mmu(CPUArchState *env, target_ulong addr,
+                                TCGMemOpIdx oi, uintptr_t retaddr);
+Int128 helper_atomic_ldo_be_mmu(CPUArchState *env, target_ulong addr,
+                                TCGMemOpIdx oi, uintptr_t retaddr);
+void helper_atomic_sto_le_mmu(CPUArchState *env, target_ulong addr, Int128 val,
+                              TCGMemOpIdx oi, uintptr_t retaddr);
+void helper_atomic_sto_be_mmu(CPUArchState *env, target_ulong addr, Int128 val,
+                              TCGMemOpIdx oi, uintptr_t retaddr);
+
+#endif /* CONFIG_ATOMIC128 */
 
 #endif /* TCG_H */

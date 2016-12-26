@@ -19,20 +19,24 @@
 #ifdef CONFIG_TRACE_LOG
 #include "qemu/log.h"
 #endif
+#ifdef CONFIG_TRACE_SYSLOG
+#include <syslog.h>
+#endif
 #include "qapi/error.h"
 #include "qemu/error-report.h"
 #include "qemu/config-file.h"
 #include "monitor/monitor.h"
 
 int trace_events_enabled_count;
-/*
- * Interpretation depends on wether the event has the 'vcpu' property:
- * - false: Boolean value indicating whether the event is active.
- * - true : Integral counting the number of vCPUs that have this event enabled.
- */
-uint16_t trace_events_dstate[TRACE_EVENT_COUNT];
-/* Marks events for late vCPU state init */
-static bool trace_events_dstate_init[TRACE_EVENT_COUNT];
+
+typedef struct TraceEventGroup {
+    TraceEvent **events;
+} TraceEventGroup;
+
+static TraceEventGroup *event_groups;
+static size_t nevent_groups;
+static uint32_t next_id;
+static uint32_t next_vcpu_id;
 
 QemuOptsList qemu_trace_opts = {
     .name = "trace",
@@ -55,13 +59,29 @@ QemuOptsList qemu_trace_opts = {
 };
 
 
+void trace_event_register_group(TraceEvent **events)
+{
+    size_t i;
+    for (i = 0; events[i] != NULL; i++) {
+        events[i]->id = next_id++;
+        if (events[i]->vcpu_id != TRACE_VCPU_EVENT_NONE) {
+            events[i]->vcpu_id = next_vcpu_id++;
+        }
+    }
+    event_groups = g_renew(TraceEventGroup, event_groups, nevent_groups + 1);
+    event_groups[nevent_groups].events = events;
+    nevent_groups++;
+}
+
+
 TraceEvent *trace_event_name(const char *name)
 {
     assert(name != NULL);
 
-    TraceEventID i;
-    for (i = 0; i < trace_event_count(); i++) {
-        TraceEvent *ev = trace_event_id(i);
+    TraceEventIter iter;
+    TraceEvent *ev;
+    trace_event_iter_init(&iter, NULL);
+    while ((ev = trace_event_iter_next(&iter)) != NULL) {
         if (strcmp(trace_event_get_name(ev), name) == 0) {
             return ev;
         }
@@ -100,25 +120,29 @@ static bool pattern_glob(const char *pat, const char *ev)
     }
 }
 
-TraceEvent *trace_event_pattern(const char *pat, TraceEvent *ev)
+
+void trace_event_iter_init(TraceEventIter *iter, const char *pattern)
 {
-    assert(pat != NULL);
+    iter->event = 0;
+    iter->group = 0;
+    iter->pattern = pattern;
+}
 
-    TraceEventID i;
-
-    if (ev == NULL) {
-        i = -1;
-    } else {
-        i = trace_event_get_id(ev);
-    }
-    i++;
-
-    while (i < trace_event_count()) {
-        TraceEvent *res = trace_event_id(i);
-        if (pattern_glob(pat, trace_event_get_name(res))) {
-            return res;
+TraceEvent *trace_event_iter_next(TraceEventIter *iter)
+{
+    while (iter->group < nevent_groups &&
+           event_groups[iter->group].events[iter->event] != NULL) {
+        TraceEvent *ev = event_groups[iter->group].events[iter->event];
+        iter->event++;
+        if (event_groups[iter->group].events[iter->event] == NULL) {
+            iter->event = 0;
+            iter->group++;
         }
-        i++;
+        if (!iter->pattern ||
+            pattern_glob(iter->pattern,
+                         trace_event_get_name(ev))) {
+            return ev;
+        }
     }
 
     return NULL;
@@ -126,10 +150,11 @@ TraceEvent *trace_event_pattern(const char *pat, TraceEvent *ev)
 
 void trace_list_events(void)
 {
-    int i;
-    for (i = 0; i < trace_event_count(); i++) {
-        TraceEvent *res = trace_event_id(i);
-        fprintf(stderr, "%s\n", trace_event_get_name(res));
+    TraceEventIter iter;
+    TraceEvent *ev;
+    trace_event_iter_init(&iter, NULL);
+    while ((ev = trace_event_iter_next(&iter)) != NULL) {
+        fprintf(stderr, "%s\n", trace_event_get_name(ev));
     }
 }
 
@@ -137,31 +162,31 @@ static void do_trace_enable_events(const char *line_buf)
 {
     const bool enable = ('-' != line_buf[0]);
     const char *line_ptr = enable ? line_buf : line_buf + 1;
+    TraceEventIter iter;
+    TraceEvent *ev;
+    bool is_pattern = trace_event_is_pattern(line_ptr);
 
-    if (trace_event_is_pattern(line_ptr)) {
-        TraceEvent *ev = NULL;
-        while ((ev = trace_event_pattern(line_ptr, ev)) != NULL) {
-            if (trace_event_get_state_static(ev)) {
-                /* start tracing */
-                trace_event_set_state_dynamic(ev, enable);
-                /* mark for late vCPU init */
-                trace_events_dstate_init[ev->id] = true;
+    trace_event_iter_init(&iter, line_ptr);
+    while ((ev = trace_event_iter_next(&iter)) != NULL) {
+        if (!trace_event_get_state_static(ev)) {
+            if (!is_pattern) {
+                error_report("WARNING: trace event '%s' is not traceable",
+                             line_ptr);
+                return;
             }
+            continue;
         }
-    } else {
-        TraceEvent *ev = trace_event_name(line_ptr);
-        if (ev == NULL) {
-            error_report("WARNING: trace event '%s' does not exist",
-                         line_ptr);
-        } else if (!trace_event_get_state_static(ev)) {
-            error_report("WARNING: trace event '%s' is not traceable",
-                         line_ptr);
-        } else {
-            /* start tracing */
-            trace_event_set_state_dynamic(ev, enable);
-            /* mark for late vCPU init */
-            trace_events_dstate_init[ev->id] = true;
+
+        /* start tracing */
+        trace_event_set_state_dynamic(ev, enable);
+        if (!is_pattern) {
+            return;
         }
+    }
+
+    if (!is_pattern) {
+        error_report("WARNING: trace event '%s' does not exist",
+                     line_ptr);
     }
 }
 
@@ -250,6 +275,10 @@ bool trace_init_backends(void)
     }
 #endif
 
+#ifdef CONFIG_TRACE_SYSLOG
+    openlog(NULL, LOG_PID, LOG_DAEMON);
+#endif
+
     return true;
 }
 
@@ -271,14 +300,7 @@ char *trace_opt_parse(const char *optarg)
     return trace_file;
 }
 
-void trace_init_vcpu_events(void)
+uint32_t trace_get_vcpu_event_count(void)
 {
-    TraceEvent *ev = NULL;
-    while ((ev = trace_event_pattern("*", ev)) != NULL) {
-        if (trace_event_is_vcpu(ev) &&
-            trace_event_get_state_static(ev) &&
-            trace_events_dstate_init[ev->id]) {
-            trace_event_set_state_dynamic(ev, true);
-        }
-    }
+    return next_vcpu_id;
 }

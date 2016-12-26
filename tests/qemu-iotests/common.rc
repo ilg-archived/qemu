@@ -69,7 +69,7 @@ if [ "$IMGOPTSSYNTAX" = "true" ]; then
         TEST_IMG="$DRIVER,file.driver=ssh,file.host=127.0.0.1,file.path=$TEST_IMG_FILE"
     elif [ "$IMGPROTO" = "nfs" ]; then
         TEST_DIR="$DRIVER,file.driver=nfs,file.filename=nfs://127.0.0.1/$TEST_DIR"
-        TEST_IMG=$TEST_DIR_OPTS/t.$IMGFMT
+        TEST_IMG=$TEST_DIR/t.$IMGFMT
     elif [ "$IMGPROTO" = "archipelago" ]; then
         TEST_IMG="$DRIVER,file.driver=archipelago,file.volume=:at.$IMGFMT"
     else
@@ -234,10 +234,7 @@ _check_test_img()
         else
             $QEMU_IMG check "$@" -f $IMGFMT "$TEST_IMG" 2>&1
         fi
-    ) | _filter_testdir | \
-        sed -e '/allocated.*fragmented.*compressed clusters/d' \
-            -e 's/qemu-img: This image format does not support checks/No errors were found on the image./' \
-            -e '/Image end offset: [0-9]\+/d'
+    ) | _filter_testdir | _filter_qemu_img_check
 }
 
 _img_info()

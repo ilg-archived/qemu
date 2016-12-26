@@ -48,6 +48,7 @@
 #define QEMU_NBD_OPT_OBJECT        260
 #define QEMU_NBD_OPT_TLSCREDS      261
 #define QEMU_NBD_OPT_IMAGE_OPTS    262
+#define QEMU_NBD_OPT_FORK          263
 
 #define MBR_SIZE 512
 
@@ -82,6 +83,7 @@ static void usage(const char *name)
 "  -t, --persistent          don't exit on the last connection\n"
 "  -v, --verbose             display extra debugging information\n"
 "  -x, --export-name=NAME    expose export by name\n"
+"  -D, --description=TEXT    with -x, also export a human-readable description\n"
 "\n"
 "Exposing part of the image:\n"
 "  -o, --offset=OFFSET       offset into the image\n"
@@ -92,6 +94,8 @@ static void usage(const char *name)
 "                            passwords and/or encryption keys\n"
 "  -T, --trace [[enable=]<pattern>][,events=<file>][,file=<file>]\n"
 "                            specify tracing options\n"
+"  --fork                    fork off the server process and exit the parent\n"
+"                            once the server is running\n"
 #ifdef __linux__
 "Kernel NBD client support:\n"
 "  -c, --connect=DEV         connect FILE to the local NBD device DEV\n"
@@ -474,7 +478,7 @@ int main(int argc, char **argv)
     off_t fd_size;
     QemuOpts *sn_opts = NULL;
     const char *sn_id_or_name = NULL;
-    const char *sopt = "hVb:o:p:rsnP:c:dvk:e:f:tl:x:T:";
+    const char *sopt = "hVb:o:p:rsnP:c:dvk:e:f:tl:x:T:D:";
     struct option lopt[] = {
         { "help", no_argument, NULL, 'h' },
         { "version", no_argument, NULL, 'V' },
@@ -500,9 +504,11 @@ int main(int argc, char **argv)
         { "verbose", no_argument, NULL, 'v' },
         { "object", required_argument, NULL, QEMU_NBD_OPT_OBJECT },
         { "export-name", required_argument, NULL, 'x' },
+        { "description", required_argument, NULL, 'D' },
         { "tls-creds", required_argument, NULL, QEMU_NBD_OPT_TLSCREDS },
         { "image-opts", no_argument, NULL, QEMU_NBD_OPT_IMAGE_OPTS },
         { "trace", required_argument, NULL, 'T' },
+        { "fork", no_argument, NULL, QEMU_NBD_OPT_FORK },
         { NULL, 0, NULL, 0 }
     };
     int ch;
@@ -520,10 +526,13 @@ int main(int argc, char **argv)
     BlockdevDetectZeroesOptions detect_zeroes = BLOCKDEV_DETECT_ZEROES_OPTIONS_OFF;
     QDict *options = NULL;
     const char *export_name = NULL;
+    const char *export_description = NULL;
     const char *tlscredsid = NULL;
     bool imageOpts = false;
     bool writethrough = true;
     char *trace_file = NULL;
+    bool fork_process = false;
+    int old_stderr = -1;
 
     /* The client thread uses SIGTERM to interrupt the server.  A signal
      * handler ensures that "qemu-nbd -v -c" exits with a nice status code.
@@ -533,6 +542,7 @@ int main(int argc, char **argv)
     sa_sigterm.sa_handler = termsig_handler;
     sigaction(SIGTERM, &sa_sigterm, NULL);
 
+    module_call_init(MODULE_INIT_TRACE);
     qcrypto_init(&error_fatal);
 
     module_call_init(MODULE_INIT_QOM);
@@ -682,6 +692,9 @@ int main(int argc, char **argv)
         case 'x':
             export_name = optarg;
             break;
+        case 'D':
+            export_description = optarg;
+            break;
         case 'v':
             verbose = 1;
             break;
@@ -713,6 +726,9 @@ int main(int argc, char **argv)
         case 'T':
             g_free(trace_file);
             trace_file = trace_opt_parse(optarg);
+            break;
+        case QEMU_NBD_OPT_FORK:
+            fork_process = true;
             break;
         }
     }
@@ -773,7 +789,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    if (device && !verbose) {
+    if ((device && !verbose) || fork_process) {
         int stderr_fd[2];
         pid_t pid;
         int ret;
@@ -796,6 +812,7 @@ int main(int argc, char **argv)
             ret = qemu_daemon(1, 0);
 
             /* Temporarily redirect stderr to the parent's pipe...  */
+            old_stderr = dup(STDERR_FILENO);
             dup2(stderr_fd[1], STDERR_FILENO);
             if (ret < 0) {
                 error_report("Failed to daemonize: %s", strerror(errno));
@@ -901,6 +918,14 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    if (dev_offset >= fd_size) {
+        error_report("Offset (%lld) has to be smaller than the image size "
+                     "(%lld)",
+                     (long long int)dev_offset, (long long int)fd_size);
+        exit(EXIT_FAILURE);
+    }
+    fd_size -= dev_offset;
+
     if (partition != -1) {
         ret = find_partition(blk, partition, &dev_offset, &fd_size);
         if (ret < 0) {
@@ -910,15 +935,19 @@ int main(int argc, char **argv)
         }
     }
 
-    exp = nbd_export_new(blk, dev_offset, fd_size, nbdflags, nbd_export_closed,
-                         &local_err);
+    exp = nbd_export_new(bs, dev_offset, fd_size, nbdflags, nbd_export_closed,
+                         writethrough, NULL, &local_err);
     if (!exp) {
         error_report_err(local_err);
         exit(EXIT_FAILURE);
     }
     if (export_name) {
         nbd_export_set_name(exp, export_name);
+        nbd_export_set_description(exp, export_description);
         newproto = true;
+    } else if (export_description) {
+        error_report("Export description requires an export name");
+        exit(EXIT_FAILURE);
     }
 
     server_ioc = qio_channel_socket_new();
@@ -949,6 +978,11 @@ int main(int argc, char **argv)
         error_report("Could not chdir to root directory: %s",
                      strerror(errno));
         exit(EXIT_FAILURE);
+    }
+
+    if (fork_process) {
+        dup2(old_stderr, STDERR_FILENO);
+        close(old_stderr);
     }
 
     state = RUNNING;

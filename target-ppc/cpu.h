@@ -1009,6 +1009,8 @@ struct CPUPPCState {
     bool tlb_dirty;   /* Set to non-zero when modifying TLB                  */
     bool kvm_sw_tlb;  /* non-zero if KVM SW TLB API is active                */
     uint32_t tlb_need_flush; /* Delayed flush needed */
+#define TLB_NEED_LOCAL_FLUSH   0x1
+#define TLB_NEED_GLOBAL_FLUSH  0x2
 #endif
 
     /* Other registers */
@@ -1164,6 +1166,13 @@ struct PowerPCCPU {
     int cpu_dt_id;
     uint32_t max_compat;
     uint32_t cpu_version;
+
+    /* Fields related to migration compatibility hacks */
+    bool pre_2_8_migration;
+    target_ulong mig_msr_mask;
+    uint64_t mig_insns_flags;
+    uint64_t mig_insns_flags2;
+    uint32_t mig_nb_BATs;
 };
 
 static inline PowerPCCPU *ppc_env_get_cpu(CPUPPCState *env)
@@ -1184,8 +1193,6 @@ void ppc_cpu_dump_state(CPUState *cpu, FILE *f, fprintf_function cpu_fprintf,
                         int flags);
 void ppc_cpu_dump_statistics(CPUState *cpu, FILE *f,
                              fprintf_function cpu_fprintf, int flags);
-int ppc_cpu_get_monitor_def(CPUState *cs, const char *name,
-                            uint64_t *pval);
 hwaddr ppc_cpu_get_phys_page_debug(CPUState *cpu, vaddr addr);
 int ppc_cpu_gdb_read_register(CPUState *cpu, uint8_t *buf, int reg);
 int ppc_cpu_gdb_read_register_apple(CPUState *cpu, uint8_t *buf, int reg);
@@ -1202,7 +1209,6 @@ extern const struct VMStateDescription vmstate_ppc_cpu;
 PowerPCCPU *cpu_ppc_init(const char *cpu_model);
 void ppc_translate_init(void);
 const char *ppc_cpu_lookup_alias(const char *alias);
-void gen_update_current_nip(void *opaque);
 /* you can call this signal handler from your SIGBUS and SIGSEGV
    signal handlers to inform the virtual CPU of exceptions. non zero
    is returned if the signal was handled by the virtual CPU.  */
@@ -2095,6 +2101,8 @@ enum {
     PPC2_TM            = 0x0000000000020000ULL,
     /* Server PM instructgions (ISA 2.06, Book III)                          */
     PPC2_PM_ISA206     = 0x0000000000040000ULL,
+    /* POWER ISA 3.0                                                         */
+    PPC2_ISA300        = 0x0000000000080000ULL,
 
 #define PPC_TCG_INSNS2 (PPC2_BOOKE206 | PPC2_VSX | PPC2_PRCNTL | PPC2_DBRX | \
                         PPC2_ISA205 | PPC2_VSX207 | PPC2_PERM_ISA206 | \
@@ -2102,7 +2110,8 @@ enum {
                         PPC2_FP_CVT_ISA206 | PPC2_FP_TST_ISA206 | \
                         PPC2_BCTAR_ISA207 | PPC2_LSQ_ISA207 | \
                         PPC2_ALTIVEC_207 | PPC2_ISA207S | PPC2_DFP | \
-                        PPC2_FP_CVT_S64 | PPC2_TM | PPC2_PM_ISA206)
+                        PPC2_FP_CVT_S64 | PPC2_TM | PPC2_PM_ISA206 | \
+                        PPC2_ISA300)
 };
 
 /*****************************************************************************/
@@ -2295,6 +2304,14 @@ static inline void cpu_get_tb_cpu_state(CPUPPCState *env, target_ulong *pc,
     *cs_base = 0;
     *flags = env->hflags;
 }
+
+void QEMU_NORETURN raise_exception(CPUPPCState *env, uint32_t exception);
+void QEMU_NORETURN raise_exception_ra(CPUPPCState *env, uint32_t exception,
+                                      uintptr_t raddr);
+void QEMU_NORETURN raise_exception_err(CPUPPCState *env, uint32_t exception,
+                                       uint32_t error_code);
+void QEMU_NORETURN raise_exception_err_ra(CPUPPCState *env, uint32_t exception,
+                                          uint32_t error_code, uintptr_t raddr);
 
 #if !defined(CONFIG_USER_ONLY)
 static inline int booke206_tlbm_id(CPUPPCState *env, ppcmas_tlb_t *tlbm)

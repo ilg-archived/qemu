@@ -11,13 +11,23 @@
 #include "qemu/osdep.h"
 
 #include "libqtest.h"
+#include "qapi/error.h"
 #include "qemu/option.h"
 #include "qemu/range.h"
 #include "qemu/sockets.h"
 #include "sysemu/char.h"
 #include "sysemu/sysemu.h"
+#include "libqos/libqos.h"
+#include "libqos/pci-pc.h"
+#include "libqos/virtio-pci.h"
+#include "qapi/error.h"
+
+#include "libqos/malloc-pc.h"
+#include "hw/virtio/virtio-net.h"
 
 #include <linux/vhost.h>
+#include <linux/virtio_ids.h>
+#include <linux/virtio_net.h>
 #include <sys/vfs.h>
 
 /* GLIB version compatibility flags */
@@ -29,14 +39,13 @@
 #define HAVE_MONOTONIC_TIME
 #endif
 
-#define QEMU_CMD_ACCEL  " -machine accel=tcg"
 #define QEMU_CMD_MEM    " -m %d -object memory-backend-file,id=mem,size=%dM,"\
                         "mem-path=%s,share=on -numa node,memdev=mem"
 #define QEMU_CMD_CHR    " -chardev socket,id=%s,path=%s%s"
 #define QEMU_CMD_NETDEV " -netdev vhost-user,id=net0,chardev=%s,vhostforce"
-#define QEMU_CMD_NET    " -device virtio-net-pci,netdev=net0,romfile=./pc-bios/pxe-virtio.rom"
+#define QEMU_CMD_NET    " -device virtio-net-pci,netdev=net0"
 
-#define QEMU_CMD        QEMU_CMD_ACCEL QEMU_CMD_MEM QEMU_CMD_CHR \
+#define QEMU_CMD        QEMU_CMD_MEM QEMU_CMD_CHR \
                         QEMU_CMD_NETDEV QEMU_CMD_NET
 
 #define HUGETLBFS_MAGIC       0x958458f6
@@ -46,6 +55,7 @@
 #define VHOST_MEMORY_MAX_NREGIONS    8
 
 #define VHOST_USER_F_PROTOCOL_FEATURES 30
+#define VHOST_USER_PROTOCOL_F_MQ 0
 #define VHOST_USER_PROTOCOL_F_LOG_SHMFD 1
 
 #define VHOST_LOG_PAGE 0x1000
@@ -68,6 +78,7 @@ typedef enum VhostUserRequest {
     VHOST_USER_SET_VRING_ERR = 14,
     VHOST_USER_GET_PROTOCOL_FEATURES = 15,
     VHOST_USER_SET_PROTOCOL_FEATURES = 16,
+    VHOST_USER_GET_QUEUE_NUM = 17,
     VHOST_USER_SET_VRING_ENABLE = 18,
     VHOST_USER_MAX
 } VhostUserRequest;
@@ -119,11 +130,18 @@ static VhostUserMsg m __attribute__ ((unused));
 #define VHOST_USER_VERSION    (0x1)
 /*****************************************************************************/
 
+enum {
+    TEST_FLAGS_OK,
+    TEST_FLAGS_DISCONNECT,
+    TEST_FLAGS_BAD,
+    TEST_FLAGS_END,
+};
+
 typedef struct TestServer {
     gchar *socket_path;
     gchar *mig_path;
     gchar *chr_name;
-    CharDriverState *chr;
+    CharBackend chr;
     int fds_num;
     int fds[VHOST_MEMORY_MAX_NREGIONS];
     VhostUserMemory memory;
@@ -131,10 +149,37 @@ typedef struct TestServer {
     CompatGCond data_cond;
     int log_fd;
     uint64_t rings;
+    bool test_fail;
+    int test_flags;
+    int queues;
 } TestServer;
 
 static const char *tmpfs;
 static const char *root;
+
+static void init_virtio_dev(TestServer *s)
+{
+    QPCIBus *bus;
+    QVirtioPCIDevice *dev;
+    uint32_t features;
+
+    bus = qpci_init_pc(NULL);
+    g_assert_nonnull(bus);
+
+    dev = qvirtio_pci_device_find(bus, VIRTIO_ID_NET);
+    g_assert_nonnull(dev);
+
+    qvirtio_pci_device_enable(dev);
+    qvirtio_reset(&dev->vdev);
+    qvirtio_set_acknowledge(&dev->vdev);
+    qvirtio_set_driver(&dev->vdev);
+
+    features = qvirtio_get_features(&dev->vdev);
+    features = features & VIRTIO_NET_F_MAC;
+    qvirtio_set_features(&dev->vdev, features);
+
+    qvirtio_set_driver_ok(&dev->vdev);
+}
 
 static void wait_for_fds(TestServer *s)
 {
@@ -216,10 +261,16 @@ static int chr_can_read(void *opaque)
 static void chr_read(void *opaque, const uint8_t *buf, int size)
 {
     TestServer *s = opaque;
-    CharDriverState *chr = s->chr;
+    CharBackend *chr = &s->chr;
     VhostUserMsg msg;
     uint8_t *p = (uint8_t *) &msg;
     int fd;
+
+    if (s->test_fail) {
+        qemu_chr_fe_disconnect(chr);
+        /* now switch to non-failure */
+        s->test_fail = false;
+    }
 
     if (size != VHOST_USER_HDR_SIZE) {
         g_test_message("Wrong message size received %d\n", size);
@@ -246,6 +297,13 @@ static void chr_read(void *opaque, const uint8_t *buf, int size)
         msg.size = sizeof(m.payload.u64);
         msg.payload.u64 = 0x1ULL << VHOST_F_LOG_ALL |
             0x1ULL << VHOST_USER_F_PROTOCOL_FEATURES;
+        if (s->queues > 1) {
+            msg.payload.u64 |= 0x1ULL << VIRTIO_NET_F_MQ;
+        }
+        if (s->test_flags >= TEST_FLAGS_BAD) {
+            msg.payload.u64 = 0;
+            s->test_flags = TEST_FLAGS_END;
+        }
         p = (uint8_t *) &msg;
         qemu_chr_fe_write_all(chr, p, VHOST_USER_HDR_SIZE + msg.size);
         break;
@@ -253,6 +311,10 @@ static void chr_read(void *opaque, const uint8_t *buf, int size)
     case VHOST_USER_SET_FEATURES:
 	g_assert_cmpint(msg.payload.u64 & (0x1ULL << VHOST_USER_F_PROTOCOL_FEATURES),
 			!=, 0ULL);
+        if (s->test_flags == TEST_FLAGS_DISCONNECT) {
+            qemu_chr_fe_disconnect(chr);
+            s->test_flags = TEST_FLAGS_BAD;
+        }
         break;
 
     case VHOST_USER_GET_PROTOCOL_FEATURES:
@@ -260,6 +322,9 @@ static void chr_read(void *opaque, const uint8_t *buf, int size)
         msg.flags |= VHOST_USER_REPLY_MASK;
         msg.size = sizeof(m.payload.u64);
         msg.payload.u64 = 1 << VHOST_USER_PROTOCOL_F_LOG_SHMFD;
+        if (s->queues > 1) {
+            msg.payload.u64 |= 1 << VHOST_USER_PROTOCOL_F_MQ;
+        }
         p = (uint8_t *) &msg;
         qemu_chr_fe_write_all(chr, p, VHOST_USER_HDR_SIZE + msg.size);
         break;
@@ -272,14 +337,15 @@ static void chr_read(void *opaque, const uint8_t *buf, int size)
         p = (uint8_t *) &msg;
         qemu_chr_fe_write_all(chr, p, VHOST_USER_HDR_SIZE + msg.size);
 
-        assert(msg.payload.state.index < 2);
+        assert(msg.payload.state.index < s->queues * 2);
         s->rings &= ~(0x1ULL << msg.payload.state.index);
         break;
 
     case VHOST_USER_SET_MEM_TABLE:
         /* received the mem table */
         memcpy(&s->memory, &msg.payload.memory, sizeof(msg.payload.memory));
-        s->fds_num = qemu_chr_fe_get_msgfds(chr, s->fds, G_N_ELEMENTS(s->fds));
+        s->fds_num = qemu_chr_fe_get_msgfds(chr, s->fds,
+                                            G_N_ELEMENTS(s->fds));
 
         /* signal the test that it can continue */
         g_cond_signal(&s->data_cond);
@@ -312,8 +378,16 @@ static void chr_read(void *opaque, const uint8_t *buf, int size)
         break;
 
     case VHOST_USER_SET_VRING_BASE:
-        assert(msg.payload.state.index < 2);
+        assert(msg.payload.state.index < s->queues * 2);
         s->rings |= 0x1ULL << msg.payload.state.index;
+        break;
+
+    case VHOST_USER_GET_QUEUE_NUM:
+        msg.flags |= VHOST_USER_REPLY_MASK;
+        msg.size = sizeof(m.payload.u64);
+        msg.payload.u64 = s->queues;
+        p = (uint8_t *) &msg;
+        qemu_chr_fe_write_all(chr, p, VHOST_USER_HDR_SIZE + msg.size);
         break;
 
     default:
@@ -362,19 +436,33 @@ static TestServer *test_server_new(const gchar *name)
     g_cond_init(&server->data_cond);
 
     server->log_fd = -1;
+    server->queues = 1;
 
     return server;
+}
+
+static void chr_event(void *opaque, int event)
+{
+    TestServer *s = opaque;
+
+    if (s->test_flags == TEST_FLAGS_END &&
+        event == CHR_EVENT_CLOSED) {
+        s->test_flags = TEST_FLAGS_OK;
+    }
 }
 
 static void test_server_create_chr(TestServer *server, const gchar *opt)
 {
     gchar *chr_path;
+    CharDriverState *chr;
 
     chr_path = g_strdup_printf("unix:%s%s", server->socket_path, opt);
-    server->chr = qemu_chr_new(server->chr_name, chr_path, NULL);
+    chr = qemu_chr_new(server->chr_name, chr_path);
     g_free(chr_path);
 
-    qemu_chr_add_handlers(server->chr, chr_can_read, chr_read, NULL, server);
+    qemu_chr_fe_init(&server->chr, chr, &error_abort);
+    qemu_chr_fe_set_handlers(&server->chr, chr_can_read, chr_read,
+                             chr_event, server, NULL, true);
 }
 
 static void test_server_listen(TestServer *server)
@@ -398,8 +486,10 @@ static inline void test_server_connect(TestServer *server)
 static gboolean _test_server_free(TestServer *server)
 {
     int i;
+    CharDriverState *chr = qemu_chr_fe_get_driver(&server->chr);
 
-    qemu_chr_delete(server->chr);
+    qemu_chr_fe_deinit(&server->chr);
+    qemu_chr_delete(chr);
 
     for (i = 0; i < server->fds_num; i++) {
         close(server->fds[i]);
@@ -548,6 +638,7 @@ static void test_migrate(void)
     from = qtest_start(cmd);
     g_free(cmd);
 
+    init_virtio_dev(s);
     wait_for_fds(s);
     size = get_log_size(s);
     g_assert_cmpint(size, ==, (2 * 1024 * 1024) / (VHOST_LOG_PAGE * 8));
@@ -612,7 +703,6 @@ static void test_migrate(void)
     global_qtest = global;
 }
 
-#ifdef CONFIG_HAS_GLIB_SUBPROCESS_TESTS
 static void wait_for_rings_started(TestServer *s, size_t count)
 {
     gint64 end_time;
@@ -630,12 +720,13 @@ static void wait_for_rings_started(TestServer *s, size_t count)
     g_mutex_unlock(&s->data_mutex);
 }
 
+#ifdef CONFIG_HAS_GLIB_SUBPROCESS_TESTS
 static gboolean
 reconnect_cb(gpointer user_data)
 {
     TestServer *s = user_data;
 
-    qemu_chr_disconnect(s->chr);
+    qemu_chr_fe_disconnect(&s->chr);
 
     return FALSE;
 }
@@ -662,6 +753,7 @@ static void test_reconnect_subprocess(void)
     qtest_start(cmd);
     g_free(cmd);
 
+    init_virtio_dev(s);
     wait_for_fds(s);
     wait_for_rings_started(s, 2);
 
@@ -685,7 +777,142 @@ static void test_reconnect(void)
     g_test_trap_assert_passed();
     g_free(path);
 }
+
+static void test_connect_fail_subprocess(void)
+{
+    TestServer *s = test_server_new("connect-fail");
+    char *cmd;
+
+    s->test_fail = true;
+    g_thread_new("connect", connect_thread, s);
+    cmd = GET_QEMU_CMDE(s, 2, ",server", "");
+    qtest_start(cmd);
+    g_free(cmd);
+
+    init_virtio_dev(s);
+    wait_for_fds(s);
+    wait_for_rings_started(s, 2);
+
+    qtest_end();
+    test_server_free(s);
+}
+
+static void test_connect_fail(void)
+{
+    gchar *path = g_strdup_printf("/%s/vhost-user/connect-fail/subprocess",
+                                  qtest_get_arch());
+    g_test_trap_subprocess(path, 0, 0);
+    g_test_trap_assert_passed();
+    g_free(path);
+}
+
+static void test_flags_mismatch_subprocess(void)
+{
+    TestServer *s = test_server_new("flags-mismatch");
+    char *cmd;
+
+    s->test_flags = TEST_FLAGS_DISCONNECT;
+    g_thread_new("connect", connect_thread, s);
+    cmd = GET_QEMU_CMDE(s, 2, ",server", "");
+    qtest_start(cmd);
+    g_free(cmd);
+
+    init_virtio_dev(s);
+    wait_for_fds(s);
+    wait_for_rings_started(s, 2);
+
+    qtest_end();
+    test_server_free(s);
+}
+
+static void test_flags_mismatch(void)
+{
+    gchar *path = g_strdup_printf("/%s/vhost-user/flags-mismatch/subprocess",
+                                  qtest_get_arch());
+    g_test_trap_subprocess(path, 0, 0);
+    g_test_trap_assert_passed();
+    g_free(path);
+}
+
 #endif
+
+static QVirtioPCIDevice *virtio_net_pci_init(QPCIBus *bus, int slot)
+{
+    QVirtioPCIDevice *dev;
+
+    dev = qvirtio_pci_device_find(bus, VIRTIO_ID_NET);
+    g_assert(dev != NULL);
+    g_assert_cmphex(dev->vdev.device_type, ==, VIRTIO_ID_NET);
+
+    qvirtio_pci_device_enable(dev);
+    qvirtio_reset(&dev->vdev);
+    qvirtio_set_acknowledge(&dev->vdev);
+    qvirtio_set_driver(&dev->vdev);
+
+    return dev;
+}
+
+static void driver_init(QVirtioDevice *dev)
+{
+    uint32_t features;
+
+    features = qvirtio_get_features(dev);
+    features = features & ~(QVIRTIO_F_BAD_FEATURE |
+                            (1u << VIRTIO_RING_F_INDIRECT_DESC) |
+                            (1u << VIRTIO_RING_F_EVENT_IDX));
+    qvirtio_set_features(dev, features);
+
+    qvirtio_set_driver_ok(dev);
+}
+
+#define PCI_SLOT                0x04
+
+static void test_multiqueue(void)
+{
+    const int queues = 2;
+    TestServer *s = test_server_new("mq");
+    QVirtioPCIDevice *dev;
+    QPCIBus *bus;
+    QVirtQueuePCI *vq[queues * 2];
+    QGuestAllocator *alloc;
+    char *cmd;
+    int i;
+
+    s->queues = queues;
+    test_server_listen(s);
+
+    cmd = g_strdup_printf(QEMU_CMD_MEM QEMU_CMD_CHR QEMU_CMD_NETDEV ",queues=%d "
+                          "-device virtio-net-pci,netdev=net0,mq=on,vectors=%d",
+                          512, 512, root, s->chr_name,
+                          s->socket_path, "", s->chr_name,
+                          queues, queues * 2 + 2);
+    qtest_start(cmd);
+    g_free(cmd);
+
+    bus = qpci_init_pc(NULL);
+    dev = virtio_net_pci_init(bus, PCI_SLOT);
+
+    alloc = pc_alloc_init();
+    for (i = 0; i < queues * 2; i++) {
+        vq[i] = (QVirtQueuePCI *)qvirtqueue_setup(&dev->vdev, alloc, i);
+    }
+
+    driver_init(&dev->vdev);
+    wait_for_rings_started(s, queues * 2);
+
+    /* End test */
+    for (i = 0; i < queues * 2; i++) {
+        qvirtqueue_cleanup(dev->vdev.bus, &vq[i]->vq, alloc);
+    }
+    pc_alloc_uninit(alloc);
+    qvirtio_pci_device_disable(dev);
+    g_free(dev->pdev);
+    g_free(dev);
+    qpci_free_pc(bus);
+    qtest_end();
+
+    test_server_free(s);
+}
 
 int main(int argc, char **argv)
 {
@@ -728,13 +955,21 @@ int main(int argc, char **argv)
 
     s = qtest_start(qemu_cmd);
     g_free(qemu_cmd);
+    init_virtio_dev(server);
 
     qtest_add_data_func("/vhost-user/read-guest-mem", server, read_guest_mem);
     qtest_add_func("/vhost-user/migrate", test_migrate);
+    qtest_add_func("/vhost-user/multiqueue", test_multiqueue);
 #ifdef CONFIG_HAS_GLIB_SUBPROCESS_TESTS
     qtest_add_func("/vhost-user/reconnect/subprocess",
                    test_reconnect_subprocess);
     qtest_add_func("/vhost-user/reconnect", test_reconnect);
+    qtest_add_func("/vhost-user/connect-fail/subprocess",
+                   test_connect_fail_subprocess);
+    qtest_add_func("/vhost-user/connect-fail", test_connect_fail);
+    qtest_add_func("/vhost-user/flags-mismatch/subprocess",
+                   test_flags_mismatch_subprocess);
+    qtest_add_func("/vhost-user/flags-mismatch", test_flags_mismatch);
 #endif
 
     ret = g_test_run();

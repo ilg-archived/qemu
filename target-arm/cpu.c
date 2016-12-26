@@ -21,6 +21,7 @@
 #include "config-host.h"
 
 #include "qemu/osdep.h"
+#include "qemu/error-report.h"
 #include "qapi/error.h"
 #include "cpu.h"
 #include "internals.h"
@@ -450,28 +451,15 @@ static void arm_disas_set_info(CPUState *cpu, disassemble_info *info)
     }
 }
 
-#define ARM_CPUS_PER_CLUSTER 8
-
 static void arm_cpu_initfn(Object *obj)
 {
     CPUState *cs = CPU(obj);
     ARMCPU *cpu = ARM_CPU(obj);
     static bool inited;
-    uint32_t Aff1, Aff0;
 
     cs->env_ptr = &cpu->env;
-    cpu_exec_init(cs, &error_abort);
     cpu->cp_regs = g_hash_table_new_full(g_int_hash, g_int_equal,
                                          g_free, g_free);
-
-    /* This cpu-id-to-MPIDR affinity is used only for TCG; KVM will override it.
-     * We don't support setting cluster ID ([16..23]) (known as Aff2
-     * in later ARM ARM versions), or any of the higher affinity level fields,
-     * so these bits always RAZ.
-     */
-    Aff1 = cs->cpu_index / ARM_CPUS_PER_CLUSTER;
-    Aff0 = cs->cpu_index % ARM_CPUS_PER_CLUSTER;
-    cpu->mp_affinity = (Aff1 << ARM_AFF1_SHIFT) | Aff0;
 
 #ifndef CONFIG_USER_ONLY
     /* Our inbound IRQ and FIQ lines */
@@ -525,6 +513,10 @@ static Property arm_cpu_rvbar_property =
 static Property arm_cpu_has_el3_property =
             DEFINE_PROP_BOOL("has_el3", ARMCPU, has_el3, true);
 
+/* use property name "pmu" to match other archs and virt tools */
+static Property arm_cpu_has_pmu_property =
+            DEFINE_PROP_BOOL("pmu", ARMCPU, has_pmu, true);
+
 static Property arm_cpu_has_mpu_property =
             DEFINE_PROP_BOOL("has-mpu", ARMCPU, has_mpu, true);
 
@@ -568,6 +560,11 @@ static void arm_cpu_post_init(Object *obj)
 #endif
     }
 
+    if (arm_feature(&cpu->env, ARM_FEATURE_PMU)) {
+        qdev_property_add_static(DEVICE(obj), &arm_cpu_has_pmu_property,
+                                 &error_abort);
+    }
+
     if (arm_feature(&cpu->env, ARM_FEATURE_MPU)) {
         qdev_property_add_static(DEVICE(obj), &arm_cpu_has_mpu_property,
                                  &error_abort);
@@ -592,6 +589,14 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
     ARMCPU *cpu = ARM_CPU(dev);
     ARMCPUClass *acc = ARM_CPU_GET_CLASS(dev);
     CPUARMState *env = &cpu->env;
+    int pagebits;
+    Error *local_err = NULL;
+
+    cpu_exec_realizefn(cs, &local_err);
+    if (local_err != NULL) {
+        error_propagate(errp, local_err);
+        return;
+    }
 
     /* Some features automatically imply others: */
     if (arm_feature(env, ARM_FEATURE_V8)) {
@@ -647,6 +652,40 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
         set_feature(env, ARM_FEATURE_THUMB_DSP);
     }
 
+    if (arm_feature(env, ARM_FEATURE_V7) &&
+        !arm_feature(env, ARM_FEATURE_M) &&
+        !arm_feature(env, ARM_FEATURE_MPU)) {
+        /* v7VMSA drops support for the old ARMv5 tiny pages, so we
+         * can use 4K pages.
+         */
+        pagebits = 12;
+    } else {
+        /* For CPUs which might have tiny 1K pages, or which have an
+         * MPU and might have small region sizes, stick with 1K pages.
+         */
+        pagebits = 10;
+    }
+    if (!set_preferred_target_page_bits(pagebits)) {
+        /* This can only ever happen for hotplugging a CPU, or if
+         * the board code incorrectly creates a CPU which it has
+         * promised via minimum_page_size that it will not.
+         */
+        error_setg(errp, "This CPU requires a smaller page size than the "
+                   "system is using");
+        return;
+    }
+
+    /* This cpu-id-to-MPIDR affinity is used only for TCG; KVM will override it.
+     * We don't support setting cluster ID ([16..23]) (known as Aff2
+     * in later ARM ARM versions), or any of the higher affinity level fields,
+     * so these bits always RAZ.
+     */
+    if (cpu->mp_affinity == ARM64_AFFINITY_INVALID) {
+        uint32_t Aff1 = cs->cpu_index / ARM_DEFAULT_CPUS_PER_CLUSTER;
+        uint32_t Aff0 = cs->cpu_index % ARM_DEFAULT_CPUS_PER_CLUSTER;
+        cpu->mp_affinity = (Aff1 << ARM_AFF1_SHIFT) | Aff0;
+    }
+
     if (cpu->reset_hivecs) {
             cpu->reset_sctlr |= (1 << 13);
     }
@@ -662,6 +701,11 @@ static void arm_cpu_realizefn(DeviceState *dev, Error **errp)
          */
         cpu->id_pfr1 &= ~0xf0;
         cpu->id_aa64pfr0 &= ~0xf000;
+    }
+
+    if (!cpu->has_pmu || !kvm_enabled()) {
+        cpu->has_pmu = false;
+        unset_feature(env, ARM_FEATURE_PMU);
     }
 
     if (!arm_feature(env, ARM_FEATURE_EL2)) {
@@ -1201,6 +1245,51 @@ static const ARMCPRegInfo cortexa15_cp_reginfo[] = {
     REGINFO_SENTINEL
 };
 
+static void cortex_a7_initfn(Object *obj)
+{
+    ARMCPU *cpu = ARM_CPU(obj);
+
+    cpu->dtb_compatible = "arm,cortex-a7";
+    set_feature(&cpu->env, ARM_FEATURE_V7);
+    set_feature(&cpu->env, ARM_FEATURE_VFP4);
+    set_feature(&cpu->env, ARM_FEATURE_NEON);
+    set_feature(&cpu->env, ARM_FEATURE_THUMB2EE);
+    set_feature(&cpu->env, ARM_FEATURE_ARM_DIV);
+    set_feature(&cpu->env, ARM_FEATURE_GENERIC_TIMER);
+    set_feature(&cpu->env, ARM_FEATURE_DUMMY_C15_REGS);
+    set_feature(&cpu->env, ARM_FEATURE_CBAR_RO);
+    set_feature(&cpu->env, ARM_FEATURE_LPAE);
+    set_feature(&cpu->env, ARM_FEATURE_EL3);
+    cpu->kvm_target = QEMU_KVM_ARM_TARGET_CORTEX_A7;
+    cpu->midr = 0x410fc075;
+    cpu->reset_fpsid = 0x41023075;
+    cpu->mvfr0 = 0x10110222;
+    cpu->mvfr1 = 0x11111111;
+    cpu->ctr = 0x84448003;
+    cpu->reset_sctlr = 0x00c50078;
+    cpu->id_pfr0 = 0x00001131;
+    cpu->id_pfr1 = 0x00011011;
+    cpu->id_dfr0 = 0x02010555;
+    cpu->pmceid0 = 0x00000000;
+    cpu->pmceid1 = 0x00000000;
+    cpu->id_afr0 = 0x00000000;
+    cpu->id_mmfr0 = 0x10101105;
+    cpu->id_mmfr1 = 0x40000000;
+    cpu->id_mmfr2 = 0x01240000;
+    cpu->id_mmfr3 = 0x02102211;
+    cpu->id_isar0 = 0x01101110;
+    cpu->id_isar1 = 0x13112111;
+    cpu->id_isar2 = 0x21232041;
+    cpu->id_isar3 = 0x11112131;
+    cpu->id_isar4 = 0x10011142;
+    cpu->dbgdidr = 0x3515f005;
+    cpu->clidr = 0x0a200023;
+    cpu->ccsidr[0] = 0x701fe00a; /* 32K L1 dcache */
+    cpu->ccsidr[1] = 0x201fe00a; /* 32K L1 icache */
+    cpu->ccsidr[2] = 0x711fe07a; /* 4096K L2 unified cache */
+    define_arm_cp_regs(cpu, cortexa15_cp_reginfo); /* Same as A15 */
+}
+
 static void cortex_a15_initfn(Object *obj)
 {
     ARMCPU *cpu = ARM_CPU(obj);
@@ -1475,6 +1564,7 @@ static const ARMCPUInfo arm_cpus[] = {
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
     { .name = "cortex-r5",   .initfn = cortex_r5_initfn },
+    { .name = "cortex-a7",   .initfn = cortex_a7_initfn },
     { .name = "cortex-a8",   .initfn = cortex_a8_initfn },
     { .name = "cortex-a9",   .initfn = cortex_a9_initfn },
     { .name = "cortex-a15",  .initfn = cortex_a15_initfn },
@@ -1506,7 +1596,8 @@ static Property arm_cpu_properties[] = {
     DEFINE_PROP_BOOL("start-powered-off", ARMCPU, start_powered_off, false),
     DEFINE_PROP_UINT32("psci-conduit", ARMCPU, psci_conduit, 0),
     DEFINE_PROP_UINT32("midr", ARMCPU, midr, 0),
-    DEFINE_PROP_UINT64("mp-affinity", ARMCPU, mp_affinity, 0),
+    DEFINE_PROP_UINT64("mp-affinity", ARMCPU,
+                        mp_affinity, ARM64_AFFINITY_INVALID),
     DEFINE_PROP_END_OF_LIST()
 };
 
@@ -1585,17 +1676,6 @@ static void arm_cpu_class_init(ObjectClass *oc, void *data)
     cc->debug_check_watchpoint = arm_debug_check_watchpoint;
 
     cc->disas_set_info = arm_disas_set_info;
-
-    /*
-     * Reason: arm_cpu_initfn() calls cpu_exec_init(), which saves
-     * the object in cpus -> dangling pointer after final
-     * object_unref().
-     *
-     * Once this is fixed, the devices that create ARM CPUs should be
-     * updated not to set cannot_destroy_with_object_finalize_yet,
-     * unless they still screw up something else.
-     */
-    dc->cannot_destroy_with_object_finalize_yet = true;
 }
 
 static void cpu_register(const ARMCPUInfo *info)

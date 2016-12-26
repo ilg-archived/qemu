@@ -25,11 +25,16 @@
 #include "hw/virtio/virtio-bus.h"
 #include "hw/virtio/virtio-input.h"
 #include "hw/virtio/virtio-gpu.h"
+#include "hw/virtio/virtio-crypto.h"
+
 #ifdef CONFIG_VIRTFS
 #include "hw/9pfs/virtio-9p.h"
 #endif
 #ifdef CONFIG_VHOST_SCSI
 #include "hw/virtio/vhost-scsi.h"
+#endif
+#ifdef CONFIG_VHOST_VSOCK
+#include "hw/virtio/vhost-vsock.h"
 #endif
 
 typedef struct VirtIOPCIProxy VirtIOPCIProxy;
@@ -44,6 +49,8 @@ typedef struct VirtIOInputPCI VirtIOInputPCI;
 typedef struct VirtIOInputHIDPCI VirtIOInputHIDPCI;
 typedef struct VirtIOInputHostPCI VirtIOInputHostPCI;
 typedef struct VirtIOGPUPCI VirtIOGPUPCI;
+typedef struct VHostVSockPCI VHostVSockPCI;
+typedef struct VirtIOCryptoPCI VirtIOCryptoPCI;
 
 /* virtio-pci-bus */
 
@@ -64,6 +71,7 @@ enum {
     VIRTIO_PCI_FLAG_MIGRATE_EXTRA_BIT,
     VIRTIO_PCI_FLAG_MODERN_PIO_NOTIFY_BIT,
     VIRTIO_PCI_FLAG_DISABLE_PCIE_BIT,
+    VIRTIO_PCI_FLAG_PAGE_PER_VQ_BIT,
 };
 
 /* Need to activate work-arounds for buggy guests at vmstate load. */
@@ -83,6 +91,10 @@ enum {
 /* have pio notification for modern device ? */
 #define VIRTIO_PCI_FLAG_MODERN_PIO_NOTIFY \
     (1 << VIRTIO_PCI_FLAG_MODERN_PIO_NOTIFY_BIT)
+
+/* page per vq flag to be used by split drivers within guests */
+#define VIRTIO_PCI_FLAG_PAGE_PER_VQ \
+    (1 << VIRTIO_PCI_FLAG_PAGE_PER_VQ_BIT)
 
 typedef struct {
     MSIMessage msg;
@@ -134,13 +146,14 @@ struct VirtIOPCIProxy {
     MemoryRegion io_bar;
     MemoryRegion modern_cfg;
     AddressSpace modern_as;
-    uint32_t legacy_io_bar;
-    uint32_t msix_bar;
-    uint32_t modern_io_bar;
-    uint32_t modern_mem_bar;
+    uint32_t legacy_io_bar_idx;
+    uint32_t msix_bar_idx;
+    uint32_t modern_io_bar_idx;
+    uint32_t modern_mem_bar_idx;
     int config_cap;
     uint32_t flags;
     bool disable_modern;
+    bool ignore_backend_features;
     OnOffAuto disable_legacy;
     uint32_t class_code;
     uint32_t nvectors;
@@ -149,8 +162,6 @@ struct VirtIOPCIProxy {
     uint32_t guest_features[2];
     VirtIOPCIQueue vqs[VIRTIO_QUEUE_MAX];
 
-    bool ioeventfd_disabled;
-    bool ioeventfd_started;
     VirtIOIRQFD *vector_irqfd;
     int nvqs_with_notifiers;
     VirtioBusState bus;
@@ -170,6 +181,11 @@ static inline void virtio_pci_force_virtio_1(VirtIOPCIProxy *proxy)
 {
     proxy->disable_modern = false;
     proxy->disable_legacy = ON_OFF_AUTO_ON;
+}
+
+static inline void virtio_pci_disable_modern(VirtIOPCIProxy *proxy)
+{
+    proxy->disable_modern = true;
 }
 
 /*
@@ -322,6 +338,32 @@ struct VirtIOInputHostPCI {
 struct VirtIOGPUPCI {
     VirtIOPCIProxy parent_obj;
     VirtIOGPU vdev;
+};
+
+#ifdef CONFIG_VHOST_VSOCK
+/*
+ * vhost-vsock-pci: This extends VirtioPCIProxy.
+ */
+#define TYPE_VHOST_VSOCK_PCI "vhost-vsock-pci"
+#define VHOST_VSOCK_PCI(obj) \
+        OBJECT_CHECK(VHostVSockPCI, (obj), TYPE_VHOST_VSOCK_PCI)
+
+struct VHostVSockPCI {
+    VirtIOPCIProxy parent_obj;
+    VHostVSock vdev;
+};
+#endif
+
+/*
+ * virtio-crypto-pci: This extends VirtioPCIProxy.
+ */
+#define TYPE_VIRTIO_CRYPTO_PCI "virtio-crypto-pci"
+#define VIRTIO_CRYPTO_PCI(obj) \
+        OBJECT_CHECK(VirtIOCryptoPCI, (obj), TYPE_VIRTIO_CRYPTO_PCI)
+
+struct VirtIOCryptoPCI {
+    VirtIOPCIProxy parent_obj;
+    VirtIOCrypto vdev;
 };
 
 /* Virtio ABI version, if we increment this, we break the guest driver. */

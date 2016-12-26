@@ -122,6 +122,7 @@ void qemu_coroutine_enter(Coroutine *co)
     case COROUTINE_YIELD:
         return;
     case COROUTINE_TERMINATE:
+        assert(!co->locks_held);
         trace_qemu_coroutine_terminate(co);
         coroutine_delete(co);
         return;
@@ -144,4 +145,9 @@ void coroutine_fn qemu_coroutine_yield(void)
 
     self->caller = NULL;
     qemu_coroutine_switch(self, to, COROUTINE_YIELD);
+}
+
+bool qemu_coroutine_entered(Coroutine *co)
+{
+    return co->caller;
 }

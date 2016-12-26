@@ -59,38 +59,11 @@ static void virtio_ccw_stop_ioeventfd(VirtioCcwDevice *dev)
     virtio_bus_stop_ioeventfd(&dev->bus);
 }
 
-static bool virtio_ccw_ioeventfd_started(DeviceState *d)
+static bool virtio_ccw_ioeventfd_enabled(DeviceState *d)
 {
     VirtioCcwDevice *dev = VIRTIO_CCW_DEVICE(d);
 
-    return dev->ioeventfd_started;
-}
-
-static void virtio_ccw_ioeventfd_set_started(DeviceState *d, bool started,
-                                             bool err)
-{
-    VirtioCcwDevice *dev = VIRTIO_CCW_DEVICE(d);
-
-    dev->ioeventfd_started = started;
-    if (err) {
-        /* Disable ioeventfd for this device. */
-        dev->flags &= ~VIRTIO_CCW_FLAG_USE_IOEVENTFD;
-    }
-}
-
-static bool virtio_ccw_ioeventfd_disabled(DeviceState *d)
-{
-    VirtioCcwDevice *dev = VIRTIO_CCW_DEVICE(d);
-
-    return dev->ioeventfd_disabled ||
-        !(dev->flags & VIRTIO_CCW_FLAG_USE_IOEVENTFD);
-}
-
-static void virtio_ccw_ioeventfd_set_disabled(DeviceState *d, bool disabled)
-{
-    VirtioCcwDevice *dev = VIRTIO_CCW_DEVICE(d);
-
-    dev->ioeventfd_disabled = disabled;
+    return (dev->flags & VIRTIO_CCW_FLAG_USE_IOEVENTFD) != 0;
 }
 
 static int virtio_ccw_ioeventfd_assign(DeviceState *d, EventNotifier *notifier,
@@ -330,6 +303,8 @@ static int virtio_ccw_cb(SubchDev *sch, CCW1 ccw)
         if (!ccw.cda) {
             ret = -EFAULT;
         } else {
+            VirtioDeviceClass *vdc = VIRTIO_DEVICE_GET_CLASS(vdev);
+
             features.index = address_space_ldub(&address_space_memory,
                                                 ccw.cda
                                                 + sizeof(features.features),
@@ -339,7 +314,7 @@ static int virtio_ccw_cb(SubchDev *sch, CCW1 ccw)
                 if (dev->revision >= 1) {
                     /* Don't offer legacy features for modern devices. */
                     features.features = (uint32_t)
-                        (vdev->host_features & ~VIRTIO_LEGACY_FEATURES);
+                        (vdev->host_features & ~vdc->legacy_features);
                 } else {
                     features.features = (uint32_t)vdev->host_features;
                 }
@@ -453,6 +428,26 @@ static int virtio_ccw_cb(SubchDev *sch, CCW1 ccw)
                 sch->curr_status.scsw.count = ccw.count - len;
                 ret = 0;
             }
+        }
+        break;
+    case CCW_CMD_READ_STATUS:
+        if (check_len) {
+            if (ccw.count != sizeof(status)) {
+                ret = -EINVAL;
+                break;
+            }
+        } else if (ccw.count < sizeof(status)) {
+            /* Can't execute command. */
+            ret = -EINVAL;
+            break;
+        }
+        if (!ccw.cda) {
+            ret = -EFAULT;
+        } else {
+            address_space_stb(&address_space_memory, ccw.cda, vdev->status,
+                                        MEMTXATTRS_UNSPECIFIED, NULL);
+            sch->curr_status.scsw.count = ccw.count - sizeof(vdev->status);;
+            ret = 0;
         }
         break;
     case CCW_CMD_WRITE_STATUS:
@@ -688,6 +683,10 @@ static void virtio_ccw_device_realize(VirtioCcwDevice *dev, Error **errp)
     trace_virtio_ccw_new_device(
         sch->cssid, sch->ssid, sch->schid, sch->devno,
         ccw_dev->bus_id.valid ? "user-configured" : "auto-configured");
+
+    if (!kvm_eventfds_enabled()) {
+        dev->flags &= ~VIRTIO_CCW_FLAG_USE_IOEVENTFD;
+    }
 
     if (k->realize) {
         k->realize(dev, &err);
@@ -1261,6 +1260,16 @@ static int virtio_ccw_load_config(DeviceState *d, QEMUFile *f)
     return 0;
 }
 
+static void virtio_ccw_pre_plugged(DeviceState *d, Error **errp)
+{
+   VirtioCcwDevice *dev = VIRTIO_CCW_DEVICE(d);
+   VirtIODevice *vdev = virtio_bus_get_device(&dev->bus);
+
+    if (dev->max_rev >= 1) {
+        virtio_add_feature(&vdev->host_features, VIRTIO_F_VERSION_1);
+    }
+}
+
 /* This is called by virtio-bus just after the device is plugged. */
 static void virtio_ccw_device_plugged(DeviceState *d, Error **errp)
 {
@@ -1270,6 +1279,10 @@ static void virtio_ccw_device_plugged(DeviceState *d, Error **errp)
     SubchDev *sch = ccw_dev->sch;
     int n = virtio_get_num_queues(vdev);
 
+    if (!virtio_has_feature(vdev->host_features, VIRTIO_F_VERSION_1)) {
+        dev->max_rev = 0;
+    }
+
     if (virtio_get_num_queues(vdev) > VIRTIO_CCW_QUEUE_MAX) {
         error_setg(errp, "The number of virtqueues %d "
                    "exceeds ccw limit %d", n,
@@ -1277,29 +1290,11 @@ static void virtio_ccw_device_plugged(DeviceState *d, Error **errp)
         return;
     }
 
-    if (!kvm_eventfds_enabled()) {
-        dev->flags &= ~VIRTIO_CCW_FLAG_USE_IOEVENTFD;
-    }
-
     sch->id.cu_model = virtio_bus_get_vdev_id(&dev->bus);
 
-    if (dev->max_rev >= 1) {
-        virtio_add_feature(&vdev->host_features, VIRTIO_F_VERSION_1);
-    }
 
     css_generate_sch_crws(sch->cssid, sch->ssid, sch->schid,
                           d->hotplugged, 1);
-}
-
-static void virtio_ccw_post_plugged(DeviceState *d, Error **errp)
-{
-   VirtioCcwDevice *dev = VIRTIO_CCW_DEVICE(d);
-   VirtIODevice *vdev = virtio_bus_get_device(&dev->bus);
-
-   if (!virtio_host_has_feature(vdev, VIRTIO_F_VERSION_1)) {
-        /* A backend didn't support modern virtio. */
-       dev->max_rev = 0;
-   }
 }
 
 static void virtio_ccw_device_unplugged(DeviceState *d)
@@ -1593,13 +1588,10 @@ static void virtio_ccw_bus_class_init(ObjectClass *klass, void *data)
     k->load_queue = virtio_ccw_load_queue;
     k->save_config = virtio_ccw_save_config;
     k->load_config = virtio_ccw_load_config;
+    k->pre_plugged = virtio_ccw_pre_plugged;
     k->device_plugged = virtio_ccw_device_plugged;
-    k->post_plugged = virtio_ccw_post_plugged;
     k->device_unplugged = virtio_ccw_device_unplugged;
-    k->ioeventfd_started = virtio_ccw_ioeventfd_started;
-    k->ioeventfd_set_started = virtio_ccw_ioeventfd_set_started;
-    k->ioeventfd_disabled = virtio_ccw_ioeventfd_disabled;
-    k->ioeventfd_set_disabled = virtio_ccw_ioeventfd_set_disabled;
+    k->ioeventfd_enabled = virtio_ccw_ioeventfd_enabled;
     k->ioeventfd_assign = virtio_ccw_ioeventfd_assign;
 }
 
@@ -1658,6 +1650,57 @@ static const TypeInfo virtio_ccw_9p_info = {
 };
 #endif
 
+#ifdef CONFIG_VHOST_VSOCK
+
+static Property vhost_vsock_ccw_properties[] = {
+    DEFINE_PROP_CSS_DEV_ID("devno", VirtioCcwDevice, parent_obj.bus_id),
+    DEFINE_PROP_UINT32("max_revision", VirtioCcwDevice, max_rev,
+                       VIRTIO_CCW_MAX_REV),
+    DEFINE_PROP_END_OF_LIST(),
+};
+
+static void vhost_vsock_ccw_realize(VirtioCcwDevice *ccw_dev, Error **errp)
+{
+    VHostVSockCCWState *dev = VHOST_VSOCK_CCW(ccw_dev);
+    DeviceState *vdev = DEVICE(&dev->vdev);
+    Error *err = NULL;
+
+    qdev_set_parent_bus(vdev, BUS(&ccw_dev->bus));
+    object_property_set_bool(OBJECT(vdev), true, "realized", &err);
+    if (err) {
+        error_propagate(errp, err);
+    }
+}
+
+static void vhost_vsock_ccw_class_init(ObjectClass *klass, void *data)
+{
+    DeviceClass *dc = DEVICE_CLASS(klass);
+    VirtIOCCWDeviceClass *k = VIRTIO_CCW_DEVICE_CLASS(klass);
+
+    k->realize = vhost_vsock_ccw_realize;
+    k->exit = virtio_ccw_exit;
+    set_bit(DEVICE_CATEGORY_MISC, dc->categories);
+    dc->props = vhost_vsock_ccw_properties;
+    dc->reset = virtio_ccw_reset;
+}
+
+static void vhost_vsock_ccw_instance_init(Object *obj)
+{
+    VHostVSockCCWState *dev = VHOST_VSOCK_CCW(obj);
+
+    virtio_instance_init_common(obj, &dev->vdev, sizeof(dev->vdev),
+                                TYPE_VHOST_VSOCK);
+}
+
+static const TypeInfo vhost_vsock_ccw_info = {
+    .name          = TYPE_VHOST_VSOCK_CCW,
+    .parent        = TYPE_VIRTIO_CCW_DEVICE,
+    .instance_size = sizeof(VHostVSockCCWState),
+    .instance_init = vhost_vsock_ccw_instance_init,
+    .class_init    = vhost_vsock_ccw_class_init,
+};
+#endif
+
 static void virtio_ccw_register(void)
 {
     type_register_static(&virtio_ccw_bus_info);
@@ -1673,6 +1716,9 @@ static void virtio_ccw_register(void)
     type_register_static(&virtio_ccw_rng);
 #ifdef CONFIG_VIRTFS
     type_register_static(&virtio_ccw_9p_info);
+#endif
+#ifdef CONFIG_VHOST_VSOCK
+    type_register_static(&vhost_vsock_ccw_info);
 #endif
 }
 

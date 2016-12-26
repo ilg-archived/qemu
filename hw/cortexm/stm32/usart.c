@@ -1088,7 +1088,9 @@ static void stm32f4_usart_dr_post_read_callback(Object *reg, Object *periph,
 
     peripheral_register_and_raw_value(state->reg.sr, ~USART_SR_RXNE);
     if (state->chr) {
+#if 0
         qemu_chr_accept_input(state->chr);
+#endif
     }
 }
 
@@ -1316,8 +1318,10 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
         // char-device callbacks.
         if (state->chr) {
+#if 0
             qemu_chr_add_handlers(state->chr, stm32f4_usart_can_receive,
                     stm32f4_usart_receive, NULL, obj);
+#endif
         }
 
         switch (state->port_index) {
@@ -1361,7 +1365,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
         snprintf(chardev_name, ARRAY_SIZE(chardev_name)-1, "serial%d",
                 0 + state->port_index - STM32_PORT_USART1);
-        chr = qemu_chr_new(chardev_name, "null", NULL);
+        chr = qemu_chr_new(chardev_name, "null");
         if (!(chr)) {
             hw_error("Can't assign serial port to %s.\n", periph_name);
         }
@@ -1379,7 +1383,9 @@ static void stm32_usart_reset_callback(DeviceState *dev)
     cm_device_parent_reset(dev, TYPE_STM32_USART);
 
     if (state->chr) {
+#if 0
         qemu_chr_accept_input(state->chr);
+#endif
     }
 
     const STM32Capabilities *capabilities =

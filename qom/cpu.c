@@ -29,6 +29,7 @@
 #include "qemu/error-report.h"
 #include "sysemu/sysemu.h"
 #include "hw/qdev-properties.h"
+#include "trace.h"
 
 bool cpu_exists(int64_t id)
 {
@@ -119,10 +120,10 @@ void cpu_reset_interrupt(CPUState *cpu, int mask)
 
 void cpu_exit(CPUState *cpu)
 {
-    cpu->exit_request = 1;
+    atomic_set(&cpu->exit_request, 1);
     /* Ensure cpu_exec will see the exit request after TCG has exited.  */
     smp_wmb();
-    cpu->tcg_exit_req = 1;
+    atomic_set(&cpu->tcg_exit_req, 1);
 }
 
 int cpu_write_elf32_qemunote(WriteCoreDumpFunction f, CPUState *cpu,
@@ -249,11 +250,14 @@ void cpu_reset(CPUState *cpu)
     if (klass->reset != NULL) {
         (*klass->reset)(cpu);
     }
+
+    trace_guest_cpu_reset(cpu);
 }
 
 static void cpu_common_reset(CPUState *cpu)
 {
     CPUClass *cc = CPU_GET_CLASS(cpu);
+    int i;
 
     if (qemu_loglevel_mask(CPU_LOG_RESET)) {
         qemu_log("CPU Reset (CPU %d)\n", cpu->cpu_index);
@@ -269,7 +273,10 @@ static void cpu_common_reset(CPUState *cpu)
     cpu->can_do_io = 1;
     cpu->exception_index = -1;
     cpu->crash_occurred = false;
-    memset(cpu->tb_jmp_cache, 0, TB_JMP_CACHE_SIZE * sizeof(void *));
+
+    for (i = 0; i < TB_JMP_CACHE_SIZE; ++i) {
+        atomic_set(&cpu->tb_jmp_cache[i], NULL);
+    }
 }
 
 static bool cpu_common_has_work(CPUState *cs)
@@ -337,6 +344,15 @@ static void cpu_common_realizefn(DeviceState *dev, Error **errp)
         cpu_synchronize_post_init(cpu);
         cpu_resume(cpu);
     }
+
+    /* NOTE: latest generic point where the cpu is fully realized */
+    trace_init_vcpu(cpu);
+}
+
+static void cpu_common_unrealizefn(DeviceState *dev, Error **errp)
+{
+    CPUState *cpu = CPU(dev);
+    cpu_exec_unrealizefn(cpu);
 }
 
 static void cpu_common_initfn(Object *obj)
@@ -346,15 +362,24 @@ static void cpu_common_initfn(Object *obj)
 
     cpu->cpu_index = UNASSIGNED_CPU_INDEX;
     cpu->gdb_num_regs = cpu->gdb_num_g_regs = cc->gdb_num_core_regs;
+    /* *-user doesn't have configurable SMP topology */
+    /* the default value is changed by qemu_init_vcpu() for softmmu */
+    cpu->nr_cores = 1;
+    cpu->nr_threads = 1;
+
     qemu_mutex_init(&cpu->work_mutex);
     QTAILQ_INIT(&cpu->breakpoints);
     QTAILQ_INIT(&cpu->watchpoints);
-    bitmap_zero(cpu->trace_dstate, TRACE_VCPU_EVENT_COUNT);
+
+    cpu->trace_dstate = bitmap_new(trace_get_vcpu_event_count());
+
+    cpu_exec_initfn(cpu);
 }
 
 static void cpu_common_finalize(Object *obj)
 {
-    cpu_exec_exit(CPU(obj));
+    CPUState *cpu = CPU(obj);
+    g_free(cpu->trace_dstate);
 }
 
 static int64_t cpu_common_get_arch_id(CPUState *cpu)
@@ -387,6 +412,7 @@ static void cpu_class_init(ObjectClass *klass, void *data)
     k->cpu_exec_exit = cpu_common_noop;
     k->cpu_exec_interrupt = cpu_common_exec_interrupt;
     dc->realize = cpu_common_realizefn;
+    dc->unrealize = cpu_common_unrealizefn;
     /*
      * Reason: CPUs still need special care by board code: wiring up
      * IRQs, adding reset handlers, halting non-first CPUs, ...

@@ -18,7 +18,7 @@
 #include "qemu/sockets.h"
 #include "sysemu/char.h"
 #include "sysemu/sysemu.h"
-#include "hw/nvram/openbios_firmware_abi.h"
+#include "hw/nvram/chrp_nvram.h"
 
 #define MIN_NVRAM_SIZE 8192 /* from spapr_nvram.c */
 
@@ -137,15 +137,15 @@ static void init_bootfile_ppc(const char *bootpath)
 {
     FILE *bootfile;
     char buf[MIN_NVRAM_SIZE];
-    struct OpenBIOS_nvpart_v1 *header = (struct OpenBIOS_nvpart_v1 *)buf;
+    ChrpNvramPartHdr *header = (ChrpNvramPartHdr *)buf;
 
     memset(buf, 0, MIN_NVRAM_SIZE);
 
     /* Create a "common" partition in nvram to store boot-command property */
 
-    header->signature = OPENBIOS_PART_SYSTEM;
+    header->signature = CHRP_NVPART_SYSTEM;
     memcpy(header->name, "common", 6);
-    OpenBIOS_finish_partition(header, MIN_NVRAM_SIZE);
+    chrp_nvram_finish_partition(header, MIN_NVRAM_SIZE);
 
     /* FW_MAX_SIZE is 4MB, but slof.bin is only 900KB,
      * so let's modify memory between 1MB and 100MB
@@ -176,6 +176,7 @@ static void wait_for_serial(const char *side)
     int started = (strcmp(side, "src_serial") == 0 &&
                    strcmp(arch, "ppc64") == 0) ? 0 : 1;
 
+    g_free(serialpath);
     do {
         int readvalue = fgetc(serialfile);
 
@@ -203,7 +204,6 @@ static void wait_for_serial(const char *side)
         case 'B':
             /* It's alive! */
             fclose(serialfile);
-            g_free(serialpath);
             return;
 
         case EOF:
@@ -260,8 +260,8 @@ static uint64_t get_migration_pass(void)
     } else {
         rsp_ram = qdict_get_qdict(rsp_return, "ram");
         result = qdict_get_try_int(rsp_ram, "dirty-sync-count", 0);
-        QDECREF(rsp);
     }
+    QDECREF(rsp);
     return result;
 }
 
@@ -350,6 +350,7 @@ static void cleanup(const char *filename)
     char *path = g_strdup_printf("%s/%s", tmpfs, filename);
 
     unlink(path);
+    g_free(path);
 }
 
 static void test_migrate(void)
@@ -379,20 +380,26 @@ static void test_migrate(void)
                                   " -incoming %s",
                                   tmpfs, bootpath, uri);
     } else if (strcmp(arch, "ppc64") == 0) {
+        const char *accel;
+
+        /* On ppc64, the test only works with kvm-hv, but not with kvm-pr */
+        accel = access("/sys/module/kvm_hv", F_OK) ? "tcg" : "kvm:tcg";
         init_bootfile_ppc(bootpath);
-        cmd_src = g_strdup_printf("-machine accel=kvm:tcg -m 256M"
+        cmd_src = g_strdup_printf("-machine accel=%s -m 256M"
                                   " -name pcsource,debug-threads=on"
                                   " -serial file:%s/src_serial"
                                   " -drive file=%s,if=pflash,format=raw",
-                                  tmpfs, bootpath);
-        cmd_dst = g_strdup_printf("-machine accel=kvm:tcg -m 256M"
+                                  accel, tmpfs, bootpath);
+        cmd_dst = g_strdup_printf("-machine accel=%s -m 256M"
                                   " -name pcdest,debug-threads=on"
                                   " -serial file:%s/dest_serial"
                                   " -incoming %s",
-                                  tmpfs, uri);
+                                  accel, tmpfs, uri);
     } else {
         g_assert_not_reached();
     }
+
+    g_free(bootpath);
 
     from = qtest_start(cmd_src);
     g_free(cmd_src);

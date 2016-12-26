@@ -4,7 +4,7 @@
  * Copyright (C) 2012 Red Hat Inc.
  *
  * Authors:
- *  Paolo Bonzini <pbonzini@redhat.com> (based on test-qmp-input-visitor)
+ *  Paolo Bonzini <pbonzini@redhat.com> (based on test-qobject-input-visitor)
  *
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
@@ -228,6 +228,7 @@ static void test_visitor_in_fuzz(TestInputVisitorData *data,
 
         v = visitor_input_test_init(data, buf);
         visit_type_intList(v, NULL, &ilres, NULL);
+        qapi_free_intList(ilres);
         visitor_input_teardown(data, NULL);
 
         v = visitor_input_test_init(data, buf);

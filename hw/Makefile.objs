@@ -2,6 +2,7 @@ devices-dirs-$(call land, $(CONFIG_VIRTIO),$(call land,$(CONFIG_VIRTFS),$(CONFIG
 devices-dirs-$(CONFIG_ACPI) += acpi/
 # [GNU ARM Eclipse]
 ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+devices-dirs-$(CONFIG_SOFTMMU) += adc/
 devices-dirs-$(CONFIG_SOFTMMU) += audio/
 devices-dirs-$(CONFIG_SOFTMMU) += block/
 devices-dirs-$(CONFIG_SOFTMMU) += bt/

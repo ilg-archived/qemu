@@ -21,16 +21,20 @@
 
 #include "qemu/osdep.h"
 #include "qemu/error-report.h"
+#include "qapi/error.h"
 #include "hw/sysbus.h"
 #include "exec/address-spaces.h"
 #include "intel_iommu_internal.h"
 #include "hw/pci/pci.h"
 #include "hw/pci/pci_bus.h"
 #include "hw/i386/pc.h"
+#include "hw/i386/apic-msidef.h"
 #include "hw/boards.h"
 #include "hw/i386/x86-iommu.h"
 #include "hw/pci-host/q35.h"
 #include "sysemu/kvm.h"
+#include "hw/i386/apic_internal.h"
+#include "kvm_i386.h"
 
 /*#define DEBUG_INTEL_IOMMU*/
 #ifdef DEBUG_INTEL_IOMMU
@@ -214,7 +218,7 @@ static void vtd_reset_iotlb(IntelIOMMUState *s)
     g_hash_table_remove_all(s->iotlb);
 }
 
-static uint64_t vtd_get_iotlb_key(uint64_t gfn, uint8_t source_id,
+static uint64_t vtd_get_iotlb_key(uint64_t gfn, uint16_t source_id,
                                   uint32_t level)
 {
     return gfn | ((uint64_t)(source_id) << VTD_IOTLB_SID_SHIFT) |
@@ -279,18 +283,17 @@ static void vtd_update_iotlb(IntelIOMMUState *s, uint16_t source_id,
 static void vtd_generate_interrupt(IntelIOMMUState *s, hwaddr mesg_addr_reg,
                                    hwaddr mesg_data_reg)
 {
-    hwaddr addr;
-    uint32_t data;
+    MSIMessage msi;
 
     assert(mesg_data_reg < DMAR_REG_SIZE);
     assert(mesg_addr_reg < DMAR_REG_SIZE);
 
-    addr = vtd_get_long_raw(s, mesg_addr_reg);
-    data = vtd_get_long_raw(s, mesg_data_reg);
+    msi.address = vtd_get_long_raw(s, mesg_addr_reg);
+    msi.data = vtd_get_long_raw(s, mesg_data_reg);
 
-    VTD_DPRINTF(FLOG, "msi: addr 0x%"PRIx64 " data 0x%"PRIx32, addr, data);
-    address_space_stl_le(&address_space_memory, addr, data,
-                         MEMTXATTRS_UNSPECIFIED, NULL);
+    VTD_DPRINTF(FLOG, "msi: addr 0x%"PRIx64 " data 0x%"PRIx32,
+                msi.address, msi.data);
+    apic_get_class()->send_msi(&msi);
 }
 
 /* Generate a fault event to software via MSI if conditions are met.
@@ -985,6 +988,7 @@ static void vtd_context_device_invalidate(IntelIOMMUState *s,
         mask = 7;   /* Mask bit 2:0 in the SID field */
         break;
     }
+    mask = ~mask;
     VTD_DPRINTF(INV, "device-selective invalidation source 0x%"PRIx16
                     " mask %"PRIu16, source_id, mask);
     vtd_bus = vtd_find_as_from_bus_num(s, VTD_SID_TO_BUS(source_id));
@@ -1974,14 +1978,20 @@ static IOMMUTLBEntry vtd_iommu_translate(MemoryRegion *iommu, hwaddr addr,
     return ret;
 }
 
-static void vtd_iommu_notify_started(MemoryRegion *iommu)
+static void vtd_iommu_notify_flag_changed(MemoryRegion *iommu,
+                                          IOMMUNotifierFlag old,
+                                          IOMMUNotifierFlag new)
 {
     VTDAddressSpace *vtd_as = container_of(iommu, VTDAddressSpace, iommu);
 
-    hw_error("Device at bus %s addr %02x.%d requires iommu notifier which "
-             "is currently not supported by intel-iommu emulation",
-             vtd_as->bus->qbus.name, PCI_SLOT(vtd_as->devfn),
-             PCI_FUNC(vtd_as->devfn));
+    if (new & IOMMU_NOTIFIER_MAP) {
+        error_report("Device at bus %s addr %02x.%d requires iommu "
+                     "notifier which is currently not supported by "
+                     "intel-iommu emulation",
+                     vtd_as->bus->qbus.name, PCI_SLOT(vtd_as->devfn),
+                     PCI_FUNC(vtd_as->devfn));
+        exit(1);
+    }
 }
 
 static const VMStateDescription vtd_vmstate = {
@@ -2005,6 +2015,9 @@ static const MemoryRegionOps vtd_mem_ops = {
 
 static Property vtd_properties[] = {
     DEFINE_PROP_UINT32("version", IntelIOMMUState, version, 0),
+    DEFINE_PROP_ON_OFF_AUTO("eim", IntelIOMMUState, intr_eim,
+                            ON_OFF_AUTO_AUTO),
+    DEFINE_PROP_BOOL("x-buggy-eim", IntelIOMMUState, buggy_eim, false),
     DEFINE_PROP_END_OF_LIST(),
 };
 
@@ -2127,6 +2140,7 @@ static void vtd_generate_msi_message(VTDIrq *irq, MSIMessage *msg_out)
     msg.dest_mode = irq->dest_mode;
     msg.redir_hint = irq->redir_hint;
     msg.dest = irq->dest;
+    msg.__addr_hi = irq->dest & 0xffffff00;
     msg.__addr_head = cpu_to_le32(0xfee);
     /* Keep this from original MSI address bits */
     msg.__not_used = irq->msi_addr_last_bits;
@@ -2167,7 +2181,7 @@ static int vtd_interrupt_remap_msi(IntelIOMMUState *iommu,
     }
 
     addr.data = origin->address & VTD_MSI_ADDR_LO_MASK;
-    if (le16_to_cpu(addr.addr.__head) != 0xfee) {
+    if (addr.addr.__head != 0xfee) {
         VTD_DPRINTF(GENERAL, "error: MSI addr low 32 bits invalid: "
                     "0x%"PRIx32, addr.data);
         return -VTD_FR_IR_REQ_RSVD;
@@ -2203,6 +2217,8 @@ static int vtd_interrupt_remap_msi(IntelIOMMUState *iommu,
         }
     } else {
         uint8_t vector = origin->data & 0xff;
+        uint8_t trigger_mode = (origin->data >> MSI_DATA_TRIGGER_SHIFT) & 0x1;
+
         VTD_DPRINTF(IR, "received IOAPIC interrupt");
         /* IOAPIC entry vector should be aligned with IRTE vector
          * (see vt-d spec 5.1.5.1). */
@@ -2211,6 +2227,15 @@ static int vtd_interrupt_remap_msi(IntelIOMMUState *iommu,
                         "entry: %d, IRTE: %d, index: %d",
                         vector, irq.vector, index);
         }
+
+        /* The Trigger Mode field must match the Trigger Mode in the IRTE.
+         * (see vt-d spec 5.1.5.1). */
+        if (trigger_mode != irq.trigger_mode) {
+            VTD_DPRINTF(GENERAL, "IOAPIC trigger mode inconsistent: "
+                        "entry: %u, IRTE: %u, index: %d",
+                        trigger_mode, irq.trigger_mode, index);
+        }
+
     }
 
     /*
@@ -2275,11 +2300,7 @@ static MemTxResult vtd_mem_ir_write(void *opaque, hwaddr addr,
                 " for device sid 0x%04x",
                 to.address, to.data, sid);
 
-    if (dma_memory_write(&address_space_memory, to.address,
-                         &to.data, size)) {
-        VTD_DPRINTF(GENERAL, "error: fail to write 0x%"PRIx64
-                    " value 0x%"PRIx32, to.address, to.data);
-    }
+    apic_get_class()->send_msi(&to);
 
     return MEMTX_OK;
 }
@@ -2348,7 +2369,7 @@ static void vtd_init(IntelIOMMUState *s)
     memset(s->womask, 0, DMAR_REG_SIZE);
 
     s->iommu_ops.translate = vtd_iommu_translate;
-    s->iommu_ops.notify_started = vtd_iommu_notify_started;
+    s->iommu_ops.notify_flag_changed = vtd_iommu_notify_flag_changed;
     s->root = 0;
     s->root_extended = false;
     s->dmar_enabled = false;
@@ -2364,7 +2385,11 @@ static void vtd_init(IntelIOMMUState *s)
     s->ecap = VTD_ECAP_QI | VTD_ECAP_IRO;
 
     if (x86_iommu->intr_supported) {
-        s->ecap |= VTD_ECAP_IR | VTD_ECAP_EIM | VTD_ECAP_MHMV;
+        s->ecap |= VTD_ECAP_IR | VTD_ECAP_MHMV;
+        if (s->intr_eim == ON_OFF_AUTO_ON) {
+            s->ecap |= VTD_ECAP_EIM;
+        }
+        assert(s->intr_eim != ON_OFF_AUTO_AUTO);
     }
 
     vtd_reset_context_cache(s);
@@ -2439,10 +2464,46 @@ static AddressSpace *vtd_host_dma_iommu(PCIBus *bus, void *opaque, int devfn)
     IntelIOMMUState *s = opaque;
     VTDAddressSpace *vtd_as;
 
-    assert(0 <= devfn && devfn <= X86_IOMMU_PCI_DEVFN_MAX);
+    assert(0 <= devfn && devfn < X86_IOMMU_PCI_DEVFN_MAX);
 
     vtd_as = vtd_find_add_as(s, bus, devfn);
     return &vtd_as->as;
+}
+
+static bool vtd_decide_config(IntelIOMMUState *s, Error **errp)
+{
+    X86IOMMUState *x86_iommu = X86_IOMMU_DEVICE(s);
+
+    /* Currently Intel IOMMU IR only support "kernel-irqchip={off|split}" */
+    if (x86_iommu->intr_supported && kvm_irqchip_in_kernel() &&
+        !kvm_irqchip_is_split()) {
+        error_setg(errp, "Intel Interrupt Remapping cannot work with "
+                         "kernel-irqchip=on, please use 'split|off'.");
+        return false;
+    }
+    if (s->intr_eim == ON_OFF_AUTO_ON && !x86_iommu->intr_supported) {
+        error_setg(errp, "eim=on cannot be selected without intremap=on");
+        return false;
+    }
+
+    if (s->intr_eim == ON_OFF_AUTO_AUTO) {
+        s->intr_eim = (kvm_irqchip_in_kernel() || s->buggy_eim)
+                      && x86_iommu->intr_supported ?
+                                              ON_OFF_AUTO_ON : ON_OFF_AUTO_OFF;
+    }
+    if (s->intr_eim == ON_OFF_AUTO_ON && !s->buggy_eim) {
+        if (!kvm_irqchip_in_kernel()) {
+            error_setg(errp, "eim=on requires accel=kvm,kernel-irqchip=split");
+            return false;
+        }
+        if (!kvm_enable_x2apic()) {
+            error_setg(errp, "eim=on requires support on the KVM side"
+                             "(X2APIC_API, first shipped in v4.7)");
+            return false;
+        }
+    }
+
+    return true;
 }
 
 static void vtd_realize(DeviceState *dev, Error **errp)
@@ -2453,6 +2514,12 @@ static void vtd_realize(DeviceState *dev, Error **errp)
     X86IOMMUState *x86_iommu = X86_IOMMU_DEVICE(dev);
 
     VTD_DPRINTF(GENERAL, "");
+    x86_iommu->type = TYPE_INTEL;
+
+    if (!vtd_decide_config(s, errp)) {
+        return;
+    }
+
     memset(s->vtd_as_by_bus_num, 0, sizeof(s->vtd_as_by_bus_num));
     memory_region_init_io(&s->csrmem, OBJECT(s), &vtd_mem_ops, s,
                           "intel_iommu", DMAR_REG_SIZE);
@@ -2467,14 +2534,6 @@ static void vtd_realize(DeviceState *dev, Error **errp)
     pci_setup_iommu(bus, vtd_host_dma_iommu, dev);
     /* Pseudo address space under root PCI bus. */
     pcms->ioapic_as = vtd_host_dma_iommu(bus, s, Q35_PSEUDO_DEVFN_IOAPIC);
-
-    /* Currently Intel IOMMU IR only support "kernel-irqchip={off|split}" */
-    if (x86_iommu->intr_supported && kvm_irqchip_in_kernel() &&
-        !kvm_irqchip_is_split()) {
-        error_report("Intel Interrupt Remapping cannot work with "
-                     "kernel-irqchip=on, please use 'split|off'.");
-        exit(1);
-    }
 }
 
 static void vtd_class_init(ObjectClass *klass, void *data)

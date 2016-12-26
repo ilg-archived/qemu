@@ -11,6 +11,10 @@
 #include "hw/ptimer.h"
 #include "qemu/host-utils.h"
 #include "sysemu/replay.h"
+#include "sysemu/qtest.h"
+
+#define DELTA_ADJUST     1
+#define DELTA_NO_ADJUST -1
 
 struct ptimer_state
 {
@@ -21,6 +25,7 @@ struct ptimer_state
     int64_t period;
     int64_t last_event;
     int64_t next_event;
+    uint8_t policy_mask;
     QEMUBH *bh;
     QEMUTimer *timer;
 };
@@ -33,17 +38,58 @@ static void ptimer_trigger(ptimer_state *s)
     }
 }
 
-static void ptimer_reload(ptimer_state *s)
+static void ptimer_reload(ptimer_state *s, int delta_adjust)
 {
     uint32_t period_frac = s->period_frac;
     uint64_t period = s->period;
+    uint64_t delta = s->delta;
 
-    if (s->delta == 0) {
+    if (delta == 0 && !(s->policy_mask & PTIMER_POLICY_NO_IMMEDIATE_TRIGGER)) {
         ptimer_trigger(s);
-        s->delta = s->limit;
     }
-    if (s->delta == 0 || s->period == 0) {
-        fprintf(stderr, "Timer with period zero, disabling\n");
+
+    if (delta == 0 && !(s->policy_mask & PTIMER_POLICY_NO_IMMEDIATE_RELOAD)) {
+        delta = s->delta = s->limit;
+    }
+
+    if (s->period == 0) {
+        if (!qtest_enabled()) {
+            fprintf(stderr, "Timer with period zero, disabling\n");
+        }
+        timer_del(s->timer);
+        s->enabled = 0;
+        return;
+    }
+
+    if (s->policy_mask & PTIMER_POLICY_WRAP_AFTER_ONE_PERIOD) {
+        if (delta_adjust != DELTA_NO_ADJUST) {
+            delta += delta_adjust;
+        }
+    }
+
+    if (delta == 0 && (s->policy_mask & PTIMER_POLICY_CONTINUOUS_TRIGGER)) {
+        if (s->enabled == 1 && s->limit == 0) {
+            delta = 1;
+        }
+    }
+
+    if (delta == 0 && (s->policy_mask & PTIMER_POLICY_NO_IMMEDIATE_TRIGGER)) {
+        if (delta_adjust != DELTA_NO_ADJUST) {
+            delta = 1;
+        }
+    }
+
+    if (delta == 0 && (s->policy_mask & PTIMER_POLICY_NO_IMMEDIATE_RELOAD)) {
+        if (s->enabled == 1 && s->limit != 0) {
+            delta = 1;
+        }
+    }
+
+    if (delta == 0) {
+        if (!qtest_enabled()) {
+            fprintf(stderr, "Timer with delta zero, disabling\n");
+        }
+        timer_del(s->timer);
         s->enabled = 0;
         return;
     }
@@ -57,15 +103,15 @@ static void ptimer_reload(ptimer_state *s)
      * on the current generation of host machines.
      */
 
-    if (s->enabled == 1 && (s->delta * period < 10000) && !use_icount) {
-        period = 10000 / s->delta;
+    if (s->enabled == 1 && (delta * period < 10000) && !use_icount) {
+        period = 10000 / delta;
         period_frac = 0;
     }
 
     s->last_event = s->next_event;
-    s->next_event = s->last_event + s->delta * period;
+    s->next_event = s->last_event + delta * period;
     if (period_frac) {
-        s->next_event += ((int64_t)period_frac * s->delta) >> 32;
+        s->next_event += ((int64_t)period_frac * delta) >> 32;
     }
     timer_mod(s->timer, s->next_event);
 }
@@ -73,12 +119,35 @@ static void ptimer_reload(ptimer_state *s)
 static void ptimer_tick(void *opaque)
 {
     ptimer_state *s = (ptimer_state *)opaque;
-    ptimer_trigger(s);
-    s->delta = 0;
+    bool trigger = true;
+
     if (s->enabled == 2) {
+        s->delta = 0;
         s->enabled = 0;
     } else {
-        ptimer_reload(s);
+        int delta_adjust = DELTA_ADJUST;
+
+        if (s->delta == 0 || s->limit == 0) {
+            /* If a "continuous trigger" policy is not used and limit == 0,
+               we should error out. delta == 0 means that this tick is
+               caused by a "no immediate reload" policy, so it shouldn't
+               be adjusted.  */
+            delta_adjust = DELTA_NO_ADJUST;
+        }
+
+        if (!(s->policy_mask & PTIMER_POLICY_NO_IMMEDIATE_TRIGGER)) {
+            /* Avoid re-trigger on deferred reload if "no immediate trigger"
+               policy isn't used.  */
+            trigger = (delta_adjust == DELTA_ADJUST);
+        }
+
+        s->delta = s->limit;
+
+        ptimer_reload(s, delta_adjust);
+    }
+
+    if (trigger) {
+        ptimer_trigger(s);
     }
 }
 
@@ -86,9 +155,10 @@ uint64_t ptimer_get_count(ptimer_state *s)
 {
     uint64_t counter;
 
-    if (s->enabled) {
+    if (s->enabled && s->delta != 0) {
         int64_t now = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
         int64_t next = s->next_event;
+        int64_t last = s->last_event;
         bool expired = (now - next >= 0);
         bool oneshot = (s->enabled == 2);
 
@@ -113,7 +183,7 @@ uint64_t ptimer_get_count(ptimer_state *s)
             /* We need to divide time by period, where time is stored in
                rem (64-bit integer) and period is stored in period/period_frac
                (64.32 fixed point).
-              
+
                Doing full precision division is hard, so scale values and
                do a 64-bit division.  The result should be rounded down,
                so that the rounding error never causes the timer to go
@@ -140,6 +210,35 @@ uint64_t ptimer_get_count(ptimer_state *s)
                     div += 1;
             }
             counter = rem / div;
+
+            if (s->policy_mask & PTIMER_POLICY_WRAP_AFTER_ONE_PERIOD) {
+                /* Before wrapping around, timer should stay with counter = 0
+                   for a one period.  */
+                if (!oneshot && s->delta == s->limit) {
+                    if (now == last) {
+                        /* Counter == delta here, check whether it was
+                           adjusted and if it was, then right now it is
+                           that "one period".  */
+                        if (counter == s->limit + DELTA_ADJUST) {
+                            return 0;
+                        }
+                    } else if (counter == s->limit) {
+                        /* Since the counter is rounded down and now != last,
+                           the counter == limit means that delta was adjusted
+                           by +1 and right now it is that adjusted period.  */
+                        return 0;
+                    }
+                }
+            }
+        }
+
+        if (s->policy_mask & PTIMER_POLICY_NO_COUNTER_ROUND_DOWN) {
+            /* If now == last then delta == limit, i.e. the counter already
+               represents the correct value. It would be rounded down a 1ns
+               later.  */
+            if (now != last) {
+                counter += 1;
+            }
         }
     } else {
         counter = s->delta;
@@ -152,7 +251,7 @@ void ptimer_set_count(ptimer_state *s, uint64_t count)
     s->delta = count;
     if (s->enabled) {
         s->next_event = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-        ptimer_reload(s);
+        ptimer_reload(s, 0);
     }
 }
 
@@ -161,13 +260,15 @@ void ptimer_run(ptimer_state *s, int oneshot)
     bool was_disabled = !s->enabled;
 
     if (was_disabled && s->period == 0) {
-        fprintf(stderr, "Timer with period zero, disabling\n");
+        if (!qtest_enabled()) {
+            fprintf(stderr, "Timer with period zero, disabling\n");
+        }
         return;
     }
     s->enabled = oneshot ? 2 : 1;
     if (was_disabled) {
         s->next_event = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-        ptimer_reload(s);
+        ptimer_reload(s, 0);
     }
 }
 
@@ -191,7 +292,7 @@ void ptimer_set_period(ptimer_state *s, int64_t period)
     s->period_frac = 0;
     if (s->enabled) {
         s->next_event = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-        ptimer_reload(s);
+        ptimer_reload(s, 0);
     }
 }
 
@@ -203,7 +304,7 @@ void ptimer_set_freq(ptimer_state *s, uint32_t freq)
     s->period_frac = (1000000000ll << 32) / freq;
     if (s->enabled) {
         s->next_event = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-        ptimer_reload(s);
+        ptimer_reload(s, 0);
     }
 }
 
@@ -216,7 +317,7 @@ void ptimer_set_limit(ptimer_state *s, uint64_t limit, int reload)
         s->delta = limit;
     if (s->enabled && reload) {
         s->next_event = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL);
-        ptimer_reload(s);
+        ptimer_reload(s, 0);
     }
 }
 
@@ -242,12 +343,13 @@ const VMStateDescription vmstate_ptimer = {
     }
 };
 
-ptimer_state *ptimer_init(QEMUBH *bh)
+ptimer_state *ptimer_init(QEMUBH *bh, uint8_t policy_mask)
 {
     ptimer_state *s;
 
     s = (ptimer_state *)g_malloc0(sizeof(ptimer_state));
     s->bh = bh;
     s->timer = timer_new_ns(QEMU_CLOCK_VIRTUAL, ptimer_tick, s);
+    s->policy_mask = policy_mask;
     return s;
 }

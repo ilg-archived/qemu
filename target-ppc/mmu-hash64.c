@@ -110,7 +110,7 @@ void helper_slbia(CPUPPCState *env)
              *      and we still don't have a tlb_flush_mask(env, n, mask)
              *      in QEMU, we just invalidate all TLBs
              */
-            env->tlb_need_flush = 1;
+            env->tlb_need_flush |= TLB_NEED_LOCAL_FLUSH;
         }
     }
 }
@@ -132,7 +132,7 @@ void helper_slbie(CPUPPCState *env, target_ulong addr)
          *      and we still don't have a tlb_flush_mask(env, n, mask)
          *      in QEMU, we just invalidate all TLBs
          */
-        env->tlb_need_flush = 1;
+        env->tlb_need_flush |= TLB_NEED_LOCAL_FLUSH;
     }
 }
 
@@ -241,8 +241,8 @@ void helper_store_slb(CPUPPCState *env, target_ulong rb, target_ulong rs)
     PowerPCCPU *cpu = ppc_env_get_cpu(env);
 
     if (ppc_store_slb(cpu, rb & 0xfff, rb & ~0xfffULL, rs) < 0) {
-        helper_raise_exception_err(env, POWERPC_EXCP_PROGRAM,
-                                   POWERPC_EXCP_INVAL);
+        raise_exception_err_ra(env, POWERPC_EXCP_PROGRAM,
+                               POWERPC_EXCP_INVAL, GETPC());
     }
 }
 
@@ -252,8 +252,8 @@ target_ulong helper_load_slb_esid(CPUPPCState *env, target_ulong rb)
     target_ulong rt = 0;
 
     if (ppc_load_slb_esid(cpu, rb, &rt) < 0) {
-        helper_raise_exception_err(env, POWERPC_EXCP_PROGRAM,
-                                   POWERPC_EXCP_INVAL);
+        raise_exception_err_ra(env, POWERPC_EXCP_PROGRAM,
+                               POWERPC_EXCP_INVAL, GETPC());
     }
     return rt;
 }
@@ -264,8 +264,8 @@ target_ulong helper_find_slb_vsid(CPUPPCState *env, target_ulong rb)
     target_ulong rt = 0;
 
     if (ppc_find_slb_vsid(cpu, rb, &rt) < 0) {
-        helper_raise_exception_err(env, POWERPC_EXCP_PROGRAM,
-                                   POWERPC_EXCP_INVAL);
+        raise_exception_err_ra(env, POWERPC_EXCP_PROGRAM,
+                               POWERPC_EXCP_INVAL, GETPC());
     }
     return rt;
 }
@@ -276,8 +276,8 @@ target_ulong helper_load_slb_vsid(CPUPPCState *env, target_ulong rb)
     target_ulong rt = 0;
 
     if (ppc_load_slb_vsid(cpu, rb, &rt) < 0) {
-        helper_raise_exception_err(env, POWERPC_EXCP_PROGRAM,
-                                   POWERPC_EXCP_INVAL);
+        raise_exception_err_ra(env, POWERPC_EXCP_PROGRAM,
+                               POWERPC_EXCP_INVAL, GETPC());
     }
     return rt;
 }
@@ -912,7 +912,7 @@ void ppc_hash64_tlb_flush_hpte(PowerPCCPU *cpu,
      * invalidate, and we still don't have a tlb_flush_mask(env, n,
      * mask) in QEMU, we just invalidate all TLBs
      */
-    tlb_flush(CPU(cpu), 1);
+    cpu->env.tlb_need_flush = TLB_NEED_GLOBAL_FLUSH | TLB_NEED_LOCAL_FLUSH;
 }
 
 void ppc_hash64_update_rmls(CPUPPCState *env)

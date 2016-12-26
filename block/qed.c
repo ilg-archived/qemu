@@ -336,7 +336,7 @@ static void qed_need_check_timer_cb(void *opaque)
     qed_plug_allocating_write_reqs(s);
 
     /* Ensure writes are on disk before clearing flag */
-    bdrv_aio_flush(s->bs, qed_clear_need_check, s);
+    bdrv_aio_flush(s->bs->file->bs, qed_clear_need_check, s);
 }
 
 static void qed_start_need_check_timer(BDRVQEDState *s)
@@ -375,6 +375,19 @@ static void bdrv_qed_attach_aio_context(BlockDriverState *bs,
                                         qed_need_check_timer_cb, s);
     if (s->header.features & QED_F_NEED_CHECK) {
         qed_start_need_check_timer(s);
+    }
+}
+
+static void bdrv_qed_drain(BlockDriverState *bs)
+{
+    BDRVQEDState *s = bs->opaque;
+
+    /* Fire the timer immediately in order to start doing I/O as soon as the
+     * header is flushed.
+     */
+    if (s->need_check_timer && timer_pending(s->need_check_timer)) {
+        qed_cancel_need_check_timer(s);
+        qed_need_check_timer_cb(s);
     }
 }
 
@@ -909,7 +922,6 @@ static void qed_aio_complete_bh(void *opaque)
     void *user_opaque = acb->common.opaque;
     int ret = acb->bh_ret;
 
-    qemu_bh_delete(acb->bh);
     qemu_aio_unref(acb);
 
     /* Invoke callback */
@@ -934,9 +946,8 @@ static void qed_aio_complete(QEDAIOCB *acb, int ret)
 
     /* Arrange for a bh to invoke the completion function */
     acb->bh_ret = ret;
-    acb->bh = aio_bh_new(bdrv_get_aio_context(acb->common.bs),
-                         qed_aio_complete_bh, acb);
-    qemu_bh_schedule(acb->bh);
+    aio_bh_schedule_oneshot(bdrv_get_aio_context(acb->common.bs),
+                            qed_aio_complete_bh, acb);
 
     /* Start next allocating write request waiting behind this one.  Note that
      * requests enqueue themselves when they first hit an unallocated cluster
@@ -1670,6 +1681,7 @@ static BlockDriver bdrv_qed = {
     .bdrv_check               = bdrv_qed_check,
     .bdrv_detach_aio_context  = bdrv_qed_detach_aio_context,
     .bdrv_attach_aio_context  = bdrv_qed_attach_aio_context,
+    .bdrv_drain               = bdrv_qed_drain,
 };
 
 static void bdrv_qed_init(void)

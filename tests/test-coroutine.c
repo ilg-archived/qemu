@@ -53,6 +53,47 @@ static void test_self(void)
 }
 
 /*
+ * Check that qemu_coroutine_entered() works
+ */
+
+static void coroutine_fn verify_entered_step_2(void *opaque)
+{
+    Coroutine *caller = (Coroutine *)opaque;
+
+    g_assert(qemu_coroutine_entered(caller));
+    g_assert(qemu_coroutine_entered(qemu_coroutine_self()));
+    qemu_coroutine_yield();
+
+    /* Once more to check it still works after yielding */
+    g_assert(qemu_coroutine_entered(caller));
+    g_assert(qemu_coroutine_entered(qemu_coroutine_self()));
+    qemu_coroutine_yield();
+}
+
+static void coroutine_fn verify_entered_step_1(void *opaque)
+{
+    Coroutine *self = qemu_coroutine_self();
+    Coroutine *coroutine;
+
+    g_assert(qemu_coroutine_entered(self));
+
+    coroutine = qemu_coroutine_create(verify_entered_step_2, self);
+    g_assert(!qemu_coroutine_entered(coroutine));
+    qemu_coroutine_enter(coroutine);
+    g_assert(!qemu_coroutine_entered(coroutine));
+    qemu_coroutine_enter(coroutine);
+}
+
+static void test_entered(void)
+{
+    Coroutine *coroutine;
+
+    coroutine = qemu_coroutine_create(verify_entered_step_1, NULL);
+    g_assert(!qemu_coroutine_entered(coroutine));
+    qemu_coroutine_enter(coroutine);
+}
+
+/*
  * Check that coroutines may nest multiple levels
  */
 
@@ -139,13 +180,20 @@ static void test_co_queue(void)
 {
     Coroutine *c1;
     Coroutine *c2;
+    Coroutine tmp;
 
     c2 = qemu_coroutine_create(c2_fn, NULL);
     c1 = qemu_coroutine_create(c1_fn, c2);
 
     qemu_coroutine_enter(c1);
+
+    /* c1 shouldn't be used any more now; make sure we segfault if it is */
+    tmp = *c1;
     memset(c1, 0xff, sizeof(Coroutine));
     qemu_coroutine_enter(c2);
+
+    /* Must restore the coroutine now to avoid corrupted pool */
+    *c1 = tmp;
 }
 
 /*
@@ -382,6 +430,7 @@ int main(int argc, char **argv)
     g_test_add_func("/basic/yield", test_yield);
     g_test_add_func("/basic/nesting", test_nesting);
     g_test_add_func("/basic/self", test_self);
+    g_test_add_func("/basic/entered", test_entered);
     g_test_add_func("/basic/in_coroutine", test_in_coroutine);
     g_test_add_func("/basic/order", test_order);
     if (g_test_perf()) {

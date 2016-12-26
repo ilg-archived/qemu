@@ -123,6 +123,7 @@ struct QemuConsole {
     DisplaySurface *surface;
     int dcls;
     DisplayChangeListener *gl;
+    bool gl_block;
 
     /* Graphic console state.  */
     Object *device;
@@ -264,10 +265,10 @@ void graphic_hw_update(QemuConsole *con)
 
 void graphic_hw_gl_block(QemuConsole *con, bool block)
 {
-    if (!con) {
-        con = active_console;
-    }
-    if (con && con->hw_ops->gl_block) {
+    assert(con != NULL);
+
+    con->gl_block = block;
+    if (con->hw_ops->gl_block) {
         con->hw_ops->gl_block(con->hw, block);
     }
 }
@@ -1082,6 +1083,7 @@ static void kbd_send_chars(void *opaque)
 void kbd_put_keysym_console(QemuConsole *s, int keysym)
 {
     uint8_t buf[16], *q;
+    CharBackend *be;
     int c;
 
     if (!s || (s->console_type == GRAPHIC_CONSOLE))
@@ -1124,7 +1126,8 @@ void kbd_put_keysym_console(QemuConsole *s, int keysym)
         if (s->echo) {
             console_puts(s->chr, buf, q - buf);
         }
-        if (s->chr->chr_read) {
+        be = s->chr->be;
+        if (be && be->chr_read) {
             qemu_fifo_write(&s->out_fifo, buf, q - buf);
             kbd_send_chars(s);
         }
@@ -1142,6 +1145,7 @@ static const int qcode_to_keysym[Q_KEY_CODE__MAX] = {
     [Q_KEY_CODE_PGUP]   = QEMU_KEY_PAGEUP,
     [Q_KEY_CODE_PGDN]   = QEMU_KEY_PAGEDOWN,
     [Q_KEY_CODE_DELETE] = QEMU_KEY_DELETE,
+    [Q_KEY_CODE_BACKSPACE] = QEMU_KEY_BACKSPACE,
 };
 
 bool kbd_put_qcode_console(QemuConsole *s, int qcode)
@@ -1878,6 +1882,12 @@ bool qemu_console_is_fixedsize(QemuConsole *con)
     return con && (con->console_type != TEXT_CONSOLE);
 }
 
+bool qemu_console_is_gl_blocked(QemuConsole *con)
+{
+    assert(con != NULL);
+    return con->gl_block;
+}
+
 char *qemu_console_get_label(QemuConsole *con)
 {
     if (con->console_type == GRAPHIC_CONSOLE) {
@@ -2025,8 +2035,6 @@ static void text_console_do_init(CharDriverState *chr, DisplayState *ds)
     }
 
     qemu_chr_be_generic_open(chr);
-    if (chr->init)
-        chr->init(chr);
 }
 
 static CharDriverState *text_console_init(ChardevVC *vc, Error **errp)
@@ -2071,10 +2079,6 @@ static CharDriverState *text_console_init(ChardevVC *vc, Error **errp)
     s->chr = chr;
     chr->opaque = s;
     chr->chr_set_echo = text_console_set_echo;
-    /* console/chardev init sometimes completes elsewhere in a 2nd
-     * stage, so defer OPENED events until they are fully initialized
-     */
-    chr->explicit_be_open = true;
 
     if (display_state) {
         text_console_do_init(chr, display_state);
@@ -2085,8 +2089,13 @@ static CharDriverState *text_console_init(ChardevVC *vc, Error **errp)
 static VcHandler *vc_handler = text_console_init;
 
 static CharDriverState *vc_init(const char *id, ChardevBackend *backend,
-                                ChardevReturn *ret, Error **errp)
+                                ChardevReturn *ret, bool *be_opened,
+                                Error **errp)
 {
+    /* console/chardev init sometimes completes elsewhere in a 2nd
+     * stage, so defer OPENED events until they are fully initialized
+     */
+    *be_opened = false;
     return vc_handler(backend->u.vc.data, errp);
 }
 
@@ -2100,6 +2109,13 @@ void qemu_console_resize(QemuConsole *s, int width, int height)
     DisplaySurface *surface;
 
     assert(s->console_type == GRAPHIC_CONSOLE);
+
+    if (s->surface &&
+        pixman_image_get_width(s->surface->image) == width &&
+        pixman_image_get_height(s->surface->image) == height) {
+        return;
+    }
+
     surface = qemu_create_displaysurface(width, height);
     dpy_gfx_replace_surface(s, surface);
 }

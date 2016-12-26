@@ -31,6 +31,7 @@ bool kvm_gsi_direct_mapping;
 bool kvm_allowed;
 bool kvm_readonly_mem_allowed;
 bool kvm_ioeventfd_any_length_allowed;
+bool kvm_msi_use_devid;
 
 int kvm_destroy_vcpu(CPUState *cpu)
 {
@@ -71,10 +72,6 @@ int kvm_has_sync_mmu(void)
 int kvm_has_many_ioeventfds(void)
 {
     return 0;
-}
-
-void kvm_setup_guest_memory(void *start, size_t size)
-{
 }
 
 int kvm_update_guest_debug(CPUState *cpu, unsigned long reinject_trap)

@@ -198,6 +198,26 @@ static void test_qga_ping(gconstpointer fix)
     QDECREF(ret);
 }
 
+static void test_qga_invalid_args(gconstpointer fix)
+{
+    const TestFixture *fixture = fix;
+    QDict *ret, *error;
+    const gchar *class, *desc;
+
+    ret = qmp_fd(fixture->fd, "{'execute': 'guest-ping', "
+                 "'arguments': {'foo': 42 }}");
+    g_assert_nonnull(ret);
+
+    error = qdict_get_qdict(ret, "error");
+    class = qdict_get_try_str(error, "class");
+    desc = qdict_get_try_str(error, "desc");
+
+    g_assert_cmpstr(class, ==, "GenericError");
+    g_assert_cmpstr(desc, ==, "QMP input object member 'foo' is unexpected");
+
+    QDECREF(ret);
+}
+
 static void test_qga_invalid_cmd(gconstpointer fix)
 {
     const TestFixture *fixture = fix;
@@ -398,6 +418,7 @@ static void test_qga_file_ops(gconstpointer fix)
     /* check content */
     path = g_build_filename(fixture->test_dir, "foo", NULL);
     f = fopen(path, "r");
+    g_free(path);
     g_assert_nonnull(f);
     count = fread(tmp, 1, sizeof(tmp), f);
     g_assert_cmpint(count, ==, sizeof(helloworld));
@@ -700,7 +721,9 @@ static void test_qga_config(gconstpointer data)
     cwd = g_get_current_dir();
     cmd = g_strdup_printf("%s%cqemu-ga -D",
                           cwd, G_DIR_SEPARATOR);
+    g_free(cwd);
     g_shell_parse_argv(cmd, NULL, &argv, &error);
+    g_free(cmd);
     g_assert_no_error(error);
 
     env[0] = g_strdup_printf("QGA_CONF=tests%cdata%ctest-qga-config",
@@ -708,6 +731,8 @@ static void test_qga_config(gconstpointer data)
     env[1] = NULL;
     g_spawn_sync(NULL, argv, env, 0,
                  NULL, NULL, &out, &err, &status, &error);
+    g_strfreev(argv);
+
     g_assert_no_error(error);
     g_assert_cmpstr(err, ==, "");
     g_assert_cmpint(status, ==, 0);
@@ -812,6 +837,7 @@ static void test_qga_guest_exec(gconstpointer fix)
     int64_t pid, now, exitcode;
     gsize len;
     bool exited;
+    char *cmd;
 
     /* exec 'echo foo bar' */
     ret = qmp_fd(fixture->fd, "{'execute': 'guest-exec', 'arguments': {"
@@ -826,9 +852,10 @@ static void test_qga_guest_exec(gconstpointer fix)
 
     /* wait for completion */
     now = g_get_monotonic_time();
+    cmd = g_strdup_printf("{'execute': 'guest-exec-status',"
+                          " 'arguments': { 'pid': %" PRId64 " } }", pid);
     do {
-        ret = qmp_fd(fixture->fd, "{'execute': 'guest-exec-status',"
-                     " 'arguments': { 'pid': %" PRId64 "  } }", pid);
+        ret = qmp_fd(fixture->fd, cmd);
         g_assert_nonnull(ret);
         val = qdict_get_qdict(ret, "return");
         exited = qdict_get_bool(val, "exited");
@@ -838,6 +865,7 @@ static void test_qga_guest_exec(gconstpointer fix)
     } while (!exited &&
              g_get_monotonic_time() < now + 5 * G_TIME_SPAN_SECOND);
     g_assert(exited);
+    g_free(cmd);
 
     /* check stdout */
     exitcode = qdict_get_int(val, "exitcode");
@@ -906,6 +934,7 @@ int main(int argc, char **argv)
     g_test_add_data_func("/qga/file-write-read", &fix, test_qga_file_write_read);
     g_test_add_data_func("/qga/get-time", &fix, test_qga_get_time);
     g_test_add_data_func("/qga/invalid-cmd", &fix, test_qga_invalid_cmd);
+    g_test_add_data_func("/qga/invalid-args", &fix, test_qga_invalid_args);
     g_test_add_data_func("/qga/fsfreeze-status", &fix,
                          test_qga_fsfreeze_status);
 

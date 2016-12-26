@@ -62,8 +62,6 @@
 enum BdrvTrackedRequestType {
     BDRV_TRACKED_READ,
     BDRV_TRACKED_WRITE,
-    BDRV_TRACKED_FLUSH,
-    BDRV_TRACKED_IOCTL,
     BDRV_TRACKED_DISCARD,
 };
 
@@ -204,8 +202,8 @@ struct BlockDriver {
     bool has_variable_length;
     int64_t (*bdrv_get_allocated_file_size)(BlockDriverState *bs);
 
-    int (*bdrv_write_compressed)(BlockDriverState *bs, int64_t sector_num,
-                                 const uint8_t *buf, int nb_sectors);
+    int coroutine_fn (*bdrv_co_pwritev_compressed)(BlockDriverState *bs,
+        uint64_t offset, uint64_t bytes, QEMUIOVector *qiov);
 
     int (*bdrv_snapshot_create)(BlockDriverState *bs,
                                 QEMUSnapshotInfo *sn_info);
@@ -244,6 +242,8 @@ struct BlockDriver {
     BlockAIOCB *(*bdrv_aio_ioctl)(BlockDriverState *bs,
         unsigned long int req, void *buf,
         BlockCompletionFunc *cb, void *opaque);
+    int coroutine_fn (*bdrv_co_ioctl)(BlockDriverState *bs,
+                                      unsigned long int req, void *buf);
 
     /* List of options for creating images, terminated by name == NULL */
     QemuOptsList *create_opts;
@@ -443,7 +443,7 @@ struct BlockDriverState {
                          note this is a reference count */
 
     CoQueue flush_queue;            /* Serializing flush queue */
-    BdrvTrackedRequest *active_flush_req; /* Flush request in flight */
+    bool active_flush_req;          /* Flush request in flight? */
     unsigned int write_gen;         /* Current data generation */
     unsigned int flushed_gen;       /* Flushed write generation */
 
@@ -471,8 +471,11 @@ struct BlockDriverState {
     /* Callback before write request is processed */
     NotifierWithReturnList before_write_notifiers;
 
-    /* number of in-flight serialising requests */
+    /* number of in-flight requests; overall and serialising */
+    unsigned int in_flight;
     unsigned int serialising_in_flight;
+
+    bool wakeup;
 
     /* Offset after the highest byte written to */
     uint64_t wr_highest_offset;
@@ -562,15 +565,6 @@ extern BlockDriver bdrv_file;
 extern BlockDriver bdrv_raw;
 extern BlockDriver bdrv_qcow2;
 
-/**
- * bdrv_setup_io_funcs:
- *
- * Prepare a #BlockDriver for I/O request processing by populating
- * unimplemented coroutine and AIO interfaces with generic wrapper functions
- * that fall back to implemented interfaces.
- */
-void bdrv_setup_io_funcs(BlockDriver *bdrv);
-
 int coroutine_fn bdrv_co_preadv(BdrvChild *child,
     int64_t offset, unsigned int bytes, QEMUIOVector *qiov,
     BdrvRequestFlags flags);
@@ -641,6 +635,21 @@ void bdrv_remove_aio_context_notifier(BlockDriverState *bs,
                                       void (*aio_context_detached)(void *),
                                       void *opaque);
 
+/**
+ * bdrv_wakeup:
+ * @bs: The BlockDriverState for which an I/O operation has been completed.
+ *
+ * Wake up the main thread if it is waiting on BDRV_POLL_WHILE.  During
+ * synchronous I/O on a BlockDriverState that is attached to another
+ * I/O thread, the main thread lets the I/O thread's event loop run,
+ * waiting for the I/O operation to complete.  A bdrv_wakeup will wake
+ * up the main thread if necessary.
+ *
+ * Manual calls to bdrv_wakeup are rarely necessary, because
+ * bdrv_dec_in_flight already calls it.
+ */
+void bdrv_wakeup(BlockDriverState *bs);
+
 #ifdef _WIN32
 int is_windows_drive(const char *filename);
 #endif
@@ -656,8 +665,6 @@ int is_windows_drive(const char *filename);
  * the new backing file if the job completes. Ignored if @base is %NULL.
  * @speed: The maximum speed, in bytes per second, or 0 for unlimited.
  * @on_error: The action to take upon error.
- * @cb: Completion function for the job.
- * @opaque: Opaque pointer value passed to @cb.
  * @errp: Error object.
  *
  * Start a streaming operation on @bs.  Clusters that are unallocated
@@ -669,8 +676,7 @@ int is_windows_drive(const char *filename);
  */
 void stream_start(const char *job_id, BlockDriverState *bs,
                   BlockDriverState *base, const char *backing_file_str,
-                  int64_t speed, BlockdevOnError on_error,
-                  BlockCompletionFunc *cb, void *opaque, Error **errp);
+                  int64_t speed, BlockdevOnError on_error, Error **errp);
 
 /**
  * commit_start:
@@ -681,34 +687,35 @@ void stream_start(const char *job_id, BlockDriverState *bs,
  * @base: Block device that will be written into, and become the new top.
  * @speed: The maximum speed, in bytes per second, or 0 for unlimited.
  * @on_error: The action to take upon error.
- * @cb: Completion function for the job.
- * @opaque: Opaque pointer value passed to @cb.
  * @backing_file_str: String to use as the backing file in @top's overlay
  * @errp: Error object.
  *
  */
 void commit_start(const char *job_id, BlockDriverState *bs,
                   BlockDriverState *base, BlockDriverState *top, int64_t speed,
-                  BlockdevOnError on_error, BlockCompletionFunc *cb,
-                  void *opaque, const char *backing_file_str, Error **errp);
+                  BlockdevOnError on_error, const char *backing_file_str,
+                  Error **errp);
 /**
  * commit_active_start:
  * @job_id: The id of the newly-created job, or %NULL to use the
  * device name of @bs.
  * @bs: Active block device to be committed.
  * @base: Block device that will be written into, and become the new top.
+ * @creation_flags: Flags that control the behavior of the Job lifetime.
+ *                  See @BlockJobCreateFlags
  * @speed: The maximum speed, in bytes per second, or 0 for unlimited.
  * @on_error: The action to take upon error.
  * @cb: Completion function for the job.
  * @opaque: Opaque pointer value passed to @cb.
  * @errp: Error object.
+ * @auto_complete: Auto complete the job.
  *
  */
 void commit_active_start(const char *job_id, BlockDriverState *bs,
-                         BlockDriverState *base, int64_t speed,
-                         BlockdevOnError on_error,
+                         BlockDriverState *base, int creation_flags,
+                         int64_t speed, BlockdevOnError on_error,
                          BlockCompletionFunc *cb,
-                         void *opaque, Error **errp);
+                         void *opaque, Error **errp, bool auto_complete);
 /*
  * mirror_start:
  * @job_id: The id of the newly-created job, or %NULL to use the
@@ -725,12 +732,10 @@ void commit_active_start(const char *job_id, BlockDriverState *bs,
  * @on_source_error: The action to take upon error reading from the source.
  * @on_target_error: The action to take upon error writing to the target.
  * @unmap: Whether to unmap target where source sectors only contain zeroes.
- * @cb: Completion function for the job.
- * @opaque: Opaque pointer value passed to @cb.
  * @errp: Error object.
  *
  * Start a mirroring operation on @bs.  Clusters that are allocated
- * in @bs will be written to @bs until the job is cancelled or
+ * in @bs will be written to @target until the job is cancelled or
  * manually completed.  At the end of a successful mirroring job,
  * @bs will be switched to read from @target.
  */
@@ -740,12 +745,10 @@ void mirror_start(const char *job_id, BlockDriverState *bs,
                   MirrorSyncMode mode, BlockMirrorBackingMode backing_mode,
                   BlockdevOnError on_source_error,
                   BlockdevOnError on_target_error,
-                  bool unmap,
-                  BlockCompletionFunc *cb,
-                  void *opaque, Error **errp);
+                  bool unmap, Error **errp);
 
 /*
- * backup_start:
+ * backup_job_create:
  * @job_id: The id of the newly-created job, or %NULL to use the
  * device name of @bs.
  * @bs: Block device to operate on.
@@ -755,20 +758,25 @@ void mirror_start(const char *job_id, BlockDriverState *bs,
  * @sync_bitmap: The dirty bitmap if sync_mode is MIRROR_SYNC_MODE_INCREMENTAL.
  * @on_source_error: The action to take upon error reading from the source.
  * @on_target_error: The action to take upon error writing to the target.
+ * @creation_flags: Flags that control the behavior of the Job lifetime.
+ *                  See @BlockJobCreateFlags
  * @cb: Completion function for the job.
  * @opaque: Opaque pointer value passed to @cb.
  * @txn: Transaction that this job is part of (may be NULL).
  *
- * Start a backup operation on @bs.  Clusters in @bs are written to @target
+ * Create a backup operation on @bs.  Clusters in @bs are written to @target
  * until the job is cancelled or manually completed.
  */
-void backup_start(const char *job_id, BlockDriverState *bs,
-                  BlockDriverState *target, int64_t speed,
-                  MirrorSyncMode sync_mode, BdrvDirtyBitmap *sync_bitmap,
-                  BlockdevOnError on_source_error,
-                  BlockdevOnError on_target_error,
-                  BlockCompletionFunc *cb, void *opaque,
-                  BlockJobTxn *txn, Error **errp);
+BlockJob *backup_job_create(const char *job_id, BlockDriverState *bs,
+                            BlockDriverState *target, int64_t speed,
+                            MirrorSyncMode sync_mode,
+                            BdrvDirtyBitmap *sync_bitmap,
+                            bool compress,
+                            BlockdevOnError on_source_error,
+                            BlockdevOnError on_target_error,
+                            int creation_flags,
+                            BlockCompletionFunc *cb, void *opaque,
+                            BlockJobTxn *txn, Error **errp);
 
 void hmp_drive_add_node(Monitor *mon, const char *optstr);
 
@@ -791,6 +799,9 @@ bool bdrv_requests_pending(BlockDriverState *bs);
 
 void bdrv_clear_dirty_bitmap(BdrvDirtyBitmap *bitmap, HBitmap **out);
 void bdrv_undo_clear_dirty_bitmap(BdrvDirtyBitmap *bitmap, HBitmap *in);
+
+void bdrv_inc_in_flight(BlockDriverState *bs);
+void bdrv_dec_in_flight(BlockDriverState *bs);
 
 void blockdev_close_all_bdrv_states(void);
 

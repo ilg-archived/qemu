@@ -50,16 +50,17 @@ xics_icp_accept(uint32_t old_xirr, uint32_t new_xirr) "icp_accept: XIRR %#"PRIx3
 xics_icp_eoi(int server, uint32_t xirr, uint32_t new_xirr) "icp_eoi: server %d given XIRR %#"PRIx32" new XIRR %#"PRIx32
 xics_icp_irq(int server, int nr, uint8_t priority) "cpu %d trying to deliver irq %#"PRIx32" priority %#x"
 xics_icp_raise(uint32_t xirr, uint8_t pending_priority) "raising IRQ new XIRR=%#x new pending priority=%#x"
-xics_set_irq_msi(int srcno, int nr) "set_irq_msi: srcno %d [irq %#x]"
+xics_ics_simple_set_irq_msi(int srcno, int nr) "set_irq_msi: srcno %d [irq %#x]"
 xics_masked_pending(void) "set_irq_msi: masked pending"
-xics_set_irq_lsi(int srcno, int nr) "set_irq_lsi: srcno %d [irq %#x]"
-xics_ics_write_xive(int nr, int srcno, int server, uint8_t priority) "ics_write_xive: irq %#x [src %d] server %#x prio %#x"
-xics_ics_reject(int nr, int srcno) "reject irq %#x [src %d]"
-xics_ics_eoi(int nr) "ics_eoi: irq %#x"
-xics_alloc(int src, int irq) "source#%d, irq %d"
-xics_alloc_block(int src, int first, int num, bool lsi, int align) "source#%d, first irq %d, %d irqs, lsi=%d, alignnum %d"
+xics_ics_simple_set_irq_lsi(int srcno, int nr) "set_irq_lsi: srcno %d [irq %#x]"
+xics_ics_simple_write_xive(int nr, int srcno, int server, uint8_t priority) "ics_write_xive: irq %#x [src %d] server %#x prio %#x"
+xics_ics_simple_reject(int nr, int srcno) "reject irq %#x [src %d]"
+xics_ics_simple_eoi(int nr) "ics_eoi: irq %#x"
+xics_alloc(int irq) "irq %d"
+xics_alloc_block(int first, int num, bool lsi, int align) "first irq %d, %d irqs, lsi=%d, alignnum %d"
 xics_ics_free(int src, int irq, int num) "Source#%d, first irq %d, %d irqs"
 xics_ics_free_warn(int src, int irq) "Source#%d, irq %d is already free"
+xics_icp_post_load(uint32_t server_no, uint32_t xirr, uint64_t addr, uint8_t pend) "server_no %d, xirr %#x, xirr_owner 0x%" PRIx64 ", pending %d"
 
 # hw/intc/s390_flic_kvm.c
 flic_create_device(int err) "flic: create device failed %d"
@@ -84,12 +85,12 @@ gic_acknowledge_irq(int cpu, int irq) "cpu %d acknowledged irq %d"
 # hw/intc/arm_gicv3_cpuif.c
 gicv3_icc_pmr_read(uint32_t cpu, uint64_t val) "GICv3 ICC_PMR read cpu %x value 0x%" PRIx64
 gicv3_icc_pmr_write(uint32_t cpu, uint64_t val) "GICv3 ICC_PMR write cpu %x value 0x%" PRIx64
-gicv3_icc_bpr_read(uint32_t cpu, uint64_t val) "GICv3 ICC_BPR read cpu %x value 0x%" PRIx64
-gicv3_icc_bpr_write(uint32_t cpu, uint64_t val) "GICv3 ICC_BPR write cpu %x value 0x%" PRIx64
-gicv3_icc_ap_read(int regno, uint32_t cpu, uint64_t val) "GICv3 ICC_AP%dR read cpu %x value 0x%" PRIx64
-gicv3_icc_ap_write(int regno, uint32_t cpu, uint64_t val) "GICv3 ICC_AP%dR write cpu %x value 0x%" PRIx64
-gicv3_icc_igrpen_read(uint32_t cpu, uint64_t val) "GICv3 ICC_IGRPEN read cpu %x value 0x%" PRIx64
-gicv3_icc_igrpen_write(uint32_t cpu, uint64_t val) "GICv3 ICC_IGRPEN write cpu %x value 0x%" PRIx64
+gicv3_icc_bpr_read(int grp, uint32_t cpu, uint64_t val) "GICv3 ICC_BPR%d read cpu %x value 0x%" PRIx64
+gicv3_icc_bpr_write(int grp, uint32_t cpu, uint64_t val) "GICv3 ICC_BPR%d write cpu %x value 0x%" PRIx64
+gicv3_icc_ap_read(int grp, int regno, uint32_t cpu, uint64_t val) "GICv3 ICC_AP%dR%d read cpu %x value 0x%" PRIx64
+gicv3_icc_ap_write(int grp, int regno, uint32_t cpu, uint64_t val) "GICv3 ICC_AP%dR%d write cpu %x value 0x%" PRIx64
+gicv3_icc_igrpen_read(int grp, uint32_t cpu, uint64_t val) "GICv3 ICC_IGRPEN%d read cpu %x value 0x%" PRIx64
+gicv3_icc_igrpen_write(int grp, uint32_t cpu, uint64_t val) "GICv3 ICC_IGRPEN%d write cpu %x value 0x%" PRIx64
 gicv3_icc_igrpen1_el3_read(uint32_t cpu, uint64_t val) "GICv3 ICC_IGRPEN1_EL3 read cpu %x value 0x%" PRIx64
 gicv3_icc_igrpen1_el3_write(uint32_t cpu, uint64_t val) "GICv3 ICC_IGRPEN1_EL3 write cpu %x value 0x%" PRIx64
 gicv3_icc_ctlr_read(uint32_t cpu, uint64_t val) "GICv3 ICC_CTLR read cpu %x value 0x%" PRIx64
@@ -101,7 +102,7 @@ gicv3_cpuif_set_irqs(uint32_t cpuid, int fiqlevel, int irqlevel) "GICv3 CPU i/f 
 gicv3_icc_generate_sgi(uint32_t cpuid, int irq, int irm, uint32_t aff, uint32_t targetlist) "GICv3 CPU i/f %x generating SGI %d IRM %d target affinity 0x%xxx targetlist 0x%x"
 gicv3_icc_iar0_read(uint32_t cpu, uint64_t val) "GICv3 ICC_IAR0 read cpu %x value 0x%" PRIx64
 gicv3_icc_iar1_read(uint32_t cpu, uint64_t val) "GICv3 ICC_IAR1 read cpu %x value 0x%" PRIx64
-gicv3_icc_eoir_write(uint32_t cpu, uint64_t val) "GICv3 ICC_EOIR write cpu %x value 0x%" PRIx64
+gicv3_icc_eoir_write(int grp, uint32_t cpu, uint64_t val) "GICv3 ICC_EOIR%d write cpu %x value 0x%" PRIx64
 gicv3_icc_hppir0_read(uint32_t cpu, uint64_t val) "GICv3 ICC_HPPIR0 read cpu %x value 0x%" PRIx64
 gicv3_icc_hppir1_read(uint32_t cpu, uint64_t val) "GICv3 ICC_HPPIR1 read cpu %x value 0x%" PRIx64
 gicv3_icc_dir_write(uint32_t cpu, uint64_t val) "GICv3 ICC_DIR write cpu %x value 0x%" PRIx64

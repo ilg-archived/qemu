@@ -56,21 +56,10 @@ TranslationBlock *tb_gen_code(CPUState *cpu,
                               target_ulong pc, target_ulong cs_base,
                               uint32_t flags,
                               int cflags);
-#if defined(CONFIG_USER_ONLY)
-void cpu_list_lock(void);
-void cpu_list_unlock(void);
-#else
-static inline void cpu_list_unlock(void)
-{
-}
-static inline void cpu_list_lock(void)
-{
-}
-#endif
 
-void cpu_exec_init(CPUState *cpu, Error **errp);
 void QEMU_NORETURN cpu_loop_exit(CPUState *cpu);
 void QEMU_NORETURN cpu_loop_exit_restore(CPUState *cpu, uintptr_t pc);
+void QEMU_NORETURN cpu_loop_exit_atomic(CPUState *cpu, uintptr_t pc);
 
 #if !defined(CONFIG_USER_ONLY)
 void cpu_reloading_memory_map(void);
@@ -225,6 +214,8 @@ struct TranslationBlock {
 #define CF_USE_ICOUNT  0x20000
 #define CF_IGNORE_ICOUNT 0x40000 /* Do not generate icount code */
 
+    uint16_t invalid;
+
     void *tc_ptr;    /* pointer to the translated code */
     uint8_t *tc_search;  /* pointer to search data */
     /* original tb when cflags has CF_NOCACHE */
@@ -325,6 +316,7 @@ static inline void tb_set_jmp_target(TranslationBlock *tb,
 
 #endif
 
+/* Called with tb_lock held.  */
 static inline void tb_add_jump(TranslationBlock *tb, int n,
                                TranslationBlock *tb_next)
 {
@@ -347,13 +339,12 @@ static inline void tb_add_jump(TranslationBlock *tb, int n,
     tb_next->jmp_list_first = (uintptr_t)tb | n;
 }
 
-/* GETRA is the true target of the return instruction that we'll execute,
-   defined here for simplicity of defining the follow-up macros.  */
+/* GETPC is the true target of the return instruction that we'll execute.  */
 #if defined(CONFIG_TCG_INTERPRETER)
 extern uintptr_t tci_tb_ptr;
-# define GETRA() tci_tb_ptr
+# define GETPC() tci_tb_ptr
 #else
-# define GETRA() \
+# define GETPC() \
     ((uintptr_t)__builtin_extract_return_addr(__builtin_return_address(0)))
 #endif
 
@@ -365,8 +356,6 @@ extern uintptr_t tci_tb_ptr;
    is also the case that there are no host isas that contain a call insn
    smaller than 4 bytes, so we don't worry about special-casing this.  */
 #define GETPC_ADJ   2
-
-#define GETPC()  (GETRA() - GETPC_ADJ)
 
 #if !defined(CONFIG_USER_ONLY)
 
@@ -381,6 +370,7 @@ void tlb_fill(CPUState *cpu, target_ulong addr, MMUAccessType access_type,
 #if defined(CONFIG_USER_ONLY)
 void mmap_lock(void);
 void mmap_unlock(void);
+bool have_mmap_lock(void);
 
 static inline tb_page_addr_t get_page_addr_code(CPUArchState *env1, target_ulong addr)
 {

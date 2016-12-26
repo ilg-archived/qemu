@@ -21,9 +21,14 @@ import uuid
 import argparse
 import tempfile
 import re
+import signal
 from tarfile import TarFile, TarInfo
 from StringIO import StringIO
 from shutil import copy, rmtree
+
+
+DEVNULL = open(os.devnull, 'wb')
+
 
 def _text_checksum(text):
     """Calculate a digest string unique to the text content"""
@@ -33,10 +38,12 @@ def _guess_docker_command():
     """ Guess a working docker command or raise exception if not found"""
     commands = [["docker"], ["sudo", "-n", "docker"]]
     for cmd in commands:
-        if subprocess.call(cmd + ["images"],
-                           stdout=subprocess.PIPE,
-                           stderr=subprocess.PIPE) == 0:
-            return cmd
+        try:
+            if subprocess.call(cmd + ["images"],
+                               stdout=DEVNULL, stderr=DEVNULL) == 0:
+                return cmd
+        except OSError:
+            pass
     commands_txt = "\n".join(["  " + " ".join(x) for x in commands])
     raise Exception("Cannot find working docker command. Tried:\n%s" % \
                     commands_txt)
@@ -95,10 +102,12 @@ class Docker(object):
         self._command = _guess_docker_command()
         self._instances = []
         atexit.register(self._kill_instances)
+        signal.signal(signal.SIGTERM, self._kill_instances)
+        signal.signal(signal.SIGHUP, self._kill_instances)
 
     def _do(self, cmd, quiet=True, infile=None, **kwargs):
         if quiet:
-            kwargs["stdout"] = subprocess.PIPE
+            kwargs["stdout"] = DEVNULL
         if infile:
             kwargs["stdin"] = infile
         return subprocess.call(self._command + cmd, **kwargs)
@@ -127,7 +136,7 @@ class Docker(object):
         self._do_kill_instances(False, False)
         return 0
 
-    def _kill_instances(self):
+    def _kill_instances(self, *args, **kwargs):
         return self._do_kill_instances(True)
 
     def _output(self, cmd, **kwargs):
@@ -236,8 +245,9 @@ class BuildCommand(SubCommand):
             # Is there a .pre file to run in the build context?
             docker_pre = os.path.splitext(args.dockerfile)[0]+".pre"
             if os.path.exists(docker_pre):
+                stdout = DEVNULL if args.quiet else None
                 rc = subprocess.call(os.path.realpath(docker_pre),
-                                     cwd=docker_dir)
+                                     cwd=docker_dir, stdout=stdout)
                 if rc == 3:
                     print "Skip"
                     return 0

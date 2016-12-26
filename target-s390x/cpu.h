@@ -188,6 +188,7 @@ struct S390CPU {
 
     CPUS390XState env;
     int64_t id;
+    S390CPUModel *model;
     /* needed for live migration */
     void *irqstate;
     uint32_t irqstate_saved_size;
@@ -394,6 +395,8 @@ static inline void cpu_get_tb_cpu_state(CPUS390XState* env, target_ulong *pc,
              ((env->psw.mask & PSW_MASK_32) ? FLAG_MASK_32 : 0);
 }
 
+#define MAX_ILEN 6
+
 /* While the PoO talks about ILC (a number between 1-3) what is actually
    stored in LowCore is shifted left one bit (an even between 2-6).  As
    this is the actual length of the insn and therefore more useful, that
@@ -499,17 +502,14 @@ static inline hwaddr decode_basedisp_s(CPUS390XState *env, uint32_t ipb,
 #define decode_basedisp_rs decode_basedisp_s
 
 /* helper functions for run_on_cpu() */
-static inline void s390_do_cpu_reset(void *arg)
+static inline void s390_do_cpu_reset(CPUState *cs, run_on_cpu_data arg)
 {
-    CPUState *cs = arg;
     S390CPUClass *scc = S390_CPU_GET_CLASS(cs);
 
     scc->cpu_reset(cs);
 }
-static inline void s390_do_cpu_full_reset(void *arg)
+static inline void s390_do_cpu_full_reset(CPUState *cs, run_on_cpu_data arg)
 {
-    CPUState *cs = arg;
-
     cpu_reset(cs);
 }
 
@@ -621,8 +621,6 @@ static inline unsigned int s390_cpu_set_state(uint8_t cpu_state, S390CPU *cpu)
     return 0;
 }
 #endif
-void cpu_lock(void);
-void cpu_unlock(void);
 
 extern void subsystem_reset(void);
 
@@ -631,6 +629,10 @@ extern void subsystem_reset(void);
 
 void s390_cpu_list(FILE *f, fprintf_function cpu_fprintf);
 #define cpu_list s390_cpu_list
+void s390_cpu_model_register_props(Object *obj);
+void s390_cpu_model_class_register_props(ObjectClass *oc);
+void s390_realize_cpu_model(CPUState *cs, Error **errp);
+ObjectClass *s390_cpu_class_by_name(const char *name);
 
 #define EXCP_EXT 1 /* external interrupt */
 #define EXCP_SVC 2 /* supervisor call (syscall) */
@@ -669,6 +671,13 @@ void s390_cpu_list(FILE *f, fprintf_function cpu_fprintf);
 
 /* CC optimization */
 
+/* Instead of computing the condition codes after each x86 instruction,
+ * QEMU just stores the result (called CC_DST), the type of operation
+ * (called CC_OP) and whatever operands are needed (CC_SRC and possibly
+ * CC_VR). When the condition codes are needed, the condition codes can
+ * be calculated using this information. Condition codes are not generated
+ * if they are only needed for conditional branches.
+ */
 enum cc_op {
     CC_OP_CONST0 = 0,           /* CC is 0 */
     CC_OP_CONST1,               /* CC is 1 */

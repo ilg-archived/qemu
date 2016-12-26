@@ -34,19 +34,12 @@
 #include "hw/ppc/spapr.h"
 #include "hw/ppc/spapr_vio.h"
 #include "sysemu/sysemu.h"
+#include "trace.h"
 
 #include <libfdt.h>
 
 #define ETH_ALEN        6
 #define MAX_PACKET_SIZE 65536
-
-/*#define DEBUG*/
-
-#ifdef DEBUG
-#define DPRINTF(fmt...) do { fprintf(stderr, fmt); } while (0)
-#else
-#define DPRINTF(fmt...)
-#endif
 
 /* Compatibility flags for migration */
 #define SPAPRVLAN_FLAG_RX_BUF_POOLS_BIT  0
@@ -106,6 +99,7 @@ typedef struct VIOsPAPRVLANDevice {
     VIOsPAPRDevice sdev;
     NICConf nicconf;
     NICState *nic;
+    MACAddr perm_mac;
     bool isopen;
     hwaddr buf_list;
     uint32_t add_buf_ptr, use_buf_ptr, rx_bufs;
@@ -157,8 +151,10 @@ static vlan_bd_t spapr_vlan_get_rx_bd_from_pool(VIOsPAPRVLANDevice *dev,
         return 0;
     }
 
-    DPRINTF("Found buffer: pool=%d count=%d rxbufs=%d\n", pool,
-            dev->rx_pool[pool]->count, dev->rx_bufs);
+
+    trace_spapr_vlan_get_rx_bd_from_pool_found(pool,
+                                               dev->rx_pool[pool]->count,
+                                               dev->rx_bufs);
 
     /* Remove the buffer from the pool */
     dev->rx_pool[pool]->count--;
@@ -185,8 +181,8 @@ static vlan_bd_t spapr_vlan_get_rx_bd_from_page(VIOsPAPRVLANDevice *dev,
         }
 
         bd = vio_ldq(&dev->sdev, dev->buf_list + buf_ptr);
-        DPRINTF("use_buf_ptr=%d bd=0x%016llx\n",
-                buf_ptr, (unsigned long long)bd);
+
+        trace_spapr_vlan_get_rx_bd_from_page(buf_ptr, (uint64_t)bd);
     } while ((!(bd & VLAN_BD_VALID) || VLAN_BD_LEN(bd) < size + 8)
              && buf_ptr != dev->use_buf_ptr);
 
@@ -199,7 +195,7 @@ static vlan_bd_t spapr_vlan_get_rx_bd_from_page(VIOsPAPRVLANDevice *dev,
     dev->use_buf_ptr = buf_ptr;
     vio_stq(&dev->sdev, dev->buf_list + dev->use_buf_ptr, 0);
 
-    DPRINTF("Found buffer: ptr=%d rxbufs=%d\n", dev->use_buf_ptr, dev->rx_bufs);
+    trace_spapr_vlan_get_rx_bd_from_page_found(dev->use_buf_ptr, dev->rx_bufs);
 
     return bd;
 }
@@ -214,8 +210,7 @@ static ssize_t spapr_vlan_receive(NetClientState *nc, const uint8_t *buf,
     uint64_t handle;
     uint8_t control;
 
-    DPRINTF("spapr_vlan_receive() [%s] rx_bufs=%d\n", sdev->qdev.id,
-            dev->rx_bufs);
+    trace_spapr_vlan_receive(sdev->qdev.id, dev->rx_bufs);
 
     if (!dev->isopen) {
         return -1;
@@ -243,7 +238,7 @@ static ssize_t spapr_vlan_receive(NetClientState *nc, const uint8_t *buf,
         return -1;
     }
 
-    DPRINTF("spapr_vlan_receive: DMA write completed\n");
+    trace_spapr_vlan_receive_dma_completed();
 
     /* Update the receive queue */
     control = VLAN_RXQC_TOGGLE | VLAN_RXQC_VALID;
@@ -257,12 +252,11 @@ static ssize_t spapr_vlan_receive(NetClientState *nc, const uint8_t *buf,
     vio_sth(sdev, VLAN_BD_ADDR(rxq_bd) + dev->rxq_ptr + 2, 8);
     vio_stb(sdev, VLAN_BD_ADDR(rxq_bd) + dev->rxq_ptr, control);
 
-    DPRINTF("wrote rxq entry (ptr=0x%llx): 0x%016llx 0x%016llx\n",
-            (unsigned long long)dev->rxq_ptr,
-            (unsigned long long)vio_ldq(sdev, VLAN_BD_ADDR(rxq_bd) +
-                                        dev->rxq_ptr),
-            (unsigned long long)vio_ldq(sdev, VLAN_BD_ADDR(rxq_bd) +
-                                        dev->rxq_ptr + 8));
+    trace_spapr_vlan_receive_wrote(dev->rxq_ptr,
+                                   vio_ldq(sdev, VLAN_BD_ADDR(rxq_bd) +
+                                                 dev->rxq_ptr),
+                                   vio_ldq(sdev, VLAN_BD_ADDR(rxq_bd) +
+                                                 dev->rxq_ptr + 8));
 
     dev->rxq_ptr += 16;
     if (dev->rxq_ptr >= VLAN_BD_LEN(rxq_bd)) {
@@ -316,6 +310,10 @@ static void spapr_vlan_reset(VIOsPAPRDevice *sdev)
             spapr_vlan_reset_rx_pool(dev->rx_pool[i]);
         }
     }
+
+    memcpy(&dev->nicconf.macaddr.a, &dev->perm_mac.a,
+           sizeof(dev->nicconf.macaddr.a));
+    qemu_format_nic_info_str(qemu_get_queue(dev->nic), dev->nicconf.macaddr.a);
 }
 
 static void spapr_vlan_realize(VIOsPAPRDevice *sdev, Error **errp)
@@ -323,6 +321,8 @@ static void spapr_vlan_realize(VIOsPAPRDevice *sdev, Error **errp)
     VIOsPAPRVLANDevice *dev = VIO_SPAPR_VLAN_DEVICE(sdev);
 
     qemu_macaddr_default_if_unset(&dev->nicconf.macaddr);
+
+    memcpy(&dev->perm_mac.a, &dev->nicconf.macaddr.a, sizeof(dev->perm_mac.a));
 
     dev->nic = qemu_new_nic(&net_spapr_vlan_info, &dev->nicconf,
                             object_get_typename(OBJECT(sdev)), sdev->qdev.id, dev);
@@ -573,8 +573,8 @@ static target_long spapr_vlan_add_rxbuf_to_pool(VIOsPAPRVLANDevice *dev,
                 qsort(dev->rx_pool, RX_MAX_POOLS, sizeof(dev->rx_pool[0]),
                       rx_pool_size_compare);
                 pool = spapr_vlan_get_rx_pool_id(dev, size);
-                DPRINTF("created RX pool %d for size %lld\n", pool,
-                        VLAN_BD_LEN(buf));
+                trace_spapr_vlan_add_rxbuf_to_pool_create(pool,
+                                                          VLAN_BD_LEN(buf));
                 break;
             }
         }
@@ -584,8 +584,8 @@ static target_long spapr_vlan_add_rxbuf_to_pool(VIOsPAPRVLANDevice *dev,
         return H_RESOURCE;
     }
 
-    DPRINTF("h_add_llan_buf():  Add buf using pool %i (size %lli, count=%i)\n",
-            pool, VLAN_BD_LEN(buf), dev->rx_pool[pool]->count);
+    trace_spapr_vlan_add_rxbuf_to_pool(pool, VLAN_BD_LEN(buf),
+                                       dev->rx_pool[pool]->count);
 
     dev->rx_pool[pool]->bds[dev->rx_pool[pool]->count++] = buf;
 
@@ -616,8 +616,7 @@ static target_long spapr_vlan_add_rxbuf_to_page(VIOsPAPRVLANDevice *dev,
 
     vio_stq(&dev->sdev, dev->buf_list + dev->add_buf_ptr, buf);
 
-    DPRINTF("h_add_llan_buf():  Added buf  ptr=%d  rx_bufs=%d bd=0x%016llx\n",
-            dev->add_buf_ptr, dev->rx_bufs, (unsigned long long)buf);
+    trace_spapr_vlan_add_rxbuf_to_page(dev->add_buf_ptr, dev->rx_bufs, buf);
 
     return 0;
 }
@@ -633,8 +632,7 @@ static target_ulong h_add_logical_lan_buffer(PowerPCCPU *cpu,
     VIOsPAPRVLANDevice *dev = VIO_SPAPR_VLAN_DEVICE(sdev);
     target_long ret;
 
-    DPRINTF("H_ADD_LOGICAL_LAN_BUFFER(0x" TARGET_FMT_lx
-            ", 0x" TARGET_FMT_lx ")\n", reg, buf);
+    trace_spapr_vlan_h_add_logical_lan_buffer(reg, buf);
 
     if (!sdev) {
         hcall_dprintf("Bad device\n");
@@ -687,14 +685,13 @@ static target_ulong h_send_logical_lan(PowerPCCPU *cpu,
     int i, nbufs;
     int ret;
 
-    DPRINTF("H_SEND_LOGICAL_LAN(0x" TARGET_FMT_lx ", <bufs>, 0x"
-            TARGET_FMT_lx ")\n", reg, continue_token);
+    trace_spapr_vlan_h_send_logical_lan(reg, continue_token);
 
     if (!sdev) {
         return H_PARAMETER;
     }
 
-    DPRINTF("rxbufs = %d\n", dev->rx_bufs);
+    trace_spapr_vlan_h_send_logical_lan_rxbufs(dev->rx_bufs);
 
     if (!dev->isopen) {
         return H_DROPPED;
@@ -706,7 +703,7 @@ static target_ulong h_send_logical_lan(PowerPCCPU *cpu,
 
     total_len = 0;
     for (i = 0; i < 6; i++) {
-        DPRINTF("   buf desc: 0x" TARGET_FMT_lx "\n", bufs[i]);
+        trace_spapr_vlan_h_send_logical_lan_buf_desc(bufs[i]);
         if (!(bufs[i] & VLAN_BD_VALID)) {
             break;
         }
@@ -714,8 +711,7 @@ static target_ulong h_send_logical_lan(PowerPCCPU *cpu,
     }
 
     nbufs = i;
-    DPRINTF("h_send_logical_lan() %d buffers, total length 0x%x\n",
-            nbufs, total_len);
+    trace_spapr_vlan_h_send_logical_lan_total(nbufs, total_len);
 
     if (total_len == 0) {
         return H_SUCCESS;
@@ -752,6 +748,27 @@ static target_ulong h_multicast_ctrl(PowerPCCPU *cpu, sPAPRMachineState *spapr,
     if (!dev) {
         return H_PARAMETER;
     }
+
+    return H_SUCCESS;
+}
+
+static target_ulong h_change_logical_lan_mac(PowerPCCPU *cpu,
+                                             sPAPRMachineState *spapr,
+                                             target_ulong opcode,
+                                             target_ulong *args)
+{
+    target_ulong reg = args[0];
+    target_ulong macaddr = args[1];
+    VIOsPAPRDevice *sdev = spapr_vio_find_by_reg(spapr->vio_bus, reg);
+    VIOsPAPRVLANDevice *dev = VIO_SPAPR_VLAN_DEVICE(sdev);
+    int i;
+
+    for (i = 0; i < ETH_ALEN; i++) {
+        dev->nicconf.macaddr.a[ETH_ALEN - i - 1] = macaddr & 0xff;
+        macaddr >>= 8;
+    }
+
+    qemu_format_nic_info_str(qemu_get_queue(dev->nic), dev->nicconf.macaddr.a);
 
     return H_SUCCESS;
 }
@@ -854,6 +871,8 @@ static void spapr_vlan_register_types(void)
     spapr_register_hypercall(H_ADD_LOGICAL_LAN_BUFFER,
                              h_add_logical_lan_buffer);
     spapr_register_hypercall(H_MULTICAST_CTRL, h_multicast_ctrl);
+    spapr_register_hypercall(H_CHANGE_LOGICAL_LAN_MAC,
+                             h_change_logical_lan_mac);
     type_register_static(&spapr_vlan_info);
 }
 

@@ -3871,6 +3871,7 @@ static void gen_loongson_multimedia(DisasContext *ctx, int rd, int rs, int rt)
         break;
     }
 
+    check_cp1_enabled(ctx);
     gen_load_fpr64(ctx, t0, rs);
     gen_load_fpr64(ctx, t1, rt);
 
@@ -3945,8 +3946,11 @@ static void gen_loongson_multimedia(DisasContext *ctx, int rd, int rs, int rt)
     LMI_DIRECT(XOR_CP2, xor, xor);
     LMI_DIRECT(NOR_CP2, nor, nor);
     LMI_DIRECT(AND_CP2, and, and);
-    LMI_DIRECT(PANDN, pandn, andc);
-    LMI_DIRECT(OR, or, or);
+    LMI_DIRECT(OR_CP2, or, or);
+
+    case OPC_PANDN:
+        tcg_gen_andc_i64(t0, t1, t0);
+        break;
 
     case OPC_PINSRH_0:
         tcg_gen_deposit_i64(t0, t0, t1, 0, 16);
@@ -13109,6 +13113,34 @@ static void gen_ldst_pair (DisasContext *ctx, uint32_t opc, int rd,
     tcg_temp_free(t1);
 }
 
+static void gen_sync(int stype)
+{
+    TCGBar tcg_mo = TCG_BAR_SC;
+
+    switch (stype) {
+    case 0x4: /* SYNC_WMB */
+        tcg_mo |= TCG_MO_ST_ST;
+        break;
+    case 0x10: /* SYNC_MB */
+        tcg_mo |= TCG_MO_ALL;
+        break;
+    case 0x11: /* SYNC_ACQUIRE */
+        tcg_mo |= TCG_MO_LD_LD | TCG_MO_LD_ST;
+        break;
+    case 0x12: /* SYNC_RELEASE */
+        tcg_mo |= TCG_MO_ST_ST | TCG_MO_LD_ST;
+        break;
+    case 0x13: /* SYNC_RMB */
+        tcg_mo |= TCG_MO_LD_LD;
+        break;
+    default:
+        tcg_mo |= TCG_MO_ALL;
+        break;
+    }
+
+    tcg_gen_mb(tcg_mo);
+}
+
 static void gen_pool32axf (CPUMIPSState *env, DisasContext *ctx, int rt, int rs)
 {
     int extension = (ctx->opcode >> 6) & 0x3f;
@@ -13384,7 +13416,7 @@ static void gen_pool32axf (CPUMIPSState *env, DisasContext *ctx, int rt, int rs)
     case 0x2d:
         switch (minor) {
         case SYNC:
-            /* NOP */
+            gen_sync(extract32(ctx->opcode, 16, 5));
             break;
         case SYSCALL:
             generate_exception_end(ctx, EXCP_SYSCALL);
@@ -17201,7 +17233,7 @@ static void decode_opc_special(CPUMIPSState *env, DisasContext *ctx)
         break;
     case OPC_SYNC:
         check_insn(ctx, ISA_MIPS2);
-        /* Treat as NOP. */
+        gen_sync(extract32(ctx->opcode, 6, 5));
         break;
 
 #if defined(TARGET_MIPS64)
@@ -20015,9 +20047,11 @@ done_generating:
     LOG_DISAS("\n");
     if (qemu_loglevel_mask(CPU_LOG_TB_IN_ASM)
         && qemu_log_in_addr_range(pc_start)) {
+        qemu_log_lock();
         qemu_log("IN: %s\n", lookup_symbol(pc_start));
         log_target_disas(cs, pc_start, ctx.pc - pc_start, 0);
         qemu_log("\n");
+        qemu_log_unlock();
     }
 #endif
 }

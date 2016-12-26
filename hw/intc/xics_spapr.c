@@ -32,6 +32,7 @@
 #include "qemu/timer.h"
 #include "hw/ppc/spapr.h"
 #include "hw/ppc/xics.h"
+#include "hw/ppc/fdt.h"
 #include "qapi/visitor.h"
 #include "qapi/error.h"
 
@@ -43,9 +44,10 @@ static target_ulong h_cppr(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                            target_ulong opcode, target_ulong *args)
 {
     CPUState *cs = CPU(cpu);
+    ICPState *icp = &spapr->xics->ss[cs->cpu_index];
     target_ulong cppr = args[0];
 
-    icp_set_cppr(spapr->xics, cs->cpu_index, cppr);
+    icp_set_cppr(icp, cppr);
     return H_SUCCESS;
 }
 
@@ -59,7 +61,7 @@ static target_ulong h_ipi(PowerPCCPU *cpu, sPAPRMachineState *spapr,
         return H_PARAMETER;
     }
 
-    icp_set_mfrr(spapr->xics, server, mfrr);
+    icp_set_mfrr(spapr->xics->ss + server, mfrr);
     return H_SUCCESS;
 }
 
@@ -67,7 +69,8 @@ static target_ulong h_xirr(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                            target_ulong opcode, target_ulong *args)
 {
     CPUState *cs = CPU(cpu);
-    uint32_t xirr = icp_accept(spapr->xics->ss + cs->cpu_index);
+    ICPState *icp = &spapr->xics->ss[cs->cpu_index];
+    uint32_t xirr = icp_accept(icp);
 
     args[0] = xirr;
     return H_SUCCESS;
@@ -77,8 +80,8 @@ static target_ulong h_xirr_x(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                              target_ulong opcode, target_ulong *args)
 {
     CPUState *cs = CPU(cpu);
-    ICPState *ss = &spapr->xics->ss[cs->cpu_index];
-    uint32_t xirr = icp_accept(ss);
+    ICPState *icp = &spapr->xics->ss[cs->cpu_index];
+    uint32_t xirr = icp_accept(icp);
 
     args[0] = xirr;
     args[1] = cpu_get_host_ticks();
@@ -89,9 +92,10 @@ static target_ulong h_eoi(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                           target_ulong opcode, target_ulong *args)
 {
     CPUState *cs = CPU(cpu);
+    ICPState *icp = &spapr->xics->ss[cs->cpu_index];
     target_ulong xirr = args[0];
 
-    icp_eoi(spapr->xics, cs->cpu_index, xirr);
+    icp_eoi(icp, xirr);
     return H_SUCCESS;
 }
 
@@ -99,8 +103,9 @@ static target_ulong h_ipoll(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                             target_ulong opcode, target_ulong *args)
 {
     CPUState *cs = CPU(cpu);
+    ICPState *icp = &spapr->xics->ss[cs->cpu_index];
     uint32_t mfrr;
-    uint32_t xirr = icp_ipoll(spapr->xics->ss + cs->cpu_index, &mfrr);
+    uint32_t xirr = icp_ipoll(icp, &mfrr);
 
     args[0] = xirr;
     args[1] = mfrr;
@@ -113,11 +118,15 @@ static void rtas_set_xive(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                           uint32_t nargs, target_ulong args,
                           uint32_t nret, target_ulong rets)
 {
-    ICSState *ics = spapr->xics->ics;
-    uint32_t nr, server, priority;
+    ICSState *ics = QLIST_FIRST(&spapr->xics->ics);
+    uint32_t nr, srcno, server, priority;
 
     if ((nargs != 3) || (nret != 1)) {
         rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+        return;
+    }
+    if (!ics) {
+        rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
         return;
     }
 
@@ -131,7 +140,8 @@ static void rtas_set_xive(PowerPCCPU *cpu, sPAPRMachineState *spapr,
         return;
     }
 
-    ics_write_xive(ics, nr, server, priority, priority);
+    srcno = nr - ics->offset;
+    ics_simple_write_xive(ics, srcno, server, priority, priority);
 
     rtas_st(rets, 0, RTAS_OUT_SUCCESS);
 }
@@ -141,11 +151,15 @@ static void rtas_get_xive(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                           uint32_t nargs, target_ulong args,
                           uint32_t nret, target_ulong rets)
 {
-    ICSState *ics = spapr->xics->ics;
-    uint32_t nr;
+    ICSState *ics = QLIST_FIRST(&spapr->xics->ics);
+    uint32_t nr, srcno;
 
     if ((nargs != 1) || (nret != 3)) {
         rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+        return;
+    }
+    if (!ics) {
+        rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
         return;
     }
 
@@ -157,8 +171,9 @@ static void rtas_get_xive(PowerPCCPU *cpu, sPAPRMachineState *spapr,
     }
 
     rtas_st(rets, 0, RTAS_OUT_SUCCESS);
-    rtas_st(rets, 1, ics->irqs[nr - ics->offset].server);
-    rtas_st(rets, 2, ics->irqs[nr - ics->offset].priority);
+    srcno = nr - ics->offset;
+    rtas_st(rets, 1, ics->irqs[srcno].server);
+    rtas_st(rets, 2, ics->irqs[srcno].priority);
 }
 
 static void rtas_int_off(PowerPCCPU *cpu, sPAPRMachineState *spapr,
@@ -166,11 +181,15 @@ static void rtas_int_off(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                          uint32_t nargs, target_ulong args,
                          uint32_t nret, target_ulong rets)
 {
-    ICSState *ics = spapr->xics->ics;
-    uint32_t nr;
+    ICSState *ics = QLIST_FIRST(&spapr->xics->ics);
+    uint32_t nr, srcno;
 
     if ((nargs != 1) || (nret != 1)) {
         rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+        return;
+    }
+    if (!ics) {
+        rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
         return;
     }
 
@@ -181,8 +200,9 @@ static void rtas_int_off(PowerPCCPU *cpu, sPAPRMachineState *spapr,
         return;
     }
 
-    ics_write_xive(ics, nr, ics->irqs[nr - ics->offset].server, 0xff,
-                   ics->irqs[nr - ics->offset].priority);
+    srcno = nr - ics->offset;
+    ics_simple_write_xive(ics, srcno, ics->irqs[srcno].server, 0xff,
+                          ics->irqs[srcno].priority);
 
     rtas_st(rets, 0, RTAS_OUT_SUCCESS);
 }
@@ -192,11 +212,15 @@ static void rtas_int_on(PowerPCCPU *cpu, sPAPRMachineState *spapr,
                         uint32_t nargs, target_ulong args,
                         uint32_t nret, target_ulong rets)
 {
-    ICSState *ics = spapr->xics->ics;
-    uint32_t nr;
+    ICSState *ics = QLIST_FIRST(&spapr->xics->ics);
+    uint32_t nr, srcno;
 
     if ((nargs != 1) || (nret != 1)) {
         rtas_st(rets, 0, RTAS_OUT_PARAM_ERROR);
+        return;
+    }
+    if (!ics) {
+        rtas_st(rets, 0, RTAS_OUT_HW_ERROR);
         return;
     }
 
@@ -207,9 +231,10 @@ static void rtas_int_on(PowerPCCPU *cpu, sPAPRMachineState *spapr,
         return;
     }
 
-    ics_write_xive(ics, nr, ics->irqs[nr - ics->offset].server,
-                   ics->irqs[nr - ics->offset].saved_priority,
-                   ics->irqs[nr - ics->offset].saved_priority);
+    srcno = nr - ics->offset;
+    ics_simple_write_xive(ics, srcno, ics->irqs[srcno].server,
+                          ics->irqs[srcno].saved_priority,
+                          ics->irqs[srcno].saved_priority);
 
     rtas_st(rets, 0, RTAS_OUT_SUCCESS);
 }
@@ -217,29 +242,25 @@ static void rtas_int_on(PowerPCCPU *cpu, sPAPRMachineState *spapr,
 static void xics_spapr_set_nr_irqs(XICSState *xics, uint32_t nr_irqs,
                                    Error **errp)
 {
-    xics->nr_irqs = xics->ics->nr_irqs = nr_irqs;
+    ICSState *ics = QLIST_FIRST(&xics->ics);
+
+    /* This needs to be deprecated ... */
+    xics->nr_irqs = nr_irqs;
+    if (ics) {
+        ics->nr_irqs = nr_irqs;
+    }
 }
 
 static void xics_spapr_set_nr_servers(XICSState *xics, uint32_t nr_servers,
                                       Error **errp)
 {
-    int i;
-
-    xics->nr_servers = nr_servers;
-
-    xics->ss = g_malloc0(xics->nr_servers * sizeof(ICPState));
-    for (i = 0; i < xics->nr_servers; i++) {
-        char buffer[32];
-        object_initialize(&xics->ss[i], sizeof(xics->ss[i]), TYPE_ICP);
-        snprintf(buffer, sizeof(buffer), "icp[%d]", i);
-        object_property_add_child(OBJECT(xics), buffer, OBJECT(&xics->ss[i]),
-                                  errp);
-    }
+    xics_set_nr_servers(xics, nr_servers, TYPE_ICP, errp);
 }
 
 static void xics_spapr_realize(DeviceState *dev, Error **errp)
 {
     XICSState *xics = XICS_SPAPR(dev);
+    ICSState *ics;
     Error *error = NULL;
     int i;
 
@@ -261,10 +282,12 @@ static void xics_spapr_realize(DeviceState *dev, Error **errp)
     spapr_register_hypercall(H_EOI, h_eoi);
     spapr_register_hypercall(H_IPOLL, h_ipoll);
 
-    object_property_set_bool(OBJECT(xics->ics), true, "realized", &error);
-    if (error) {
-        error_propagate(errp, error);
-        return;
+    QLIST_FOREACH(ics, &xics->ics, list) {
+        object_property_set_bool(OBJECT(ics), true, "realized", &error);
+        if (error) {
+            error_propagate(errp, error);
+            return;
+        }
     }
 
     for (i = 0; i < xics->nr_servers; i++) {
@@ -280,10 +303,12 @@ static void xics_spapr_realize(DeviceState *dev, Error **errp)
 static void xics_spapr_initfn(Object *obj)
 {
     XICSState *xics = XICS_SPAPR(obj);
+    ICSState *ics;
 
-    xics->ics = ICS(object_new(TYPE_ICS));
-    object_property_add_child(obj, "ics", OBJECT(xics->ics), NULL);
-    xics->ics->xics = xics;
+    ics = ICS_SIMPLE(object_new(TYPE_ICS_SIMPLE));
+    object_property_add_child(obj, "ics", OBJECT(ics), NULL);
+    ics->xics = xics;
+    QLIST_INSERT_HEAD(&xics->ics, ics, list);
 }
 
 static void xics_spapr_class_init(ObjectClass *oc, void *data)
@@ -329,14 +354,15 @@ static int ics_find_free_block(ICSState *ics, int num, int alignnum)
     return -1;
 }
 
-int xics_spapr_alloc(XICSState *xics, int src, int irq_hint, bool lsi,
-                     Error **errp)
+int xics_spapr_alloc(XICSState *xics, int irq_hint, bool lsi, Error **errp)
 {
-    ICSState *ics = &xics->ics[src];
+    ICSState *ics = QLIST_FIRST(&xics->ics);
     int irq;
 
+    if (!ics) {
+        return -1;
+    }
     if (irq_hint) {
-        assert(src == xics_find_source(xics, irq_hint));
         if (!ICS_IRQ_FREE(ics, irq_hint - ics->offset)) {
             error_setg(errp, "can't allocate IRQ %d: already in use", irq_hint);
             return -1;
@@ -352,7 +378,7 @@ int xics_spapr_alloc(XICSState *xics, int src, int irq_hint, bool lsi,
     }
 
     ics_set_irq_type(ics, irq - ics->offset, lsi);
-    trace_xics_alloc(src, irq);
+    trace_xics_alloc(irq);
 
     return irq;
 }
@@ -361,13 +387,16 @@ int xics_spapr_alloc(XICSState *xics, int src, int irq_hint, bool lsi,
  * Allocate block of consecutive IRQs, and return the number of the first IRQ in
  * the block. If align==true, aligns the first IRQ number to num.
  */
-int xics_spapr_alloc_block(XICSState *xics, int src, int num, bool lsi,
-                           bool align, Error **errp)
+int xics_spapr_alloc_block(XICSState *xics, int num, bool lsi, bool align,
+                           Error **errp)
 {
+    ICSState *ics = QLIST_FIRST(&xics->ics);
     int i, first = -1;
-    ICSState *ics = &xics->ics[src];
 
-    assert(src == 0);
+    if (!ics) {
+        return -1;
+    }
+
     /*
      * MSIMesage::data is used for storing VIRQ so
      * it has to be aligned to num to support multiple
@@ -394,7 +423,7 @@ int xics_spapr_alloc_block(XICSState *xics, int src, int num, bool lsi,
     }
     first += ics->offset;
 
-    trace_xics_alloc_block(src, first, num, lsi, align);
+    trace_xics_alloc_block(first, num, lsi, align);
 
     return first;
 }
@@ -405,7 +434,7 @@ static void ics_free(ICSState *ics, int srcno, int num)
 
     for (i = srcno; i < srcno + num; ++i) {
         if (ICS_IRQ_FREE(ics, i)) {
-            trace_xics_ics_free_warn(ics - ics->xics->ics, i + ics->offset);
+            trace_xics_ics_free_warn(0, i + ics->offset);
         }
         memset(&ics->irqs[i], 0, sizeof(ICSIRQState));
     }
@@ -413,17 +442,33 @@ static void ics_free(ICSState *ics, int srcno, int num)
 
 void xics_spapr_free(XICSState *xics, int irq, int num)
 {
-    int src = xics_find_source(xics, irq);
+    ICSState *ics = xics_find_source(xics, irq);
 
-    if (src >= 0) {
-        ICSState *ics = &xics->ics[src];
-
-        /* FIXME: implement multiple sources */
-        assert(src == 0);
-
-        trace_xics_ics_free(ics - xics->ics, irq, num);
+    if (ics) {
+        trace_xics_ics_free(0, irq, num);
         ics_free(ics, irq - ics->offset, num);
     }
+}
+
+void spapr_dt_xics(XICSState *xics, void *fdt, uint32_t phandle)
+{
+    uint32_t interrupt_server_ranges_prop[] = {
+        0, cpu_to_be32(xics->nr_servers),
+    };
+    int node;
+
+    _FDT(node = fdt_add_subnode(fdt, 0, "interrupt-controller"));
+
+    _FDT(fdt_setprop_string(fdt, node, "device_type",
+                            "PowerPC-External-Interrupt-Presentation"));
+    _FDT(fdt_setprop_string(fdt, node, "compatible", "IBM,ppc-xicp"));
+    _FDT(fdt_setprop(fdt, node, "interrupt-controller", NULL, 0));
+    _FDT(fdt_setprop(fdt, node, "ibm,interrupt-server-ranges",
+                     interrupt_server_ranges_prop,
+                     sizeof(interrupt_server_ranges_prop)));
+    _FDT(fdt_setprop_cell(fdt, node, "#interrupt-cells", 2));
+    _FDT(fdt_setprop_cell(fdt, node, "linux,phandle", phandle));
+    _FDT(fdt_setprop_cell(fdt, node, "phandle", phandle));
 }
 
 static void xics_spapr_register_types(void)
