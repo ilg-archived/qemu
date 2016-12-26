@@ -94,6 +94,27 @@ svd-code \
 
 ```
 
+### STM32F107xx
+
+```
+xcdl \
+svd-convert \
+--file "/Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F107xx.svd" \
+--output "STM32F107xx-xsvd.json"
+
+xcdl \
+svd-patch \
+--file "STM32F107xx-xsvd.json" \
+--patch "STM32F107xx-patch.json" \
+--output "../STM32F107xx-qemu.json" \
+--remove "NVIC" 
+
+xcdl \
+svd-code \
+--file "../STM32F107xx-qemu.json" 
+
+```
+
 ### STM32F40x
 
 ```

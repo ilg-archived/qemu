@@ -300,6 +300,9 @@ typedef struct {
                     Object *mr16; // [16:16] Interrupt Mask on line 16
                     Object *mr17; // [17:17] Interrupt Mask on line 17
                     Object *mr18; // [18:18] Interrupt Mask on line 18
+
+                    // F107
+                    Object *mr19; // [19:19] Interrupt Mask on line 19
                 } imr;
 
                 // EMR (Event mask register (EXTI_EMR)) bitfields.
@@ -323,6 +326,9 @@ typedef struct {
                     Object *mr16; // [16:16] Event Mask on line 16
                     Object *mr17; // [17:17] Event Mask on line 17
                     Object *mr18; // [18:18] Event Mask on line 18
+
+                    // F107
+                    Object *mr19; // [19:19] Event Mask on line 19
                 } emr;
 
                 // RTSR (Rising Trigger selection register (EXTI_RTSR)) bitfields.
@@ -346,6 +352,10 @@ typedef struct {
                     Object *tr16; // [16:16] Rising trigger event configuration of line 16
                     Object *tr17; // [17:17] Rising trigger event configuration of line 17
                     Object *tr18; // [18:18] Rising trigger event configuration of line 18
+
+                    // F107
+                    Object *tr19; // [19:19] Rising trigger event configuration of line 19
+
                 } rtsr;
 
                 // FTSR (Falling Trigger selection register (EXTI_FTSR)) bitfields.
@@ -369,6 +379,10 @@ typedef struct {
                     Object *tr16; // [16:16] Falling trigger event configuration of line 16
                     Object *tr17; // [17:17] Falling trigger event configuration of line 17
                     Object *tr18; // [18:18] Falling trigger event configuration of line 18
+
+                    // F107
+                    Object *tr19; // [19:19] Falling trigger event configuration of line 19
+
                 } ftsr;
 
                 // SWIER (Software interrupt event register (EXTI_SWIER)) bitfields.
@@ -392,6 +406,10 @@ typedef struct {
                     Object *swier16; // [16:16] Software Interrupt on line 16
                     Object *swier17; // [17:17] Software Interrupt on line 17
                     Object *swier18; // [18:18] Software Interrupt on line 18
+
+                    // F107
+                    Object *swier19; // [19:19] Software Interrupt on line 19
+
                 } swier;
 
                 // PR (Pending register (EXTI_PR)) bitfields.
@@ -415,6 +433,10 @@ typedef struct {
                     Object *pr16; // [16:16] Pending bit 16
                     Object *pr17; // [17:17] Pending bit 17
                     Object *pr18; // [18:18] Pending bit 18
+
+                    // F107
+                    Object *pr19; // [19:19] Pending bit 19
+
                 } pr;
             } fld;
         } f1;

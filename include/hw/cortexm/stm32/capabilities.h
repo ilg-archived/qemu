@@ -736,6 +736,7 @@ typedef struct {
 
         // Used in parallel with the above.
         unsigned int is_103xx :1;
+        unsigned int is_107xx :1;
 
     } f1;
 

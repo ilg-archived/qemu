@@ -132,6 +132,49 @@ static void stm32f103xx_pwr_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
+// STM32F107VC
+// DO NOT EDIT! Automatically generated!
+static void stm32f107xx_pwr_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    STM32PWRState *state = STM32_PWR_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f1.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+
+    // CR bitfields.
+    state->u.f1.fld.cr.lpds = cm_object_get_child_by_name(state->u.f1.reg.cr,
+            "LPDS");
+    state->u.f1.fld.cr.pdds = cm_object_get_child_by_name(state->u.f1.reg.cr,
+            "PDDS");
+    state->u.f1.fld.cr.cwuf = cm_object_get_child_by_name(state->u.f1.reg.cr,
+            "CWUF");
+    state->u.f1.fld.cr.csbf = cm_object_get_child_by_name(state->u.f1.reg.cr,
+            "CSBF");
+    state->u.f1.fld.cr.pvde = cm_object_get_child_by_name(state->u.f1.reg.cr,
+            "PVDE");
+    state->u.f1.fld.cr.pls = cm_object_get_child_by_name(state->u.f1.reg.cr,
+            "PLS");
+    state->u.f1.fld.cr.dbp = cm_object_get_child_by_name(state->u.f1.reg.cr,
+            "DBP");
+
+    // CSR bitfields.
+    state->u.f1.fld.csr.wuf = cm_object_get_child_by_name(state->u.f1.reg.csr,
+            "WUF");
+    state->u.f1.fld.csr.sbf = cm_object_get_child_by_name(state->u.f1.reg.csr,
+            "SBF");
+    state->u.f1.fld.csr.pvdo = cm_object_get_child_by_name(state->u.f1.reg.csr,
+            "PVDO");
+    state->u.f1.fld.csr.ewup = cm_object_get_child_by_name(state->u.f1.reg.csr,
+            "EWUP");
+}
+
+// ----------------------------------------------------------------------------
+
 // STM32F407VG, STM32F407ZG
 // DO NOT EDIT! Automatically generated!
 static void stm32f40x_pwr_create_objects(Object *obj, JSON_Object *svd,
@@ -359,6 +402,11 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
         if (capabilities->f1.is_103xx) {
 
             stm32f103xx_pwr_create_objects(obj, cm_state->svd_json,
+                    periph_name);
+
+        } else if (capabilities->f1.is_107xx) {
+
+            stm32f107xx_pwr_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
         } else {

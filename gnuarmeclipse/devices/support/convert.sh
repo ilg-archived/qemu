@@ -38,6 +38,12 @@ svd-convert \
 echo
 xcdl \
 svd-convert \
+--file "${XPACKS_FOLDER}/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F107xx.svd" \
+--output "STM32F107xx-xsvd.json"
+
+echo
+xcdl \
+svd-convert \
 --file "${XPACKS_FOLDER}/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd" \
 --output "STM32F40x-xsvd.json"
 

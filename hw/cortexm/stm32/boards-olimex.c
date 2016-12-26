@@ -327,30 +327,71 @@ static const TypeInfo olimexino_stm32_machine = {
 
 static GPIOLEDInfo stm32_p107_leds_info[] = {
     {
-        .name = "green-led",
+        .name = "led:green",
         .active_low = false,
         .colour_name = "green",
         .x = 227,
         .y = 354,
         .w = 6,
         .h = 8,
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 6,
     /**/
     },
     {
-        .name = "yellow-led",
+        .name = "led:yellow",
         .active_low = false,
         .colour_name = "yellow",
         .x = 171,
         .y = 354,
         .w = 6,
         .h = 8,
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 7,
     /**/
     },
     { },
+/**/
+};
+
+static ButtonGPIOInfo stm32_p107_buttons_user_info[] = {
+    {
+        .name = "button:wkup",
+        .x = 198,
+        .y = 353,
+        .w = 30,
+        .h = 30,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 0,
+    /**/
+    },
+    {
+        .name = "button:tamper",
+        .x = 254,
+        .y = 353,
+        .w = 30,
+        .h = 30,
+
+        .active_low = true,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 13,
+    /**/
+    },
+    { },
+/**/
+};
+
+static ButtonResetInfo stm32_p107_button_reset_info = {
+    .x = 302,
+    .y = 84,
+    .w = 16,
+    .h = 8,
 /**/
 };
 
@@ -359,6 +400,8 @@ static void stm32_p107_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "STM32-P107.jpg");
 
     {
         // Create the MCU
@@ -371,11 +414,18 @@ static void stm32_p107_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "STM32-P107.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, stm32_p107_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral, &stm32_p107_button_reset_info,
+                board_graphic_context);
+        button_gpio_create_from_info(peripheral, stm32_p107_buttons_user_info,
+                board_graphic_context);
+    }
 }
 
 static void stm32_p107_board_class_init_callback(ObjectClass *oc, void *data)

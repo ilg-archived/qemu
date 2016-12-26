@@ -31,6 +31,10 @@ xcdl \
 svd-code \
 --file "../STM32F103xx-qemu.json" 
 
+xcdl \
+svd-code \
+--file "../STM32F107xx-qemu.json" 
+
 echo
 xcdl \
 svd-code \

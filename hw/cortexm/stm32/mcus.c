@@ -247,23 +247,33 @@ static const STM32Capabilities stm32f103x8b = {
     .has_ts = 1, // ADC12_IN16
         };
 
-#if 0
-static const STM32Capabilities stm32f10_57_xx = {
+#if 1
+static const STM32Capabilities stm32f107vc = {
 
     .family = STM32_FAMILY_F1,
     .f1 = {
-        .is_cl = true},
+        .is_107xx = true,
+        .is_cl = true
+    /**/
+    },
 
     .hsi_freq_hz = 8000000,
     .lsi_freq_hz = 40000,
-    .has_rcc = true,
-    .has_pwr = true,
-    .has_rtc = true,
 
-    .has_crc = true,
-    .has_exti = true,
-    .num_exti = 20,
+    .has_periph_bitband = true,
+
+#if 0
+    .has_rcc = true,
+    .has_flash = true,
+    .has_pwr = true,
     .has_afio = true,
+    .has_exti = true,
+#endif
+
+    .num_exti = 20,
+
+    .has_rtc = true,
+    .has_crc = true,
 
     .has_dma1 = true,
     .num_dma1 = 7,
@@ -846,18 +856,20 @@ static const STM32PartInfo stm32_mcus[] = {
         .stm32 = &stm32f103x8b,
     /**/
     },
-#if 0
     {
         .name = TYPE_STM32F107VC,
         .cortexm = {
             .flash_size_kb = 256,
             .sram_size_kb = 64,
-            .core = &stm32f1cl_core,
-            /**/
-        },
-        .stm32 = &stm32f10_57_xx,
+
+            .svd_file_name = "STM32F107xx-qemu.json",
+            .svd_device_name = "STM32F107xx",
         /**/
+        },
+        .stm32 = &stm32f107vc,
+    /**/
     },
+#if 0
     {
         .name = TYPE_STM32L152RE,
         .cortexm = {

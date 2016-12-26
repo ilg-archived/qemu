@@ -323,6 +323,11 @@ typedef struct {
                 Object *apb1enr; // 0x1C APB1 peripheral clock enable register (RCC_APB1ENR)
                 Object *bdcr; // 0x20 Backup domain control register (RCC_BDCR)
                 Object *csr; // 0x24 Control/status register (RCC_CSR)
+
+                // F107
+                Object *ahbrstr; // 0x28 (AHB peripheral clock reset register (RCC_AHBRSTR))
+                Object *cfgr2; // 0x2C (Clock configuration register2 (RCC_CFGR2))
+
             } reg;
 
             struct {
@@ -339,6 +344,13 @@ typedef struct {
                     Object *csson; // [19:19] Clock Security System enable
                     Object *pllon; // [24:24] PLL enable
                     Object *pllrdy; // [25:25] PLL clock ready flag
+
+                    // F107
+                    Object *pll2on; // [26:26] PLL2 enable
+                    Object *pll2rdy; // [27:27] PLL2 clock ready flag
+                    Object *pll3on; // [28:28] PLL3 enable
+                    Object *pll3rdy; // [29:29] PLL3 clock ready flag
+
                 } cr;
 
                 // CFGR (Clock configuration register (RCC_CFGR)) bitfields.
@@ -363,17 +375,32 @@ typedef struct {
                     Object *hsirdyf; // [2:2] HSI Ready Interrupt flag
                     Object *hserdyf; // [3:3] HSE Ready Interrupt flag
                     Object *pllrdyf; // [4:4] PLL Ready Interrupt flag
+
+                    // F107
+                    Object *pll2rdyf; // [5:5] PLL2 Ready Interrupt flag
+                    Object *pll3rdyf; // [6:6] PLL3 Ready Interrupt flag
+
                     Object *cssf; // [7:7] Clock Security System Interrupt flag
                     Object *lsirdyie; // [8:8] LSI Ready Interrupt Enable
                     Object *lserdyie; // [9:9] LSE Ready Interrupt Enable
                     Object *hsirdyie; // [10:10] HSI Ready Interrupt Enable
                     Object *hserdyie; // [11:11] HSE Ready Interrupt Enable
                     Object *pllrdyie; // [12:12] PLL Ready Interrupt Enable
+
+                    // F107
+                    Object *pll2rdyie; // [13:13] PLL2 Ready Interrupt Enable
+                    Object *pll3rdyie; // [14:14] PLL3 Ready Interrupt Enable
+
                     Object *lsirdyc; // [16:16] LSI Ready Interrupt Clear
                     Object *lserdyc; // [17:17] LSE Ready Interrupt Clear
                     Object *hsirdyc; // [18:18] HSI Ready Interrupt Clear
                     Object *hserdyc; // [19:19] HSE Ready Interrupt Clear
                     Object *pllrdyc; // [20:20] PLL Ready Interrupt Clear
+
+                    // F107
+                    Object *pll2rdyc; // [21:21] PLL2 Ready Interrupt Clear
+                    Object *pll3rdyc; // [22:22] PLL3 Ready Interrupt Clear
+
                     Object *cssc; // [23:23] Clock security system interrupt clear
                 } cir;
 
@@ -417,10 +444,20 @@ typedef struct {
                     Object *usart3rst; // [18:18] USART 3 reset
                     Object *uart4rst; // [19:19] UART 4 reset
                     Object *uart5rst; // [20:20] UART 5 reset
+
+                    // F107
+                    Object *usart4rst; // [19:19] USART 4 reset
+                    Object *usart5rst; // [20:20] USART 5 reset
+
                     Object *i2c1rst; // [21:21] I2C1 reset
                     Object *i2c2rst; // [22:22] I2C2 reset
                     Object *usbrst; // [23:23] USB reset
                     Object *canrst; // [25:25] CAN reset
+
+                    // F107
+                    Object *can1rst; // [25:25] CAN1 reset
+                    Object *can2rst; // [26:26] CAN2 reset
+
                     Object *bkprst; // [27:27] Backup interface reset
                     Object *pwrrst; // [28:28] Power interface reset
                     Object *dacrst; // [29:29] DAC interface reset
@@ -435,6 +472,13 @@ typedef struct {
                     Object *crcen; // [6:6] CRC clock enable
                     Object *fsmcen; // [8:8] FSMC clock enable
                     Object *sdioen; // [10:10] SDIO clock enable
+
+                    // F107
+                    Object *otgfsen; // [12:12] USB OTG FS clock enable
+                    Object *ethmacen; // [14:14] Ethernet MAC clock enable
+                    Object *ethmactxen; // [15:15] Ethernet MAC TX clock enable
+                    Object *ethmacrxen; // [16:16] Ethernet MAC RX clock enable
+
                 } ahbenr;
 
                 // APB2ENR (APB2 peripheral clock enable register (RCC_APB2ENR)) bitfields.
@@ -481,6 +525,11 @@ typedef struct {
                     Object *i2c2en; // [22:22] I2C 2 clock enable
                     Object *usben; // [23:23] USB clock enable
                     Object *canen; // [25:25] CAN clock enable
+
+                    // F107
+                    Object *can1en; // [25:25] CAN1 clock enable
+                    Object *can2en; // [26:26] CAN2 clock enable
+
                     Object *bkpen; // [27:27] Backup interface clock enable
                     Object *pwren; // [28:28] Power interface clock enable
                     Object *dacen; // [29:29] DAC interface clock enable
@@ -508,76 +557,28 @@ typedef struct {
                     Object *wwdgrstf; // [30:30] Window watchdog reset flag
                     Object *lpwrrstf; // [31:31] Low-power reset flag
                 } csr;
+
+                // F107
+                // AHBRSTR (AHB peripheral clock reset register (RCC_AHBRSTR)) bitfields.
+                struct {
+                    Object *otgfsrst; // [12:12] USB OTG FS reset
+                    Object *ethmacrst; // [14:14] Ethernet MAC reset
+                } ahbrstr;
+
+                // F107
+                // CFGR2 (Clock configuration register2 (RCC_CFGR2)) bitfields.
+                struct {
+                    Object *prediv1; // [0:3] PREDIV1 division factor
+                    Object *prediv2; // [4:7] PREDIV2 division factor
+                    Object *pll2mul; // [8:11] PLL2 Multiplication Factor
+                    Object *pll3mul; // [12:15] PLL3 Multiplication Factor
+                    Object *prediv1src; // [16:16] PREDIV1 entry clock source
+                    Object *i2s2src; // [17:17] I2S2 clock source
+                    Object *i2s3src; // [18:18] I2S3 clock source
+                } cfgr2;
+
             } fld;
         } f1;
-
-#if 0
-        struct {
-            /* F1 specific registers */
-            /* 0x28 most, 0x30 for CL */
-            struct {
-                Object *cr; /* 0x00 */
-                Object *cfgr; /* 0x04 */
-                Object *cir; /* 0x08 */
-                Object *apb2rstr; /* 0x0C */
-                Object *apb1rstr; /* 0x10 */
-                Object *ahbenr; /* 0x14 */
-                Object *apb2enr; /* 0x18 */
-                Object *apb1enr; /* 0x1C */
-                Object *bdcr; /* 0x20 */
-                Object *csr; /* 0x24 */
-
-                /* Connectivity line devices */
-                Object *ahbrstr; /* 0x28 */
-                Object *cfgr2; /* 0x2C */
-            }reg;
-
-            /* Bitfields. */
-            struct {
-                Object *hsirdy;
-                Object *hserdy;
-                Object *pllrdy;
-                Object *pll2rdy; /* CL */
-                Object *pll3rdy; /* CL */
-            }cr;
-            struct {
-                Object *sws;
-                Object *pllmul;
-                Object *pllsrc;
-                Object *pllxtpre;
-                Object *hpre;
-            }cfgr;
-            struct {
-                Object *lsirdyf;
-                Object *lserdyf;
-                Object *hsirdyf;
-                Object *hserdyf;
-                Object *pllrdyf;
-                Object *pll2rdyf;
-                Object *pll3rdyf;
-                Object *cssf;
-            }cir;
-            struct {
-                Object *lserdy;
-            }bdcr;
-            struct {
-                Object *lsirdy;
-                Object *pinrstf;
-                Object *porrstf;
-                Object *stfrstf;
-                Object *iwdgrstf;
-                Object *wwdgrstf;
-                Object *lrwrrstf;
-            }csr;
-            struct {
-                Object *prediv1;
-                Object *prediv2;
-                Object *pll2mul;
-                Object *prediv1src;
-            }cfgr2;
-
-        }f1;
-#endif
 
         // DO NOT EDIT! Automatically generated!
         struct {

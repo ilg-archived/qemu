@@ -114,13 +114,29 @@ typedef struct {
                     Object *tim3_remap; // [10:11] TIM3 remapping
                     Object *tim4_remap; // [12:12] TIM4 remapping
                     Object *can_remap; // [13:14] CAN1 remapping
+
+                    // F107
+                    Object *can1_remap; // [13:14] CAN1 remapping
+
                     Object *pd01_remap; // [15:15] Port D0/Port D1 mapping on OSCIN/OSCOUT
                     Object *tim5ch4_iremap; // [16:16] Set and cleared by software
                     Object *adc1_etrginj_remap; // [17:17] ADC 1 External trigger injected conversion remapping
                     Object *adc1_etrgreg_remap; // [18:18] ADC 1 external trigger regular conversion remapping
                     Object *adc2_etrginj_remap; // [19:19] ADC 2 external trigger injected conversion remapping
                     Object *adc2_etrgreg_remap; // [20:20] ADC 2 external trigger regular conversion remapping
+
+                    // F107
+                    Object *eth_remap; // [21:21] Ethernet MAC I/O remapping
+                    Object *can2_remap; // [22:22] CAN2 I/O remapping
+                    Object *mii_rmii_sel; // [23:23] MII or RMII selection
+
                     Object *swj_cfg; // [24:26] Serial wire JTAG configuration
+
+                    // F107
+                    Object *spi3_remap; // [28:28] SPI3/I2S3 remapping
+                    Object *tim2itr1_iremap; // [29:29] TIM2 internal trigger 1 remapping
+                    Object *ptp_pps_remap; // [30:30] Ethernet PTP PPS remapping
+
                 } mapr;
 
                 // EXTICR1 (External interrupt configuration register 1 (AFIO_EXTICR1)) bitfields.
