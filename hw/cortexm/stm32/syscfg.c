@@ -139,7 +139,7 @@ static void stm32f0x1_syscfg_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
-// STM32F407VG, STM32F407ZG
+// STM32F407VG, STM32F407ZG, STM32F405RG
 // DO NOT EDIT! Automatically generated!
 static void stm32f40x_syscfg_create_objects(Object *obj, JSON_Object *svd,
         const char *name)

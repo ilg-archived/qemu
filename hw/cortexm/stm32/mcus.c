@@ -385,20 +385,30 @@ static const STM32Capabilities stm32l15_12_xd = {
 };
 #endif
 
-#if 0
 static const STM32Capabilities stm32f405xx = {
 
     .family = STM32_FAMILY_F4,
     .f4 = {
-        .is_01_57_xx = true},
+        .is_40x = true
+    /**/
+    },
 
     .hsi_freq_hz = 16000000,
     .lsi_freq_hz = 32000,
+
+    .has_periph_bitband = true,
+
+#if 0
     .has_rcc = true,
     .has_pwr = true,
+    .has_exti = true,
+    .has_syscfg = true,
+#endif
+
+    .num_exti = 23,
+
     .has_rtc = true,
     .num_back_bytes = 80,
-    .has_periph_bitband = true,
 
     .ccm_size_kb = 64,
     .back_sram_size_kb = 4,
@@ -409,9 +419,6 @@ static const STM32Capabilities stm32f405xx = {
     .has_dma2 = true,
     .num_dma2 = 8,
     .has_fsmc = true,
-    .has_exti = true,
-    .num_exti = 23,
-    .has_syscfg = true,
 
     .has_ac_tim1 = true,
     .has_ac_tim8 = true,
@@ -470,9 +477,8 @@ static const STM32Capabilities stm32f405xx = {
 
     .has_dac1 = true, /* 12-bits */
     .has_dac2 = true,
-    /**/
+/**/
 };
-#endif
 
 static const STM32Capabilities stm32f407xx = {
 
@@ -909,19 +915,18 @@ static const STM32PartInfo stm32_mcus[] = {
         /**/
     },
 #endif
-#if 0
     {
         .name = TYPE_STM32F405RG,
         .cortexm = {
             .flash_size_kb = 1024,
             .sram_size_kb = 128, /* 64K CCM not counted */
-            .core = &stm32f4_01_57_xx_core, /* TODO: Add .stm32 */
-            /**/
-        },
+
+            .svd_file_name = "STM32F40x-qemu.json",
+            .svd_device_name = "STM32F40x",
+        /**/},
         .stm32 = &stm32f405xx,
-        /**/
+    /**/
     },
-#endif
     {
         .name = TYPE_STM32F407VG,
         .cortexm = {

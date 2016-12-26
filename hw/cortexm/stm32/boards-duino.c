@@ -20,6 +20,8 @@
 #include <hw/cortexm/board.h>
 #include <hw/cortexm/stm32/mcus.h>
 #include <hw/cortexm/gpio-led.h>
+#include <hw/cortexm/button-gpio.h>
+#include <hw/cortexm/button-reset.h>
 #include <hw/cortexm/helper.h>
 
 /*
@@ -49,18 +51,47 @@ static void netduino2_board_init_callback(MachineState *machine)
 
 static GPIOLEDInfo netduinoplus2_leds_info[] = {
     {
-        .name = "blue-led",
+        .name = "led:blue",
         .active_low = false,
         .colour_name = "blue",
         .x = 507,
         .y = 183,
         .w = 12,
         .h = 14,
-        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 10,
     /**/
     },
     { },
+/**/
+};
+
+static ButtonGPIOInfo netduinoplus2_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 477,
+        .y = 299,
+        .w = 28,
+        .h = 28,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 14,
+    /**/
+    },
+    { },
+/**/
+};
+
+// Button not physically present, only as a pin in a connector.
+static ButtonResetInfo netduinoplus2_button_reset_info = {
+    .x = 305,
+    .y = 452,
+    .w = 15,
+    .h = 45,
 /**/
 };
 
@@ -69,6 +100,8 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "NetduinoPlus2.jpg");
 
     {
         // Create the MCU
@@ -81,11 +114,18 @@ static void netduinoplus2_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "NetduinoPlus2.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, netduinoplus2_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral,
+                &netduinoplus2_button_reset_info, board_graphic_context);
+        button_gpio_create_from_info(peripheral,
+                netduinoplus2_buttons_user_info, board_graphic_context);
+    }
 }
 
 static void netduinoplus2_board_class_init_callback(ObjectClass *oc, void *data)

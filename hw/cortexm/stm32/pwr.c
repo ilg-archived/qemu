@@ -175,7 +175,7 @@ static void stm32f107xx_pwr_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
-// STM32F407VG, STM32F407ZG
+// STM32F407VG, STM32F407ZG, STM32F405RG
 // DO NOT EDIT! Automatically generated!
 static void stm32f40x_pwr_create_objects(Object *obj, JSON_Object *svd,
         const char *name)

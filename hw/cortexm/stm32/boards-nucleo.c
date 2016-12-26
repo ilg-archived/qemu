@@ -150,6 +150,7 @@ static GPIOLEDInfo nucleo_f411re_leds_info[] = {
         .y = 307,
         .w = 8,
         .h = 6,
+
         .gpio_path = DEVICE_PATH_STM32_GPIO_A,
         .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 5,
