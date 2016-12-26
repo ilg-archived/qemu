@@ -147,118 +147,161 @@ static const TypeInfo netduinoplus2_machine = {
 
 static GPIOLEDInfo netduinogo_leds_info[] = {
     {
-        .name = "white-led1",
+        .name = "led:white1",
         .active_low = false,
         .colour_name = "white",
         .x = 140,
         .y = 457,
         .w = 8,
         .h = 12,
-        .on_message = "[White LED1 On]\n",
-        .on_message = "[White LED1 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+
+//        .on_message = "[White LED1 On]\n",
+//        .on_message = "[White LED1 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_B,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 6,
     /**/
     },
     {
-        .name = "white-led2",
+        .name = "led:white2",
         .active_low = false,
         .colour_name = "white",
         .x = 286,
         .y = 457,
         .w = 8,
         .h = 12,
-        .on_message = "[White LED2 On]\n",
-        .on_message = "[White LED2 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+
+//        .on_message = "[White LED2 On]\n",
+//        .on_message = "[White LED2 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_B,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 7,
     /**/
     },
     {
-        .name = "white-led3",
+        .name = "led:white3",
         .active_low = false,
         .colour_name = "white",
         .x = 432,
         .y = 457,
         .w = 8,
         .h = 12,
-        .on_message = "[White LED3 On]\n",
-        .on_message = "[White LED3 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+
+//        .on_message = "[White LED3 On]\n",
+//        .on_message = "[White LED3 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_B,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 8,
     /**/
     },
     {
-        .name = "white-led4",
+        .name = "led:white4",
         .active_low = false,
         .colour_name = "white",
         .x = 614,
         .y = 405,
         .w = 12,
         .h = 8,
-        .on_message = "[White LED4 On]\n",
-        .on_message = "[White LED4 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[b]",
+
+//        .on_message = "[White LED4 On]\n",
+//        .on_message = "[White LED4 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_B,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 9,
     /**/
     },
     {
-        .name = "white-led5",
+        .name = "led:white5",
         .active_low = false,
         .colour_name = "white",
         .x = 614,
         .y = 259,
         .w = 12,
         .h = 8,
-        .on_message = "[White LED5 On]\n",
-        .on_message = "[White LED5 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+
+//        .on_message = "[White LED5 On]\n",
+//        .on_message = "[White LED5 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 6,
     /**/
     },
     {
-        .name = "white-led6",
+        .name = "led:white6",
         .active_low = false,
         .colour_name = "white",
         .x = 564,
         .y = 70,
         .w = 8,
         .h = 12,
-        .on_message = "[White LED6 On]\n",
-        .on_message = "[White LED6 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+
+//        .on_message = "[White LED6 On]\n",
+//        .on_message = "[White LED6 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 7,
     /**/
     },
     {
-        .name = "white-led7",
+        .name = "led:white7",
+        .active_low = false,
         .colour_name = "white",
         .x = 419,
         .y = 70,
         .w = 8,
         .h = 12,
-        .active_low = false,
-        .on_message = "[White LED7 On]\n",
-        .on_message = "[White LED7 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+
+//        .on_message = "[White LED7 On]\n",
+//        .on_message = "[White LED7 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 8,
     /**/
     },
     {
-        .name = "white-led8",
+        .name = "led:white8",
         .active_low = false,
         .colour_name = "white",
         .x = 274,
         .y = 70,
         .w = 8,
         .h = 12,
-        .on_message = "[White LED8 On]\n",
-        .on_message = "[White LED8 Off]\n",
-        .gpio_path = "/machine/mcu/stm32/gpio[c]",
+
+//        .on_message = "[White LED8 On]\n",
+//        .on_message = "[White LED8 Off]\n",
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 9,
     /**/
     },
     { },
+/**/
+};
+
+static ButtonGPIOInfo netduinogo_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 428,
+        .y = 261,
+        .w = 30,
+        .h = 30,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 14,
+    /**/
+    },
+    { },
+/**/
+};
+
+// Button not physically present, the action associated to the PWR label.
+static ButtonResetInfo netduinogo_button_reset_info = {
+    .x = 84,
+    .y = 193,
+    .w = 12,
+    .h = 28,
 /**/
 };
 
@@ -267,6 +310,8 @@ static void netduinogo_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "NetduinoGo.jpg");
 
     {
         // Create the MCU
@@ -279,11 +324,18 @@ static void netduinogo_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "NetduinoGo.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, netduinogo_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral, &netduinogo_button_reset_info,
+                board_graphic_context);
+        button_gpio_create_from_info(peripheral, netduinogo_buttons_user_info,
+                board_graphic_context);
+    }
 }
 
 static void netduinogo_board_class_init_callback(ObjectClass *oc, void *data)
@@ -305,18 +357,46 @@ static const TypeInfo netduinogo_machine = {
 
 static GPIOLEDInfo maple_leds_info[] = {
     {
-        .name = "blue-led",
+        .name = "led:blue",
         .active_low = false,
         .colour_name = "blue",
         .x = 215,
         .y = 161,
         .w = 10,
         .h = 8,
-        .gpio_path = "/machine/mcu/stm32/gpio[a]",
+
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
         .gpio_bit = 5,
     /**/
     },
     { },
+/**/
+};
+
+static ButtonGPIOInfo maple_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 499,
+        .y = 178,
+        .w = 30,
+        .h = 36,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 9,
+    /**/
+    },
+    { },
+/**/
+};
+
+static ButtonResetInfo maple_button_reset_info = {
+    .x = 166,
+    .y = 538,
+    .w = 30,
+    .h = 36,
 /**/
 };
 
@@ -325,6 +405,8 @@ static void maple_board_init_callback(MachineState *machine)
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "Maple.jpg");
 
     {
         // Create the MCU
@@ -340,8 +422,17 @@ static void maple_board_init_callback(MachineState *machine)
     cortexm_board_init_graphic_image(board, "Maple.jpg");
 
     Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, maple_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral, &maple_button_reset_info,
+                board_graphic_context);
+        button_gpio_create_from_info(peripheral, maple_buttons_user_info,
+                board_graphic_context);
+    }
 }
 
 static void maple_board_class_init_callback(ObjectClass *oc, void *data)
