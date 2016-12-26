@@ -247,11 +247,40 @@ static GPIOLEDInfo olimexino_stm32_leds_info[] = {
 /**/
 };
 
+// The button is also connected to BOOT0. Not implemented.
+static ButtonGPIOInfo olimexino_stm32_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 95,
+        .y = 44,
+        .w = 40,
+        .h = 40,
+
+        .active_low = false,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 9,
+    /**/
+    },
+    { },
+/**/
+};
+
+static ButtonResetInfo olimexino_stm32_button_reset_info = {
+    .x = 136,
+    .y = 416,
+    .w = 40,
+    .h = 40,
+/**/
+};
+
 static void olimexino_stm32_board_init_callback(MachineState *machine)
 {
     CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
 
     cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "OLIMEXINO-STM32.jpg");
 
     {
         // Create the MCU
@@ -264,11 +293,18 @@ static void olimexino_stm32_board_init_callback(MachineState *machine)
         cm_object_realize(mcu);
     }
 
-    cortexm_board_init_graphic_image(board, "OLIMEXINO-STM32.jpg");
-
     Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
     gpio_led_create_from_info(peripheral, olimexino_stm32_leds_info,
-            &(board->graphic_context));
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral,
+                &olimexino_stm32_button_reset_info, board_graphic_context);
+        button_gpio_create_from_info(peripheral,
+                olimexino_stm32_buttons_user_info, board_graphic_context);
+    }
 }
 
 static void olimexino_stm32_board_class_init_callback(ObjectClass *oc,
