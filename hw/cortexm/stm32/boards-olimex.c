@@ -142,7 +142,7 @@ static GPIOLEDInfo stm32_p103_leds_info[] = {
 
 static ButtonGPIOInfo stm32_p103_buttons_user_info[] = {
     {
-        .name = "button:user",
+        .name = "button:wkup",
         .x = 278,
         .y = 438,
         .w = 36,
@@ -465,7 +465,7 @@ static GPIOLEDInfo stm32_e407_leds_info[] = {
 
 static ButtonGPIOInfo stm32_e407_buttons_user_info[] = {
     {
-        .name = "button:user",
+        .name = "button:wkup",
         .x = 103,
         .y = 25,
         .w = 18,
