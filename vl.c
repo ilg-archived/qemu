@@ -3481,9 +3481,10 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_nouserconfig:
                 userconfig = false;
                 break;
+            }
 
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
-            case QEMU_OPTION_semihosting_cmdline:
+            if (popt->index == QEMU_OPTION_semihosting_cmdline) {
                 /* no HAS_ARGS, optind set to next option */
                 semihosting.argc = argc - optind;
                 semihosting.argv = (const char **)&argv[optind];
@@ -3491,10 +3492,11 @@ int main(int argc, char **argv, char **envp)
                 actual_argc = optind - 1; /* exclude current option */
                 
                 semihosting.cmdline = semihosting_concatenate_cmdline(semihosting.argc, semihosting.argv);
+
                 break;
+            };
 #endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
 
-            }
         }
     }
 
