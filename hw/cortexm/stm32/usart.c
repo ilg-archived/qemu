@@ -1048,6 +1048,7 @@ static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
     }
 }
 
+#if 0
 static int stm32f4_usart_can_receive(void *obj)
 {
     STM32USARTState *state = STM32_USART_STATE((Object * )obj);
@@ -1080,6 +1081,7 @@ static void stm32f4_usart_receive(void *obj, const uint8_t *buf, int size)
                 smt32f4_usart_get_irq_vector(state));
     }
 }
+#endif
 
 static void stm32f4_usart_dr_post_read_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size)
@@ -1107,7 +1109,9 @@ static void stm32f4_usart_dr_post_write_callback(Object *reg, Object *periph,
     if ((cr1 & USART_CR1_UE) && (cr1 & USART_CR1_TE)) {
         if (state->chr) {
             ch = full_value; /* Use only the lower 8 bits */
+#if 0
             qemu_chr_fe_write_all(state->chr, &ch, 1);
+#endif
         }
         // transmission is immediately complete
         peripheral_register_or_raw_value(state->reg.sr,
