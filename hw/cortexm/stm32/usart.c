@@ -1359,6 +1359,8 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
         break;
     }
 
+    state->enabling_bit = OBJECT(cm_device_by_name(enabling_bit_name));
+
     peripheral_prepare_registers(obj);
 
     // ------------------------------------------------------------------------
