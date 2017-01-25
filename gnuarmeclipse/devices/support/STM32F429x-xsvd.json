@@ -3,15 +3,15 @@
 	"generators": [
 		{
 			"tool": "xcdl",
-			"version": "1.6.9",
+			"version": "1.6.11",
 			"command": [
 				"svd-convert",
 				"--file",
-				"/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F429x.svd",
+				"/home/olivier/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F429x.svd",
 				"--output",
 				"STM32F429x-xsvd.json"
 			],
-			"date": "2016-12-20T10:25:56.691Z"
+			"date": "2017-01-24T21:18:22.659Z"
 		}
 	],
 	"device": {

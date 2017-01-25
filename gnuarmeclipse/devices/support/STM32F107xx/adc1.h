@@ -1,5 +1,5 @@
 /*
- * STM32 - ADC (Analog to digital converter) emulation.
+ * STM32- ADC(Analog to digital converter) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,21 +27,20 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_ADC DEVICE_PATH_STM32 "ADC"
+#define DEVICE_PATH_STM32_ADCDEVICE_PATH_STM32"ADC"
 
 // ----------------------------------------------------------------------------
 
 // Note: the "port-index" property has type "int".
 typedef enum {
     // TODO: keep this list in ascending order.
-    STM32_PORT_ADC1,
-    STM32_PORT_ADC2,
-    STM32_PORT_ADC_UNDEFINED = 0xFF,
+STM32_PORT_ADC1,
+STM32_PORT_ADC2,
+STM32_PORT_ADC_UNDEFINED = 0xFF,
 } stm32_adc_index_t;
-
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_ADC TYPE_STM32_PREFIX "adc" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_ADCTYPE_STM32_PREFIX "adc" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -83,204 +82,100 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    // Remove it if there is only one port
+// Remove it if there is only one port
     stm32_adc_index_t port_index;
-
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1 ADC (Analog to digital converter) registers.
+        // F1ADC(Analog to digital converter) registers.
         struct { 
-          Object *sr; // 0x0 (Status register) 
-          Object *cr1; // 0x4 (Control register 1) 
-          Object *cr2; // 0x8 (Control register 2) 
-          Object *smpr1; // 0xC (Sample time register 1) 
-          Object *smpr2; // 0x10 (Sample time register 2) 
-          Object *jofr1; // 0x14 (Injected channel data offset register x) 
-          Object *jofr2; // 0x18 (Injected channel data offset register x) 
-          Object *jofr3; // 0x1C (Injected channel data offset register x) 
-          Object *jofr4; // 0x20 (Injected channel data offset register x) 
-          Object *htr; // 0x24 (Watchdog higher threshold register) 
-          Object *ltr; // 0x28 (Watchdog lower threshold register) 
-          Object *sqr1; // 0x2C (Regular sequence register 1) 
-          Object *sqr2; // 0x30 (Regular sequence register 2) 
-          Object *sqr3; // 0x34 (Regular sequence register 3) 
-          Object *jsqr; // 0x38 (Injected sequence register) 
-          Object *jdr1; // 0x3C (Injected data register x) 
-          Object *jdr2; // 0x40 (Injected data register x) 
-          Object *jdr3; // 0x44 (Injected data register x) 
-          Object *jdr4; // 0x48 (Injected data register x) 
-          Object *dr; // 0x4C (Regular data register) 
-        } reg;
+Object *sr; // 0x0(Status register) 
+Object *cr1; // 0x4(Control register 1) 
+Object *cr2; // 0x8(Control register 2) 
+Object *smpr1; // 0xC(Sample time register 1) 
+Object *smpr2; // 0x10(Sample time register 2) 
+Object *jofr1; // 0x14(Injected channel data offset register x) 
+Object *jofr2; // 0x18(Injected channel data offset register x) 
+Object *jofr3; // 0x1C(Injected channel data offset register x) 
+Object *jofr4; // 0x20(Injected channel data offset register x) 
+Object *htr; // 0x24(Watchdog higher threshold register) 
+Object *ltr; // 0x28(Watchdog lower threshold register) 
+Object *sqr1; // 0x2C(Regular sequence register 1) 
+Object *sqr2; // 0x30(Regular sequence register 2) 
+Object *sqr3; // 0x34(Regular sequence register 3) 
+Object *jsqr; // 0x38(Injected sequence register) 
+Object *jdr1; // 0x3C(Injected data register x) 
+Object *jdr2; // 0x40(Injected data register x) 
+Object *jdr3; // 0x44(Injected data register x) 
+Object *jdr4; // 0x48(Injected data register x) 
+Object *dr; // 0x4C(Regular data register) 
+} reg;
 
         struct { 
-          
-          // SR (Status register) bitfields.
+// SR(Status register) bitfields.
           struct { 
-            Object *awd; // [0:0] Analog watchdog flag 
-            Object *eoc; // [1:1] Regular channel end of conversion 
-            Object *jeoc; // [2:2] Injected channel end of conversion 
-            Object *jstrt; // [3:3] Injected channel start flag 
-            Object *strt; // [4:4] Regular channel start flag  
-          } sr; 
-          
-          // CR1 (Control register 1) bitfields.
+Object *awd; // [0:0] Analog watchdog flagObject *eoc; // [1:1] Regular channel end of conversionObject *jeoc; // [2:2] Injected channel end of conversionObject *jstrt; // [3:3] Injected channel start flagObject *strt; // [4:4] Regular channel start flag} sr; 
+// CR1(Control register 1) bitfields.
           struct { 
-            Object *awdch; // [0:4] Analog watchdog channel select bits 
-            Object *eocie; // [5:5] Interrupt enable for EOC 
-            Object *awdie; // [6:6] Analog watchdog interrupt enable 
-            Object *jeocie; // [7:7] Interrupt enable for injected channels 
-            Object *scan; // [8:8] Scan mode 
-            Object *awdsgl; // [9:9] Enable the watchdog on a single channel in scan mode 
-            Object *jauto; // [10:10] Automatic injected group conversion 
-            Object *discen; // [11:11] Discontinuous mode on regular channels 
-            Object *jdiscen; // [12:12] Discontinuous mode on injected channels 
-            Object *discnum; // [13:15] Discontinuous mode channel count 
-            Object *dualmod; // [16:19] Dual mode selection 
-            Object *jawden; // [22:22] Analog watchdog enable on injected channels 
-            Object *awden; // [23:23] Analog watchdog enable on regular channels  
-          } cr1; 
-          
-          // CR2 (Control register 2) bitfields.
+Object *awdch; // [0:4] Analog watchdog channel select bitsObject *eocie; // [5:5] Interrupt enable for EOCObject *awdie; // [6:6] Analog watchdog interrupt enableObject *jeocie; // [7:7] Interrupt enable for injected channelsObject *scan; // [8:8] Scan modeObject *awdsgl; // [9:9] Enable the watchdog on a single channel in scan modeObject *jauto; // [10:10] Automatic injected group conversionObject *discen; // [11:11] Discontinuous mode on regular channelsObject *jdiscen; // [12:12] Discontinuous mode on injected channelsObject *discnum; // [13:15] Discontinuous mode channel countObject *dualmod; // [16:19] Dual mode selectionObject *jawden; // [22:22] Analog watchdog enable on injected channelsObject *awden; // [23:23] Analog watchdog enable on regular channels} cr1; 
+// CR2(Control register 2) bitfields.
           struct { 
-            Object *adon; // [0:0] A/D converter ON / OFF 
-            Object *cont; // [1:1] Continuous conversion 
-            Object *cal; // [2:2] A/D calibration 
-            Object *rstcal; // [3:3] Reset calibration 
-            Object *dma; // [8:8] Direct memory access mode 
-            Object *align; // [11:11] Data alignment 
-            Object *jextsel; // [12:14] External event select for injected group 
-            Object *jexttrig; // [15:15] External trigger conversion mode for injected channels 
-            Object *extsel; // [17:19] External event select for regular group 
-            Object *exttrig; // [20:20] External trigger conversion mode for regular channels 
-            Object *jswstart; // [21:21] Start conversion of injected channels 
-            Object *swstart; // [22:22] Start conversion of regular channels 
-            Object *tsvrefe; // [23:23] Temperature sensor and VREFINT enable  
-          } cr2; 
-          
-          // SMPR1 (Sample time register 1) bitfields.
+Object *adon; // [0:0] A/D converter ON / OFFObject *cont; // [1:1] Continuous conversionObject *cal; // [2:2] A/D calibrationObject *rstcal; // [3:3] Reset calibrationObject *dma; // [8:8] Direct memory access modeObject *align; // [11:11] Data alignmentObject *jextsel; // [12:14] External event select for injected groupObject *jexttrig; // [15:15] External trigger conversion mode for injected channelsObject *extsel; // [17:19] External event select for regular groupObject *exttrig; // [20:20] External trigger conversion mode for regular channelsObject *jswstart; // [21:21] Start conversion of injected channelsObject *swstart; // [22:22] Start conversion of regular channelsObject *tsvrefe; // [23:23] Temperature sensor and VREFINT enable} cr2; 
+// SMPR1(Sample time register 1) bitfields.
           struct { 
-            Object *smp10; // [0:2] Channel 10 sampling time selection 
-            Object *smp11; // [3:5] Channel 11 sampling time selection 
-            Object *smp12; // [6:8] Channel 12 sampling time selection 
-            Object *smp13; // [9:11] Channel 13 sampling time selection 
-            Object *smp14; // [12:14] Channel 14 sampling time selection 
-            Object *smp15; // [15:17] Channel 15 sampling time selection 
-            Object *smp16; // [18:20] Channel 16 sampling time selection 
-            Object *smp17; // [21:23] Channel 17 sampling time selection  
-          } smpr1; 
-          
-          // SMPR2 (Sample time register 2) bitfields.
+Object *smp10; // [0:2] Channel 10 sampling time selectionObject *smp11; // [3:5] Channel 11 sampling time selectionObject *smp12; // [6:8] Channel 12 sampling time selectionObject *smp13; // [9:11] Channel 13 sampling time selectionObject *smp14; // [12:14] Channel 14 sampling time selectionObject *smp15; // [15:17] Channel 15 sampling time selectionObject *smp16; // [18:20] Channel 16 sampling time selectionObject *smp17; // [21:23] Channel 17 sampling time selection} smpr1; 
+// SMPR2(Sample time register 2) bitfields.
           struct { 
-            Object *smp0; // [0:2] Channel 0 sampling time selection 
-            Object *smp1; // [3:5] Channel 1 sampling time selection 
-            Object *smp2; // [6:8] Channel 2 sampling time selection 
-            Object *smp3; // [9:11] Channel 3 sampling time selection 
-            Object *smp4; // [12:14] Channel 4 sampling time selection 
-            Object *smp5; // [15:17] Channel 5 sampling time selection 
-            Object *smp6; // [18:20] Channel 6 sampling time selection 
-            Object *smp7; // [21:23] Channel 7 sampling time selection 
-            Object *smp8; // [24:26] Channel 8 sampling time selection 
-            Object *smp9; // [27:29] Channel 9 sampling time selection  
-          } smpr2; 
-          
-          // JOFR1 (Injected channel data offset register x) bitfields.
+Object *smp0; // [0:2] Channel 0 sampling time selectionObject *smp1; // [3:5] Channel 1 sampling time selectionObject *smp2; // [6:8] Channel 2 sampling time selectionObject *smp3; // [9:11] Channel 3 sampling time selectionObject *smp4; // [12:14] Channel 4 sampling time selectionObject *smp5; // [15:17] Channel 5 sampling time selectionObject *smp6; // [18:20] Channel 6 sampling time selectionObject *smp7; // [21:23] Channel 7 sampling time selectionObject *smp8; // [24:26] Channel 8 sampling time selectionObject *smp9; // [27:29] Channel 9 sampling time selection} smpr2; 
+// JOFR1(Injected channel data offset register x) bitfields.
           struct { 
-            Object *joffset1; // [0:11] Data offset for injected channel x  
-          } jofr1; 
-          
-          // JOFR2 (Injected channel data offset register x) bitfields.
+Object *joffset1; // [0:11] Data offset for injected channel x} jofr1; 
+// JOFR2(Injected channel data offset register x) bitfields.
           struct { 
-            Object *joffset2; // [0:11] Data offset for injected channel x  
-          } jofr2; 
-          
-          // JOFR3 (Injected channel data offset register x) bitfields.
+Object *joffset2; // [0:11] Data offset for injected channel x} jofr2; 
+// JOFR3(Injected channel data offset register x) bitfields.
           struct { 
-            Object *joffset3; // [0:11] Data offset for injected channel x  
-          } jofr3; 
-          
-          // JOFR4 (Injected channel data offset register x) bitfields.
+Object *joffset3; // [0:11] Data offset for injected channel x} jofr3; 
+// JOFR4(Injected channel data offset register x) bitfields.
           struct { 
-            Object *joffset4; // [0:11] Data offset for injected channel x  
-          } jofr4; 
-          
-          // HTR (Watchdog higher threshold register) bitfields.
+Object *joffset4; // [0:11] Data offset for injected channel x} jofr4; 
+// HTR(Watchdog higher threshold register) bitfields.
           struct { 
-            Object *ht; // [0:11] Analog watchdog higher threshold  
-          } htr; 
-          
-          // LTR (Watchdog lower threshold register) bitfields.
+Object *ht; // [0:11] Analog watchdog higher threshold} htr; 
+// LTR(Watchdog lower threshold register) bitfields.
           struct { 
-            Object *lt; // [0:11] Analog watchdog lower threshold  
-          } ltr; 
-          
-          // SQR1 (Regular sequence register 1) bitfields.
+Object *lt; // [0:11] Analog watchdog lower threshold} ltr; 
+// SQR1(Regular sequence register 1) bitfields.
           struct { 
-            Object *sq13; // [0:4] 13th conversion in regular sequence 
-            Object *sq14; // [5:9] 14th conversion in regular sequence 
-            Object *sq15; // [10:14] 15th conversion in regular sequence 
-            Object *sq16; // [15:19] 16th conversion in regular sequence 
-            Object *l; // [20:23] Regular channel sequence length  
-          } sqr1; 
-          
-          // SQR2 (Regular sequence register 2) bitfields.
+Object *sq13; // [0:4] 13th conversion in regular sequenceObject *sq14; // [5:9] 14th conversion in regular sequenceObject *sq15; // [10:14] 15th conversion in regular sequenceObject *sq16; // [15:19] 16th conversion in regular sequenceObject *l; // [20:23] Regular channel sequence length} sqr1; 
+// SQR2(Regular sequence register 2) bitfields.
           struct { 
-            Object *sq7; // [0:4] 7th conversion in regular sequence 
-            Object *sq8; // [5:9] 8th conversion in regular sequence 
-            Object *sq9; // [10:14] 9th conversion in regular sequence 
-            Object *sq10; // [15:19] 10th conversion in regular sequence 
-            Object *sq11; // [20:24] 11th conversion in regular sequence 
-            Object *sq12; // [25:29] 12th conversion in regular sequence  
-          } sqr2; 
-          
-          // SQR3 (Regular sequence register 3) bitfields.
+Object *sq7; // [0:4] 7th conversion in regular sequenceObject *sq8; // [5:9] 8th conversion in regular sequenceObject *sq9; // [10:14] 9th conversion in regular sequenceObject *sq10; // [15:19] 10th conversion in regular sequenceObject *sq11; // [20:24] 11th conversion in regular sequenceObject *sq12; // [25:29] 12th conversion in regular sequence} sqr2; 
+// SQR3(Regular sequence register 3) bitfields.
           struct { 
-            Object *sq1; // [0:4] 1st conversion in regular sequence 
-            Object *sq2; // [5:9] 2nd conversion in regular sequence 
-            Object *sq3; // [10:14] 3rd conversion in regular sequence 
-            Object *sq4; // [15:19] 4th conversion in regular sequence 
-            Object *sq5; // [20:24] 5th conversion in regular sequence 
-            Object *sq6; // [25:29] 6th conversion in regular sequence  
-          } sqr3; 
-          
-          // JSQR (Injected sequence register) bitfields.
+Object *sq1; // [0:4] 1st conversion in regular sequenceObject *sq2; // [5:9] 2nd conversion in regular sequenceObject *sq3; // [10:14] 3rd conversion in regular sequenceObject *sq4; // [15:19] 4th conversion in regular sequenceObject *sq5; // [20:24] 5th conversion in regular sequenceObject *sq6; // [25:29] 6th conversion in regular sequence} sqr3; 
+// JSQR(Injected sequence register) bitfields.
           struct { 
-            Object *jsq1; // [0:4] 1st conversion in injected sequence 
-            Object *jsq2; // [5:9] 2nd conversion in injected sequence 
-            Object *jsq3; // [10:14] 3rd conversion in injected sequence 
-            Object *jsq4; // [15:19] 4th conversion in injected sequence 
-            Object *jl; // [20:21] Injected sequence length  
-          } jsqr; 
-          
-          // JDR1 (Injected data register x) bitfields.
+Object *jsq1; // [0:4] 1st conversion in injected sequenceObject *jsq2; // [5:9] 2nd conversion in injected sequenceObject *jsq3; // [10:14] 3rd conversion in injected sequenceObject *jsq4; // [15:19] 4th conversion in injected sequenceObject *jl; // [20:21] Injected sequence length} jsqr; 
+// JDR1(Injected data register x) bitfields.
           struct { 
-            Object *jdata; // [0:15] Injected data  
-          } jdr1; 
-          
-          // JDR2 (Injected data register x) bitfields.
+Object *jdata; // [0:15] Injected data} jdr1; 
+// JDR2(Injected data register x) bitfields.
           struct { 
-            Object *jdata; // [0:15] Injected data  
-          } jdr2; 
-          
-          // JDR3 (Injected data register x) bitfields.
+Object *jdata; // [0:15] Injected data} jdr2; 
+// JDR3(Injected data register x) bitfields.
           struct { 
-            Object *jdata; // [0:15] Injected data  
-          } jdr3; 
-          
-          // JDR4 (Injected data register x) bitfields.
+Object *jdata; // [0:15] Injected data} jdr3; 
+// JDR4(Injected data register x) bitfields.
           struct { 
-            Object *jdata; // [0:15] Injected data  
-          } jdr4; 
-          
-          // DR (Regular data register) bitfields.
+Object *jdata; // [0:15] Injected data} jdr4; 
+// DR(Regular data register) bitfields.
           struct { 
-            Object *data; // [0:15] Regular data 
-            Object *adc2data; // [16:31] ADC2 data  
-          } dr; 
-        } fld;
+Object *data; // [0:15] Regular dataObject *adc2data; // [16:31] ADC2 data} dr; 
+} fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

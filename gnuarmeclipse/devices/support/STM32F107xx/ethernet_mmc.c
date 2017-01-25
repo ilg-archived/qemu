@@ -1,5 +1,5 @@
 /*
- * STM32 - ETHERNET_MMC (Ethernet: MAC management counters) emulation.
+ * STM32- ETHERNET_MMC(Ethernet: MAC management counters) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,62 +35,50 @@ static void stm32f107xx_ethernet_mmc_create_objects(Object *obj, JSON_Object *sv
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f1.reg.mmccr = cm_object_get_child_by_name(obj, "MMCCR");
-    state->u.f1.reg.mmcrir = cm_object_get_child_by_name(obj, "MMCRIR");
-    state->u.f1.reg.mmctir = cm_object_get_child_by_name(obj, "MMCTIR");
-    state->u.f1.reg.mmcrimr = cm_object_get_child_by_name(obj, "MMCRIMR");
-    state->u.f1.reg.mmctimr = cm_object_get_child_by_name(obj, "MMCTIMR");
-    state->u.f1.reg.mmctgfsccr = cm_object_get_child_by_name(obj, "MMCTGFSCCR");
-    state->u.f1.reg.mmctgfmsccr = cm_object_get_child_by_name(obj, "MMCTGFMSCCR");
-    state->u.f1.reg.mmctgfcr = cm_object_get_child_by_name(obj, "MMCTGFCR");
-    state->u.f1.reg.mmcrfcecr = cm_object_get_child_by_name(obj, "MMCRFCECR");
-    state->u.f1.reg.mmcrfaecr = cm_object_get_child_by_name(obj, "MMCRFAECR");
-    state->u.f1.reg.mmcrgufcr = cm_object_get_child_by_name(obj, "MMCRGUFCR");
-    
-    
-    // MMCCR bitfields.
-    state->u.f1.fld.mmccr.cr = cm_object_get_child_by_name(state->u.f1.reg.mmccr, "CR"); 
-    state->u.f1.fld.mmccr.csr = cm_object_get_child_by_name(state->u.f1.reg.mmccr, "CSR"); 
-    state->u.f1.fld.mmccr.ror = cm_object_get_child_by_name(state->u.f1.reg.mmccr, "ROR"); 
-    state->u.f1.fld.mmccr.mcf = cm_object_get_child_by_name(state->u.f1.reg.mmccr, "MCF");  
-    
-    // MMCRIR bitfields.
-    state->u.f1.fld.mmcrir.rfces = cm_object_get_child_by_name(state->u.f1.reg.mmcrir, "RFCES"); 
-    state->u.f1.fld.mmcrir.rfaes = cm_object_get_child_by_name(state->u.f1.reg.mmcrir, "RFAES"); 
-    state->u.f1.fld.mmcrir.rgufs = cm_object_get_child_by_name(state->u.f1.reg.mmcrir, "RGUFS");  
-    
-    // MMCTIR bitfields.
-    state->u.f1.fld.mmctir.tgfscs = cm_object_get_child_by_name(state->u.f1.reg.mmctir, "TGFSCS"); 
-    state->u.f1.fld.mmctir.tgfmscs = cm_object_get_child_by_name(state->u.f1.reg.mmctir, "TGFMSCS"); 
-    state->u.f1.fld.mmctir.tgfs = cm_object_get_child_by_name(state->u.f1.reg.mmctir, "TGFS");  
-    
-    // MMCRIMR bitfields.
-    state->u.f1.fld.mmcrimr.rfcem = cm_object_get_child_by_name(state->u.f1.reg.mmcrimr, "RFCEM"); 
-    state->u.f1.fld.mmcrimr.rfaem = cm_object_get_child_by_name(state->u.f1.reg.mmcrimr, "RFAEM"); 
-    state->u.f1.fld.mmcrimr.rgufm = cm_object_get_child_by_name(state->u.f1.reg.mmcrimr, "RGUFM");  
-    
-    // MMCTIMR bitfields.
-    state->u.f1.fld.mmctimr.tgfscm = cm_object_get_child_by_name(state->u.f1.reg.mmctimr, "TGFSCM"); 
-    state->u.f1.fld.mmctimr.tgfmscm = cm_object_get_child_by_name(state->u.f1.reg.mmctimr, "TGFMSCM"); 
-    state->u.f1.fld.mmctimr.tgfm = cm_object_get_child_by_name(state->u.f1.reg.mmctimr, "TGFM");  
-    
-    // MMCTGFSCCR bitfields.
-    state->u.f1.fld.mmctgfsccr.tgfscc = cm_object_get_child_by_name(state->u.f1.reg.mmctgfsccr, "TGFSCC");  
-    
-    // MMCTGFMSCCR bitfields.
-    state->u.f1.fld.mmctgfmsccr.tgfmscc = cm_object_get_child_by_name(state->u.f1.reg.mmctgfmsccr, "TGFMSCC");  
-    
-    // MMCTGFCR bitfields.
-    state->u.f1.fld.mmctgfcr.tgfc = cm_object_get_child_by_name(state->u.f1.reg.mmctgfcr, "TGFC");  
-    
-    // MMCRFCECR bitfields.
-    state->u.f1.fld.mmcrfcecr.rfcfc = cm_object_get_child_by_name(state->u.f1.reg.mmcrfcecr, "RFCFC");  
-    
-    // MMCRFAECR bitfields.
-    state->u.f1.fld.mmcrfaecr.rfaec = cm_object_get_child_by_name(state->u.f1.reg.mmcrfaecr, "RFAEC");  
-    
-    // MMCRGUFCR bitfields.
-    state->u.f1.fld.mmcrgufcr.rgufc = cm_object_get_child_by_name(state->u.f1.reg.mmcrgufcr, "RGUFC");  
+state->u.f1.reg.mmccr= cm_object_get_child_by_name(obj, "MMCCR");
+state->u.f1.reg.mmcrir= cm_object_get_child_by_name(obj, "MMCRIR");
+state->u.f1.reg.mmctir= cm_object_get_child_by_name(obj, "MMCTIR");
+state->u.f1.reg.mmcrimr= cm_object_get_child_by_name(obj, "MMCRIMR");
+state->u.f1.reg.mmctimr= cm_object_get_child_by_name(obj, "MMCTIMR");
+state->u.f1.reg.mmctgfsccr= cm_object_get_child_by_name(obj, "MMCTGFSCCR");
+state->u.f1.reg.mmctgfmsccr= cm_object_get_child_by_name(obj, "MMCTGFMSCCR");
+state->u.f1.reg.mmctgfcr= cm_object_get_child_by_name(obj, "MMCTGFCR");
+state->u.f1.reg.mmcrfcecr= cm_object_get_child_by_name(obj, "MMCRFCECR");
+state->u.f1.reg.mmcrfaecr= cm_object_get_child_by_name(obj, "MMCRFAECR");
+state->u.f1.reg.mmcrgufcr= cm_object_get_child_by_name(obj, "MMCRGUFCR");
+// MMCCRbitfields.
+state->u.f1.fld.mmccr.cr= cm_object_get_child_by_name(state->u.f1.reg.mmccr, "CR"); 
+state->u.f1.fld.mmccr.csr= cm_object_get_child_by_name(state->u.f1.reg.mmccr, "CSR"); 
+state->u.f1.fld.mmccr.ror= cm_object_get_child_by_name(state->u.f1.reg.mmccr, "ROR"); 
+state->u.f1.fld.mmccr.mcf= cm_object_get_child_by_name(state->u.f1.reg.mmccr, "MCF"); 
+// MMCRIRbitfields.
+state->u.f1.fld.mmcrir.rfces= cm_object_get_child_by_name(state->u.f1.reg.mmcrir, "RFCES"); 
+state->u.f1.fld.mmcrir.rfaes= cm_object_get_child_by_name(state->u.f1.reg.mmcrir, "RFAES"); 
+state->u.f1.fld.mmcrir.rgufs= cm_object_get_child_by_name(state->u.f1.reg.mmcrir, "RGUFS"); 
+// MMCTIRbitfields.
+state->u.f1.fld.mmctir.tgfscs= cm_object_get_child_by_name(state->u.f1.reg.mmctir, "TGFSCS"); 
+state->u.f1.fld.mmctir.tgfmscs= cm_object_get_child_by_name(state->u.f1.reg.mmctir, "TGFMSCS"); 
+state->u.f1.fld.mmctir.tgfs= cm_object_get_child_by_name(state->u.f1.reg.mmctir, "TGFS"); 
+// MMCRIMRbitfields.
+state->u.f1.fld.mmcrimr.rfcem= cm_object_get_child_by_name(state->u.f1.reg.mmcrimr, "RFCEM"); 
+state->u.f1.fld.mmcrimr.rfaem= cm_object_get_child_by_name(state->u.f1.reg.mmcrimr, "RFAEM"); 
+state->u.f1.fld.mmcrimr.rgufm= cm_object_get_child_by_name(state->u.f1.reg.mmcrimr, "RGUFM"); 
+// MMCTIMRbitfields.
+state->u.f1.fld.mmctimr.tgfscm= cm_object_get_child_by_name(state->u.f1.reg.mmctimr, "TGFSCM"); 
+state->u.f1.fld.mmctimr.tgfmscm= cm_object_get_child_by_name(state->u.f1.reg.mmctimr, "TGFMSCM"); 
+state->u.f1.fld.mmctimr.tgfm= cm_object_get_child_by_name(state->u.f1.reg.mmctimr, "TGFM"); 
+// MMCTGFSCCRbitfields.
+state->u.f1.fld.mmctgfsccr.tgfscc= cm_object_get_child_by_name(state->u.f1.reg.mmctgfsccr, "TGFSCC"); 
+// MMCTGFMSCCRbitfields.
+state->u.f1.fld.mmctgfmsccr.tgfmscc= cm_object_get_child_by_name(state->u.f1.reg.mmctgfmsccr, "TGFMSCC"); 
+// MMCTGFCRbitfields.
+state->u.f1.fld.mmctgfcr.tgfc= cm_object_get_child_by_name(state->u.f1.reg.mmctgfcr, "TGFC"); 
+// MMCRFCECRbitfields.
+state->u.f1.fld.mmcrfcecr.rfcfc= cm_object_get_child_by_name(state->u.f1.reg.mmcrfcecr, "RFCFC"); 
+// MMCRFAECRbitfields.
+state->u.f1.fld.mmcrfaecr.rfaec= cm_object_get_child_by_name(state->u.f1.reg.mmcrfaecr, "RFAEC"); 
+// MMCRGUFCRbitfields.
+state->u.f1.fld.mmcrgufcr.rgufc= cm_object_get_child_by_name(state->u.f1.reg.mmcrgufcr, "RGUFC"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -174,7 +162,7 @@ static void stm32_ethernet_mmc_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -213,7 +201,7 @@ static void stm32_ethernet_mmc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_107xx ) {
+        if (capabilities->f1.is_107xx) {
 
             stm32f107xx_ethernet_mmc_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -229,12 +217,10 @@ static void stm32_ethernet_mmc_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/ETHERNET_MMCEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

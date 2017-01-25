@@ -27,7 +27,15 @@ svd-patch \
 --file "STM32F0x1-xsvd.json" \
 --patch "STM32F0x1-patch.json" \
 --output "../STM32F0x1-qemu.json" \
---remove "NVIC" 
+--remove "NVIC"
+
+echo
+xcdl \
+svd-patch \
+--file "STM32F0x2-xsvd.json" \
+--patch "STM32F0x2-patch.json" \
+--output "../STM32F0x2-qemu.json" \
+--remove "NVIC"
 
 echo
 xcdl \

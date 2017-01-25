@@ -1,5 +1,5 @@
 /*
- * STM32 - PWR (Power control) emulation.
+ * STM32- PWR(Power control) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,38 +35,35 @@ static void stm32f429x_pwr_create_objects(Object *obj, JSON_Object *svd, const c
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f4.reg.cr = cm_object_get_child_by_name(obj, "CR");
-    state->u.f4.reg.csr = cm_object_get_child_by_name(obj, "CSR");
-    
-    
-    // CR bitfields.
-    state->u.f4.fld.cr.lpds = cm_object_get_child_by_name(state->u.f4.reg.cr, "LPDS"); 
-    state->u.f4.fld.cr.pdds = cm_object_get_child_by_name(state->u.f4.reg.cr, "PDDS"); 
-    state->u.f4.fld.cr.cwuf = cm_object_get_child_by_name(state->u.f4.reg.cr, "CWUF"); 
-    state->u.f4.fld.cr.csbf = cm_object_get_child_by_name(state->u.f4.reg.cr, "CSBF"); 
-    state->u.f4.fld.cr.pvde = cm_object_get_child_by_name(state->u.f4.reg.cr, "PVDE"); 
-    state->u.f4.fld.cr.pls = cm_object_get_child_by_name(state->u.f4.reg.cr, "PLS"); 
-    state->u.f4.fld.cr.dbp = cm_object_get_child_by_name(state->u.f4.reg.cr, "DBP"); 
-    state->u.f4.fld.cr.fpds = cm_object_get_child_by_name(state->u.f4.reg.cr, "FPDS"); 
-    state->u.f4.fld.cr.lpuds = cm_object_get_child_by_name(state->u.f4.reg.cr, "LPUDS"); 
-    state->u.f4.fld.cr.mruds = cm_object_get_child_by_name(state->u.f4.reg.cr, "MRUDS"); 
-    state->u.f4.fld.cr.adcdc1 = cm_object_get_child_by_name(state->u.f4.reg.cr, "ADCDC1"); 
-    state->u.f4.fld.cr.vos = cm_object_get_child_by_name(state->u.f4.reg.cr, "VOS"); 
-    state->u.f4.fld.cr.oden = cm_object_get_child_by_name(state->u.f4.reg.cr, "ODEN"); 
-    state->u.f4.fld.cr.odswen = cm_object_get_child_by_name(state->u.f4.reg.cr, "ODSWEN"); 
-    state->u.f4.fld.cr.uden = cm_object_get_child_by_name(state->u.f4.reg.cr, "UDEN");  
-    
-    // CSR bitfields.
-    state->u.f4.fld.csr.wuf = cm_object_get_child_by_name(state->u.f4.reg.csr, "WUF"); 
-    state->u.f4.fld.csr.sbf = cm_object_get_child_by_name(state->u.f4.reg.csr, "SBF"); 
-    state->u.f4.fld.csr.pvdo = cm_object_get_child_by_name(state->u.f4.reg.csr, "PVDO"); 
-    state->u.f4.fld.csr.brr = cm_object_get_child_by_name(state->u.f4.reg.csr, "BRR"); 
-    state->u.f4.fld.csr.ewup = cm_object_get_child_by_name(state->u.f4.reg.csr, "EWUP"); 
-    state->u.f4.fld.csr.bre = cm_object_get_child_by_name(state->u.f4.reg.csr, "BRE"); 
-    state->u.f4.fld.csr.vosrdy = cm_object_get_child_by_name(state->u.f4.reg.csr, "VOSRDY"); 
-    state->u.f4.fld.csr.odrdy = cm_object_get_child_by_name(state->u.f4.reg.csr, "ODRDY"); 
-    state->u.f4.fld.csr.odswrdy = cm_object_get_child_by_name(state->u.f4.reg.csr, "ODSWRDY"); 
-    state->u.f4.fld.csr.udrdy = cm_object_get_child_by_name(state->u.f4.reg.csr, "UDRDY");  
+state->u.f4.reg.cr= cm_object_get_child_by_name(obj, "CR");
+state->u.f4.reg.csr= cm_object_get_child_by_name(obj, "CSR");
+// CRbitfields.
+state->u.f4.fld.cr.lpds= cm_object_get_child_by_name(state->u.f4.reg.cr, "LPDS"); 
+state->u.f4.fld.cr.pdds= cm_object_get_child_by_name(state->u.f4.reg.cr, "PDDS"); 
+state->u.f4.fld.cr.cwuf= cm_object_get_child_by_name(state->u.f4.reg.cr, "CWUF"); 
+state->u.f4.fld.cr.csbf= cm_object_get_child_by_name(state->u.f4.reg.cr, "CSBF"); 
+state->u.f4.fld.cr.pvde= cm_object_get_child_by_name(state->u.f4.reg.cr, "PVDE"); 
+state->u.f4.fld.cr.pls= cm_object_get_child_by_name(state->u.f4.reg.cr, "PLS"); 
+state->u.f4.fld.cr.dbp= cm_object_get_child_by_name(state->u.f4.reg.cr, "DBP"); 
+state->u.f4.fld.cr.fpds= cm_object_get_child_by_name(state->u.f4.reg.cr, "FPDS"); 
+state->u.f4.fld.cr.lpuds= cm_object_get_child_by_name(state->u.f4.reg.cr, "LPUDS"); 
+state->u.f4.fld.cr.mruds= cm_object_get_child_by_name(state->u.f4.reg.cr, "MRUDS"); 
+state->u.f4.fld.cr.adcdc1= cm_object_get_child_by_name(state->u.f4.reg.cr, "ADCDC1"); 
+state->u.f4.fld.cr.vos= cm_object_get_child_by_name(state->u.f4.reg.cr, "VOS"); 
+state->u.f4.fld.cr.oden= cm_object_get_child_by_name(state->u.f4.reg.cr, "ODEN"); 
+state->u.f4.fld.cr.odswen= cm_object_get_child_by_name(state->u.f4.reg.cr, "ODSWEN"); 
+state->u.f4.fld.cr.uden= cm_object_get_child_by_name(state->u.f4.reg.cr, "UDEN"); 
+// CSRbitfields.
+state->u.f4.fld.csr.wuf= cm_object_get_child_by_name(state->u.f4.reg.csr, "WUF"); 
+state->u.f4.fld.csr.sbf= cm_object_get_child_by_name(state->u.f4.reg.csr, "SBF"); 
+state->u.f4.fld.csr.pvdo= cm_object_get_child_by_name(state->u.f4.reg.csr, "PVDO"); 
+state->u.f4.fld.csr.brr= cm_object_get_child_by_name(state->u.f4.reg.csr, "BRR"); 
+state->u.f4.fld.csr.ewup= cm_object_get_child_by_name(state->u.f4.reg.csr, "EWUP"); 
+state->u.f4.fld.csr.bre= cm_object_get_child_by_name(state->u.f4.reg.csr, "BRE"); 
+state->u.f4.fld.csr.vosrdy= cm_object_get_child_by_name(state->u.f4.reg.csr, "VOSRDY"); 
+state->u.f4.fld.csr.odrdy= cm_object_get_child_by_name(state->u.f4.reg.csr, "ODRDY"); 
+state->u.f4.fld.csr.odswrdy= cm_object_get_child_by_name(state->u.f4.reg.csr, "ODSWRDY"); 
+state->u.f4.fld.csr.udrdy= cm_object_get_child_by_name(state->u.f4.reg.csr, "UDRDY"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -150,7 +147,7 @@ static void stm32_pwr_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -189,7 +186,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_429x ) {
+        if (capabilities->f4.is_429x) {
 
             stm32f429x_pwr_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -205,12 +202,10 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/PWREN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

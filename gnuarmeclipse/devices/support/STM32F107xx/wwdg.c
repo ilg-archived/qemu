@@ -1,5 +1,5 @@
 /*
- * STM32 - WWDG (Window watchdog) emulation.
+ * STM32- WWDG(Window watchdog) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,22 +35,18 @@ static void stm32f107xx_wwdg_create_objects(Object *obj, JSON_Object *svd, const
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-    state->u.f1.reg.cfr = cm_object_get_child_by_name(obj, "CFR");
-    state->u.f1.reg.sr = cm_object_get_child_by_name(obj, "SR");
-    
-    
-    // CR bitfields.
-    state->u.f1.fld.cr.t = cm_object_get_child_by_name(state->u.f1.reg.cr, "T"); 
-    state->u.f1.fld.cr.wdga = cm_object_get_child_by_name(state->u.f1.reg.cr, "WDGA");  
-    
-    // CFR bitfields.
-    state->u.f1.fld.cfr.w = cm_object_get_child_by_name(state->u.f1.reg.cfr, "W"); 
-    state->u.f1.fld.cfr.wdgtb = cm_object_get_child_by_name(state->u.f1.reg.cfr, "WDGTB"); 
-    state->u.f1.fld.cfr.ewi = cm_object_get_child_by_name(state->u.f1.reg.cfr, "EWI");  
-    
-    // SR bitfields.
-    state->u.f1.fld.sr.ewi = cm_object_get_child_by_name(state->u.f1.reg.sr, "EWI");  
+state->u.f1.reg.cr= cm_object_get_child_by_name(obj, "CR");
+state->u.f1.reg.cfr= cm_object_get_child_by_name(obj, "CFR");
+state->u.f1.reg.sr= cm_object_get_child_by_name(obj, "SR");
+// CRbitfields.
+state->u.f1.fld.cr.t= cm_object_get_child_by_name(state->u.f1.reg.cr, "T"); 
+state->u.f1.fld.cr.wdga= cm_object_get_child_by_name(state->u.f1.reg.cr, "WDGA"); 
+// CFRbitfields.
+state->u.f1.fld.cfr.w= cm_object_get_child_by_name(state->u.f1.reg.cfr, "W"); 
+state->u.f1.fld.cfr.wdgtb= cm_object_get_child_by_name(state->u.f1.reg.cfr, "WDGTB"); 
+state->u.f1.fld.cfr.ewi= cm_object_get_child_by_name(state->u.f1.reg.cfr, "EWI"); 
+// SRbitfields.
+state->u.f1.fld.sr.ewi= cm_object_get_child_by_name(state->u.f1.reg.sr, "EWI"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -134,7 +130,7 @@ static void stm32_wwdg_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -173,7 +169,7 @@ static void stm32_wwdg_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_107xx ) {
+        if (capabilities->f1.is_107xx) {
 
             stm32f107xx_wwdg_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -189,12 +185,10 @@ static void stm32_wwdg_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/WWDGEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

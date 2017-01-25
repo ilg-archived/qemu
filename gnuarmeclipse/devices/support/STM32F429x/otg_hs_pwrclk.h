@@ -1,5 +1,5 @@
 /*
- * STM32 - OTG_HS_PWRCLK (USB on the go high speed) emulation.
+ * STM32- OTG_HS_PWRCLK(USB on the go high speed) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_OTG_HS_PWRCLK DEVICE_PATH_STM32 "OTG_HS_PWRCLK"
-
-
+#define DEVICE_PATH_STM32_OTG_HS_PWRCLKDEVICE_PATH_STM32"OTG_HS_PWRCLK"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_OTG_HS_PWRCLK TYPE_STM32_PREFIX "otg_hs_pwrclk" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_OTG_HS_PWRCLKTYPE_STM32_PREFIX "otg_hs_pwrclk" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,26 +73,22 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4 OTG_HS_PWRCLK (USB on the go high speed) registers.
+        // F4OTG_HS_PWRCLK(USB on the go high speed) registers.
         struct { 
-          Object *otg_hs_pcgcr; // 0x0 (Power and clock gating control register) 
-        } reg;
+Object *otg_hs_pcgcr; // 0x0(Power and clock gating control register) 
+} reg;
 
         struct { 
-          
-          // OTG_HS_PCGCR (Power and clock gating control register) bitfields.
+// OTG_HS_PCGCR(Power and clock gating control register) bitfields.
           struct { 
-            Object *stppclk; // [0:0] Stop PHY clock 
-            Object *gatehclk; // [1:1] Gate HCLK 
-            Object *physusp; // [4:4] PHY suspended  
-          } otg_hs_pcgcr; 
-        } fld;
+Object *stppclk; // [0:0] Stop PHY clockObject *gatehclk; // [1:1] Gate HCLKObject *physusp; // [4:4] PHY suspended} otg_hs_pcgcr; 
+} fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

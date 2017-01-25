@@ -1,5 +1,5 @@
 /*
- * STM32 - TIM6 (Basic timers) emulation.
+ * STM32- TIM6(Basic timers) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,44 +35,35 @@ static void stm32f429x_tim6_create_objects(Object *obj, JSON_Object *svd, const 
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f4.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-    state->u.f4.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-    state->u.f4.reg.dier = cm_object_get_child_by_name(obj, "DIER");
-    state->u.f4.reg.sr = cm_object_get_child_by_name(obj, "SR");
-    state->u.f4.reg.egr = cm_object_get_child_by_name(obj, "EGR");
-    state->u.f4.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
-    state->u.f4.reg.psc = cm_object_get_child_by_name(obj, "PSC");
-    state->u.f4.reg.arr = cm_object_get_child_by_name(obj, "ARR");
-    
-    
-    // CR1 bitfields.
-    state->u.f4.fld.cr1.cen = cm_object_get_child_by_name(state->u.f4.reg.cr1, "CEN"); 
-    state->u.f4.fld.cr1.udis = cm_object_get_child_by_name(state->u.f4.reg.cr1, "UDIS"); 
-    state->u.f4.fld.cr1.urs = cm_object_get_child_by_name(state->u.f4.reg.cr1, "URS"); 
-    state->u.f4.fld.cr1.opm = cm_object_get_child_by_name(state->u.f4.reg.cr1, "OPM"); 
-    state->u.f4.fld.cr1.arpe = cm_object_get_child_by_name(state->u.f4.reg.cr1, "ARPE");  
-    
-    // CR2 bitfields.
-    state->u.f4.fld.cr2.mms = cm_object_get_child_by_name(state->u.f4.reg.cr2, "MMS");  
-    
-    // DIER bitfields.
-    state->u.f4.fld.dier.uie = cm_object_get_child_by_name(state->u.f4.reg.dier, "UIE"); 
-    state->u.f4.fld.dier.ude = cm_object_get_child_by_name(state->u.f4.reg.dier, "UDE");  
-    
-    // SR bitfields.
-    state->u.f4.fld.sr.uif = cm_object_get_child_by_name(state->u.f4.reg.sr, "UIF");  
-    
-    // EGR bitfields.
-    state->u.f4.fld.egr.ug = cm_object_get_child_by_name(state->u.f4.reg.egr, "UG");  
-    
-    // CNT bitfields.
-    state->u.f4.fld.cnt.cnt = cm_object_get_child_by_name(state->u.f4.reg.cnt, "CNT");  
-    
-    // PSC bitfields.
-    state->u.f4.fld.psc.psc = cm_object_get_child_by_name(state->u.f4.reg.psc, "PSC");  
-    
-    // ARR bitfields.
-    state->u.f4.fld.arr.arr = cm_object_get_child_by_name(state->u.f4.reg.arr, "ARR");  
+state->u.f4.reg.cr1= cm_object_get_child_by_name(obj, "CR1");
+state->u.f4.reg.cr2= cm_object_get_child_by_name(obj, "CR2");
+state->u.f4.reg.dier= cm_object_get_child_by_name(obj, "DIER");
+state->u.f4.reg.sr= cm_object_get_child_by_name(obj, "SR");
+state->u.f4.reg.egr= cm_object_get_child_by_name(obj, "EGR");
+state->u.f4.reg.cnt= cm_object_get_child_by_name(obj, "CNT");
+state->u.f4.reg.psc= cm_object_get_child_by_name(obj, "PSC");
+state->u.f4.reg.arr= cm_object_get_child_by_name(obj, "ARR");
+// CR1bitfields.
+state->u.f4.fld.cr1.cen= cm_object_get_child_by_name(state->u.f4.reg.cr1, "CEN"); 
+state->u.f4.fld.cr1.udis= cm_object_get_child_by_name(state->u.f4.reg.cr1, "UDIS"); 
+state->u.f4.fld.cr1.urs= cm_object_get_child_by_name(state->u.f4.reg.cr1, "URS"); 
+state->u.f4.fld.cr1.opm= cm_object_get_child_by_name(state->u.f4.reg.cr1, "OPM"); 
+state->u.f4.fld.cr1.arpe= cm_object_get_child_by_name(state->u.f4.reg.cr1, "ARPE"); 
+// CR2bitfields.
+state->u.f4.fld.cr2.mms= cm_object_get_child_by_name(state->u.f4.reg.cr2, "MMS"); 
+// DIERbitfields.
+state->u.f4.fld.dier.uie= cm_object_get_child_by_name(state->u.f4.reg.dier, "UIE"); 
+state->u.f4.fld.dier.ude= cm_object_get_child_by_name(state->u.f4.reg.dier, "UDE"); 
+// SRbitfields.
+state->u.f4.fld.sr.uif= cm_object_get_child_by_name(state->u.f4.reg.sr, "UIF"); 
+// EGRbitfields.
+state->u.f4.fld.egr.ug= cm_object_get_child_by_name(state->u.f4.reg.egr, "UG"); 
+// CNTbitfields.
+state->u.f4.fld.cnt.cnt= cm_object_get_child_by_name(state->u.f4.reg.cnt, "CNT"); 
+// PSCbitfields.
+state->u.f4.fld.psc.psc= cm_object_get_child_by_name(state->u.f4.reg.psc, "PSC"); 
+// ARRbitfields.
+state->u.f4.fld.arr.arr= cm_object_get_child_by_name(state->u.f4.reg.arr, "ARR"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -156,7 +147,7 @@ static void stm32_tim6_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -195,7 +186,7 @@ static void stm32_tim6_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_429x ) {
+        if (capabilities->f4.is_429x) {
 
             stm32f429x_tim6_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -211,12 +202,10 @@ static void stm32_tim6_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/TIM6EN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

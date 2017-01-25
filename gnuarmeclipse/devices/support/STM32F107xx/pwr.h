@@ -1,5 +1,5 @@
 /*
- * STM32 - PWR (Power control) emulation.
+ * STM32- PWR(Power control) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_PWR DEVICE_PATH_STM32 "PWR"
-
-
+#define DEVICE_PATH_STM32_PWRDEVICE_PATH_STM32"PWR"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_PWR TYPE_STM32_PREFIX "pwr" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_PWRTYPE_STM32_PREFIX "pwr" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,39 +73,26 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1 PWR (Power control) registers.
+        // F1PWR(Power control) registers.
         struct { 
-          Object *cr; // 0x0 (Power control register (PWR_CR)) 
-          Object *csr; // 0x4 (Power control register (PWR_CR)) 
-        } reg;
+Object *cr; // 0x0(Power control register (PWR_CR)) 
+Object *csr; // 0x4(Power control register (PWR_CR)) 
+} reg;
 
         struct { 
-          
-          // CR (Power control register (PWR_CR)) bitfields.
+// CR(Power control register (PWR_CR)) bitfields.
           struct { 
-            Object *lpds; // [0:0] Low Power Deep Sleep 
-            Object *pdds; // [1:1] Power Down Deep Sleep 
-            Object *cwuf; // [2:2] Clear Wake-up Flag 
-            Object *csbf; // [3:3] Clear STANDBY Flag 
-            Object *pvde; // [4:4] Power Voltage Detector Enable 
-            Object *pls; // [5:7] PVD Level Selection 
-            Object *dbp; // [8:8] Disable Backup Domain write protection  
-          } cr; 
-          
-          // CSR (Power control register (PWR_CR)) bitfields.
+Object *lpds; // [0:0] Low Power Deep SleepObject *pdds; // [1:1] Power Down Deep SleepObject *cwuf; // [2:2] Clear Wake-up FlagObject *csbf; // [3:3] Clear STANDBY FlagObject *pvde; // [4:4] Power Voltage Detector EnableObject *pls; // [5:7] PVD Level SelectionObject *dbp; // [8:8] Disable Backup Domain write protection} cr; 
+// CSR(Power control register (PWR_CR)) bitfields.
           struct { 
-            Object *wuf; // [0:0] Wake-Up Flag 
-            Object *sbf; // [1:1] STANDBY Flag 
-            Object *pvdo; // [2:2] PVD Output 
-            Object *ewup; // [8:8] Enable WKUP pin  
-          } csr; 
-        } fld;
+Object *wuf; // [0:0] Wake-Up FlagObject *sbf; // [1:1] STANDBY FlagObject *pvdo; // [2:2] PVD OutputObject *ewup; // [8:8] Enable WKUP pin} csr; 
+} fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

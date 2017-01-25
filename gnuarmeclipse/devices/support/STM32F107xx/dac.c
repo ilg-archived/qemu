@@ -1,5 +1,5 @@
 /*
- * STM32 - DAC (Digital to analog converter) emulation.
+ * STM32- DAC(Digital to analog converter) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,76 +35,62 @@ static void stm32f107xx_dac_create_objects(Object *obj, JSON_Object *svd, const 
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-    state->u.f1.reg.swtrigr = cm_object_get_child_by_name(obj, "SWTRIGR");
-    state->u.f1.reg.dhr12r1 = cm_object_get_child_by_name(obj, "DHR12R1");
-    state->u.f1.reg.dhr12l1 = cm_object_get_child_by_name(obj, "DHR12L1");
-    state->u.f1.reg.dhr8r1 = cm_object_get_child_by_name(obj, "DHR8R1");
-    state->u.f1.reg.dhr12r2 = cm_object_get_child_by_name(obj, "DHR12R2");
-    state->u.f1.reg.dhr12l2 = cm_object_get_child_by_name(obj, "DHR12L2");
-    state->u.f1.reg.dhr8r2 = cm_object_get_child_by_name(obj, "DHR8R2");
-    state->u.f1.reg.dhr12rd = cm_object_get_child_by_name(obj, "DHR12RD");
-    state->u.f1.reg.dhr12ld = cm_object_get_child_by_name(obj, "DHR12LD");
-    state->u.f1.reg.dhr8rd = cm_object_get_child_by_name(obj, "DHR8RD");
-    state->u.f1.reg.dor1 = cm_object_get_child_by_name(obj, "DOR1");
-    state->u.f1.reg.dor2 = cm_object_get_child_by_name(obj, "DOR2");
-    
-    
-    // CR bitfields.
-    state->u.f1.fld.cr.en1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "EN1"); 
-    state->u.f1.fld.cr.boff1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "BOFF1"); 
-    state->u.f1.fld.cr.ten1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TEN1"); 
-    state->u.f1.fld.cr.tsel1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TSEL1"); 
-    state->u.f1.fld.cr.wave1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "WAVE1"); 
-    state->u.f1.fld.cr.mamp1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "MAMP1"); 
-    state->u.f1.fld.cr.dmaen1 = cm_object_get_child_by_name(state->u.f1.reg.cr, "DMAEN1"); 
-    state->u.f1.fld.cr.en2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "EN2"); 
-    state->u.f1.fld.cr.boff2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "BOFF2"); 
-    state->u.f1.fld.cr.ten2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TEN2"); 
-    state->u.f1.fld.cr.tsel2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "TSEL2"); 
-    state->u.f1.fld.cr.wave2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "WAVE2"); 
-    state->u.f1.fld.cr.mamp2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "MAMP2"); 
-    state->u.f1.fld.cr.dmaen2 = cm_object_get_child_by_name(state->u.f1.reg.cr, "DMAEN2");  
-    
-    // SWTRIGR bitfields.
-    state->u.f1.fld.swtrigr.swtrig1 = cm_object_get_child_by_name(state->u.f1.reg.swtrigr, "SWTRIG1"); 
-    state->u.f1.fld.swtrigr.swtrig2 = cm_object_get_child_by_name(state->u.f1.reg.swtrigr, "SWTRIG2");  
-    
-    // DHR12R1 bitfields.
-    state->u.f1.fld.dhr12r1.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12r1, "DACC1DHR");  
-    
-    // DHR12L1 bitfields.
-    state->u.f1.fld.dhr12l1.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12l1, "DACC1DHR");  
-    
-    // DHR8R1 bitfields.
-    state->u.f1.fld.dhr8r1.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8r1, "DACC1DHR");  
-    
-    // DHR12R2 bitfields.
-    state->u.f1.fld.dhr12r2.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12r2, "DACC2DHR");  
-    
-    // DHR12L2 bitfields.
-    state->u.f1.fld.dhr12l2.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12l2, "DACC2DHR");  
-    
-    // DHR8R2 bitfields.
-    state->u.f1.fld.dhr8r2.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8r2, "DACC2DHR");  
-    
-    // DHR12RD bitfields.
-    state->u.f1.fld.dhr12rd.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12rd, "DACC1DHR"); 
-    state->u.f1.fld.dhr12rd.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12rd, "DACC2DHR");  
-    
-    // DHR12LD bitfields.
-    state->u.f1.fld.dhr12ld.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12ld, "DACC1DHR"); 
-    state->u.f1.fld.dhr12ld.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr12ld, "DACC2DHR");  
-    
-    // DHR8RD bitfields.
-    state->u.f1.fld.dhr8rd.dacc1dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8rd, "DACC1DHR"); 
-    state->u.f1.fld.dhr8rd.dacc2dhr = cm_object_get_child_by_name(state->u.f1.reg.dhr8rd, "DACC2DHR");  
-    
-    // DOR1 bitfields.
-    state->u.f1.fld.dor1.dacc1dor = cm_object_get_child_by_name(state->u.f1.reg.dor1, "DACC1DOR");  
-    
-    // DOR2 bitfields.
-    state->u.f1.fld.dor2.dacc2dor = cm_object_get_child_by_name(state->u.f1.reg.dor2, "DACC2DOR");  
+state->u.f1.reg.cr= cm_object_get_child_by_name(obj, "CR");
+state->u.f1.reg.swtrigr= cm_object_get_child_by_name(obj, "SWTRIGR");
+state->u.f1.reg.dhr12r1= cm_object_get_child_by_name(obj, "DHR12R1");
+state->u.f1.reg.dhr12l1= cm_object_get_child_by_name(obj, "DHR12L1");
+state->u.f1.reg.dhr8r1= cm_object_get_child_by_name(obj, "DHR8R1");
+state->u.f1.reg.dhr12r2= cm_object_get_child_by_name(obj, "DHR12R2");
+state->u.f1.reg.dhr12l2= cm_object_get_child_by_name(obj, "DHR12L2");
+state->u.f1.reg.dhr8r2= cm_object_get_child_by_name(obj, "DHR8R2");
+state->u.f1.reg.dhr12rd= cm_object_get_child_by_name(obj, "DHR12RD");
+state->u.f1.reg.dhr12ld= cm_object_get_child_by_name(obj, "DHR12LD");
+state->u.f1.reg.dhr8rd= cm_object_get_child_by_name(obj, "DHR8RD");
+state->u.f1.reg.dor1= cm_object_get_child_by_name(obj, "DOR1");
+state->u.f1.reg.dor2= cm_object_get_child_by_name(obj, "DOR2");
+// CRbitfields.
+state->u.f1.fld.cr.en1= cm_object_get_child_by_name(state->u.f1.reg.cr, "EN1"); 
+state->u.f1.fld.cr.boff1= cm_object_get_child_by_name(state->u.f1.reg.cr, "BOFF1"); 
+state->u.f1.fld.cr.ten1= cm_object_get_child_by_name(state->u.f1.reg.cr, "TEN1"); 
+state->u.f1.fld.cr.tsel1= cm_object_get_child_by_name(state->u.f1.reg.cr, "TSEL1"); 
+state->u.f1.fld.cr.wave1= cm_object_get_child_by_name(state->u.f1.reg.cr, "WAVE1"); 
+state->u.f1.fld.cr.mamp1= cm_object_get_child_by_name(state->u.f1.reg.cr, "MAMP1"); 
+state->u.f1.fld.cr.dmaen1= cm_object_get_child_by_name(state->u.f1.reg.cr, "DMAEN1"); 
+state->u.f1.fld.cr.en2= cm_object_get_child_by_name(state->u.f1.reg.cr, "EN2"); 
+state->u.f1.fld.cr.boff2= cm_object_get_child_by_name(state->u.f1.reg.cr, "BOFF2"); 
+state->u.f1.fld.cr.ten2= cm_object_get_child_by_name(state->u.f1.reg.cr, "TEN2"); 
+state->u.f1.fld.cr.tsel2= cm_object_get_child_by_name(state->u.f1.reg.cr, "TSEL2"); 
+state->u.f1.fld.cr.wave2= cm_object_get_child_by_name(state->u.f1.reg.cr, "WAVE2"); 
+state->u.f1.fld.cr.mamp2= cm_object_get_child_by_name(state->u.f1.reg.cr, "MAMP2"); 
+state->u.f1.fld.cr.dmaen2= cm_object_get_child_by_name(state->u.f1.reg.cr, "DMAEN2"); 
+// SWTRIGRbitfields.
+state->u.f1.fld.swtrigr.swtrig1= cm_object_get_child_by_name(state->u.f1.reg.swtrigr, "SWTRIG1"); 
+state->u.f1.fld.swtrigr.swtrig2= cm_object_get_child_by_name(state->u.f1.reg.swtrigr, "SWTRIG2"); 
+// DHR12R1bitfields.
+state->u.f1.fld.dhr12r1.dacc1dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12r1, "DACC1DHR"); 
+// DHR12L1bitfields.
+state->u.f1.fld.dhr12l1.dacc1dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12l1, "DACC1DHR"); 
+// DHR8R1bitfields.
+state->u.f1.fld.dhr8r1.dacc1dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr8r1, "DACC1DHR"); 
+// DHR12R2bitfields.
+state->u.f1.fld.dhr12r2.dacc2dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12r2, "DACC2DHR"); 
+// DHR12L2bitfields.
+state->u.f1.fld.dhr12l2.dacc2dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12l2, "DACC2DHR"); 
+// DHR8R2bitfields.
+state->u.f1.fld.dhr8r2.dacc2dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr8r2, "DACC2DHR"); 
+// DHR12RDbitfields.
+state->u.f1.fld.dhr12rd.dacc1dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12rd, "DACC1DHR"); 
+state->u.f1.fld.dhr12rd.dacc2dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12rd, "DACC2DHR"); 
+// DHR12LDbitfields.
+state->u.f1.fld.dhr12ld.dacc1dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12ld, "DACC1DHR"); 
+state->u.f1.fld.dhr12ld.dacc2dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr12ld, "DACC2DHR"); 
+// DHR8RDbitfields.
+state->u.f1.fld.dhr8rd.dacc1dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr8rd, "DACC1DHR"); 
+state->u.f1.fld.dhr8rd.dacc2dhr= cm_object_get_child_by_name(state->u.f1.reg.dhr8rd, "DACC2DHR"); 
+// DOR1bitfields.
+state->u.f1.fld.dor1.dacc1dor= cm_object_get_child_by_name(state->u.f1.reg.dor1, "DACC1DOR"); 
+// DOR2bitfields.
+state->u.f1.fld.dor2.dacc2dor= cm_object_get_child_by_name(state->u.f1.reg.dor2, "DACC2DOR"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -188,7 +174,7 @@ static void stm32_dac_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -227,7 +213,7 @@ static void stm32_dac_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_107xx ) {
+        if (capabilities->f1.is_107xx) {
 
             stm32f107xx_dac_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -243,12 +229,10 @@ static void stm32_dac_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/DACEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

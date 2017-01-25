@@ -1,5 +1,5 @@
 /*
- * STM32 - ETHERNET_PTP (Ethernet: Precision time protocol) emulation.
+ * STM32- ETHERNET_PTP(Ethernet: Precision time protocol) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,50 +35,40 @@ static void stm32f107xx_ethernet_ptp_create_objects(Object *obj, JSON_Object *sv
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f1.reg.ptptscr = cm_object_get_child_by_name(obj, "PTPTSCR");
-    state->u.f1.reg.ptpssir = cm_object_get_child_by_name(obj, "PTPSSIR");
-    state->u.f1.reg.ptptshr = cm_object_get_child_by_name(obj, "PTPTSHR");
-    state->u.f1.reg.ptptslr = cm_object_get_child_by_name(obj, "PTPTSLR");
-    state->u.f1.reg.ptptshur = cm_object_get_child_by_name(obj, "PTPTSHUR");
-    state->u.f1.reg.ptptslur = cm_object_get_child_by_name(obj, "PTPTSLUR");
-    state->u.f1.reg.ptptsar = cm_object_get_child_by_name(obj, "PTPTSAR");
-    state->u.f1.reg.ptptthr = cm_object_get_child_by_name(obj, "PTPTTHR");
-    state->u.f1.reg.ptpttlr = cm_object_get_child_by_name(obj, "PTPTTLR");
-    
-    
-    // PTPTSCR bitfields.
-    state->u.f1.fld.ptptscr.tse = cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSE"); 
-    state->u.f1.fld.ptptscr.tsfcu = cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSFCU"); 
-    state->u.f1.fld.ptptscr.tssti = cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSSTI"); 
-    state->u.f1.fld.ptptscr.tsstu = cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSSTU"); 
-    state->u.f1.fld.ptptscr.tsite = cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSITE"); 
-    state->u.f1.fld.ptptscr.tsaru = cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSARU");  
-    
-    // PTPSSIR bitfields.
-    state->u.f1.fld.ptpssir.stssi = cm_object_get_child_by_name(state->u.f1.reg.ptpssir, "STSSI");  
-    
-    // PTPTSHR bitfields.
-    state->u.f1.fld.ptptshr.sts = cm_object_get_child_by_name(state->u.f1.reg.ptptshr, "STS");  
-    
-    // PTPTSLR bitfields.
-    state->u.f1.fld.ptptslr.stss = cm_object_get_child_by_name(state->u.f1.reg.ptptslr, "STSS"); 
-    state->u.f1.fld.ptptslr.stpns = cm_object_get_child_by_name(state->u.f1.reg.ptptslr, "STPNS");  
-    
-    // PTPTSHUR bitfields.
-    state->u.f1.fld.ptptshur.tsus = cm_object_get_child_by_name(state->u.f1.reg.ptptshur, "TSUS");  
-    
-    // PTPTSLUR bitfields.
-    state->u.f1.fld.ptptslur.tsuss = cm_object_get_child_by_name(state->u.f1.reg.ptptslur, "TSUSS"); 
-    state->u.f1.fld.ptptslur.tsupns = cm_object_get_child_by_name(state->u.f1.reg.ptptslur, "TSUPNS");  
-    
-    // PTPTSAR bitfields.
-    state->u.f1.fld.ptptsar.tsa = cm_object_get_child_by_name(state->u.f1.reg.ptptsar, "TSA");  
-    
-    // PTPTTHR bitfields.
-    state->u.f1.fld.ptptthr.ttsh = cm_object_get_child_by_name(state->u.f1.reg.ptptthr, "TTSH");  
-    
-    // PTPTTLR bitfields.
-    state->u.f1.fld.ptpttlr.ttsl = cm_object_get_child_by_name(state->u.f1.reg.ptpttlr, "TTSL");  
+state->u.f1.reg.ptptscr= cm_object_get_child_by_name(obj, "PTPTSCR");
+state->u.f1.reg.ptpssir= cm_object_get_child_by_name(obj, "PTPSSIR");
+state->u.f1.reg.ptptshr= cm_object_get_child_by_name(obj, "PTPTSHR");
+state->u.f1.reg.ptptslr= cm_object_get_child_by_name(obj, "PTPTSLR");
+state->u.f1.reg.ptptshur= cm_object_get_child_by_name(obj, "PTPTSHUR");
+state->u.f1.reg.ptptslur= cm_object_get_child_by_name(obj, "PTPTSLUR");
+state->u.f1.reg.ptptsar= cm_object_get_child_by_name(obj, "PTPTSAR");
+state->u.f1.reg.ptptthr= cm_object_get_child_by_name(obj, "PTPTTHR");
+state->u.f1.reg.ptpttlr= cm_object_get_child_by_name(obj, "PTPTTLR");
+// PTPTSCRbitfields.
+state->u.f1.fld.ptptscr.tse= cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSE"); 
+state->u.f1.fld.ptptscr.tsfcu= cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSFCU"); 
+state->u.f1.fld.ptptscr.tssti= cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSSTI"); 
+state->u.f1.fld.ptptscr.tsstu= cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSSTU"); 
+state->u.f1.fld.ptptscr.tsite= cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSITE"); 
+state->u.f1.fld.ptptscr.tsaru= cm_object_get_child_by_name(state->u.f1.reg.ptptscr, "TSARU"); 
+// PTPSSIRbitfields.
+state->u.f1.fld.ptpssir.stssi= cm_object_get_child_by_name(state->u.f1.reg.ptpssir, "STSSI"); 
+// PTPTSHRbitfields.
+state->u.f1.fld.ptptshr.sts= cm_object_get_child_by_name(state->u.f1.reg.ptptshr, "STS"); 
+// PTPTSLRbitfields.
+state->u.f1.fld.ptptslr.stss= cm_object_get_child_by_name(state->u.f1.reg.ptptslr, "STSS"); 
+state->u.f1.fld.ptptslr.stpns= cm_object_get_child_by_name(state->u.f1.reg.ptptslr, "STPNS"); 
+// PTPTSHURbitfields.
+state->u.f1.fld.ptptshur.tsus= cm_object_get_child_by_name(state->u.f1.reg.ptptshur, "TSUS"); 
+// PTPTSLURbitfields.
+state->u.f1.fld.ptptslur.tsuss= cm_object_get_child_by_name(state->u.f1.reg.ptptslur, "TSUSS"); 
+state->u.f1.fld.ptptslur.tsupns= cm_object_get_child_by_name(state->u.f1.reg.ptptslur, "TSUPNS"); 
+// PTPTSARbitfields.
+state->u.f1.fld.ptptsar.tsa= cm_object_get_child_by_name(state->u.f1.reg.ptptsar, "TSA"); 
+// PTPTTHRbitfields.
+state->u.f1.fld.ptptthr.ttsh= cm_object_get_child_by_name(state->u.f1.reg.ptptthr, "TTSH"); 
+// PTPTTLRbitfields.
+state->u.f1.fld.ptpttlr.ttsl= cm_object_get_child_by_name(state->u.f1.reg.ptpttlr, "TTSL"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -162,7 +152,7 @@ static void stm32_ethernet_ptp_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -201,7 +191,7 @@ static void stm32_ethernet_ptp_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_107xx ) {
+        if (capabilities->f1.is_107xx) {
 
             stm32f107xx_ethernet_ptp_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -217,12 +207,10 @@ static void stm32_ethernet_ptp_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/ETHERNET_PTPEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

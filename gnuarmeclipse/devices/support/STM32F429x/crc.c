@@ -1,5 +1,5 @@
 /*
- * STM32 - CRC (Cryptographic processor) emulation.
+ * STM32- CRC(Cryptographic processor) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,19 +35,15 @@ static void stm32f429x_crc_create_objects(Object *obj, JSON_Object *svd, const c
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f4.reg.dr = cm_object_get_child_by_name(obj, "DR");
-    state->u.f4.reg.idr = cm_object_get_child_by_name(obj, "IDR");
-    state->u.f4.reg.cr = cm_object_get_child_by_name(obj, "CR");
-    
-    
-    // DR bitfields.
-    state->u.f4.fld.dr.dr = cm_object_get_child_by_name(state->u.f4.reg.dr, "DR");  
-    
-    // IDR bitfields.
-    state->u.f4.fld.idr.idr = cm_object_get_child_by_name(state->u.f4.reg.idr, "IDR");  
-    
-    // CR bitfields.
-    state->u.f4.fld.cr.cr = cm_object_get_child_by_name(state->u.f4.reg.cr, "CR");  
+state->u.f4.reg.dr= cm_object_get_child_by_name(obj, "DR");
+state->u.f4.reg.idr= cm_object_get_child_by_name(obj, "IDR");
+state->u.f4.reg.cr= cm_object_get_child_by_name(obj, "CR");
+// DRbitfields.
+state->u.f4.fld.dr.dr= cm_object_get_child_by_name(state->u.f4.reg.dr, "DR"); 
+// IDRbitfields.
+state->u.f4.fld.idr.idr= cm_object_get_child_by_name(state->u.f4.reg.idr, "IDR"); 
+// CRbitfields.
+state->u.f4.fld.cr.cr= cm_object_get_child_by_name(state->u.f4.reg.cr, "CR"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -131,7 +127,7 @@ static void stm32_crc_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -170,7 +166,7 @@ static void stm32_crc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_429x ) {
+        if (capabilities->f4.is_429x) {
 
             stm32f429x_crc_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -186,12 +182,10 @@ static void stm32_crc_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/CRCEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

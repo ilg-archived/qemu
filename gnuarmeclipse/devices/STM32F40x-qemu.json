@@ -3,19 +3,19 @@
 	"generators": [
 		{
 			"tool": "xcdl",
-			"version": "1.6.2",
+			"version": "1.6.11",
 			"command": [
 				"svd-convert",
 				"--file",
-				"/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd",
+				"/home/olivier/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd",
 				"--output",
 				"STM32F40x-xsvd.json"
 			],
-			"date": "2016-12-14T22:50:52.397Z"
+			"date": "2017-01-24T21:18:21.646Z"
 		},
 		{
 			"tool": "xcdl",
-			"version": "1.6.8",
+			"version": "1.6.11",
 			"command": [
 				"svd-patch",
 				"--file",
@@ -23,7 +23,7 @@
 				"--patch",
 				"STM32F40x-patch.json",
 				"--output",
-				"../STM32F40xx-qemu.json",
+				"../STM32F40x-qemu.json",
 				"--remove",
 				"NVIC",
 				"--group-bitfield",
@@ -41,7 +41,7 @@
 				"--group-bitfield",
 				"RCC/BDCR/RTCSEL"
 			],
-			"date": "2016-12-19T10:35:22.939Z"
+			"date": "2017-01-24T21:35:34.753Z"
 		}
 	],
 	"device": {

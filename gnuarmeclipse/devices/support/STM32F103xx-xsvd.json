@@ -3,15 +3,15 @@
 	"generators": [
 		{
 			"tool": "xcdl",
-			"version": "1.6.2",
+			"version": "1.6.11",
 			"command": [
 				"svd-convert",
 				"--file",
-				"/Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd",
+				"/home/olivier/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd",
 				"--output",
 				"STM32F103xx-xsvd.json"
 			],
-			"date": "2016-12-14T22:50:50.255Z"
+			"date": "2017-01-24T21:18:19.987Z"
 		}
 	],
 	"device": {
