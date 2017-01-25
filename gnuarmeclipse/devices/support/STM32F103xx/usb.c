@@ -1,5 +1,5 @@
 /*
- * STM32- USB(Universal serial bus full-speed device interface) emulation.
+ * STM32 - USB (Universal serial bus full-speed device interface) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,143 +35,157 @@ static void stm32f103xx_usb_create_objects(Object *obj, JSON_Object *svd, const 
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f1.reg.ep0r= cm_object_get_child_by_name(obj, "EP0R");
-state->u.f1.reg.ep1r= cm_object_get_child_by_name(obj, "EP1R");
-state->u.f1.reg.ep2r= cm_object_get_child_by_name(obj, "EP2R");
-state->u.f1.reg.ep3r= cm_object_get_child_by_name(obj, "EP3R");
-state->u.f1.reg.ep4r= cm_object_get_child_by_name(obj, "EP4R");
-state->u.f1.reg.ep5r= cm_object_get_child_by_name(obj, "EP5R");
-state->u.f1.reg.ep6r= cm_object_get_child_by_name(obj, "EP6R");
-state->u.f1.reg.ep7r= cm_object_get_child_by_name(obj, "EP7R");
-state->u.f1.reg.cntr= cm_object_get_child_by_name(obj, "CNTR");
-state->u.f1.reg.istr= cm_object_get_child_by_name(obj, "ISTR");
-state->u.f1.reg.fnr= cm_object_get_child_by_name(obj, "FNR");
-state->u.f1.reg.daddr= cm_object_get_child_by_name(obj, "DADDR");
-state->u.f1.reg.btable= cm_object_get_child_by_name(obj, "BTABLE");
-// EP0Rbitfields.
-state->u.f1.fld.ep0r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EA"); 
-state->u.f1.fld.ep0r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "STAT_TX"); 
-state->u.f1.fld.ep0r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "DTOG_TX"); 
-state->u.f1.fld.ep0r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "CTR_TX"); 
-state->u.f1.fld.ep0r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EP_KIND"); 
-state->u.f1.fld.ep0r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EP_TYPE"); 
-state->u.f1.fld.ep0r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "SETUP"); 
-state->u.f1.fld.ep0r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "STAT_RX"); 
-state->u.f1.fld.ep0r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "DTOG_RX"); 
-state->u.f1.fld.ep0r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep0r, "CTR_RX"); 
-// EP1Rbitfields.
-state->u.f1.fld.ep1r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EA"); 
-state->u.f1.fld.ep1r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "STAT_TX"); 
-state->u.f1.fld.ep1r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "DTOG_TX"); 
-state->u.f1.fld.ep1r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "CTR_TX"); 
-state->u.f1.fld.ep1r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EP_KIND"); 
-state->u.f1.fld.ep1r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EP_TYPE"); 
-state->u.f1.fld.ep1r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "SETUP"); 
-state->u.f1.fld.ep1r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "STAT_RX"); 
-state->u.f1.fld.ep1r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "DTOG_RX"); 
-state->u.f1.fld.ep1r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep1r, "CTR_RX"); 
-// EP2Rbitfields.
-state->u.f1.fld.ep2r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EA"); 
-state->u.f1.fld.ep2r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "STAT_TX"); 
-state->u.f1.fld.ep2r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "DTOG_TX"); 
-state->u.f1.fld.ep2r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "CTR_TX"); 
-state->u.f1.fld.ep2r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EP_KIND"); 
-state->u.f1.fld.ep2r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EP_TYPE"); 
-state->u.f1.fld.ep2r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "SETUP"); 
-state->u.f1.fld.ep2r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "STAT_RX"); 
-state->u.f1.fld.ep2r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "DTOG_RX"); 
-state->u.f1.fld.ep2r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep2r, "CTR_RX"); 
-// EP3Rbitfields.
-state->u.f1.fld.ep3r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EA"); 
-state->u.f1.fld.ep3r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "STAT_TX"); 
-state->u.f1.fld.ep3r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "DTOG_TX"); 
-state->u.f1.fld.ep3r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "CTR_TX"); 
-state->u.f1.fld.ep3r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EP_KIND"); 
-state->u.f1.fld.ep3r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EP_TYPE"); 
-state->u.f1.fld.ep3r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "SETUP"); 
-state->u.f1.fld.ep3r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "STAT_RX"); 
-state->u.f1.fld.ep3r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "DTOG_RX"); 
-state->u.f1.fld.ep3r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep3r, "CTR_RX"); 
-// EP4Rbitfields.
-state->u.f1.fld.ep4r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EA"); 
-state->u.f1.fld.ep4r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "STAT_TX"); 
-state->u.f1.fld.ep4r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "DTOG_TX"); 
-state->u.f1.fld.ep4r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "CTR_TX"); 
-state->u.f1.fld.ep4r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EP_KIND"); 
-state->u.f1.fld.ep4r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EP_TYPE"); 
-state->u.f1.fld.ep4r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "SETUP"); 
-state->u.f1.fld.ep4r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "STAT_RX"); 
-state->u.f1.fld.ep4r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "DTOG_RX"); 
-state->u.f1.fld.ep4r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep4r, "CTR_RX"); 
-// EP5Rbitfields.
-state->u.f1.fld.ep5r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EA"); 
-state->u.f1.fld.ep5r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "STAT_TX"); 
-state->u.f1.fld.ep5r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "DTOG_TX"); 
-state->u.f1.fld.ep5r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "CTR_TX"); 
-state->u.f1.fld.ep5r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EP_KIND"); 
-state->u.f1.fld.ep5r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EP_TYPE"); 
-state->u.f1.fld.ep5r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "SETUP"); 
-state->u.f1.fld.ep5r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "STAT_RX"); 
-state->u.f1.fld.ep5r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "DTOG_RX"); 
-state->u.f1.fld.ep5r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep5r, "CTR_RX"); 
-// EP6Rbitfields.
-state->u.f1.fld.ep6r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EA"); 
-state->u.f1.fld.ep6r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "STAT_TX"); 
-state->u.f1.fld.ep6r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "DTOG_TX"); 
-state->u.f1.fld.ep6r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "CTR_TX"); 
-state->u.f1.fld.ep6r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EP_KIND"); 
-state->u.f1.fld.ep6r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EP_TYPE"); 
-state->u.f1.fld.ep6r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "SETUP"); 
-state->u.f1.fld.ep6r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "STAT_RX"); 
-state->u.f1.fld.ep6r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "DTOG_RX"); 
-state->u.f1.fld.ep6r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep6r, "CTR_RX"); 
-// EP7Rbitfields.
-state->u.f1.fld.ep7r.ea= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EA"); 
-state->u.f1.fld.ep7r.stat_tx= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "STAT_TX"); 
-state->u.f1.fld.ep7r.dtog_tx= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "DTOG_TX"); 
-state->u.f1.fld.ep7r.ctr_tx= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "CTR_TX"); 
-state->u.f1.fld.ep7r.ep_kind= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EP_KIND"); 
-state->u.f1.fld.ep7r.ep_type= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EP_TYPE"); 
-state->u.f1.fld.ep7r.setup= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "SETUP"); 
-state->u.f1.fld.ep7r.stat_rx= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "STAT_RX"); 
-state->u.f1.fld.ep7r.dtog_rx= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "DTOG_RX"); 
-state->u.f1.fld.ep7r.ctr_rx= cm_object_get_child_by_name(state->u.f1.reg.ep7r, "CTR_RX"); 
-// CNTRbitfields.
-state->u.f1.fld.cntr.fres= cm_object_get_child_by_name(state->u.f1.reg.cntr, "FRES"); 
-state->u.f1.fld.cntr.pdwn= cm_object_get_child_by_name(state->u.f1.reg.cntr, "PDWN"); 
-state->u.f1.fld.cntr.lpmode= cm_object_get_child_by_name(state->u.f1.reg.cntr, "LPMODE"); 
-state->u.f1.fld.cntr.fsusp= cm_object_get_child_by_name(state->u.f1.reg.cntr, "FSUSP"); 
-state->u.f1.fld.cntr.resume= cm_object_get_child_by_name(state->u.f1.reg.cntr, "RESUME"); 
-state->u.f1.fld.cntr.esofm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "ESOFM"); 
-state->u.f1.fld.cntr.sofm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "SOFM"); 
-state->u.f1.fld.cntr.resetm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "RESETM"); 
-state->u.f1.fld.cntr.suspm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "SUSPM"); 
-state->u.f1.fld.cntr.wkupm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "WKUPM"); 
-state->u.f1.fld.cntr.errm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "ERRM"); 
-state->u.f1.fld.cntr.pmaovrm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "PMAOVRM"); 
-state->u.f1.fld.cntr.ctrm= cm_object_get_child_by_name(state->u.f1.reg.cntr, "CTRM"); 
-// ISTRbitfields.
-state->u.f1.fld.istr.ep_id= cm_object_get_child_by_name(state->u.f1.reg.istr, "EP_ID"); 
-state->u.f1.fld.istr.dir= cm_object_get_child_by_name(state->u.f1.reg.istr, "DIR"); 
-state->u.f1.fld.istr.esof= cm_object_get_child_by_name(state->u.f1.reg.istr, "ESOF"); 
-state->u.f1.fld.istr.sof= cm_object_get_child_by_name(state->u.f1.reg.istr, "SOF"); 
-state->u.f1.fld.istr.reset= cm_object_get_child_by_name(state->u.f1.reg.istr, "RESET"); 
-state->u.f1.fld.istr.susp= cm_object_get_child_by_name(state->u.f1.reg.istr, "SUSP"); 
-state->u.f1.fld.istr.wkup= cm_object_get_child_by_name(state->u.f1.reg.istr, "WKUP"); 
-state->u.f1.fld.istr.err= cm_object_get_child_by_name(state->u.f1.reg.istr, "ERR"); 
-state->u.f1.fld.istr.pmaovr= cm_object_get_child_by_name(state->u.f1.reg.istr, "PMAOVR"); 
-state->u.f1.fld.istr.ctr= cm_object_get_child_by_name(state->u.f1.reg.istr, "CTR"); 
-// FNRbitfields.
-state->u.f1.fld.fnr.fn= cm_object_get_child_by_name(state->u.f1.reg.fnr, "FN"); 
-state->u.f1.fld.fnr.lsof= cm_object_get_child_by_name(state->u.f1.reg.fnr, "LSOF"); 
-state->u.f1.fld.fnr.lck= cm_object_get_child_by_name(state->u.f1.reg.fnr, "LCK"); 
-state->u.f1.fld.fnr.rxdm= cm_object_get_child_by_name(state->u.f1.reg.fnr, "RXDM"); 
-state->u.f1.fld.fnr.rxdp= cm_object_get_child_by_name(state->u.f1.reg.fnr, "RXDP"); 
-// DADDRbitfields.
-state->u.f1.fld.daddr.add= cm_object_get_child_by_name(state->u.f1.reg.daddr, "ADD"); 
-state->u.f1.fld.daddr.ef= cm_object_get_child_by_name(state->u.f1.reg.daddr, "EF"); 
-// BTABLEbitfields.
-state->u.f1.fld.btable.btable= cm_object_get_child_by_name(state->u.f1.reg.btable, "BTABLE"); 
+    state->u.f1.reg.ep0r = cm_object_get_child_by_name(obj, "EP0R");
+    state->u.f1.reg.ep1r = cm_object_get_child_by_name(obj, "EP1R");
+    state->u.f1.reg.ep2r = cm_object_get_child_by_name(obj, "EP2R");
+    state->u.f1.reg.ep3r = cm_object_get_child_by_name(obj, "EP3R");
+    state->u.f1.reg.ep4r = cm_object_get_child_by_name(obj, "EP4R");
+    state->u.f1.reg.ep5r = cm_object_get_child_by_name(obj, "EP5R");
+    state->u.f1.reg.ep6r = cm_object_get_child_by_name(obj, "EP6R");
+    state->u.f1.reg.ep7r = cm_object_get_child_by_name(obj, "EP7R");
+    state->u.f1.reg.cntr = cm_object_get_child_by_name(obj, "CNTR");
+    state->u.f1.reg.istr = cm_object_get_child_by_name(obj, "ISTR");
+    state->u.f1.reg.fnr = cm_object_get_child_by_name(obj, "FNR");
+    state->u.f1.reg.daddr = cm_object_get_child_by_name(obj, "DADDR");
+    state->u.f1.reg.btable = cm_object_get_child_by_name(obj, "BTABLE");
+    
+    
+    // EP0R bitfields.
+    state->u.f1.fld.ep0r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EA"); 
+    state->u.f1.fld.ep0r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "STAT_TX"); 
+    state->u.f1.fld.ep0r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "DTOG_TX"); 
+    state->u.f1.fld.ep0r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "CTR_TX"); 
+    state->u.f1.fld.ep0r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EP_KIND"); 
+    state->u.f1.fld.ep0r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "EP_TYPE"); 
+    state->u.f1.fld.ep0r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "SETUP"); 
+    state->u.f1.fld.ep0r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "STAT_RX"); 
+    state->u.f1.fld.ep0r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "DTOG_RX"); 
+    state->u.f1.fld.ep0r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep0r, "CTR_RX");  
+    
+    // EP1R bitfields.
+    state->u.f1.fld.ep1r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EA"); 
+    state->u.f1.fld.ep1r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "STAT_TX"); 
+    state->u.f1.fld.ep1r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "DTOG_TX"); 
+    state->u.f1.fld.ep1r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "CTR_TX"); 
+    state->u.f1.fld.ep1r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EP_KIND"); 
+    state->u.f1.fld.ep1r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "EP_TYPE"); 
+    state->u.f1.fld.ep1r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "SETUP"); 
+    state->u.f1.fld.ep1r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "STAT_RX"); 
+    state->u.f1.fld.ep1r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "DTOG_RX"); 
+    state->u.f1.fld.ep1r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep1r, "CTR_RX");  
+    
+    // EP2R bitfields.
+    state->u.f1.fld.ep2r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EA"); 
+    state->u.f1.fld.ep2r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "STAT_TX"); 
+    state->u.f1.fld.ep2r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "DTOG_TX"); 
+    state->u.f1.fld.ep2r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "CTR_TX"); 
+    state->u.f1.fld.ep2r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EP_KIND"); 
+    state->u.f1.fld.ep2r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "EP_TYPE"); 
+    state->u.f1.fld.ep2r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "SETUP"); 
+    state->u.f1.fld.ep2r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "STAT_RX"); 
+    state->u.f1.fld.ep2r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "DTOG_RX"); 
+    state->u.f1.fld.ep2r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep2r, "CTR_RX");  
+    
+    // EP3R bitfields.
+    state->u.f1.fld.ep3r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EA"); 
+    state->u.f1.fld.ep3r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "STAT_TX"); 
+    state->u.f1.fld.ep3r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "DTOG_TX"); 
+    state->u.f1.fld.ep3r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "CTR_TX"); 
+    state->u.f1.fld.ep3r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EP_KIND"); 
+    state->u.f1.fld.ep3r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "EP_TYPE"); 
+    state->u.f1.fld.ep3r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "SETUP"); 
+    state->u.f1.fld.ep3r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "STAT_RX"); 
+    state->u.f1.fld.ep3r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "DTOG_RX"); 
+    state->u.f1.fld.ep3r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep3r, "CTR_RX");  
+    
+    // EP4R bitfields.
+    state->u.f1.fld.ep4r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EA"); 
+    state->u.f1.fld.ep4r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "STAT_TX"); 
+    state->u.f1.fld.ep4r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "DTOG_TX"); 
+    state->u.f1.fld.ep4r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "CTR_TX"); 
+    state->u.f1.fld.ep4r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EP_KIND"); 
+    state->u.f1.fld.ep4r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "EP_TYPE"); 
+    state->u.f1.fld.ep4r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "SETUP"); 
+    state->u.f1.fld.ep4r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "STAT_RX"); 
+    state->u.f1.fld.ep4r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "DTOG_RX"); 
+    state->u.f1.fld.ep4r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep4r, "CTR_RX");  
+    
+    // EP5R bitfields.
+    state->u.f1.fld.ep5r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EA"); 
+    state->u.f1.fld.ep5r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "STAT_TX"); 
+    state->u.f1.fld.ep5r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "DTOG_TX"); 
+    state->u.f1.fld.ep5r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "CTR_TX"); 
+    state->u.f1.fld.ep5r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EP_KIND"); 
+    state->u.f1.fld.ep5r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "EP_TYPE"); 
+    state->u.f1.fld.ep5r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "SETUP"); 
+    state->u.f1.fld.ep5r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "STAT_RX"); 
+    state->u.f1.fld.ep5r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "DTOG_RX"); 
+    state->u.f1.fld.ep5r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep5r, "CTR_RX");  
+    
+    // EP6R bitfields.
+    state->u.f1.fld.ep6r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EA"); 
+    state->u.f1.fld.ep6r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "STAT_TX"); 
+    state->u.f1.fld.ep6r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "DTOG_TX"); 
+    state->u.f1.fld.ep6r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "CTR_TX"); 
+    state->u.f1.fld.ep6r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EP_KIND"); 
+    state->u.f1.fld.ep6r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "EP_TYPE"); 
+    state->u.f1.fld.ep6r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "SETUP"); 
+    state->u.f1.fld.ep6r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "STAT_RX"); 
+    state->u.f1.fld.ep6r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "DTOG_RX"); 
+    state->u.f1.fld.ep6r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep6r, "CTR_RX");  
+    
+    // EP7R bitfields.
+    state->u.f1.fld.ep7r.ea = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EA"); 
+    state->u.f1.fld.ep7r.stat_tx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "STAT_TX"); 
+    state->u.f1.fld.ep7r.dtog_tx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "DTOG_TX"); 
+    state->u.f1.fld.ep7r.ctr_tx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "CTR_TX"); 
+    state->u.f1.fld.ep7r.ep_kind = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EP_KIND"); 
+    state->u.f1.fld.ep7r.ep_type = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "EP_TYPE"); 
+    state->u.f1.fld.ep7r.setup = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "SETUP"); 
+    state->u.f1.fld.ep7r.stat_rx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "STAT_RX"); 
+    state->u.f1.fld.ep7r.dtog_rx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "DTOG_RX"); 
+    state->u.f1.fld.ep7r.ctr_rx = cm_object_get_child_by_name(state->u.f1.reg.ep7r, "CTR_RX");  
+    
+    // CNTR bitfields.
+    state->u.f1.fld.cntr.fres = cm_object_get_child_by_name(state->u.f1.reg.cntr, "FRES"); 
+    state->u.f1.fld.cntr.pdwn = cm_object_get_child_by_name(state->u.f1.reg.cntr, "PDWN"); 
+    state->u.f1.fld.cntr.lpmode = cm_object_get_child_by_name(state->u.f1.reg.cntr, "LPMODE"); 
+    state->u.f1.fld.cntr.fsusp = cm_object_get_child_by_name(state->u.f1.reg.cntr, "FSUSP"); 
+    state->u.f1.fld.cntr.resume = cm_object_get_child_by_name(state->u.f1.reg.cntr, "RESUME"); 
+    state->u.f1.fld.cntr.esofm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "ESOFM"); 
+    state->u.f1.fld.cntr.sofm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "SOFM"); 
+    state->u.f1.fld.cntr.resetm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "RESETM"); 
+    state->u.f1.fld.cntr.suspm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "SUSPM"); 
+    state->u.f1.fld.cntr.wkupm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "WKUPM"); 
+    state->u.f1.fld.cntr.errm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "ERRM"); 
+    state->u.f1.fld.cntr.pmaovrm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "PMAOVRM"); 
+    state->u.f1.fld.cntr.ctrm = cm_object_get_child_by_name(state->u.f1.reg.cntr, "CTRM");  
+    
+    // ISTR bitfields.
+    state->u.f1.fld.istr.ep_id = cm_object_get_child_by_name(state->u.f1.reg.istr, "EP_ID"); 
+    state->u.f1.fld.istr.dir = cm_object_get_child_by_name(state->u.f1.reg.istr, "DIR"); 
+    state->u.f1.fld.istr.esof = cm_object_get_child_by_name(state->u.f1.reg.istr, "ESOF"); 
+    state->u.f1.fld.istr.sof = cm_object_get_child_by_name(state->u.f1.reg.istr, "SOF"); 
+    state->u.f1.fld.istr.reset = cm_object_get_child_by_name(state->u.f1.reg.istr, "RESET"); 
+    state->u.f1.fld.istr.susp = cm_object_get_child_by_name(state->u.f1.reg.istr, "SUSP"); 
+    state->u.f1.fld.istr.wkup = cm_object_get_child_by_name(state->u.f1.reg.istr, "WKUP"); 
+    state->u.f1.fld.istr.err = cm_object_get_child_by_name(state->u.f1.reg.istr, "ERR"); 
+    state->u.f1.fld.istr.pmaovr = cm_object_get_child_by_name(state->u.f1.reg.istr, "PMAOVR"); 
+    state->u.f1.fld.istr.ctr = cm_object_get_child_by_name(state->u.f1.reg.istr, "CTR");  
+    
+    // FNR bitfields.
+    state->u.f1.fld.fnr.fn = cm_object_get_child_by_name(state->u.f1.reg.fnr, "FN"); 
+    state->u.f1.fld.fnr.lsof = cm_object_get_child_by_name(state->u.f1.reg.fnr, "LSOF"); 
+    state->u.f1.fld.fnr.lck = cm_object_get_child_by_name(state->u.f1.reg.fnr, "LCK"); 
+    state->u.f1.fld.fnr.rxdm = cm_object_get_child_by_name(state->u.f1.reg.fnr, "RXDM"); 
+    state->u.f1.fld.fnr.rxdp = cm_object_get_child_by_name(state->u.f1.reg.fnr, "RXDP");  
+    
+    // DADDR bitfields.
+    state->u.f1.fld.daddr.add = cm_object_get_child_by_name(state->u.f1.reg.daddr, "ADD"); 
+    state->u.f1.fld.daddr.ef = cm_object_get_child_by_name(state->u.f1.reg.daddr, "EF");  
+    
+    // BTABLE bitfields.
+    state->u.f1.fld.btable.btable = cm_object_get_child_by_name(state->u.f1.reg.btable, "BTABLE");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -255,7 +269,7 @@ static void stm32_usb_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -294,7 +308,7 @@ static void stm32_usb_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_103xx) {
+        if (capabilities->f1.is_103xx ) {
 
             stm32f103xx_usb_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -310,10 +324,12 @@ static void stm32_usb_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/USBEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

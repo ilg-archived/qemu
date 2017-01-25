@@ -1,5 +1,5 @@
 /*
- * STM32- DAC(Digital-to-analog converter) emulation.
+ * STM32 - DAC (Digital-to-analog converter) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_DACDEVICE_PATH_STM32"DAC"
+#define DEVICE_PATH_STM32_DAC DEVICE_PATH_STM32 "DAC"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_DACTYPE_STM32_PREFIX "dac" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_DAC TYPE_STM32_PREFIX "dac" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,46 +75,67 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0DAC(Digital-to-analog converter) registers.
+        // F0 DAC (Digital-to-analog converter) registers.
         struct { 
-Object *cr; // 0x0(Control register) 
-Object *swtrigr; // 0x4(Software trigger register) 
-Object *dhr12r1; // 0x8(Channel1 12-bit right-aligned data holding register) 
-Object *dhr12l1; // 0xC(Channel1 12-bit left aligned data holding register) 
-Object *dhr8r1; // 0x10(Channel1 8-bit right aligned data holding register) 
-Object *dor1; // 0x2C(Channel1 data output register) 
-Object *sr; // 0x34(Status register) 
-} reg;
+          Object *cr; // 0x0 (Control register) 
+          Object *swtrigr; // 0x4 (Software trigger register) 
+          Object *dhr12r1; // 0x8 (Channel1 12-bit right-aligned data holding register) 
+          Object *dhr12l1; // 0xC (Channel1 12-bit left aligned data holding register) 
+          Object *dhr8r1; // 0x10 (Channel1 8-bit right aligned data holding register) 
+          Object *dor1; // 0x2C (Channel1 data output register) 
+          Object *sr; // 0x34 (Status register) 
+        } reg;
 
         struct { 
-// CR(Control register) bitfields.
+          
+          // CR (Control register) bitfields.
           struct { 
-Object *lpds; // [0:0] Low-power deep sleepObject *pdds; // [1:1] Power down deepsleepObject *cwuf; // [2:2] Clear wakeup flagObject *csbf; // [3:3] Clear standby flagObject *pvde; // [4:4] Power voltage detector enableObject *pls; // [5:7] PVD level selectionObject *dbp; // [8:8] Disable backup domain write protection} cr; 
-// SWTRIGR(Software trigger register) bitfields.
+            Object *lpds; // [0:0] Low-power deep sleep 
+            Object *pdds; // [1:1] Power down deepsleep 
+            Object *cwuf; // [2:2] Clear wakeup flag 
+            Object *csbf; // [3:3] Clear standby flag 
+            Object *pvde; // [4:4] Power voltage detector enable 
+            Object *pls; // [5:7] PVD level selection 
+            Object *dbp; // [8:8] Disable backup domain write protection  
+          } cr; 
+          
+          // SWTRIGR (Software trigger register) bitfields.
           struct { 
-Object *swtrig1; // [0:0] DAC channel1 software trigger} swtrigr; 
-// DHR12R1(Channel1 12-bit right-aligned data holding register) bitfields.
+            Object *swtrig1; // [0:0] DAC channel1 software trigger  
+          } swtrigr; 
+          
+          // DHR12R1 (Channel1 12-bit right-aligned data holding register) bitfields.
           struct { 
-Object *dacc1dhr; // [0:11] DAC channel1 12-bit right-aligned data} dhr12r1; 
-// DHR12L1(Channel1 12-bit left aligned data holding register) bitfields.
+            Object *dacc1dhr; // [0:11] DAC channel1 12-bit right-aligned data  
+          } dhr12r1; 
+          
+          // DHR12L1 (Channel1 12-bit left aligned data holding register) bitfields.
           struct { 
-Object *dacc1dhr; // [4:15] DAC channel1 12-bit left-aligned data} dhr12l1; 
-// DHR8R1(Channel1 8-bit right aligned data holding register) bitfields.
+            Object *dacc1dhr; // [4:15] DAC channel1 12-bit left-aligned data  
+          } dhr12l1; 
+          
+          // DHR8R1 (Channel1 8-bit right aligned data holding register) bitfields.
           struct { 
-Object *dacc1dhr; // [0:7] DAC channel1 8-bit right-aligned data} dhr8r1; 
-// DOR1(Channel1 data output register) bitfields.
+            Object *dacc1dhr; // [0:7] DAC channel1 8-bit right-aligned data  
+          } dhr8r1; 
+          
+          // DOR1 (Channel1 data output register) bitfields.
           struct { 
-Object *dacc1dor; // [0:11] DAC channel1 data output} dor1; 
-// SR(Status register) bitfields.
+            Object *dacc1dor; // [0:11] DAC channel1 data output  
+          } dor1; 
+          
+          // SR (Status register) bitfields.
           struct { 
-Object *dmaudr1; // [13:13] DAC channel1 DMA underrun flagObject *dmaudr2; // [29:29] DAC channel2 DMA underrun flag} sr; 
-} fld;
+            Object *dmaudr1; // [13:13] DAC channel1 DMA underrun flag 
+            Object *dmaudr2; // [29:29] DAC channel2 DMA underrun flag  
+          } sr; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

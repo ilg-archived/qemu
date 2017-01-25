@@ -1,5 +1,5 @@
 /*
- * STM32- DBGMCU(Debug support) emulation.
+ * STM32 - DBGMCU (Debug support) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,31 +35,36 @@ static void stm32f0x1_dbgmcu_create_objects(Object *obj, JSON_Object *svd, const
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.idcode= cm_object_get_child_by_name(obj, "IDCODE");
-state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-state->u.f0.reg.apblfz= cm_object_get_child_by_name(obj, "APBLFZ");
-state->u.f0.reg.apbhfz= cm_object_get_child_by_name(obj, "APBHFZ");
-// IDCODEbitfields.
-state->u.f0.fld.idcode.dev_id= cm_object_get_child_by_name(state->u.f0.reg.idcode, "DEV_ID"); 
-state->u.f0.fld.idcode.div_id= cm_object_get_child_by_name(state->u.f0.reg.idcode, "DIV_ID"); 
-state->u.f0.fld.idcode.rev_id= cm_object_get_child_by_name(state->u.f0.reg.idcode, "REV_ID"); 
-// CRbitfields.
-state->u.f0.fld.cr.dbg_stop= cm_object_get_child_by_name(state->u.f0.reg.cr, "DBG_STOP"); 
-state->u.f0.fld.cr.dbg_standby= cm_object_get_child_by_name(state->u.f0.reg.cr, "DBG_STANDBY"); 
-// APBLFZbitfields.
-state->u.f0.fld.apblfz.dbg_timer2_stop= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER2_STOP"); 
-state->u.f0.fld.apblfz.dbg_timer3_stop= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER3_STOP"); 
-state->u.f0.fld.apblfz.dbg_timer6_stop= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER6_STOP"); 
-state->u.f0.fld.apblfz.dbg_timer14_stop= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER14_STOP"); 
-state->u.f0.fld.apblfz.dbg_rtc_stop= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_RTC_STOP"); 
-state->u.f0.fld.apblfz.dbg_wwdg_stop= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_WWDG_STOP"); 
-state->u.f0.fld.apblfz.dbg_iwdg_stop= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_IWDG_STOP"); 
-state->u.f0.fld.apblfz.i2c1_smbus_timeout= cm_object_get_child_by_name(state->u.f0.reg.apblfz, "I2C1_SMBUS_TIMEOUT"); 
-// APBHFZbitfields.
-state->u.f0.fld.apbhfz.dbg_timer1_stop= cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER1_STOP"); 
-state->u.f0.fld.apbhfz.dbg_timer15_sto= cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER15_STO"); 
-state->u.f0.fld.apbhfz.dbg_timer16_sto= cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER16_STO"); 
-state->u.f0.fld.apbhfz.dbg_timer17_sto= cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER17_STO"); 
+    state->u.f0.reg.idcode = cm_object_get_child_by_name(obj, "IDCODE");
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.apblfz = cm_object_get_child_by_name(obj, "APBLFZ");
+    state->u.f0.reg.apbhfz = cm_object_get_child_by_name(obj, "APBHFZ");
+    
+    
+    // IDCODE bitfields.
+    state->u.f0.fld.idcode.dev_id = cm_object_get_child_by_name(state->u.f0.reg.idcode, "DEV_ID"); 
+    state->u.f0.fld.idcode.div_id = cm_object_get_child_by_name(state->u.f0.reg.idcode, "DIV_ID"); 
+    state->u.f0.fld.idcode.rev_id = cm_object_get_child_by_name(state->u.f0.reg.idcode, "REV_ID");  
+    
+    // CR bitfields.
+    state->u.f0.fld.cr.dbg_stop = cm_object_get_child_by_name(state->u.f0.reg.cr, "DBG_STOP"); 
+    state->u.f0.fld.cr.dbg_standby = cm_object_get_child_by_name(state->u.f0.reg.cr, "DBG_STANDBY");  
+    
+    // APBLFZ bitfields.
+    state->u.f0.fld.apblfz.dbg_timer2_stop = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER2_STOP"); 
+    state->u.f0.fld.apblfz.dbg_timer3_stop = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER3_STOP"); 
+    state->u.f0.fld.apblfz.dbg_timer6_stop = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER6_STOP"); 
+    state->u.f0.fld.apblfz.dbg_timer14_stop = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_TIMER14_STOP"); 
+    state->u.f0.fld.apblfz.dbg_rtc_stop = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_RTC_STOP"); 
+    state->u.f0.fld.apblfz.dbg_wwdg_stop = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_WWDG_STOP"); 
+    state->u.f0.fld.apblfz.dbg_iwdg_stop = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "DBG_IWDG_STOP"); 
+    state->u.f0.fld.apblfz.i2c1_smbus_timeout = cm_object_get_child_by_name(state->u.f0.reg.apblfz, "I2C1_SMBUS_TIMEOUT");  
+    
+    // APBHFZ bitfields.
+    state->u.f0.fld.apbhfz.dbg_timer1_stop = cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER1_STOP"); 
+    state->u.f0.fld.apbhfz.dbg_timer15_sto = cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER15_STO"); 
+    state->u.f0.fld.apbhfz.dbg_timer16_sto = cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER16_STO"); 
+    state->u.f0.fld.apbhfz.dbg_timer17_sto = cm_object_get_child_by_name(state->u.f0.reg.apbhfz, "DBG_TIMER17_STO");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -143,7 +148,7 @@ static void stm32_dbgmcu_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -182,7 +187,7 @@ static void stm32_dbgmcu_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_dbgmcu_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -198,10 +203,12 @@ static void stm32_dbgmcu_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/DBGMCUEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

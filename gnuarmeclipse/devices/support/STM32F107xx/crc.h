@@ -1,5 +1,5 @@
 /*
- * STM32- CRC(CRC calculation unit) emulation.
+ * STM32 - CRC (CRC calculation unit) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_CRCDEVICE_PATH_STM32"CRC"
+#define DEVICE_PATH_STM32_CRC DEVICE_PATH_STM32 "CRC"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_CRCTYPE_STM32_PREFIX "crc" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_CRC TYPE_STM32_PREFIX "crc" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,30 +75,36 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1CRC(CRC calculation unit) registers.
+        // F1 CRC (CRC calculation unit) registers.
         struct { 
-Object *dr; // 0x0(Data register) 
-Object *idr; // 0x4(Independent Data register) 
-Object *cr; // 0x8(Control register) 
-} reg;
+          Object *dr; // 0x0 (Data register) 
+          Object *idr; // 0x4 (Independent Data register) 
+          Object *cr; // 0x8 (Control register) 
+        } reg;
 
         struct { 
-// DR(Data register) bitfields.
+          
+          // DR (Data register) bitfields.
           struct { 
-Object *dr; // [0:31] Data Register} dr; 
-// IDR(Independent Data register) bitfields.
+            Object *dr; // [0:31] Data Register  
+          } dr; 
+          
+          // IDR (Independent Data register) bitfields.
           struct { 
-Object *idr; // [0:7] Independent Data register} idr; 
-// CR(Control register) bitfields.
+            Object *idr; // [0:7] Independent Data register  
+          } idr; 
+          
+          // CR (Control register) bitfields.
           struct { 
-Object *reset; // [0:0] Reset bit} cr; 
-} fld;
+            Object *reset; // [0:0] Reset bit  
+          } cr; 
+        } fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

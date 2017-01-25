@@ -1,5 +1,5 @@
 /*
- * STM32- CRS(Clock recovery system) emulation.
+ * STM32 - CRS (Clock recovery system) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,40 +35,45 @@ static void stm32f0x1_crs_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-state->u.f0.reg.cfgr= cm_object_get_child_by_name(obj, "CFGR");
-state->u.f0.reg.isr= cm_object_get_child_by_name(obj, "ISR");
-state->u.f0.reg.icr= cm_object_get_child_by_name(obj, "ICR");
-// CRbitfields.
-state->u.f0.fld.cr.syncokie= cm_object_get_child_by_name(state->u.f0.reg.cr, "SYNCOKIE"); 
-state->u.f0.fld.cr.syncwarnie= cm_object_get_child_by_name(state->u.f0.reg.cr, "SYNCWARNIE"); 
-state->u.f0.fld.cr.errie= cm_object_get_child_by_name(state->u.f0.reg.cr, "ERRIE"); 
-state->u.f0.fld.cr.esyncie= cm_object_get_child_by_name(state->u.f0.reg.cr, "ESYNCIE"); 
-state->u.f0.fld.cr.cen= cm_object_get_child_by_name(state->u.f0.reg.cr, "CEN"); 
-state->u.f0.fld.cr.autotrimen= cm_object_get_child_by_name(state->u.f0.reg.cr, "AUTOTRIMEN"); 
-state->u.f0.fld.cr.swsync= cm_object_get_child_by_name(state->u.f0.reg.cr, "SWSYNC"); 
-state->u.f0.fld.cr.trim= cm_object_get_child_by_name(state->u.f0.reg.cr, "TRIM"); 
-// CFGRbitfields.
-state->u.f0.fld.cfgr.reload= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "RELOAD"); 
-state->u.f0.fld.cfgr.felim= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "FELIM"); 
-state->u.f0.fld.cfgr.syncdiv= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SYNCDIV"); 
-state->u.f0.fld.cfgr.syncsrc= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SYNCSRC"); 
-state->u.f0.fld.cfgr.syncpol= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SYNCPOL"); 
-// ISRbitfields.
-state->u.f0.fld.isr.syncokf= cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCOKF"); 
-state->u.f0.fld.isr.syncwarnf= cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCWARNF"); 
-state->u.f0.fld.isr.errf= cm_object_get_child_by_name(state->u.f0.reg.isr, "ERRF"); 
-state->u.f0.fld.isr.esyncf= cm_object_get_child_by_name(state->u.f0.reg.isr, "ESYNCF"); 
-state->u.f0.fld.isr.syncerr= cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCERR"); 
-state->u.f0.fld.isr.syncmiss= cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCMISS"); 
-state->u.f0.fld.isr.trimovf= cm_object_get_child_by_name(state->u.f0.reg.isr, "TRIMOVF"); 
-state->u.f0.fld.isr.fedir= cm_object_get_child_by_name(state->u.f0.reg.isr, "FEDIR"); 
-state->u.f0.fld.isr.fecap= cm_object_get_child_by_name(state->u.f0.reg.isr, "FECAP"); 
-// ICRbitfields.
-state->u.f0.fld.icr.syncokc= cm_object_get_child_by_name(state->u.f0.reg.icr, "SYNCOKC"); 
-state->u.f0.fld.icr.syncwarnc= cm_object_get_child_by_name(state->u.f0.reg.icr, "SYNCWARNC"); 
-state->u.f0.fld.icr.errc= cm_object_get_child_by_name(state->u.f0.reg.icr, "ERRC"); 
-state->u.f0.fld.icr.esyncc= cm_object_get_child_by_name(state->u.f0.reg.icr, "ESYNCC"); 
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.cfgr = cm_object_get_child_by_name(obj, "CFGR");
+    state->u.f0.reg.isr = cm_object_get_child_by_name(obj, "ISR");
+    state->u.f0.reg.icr = cm_object_get_child_by_name(obj, "ICR");
+    
+    
+    // CR bitfields.
+    state->u.f0.fld.cr.syncokie = cm_object_get_child_by_name(state->u.f0.reg.cr, "SYNCOKIE"); 
+    state->u.f0.fld.cr.syncwarnie = cm_object_get_child_by_name(state->u.f0.reg.cr, "SYNCWARNIE"); 
+    state->u.f0.fld.cr.errie = cm_object_get_child_by_name(state->u.f0.reg.cr, "ERRIE"); 
+    state->u.f0.fld.cr.esyncie = cm_object_get_child_by_name(state->u.f0.reg.cr, "ESYNCIE"); 
+    state->u.f0.fld.cr.cen = cm_object_get_child_by_name(state->u.f0.reg.cr, "CEN"); 
+    state->u.f0.fld.cr.autotrimen = cm_object_get_child_by_name(state->u.f0.reg.cr, "AUTOTRIMEN"); 
+    state->u.f0.fld.cr.swsync = cm_object_get_child_by_name(state->u.f0.reg.cr, "SWSYNC"); 
+    state->u.f0.fld.cr.trim = cm_object_get_child_by_name(state->u.f0.reg.cr, "TRIM");  
+    
+    // CFGR bitfields.
+    state->u.f0.fld.cfgr.reload = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "RELOAD"); 
+    state->u.f0.fld.cfgr.felim = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "FELIM"); 
+    state->u.f0.fld.cfgr.syncdiv = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SYNCDIV"); 
+    state->u.f0.fld.cfgr.syncsrc = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SYNCSRC"); 
+    state->u.f0.fld.cfgr.syncpol = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SYNCPOL");  
+    
+    // ISR bitfields.
+    state->u.f0.fld.isr.syncokf = cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCOKF"); 
+    state->u.f0.fld.isr.syncwarnf = cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCWARNF"); 
+    state->u.f0.fld.isr.errf = cm_object_get_child_by_name(state->u.f0.reg.isr, "ERRF"); 
+    state->u.f0.fld.isr.esyncf = cm_object_get_child_by_name(state->u.f0.reg.isr, "ESYNCF"); 
+    state->u.f0.fld.isr.syncerr = cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCERR"); 
+    state->u.f0.fld.isr.syncmiss = cm_object_get_child_by_name(state->u.f0.reg.isr, "SYNCMISS"); 
+    state->u.f0.fld.isr.trimovf = cm_object_get_child_by_name(state->u.f0.reg.isr, "TRIMOVF"); 
+    state->u.f0.fld.isr.fedir = cm_object_get_child_by_name(state->u.f0.reg.isr, "FEDIR"); 
+    state->u.f0.fld.isr.fecap = cm_object_get_child_by_name(state->u.f0.reg.isr, "FECAP");  
+    
+    // ICR bitfields.
+    state->u.f0.fld.icr.syncokc = cm_object_get_child_by_name(state->u.f0.reg.icr, "SYNCOKC"); 
+    state->u.f0.fld.icr.syncwarnc = cm_object_get_child_by_name(state->u.f0.reg.icr, "SYNCWARNC"); 
+    state->u.f0.fld.icr.errc = cm_object_get_child_by_name(state->u.f0.reg.icr, "ERRC"); 
+    state->u.f0.fld.icr.esyncc = cm_object_get_child_by_name(state->u.f0.reg.icr, "ESYNCC");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -152,7 +157,7 @@ static void stm32_crs_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -191,7 +196,7 @@ static void stm32_crs_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_crs_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -207,10 +212,12 @@ static void stm32_crs_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/CRSEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

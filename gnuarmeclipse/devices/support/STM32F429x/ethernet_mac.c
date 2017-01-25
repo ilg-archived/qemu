@@ -1,5 +1,5 @@
 /*
- * STM32- Ethernet_MAC(Ethernet: media access control (MAC)) emulation.
+ * STM32 - Ethernet_MAC (Ethernet: media access control (MAC)) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,128 +35,149 @@ static void stm32f429x_ethernet_mac_create_objects(Object *obj, JSON_Object *svd
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f4.reg.maccr= cm_object_get_child_by_name(obj, "MACCR");
-state->u.f4.reg.macffr= cm_object_get_child_by_name(obj, "MACFFR");
-state->u.f4.reg.machthr= cm_object_get_child_by_name(obj, "MACHTHR");
-state->u.f4.reg.machtlr= cm_object_get_child_by_name(obj, "MACHTLR");
-state->u.f4.reg.macmiiar= cm_object_get_child_by_name(obj, "MACMIIAR");
-state->u.f4.reg.macmiidr= cm_object_get_child_by_name(obj, "MACMIIDR");
-state->u.f4.reg.macfcr= cm_object_get_child_by_name(obj, "MACFCR");
-state->u.f4.reg.macvlantr= cm_object_get_child_by_name(obj, "MACVLANTR");
-state->u.f4.reg.macpmtcsr= cm_object_get_child_by_name(obj, "MACPMTCSR");
-state->u.f4.reg.macdbgr= cm_object_get_child_by_name(obj, "MACDBGR");
-state->u.f4.reg.macsr= cm_object_get_child_by_name(obj, "MACSR");
-state->u.f4.reg.macimr= cm_object_get_child_by_name(obj, "MACIMR");
-state->u.f4.reg.maca0hr= cm_object_get_child_by_name(obj, "MACA0HR");
-state->u.f4.reg.maca0lr= cm_object_get_child_by_name(obj, "MACA0LR");
-state->u.f4.reg.maca1hr= cm_object_get_child_by_name(obj, "MACA1HR");
-state->u.f4.reg.maca1lr= cm_object_get_child_by_name(obj, "MACA1LR");
-state->u.f4.reg.maca2hr= cm_object_get_child_by_name(obj, "MACA2HR");
-state->u.f4.reg.maca2lr= cm_object_get_child_by_name(obj, "MACA2LR");
-state->u.f4.reg.maca3hr= cm_object_get_child_by_name(obj, "MACA3HR");
-state->u.f4.reg.maca3lr= cm_object_get_child_by_name(obj, "MACA3LR");
-// MACCRbitfields.
-state->u.f4.fld.maccr.re= cm_object_get_child_by_name(state->u.f4.reg.maccr, "RE"); 
-state->u.f4.fld.maccr.te= cm_object_get_child_by_name(state->u.f4.reg.maccr, "TE"); 
-state->u.f4.fld.maccr.dc= cm_object_get_child_by_name(state->u.f4.reg.maccr, "DC"); 
-state->u.f4.fld.maccr.bl= cm_object_get_child_by_name(state->u.f4.reg.maccr, "BL"); 
-state->u.f4.fld.maccr.apcs= cm_object_get_child_by_name(state->u.f4.reg.maccr, "APCS"); 
-state->u.f4.fld.maccr.rd= cm_object_get_child_by_name(state->u.f4.reg.maccr, "RD"); 
-state->u.f4.fld.maccr.ipco= cm_object_get_child_by_name(state->u.f4.reg.maccr, "IPCO"); 
-state->u.f4.fld.maccr.dm= cm_object_get_child_by_name(state->u.f4.reg.maccr, "DM"); 
-state->u.f4.fld.maccr.lm= cm_object_get_child_by_name(state->u.f4.reg.maccr, "LM"); 
-state->u.f4.fld.maccr.rod= cm_object_get_child_by_name(state->u.f4.reg.maccr, "ROD"); 
-state->u.f4.fld.maccr.fes= cm_object_get_child_by_name(state->u.f4.reg.maccr, "FES"); 
-state->u.f4.fld.maccr.csd= cm_object_get_child_by_name(state->u.f4.reg.maccr, "CSD"); 
-state->u.f4.fld.maccr.ifg= cm_object_get_child_by_name(state->u.f4.reg.maccr, "IFG"); 
-state->u.f4.fld.maccr.jd= cm_object_get_child_by_name(state->u.f4.reg.maccr, "JD"); 
-state->u.f4.fld.maccr.wd= cm_object_get_child_by_name(state->u.f4.reg.maccr, "WD"); 
-state->u.f4.fld.maccr.cstf= cm_object_get_child_by_name(state->u.f4.reg.maccr, "CSTF"); 
-// MACFFRbitfields.
-state->u.f4.fld.macffr.pm= cm_object_get_child_by_name(state->u.f4.reg.macffr, "PM"); 
-state->u.f4.fld.macffr.hu= cm_object_get_child_by_name(state->u.f4.reg.macffr, "HU"); 
-state->u.f4.fld.macffr.hm= cm_object_get_child_by_name(state->u.f4.reg.macffr, "HM"); 
-state->u.f4.fld.macffr.daif= cm_object_get_child_by_name(state->u.f4.reg.macffr, "DAIF"); 
-state->u.f4.fld.macffr.ram= cm_object_get_child_by_name(state->u.f4.reg.macffr, "RAM"); 
-state->u.f4.fld.macffr.bfd= cm_object_get_child_by_name(state->u.f4.reg.macffr, "BFD"); 
-state->u.f4.fld.macffr.pcf= cm_object_get_child_by_name(state->u.f4.reg.macffr, "PCF"); 
-state->u.f4.fld.macffr.saif= cm_object_get_child_by_name(state->u.f4.reg.macffr, "SAIF"); 
-state->u.f4.fld.macffr.saf= cm_object_get_child_by_name(state->u.f4.reg.macffr, "SAF"); 
-state->u.f4.fld.macffr.hpf= cm_object_get_child_by_name(state->u.f4.reg.macffr, "HPF"); 
-state->u.f4.fld.macffr.ra= cm_object_get_child_by_name(state->u.f4.reg.macffr, "RA"); 
-// MACHTHRbitfields.
-state->u.f4.fld.machthr.hth= cm_object_get_child_by_name(state->u.f4.reg.machthr, "HTH"); 
-// MACHTLRbitfields.
-state->u.f4.fld.machtlr.htl= cm_object_get_child_by_name(state->u.f4.reg.machtlr, "HTL"); 
-// MACMIIARbitfields.
-state->u.f4.fld.macmiiar.mb= cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "MB"); 
-state->u.f4.fld.macmiiar.mw= cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "MW"); 
-state->u.f4.fld.macmiiar.cr= cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "CR"); 
-state->u.f4.fld.macmiiar.mr= cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "MR"); 
-state->u.f4.fld.macmiiar.pa= cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "PA"); 
-// MACMIIDRbitfields.
-state->u.f4.fld.macmiidr.td= cm_object_get_child_by_name(state->u.f4.reg.macmiidr, "TD"); 
-// MACFCRbitfields.
-state->u.f4.fld.macfcr.fcb= cm_object_get_child_by_name(state->u.f4.reg.macfcr, "FCB"); 
-state->u.f4.fld.macfcr.tfce= cm_object_get_child_by_name(state->u.f4.reg.macfcr, "TFCE"); 
-state->u.f4.fld.macfcr.rfce= cm_object_get_child_by_name(state->u.f4.reg.macfcr, "RFCE"); 
-state->u.f4.fld.macfcr.upfd= cm_object_get_child_by_name(state->u.f4.reg.macfcr, "UPFD"); 
-state->u.f4.fld.macfcr.plt= cm_object_get_child_by_name(state->u.f4.reg.macfcr, "PLT"); 
-state->u.f4.fld.macfcr.zqpd= cm_object_get_child_by_name(state->u.f4.reg.macfcr, "ZQPD"); 
-state->u.f4.fld.macfcr.pt= cm_object_get_child_by_name(state->u.f4.reg.macfcr, "PT"); 
-// MACVLANTRbitfields.
-state->u.f4.fld.macvlantr.vlanti= cm_object_get_child_by_name(state->u.f4.reg.macvlantr, "VLANTI"); 
-state->u.f4.fld.macvlantr.vlantc= cm_object_get_child_by_name(state->u.f4.reg.macvlantr, "VLANTC"); 
-// MACPMTCSRbitfields.
-state->u.f4.fld.macpmtcsr.pd= cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "PD"); 
-state->u.f4.fld.macpmtcsr.mpe= cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "MPE"); 
-state->u.f4.fld.macpmtcsr.wfe= cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "WFE"); 
-state->u.f4.fld.macpmtcsr.mpr= cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "MPR"); 
-state->u.f4.fld.macpmtcsr.wfr= cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "WFR"); 
-state->u.f4.fld.macpmtcsr.gu= cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "GU"); 
-state->u.f4.fld.macpmtcsr.wffrpr= cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "WFFRPR"); 
-// MACDBGRbitfields.
-state->u.f4.fld.macdbgr.cr= cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "CR"); 
-state->u.f4.fld.macdbgr.csr= cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "CSR"); 
-state->u.f4.fld.macdbgr.ror= cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "ROR"); 
-state->u.f4.fld.macdbgr.mcf= cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "MCF"); 
-state->u.f4.fld.macdbgr.mcp= cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "MCP"); 
-state->u.f4.fld.macdbgr.mcfhp= cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "MCFHP"); 
-// MACSRbitfields.
-state->u.f4.fld.macsr.pmts= cm_object_get_child_by_name(state->u.f4.reg.macsr, "PMTS"); 
-state->u.f4.fld.macsr.mmcs= cm_object_get_child_by_name(state->u.f4.reg.macsr, "MMCS"); 
-state->u.f4.fld.macsr.mmcrs= cm_object_get_child_by_name(state->u.f4.reg.macsr, "MMCRS"); 
-state->u.f4.fld.macsr.mmcts= cm_object_get_child_by_name(state->u.f4.reg.macsr, "MMCTS"); 
-state->u.f4.fld.macsr.tsts= cm_object_get_child_by_name(state->u.f4.reg.macsr, "TSTS"); 
-// MACIMRbitfields.
-state->u.f4.fld.macimr.pmtim= cm_object_get_child_by_name(state->u.f4.reg.macimr, "PMTIM"); 
-state->u.f4.fld.macimr.tstim= cm_object_get_child_by_name(state->u.f4.reg.macimr, "TSTIM"); 
-// MACA0HRbitfields.
-state->u.f4.fld.maca0hr.maca0h= cm_object_get_child_by_name(state->u.f4.reg.maca0hr, "MACA0H"); 
-state->u.f4.fld.maca0hr.mo= cm_object_get_child_by_name(state->u.f4.reg.maca0hr, "MO"); 
-// MACA0LRbitfields.
-state->u.f4.fld.maca0lr.maca0l= cm_object_get_child_by_name(state->u.f4.reg.maca0lr, "MACA0L"); 
-// MACA1HRbitfields.
-state->u.f4.fld.maca1hr.maca1h= cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "MACA1H"); 
-state->u.f4.fld.maca1hr.mbc= cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "MBC"); 
-state->u.f4.fld.maca1hr.sa= cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "SA"); 
-state->u.f4.fld.maca1hr.ae= cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "AE"); 
-// MACA1LRbitfields.
-state->u.f4.fld.maca1lr.maca1lr= cm_object_get_child_by_name(state->u.f4.reg.maca1lr, "MACA1LR"); 
-// MACA2HRbitfields.
-state->u.f4.fld.maca2hr.mac2ah= cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "MAC2AH"); 
-state->u.f4.fld.maca2hr.mbc= cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "MBC"); 
-state->u.f4.fld.maca2hr.sa= cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "SA"); 
-state->u.f4.fld.maca2hr.ae= cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "AE"); 
-// MACA2LRbitfields.
-state->u.f4.fld.maca2lr.maca2l= cm_object_get_child_by_name(state->u.f4.reg.maca2lr, "MACA2L"); 
-// MACA3HRbitfields.
-state->u.f4.fld.maca3hr.maca3h= cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "MACA3H"); 
-state->u.f4.fld.maca3hr.mbc= cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "MBC"); 
-state->u.f4.fld.maca3hr.sa= cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "SA"); 
-state->u.f4.fld.maca3hr.ae= cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "AE"); 
-// MACA3LRbitfields.
-state->u.f4.fld.maca3lr.mbca3l= cm_object_get_child_by_name(state->u.f4.reg.maca3lr, "MBCA3L"); 
+    state->u.f4.reg.maccr = cm_object_get_child_by_name(obj, "MACCR");
+    state->u.f4.reg.macffr = cm_object_get_child_by_name(obj, "MACFFR");
+    state->u.f4.reg.machthr = cm_object_get_child_by_name(obj, "MACHTHR");
+    state->u.f4.reg.machtlr = cm_object_get_child_by_name(obj, "MACHTLR");
+    state->u.f4.reg.macmiiar = cm_object_get_child_by_name(obj, "MACMIIAR");
+    state->u.f4.reg.macmiidr = cm_object_get_child_by_name(obj, "MACMIIDR");
+    state->u.f4.reg.macfcr = cm_object_get_child_by_name(obj, "MACFCR");
+    state->u.f4.reg.macvlantr = cm_object_get_child_by_name(obj, "MACVLANTR");
+    state->u.f4.reg.macpmtcsr = cm_object_get_child_by_name(obj, "MACPMTCSR");
+    state->u.f4.reg.macdbgr = cm_object_get_child_by_name(obj, "MACDBGR");
+    state->u.f4.reg.macsr = cm_object_get_child_by_name(obj, "MACSR");
+    state->u.f4.reg.macimr = cm_object_get_child_by_name(obj, "MACIMR");
+    state->u.f4.reg.maca0hr = cm_object_get_child_by_name(obj, "MACA0HR");
+    state->u.f4.reg.maca0lr = cm_object_get_child_by_name(obj, "MACA0LR");
+    state->u.f4.reg.maca1hr = cm_object_get_child_by_name(obj, "MACA1HR");
+    state->u.f4.reg.maca1lr = cm_object_get_child_by_name(obj, "MACA1LR");
+    state->u.f4.reg.maca2hr = cm_object_get_child_by_name(obj, "MACA2HR");
+    state->u.f4.reg.maca2lr = cm_object_get_child_by_name(obj, "MACA2LR");
+    state->u.f4.reg.maca3hr = cm_object_get_child_by_name(obj, "MACA3HR");
+    state->u.f4.reg.maca3lr = cm_object_get_child_by_name(obj, "MACA3LR");
+    
+    
+    // MACCR bitfields.
+    state->u.f4.fld.maccr.re = cm_object_get_child_by_name(state->u.f4.reg.maccr, "RE"); 
+    state->u.f4.fld.maccr.te = cm_object_get_child_by_name(state->u.f4.reg.maccr, "TE"); 
+    state->u.f4.fld.maccr.dc = cm_object_get_child_by_name(state->u.f4.reg.maccr, "DC"); 
+    state->u.f4.fld.maccr.bl = cm_object_get_child_by_name(state->u.f4.reg.maccr, "BL"); 
+    state->u.f4.fld.maccr.apcs = cm_object_get_child_by_name(state->u.f4.reg.maccr, "APCS"); 
+    state->u.f4.fld.maccr.rd = cm_object_get_child_by_name(state->u.f4.reg.maccr, "RD"); 
+    state->u.f4.fld.maccr.ipco = cm_object_get_child_by_name(state->u.f4.reg.maccr, "IPCO"); 
+    state->u.f4.fld.maccr.dm = cm_object_get_child_by_name(state->u.f4.reg.maccr, "DM"); 
+    state->u.f4.fld.maccr.lm = cm_object_get_child_by_name(state->u.f4.reg.maccr, "LM"); 
+    state->u.f4.fld.maccr.rod = cm_object_get_child_by_name(state->u.f4.reg.maccr, "ROD"); 
+    state->u.f4.fld.maccr.fes = cm_object_get_child_by_name(state->u.f4.reg.maccr, "FES"); 
+    state->u.f4.fld.maccr.csd = cm_object_get_child_by_name(state->u.f4.reg.maccr, "CSD"); 
+    state->u.f4.fld.maccr.ifg = cm_object_get_child_by_name(state->u.f4.reg.maccr, "IFG"); 
+    state->u.f4.fld.maccr.jd = cm_object_get_child_by_name(state->u.f4.reg.maccr, "JD"); 
+    state->u.f4.fld.maccr.wd = cm_object_get_child_by_name(state->u.f4.reg.maccr, "WD"); 
+    state->u.f4.fld.maccr.cstf = cm_object_get_child_by_name(state->u.f4.reg.maccr, "CSTF");  
+    
+    // MACFFR bitfields.
+    state->u.f4.fld.macffr.pm = cm_object_get_child_by_name(state->u.f4.reg.macffr, "PM"); 
+    state->u.f4.fld.macffr.hu = cm_object_get_child_by_name(state->u.f4.reg.macffr, "HU"); 
+    state->u.f4.fld.macffr.hm = cm_object_get_child_by_name(state->u.f4.reg.macffr, "HM"); 
+    state->u.f4.fld.macffr.daif = cm_object_get_child_by_name(state->u.f4.reg.macffr, "DAIF"); 
+    state->u.f4.fld.macffr.ram = cm_object_get_child_by_name(state->u.f4.reg.macffr, "RAM"); 
+    state->u.f4.fld.macffr.bfd = cm_object_get_child_by_name(state->u.f4.reg.macffr, "BFD"); 
+    state->u.f4.fld.macffr.pcf = cm_object_get_child_by_name(state->u.f4.reg.macffr, "PCF"); 
+    state->u.f4.fld.macffr.saif = cm_object_get_child_by_name(state->u.f4.reg.macffr, "SAIF"); 
+    state->u.f4.fld.macffr.saf = cm_object_get_child_by_name(state->u.f4.reg.macffr, "SAF"); 
+    state->u.f4.fld.macffr.hpf = cm_object_get_child_by_name(state->u.f4.reg.macffr, "HPF"); 
+    state->u.f4.fld.macffr.ra = cm_object_get_child_by_name(state->u.f4.reg.macffr, "RA");  
+    
+    // MACHTHR bitfields.
+    state->u.f4.fld.machthr.hth = cm_object_get_child_by_name(state->u.f4.reg.machthr, "HTH");  
+    
+    // MACHTLR bitfields.
+    state->u.f4.fld.machtlr.htl = cm_object_get_child_by_name(state->u.f4.reg.machtlr, "HTL");  
+    
+    // MACMIIAR bitfields.
+    state->u.f4.fld.macmiiar.mb = cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "MB"); 
+    state->u.f4.fld.macmiiar.mw = cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "MW"); 
+    state->u.f4.fld.macmiiar.cr = cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "CR"); 
+    state->u.f4.fld.macmiiar.mr = cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "MR"); 
+    state->u.f4.fld.macmiiar.pa = cm_object_get_child_by_name(state->u.f4.reg.macmiiar, "PA");  
+    
+    // MACMIIDR bitfields.
+    state->u.f4.fld.macmiidr.td = cm_object_get_child_by_name(state->u.f4.reg.macmiidr, "TD");  
+    
+    // MACFCR bitfields.
+    state->u.f4.fld.macfcr.fcb = cm_object_get_child_by_name(state->u.f4.reg.macfcr, "FCB"); 
+    state->u.f4.fld.macfcr.tfce = cm_object_get_child_by_name(state->u.f4.reg.macfcr, "TFCE"); 
+    state->u.f4.fld.macfcr.rfce = cm_object_get_child_by_name(state->u.f4.reg.macfcr, "RFCE"); 
+    state->u.f4.fld.macfcr.upfd = cm_object_get_child_by_name(state->u.f4.reg.macfcr, "UPFD"); 
+    state->u.f4.fld.macfcr.plt = cm_object_get_child_by_name(state->u.f4.reg.macfcr, "PLT"); 
+    state->u.f4.fld.macfcr.zqpd = cm_object_get_child_by_name(state->u.f4.reg.macfcr, "ZQPD"); 
+    state->u.f4.fld.macfcr.pt = cm_object_get_child_by_name(state->u.f4.reg.macfcr, "PT");  
+    
+    // MACVLANTR bitfields.
+    state->u.f4.fld.macvlantr.vlanti = cm_object_get_child_by_name(state->u.f4.reg.macvlantr, "VLANTI"); 
+    state->u.f4.fld.macvlantr.vlantc = cm_object_get_child_by_name(state->u.f4.reg.macvlantr, "VLANTC");  
+    
+    // MACPMTCSR bitfields.
+    state->u.f4.fld.macpmtcsr.pd = cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "PD"); 
+    state->u.f4.fld.macpmtcsr.mpe = cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "MPE"); 
+    state->u.f4.fld.macpmtcsr.wfe = cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "WFE"); 
+    state->u.f4.fld.macpmtcsr.mpr = cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "MPR"); 
+    state->u.f4.fld.macpmtcsr.wfr = cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "WFR"); 
+    state->u.f4.fld.macpmtcsr.gu = cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "GU"); 
+    state->u.f4.fld.macpmtcsr.wffrpr = cm_object_get_child_by_name(state->u.f4.reg.macpmtcsr, "WFFRPR");  
+    
+    // MACDBGR bitfields.
+    state->u.f4.fld.macdbgr.cr = cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "CR"); 
+    state->u.f4.fld.macdbgr.csr = cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "CSR"); 
+    state->u.f4.fld.macdbgr.ror = cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "ROR"); 
+    state->u.f4.fld.macdbgr.mcf = cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "MCF"); 
+    state->u.f4.fld.macdbgr.mcp = cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "MCP"); 
+    state->u.f4.fld.macdbgr.mcfhp = cm_object_get_child_by_name(state->u.f4.reg.macdbgr, "MCFHP");  
+    
+    // MACSR bitfields.
+    state->u.f4.fld.macsr.pmts = cm_object_get_child_by_name(state->u.f4.reg.macsr, "PMTS"); 
+    state->u.f4.fld.macsr.mmcs = cm_object_get_child_by_name(state->u.f4.reg.macsr, "MMCS"); 
+    state->u.f4.fld.macsr.mmcrs = cm_object_get_child_by_name(state->u.f4.reg.macsr, "MMCRS"); 
+    state->u.f4.fld.macsr.mmcts = cm_object_get_child_by_name(state->u.f4.reg.macsr, "MMCTS"); 
+    state->u.f4.fld.macsr.tsts = cm_object_get_child_by_name(state->u.f4.reg.macsr, "TSTS");  
+    
+    // MACIMR bitfields.
+    state->u.f4.fld.macimr.pmtim = cm_object_get_child_by_name(state->u.f4.reg.macimr, "PMTIM"); 
+    state->u.f4.fld.macimr.tstim = cm_object_get_child_by_name(state->u.f4.reg.macimr, "TSTIM");  
+    
+    // MACA0HR bitfields.
+    state->u.f4.fld.maca0hr.maca0h = cm_object_get_child_by_name(state->u.f4.reg.maca0hr, "MACA0H"); 
+    state->u.f4.fld.maca0hr.mo = cm_object_get_child_by_name(state->u.f4.reg.maca0hr, "MO");  
+    
+    // MACA0LR bitfields.
+    state->u.f4.fld.maca0lr.maca0l = cm_object_get_child_by_name(state->u.f4.reg.maca0lr, "MACA0L");  
+    
+    // MACA1HR bitfields.
+    state->u.f4.fld.maca1hr.maca1h = cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "MACA1H"); 
+    state->u.f4.fld.maca1hr.mbc = cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "MBC"); 
+    state->u.f4.fld.maca1hr.sa = cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "SA"); 
+    state->u.f4.fld.maca1hr.ae = cm_object_get_child_by_name(state->u.f4.reg.maca1hr, "AE");  
+    
+    // MACA1LR bitfields.
+    state->u.f4.fld.maca1lr.maca1lr = cm_object_get_child_by_name(state->u.f4.reg.maca1lr, "MACA1LR");  
+    
+    // MACA2HR bitfields.
+    state->u.f4.fld.maca2hr.mac2ah = cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "MAC2AH"); 
+    state->u.f4.fld.maca2hr.mbc = cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "MBC"); 
+    state->u.f4.fld.maca2hr.sa = cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "SA"); 
+    state->u.f4.fld.maca2hr.ae = cm_object_get_child_by_name(state->u.f4.reg.maca2hr, "AE");  
+    
+    // MACA2LR bitfields.
+    state->u.f4.fld.maca2lr.maca2l = cm_object_get_child_by_name(state->u.f4.reg.maca2lr, "MACA2L");  
+    
+    // MACA3HR bitfields.
+    state->u.f4.fld.maca3hr.maca3h = cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "MACA3H"); 
+    state->u.f4.fld.maca3hr.mbc = cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "MBC"); 
+    state->u.f4.fld.maca3hr.sa = cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "SA"); 
+    state->u.f4.fld.maca3hr.ae = cm_object_get_child_by_name(state->u.f4.reg.maca3hr, "AE");  
+    
+    // MACA3LR bitfields.
+    state->u.f4.fld.maca3lr.mbca3l = cm_object_get_child_by_name(state->u.f4.reg.maca3lr, "MBCA3L");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -240,7 +261,7 @@ static void stm32_ethernet_mac_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -279,7 +300,7 @@ static void stm32_ethernet_mac_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_429x) {
+        if (capabilities->f4.is_429x ) {
 
             stm32f429x_ethernet_mac_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -295,10 +316,12 @@ static void stm32_ethernet_mac_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/Ethernet_MACEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

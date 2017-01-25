@@ -1,5 +1,5 @@
 /*
- * STM32- CRC(Cyclic redundancy check calculation unit) emulation.
+ * STM32 - CRC (Cyclic redundancy check calculation unit) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_CRCDEVICE_PATH_STM32"CRC"
+#define DEVICE_PATH_STM32_CRC DEVICE_PATH_STM32 "CRC"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_CRCTYPE_STM32_PREFIX "crc" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_CRC TYPE_STM32_PREFIX "crc" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,34 +75,45 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0CRC(Cyclic redundancy check calculation unit) registers.
+        // F0 CRC (Cyclic redundancy check calculation unit) registers.
         struct { 
-Object *dr; // 0x0(Data register) 
-Object *idr; // 0x4(Independent data register) 
-Object *cr; // 0x8(Control register) 
-Object *init; // 0xC(Initial CRC value) 
-} reg;
+          Object *dr; // 0x0 (Data register) 
+          Object *idr; // 0x4 (Independent data register) 
+          Object *cr; // 0x8 (Control register) 
+          Object *init; // 0xC (Initial CRC value) 
+        } reg;
 
         struct { 
-// DR(Data register) bitfields.
+          
+          // DR (Data register) bitfields.
           struct { 
-Object *dr; // [0:31] Data register bits} dr; 
-// IDR(Independent data register) bitfields.
+            Object *dr; // [0:31] Data register bits  
+          } dr; 
+          
+          // IDR (Independent data register) bitfields.
           struct { 
-Object *idr; // [0:7] General-purpose 8-bit data register bits} idr; 
-// CR(Control register) bitfields.
+            Object *idr; // [0:7] General-purpose 8-bit data register bits  
+          } idr; 
+          
+          // CR (Control register) bitfields.
           struct { 
-Object *reset; // [0:0] Reset bitObject *polysize; // [3:4] Polynomial sizeObject *rev_in; // [5:6] Reverse input dataObject *rev_out; // [7:7] Reverse output data} cr; 
-// INIT(Initial CRC value) bitfields.
+            Object *reset; // [0:0] Reset bit 
+            Object *polysize; // [3:4] Polynomial size 
+            Object *rev_in; // [5:6] Reverse input data 
+            Object *rev_out; // [7:7] Reverse output data  
+          } cr; 
+          
+          // INIT (Initial CRC value) bitfields.
           struct { 
-Object *init; // [0:31] Programmable initial CRC value} init; 
-} fld;
+            Object *init; // [0:31] Programmable initial CRC value  
+          } init; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

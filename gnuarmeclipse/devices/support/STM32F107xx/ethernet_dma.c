@@ -1,5 +1,5 @@
 /*
- * STM32- ETHERNET_DMA(Ethernet: DMA controller operation) emulation.
+ * STM32 - ETHERNET_DMA (Ethernet: DMA controller operation) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,102 +35,116 @@ static void stm32f107xx_ethernet_dma_create_objects(Object *obj, JSON_Object *sv
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f1.reg.dmabmr= cm_object_get_child_by_name(obj, "DMABMR");
-state->u.f1.reg.dmatpdr= cm_object_get_child_by_name(obj, "DMATPDR");
-state->u.f1.reg.dmarpdr= cm_object_get_child_by_name(obj, "DMARPDR");
-state->u.f1.reg.dmardlar= cm_object_get_child_by_name(obj, "DMARDLAR");
-state->u.f1.reg.dmatdlar= cm_object_get_child_by_name(obj, "DMATDLAR");
-state->u.f1.reg.dmasr= cm_object_get_child_by_name(obj, "DMASR");
-state->u.f1.reg.dmaomr= cm_object_get_child_by_name(obj, "DMAOMR");
-state->u.f1.reg.dmaier= cm_object_get_child_by_name(obj, "DMAIER");
-state->u.f1.reg.dmamfbocr= cm_object_get_child_by_name(obj, "DMAMFBOCR");
-state->u.f1.reg.dmachtdr= cm_object_get_child_by_name(obj, "DMACHTDR");
-state->u.f1.reg.dmachrdr= cm_object_get_child_by_name(obj, "DMACHRDR");
-state->u.f1.reg.dmachtbar= cm_object_get_child_by_name(obj, "DMACHTBAR");
-state->u.f1.reg.dmachrbar= cm_object_get_child_by_name(obj, "DMACHRBAR");
-// DMABMRbitfields.
-state->u.f1.fld.dmabmr.sr= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "SR"); 
-state->u.f1.fld.dmabmr.da= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "DA"); 
-state->u.f1.fld.dmabmr.dsl= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "DSL"); 
-state->u.f1.fld.dmabmr.pbl= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "PBL"); 
-state->u.f1.fld.dmabmr.rtpr= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "RTPR"); 
-state->u.f1.fld.dmabmr.fb= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "FB"); 
-state->u.f1.fld.dmabmr.rdp= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "RDP"); 
-state->u.f1.fld.dmabmr.usp= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "USP"); 
-state->u.f1.fld.dmabmr.fpm= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "FPM"); 
-state->u.f1.fld.dmabmr.aab= cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "AAB"); 
-// DMATPDRbitfields.
-state->u.f1.fld.dmatpdr.tpd= cm_object_get_child_by_name(state->u.f1.reg.dmatpdr, "TPD"); 
-// DMARPDRbitfields.
-state->u.f1.fld.dmarpdr.rpd= cm_object_get_child_by_name(state->u.f1.reg.dmarpdr, "RPD"); 
-// DMARDLARbitfields.
-state->u.f1.fld.dmardlar.srl= cm_object_get_child_by_name(state->u.f1.reg.dmardlar, "SRL"); 
-// DMATDLARbitfields.
-state->u.f1.fld.dmatdlar.stl= cm_object_get_child_by_name(state->u.f1.reg.dmatdlar, "STL"); 
-// DMASRbitfields.
-state->u.f1.fld.dmasr.ts= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TS"); 
-state->u.f1.fld.dmasr.tpss= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TPSS"); 
-state->u.f1.fld.dmasr.tbus= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TBUS"); 
-state->u.f1.fld.dmasr.tjts= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TJTS"); 
-state->u.f1.fld.dmasr.ros= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "ROS"); 
-state->u.f1.fld.dmasr.tus= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TUS"); 
-state->u.f1.fld.dmasr.rs= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RS"); 
-state->u.f1.fld.dmasr.rbus= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RBUS"); 
-state->u.f1.fld.dmasr.rpss= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RPSS"); 
-state->u.f1.fld.dmasr.pwts= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "PWTS"); 
-state->u.f1.fld.dmasr.ets= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "ETS"); 
-state->u.f1.fld.dmasr.fbes= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "FBES"); 
-state->u.f1.fld.dmasr.ers= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "ERS"); 
-state->u.f1.fld.dmasr.ais= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "AIS"); 
-state->u.f1.fld.dmasr.nis= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "NIS"); 
-state->u.f1.fld.dmasr.rps= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RPS"); 
-state->u.f1.fld.dmasr.tps= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TPS"); 
-state->u.f1.fld.dmasr.ebs= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "EBS"); 
-state->u.f1.fld.dmasr.mmcs= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "MMCS"); 
-state->u.f1.fld.dmasr.pmts= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "PMTS"); 
-state->u.f1.fld.dmasr.tsts= cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TSTS"); 
-// DMAOMRbitfields.
-state->u.f1.fld.dmaomr.sr= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "SR"); 
-state->u.f1.fld.dmaomr.osf= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "OSF"); 
-state->u.f1.fld.dmaomr.rtc= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "RTC"); 
-state->u.f1.fld.dmaomr.fugf= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "FUGF"); 
-state->u.f1.fld.dmaomr.fef= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "FEF"); 
-state->u.f1.fld.dmaomr.st= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "ST"); 
-state->u.f1.fld.dmaomr.ttc= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "TTC"); 
-state->u.f1.fld.dmaomr.ftf= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "FTF"); 
-state->u.f1.fld.dmaomr.tsf= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "TSF"); 
-state->u.f1.fld.dmaomr.dfrf= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "DFRF"); 
-state->u.f1.fld.dmaomr.rsf= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "RSF"); 
-state->u.f1.fld.dmaomr.dtcefd= cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "DTCEFD"); 
-// DMAIERbitfields.
-state->u.f1.fld.dmaier.tie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TIE"); 
-state->u.f1.fld.dmaier.tpsie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TPSIE"); 
-state->u.f1.fld.dmaier.tbuie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TBUIE"); 
-state->u.f1.fld.dmaier.tjtie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TJTIE"); 
-state->u.f1.fld.dmaier.roie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "ROIE"); 
-state->u.f1.fld.dmaier.tuie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TUIE"); 
-state->u.f1.fld.dmaier.rie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RIE"); 
-state->u.f1.fld.dmaier.rbuie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RBUIE"); 
-state->u.f1.fld.dmaier.rpsie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RPSIE"); 
-state->u.f1.fld.dmaier.rwtie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RWTIE"); 
-state->u.f1.fld.dmaier.etie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "ETIE"); 
-state->u.f1.fld.dmaier.fbeie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "FBEIE"); 
-state->u.f1.fld.dmaier.erie= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "ERIE"); 
-state->u.f1.fld.dmaier.aise= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "AISE"); 
-state->u.f1.fld.dmaier.nise= cm_object_get_child_by_name(state->u.f1.reg.dmaier, "NISE"); 
-// DMAMFBOCRbitfields.
-state->u.f1.fld.dmamfbocr.mfc= cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "MFC"); 
-state->u.f1.fld.dmamfbocr.omfc= cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "OMFC"); 
-state->u.f1.fld.dmamfbocr.mfa= cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "MFA"); 
-state->u.f1.fld.dmamfbocr.ofoc= cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "OFOC"); 
-// DMACHTDRbitfields.
-state->u.f1.fld.dmachtdr.htdap= cm_object_get_child_by_name(state->u.f1.reg.dmachtdr, "HTDAP"); 
-// DMACHRDRbitfields.
-state->u.f1.fld.dmachrdr.hrdap= cm_object_get_child_by_name(state->u.f1.reg.dmachrdr, "HRDAP"); 
-// DMACHTBARbitfields.
-state->u.f1.fld.dmachtbar.htbap= cm_object_get_child_by_name(state->u.f1.reg.dmachtbar, "HTBAP"); 
-// DMACHRBARbitfields.
-state->u.f1.fld.dmachrbar.hrbap= cm_object_get_child_by_name(state->u.f1.reg.dmachrbar, "HRBAP"); 
+    state->u.f1.reg.dmabmr = cm_object_get_child_by_name(obj, "DMABMR");
+    state->u.f1.reg.dmatpdr = cm_object_get_child_by_name(obj, "DMATPDR");
+    state->u.f1.reg.dmarpdr = cm_object_get_child_by_name(obj, "DMARPDR");
+    state->u.f1.reg.dmardlar = cm_object_get_child_by_name(obj, "DMARDLAR");
+    state->u.f1.reg.dmatdlar = cm_object_get_child_by_name(obj, "DMATDLAR");
+    state->u.f1.reg.dmasr = cm_object_get_child_by_name(obj, "DMASR");
+    state->u.f1.reg.dmaomr = cm_object_get_child_by_name(obj, "DMAOMR");
+    state->u.f1.reg.dmaier = cm_object_get_child_by_name(obj, "DMAIER");
+    state->u.f1.reg.dmamfbocr = cm_object_get_child_by_name(obj, "DMAMFBOCR");
+    state->u.f1.reg.dmachtdr = cm_object_get_child_by_name(obj, "DMACHTDR");
+    state->u.f1.reg.dmachrdr = cm_object_get_child_by_name(obj, "DMACHRDR");
+    state->u.f1.reg.dmachtbar = cm_object_get_child_by_name(obj, "DMACHTBAR");
+    state->u.f1.reg.dmachrbar = cm_object_get_child_by_name(obj, "DMACHRBAR");
+    
+    
+    // DMABMR bitfields.
+    state->u.f1.fld.dmabmr.sr = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "SR"); 
+    state->u.f1.fld.dmabmr.da = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "DA"); 
+    state->u.f1.fld.dmabmr.dsl = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "DSL"); 
+    state->u.f1.fld.dmabmr.pbl = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "PBL"); 
+    state->u.f1.fld.dmabmr.rtpr = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "RTPR"); 
+    state->u.f1.fld.dmabmr.fb = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "FB"); 
+    state->u.f1.fld.dmabmr.rdp = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "RDP"); 
+    state->u.f1.fld.dmabmr.usp = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "USP"); 
+    state->u.f1.fld.dmabmr.fpm = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "FPM"); 
+    state->u.f1.fld.dmabmr.aab = cm_object_get_child_by_name(state->u.f1.reg.dmabmr, "AAB");  
+    
+    // DMATPDR bitfields.
+    state->u.f1.fld.dmatpdr.tpd = cm_object_get_child_by_name(state->u.f1.reg.dmatpdr, "TPD");  
+    
+    // DMARPDR bitfields.
+    state->u.f1.fld.dmarpdr.rpd = cm_object_get_child_by_name(state->u.f1.reg.dmarpdr, "RPD");  
+    
+    // DMARDLAR bitfields.
+    state->u.f1.fld.dmardlar.srl = cm_object_get_child_by_name(state->u.f1.reg.dmardlar, "SRL");  
+    
+    // DMATDLAR bitfields.
+    state->u.f1.fld.dmatdlar.stl = cm_object_get_child_by_name(state->u.f1.reg.dmatdlar, "STL");  
+    
+    // DMASR bitfields.
+    state->u.f1.fld.dmasr.ts = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TS"); 
+    state->u.f1.fld.dmasr.tpss = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TPSS"); 
+    state->u.f1.fld.dmasr.tbus = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TBUS"); 
+    state->u.f1.fld.dmasr.tjts = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TJTS"); 
+    state->u.f1.fld.dmasr.ros = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "ROS"); 
+    state->u.f1.fld.dmasr.tus = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TUS"); 
+    state->u.f1.fld.dmasr.rs = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RS"); 
+    state->u.f1.fld.dmasr.rbus = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RBUS"); 
+    state->u.f1.fld.dmasr.rpss = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RPSS"); 
+    state->u.f1.fld.dmasr.pwts = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "PWTS"); 
+    state->u.f1.fld.dmasr.ets = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "ETS"); 
+    state->u.f1.fld.dmasr.fbes = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "FBES"); 
+    state->u.f1.fld.dmasr.ers = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "ERS"); 
+    state->u.f1.fld.dmasr.ais = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "AIS"); 
+    state->u.f1.fld.dmasr.nis = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "NIS"); 
+    state->u.f1.fld.dmasr.rps = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "RPS"); 
+    state->u.f1.fld.dmasr.tps = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TPS"); 
+    state->u.f1.fld.dmasr.ebs = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "EBS"); 
+    state->u.f1.fld.dmasr.mmcs = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "MMCS"); 
+    state->u.f1.fld.dmasr.pmts = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "PMTS"); 
+    state->u.f1.fld.dmasr.tsts = cm_object_get_child_by_name(state->u.f1.reg.dmasr, "TSTS");  
+    
+    // DMAOMR bitfields.
+    state->u.f1.fld.dmaomr.sr = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "SR"); 
+    state->u.f1.fld.dmaomr.osf = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "OSF"); 
+    state->u.f1.fld.dmaomr.rtc = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "RTC"); 
+    state->u.f1.fld.dmaomr.fugf = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "FUGF"); 
+    state->u.f1.fld.dmaomr.fef = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "FEF"); 
+    state->u.f1.fld.dmaomr.st = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "ST"); 
+    state->u.f1.fld.dmaomr.ttc = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "TTC"); 
+    state->u.f1.fld.dmaomr.ftf = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "FTF"); 
+    state->u.f1.fld.dmaomr.tsf = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "TSF"); 
+    state->u.f1.fld.dmaomr.dfrf = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "DFRF"); 
+    state->u.f1.fld.dmaomr.rsf = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "RSF"); 
+    state->u.f1.fld.dmaomr.dtcefd = cm_object_get_child_by_name(state->u.f1.reg.dmaomr, "DTCEFD");  
+    
+    // DMAIER bitfields.
+    state->u.f1.fld.dmaier.tie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TIE"); 
+    state->u.f1.fld.dmaier.tpsie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TPSIE"); 
+    state->u.f1.fld.dmaier.tbuie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TBUIE"); 
+    state->u.f1.fld.dmaier.tjtie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TJTIE"); 
+    state->u.f1.fld.dmaier.roie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "ROIE"); 
+    state->u.f1.fld.dmaier.tuie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "TUIE"); 
+    state->u.f1.fld.dmaier.rie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RIE"); 
+    state->u.f1.fld.dmaier.rbuie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RBUIE"); 
+    state->u.f1.fld.dmaier.rpsie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RPSIE"); 
+    state->u.f1.fld.dmaier.rwtie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "RWTIE"); 
+    state->u.f1.fld.dmaier.etie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "ETIE"); 
+    state->u.f1.fld.dmaier.fbeie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "FBEIE"); 
+    state->u.f1.fld.dmaier.erie = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "ERIE"); 
+    state->u.f1.fld.dmaier.aise = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "AISE"); 
+    state->u.f1.fld.dmaier.nise = cm_object_get_child_by_name(state->u.f1.reg.dmaier, "NISE");  
+    
+    // DMAMFBOCR bitfields.
+    state->u.f1.fld.dmamfbocr.mfc = cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "MFC"); 
+    state->u.f1.fld.dmamfbocr.omfc = cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "OMFC"); 
+    state->u.f1.fld.dmamfbocr.mfa = cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "MFA"); 
+    state->u.f1.fld.dmamfbocr.ofoc = cm_object_get_child_by_name(state->u.f1.reg.dmamfbocr, "OFOC");  
+    
+    // DMACHTDR bitfields.
+    state->u.f1.fld.dmachtdr.htdap = cm_object_get_child_by_name(state->u.f1.reg.dmachtdr, "HTDAP");  
+    
+    // DMACHRDR bitfields.
+    state->u.f1.fld.dmachrdr.hrdap = cm_object_get_child_by_name(state->u.f1.reg.dmachrdr, "HRDAP");  
+    
+    // DMACHTBAR bitfields.
+    state->u.f1.fld.dmachtbar.htbap = cm_object_get_child_by_name(state->u.f1.reg.dmachtbar, "HTBAP");  
+    
+    // DMACHRBAR bitfields.
+    state->u.f1.fld.dmachrbar.hrbap = cm_object_get_child_by_name(state->u.f1.reg.dmachrbar, "HRBAP");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -214,7 +228,7 @@ static void stm32_ethernet_dma_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -253,7 +267,7 @@ static void stm32_ethernet_dma_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_107xx) {
+        if (capabilities->f1.is_107xx ) {
 
             stm32f107xx_ethernet_dma_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -269,10 +283,12 @@ static void stm32_ethernet_dma_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/ETHERNET_DMAEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

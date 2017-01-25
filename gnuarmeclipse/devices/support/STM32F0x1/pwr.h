@@ -1,5 +1,5 @@
 /*
- * STM32- PWR(Power control) emulation.
+ * STM32 - PWR (Power control) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_PWRDEVICE_PATH_STM32"PWR"
+#define DEVICE_PATH_STM32_PWR DEVICE_PATH_STM32 "PWR"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_PWRTYPE_STM32_PREFIX "pwr" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_PWR TYPE_STM32_PREFIX "pwr" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,26 +75,47 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0PWR(Power control) registers.
+        // F0 PWR (Power control) registers.
         struct { 
-Object *cr; // 0x0(Power control register) 
-Object *csr; // 0x4(Power control/status register) 
-} reg;
+          Object *cr; // 0x0 (Power control register) 
+          Object *csr; // 0x4 (Power control/status register) 
+        } reg;
 
         struct { 
-// CR(Power control register) bitfields.
+          
+          // CR (Power control register) bitfields.
           struct { 
-Object *lpds; // [0:0] Low-power deep sleepObject *pdds; // [1:1] Power down deepsleepObject *cwuf; // [2:2] Clear wakeup flagObject *csbf; // [3:3] Clear standby flagObject *pvde; // [4:4] Power voltage detector enableObject *pls; // [5:7] PVD level selectionObject *dbp; // [8:8] Disable backup domain write protection} cr; 
-// CSR(Power control/status register) bitfields.
+            Object *lpds; // [0:0] Low-power deep sleep 
+            Object *pdds; // [1:1] Power down deepsleep 
+            Object *cwuf; // [2:2] Clear wakeup flag 
+            Object *csbf; // [3:3] Clear standby flag 
+            Object *pvde; // [4:4] Power voltage detector enable 
+            Object *pls; // [5:7] PVD level selection 
+            Object *dbp; // [8:8] Disable backup domain write protection  
+          } cr; 
+          
+          // CSR (Power control/status register) bitfields.
           struct { 
-Object *wuf; // [0:0] Wakeup flagObject *sbf; // [1:1] Standby flagObject *pvdo; // [2:2] PVD outputObject *vrefintrdy; // [3:3] VREFINT reference voltage readyObject *ewup1; // [8:8] Enable WKUP pin 1Object *ewup2; // [9:9] Enable WKUP pin 2Object *ewup3; // [10:10] Enable WKUP pin 3Object *ewup4; // [11:11] Enable WKUP pin 4Object *ewup5; // [12:12] Enable WKUP pin 5Object *ewup6; // [13:13] Enable WKUP pin 6Object *ewup7; // [14:14] Enable WKUP pin 7Object *ewup8; // [15:15] Enable WKUP pin 8} csr; 
-} fld;
+            Object *wuf; // [0:0] Wakeup flag 
+            Object *sbf; // [1:1] Standby flag 
+            Object *pvdo; // [2:2] PVD output 
+            Object *vrefintrdy; // [3:3] VREFINT reference voltage ready 
+            Object *ewup1; // [8:8] Enable WKUP pin 1 
+            Object *ewup2; // [9:9] Enable WKUP pin 2 
+            Object *ewup3; // [10:10] Enable WKUP pin 3 
+            Object *ewup4; // [11:11] Enable WKUP pin 4 
+            Object *ewup5; // [12:12] Enable WKUP pin 5 
+            Object *ewup6; // [13:13] Enable WKUP pin 6 
+            Object *ewup7; // [14:14] Enable WKUP pin 7 
+            Object *ewup8; // [15:15] Enable WKUP pin 8  
+          } csr; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

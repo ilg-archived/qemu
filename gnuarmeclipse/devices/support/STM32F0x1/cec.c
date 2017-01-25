@@ -1,5 +1,5 @@
 /*
- * STM32- CEC(HDMI-CEC controller) emulation.
+ * STM32 - CEC (HDMI-CEC controller) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,56 +35,63 @@ static void stm32f0x1_cec_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-state->u.f0.reg.cfgr= cm_object_get_child_by_name(obj, "CFGR");
-state->u.f0.reg.txdr= cm_object_get_child_by_name(obj, "TXDR");
-state->u.f0.reg.rxdr= cm_object_get_child_by_name(obj, "RXDR");
-state->u.f0.reg.isr= cm_object_get_child_by_name(obj, "ISR");
-state->u.f0.reg.ier= cm_object_get_child_by_name(obj, "IER");
-// CRbitfields.
-state->u.f0.fld.cr.cecen= cm_object_get_child_by_name(state->u.f0.reg.cr, "CECEN"); 
-state->u.f0.fld.cr.txsom= cm_object_get_child_by_name(state->u.f0.reg.cr, "TXSOM"); 
-state->u.f0.fld.cr.txeom= cm_object_get_child_by_name(state->u.f0.reg.cr, "TXEOM"); 
-// CFGRbitfields.
-state->u.f0.fld.cfgr.oar= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "OAR"); 
-state->u.f0.fld.cfgr.lstn= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "LSTN"); 
-state->u.f0.fld.cfgr.sft= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SFT"); 
-state->u.f0.fld.cfgr.rxtol= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "RXTOL"); 
-state->u.f0.fld.cfgr.brestp= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "BRESTP"); 
-state->u.f0.fld.cfgr.bregen= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "BREGEN"); 
-state->u.f0.fld.cfgr.lbpegen= cm_object_get_child_by_name(state->u.f0.reg.cfgr, "LBPEGEN"); 
-// TXDRbitfields.
-state->u.f0.fld.txdr.txd= cm_object_get_child_by_name(state->u.f0.reg.txdr, "TXD"); 
-// RXDRbitfields.
-state->u.f0.fld.rxdr.rxdr= cm_object_get_child_by_name(state->u.f0.reg.rxdr, "RXDR"); 
-// ISRbitfields.
-state->u.f0.fld.isr.rxbr= cm_object_get_child_by_name(state->u.f0.reg.isr, "RXBR"); 
-state->u.f0.fld.isr.rxend= cm_object_get_child_by_name(state->u.f0.reg.isr, "RXEND"); 
-state->u.f0.fld.isr.rxovr= cm_object_get_child_by_name(state->u.f0.reg.isr, "RXOVR"); 
-state->u.f0.fld.isr.bre= cm_object_get_child_by_name(state->u.f0.reg.isr, "BRE"); 
-state->u.f0.fld.isr.sbpe= cm_object_get_child_by_name(state->u.f0.reg.isr, "SBPE"); 
-state->u.f0.fld.isr.lbpe= cm_object_get_child_by_name(state->u.f0.reg.isr, "LBPE"); 
-state->u.f0.fld.isr.rxacke= cm_object_get_child_by_name(state->u.f0.reg.isr, "RXACKE"); 
-state->u.f0.fld.isr.arblst= cm_object_get_child_by_name(state->u.f0.reg.isr, "ARBLST"); 
-state->u.f0.fld.isr.txbr= cm_object_get_child_by_name(state->u.f0.reg.isr, "TXBR"); 
-state->u.f0.fld.isr.txend= cm_object_get_child_by_name(state->u.f0.reg.isr, "TXEND"); 
-state->u.f0.fld.isr.txudr= cm_object_get_child_by_name(state->u.f0.reg.isr, "TXUDR"); 
-state->u.f0.fld.isr.txerr= cm_object_get_child_by_name(state->u.f0.reg.isr, "TXERR"); 
-state->u.f0.fld.isr.txacke= cm_object_get_child_by_name(state->u.f0.reg.isr, "TXACKE"); 
-// IERbitfields.
-state->u.f0.fld.ier.rxbrie= cm_object_get_child_by_name(state->u.f0.reg.ier, "RXBRIE"); 
-state->u.f0.fld.ier.rxendie= cm_object_get_child_by_name(state->u.f0.reg.ier, "RXENDIE"); 
-state->u.f0.fld.ier.rxovrie= cm_object_get_child_by_name(state->u.f0.reg.ier, "RXOVRIE"); 
-state->u.f0.fld.ier.breie= cm_object_get_child_by_name(state->u.f0.reg.ier, "BREIE"); 
-state->u.f0.fld.ier.sbpeie= cm_object_get_child_by_name(state->u.f0.reg.ier, "SBPEIE"); 
-state->u.f0.fld.ier.lbpeie= cm_object_get_child_by_name(state->u.f0.reg.ier, "LBPEIE"); 
-state->u.f0.fld.ier.rxackie= cm_object_get_child_by_name(state->u.f0.reg.ier, "RXACKIE"); 
-state->u.f0.fld.ier.arblstie= cm_object_get_child_by_name(state->u.f0.reg.ier, "ARBLSTIE"); 
-state->u.f0.fld.ier.txbrie= cm_object_get_child_by_name(state->u.f0.reg.ier, "TXBRIE"); 
-state->u.f0.fld.ier.txendie= cm_object_get_child_by_name(state->u.f0.reg.ier, "TXENDIE"); 
-state->u.f0.fld.ier.txudrie= cm_object_get_child_by_name(state->u.f0.reg.ier, "TXUDRIE"); 
-state->u.f0.fld.ier.txerrie= cm_object_get_child_by_name(state->u.f0.reg.ier, "TXERRIE"); 
-state->u.f0.fld.ier.txackie= cm_object_get_child_by_name(state->u.f0.reg.ier, "TXACKIE"); 
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.cfgr = cm_object_get_child_by_name(obj, "CFGR");
+    state->u.f0.reg.txdr = cm_object_get_child_by_name(obj, "TXDR");
+    state->u.f0.reg.rxdr = cm_object_get_child_by_name(obj, "RXDR");
+    state->u.f0.reg.isr = cm_object_get_child_by_name(obj, "ISR");
+    state->u.f0.reg.ier = cm_object_get_child_by_name(obj, "IER");
+    
+    
+    // CR bitfields.
+    state->u.f0.fld.cr.cecen = cm_object_get_child_by_name(state->u.f0.reg.cr, "CECEN"); 
+    state->u.f0.fld.cr.txsom = cm_object_get_child_by_name(state->u.f0.reg.cr, "TXSOM"); 
+    state->u.f0.fld.cr.txeom = cm_object_get_child_by_name(state->u.f0.reg.cr, "TXEOM");  
+    
+    // CFGR bitfields.
+    state->u.f0.fld.cfgr.oar = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "OAR"); 
+    state->u.f0.fld.cfgr.lstn = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "LSTN"); 
+    state->u.f0.fld.cfgr.sft = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "SFT"); 
+    state->u.f0.fld.cfgr.rxtol = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "RXTOL"); 
+    state->u.f0.fld.cfgr.brestp = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "BRESTP"); 
+    state->u.f0.fld.cfgr.bregen = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "BREGEN"); 
+    state->u.f0.fld.cfgr.lbpegen = cm_object_get_child_by_name(state->u.f0.reg.cfgr, "LBPEGEN");  
+    
+    // TXDR bitfields.
+    state->u.f0.fld.txdr.txd = cm_object_get_child_by_name(state->u.f0.reg.txdr, "TXD");  
+    
+    // RXDR bitfields.
+    state->u.f0.fld.rxdr.rxdr = cm_object_get_child_by_name(state->u.f0.reg.rxdr, "RXDR");  
+    
+    // ISR bitfields.
+    state->u.f0.fld.isr.rxbr = cm_object_get_child_by_name(state->u.f0.reg.isr, "RXBR"); 
+    state->u.f0.fld.isr.rxend = cm_object_get_child_by_name(state->u.f0.reg.isr, "RXEND"); 
+    state->u.f0.fld.isr.rxovr = cm_object_get_child_by_name(state->u.f0.reg.isr, "RXOVR"); 
+    state->u.f0.fld.isr.bre = cm_object_get_child_by_name(state->u.f0.reg.isr, "BRE"); 
+    state->u.f0.fld.isr.sbpe = cm_object_get_child_by_name(state->u.f0.reg.isr, "SBPE"); 
+    state->u.f0.fld.isr.lbpe = cm_object_get_child_by_name(state->u.f0.reg.isr, "LBPE"); 
+    state->u.f0.fld.isr.rxacke = cm_object_get_child_by_name(state->u.f0.reg.isr, "RXACKE"); 
+    state->u.f0.fld.isr.arblst = cm_object_get_child_by_name(state->u.f0.reg.isr, "ARBLST"); 
+    state->u.f0.fld.isr.txbr = cm_object_get_child_by_name(state->u.f0.reg.isr, "TXBR"); 
+    state->u.f0.fld.isr.txend = cm_object_get_child_by_name(state->u.f0.reg.isr, "TXEND"); 
+    state->u.f0.fld.isr.txudr = cm_object_get_child_by_name(state->u.f0.reg.isr, "TXUDR"); 
+    state->u.f0.fld.isr.txerr = cm_object_get_child_by_name(state->u.f0.reg.isr, "TXERR"); 
+    state->u.f0.fld.isr.txacke = cm_object_get_child_by_name(state->u.f0.reg.isr, "TXACKE");  
+    
+    // IER bitfields.
+    state->u.f0.fld.ier.rxbrie = cm_object_get_child_by_name(state->u.f0.reg.ier, "RXBRIE"); 
+    state->u.f0.fld.ier.rxendie = cm_object_get_child_by_name(state->u.f0.reg.ier, "RXENDIE"); 
+    state->u.f0.fld.ier.rxovrie = cm_object_get_child_by_name(state->u.f0.reg.ier, "RXOVRIE"); 
+    state->u.f0.fld.ier.breie = cm_object_get_child_by_name(state->u.f0.reg.ier, "BREIE"); 
+    state->u.f0.fld.ier.sbpeie = cm_object_get_child_by_name(state->u.f0.reg.ier, "SBPEIE"); 
+    state->u.f0.fld.ier.lbpeie = cm_object_get_child_by_name(state->u.f0.reg.ier, "LBPEIE"); 
+    state->u.f0.fld.ier.rxackie = cm_object_get_child_by_name(state->u.f0.reg.ier, "RXACKIE"); 
+    state->u.f0.fld.ier.arblstie = cm_object_get_child_by_name(state->u.f0.reg.ier, "ARBLSTIE"); 
+    state->u.f0.fld.ier.txbrie = cm_object_get_child_by_name(state->u.f0.reg.ier, "TXBRIE"); 
+    state->u.f0.fld.ier.txendie = cm_object_get_child_by_name(state->u.f0.reg.ier, "TXENDIE"); 
+    state->u.f0.fld.ier.txudrie = cm_object_get_child_by_name(state->u.f0.reg.ier, "TXUDRIE"); 
+    state->u.f0.fld.ier.txerrie = cm_object_get_child_by_name(state->u.f0.reg.ier, "TXERRIE"); 
+    state->u.f0.fld.ier.txackie = cm_object_get_child_by_name(state->u.f0.reg.ier, "TXACKIE");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -168,7 +175,7 @@ static void stm32_cec_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -207,7 +214,7 @@ static void stm32_cec_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_cec_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -223,10 +230,12 @@ static void stm32_cec_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/CECEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

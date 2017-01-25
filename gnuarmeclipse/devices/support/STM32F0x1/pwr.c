@@ -1,5 +1,5 @@
 /*
- * STM32- PWR(Power control) emulation.
+ * STM32 - PWR (Power control) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,29 +35,32 @@ static void stm32f0x1_pwr_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-state->u.f0.reg.csr= cm_object_get_child_by_name(obj, "CSR");
-// CRbitfields.
-state->u.f0.fld.cr.lpds= cm_object_get_child_by_name(state->u.f0.reg.cr, "LPDS"); 
-state->u.f0.fld.cr.pdds= cm_object_get_child_by_name(state->u.f0.reg.cr, "PDDS"); 
-state->u.f0.fld.cr.cwuf= cm_object_get_child_by_name(state->u.f0.reg.cr, "CWUF"); 
-state->u.f0.fld.cr.csbf= cm_object_get_child_by_name(state->u.f0.reg.cr, "CSBF"); 
-state->u.f0.fld.cr.pvde= cm_object_get_child_by_name(state->u.f0.reg.cr, "PVDE"); 
-state->u.f0.fld.cr.pls= cm_object_get_child_by_name(state->u.f0.reg.cr, "PLS"); 
-state->u.f0.fld.cr.dbp= cm_object_get_child_by_name(state->u.f0.reg.cr, "DBP"); 
-// CSRbitfields.
-state->u.f0.fld.csr.wuf= cm_object_get_child_by_name(state->u.f0.reg.csr, "WUF"); 
-state->u.f0.fld.csr.sbf= cm_object_get_child_by_name(state->u.f0.reg.csr, "SBF"); 
-state->u.f0.fld.csr.pvdo= cm_object_get_child_by_name(state->u.f0.reg.csr, "PVDO"); 
-state->u.f0.fld.csr.vrefintrdy= cm_object_get_child_by_name(state->u.f0.reg.csr, "VREFINTRDY"); 
-state->u.f0.fld.csr.ewup1= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP1"); 
-state->u.f0.fld.csr.ewup2= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP2"); 
-state->u.f0.fld.csr.ewup3= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP3"); 
-state->u.f0.fld.csr.ewup4= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP4"); 
-state->u.f0.fld.csr.ewup5= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP5"); 
-state->u.f0.fld.csr.ewup6= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP6"); 
-state->u.f0.fld.csr.ewup7= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP7"); 
-state->u.f0.fld.csr.ewup8= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP8"); 
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+    
+    
+    // CR bitfields.
+    state->u.f0.fld.cr.lpds = cm_object_get_child_by_name(state->u.f0.reg.cr, "LPDS"); 
+    state->u.f0.fld.cr.pdds = cm_object_get_child_by_name(state->u.f0.reg.cr, "PDDS"); 
+    state->u.f0.fld.cr.cwuf = cm_object_get_child_by_name(state->u.f0.reg.cr, "CWUF"); 
+    state->u.f0.fld.cr.csbf = cm_object_get_child_by_name(state->u.f0.reg.cr, "CSBF"); 
+    state->u.f0.fld.cr.pvde = cm_object_get_child_by_name(state->u.f0.reg.cr, "PVDE"); 
+    state->u.f0.fld.cr.pls = cm_object_get_child_by_name(state->u.f0.reg.cr, "PLS"); 
+    state->u.f0.fld.cr.dbp = cm_object_get_child_by_name(state->u.f0.reg.cr, "DBP");  
+    
+    // CSR bitfields.
+    state->u.f0.fld.csr.wuf = cm_object_get_child_by_name(state->u.f0.reg.csr, "WUF"); 
+    state->u.f0.fld.csr.sbf = cm_object_get_child_by_name(state->u.f0.reg.csr, "SBF"); 
+    state->u.f0.fld.csr.pvdo = cm_object_get_child_by_name(state->u.f0.reg.csr, "PVDO"); 
+    state->u.f0.fld.csr.vrefintrdy = cm_object_get_child_by_name(state->u.f0.reg.csr, "VREFINTRDY"); 
+    state->u.f0.fld.csr.ewup1 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP1"); 
+    state->u.f0.fld.csr.ewup2 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP2"); 
+    state->u.f0.fld.csr.ewup3 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP3"); 
+    state->u.f0.fld.csr.ewup4 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP4"); 
+    state->u.f0.fld.csr.ewup5 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP5"); 
+    state->u.f0.fld.csr.ewup6 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP6"); 
+    state->u.f0.fld.csr.ewup7 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP7"); 
+    state->u.f0.fld.csr.ewup8 = cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP8");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -141,7 +144,7 @@ static void stm32_pwr_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -180,7 +183,7 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_pwr_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -196,10 +199,12 @@ static void stm32_pwr_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/PWREN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

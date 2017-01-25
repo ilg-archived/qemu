@@ -1,5 +1,5 @@
 /*
- * STM32- IWDG(Independent watchdog) emulation.
+ * STM32 - IWDG (Independent watchdog) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_IWDGDEVICE_PATH_STM32"IWDG"
+#define DEVICE_PATH_STM32_IWDG DEVICE_PATH_STM32 "IWDG"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_IWDGTYPE_STM32_PREFIX "iwdg" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_IWDG TYPE_STM32_PREFIX "iwdg" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,34 +75,43 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1IWDG(Independent watchdog) registers.
+        // F1 IWDG (Independent watchdog) registers.
         struct { 
-Object *kr; // 0x0(Key register (IWDG_KR)) 
-Object *pr; // 0x4(Prescaler register (IWDG_PR)) 
-Object *rlr; // 0x8(Reload register (IWDG_RLR)) 
-Object *sr; // 0xC(Status register (IWDG_SR)) 
-} reg;
+          Object *kr; // 0x0 (Key register (IWDG_KR)) 
+          Object *pr; // 0x4 (Prescaler register (IWDG_PR)) 
+          Object *rlr; // 0x8 (Reload register (IWDG_RLR)) 
+          Object *sr; // 0xC (Status register (IWDG_SR)) 
+        } reg;
 
         struct { 
-// KR(Key register (IWDG_KR)) bitfields.
+          
+          // KR (Key register (IWDG_KR)) bitfields.
           struct { 
-Object *key; // [0:15] Key value} kr; 
-// PR(Prescaler register (IWDG_PR)) bitfields.
+            Object *key; // [0:15] Key value  
+          } kr; 
+          
+          // PR (Prescaler register (IWDG_PR)) bitfields.
           struct { 
-Object *pr; // [0:2] Prescaler divider} pr; 
-// RLR(Reload register (IWDG_RLR)) bitfields.
+            Object *pr; // [0:2] Prescaler divider  
+          } pr; 
+          
+          // RLR (Reload register (IWDG_RLR)) bitfields.
           struct { 
-Object *rl; // [0:11] Watchdog counter reload value} rlr; 
-// SR(Status register (IWDG_SR)) bitfields.
+            Object *rl; // [0:11] Watchdog counter reload value  
+          } rlr; 
+          
+          // SR (Status register (IWDG_SR)) bitfields.
           struct { 
-Object *pvu; // [0:0] Watchdog prescaler value updateObject *rvu; // [1:1] Watchdog counter reload value update} sr; 
-} fld;
+            Object *pvu; // [0:0] Watchdog prescaler value update 
+            Object *rvu; // [1:1] Watchdog counter reload value update  
+          } sr; 
+        } fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

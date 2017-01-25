@@ -1,5 +1,5 @@
 /*
- * STM32- USB_OTG_PWRCLK(USB on the go full speed) emulation.
+ * STM32 - USB_OTG_PWRCLK (USB on the go full speed) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,11 +35,13 @@ static void stm32f107xx_usb_otg_pwrclk_create_objects(Object *obj, JSON_Object *
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f1.reg.fs_pcgcctl= cm_object_get_child_by_name(obj, "FS_PCGCCTL");
-// FS_PCGCCTLbitfields.
-state->u.f1.fld.fs_pcgcctl.stppclk= cm_object_get_child_by_name(state->u.f1.reg.fs_pcgcctl, "STPPCLK"); 
-state->u.f1.fld.fs_pcgcctl.gatehclk= cm_object_get_child_by_name(state->u.f1.reg.fs_pcgcctl, "GATEHCLK"); 
-state->u.f1.fld.fs_pcgcctl.physusp= cm_object_get_child_by_name(state->u.f1.reg.fs_pcgcctl, "PHYSUSP"); 
+    state->u.f1.reg.fs_pcgcctl = cm_object_get_child_by_name(obj, "FS_PCGCCTL");
+    
+    
+    // FS_PCGCCTL bitfields.
+    state->u.f1.fld.fs_pcgcctl.stppclk = cm_object_get_child_by_name(state->u.f1.reg.fs_pcgcctl, "STPPCLK"); 
+    state->u.f1.fld.fs_pcgcctl.gatehclk = cm_object_get_child_by_name(state->u.f1.reg.fs_pcgcctl, "GATEHCLK"); 
+    state->u.f1.fld.fs_pcgcctl.physusp = cm_object_get_child_by_name(state->u.f1.reg.fs_pcgcctl, "PHYSUSP");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -123,7 +125,7 @@ static void stm32_usb_otg_pwrclk_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -162,7 +164,7 @@ static void stm32_usb_otg_pwrclk_realize_callback(DeviceState *dev, Error **errp
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_107xx) {
+        if (capabilities->f1.is_107xx ) {
 
             stm32f107xx_usb_otg_pwrclk_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -178,10 +180,12 @@ static void stm32_usb_otg_pwrclk_realize_callback(DeviceState *dev, Error **errp
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/USB_OTG_PWRCLKEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

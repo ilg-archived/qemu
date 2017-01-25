@@ -1,5 +1,5 @@
 /*
- * STM32- ETHERNET_PTP(Ethernet: Precision time protocol) emulation.
+ * STM32 - ETHERNET_PTP (Ethernet: Precision time protocol) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_ETHERNET_PTPDEVICE_PATH_STM32"ETHERNET_PTP"
+#define DEVICE_PATH_STM32_ETHERNET_PTP DEVICE_PATH_STM32 "ETHERNET_PTP"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_ETHERNET_PTPTYPE_STM32_PREFIX "ethernet_ptp" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_ETHERNET_PTP TYPE_STM32_PREFIX "ethernet_ptp" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,54 +75,79 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1ETHERNET_PTP(Ethernet: Precision time protocol) registers.
+        // F1 ETHERNET_PTP (Ethernet: Precision time protocol) registers.
         struct { 
-Object *ptptscr; // 0x0(Ethernet PTP time stamp control register (ETH_PTPTSCR)) 
-Object *ptpssir; // 0x4(Ethernet PTP subsecond increment register) 
-Object *ptptshr; // 0x8(Ethernet PTP time stamp high register) 
-Object *ptptslr; // 0xC(Ethernet PTP time stamp low register (ETH_PTPTSLR)) 
-Object *ptptshur; // 0x10(Ethernet PTP time stamp high update register) 
-Object *ptptslur; // 0x14(Ethernet PTP time stamp low update register (ETH_PTPTSLUR)) 
-Object *ptptsar; // 0x18(Ethernet PTP time stamp addend register) 
-Object *ptptthr; // 0x1C(Ethernet PTP target time high register) 
-Object *ptpttlr; // 0x20(Ethernet PTP target time low register) 
-} reg;
+          Object *ptptscr; // 0x0 (Ethernet PTP time stamp control register (ETH_PTPTSCR)) 
+          Object *ptpssir; // 0x4 (Ethernet PTP subsecond increment register) 
+          Object *ptptshr; // 0x8 (Ethernet PTP time stamp high register) 
+          Object *ptptslr; // 0xC (Ethernet PTP time stamp low register (ETH_PTPTSLR)) 
+          Object *ptptshur; // 0x10 (Ethernet PTP time stamp high update register) 
+          Object *ptptslur; // 0x14 (Ethernet PTP time stamp low update register (ETH_PTPTSLUR)) 
+          Object *ptptsar; // 0x18 (Ethernet PTP time stamp addend register) 
+          Object *ptptthr; // 0x1C (Ethernet PTP target time high register) 
+          Object *ptpttlr; // 0x20 (Ethernet PTP target time low register) 
+        } reg;
 
         struct { 
-// PTPTSCR(Ethernet PTP time stamp control register (ETH_PTPTSCR)) bitfields.
+          
+          // PTPTSCR (Ethernet PTP time stamp control register (ETH_PTPTSCR)) bitfields.
           struct { 
-Object *tse; // [0:0] Time stamp enableObject *tsfcu; // [1:1] Time stamp fine or coarse updateObject *tssti; // [2:2] Time stamp system time initializeObject *tsstu; // [3:3] Time stamp system time updateObject *tsite; // [4:4] Time stamp interrupt trigger enableObject *tsaru; // [5:5] Time stamp addend register update} ptptscr; 
-// PTPSSIR(Ethernet PTP subsecond increment register) bitfields.
+            Object *tse; // [0:0] Time stamp enable 
+            Object *tsfcu; // [1:1] Time stamp fine or coarse update 
+            Object *tssti; // [2:2] Time stamp system time initialize 
+            Object *tsstu; // [3:3] Time stamp system time update 
+            Object *tsite; // [4:4] Time stamp interrupt trigger enable 
+            Object *tsaru; // [5:5] Time stamp addend register update  
+          } ptptscr; 
+          
+          // PTPSSIR (Ethernet PTP subsecond increment register) bitfields.
           struct { 
-Object *stssi; // [0:7] System time subsecond increment} ptpssir; 
-// PTPTSHR(Ethernet PTP time stamp high register) bitfields.
+            Object *stssi; // [0:7] System time subsecond increment  
+          } ptpssir; 
+          
+          // PTPTSHR (Ethernet PTP time stamp high register) bitfields.
           struct { 
-Object *sts; // [0:31] System time second} ptptshr; 
-// PTPTSLR(Ethernet PTP time stamp low register (ETH_PTPTSLR)) bitfields.
+            Object *sts; // [0:31] System time second  
+          } ptptshr; 
+          
+          // PTPTSLR (Ethernet PTP time stamp low register (ETH_PTPTSLR)) bitfields.
           struct { 
-Object *stss; // [0:30] System time subsecondsObject *stpns; // [31:31] System time positive or negative sign} ptptslr; 
-// PTPTSHUR(Ethernet PTP time stamp high update register) bitfields.
+            Object *stss; // [0:30] System time subseconds 
+            Object *stpns; // [31:31] System time positive or negative sign  
+          } ptptslr; 
+          
+          // PTPTSHUR (Ethernet PTP time stamp high update register) bitfields.
           struct { 
-Object *tsus; // [0:31] Time stamp update second} ptptshur; 
-// PTPTSLUR(Ethernet PTP time stamp low update register (ETH_PTPTSLUR)) bitfields.
+            Object *tsus; // [0:31] Time stamp update second  
+          } ptptshur; 
+          
+          // PTPTSLUR (Ethernet PTP time stamp low update register (ETH_PTPTSLUR)) bitfields.
           struct { 
-Object *tsuss; // [0:30] Time stamp update subsecondsObject *tsupns; // [31:31] Time stamp update positive or negative sign} ptptslur; 
-// PTPTSAR(Ethernet PTP time stamp addend register) bitfields.
+            Object *tsuss; // [0:30] Time stamp update subseconds 
+            Object *tsupns; // [31:31] Time stamp update positive or negative sign  
+          } ptptslur; 
+          
+          // PTPTSAR (Ethernet PTP time stamp addend register) bitfields.
           struct { 
-Object *tsa; // [0:31] Time stamp addend} ptptsar; 
-// PTPTTHR(Ethernet PTP target time high register) bitfields.
+            Object *tsa; // [0:31] Time stamp addend  
+          } ptptsar; 
+          
+          // PTPTTHR (Ethernet PTP target time high register) bitfields.
           struct { 
-Object *ttsh; // [0:31] Target time stamp high} ptptthr; 
-// PTPTTLR(Ethernet PTP target time low register) bitfields.
+            Object *ttsh; // [0:31] Target time stamp high  
+          } ptptthr; 
+          
+          // PTPTTLR (Ethernet PTP target time low register) bitfields.
           struct { 
-Object *ttsl; // [0:31] Target time stamp low} ptpttlr; 
-} fld;
+            Object *ttsl; // [0:31] Target time stamp low  
+          } ptpttlr; 
+        } fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

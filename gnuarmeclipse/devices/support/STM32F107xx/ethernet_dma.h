@@ -1,5 +1,5 @@
 /*
- * STM32- ETHERNET_DMA(Ethernet: DMA controller operation) emulation.
+ * STM32 - ETHERNET_DMA (Ethernet: DMA controller operation) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_ETHERNET_DMADEVICE_PATH_STM32"ETHERNET_DMA"
+#define DEVICE_PATH_STM32_ETHERNET_DMA DEVICE_PATH_STM32 "ETHERNET_DMA"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_ETHERNET_DMATYPE_STM32_PREFIX "ethernet_dma" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_ETHERNET_DMA TYPE_STM32_PREFIX "ethernet_dma" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,70 +75,153 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1ETHERNET_DMA(Ethernet: DMA controller operation) registers.
+        // F1 ETHERNET_DMA (Ethernet: DMA controller operation) registers.
         struct { 
-Object *dmabmr; // 0x0(Ethernet DMA bus mode register) 
-Object *dmatpdr; // 0x4(Ethernet DMA transmit poll demand register) 
-Object *dmarpdr; // 0x8(EHERNET DMA receive poll demand register) 
-Object *dmardlar; // 0xC(Ethernet DMA receive descriptor list address register) 
-Object *dmatdlar; // 0x10(Ethernet DMA transmit descriptor list address register) 
-Object *dmasr; // 0x14(Ethernet DMA status register) 
-Object *dmaomr; // 0x18(Ethernet DMA operation mode register) 
-Object *dmaier; // 0x1C(Ethernet DMA interrupt enable register) 
-Object *dmamfbocr; // 0x20(Ethernet DMA missed frame and buffer overflow counter register) 
-Object *dmachtdr; // 0x48(Ethernet DMA current host transmit descriptor register) 
-Object *dmachrdr; // 0x4C(Ethernet DMA current host receive descriptor register) 
-Object *dmachtbar; // 0x50(Ethernet DMA current host transmit buffer address register) 
-Object *dmachrbar; // 0x54(Ethernet DMA current host receive buffer address register) 
-} reg;
+          Object *dmabmr; // 0x0 (Ethernet DMA bus mode register) 
+          Object *dmatpdr; // 0x4 (Ethernet DMA transmit poll demand register) 
+          Object *dmarpdr; // 0x8 (EHERNET DMA receive poll demand register) 
+          Object *dmardlar; // 0xC (Ethernet DMA receive descriptor list address register) 
+          Object *dmatdlar; // 0x10 (Ethernet DMA transmit descriptor list address register) 
+          Object *dmasr; // 0x14 (Ethernet DMA status register) 
+          Object *dmaomr; // 0x18 (Ethernet DMA operation mode register) 
+          Object *dmaier; // 0x1C (Ethernet DMA interrupt enable register) 
+          Object *dmamfbocr; // 0x20 (Ethernet DMA missed frame and buffer overflow counter register) 
+          Object *dmachtdr; // 0x48 (Ethernet DMA current host transmit descriptor register) 
+          Object *dmachrdr; // 0x4C (Ethernet DMA current host receive descriptor register) 
+          Object *dmachtbar; // 0x50 (Ethernet DMA current host transmit buffer address register) 
+          Object *dmachrbar; // 0x54 (Ethernet DMA current host receive buffer address register) 
+        } reg;
 
         struct { 
-// DMABMR(Ethernet DMA bus mode register) bitfields.
+          
+          // DMABMR (Ethernet DMA bus mode register) bitfields.
           struct { 
-Object *sr; // [0:0] Software resetObject *da; // [1:1] DMA ArbitrationObject *dsl; // [2:6] Descriptor skip lengthObject *pbl; // [8:13] Programmable burst lengthObject *rtpr; // [14:15] Rx Tx priority ratioObject *fb; // [16:16] Fixed burstObject *rdp; // [17:22] Rx DMA PBLObject *usp; // [23:23] Use separate PBLObject *fpm; // [24:24] 4xPBL modeObject *aab; // [25:25] Address-aligned beats} dmabmr; 
-// DMATPDR(Ethernet DMA transmit poll demand register) bitfields.
+            Object *sr; // [0:0] Software reset 
+            Object *da; // [1:1] DMA Arbitration 
+            Object *dsl; // [2:6] Descriptor skip length 
+            Object *pbl; // [8:13] Programmable burst length 
+            Object *rtpr; // [14:15] Rx Tx priority ratio 
+            Object *fb; // [16:16] Fixed burst 
+            Object *rdp; // [17:22] Rx DMA PBL 
+            Object *usp; // [23:23] Use separate PBL 
+            Object *fpm; // [24:24] 4xPBL mode 
+            Object *aab; // [25:25] Address-aligned beats  
+          } dmabmr; 
+          
+          // DMATPDR (Ethernet DMA transmit poll demand register) bitfields.
           struct { 
-Object *tpd; // [0:31] Transmit poll demand} dmatpdr; 
-// DMARPDR(EHERNET DMA receive poll demand register) bitfields.
+            Object *tpd; // [0:31] Transmit poll demand  
+          } dmatpdr; 
+          
+          // DMARPDR (EHERNET DMA receive poll demand register) bitfields.
           struct { 
-Object *rpd; // [0:31] Receive poll demand} dmarpdr; 
-// DMARDLAR(Ethernet DMA receive descriptor list address register) bitfields.
+            Object *rpd; // [0:31] Receive poll demand  
+          } dmarpdr; 
+          
+          // DMARDLAR (Ethernet DMA receive descriptor list address register) bitfields.
           struct { 
-Object *srl; // [0:31] Start of receive list} dmardlar; 
-// DMATDLAR(Ethernet DMA transmit descriptor list address register) bitfields.
+            Object *srl; // [0:31] Start of receive list  
+          } dmardlar; 
+          
+          // DMATDLAR (Ethernet DMA transmit descriptor list address register) bitfields.
           struct { 
-Object *stl; // [0:31] Start of transmit list} dmatdlar; 
-// DMASR(Ethernet DMA status register) bitfields.
+            Object *stl; // [0:31] Start of transmit list  
+          } dmatdlar; 
+          
+          // DMASR (Ethernet DMA status register) bitfields.
           struct { 
-Object *ts; // [0:0] Transmit statusObject *tpss; // [1:1] Transmit process stopped statusObject *tbus; // [2:2] Transmit buffer unavailable statusObject *tjts; // [3:3] Transmit jabber timeout statusObject *ros; // [4:4] Receive overflow statusObject *tus; // [5:5] Transmit underflow statusObject *rs; // [6:6] Receive statusObject *rbus; // [7:7] Receive buffer unavailable statusObject *rpss; // [8:8] Receive process stopped statusObject *pwts; // [9:9] Receive watchdog timeout statusObject *ets; // [10:10] Early transmit statusObject *fbes; // [13:13] Fatal bus error statusObject *ers; // [14:14] Early receive statusObject *ais; // [15:15] Abnormal interrupt summaryObject *nis; // [16:16] Normal interrupt summaryObject *rps; // [17:19] Receive process stateObject *tps; // [20:22] Transmit process stateObject *ebs; // [23:25] Error bits statusObject *mmcs; // [27:27] MMC statusObject *pmts; // [28:28] PMT statusObject *tsts; // [29:29] Time stamp trigger status} dmasr; 
-// DMAOMR(Ethernet DMA operation mode register) bitfields.
+            Object *ts; // [0:0] Transmit status 
+            Object *tpss; // [1:1] Transmit process stopped status 
+            Object *tbus; // [2:2] Transmit buffer unavailable status 
+            Object *tjts; // [3:3] Transmit jabber timeout status 
+            Object *ros; // [4:4] Receive overflow status 
+            Object *tus; // [5:5] Transmit underflow status 
+            Object *rs; // [6:6] Receive status 
+            Object *rbus; // [7:7] Receive buffer unavailable status 
+            Object *rpss; // [8:8] Receive process stopped status 
+            Object *pwts; // [9:9] Receive watchdog timeout status 
+            Object *ets; // [10:10] Early transmit status 
+            Object *fbes; // [13:13] Fatal bus error status 
+            Object *ers; // [14:14] Early receive status 
+            Object *ais; // [15:15] Abnormal interrupt summary 
+            Object *nis; // [16:16] Normal interrupt summary 
+            Object *rps; // [17:19] Receive process state 
+            Object *tps; // [20:22] Transmit process state 
+            Object *ebs; // [23:25] Error bits status 
+            Object *mmcs; // [27:27] MMC status 
+            Object *pmts; // [28:28] PMT status 
+            Object *tsts; // [29:29] Time stamp trigger status  
+          } dmasr; 
+          
+          // DMAOMR (Ethernet DMA operation mode register) bitfields.
           struct { 
-Object *sr; // [1:1] SRObject *osf; // [2:2] OSFObject *rtc; // [3:4] RTCObject *fugf; // [6:6] FUGFObject *fef; // [7:7] FEFObject *st; // [13:13] STObject *ttc; // [14:16] TTCObject *ftf; // [20:20] FTFObject *tsf; // [21:21] TSFObject *dfrf; // [24:24] DFRFObject *rsf; // [25:25] RSFObject *dtcefd; // [26:26] DTCEFD} dmaomr; 
-// DMAIER(Ethernet DMA interrupt enable register) bitfields.
+            Object *sr; // [1:1] SR 
+            Object *osf; // [2:2] OSF 
+            Object *rtc; // [3:4] RTC 
+            Object *fugf; // [6:6] FUGF 
+            Object *fef; // [7:7] FEF 
+            Object *st; // [13:13] ST 
+            Object *ttc; // [14:16] TTC 
+            Object *ftf; // [20:20] FTF 
+            Object *tsf; // [21:21] TSF 
+            Object *dfrf; // [24:24] DFRF 
+            Object *rsf; // [25:25] RSF 
+            Object *dtcefd; // [26:26] DTCEFD  
+          } dmaomr; 
+          
+          // DMAIER (Ethernet DMA interrupt enable register) bitfields.
           struct { 
-Object *tie; // [0:0] Transmit interrupt enableObject *tpsie; // [1:1] Transmit process stopped interrupt enableObject *tbuie; // [2:2] Transmit buffer unavailable interrupt enableObject *tjtie; // [3:3] Transmit jabber timeout interrupt enableObject *roie; // [4:4] Overflow interrupt enableObject *tuie; // [5:5] Underflow interrupt enableObject *rie; // [6:6] Receive interrupt enableObject *rbuie; // [7:7] Receive buffer unavailable interrupt enableObject *rpsie; // [8:8] Receive process stopped interrupt enableObject *rwtie; // [9:9] Receive watchdog timeout interrupt enableObject *etie; // [10:10] Early transmit interrupt enableObject *fbeie; // [13:13] Fatal bus error interrupt enableObject *erie; // [14:14] Early receive interrupt enableObject *aise; // [15:15] Abnormal interrupt summary enableObject *nise; // [16:16] Normal interrupt summary enable} dmaier; 
-// DMAMFBOCR(Ethernet DMA missed frame and buffer overflow counter register) bitfields.
+            Object *tie; // [0:0] Transmit interrupt enable 
+            Object *tpsie; // [1:1] Transmit process stopped interrupt enable 
+            Object *tbuie; // [2:2] Transmit buffer unavailable interrupt enable 
+            Object *tjtie; // [3:3] Transmit jabber timeout interrupt enable 
+            Object *roie; // [4:4] Overflow interrupt enable 
+            Object *tuie; // [5:5] Underflow interrupt enable 
+            Object *rie; // [6:6] Receive interrupt enable 
+            Object *rbuie; // [7:7] Receive buffer unavailable interrupt enable 
+            Object *rpsie; // [8:8] Receive process stopped interrupt enable 
+            Object *rwtie; // [9:9] Receive watchdog timeout interrupt enable 
+            Object *etie; // [10:10] Early transmit interrupt enable 
+            Object *fbeie; // [13:13] Fatal bus error interrupt enable 
+            Object *erie; // [14:14] Early receive interrupt enable 
+            Object *aise; // [15:15] Abnormal interrupt summary enable 
+            Object *nise; // [16:16] Normal interrupt summary enable  
+          } dmaier; 
+          
+          // DMAMFBOCR (Ethernet DMA missed frame and buffer overflow counter register) bitfields.
           struct { 
-Object *mfc; // [0:15] Missed frames by the controllerObject *omfc; // [16:16] Overflow bit for missed frame counterObject *mfa; // [17:27] Missed frames by the applicationObject *ofoc; // [28:28] Overflow bit for FIFO overflow counter} dmamfbocr; 
-// DMACHTDR(Ethernet DMA current host transmit descriptor register) bitfields.
+            Object *mfc; // [0:15] Missed frames by the controller 
+            Object *omfc; // [16:16] Overflow bit for missed frame counter 
+            Object *mfa; // [17:27] Missed frames by the application 
+            Object *ofoc; // [28:28] Overflow bit for FIFO overflow counter  
+          } dmamfbocr; 
+          
+          // DMACHTDR (Ethernet DMA current host transmit descriptor register) bitfields.
           struct { 
-Object *htdap; // [0:31] Host transmit descriptor address pointer} dmachtdr; 
-// DMACHRDR(Ethernet DMA current host receive descriptor register) bitfields.
+            Object *htdap; // [0:31] Host transmit descriptor address pointer  
+          } dmachtdr; 
+          
+          // DMACHRDR (Ethernet DMA current host receive descriptor register) bitfields.
           struct { 
-Object *hrdap; // [0:31] Host receive descriptor address pointer} dmachrdr; 
-// DMACHTBAR(Ethernet DMA current host transmit buffer address register) bitfields.
+            Object *hrdap; // [0:31] Host receive descriptor address pointer  
+          } dmachrdr; 
+          
+          // DMACHTBAR (Ethernet DMA current host transmit buffer address register) bitfields.
           struct { 
-Object *htbap; // [0:31] Host transmit buffer address pointer} dmachtbar; 
-// DMACHRBAR(Ethernet DMA current host receive buffer address register) bitfields.
+            Object *htbap; // [0:31] Host transmit buffer address pointer  
+          } dmachtbar; 
+          
+          // DMACHRBAR (Ethernet DMA current host receive buffer address register) bitfields.
           struct { 
-Object *hrbap; // [0:31] Host receive buffer address pointer} dmachrbar; 
-} fld;
+            Object *hrbap; // [0:31] Host receive buffer address pointer  
+          } dmachrbar; 
+        } fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

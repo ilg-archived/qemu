@@ -1,5 +1,5 @@
 /*
- * STM32- IWDG(Independent watchdog) emulation.
+ * STM32 - IWDG (Independent watchdog) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,19 +35,24 @@ static void stm32f40x_iwdg_create_objects(Object *obj, JSON_Object *svd, const c
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f4.reg.kr= cm_object_get_child_by_name(obj, "KR");
-state->u.f4.reg.pr= cm_object_get_child_by_name(obj, "PR");
-state->u.f4.reg.rlr= cm_object_get_child_by_name(obj, "RLR");
-state->u.f4.reg.sr= cm_object_get_child_by_name(obj, "SR");
-// KRbitfields.
-state->u.f4.fld.kr.key= cm_object_get_child_by_name(state->u.f4.reg.kr, "KEY"); 
-// PRbitfields.
-state->u.f4.fld.pr.pr= cm_object_get_child_by_name(state->u.f4.reg.pr, "PR"); 
-// RLRbitfields.
-state->u.f4.fld.rlr.rl= cm_object_get_child_by_name(state->u.f4.reg.rlr, "RL"); 
-// SRbitfields.
-state->u.f4.fld.sr.pvu= cm_object_get_child_by_name(state->u.f4.reg.sr, "PVU"); 
-state->u.f4.fld.sr.rvu= cm_object_get_child_by_name(state->u.f4.reg.sr, "RVU"); 
+    state->u.f4.reg.kr = cm_object_get_child_by_name(obj, "KR");
+    state->u.f4.reg.pr = cm_object_get_child_by_name(obj, "PR");
+    state->u.f4.reg.rlr = cm_object_get_child_by_name(obj, "RLR");
+    state->u.f4.reg.sr = cm_object_get_child_by_name(obj, "SR");
+    
+    
+    // KR bitfields.
+    state->u.f4.fld.kr.key = cm_object_get_child_by_name(state->u.f4.reg.kr, "KEY");  
+    
+    // PR bitfields.
+    state->u.f4.fld.pr.pr = cm_object_get_child_by_name(state->u.f4.reg.pr, "PR");  
+    
+    // RLR bitfields.
+    state->u.f4.fld.rlr.rl = cm_object_get_child_by_name(state->u.f4.reg.rlr, "RL");  
+    
+    // SR bitfields.
+    state->u.f4.fld.sr.pvu = cm_object_get_child_by_name(state->u.f4.reg.sr, "PVU"); 
+    state->u.f4.fld.sr.rvu = cm_object_get_child_by_name(state->u.f4.reg.sr, "RVU");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -131,7 +136,7 @@ static void stm32_iwdg_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -170,7 +175,7 @@ static void stm32_iwdg_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_40x) {
+        if (capabilities->f4.is_40x ) {
 
             stm32f40x_iwdg_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -186,10 +191,12 @@ static void stm32_iwdg_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/IWDGEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

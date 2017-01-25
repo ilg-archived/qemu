@@ -1,5 +1,5 @@
 /*
- * STM32- DAC(Digital-to-analog converter) emulation.
+ * STM32 - DAC (Digital-to-analog converter) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,34 +35,42 @@ static void stm32f0x1_dac_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-state->u.f0.reg.swtrigr= cm_object_get_child_by_name(obj, "SWTRIGR");
-state->u.f0.reg.dhr12r1= cm_object_get_child_by_name(obj, "DHR12R1");
-state->u.f0.reg.dhr12l1= cm_object_get_child_by_name(obj, "DHR12L1");
-state->u.f0.reg.dhr8r1= cm_object_get_child_by_name(obj, "DHR8R1");
-state->u.f0.reg.dor1= cm_object_get_child_by_name(obj, "DOR1");
-state->u.f0.reg.sr= cm_object_get_child_by_name(obj, "SR");
-// CRbitfields.
-state->u.f0.fld.cr.lpds= cm_object_get_child_by_name(state->u.f0.reg.cr, "LPDS"); 
-state->u.f0.fld.cr.pdds= cm_object_get_child_by_name(state->u.f0.reg.cr, "PDDS"); 
-state->u.f0.fld.cr.cwuf= cm_object_get_child_by_name(state->u.f0.reg.cr, "CWUF"); 
-state->u.f0.fld.cr.csbf= cm_object_get_child_by_name(state->u.f0.reg.cr, "CSBF"); 
-state->u.f0.fld.cr.pvde= cm_object_get_child_by_name(state->u.f0.reg.cr, "PVDE"); 
-state->u.f0.fld.cr.pls= cm_object_get_child_by_name(state->u.f0.reg.cr, "PLS"); 
-state->u.f0.fld.cr.dbp= cm_object_get_child_by_name(state->u.f0.reg.cr, "DBP"); 
-// SWTRIGRbitfields.
-state->u.f0.fld.swtrigr.swtrig1= cm_object_get_child_by_name(state->u.f0.reg.swtrigr, "SWTRIG1"); 
-// DHR12R1bitfields.
-state->u.f0.fld.dhr12r1.dacc1dhr= cm_object_get_child_by_name(state->u.f0.reg.dhr12r1, "DACC1DHR"); 
-// DHR12L1bitfields.
-state->u.f0.fld.dhr12l1.dacc1dhr= cm_object_get_child_by_name(state->u.f0.reg.dhr12l1, "DACC1DHR"); 
-// DHR8R1bitfields.
-state->u.f0.fld.dhr8r1.dacc1dhr= cm_object_get_child_by_name(state->u.f0.reg.dhr8r1, "DACC1DHR"); 
-// DOR1bitfields.
-state->u.f0.fld.dor1.dacc1dor= cm_object_get_child_by_name(state->u.f0.reg.dor1, "DACC1DOR"); 
-// SRbitfields.
-state->u.f0.fld.sr.dmaudr1= cm_object_get_child_by_name(state->u.f0.reg.sr, "DMAUDR1"); 
-state->u.f0.fld.sr.dmaudr2= cm_object_get_child_by_name(state->u.f0.reg.sr, "DMAUDR2"); 
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.swtrigr = cm_object_get_child_by_name(obj, "SWTRIGR");
+    state->u.f0.reg.dhr12r1 = cm_object_get_child_by_name(obj, "DHR12R1");
+    state->u.f0.reg.dhr12l1 = cm_object_get_child_by_name(obj, "DHR12L1");
+    state->u.f0.reg.dhr8r1 = cm_object_get_child_by_name(obj, "DHR8R1");
+    state->u.f0.reg.dor1 = cm_object_get_child_by_name(obj, "DOR1");
+    state->u.f0.reg.sr = cm_object_get_child_by_name(obj, "SR");
+    
+    
+    // CR bitfields.
+    state->u.f0.fld.cr.lpds = cm_object_get_child_by_name(state->u.f0.reg.cr, "LPDS"); 
+    state->u.f0.fld.cr.pdds = cm_object_get_child_by_name(state->u.f0.reg.cr, "PDDS"); 
+    state->u.f0.fld.cr.cwuf = cm_object_get_child_by_name(state->u.f0.reg.cr, "CWUF"); 
+    state->u.f0.fld.cr.csbf = cm_object_get_child_by_name(state->u.f0.reg.cr, "CSBF"); 
+    state->u.f0.fld.cr.pvde = cm_object_get_child_by_name(state->u.f0.reg.cr, "PVDE"); 
+    state->u.f0.fld.cr.pls = cm_object_get_child_by_name(state->u.f0.reg.cr, "PLS"); 
+    state->u.f0.fld.cr.dbp = cm_object_get_child_by_name(state->u.f0.reg.cr, "DBP");  
+    
+    // SWTRIGR bitfields.
+    state->u.f0.fld.swtrigr.swtrig1 = cm_object_get_child_by_name(state->u.f0.reg.swtrigr, "SWTRIG1");  
+    
+    // DHR12R1 bitfields.
+    state->u.f0.fld.dhr12r1.dacc1dhr = cm_object_get_child_by_name(state->u.f0.reg.dhr12r1, "DACC1DHR");  
+    
+    // DHR12L1 bitfields.
+    state->u.f0.fld.dhr12l1.dacc1dhr = cm_object_get_child_by_name(state->u.f0.reg.dhr12l1, "DACC1DHR");  
+    
+    // DHR8R1 bitfields.
+    state->u.f0.fld.dhr8r1.dacc1dhr = cm_object_get_child_by_name(state->u.f0.reg.dhr8r1, "DACC1DHR");  
+    
+    // DOR1 bitfields.
+    state->u.f0.fld.dor1.dacc1dor = cm_object_get_child_by_name(state->u.f0.reg.dor1, "DACC1DOR");  
+    
+    // SR bitfields.
+    state->u.f0.fld.sr.dmaudr1 = cm_object_get_child_by_name(state->u.f0.reg.sr, "DMAUDR1"); 
+    state->u.f0.fld.sr.dmaudr2 = cm_object_get_child_by_name(state->u.f0.reg.sr, "DMAUDR2");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -146,7 +154,7 @@ static void stm32_dac_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -185,7 +193,7 @@ static void stm32_dac_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_dac_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -201,10 +209,12 @@ static void stm32_dac_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/DACEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

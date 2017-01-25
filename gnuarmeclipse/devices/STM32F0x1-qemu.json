@@ -3,19 +3,19 @@
 	"generators": [
 		{
 			"tool": "xcdl",
-			"version": "1.6.11",
+			"version": "1.6.2",
 			"command": [
 				"svd-convert",
 				"--file",
-				"/home/olivier/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd",
+				"/Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd",
 				"--output",
 				"STM32F0x1-xsvd.json"
 			],
-			"date": "2017-01-24T21:18:18.722Z"
+			"date": "2016-12-14T22:50:48.956Z"
 		},
 		{
 			"tool": "xcdl",
-			"version": "1.6.11",
+			"version": "1.6.8",
 			"command": [
 				"svd-patch",
 				"--file",
@@ -27,7 +27,7 @@
 				"--remove",
 				"NVIC"
 			],
-			"date": "2017-01-24T21:35:34.293Z"
+			"date": "2016-12-19T10:35:22.396Z"
 		}
 	],
 	"device": {

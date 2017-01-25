@@ -1,5 +1,5 @@
 /*
- * STM32- UART(Universal asynchronous receiver transmitter) emulation.
+ * STM32 - UART (Universal asynchronous receiver transmitter) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,20 +27,21 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_UARTDEVICE_PATH_STM32"UART"
+#define DEVICE_PATH_STM32_UART DEVICE_PATH_STM32 "UART"
 
 // ----------------------------------------------------------------------------
 
 // Note: the "port-index" property has type "int".
 typedef enum {
     // TODO: keep this list in ascending order.
-STM32_PORT_UART4,
-STM32_PORT_UART5,
-STM32_PORT_UART_UNDEFINED = 0xFF,
+    STM32_PORT_UART4,
+    STM32_PORT_UART5,
+    STM32_PORT_UART_UNDEFINED = 0xFF,
 } stm32_uart_index_t;
+
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_UARTTYPE_STM32_PREFIX "uart" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_UART TYPE_STM32_PREFIX "uart" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -82,44 +83,87 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-// Remove it if there is only one port
+    // Remove it if there is only one port
     stm32_uart_index_t port_index;
-union {
+
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1UART(Universal asynchronous receiver transmitter) registers.
+        // F1 UART (Universal asynchronous receiver transmitter) registers.
         struct { 
-Object *sr; // 0x0(UART4_SR) 
-Object *dr; // 0x4(UART4_DR) 
-Object *brr; // 0x8(UART4_BRR) 
-Object *cr1; // 0xC(UART4_CR1) 
-Object *cr2; // 0x10(UART4_CR2) 
-Object *cr3; // 0x14(UART4_CR3) 
-} reg;
+          Object *sr; // 0x0 (UART4_SR) 
+          Object *dr; // 0x4 (UART4_DR) 
+          Object *brr; // 0x8 (UART4_BRR) 
+          Object *cr1; // 0xC (UART4_CR1) 
+          Object *cr2; // 0x10 (UART4_CR2) 
+          Object *cr3; // 0x14 (UART4_CR3) 
+        } reg;
 
         struct { 
-// SR(UART4_SR) bitfields.
+          
+          // SR (UART4_SR) bitfields.
           struct { 
-Object *pe; // [0:0] PEObject *fe; // [1:1] FEObject *ne; // [2:2] NEObject *ore; // [3:3] OREObject *idle; // [4:4] IDLEObject *rxne; // [5:5] RXNEObject *tc; // [6:6] TCObject *txe; // [7:7] TXEObject *lbd; // [8:8] LBD} sr; 
-// DR(UART4_DR) bitfields.
+            Object *pe; // [0:0] PE 
+            Object *fe; // [1:1] FE 
+            Object *ne; // [2:2] NE 
+            Object *ore; // [3:3] ORE 
+            Object *idle; // [4:4] IDLE 
+            Object *rxne; // [5:5] RXNE 
+            Object *tc; // [6:6] TC 
+            Object *txe; // [7:7] TXE 
+            Object *lbd; // [8:8] LBD  
+          } sr; 
+          
+          // DR (UART4_DR) bitfields.
           struct { 
-Object *dr; // [0:8] DR} dr; 
-// BRR(UART4_BRR) bitfields.
+            Object *dr; // [0:8] DR  
+          } dr; 
+          
+          // BRR (UART4_BRR) bitfields.
           struct { 
-Object *div_fraction; // [0:3] DIV_FractionObject *div_mantissa; // [4:15] DIV_Mantissa} brr; 
-// CR1(UART4_CR1) bitfields.
+            Object *div_fraction; // [0:3] DIV_Fraction 
+            Object *div_mantissa; // [4:15] DIV_Mantissa  
+          } brr; 
+          
+          // CR1 (UART4_CR1) bitfields.
           struct { 
-Object *sbk; // [0:0] SBKObject *rwu; // [1:1] RWUObject *re; // [2:2] REObject *te; // [3:3] TEObject *idleie; // [4:4] IDLEIEObject *rxneie; // [5:5] RXNEIEObject *tcie; // [6:6] TCIEObject *txeie; // [7:7] TXEIEObject *peie; // [8:8] PEIEObject *ps; // [9:9] PSObject *pce; // [10:10] PCEObject *wake; // [11:11] WAKEObject *m; // [12:12] MObject *ue; // [13:13] UE} cr1; 
-// CR2(UART4_CR2) bitfields.
+            Object *sbk; // [0:0] SBK 
+            Object *rwu; // [1:1] RWU 
+            Object *re; // [2:2] RE 
+            Object *te; // [3:3] TE 
+            Object *idleie; // [4:4] IDLEIE 
+            Object *rxneie; // [5:5] RXNEIE 
+            Object *tcie; // [6:6] TCIE 
+            Object *txeie; // [7:7] TXEIE 
+            Object *peie; // [8:8] PEIE 
+            Object *ps; // [9:9] PS 
+            Object *pce; // [10:10] PCE 
+            Object *wake; // [11:11] WAKE 
+            Object *m; // [12:12] M 
+            Object *ue; // [13:13] UE  
+          } cr1; 
+          
+          // CR2 (UART4_CR2) bitfields.
           struct { 
-Object *add; // [0:3] ADDObject *lbdl; // [5:5] LBDLObject *lbdie; // [6:6] LBDIEObject *stop; // [12:13] STOPObject *linen; // [14:14] LINEN} cr2; 
-// CR3(UART4_CR3) bitfields.
+            Object *add; // [0:3] ADD 
+            Object *lbdl; // [5:5] LBDL 
+            Object *lbdie; // [6:6] LBDIE 
+            Object *stop; // [12:13] STOP 
+            Object *linen; // [14:14] LINEN  
+          } cr2; 
+          
+          // CR3 (UART4_CR3) bitfields.
           struct { 
-Object *eie; // [0:0] Error interrupt enableObject *iren; // [1:1] IrDA mode enableObject *irlp; // [2:2] IrDA low-powerObject *hdsel; // [3:3] Half-duplex selectionObject *dmat; // [7:7] DMA enable transmitter} cr3; 
-} fld;
+            Object *eie; // [0:0] Error interrupt enable 
+            Object *iren; // [1:1] IrDA mode enable 
+            Object *irlp; // [2:2] IrDA low-power 
+            Object *hdsel; // [3:3] Half-duplex selection 
+            Object *dmat; // [7:7] DMA enable transmitter  
+          } cr3; 
+        } fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

@@ -1,5 +1,5 @@
 /*
- * STM32- Ethernet_PTP(Ethernet: Precision time protocol) emulation.
+ * STM32 - Ethernet_PTP (Ethernet: Precision time protocol) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_Ethernet_PTPDEVICE_PATH_STM32"Ethernet_PTP"
+#define DEVICE_PATH_STM32_Ethernet_PTP DEVICE_PATH_STM32 "Ethernet_PTP"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_Ethernet_PTPTYPE_STM32_PREFIX "ethernet_ptp" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_Ethernet_PTP TYPE_STM32_PREFIX "ethernet_ptp" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,62 +75,103 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4Ethernet_PTP(Ethernet: Precision time protocol) registers.
+        // F4 Ethernet_PTP (Ethernet: Precision time protocol) registers.
         struct { 
-Object *ptptscr; // 0x0(Ethernet PTP time stamp control register) 
-Object *ptpssir; // 0x4(Ethernet PTP subsecond increment register) 
-Object *ptptshr; // 0x8(Ethernet PTP time stamp high register) 
-Object *ptptslr; // 0xC(Ethernet PTP time stamp low register) 
-Object *ptptshur; // 0x10(Ethernet PTP time stamp high update register) 
-Object *ptptslur; // 0x14(Ethernet PTP time stamp low update register) 
-Object *ptptsar; // 0x18(Ethernet PTP time stamp addend register) 
-Object *ptptthr; // 0x1C(Ethernet PTP target time high register) 
-Object *ptpttlr; // 0x20(Ethernet PTP target time low register) 
-Object *ptptssr; // 0x28(Ethernet PTP time stamp status register) 
-Object *ptpppscr; // 0x2C(Ethernet PTP PPS control register) 
-} reg;
+          Object *ptptscr; // 0x0 (Ethernet PTP time stamp control register) 
+          Object *ptpssir; // 0x4 (Ethernet PTP subsecond increment register) 
+          Object *ptptshr; // 0x8 (Ethernet PTP time stamp high register) 
+          Object *ptptslr; // 0xC (Ethernet PTP time stamp low register) 
+          Object *ptptshur; // 0x10 (Ethernet PTP time stamp high update register) 
+          Object *ptptslur; // 0x14 (Ethernet PTP time stamp low update register) 
+          Object *ptptsar; // 0x18 (Ethernet PTP time stamp addend register) 
+          Object *ptptthr; // 0x1C (Ethernet PTP target time high register) 
+          Object *ptpttlr; // 0x20 (Ethernet PTP target time low register) 
+          Object *ptptssr; // 0x28 (Ethernet PTP time stamp status register) 
+          Object *ptpppscr; // 0x2C (Ethernet PTP PPS control register) 
+        } reg;
 
         struct { 
-// PTPTSCR(Ethernet PTP time stamp control register) bitfields.
+          
+          // PTPTSCR (Ethernet PTP time stamp control register) bitfields.
           struct { 
-Object *tse; // [0:0] No description availableObject *tsfcu; // [1:1] No description availableObject *tssti; // [2:2] No description availableObject *tsstu; // [3:3] No description availableObject *tsite; // [4:4] No description availableObject *ttsaru; // [5:5] No description availableObject *tssarfe; // [8:8] No description availableObject *tsssr; // [9:9] No description availableObject *tsptppsv2e; // [10:10] No description availableObject *tssptpoefe; // [11:11] No description availableObject *tssipv6fe; // [12:12] No description availableObject *tssipv4fe; // [13:13] No description availableObject *tsseme; // [14:14] No description availableObject *tssmrme; // [15:15] No description availableObject *tscnt; // [16:17] No description availableObject *tspffmae; // [18:18] No description available} ptptscr; 
-// PTPSSIR(Ethernet PTP subsecond increment register) bitfields.
+            Object *tse; // [0:0] No description available 
+            Object *tsfcu; // [1:1] No description available 
+            Object *tssti; // [2:2] No description available 
+            Object *tsstu; // [3:3] No description available 
+            Object *tsite; // [4:4] No description available 
+            Object *ttsaru; // [5:5] No description available 
+            Object *tssarfe; // [8:8] No description available 
+            Object *tsssr; // [9:9] No description available 
+            Object *tsptppsv2e; // [10:10] No description available 
+            Object *tssptpoefe; // [11:11] No description available 
+            Object *tssipv6fe; // [12:12] No description available 
+            Object *tssipv4fe; // [13:13] No description available 
+            Object *tsseme; // [14:14] No description available 
+            Object *tssmrme; // [15:15] No description available 
+            Object *tscnt; // [16:17] No description available 
+            Object *tspffmae; // [18:18] No description available  
+          } ptptscr; 
+          
+          // PTPSSIR (Ethernet PTP subsecond increment register) bitfields.
           struct { 
-Object *stssi; // [0:7] No description available} ptpssir; 
-// PTPTSHR(Ethernet PTP time stamp high register) bitfields.
+            Object *stssi; // [0:7] No description available  
+          } ptpssir; 
+          
+          // PTPTSHR (Ethernet PTP time stamp high register) bitfields.
           struct { 
-Object *sts; // [0:31] No description available} ptptshr; 
-// PTPTSLR(Ethernet PTP time stamp low register) bitfields.
+            Object *sts; // [0:31] No description available  
+          } ptptshr; 
+          
+          // PTPTSLR (Ethernet PTP time stamp low register) bitfields.
           struct { 
-Object *stss; // [0:30] No description availableObject *stpns; // [31:31] No description available} ptptslr; 
-// PTPTSHUR(Ethernet PTP time stamp high update register) bitfields.
+            Object *stss; // [0:30] No description available 
+            Object *stpns; // [31:31] No description available  
+          } ptptslr; 
+          
+          // PTPTSHUR (Ethernet PTP time stamp high update register) bitfields.
           struct { 
-Object *tsus; // [0:31] No description available} ptptshur; 
-// PTPTSLUR(Ethernet PTP time stamp low update register) bitfields.
+            Object *tsus; // [0:31] No description available  
+          } ptptshur; 
+          
+          // PTPTSLUR (Ethernet PTP time stamp low update register) bitfields.
           struct { 
-Object *tsuss; // [0:30] No description availableObject *tsupns; // [31:31] No description available} ptptslur; 
-// PTPTSAR(Ethernet PTP time stamp addend register) bitfields.
+            Object *tsuss; // [0:30] No description available 
+            Object *tsupns; // [31:31] No description available  
+          } ptptslur; 
+          
+          // PTPTSAR (Ethernet PTP time stamp addend register) bitfields.
           struct { 
-Object *tsa; // [0:31] No description available} ptptsar; 
-// PTPTTHR(Ethernet PTP target time high register) bitfields.
+            Object *tsa; // [0:31] No description available  
+          } ptptsar; 
+          
+          // PTPTTHR (Ethernet PTP target time high register) bitfields.
           struct { 
-Object *ttsh; // [0:31] 0} ptptthr; 
-// PTPTTLR(Ethernet PTP target time low register) bitfields.
+            Object *ttsh; // [0:31] 0  
+          } ptptthr; 
+          
+          // PTPTTLR (Ethernet PTP target time low register) bitfields.
           struct { 
-Object *ttsl; // [0:31] No description available} ptpttlr; 
-// PTPTSSR(Ethernet PTP time stamp status register) bitfields.
+            Object *ttsl; // [0:31] No description available  
+          } ptpttlr; 
+          
+          // PTPTSSR (Ethernet PTP time stamp status register) bitfields.
           struct { 
-Object *tsso; // [0:0] No description availableObject *tsttr; // [1:1] No description available} ptptssr; 
-// PTPPPSCR(Ethernet PTP PPS control register) bitfields.
+            Object *tsso; // [0:0] No description available 
+            Object *tsttr; // [1:1] No description available  
+          } ptptssr; 
+          
+          // PTPPPSCR (Ethernet PTP PPS control register) bitfields.
           struct { 
-Object *tsso; // [0:0] TSSOObject *tsttr; // [1:1] TSTTR} ptpppscr; 
-} fld;
+            Object *tsso; // [0:0] TSSO 
+            Object *tsttr; // [1:1] TSTTR  
+          } ptpppscr; 
+        } fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

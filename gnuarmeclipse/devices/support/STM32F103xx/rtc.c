@@ -1,5 +1,5 @@
 /*
- * STM32- RTC(Real time clock) emulation.
+ * STM32 - RTC (Real time clock) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,43 +35,54 @@ static void stm32f103xx_rtc_create_objects(Object *obj, JSON_Object *svd, const 
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f1.reg.crh= cm_object_get_child_by_name(obj, "CRH");
-state->u.f1.reg.crl= cm_object_get_child_by_name(obj, "CRL");
-state->u.f1.reg.prlh= cm_object_get_child_by_name(obj, "PRLH");
-state->u.f1.reg.prll= cm_object_get_child_by_name(obj, "PRLL");
-state->u.f1.reg.divh= cm_object_get_child_by_name(obj, "DIVH");
-state->u.f1.reg.divl= cm_object_get_child_by_name(obj, "DIVL");
-state->u.f1.reg.cnth= cm_object_get_child_by_name(obj, "CNTH");
-state->u.f1.reg.cntl= cm_object_get_child_by_name(obj, "CNTL");
-state->u.f1.reg.alrh= cm_object_get_child_by_name(obj, "ALRH");
-state->u.f1.reg.alrl= cm_object_get_child_by_name(obj, "ALRL");
-// CRHbitfields.
-state->u.f1.fld.crh.secie= cm_object_get_child_by_name(state->u.f1.reg.crh, "SECIE"); 
-state->u.f1.fld.crh.alrie= cm_object_get_child_by_name(state->u.f1.reg.crh, "ALRIE"); 
-state->u.f1.fld.crh.owie= cm_object_get_child_by_name(state->u.f1.reg.crh, "OWIE"); 
-// CRLbitfields.
-state->u.f1.fld.crl.secf= cm_object_get_child_by_name(state->u.f1.reg.crl, "SECF"); 
-state->u.f1.fld.crl.alrf= cm_object_get_child_by_name(state->u.f1.reg.crl, "ALRF"); 
-state->u.f1.fld.crl.owf= cm_object_get_child_by_name(state->u.f1.reg.crl, "OWF"); 
-state->u.f1.fld.crl.rsf= cm_object_get_child_by_name(state->u.f1.reg.crl, "RSF"); 
-state->u.f1.fld.crl.cnf= cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF"); 
-state->u.f1.fld.crl.rtoff= cm_object_get_child_by_name(state->u.f1.reg.crl, "RTOFF"); 
-// PRLHbitfields.
-state->u.f1.fld.prlh.prlh= cm_object_get_child_by_name(state->u.f1.reg.prlh, "PRLH"); 
-// PRLLbitfields.
-state->u.f1.fld.prll.prll= cm_object_get_child_by_name(state->u.f1.reg.prll, "PRLL"); 
-// DIVHbitfields.
-state->u.f1.fld.divh.divh= cm_object_get_child_by_name(state->u.f1.reg.divh, "DIVH"); 
-// DIVLbitfields.
-state->u.f1.fld.divl.divl= cm_object_get_child_by_name(state->u.f1.reg.divl, "DIVL"); 
-// CNTHbitfields.
-state->u.f1.fld.cnth.cnth= cm_object_get_child_by_name(state->u.f1.reg.cnth, "CNTH"); 
-// CNTLbitfields.
-state->u.f1.fld.cntl.cntl= cm_object_get_child_by_name(state->u.f1.reg.cntl, "CNTL"); 
-// ALRHbitfields.
-state->u.f1.fld.alrh.alrh= cm_object_get_child_by_name(state->u.f1.reg.alrh, "ALRH"); 
-// ALRLbitfields.
-state->u.f1.fld.alrl.alrl= cm_object_get_child_by_name(state->u.f1.reg.alrl, "ALRL"); 
+    state->u.f1.reg.crh = cm_object_get_child_by_name(obj, "CRH");
+    state->u.f1.reg.crl = cm_object_get_child_by_name(obj, "CRL");
+    state->u.f1.reg.prlh = cm_object_get_child_by_name(obj, "PRLH");
+    state->u.f1.reg.prll = cm_object_get_child_by_name(obj, "PRLL");
+    state->u.f1.reg.divh = cm_object_get_child_by_name(obj, "DIVH");
+    state->u.f1.reg.divl = cm_object_get_child_by_name(obj, "DIVL");
+    state->u.f1.reg.cnth = cm_object_get_child_by_name(obj, "CNTH");
+    state->u.f1.reg.cntl = cm_object_get_child_by_name(obj, "CNTL");
+    state->u.f1.reg.alrh = cm_object_get_child_by_name(obj, "ALRH");
+    state->u.f1.reg.alrl = cm_object_get_child_by_name(obj, "ALRL");
+    
+    
+    // CRH bitfields.
+    state->u.f1.fld.crh.secie = cm_object_get_child_by_name(state->u.f1.reg.crh, "SECIE"); 
+    state->u.f1.fld.crh.alrie = cm_object_get_child_by_name(state->u.f1.reg.crh, "ALRIE"); 
+    state->u.f1.fld.crh.owie = cm_object_get_child_by_name(state->u.f1.reg.crh, "OWIE");  
+    
+    // CRL bitfields.
+    state->u.f1.fld.crl.secf = cm_object_get_child_by_name(state->u.f1.reg.crl, "SECF"); 
+    state->u.f1.fld.crl.alrf = cm_object_get_child_by_name(state->u.f1.reg.crl, "ALRF"); 
+    state->u.f1.fld.crl.owf = cm_object_get_child_by_name(state->u.f1.reg.crl, "OWF"); 
+    state->u.f1.fld.crl.rsf = cm_object_get_child_by_name(state->u.f1.reg.crl, "RSF"); 
+    state->u.f1.fld.crl.cnf = cm_object_get_child_by_name(state->u.f1.reg.crl, "CNF"); 
+    state->u.f1.fld.crl.rtoff = cm_object_get_child_by_name(state->u.f1.reg.crl, "RTOFF");  
+    
+    // PRLH bitfields.
+    state->u.f1.fld.prlh.prlh = cm_object_get_child_by_name(state->u.f1.reg.prlh, "PRLH");  
+    
+    // PRLL bitfields.
+    state->u.f1.fld.prll.prll = cm_object_get_child_by_name(state->u.f1.reg.prll, "PRLL");  
+    
+    // DIVH bitfields.
+    state->u.f1.fld.divh.divh = cm_object_get_child_by_name(state->u.f1.reg.divh, "DIVH");  
+    
+    // DIVL bitfields.
+    state->u.f1.fld.divl.divl = cm_object_get_child_by_name(state->u.f1.reg.divl, "DIVL");  
+    
+    // CNTH bitfields.
+    state->u.f1.fld.cnth.cnth = cm_object_get_child_by_name(state->u.f1.reg.cnth, "CNTH");  
+    
+    // CNTL bitfields.
+    state->u.f1.fld.cntl.cntl = cm_object_get_child_by_name(state->u.f1.reg.cntl, "CNTL");  
+    
+    // ALRH bitfields.
+    state->u.f1.fld.alrh.alrh = cm_object_get_child_by_name(state->u.f1.reg.alrh, "ALRH");  
+    
+    // ALRL bitfields.
+    state->u.f1.fld.alrl.alrl = cm_object_get_child_by_name(state->u.f1.reg.alrl, "ALRL");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -155,7 +166,7 @@ static void stm32_rtc_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -194,7 +205,7 @@ static void stm32_rtc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_103xx) {
+        if (capabilities->f1.is_103xx ) {
 
             stm32f103xx_rtc_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -210,10 +221,12 @@ static void stm32_rtc_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/RTCEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

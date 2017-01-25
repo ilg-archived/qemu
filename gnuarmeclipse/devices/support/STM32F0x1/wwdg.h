@@ -1,5 +1,5 @@
 /*
- * STM32- WWDG(Window watchdog) emulation.
+ * STM32 - WWDG (Window watchdog) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_WWDGDEVICE_PATH_STM32"WWDG"
+#define DEVICE_PATH_STM32_WWDG DEVICE_PATH_STM32 "WWDG"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_WWDGTYPE_STM32_PREFIX "wwdg" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_WWDG TYPE_STM32_PREFIX "wwdg" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,30 +75,39 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0WWDG(Window watchdog) registers.
+        // F0 WWDG (Window watchdog) registers.
         struct { 
-Object *cr; // 0x0(Control register) 
-Object *cfr; // 0x4(Configuration register) 
-Object *sr; // 0x8(Status register) 
-} reg;
+          Object *cr; // 0x0 (Control register) 
+          Object *cfr; // 0x4 (Configuration register) 
+          Object *sr; // 0x8 (Status register) 
+        } reg;
 
         struct { 
-// CR(Control register) bitfields.
+          
+          // CR (Control register) bitfields.
           struct { 
-Object *t; // [0:6] 7-bit counterObject *wdga; // [7:7] Activation bit} cr; 
-// CFR(Configuration register) bitfields.
+            Object *t; // [0:6] 7-bit counter 
+            Object *wdga; // [7:7] Activation bit  
+          } cr; 
+          
+          // CFR (Configuration register) bitfields.
           struct { 
-Object *w; // [0:6] 7-bit window valueObject *wdgtb; // [7:8] Timer baseObject *ewi; // [9:9] Early wakeup interrupt} cfr; 
-// SR(Status register) bitfields.
+            Object *w; // [0:6] 7-bit window value 
+            Object *wdgtb; // [7:8] Timer base 
+            Object *ewi; // [9:9] Early wakeup interrupt  
+          } cfr; 
+          
+          // SR (Status register) bitfields.
           struct { 
-Object *ewif; // [0:0] Early wakeup interrupt flag} sr; 
-} fld;
+            Object *ewif; // [0:0] Early wakeup interrupt flag  
+          } sr; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

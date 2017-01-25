@@ -1,5 +1,5 @@
 /*
- * STM32- TIM14(General-purpose-timers) emulation.
+ * STM32 - TIM14 (General-purpose-timers) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,57 +35,70 @@ static void stm32f0x1_tim14_create_objects(Object *obj, JSON_Object *svd, const 
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.cr1= cm_object_get_child_by_name(obj, "CR1");
-state->u.f0.reg.dier= cm_object_get_child_by_name(obj, "DIER");
-state->u.f0.reg.sr= cm_object_get_child_by_name(obj, "SR");
-state->u.f0.reg.egr= cm_object_get_child_by_name(obj, "EGR");
-state->u.f0.reg.ccmr1_output= cm_object_get_child_by_name(obj, "CCMR1_Output");
-state->u.f0.reg.ccmr1_input= cm_object_get_child_by_name(obj, "CCMR1_Input");
-state->u.f0.reg.ccer= cm_object_get_child_by_name(obj, "CCER");
-state->u.f0.reg.cnt= cm_object_get_child_by_name(obj, "CNT");
-state->u.f0.reg.psc= cm_object_get_child_by_name(obj, "PSC");
-state->u.f0.reg.arr= cm_object_get_child_by_name(obj, "ARR");
-state->u.f0.reg.ccr1= cm_object_get_child_by_name(obj, "CCR1");
-state->u.f0.reg.or_= cm_object_get_child_by_name(obj, "OR");
-// CR1bitfields.
-state->u.f0.fld.cr1.cen= cm_object_get_child_by_name(state->u.f0.reg.cr1, "CEN"); 
-state->u.f0.fld.cr1.udis= cm_object_get_child_by_name(state->u.f0.reg.cr1, "UDIS"); 
-state->u.f0.fld.cr1.urs= cm_object_get_child_by_name(state->u.f0.reg.cr1, "URS"); 
-state->u.f0.fld.cr1.arpe= cm_object_get_child_by_name(state->u.f0.reg.cr1, "ARPE"); 
-state->u.f0.fld.cr1.ckd= cm_object_get_child_by_name(state->u.f0.reg.cr1, "CKD"); 
-// DIERbitfields.
-state->u.f0.fld.dier.uie= cm_object_get_child_by_name(state->u.f0.reg.dier, "UIE"); 
-state->u.f0.fld.dier.cc1ie= cm_object_get_child_by_name(state->u.f0.reg.dier, "CC1IE"); 
-// SRbitfields.
-state->u.f0.fld.sr.uif= cm_object_get_child_by_name(state->u.f0.reg.sr, "UIF"); 
-state->u.f0.fld.sr.cc1if= cm_object_get_child_by_name(state->u.f0.reg.sr, "CC1IF"); 
-state->u.f0.fld.sr.cc1of= cm_object_get_child_by_name(state->u.f0.reg.sr, "CC1OF"); 
-// EGRbitfields.
-state->u.f0.fld.egr.ug= cm_object_get_child_by_name(state->u.f0.reg.egr, "UG"); 
-state->u.f0.fld.egr.cc1g= cm_object_get_child_by_name(state->u.f0.reg.egr, "CC1G"); 
-// CCMR1_Outputbitfields.
-state->u.f0.fld.ccmr1_output.cc1s= cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "CC1S"); 
-state->u.f0.fld.ccmr1_output.oc1fe= cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "OC1FE"); 
-state->u.f0.fld.ccmr1_output.oc1pe= cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "OC1PE"); 
-state->u.f0.fld.ccmr1_output.oc1m= cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "OC1M"); 
-// CCMR1_Inputbitfields.
-state->u.f0.fld.ccmr1_input.cc1s= cm_object_get_child_by_name(state->u.f0.reg.ccmr1_input, "CC1S"); 
-state->u.f0.fld.ccmr1_input.ic1psc= cm_object_get_child_by_name(state->u.f0.reg.ccmr1_input, "IC1PSC"); 
-state->u.f0.fld.ccmr1_input.ic1f= cm_object_get_child_by_name(state->u.f0.reg.ccmr1_input, "IC1F"); 
-// CCERbitfields.
-state->u.f0.fld.ccer.cc1e= cm_object_get_child_by_name(state->u.f0.reg.ccer, "CC1E"); 
-state->u.f0.fld.ccer.cc1p= cm_object_get_child_by_name(state->u.f0.reg.ccer, "CC1P"); 
-state->u.f0.fld.ccer.cc1np= cm_object_get_child_by_name(state->u.f0.reg.ccer, "CC1NP"); 
-// CNTbitfields.
-state->u.f0.fld.cnt.cnt= cm_object_get_child_by_name(state->u.f0.reg.cnt, "CNT"); 
-// PSCbitfields.
-state->u.f0.fld.psc.psc= cm_object_get_child_by_name(state->u.f0.reg.psc, "PSC"); 
-// ARRbitfields.
-state->u.f0.fld.arr.arr= cm_object_get_child_by_name(state->u.f0.reg.arr, "ARR"); 
-// CCR1bitfields.
-state->u.f0.fld.ccr1.ccr1= cm_object_get_child_by_name(state->u.f0.reg.ccr1, "CCR1"); 
-// ORbitfields.
-state->u.f0.fld.or_.rmp= cm_object_get_child_by_name(state->u.f0.reg.or_, "RMP"); 
+    state->u.f0.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
+    state->u.f0.reg.dier = cm_object_get_child_by_name(obj, "DIER");
+    state->u.f0.reg.sr = cm_object_get_child_by_name(obj, "SR");
+    state->u.f0.reg.egr = cm_object_get_child_by_name(obj, "EGR");
+    state->u.f0.reg.ccmr1_output = cm_object_get_child_by_name(obj, "CCMR1_Output");
+    state->u.f0.reg.ccmr1_input = cm_object_get_child_by_name(obj, "CCMR1_Input");
+    state->u.f0.reg.ccer = cm_object_get_child_by_name(obj, "CCER");
+    state->u.f0.reg.cnt = cm_object_get_child_by_name(obj, "CNT");
+    state->u.f0.reg.psc = cm_object_get_child_by_name(obj, "PSC");
+    state->u.f0.reg.arr = cm_object_get_child_by_name(obj, "ARR");
+    state->u.f0.reg.ccr1 = cm_object_get_child_by_name(obj, "CCR1");
+    state->u.f0.reg.or_ = cm_object_get_child_by_name(obj, "OR");
+    
+    
+    // CR1 bitfields.
+    state->u.f0.fld.cr1.cen = cm_object_get_child_by_name(state->u.f0.reg.cr1, "CEN"); 
+    state->u.f0.fld.cr1.udis = cm_object_get_child_by_name(state->u.f0.reg.cr1, "UDIS"); 
+    state->u.f0.fld.cr1.urs = cm_object_get_child_by_name(state->u.f0.reg.cr1, "URS"); 
+    state->u.f0.fld.cr1.arpe = cm_object_get_child_by_name(state->u.f0.reg.cr1, "ARPE"); 
+    state->u.f0.fld.cr1.ckd = cm_object_get_child_by_name(state->u.f0.reg.cr1, "CKD");  
+    
+    // DIER bitfields.
+    state->u.f0.fld.dier.uie = cm_object_get_child_by_name(state->u.f0.reg.dier, "UIE"); 
+    state->u.f0.fld.dier.cc1ie = cm_object_get_child_by_name(state->u.f0.reg.dier, "CC1IE");  
+    
+    // SR bitfields.
+    state->u.f0.fld.sr.uif = cm_object_get_child_by_name(state->u.f0.reg.sr, "UIF"); 
+    state->u.f0.fld.sr.cc1if = cm_object_get_child_by_name(state->u.f0.reg.sr, "CC1IF"); 
+    state->u.f0.fld.sr.cc1of = cm_object_get_child_by_name(state->u.f0.reg.sr, "CC1OF");  
+    
+    // EGR bitfields.
+    state->u.f0.fld.egr.ug = cm_object_get_child_by_name(state->u.f0.reg.egr, "UG"); 
+    state->u.f0.fld.egr.cc1g = cm_object_get_child_by_name(state->u.f0.reg.egr, "CC1G");  
+    
+    // CCMR1_Output bitfields.
+    state->u.f0.fld.ccmr1_output.cc1s = cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "CC1S"); 
+    state->u.f0.fld.ccmr1_output.oc1fe = cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "OC1FE"); 
+    state->u.f0.fld.ccmr1_output.oc1pe = cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "OC1PE"); 
+    state->u.f0.fld.ccmr1_output.oc1m = cm_object_get_child_by_name(state->u.f0.reg.ccmr1_output, "OC1M");  
+    
+    // CCMR1_Input bitfields.
+    state->u.f0.fld.ccmr1_input.cc1s = cm_object_get_child_by_name(state->u.f0.reg.ccmr1_input, "CC1S"); 
+    state->u.f0.fld.ccmr1_input.ic1psc = cm_object_get_child_by_name(state->u.f0.reg.ccmr1_input, "IC1PSC"); 
+    state->u.f0.fld.ccmr1_input.ic1f = cm_object_get_child_by_name(state->u.f0.reg.ccmr1_input, "IC1F");  
+    
+    // CCER bitfields.
+    state->u.f0.fld.ccer.cc1e = cm_object_get_child_by_name(state->u.f0.reg.ccer, "CC1E"); 
+    state->u.f0.fld.ccer.cc1p = cm_object_get_child_by_name(state->u.f0.reg.ccer, "CC1P"); 
+    state->u.f0.fld.ccer.cc1np = cm_object_get_child_by_name(state->u.f0.reg.ccer, "CC1NP");  
+    
+    // CNT bitfields.
+    state->u.f0.fld.cnt.cnt = cm_object_get_child_by_name(state->u.f0.reg.cnt, "CNT");  
+    
+    // PSC bitfields.
+    state->u.f0.fld.psc.psc = cm_object_get_child_by_name(state->u.f0.reg.psc, "PSC");  
+    
+    // ARR bitfields.
+    state->u.f0.fld.arr.arr = cm_object_get_child_by_name(state->u.f0.reg.arr, "ARR");  
+    
+    // CCR1 bitfields.
+    state->u.f0.fld.ccr1.ccr1 = cm_object_get_child_by_name(state->u.f0.reg.ccr1, "CCR1");  
+    
+    // OR bitfields.
+    state->u.f0.fld.or_.rmp = cm_object_get_child_by_name(state->u.f0.reg.or_, "RMP");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -169,7 +182,7 @@ static void stm32_tim14_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -208,7 +221,7 @@ static void stm32_tim14_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_tim14_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -224,10 +237,12 @@ static void stm32_tim14_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/TIM14EN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

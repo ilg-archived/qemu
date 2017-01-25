@@ -1,5 +1,5 @@
 /*
- * STM32- COMP(Comparator) emulation.
+ * STM32 - COMP (Comparator) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_COMPDEVICE_PATH_STM32"COMP"
+#define DEVICE_PATH_STM32_COMP DEVICE_PATH_STM32 "COMP"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_COMPTYPE_STM32_PREFIX "comp" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_COMP TYPE_STM32_PREFIX "comp" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,22 +75,41 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0COMP(Comparator) registers.
+        // F0 COMP (Comparator) registers.
         struct { 
-Object *csr; // 0x0(Control and status register) 
-} reg;
+          Object *csr; // 0x0 (Control and status register) 
+        } reg;
 
         struct { 
-// CSR(Control and status register) bitfields.
+          
+          // CSR (Control and status register) bitfields.
           struct { 
-Object *comp1en; // [0:0] Comparator 1 enableObject *comp1_inp_dac; // [1:1] COMP1_INP_DACObject *comp1mode; // [2:3] Comparator 1 modeObject *comp1insel; // [4:6] Comparator 1 inverting input selectionObject *comp1outsel; // [8:10] Comparator 1 output selectionObject *comp1pol; // [11:11] Comparator 1 output polarityObject *comp1hyst; // [12:13] Comparator 1 hysteresisObject *comp1out; // [14:14] Comparator 1 outputObject *comp1lock; // [15:15] Comparator 1 lockObject *comp2en; // [16:16] Comparator 2 enableObject *comp2mode; // [18:19] Comparator 2 modeObject *comp2insel; // [20:22] Comparator 2 inverting input selectionObject *wndwen; // [23:23] Window mode enableObject *comp2outsel; // [24:26] Comparator 2 output selectionObject *comp2pol; // [27:27] Comparator 2 output polarityObject *comp2hyst; // [28:29] Comparator 2 hysteresisObject *comp2out; // [30:30] Comparator 2 outputObject *comp2lock; // [31:31] Comparator 2 lock} csr; 
-} fld;
+            Object *comp1en; // [0:0] Comparator 1 enable 
+            Object *comp1_inp_dac; // [1:1] COMP1_INP_DAC 
+            Object *comp1mode; // [2:3] Comparator 1 mode 
+            Object *comp1insel; // [4:6] Comparator 1 inverting input selection 
+            Object *comp1outsel; // [8:10] Comparator 1 output selection 
+            Object *comp1pol; // [11:11] Comparator 1 output polarity 
+            Object *comp1hyst; // [12:13] Comparator 1 hysteresis 
+            Object *comp1out; // [14:14] Comparator 1 output 
+            Object *comp1lock; // [15:15] Comparator 1 lock 
+            Object *comp2en; // [16:16] Comparator 2 enable 
+            Object *comp2mode; // [18:19] Comparator 2 mode 
+            Object *comp2insel; // [20:22] Comparator 2 inverting input selection 
+            Object *wndwen; // [23:23] Window mode enable 
+            Object *comp2outsel; // [24:26] Comparator 2 output selection 
+            Object *comp2pol; // [27:27] Comparator 2 output polarity 
+            Object *comp2hyst; // [28:29] Comparator 2 hysteresis 
+            Object *comp2out; // [30:30] Comparator 2 output 
+            Object *comp2lock; // [31:31] Comparator 2 lock  
+          } csr; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

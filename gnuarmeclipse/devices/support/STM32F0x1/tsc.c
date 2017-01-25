@@ -1,5 +1,5 @@
 /*
- * STM32- TSC(Touch sensing controller) emulation.
+ * STM32 - TSC (Touch sensing controller) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,172 +35,188 @@ static void stm32f0x1_tsc_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-state->u.f0.reg.ier= cm_object_get_child_by_name(obj, "IER");
-state->u.f0.reg.icr= cm_object_get_child_by_name(obj, "ICR");
-state->u.f0.reg.isr= cm_object_get_child_by_name(obj, "ISR");
-state->u.f0.reg.iohcr= cm_object_get_child_by_name(obj, "IOHCR");
-state->u.f0.reg.ioascr= cm_object_get_child_by_name(obj, "IOASCR");
-state->u.f0.reg.ioscr= cm_object_get_child_by_name(obj, "IOSCR");
-state->u.f0.reg.ioccr= cm_object_get_child_by_name(obj, "IOCCR");
-state->u.f0.reg.iogcsr= cm_object_get_child_by_name(obj, "IOGCSR");
-state->u.f0.reg.iog1cr= cm_object_get_child_by_name(obj, "IOG1CR");
-state->u.f0.reg.iog2cr= cm_object_get_child_by_name(obj, "IOG2CR");
-state->u.f0.reg.iog3cr= cm_object_get_child_by_name(obj, "IOG3CR");
-state->u.f0.reg.iog4cr= cm_object_get_child_by_name(obj, "IOG4CR");
-state->u.f0.reg.iog5cr= cm_object_get_child_by_name(obj, "IOG5CR");
-state->u.f0.reg.iog6cr= cm_object_get_child_by_name(obj, "IOG6CR");
-// CRbitfields.
-state->u.f0.fld.cr.tsce= cm_object_get_child_by_name(state->u.f0.reg.cr, "TSCE"); 
-state->u.f0.fld.cr.start= cm_object_get_child_by_name(state->u.f0.reg.cr, "START"); 
-state->u.f0.fld.cr.am= cm_object_get_child_by_name(state->u.f0.reg.cr, "AM"); 
-state->u.f0.fld.cr.syncpol= cm_object_get_child_by_name(state->u.f0.reg.cr, "SYNCPOL"); 
-state->u.f0.fld.cr.iodef= cm_object_get_child_by_name(state->u.f0.reg.cr, "IODEF"); 
-state->u.f0.fld.cr.mcv= cm_object_get_child_by_name(state->u.f0.reg.cr, "MCV"); 
-state->u.f0.fld.cr.pgpsc= cm_object_get_child_by_name(state->u.f0.reg.cr, "PGPSC"); 
-state->u.f0.fld.cr.sspsc= cm_object_get_child_by_name(state->u.f0.reg.cr, "SSPSC"); 
-state->u.f0.fld.cr.sse= cm_object_get_child_by_name(state->u.f0.reg.cr, "SSE"); 
-state->u.f0.fld.cr.ssd= cm_object_get_child_by_name(state->u.f0.reg.cr, "SSD"); 
-state->u.f0.fld.cr.ctpl= cm_object_get_child_by_name(state->u.f0.reg.cr, "CTPL"); 
-state->u.f0.fld.cr.ctph= cm_object_get_child_by_name(state->u.f0.reg.cr, "CTPH"); 
-// IERbitfields.
-state->u.f0.fld.ier.eoaie= cm_object_get_child_by_name(state->u.f0.reg.ier, "EOAIE"); 
-state->u.f0.fld.ier.mceie= cm_object_get_child_by_name(state->u.f0.reg.ier, "MCEIE"); 
-// ICRbitfields.
-state->u.f0.fld.icr.eoaic= cm_object_get_child_by_name(state->u.f0.reg.icr, "EOAIC"); 
-state->u.f0.fld.icr.mceic= cm_object_get_child_by_name(state->u.f0.reg.icr, "MCEIC"); 
-// ISRbitfields.
-state->u.f0.fld.isr.eoaf= cm_object_get_child_by_name(state->u.f0.reg.isr, "EOAF"); 
-state->u.f0.fld.isr.mcef= cm_object_get_child_by_name(state->u.f0.reg.isr, "MCEF"); 
-// IOHCRbitfields.
-state->u.f0.fld.iohcr.g1_io1= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO1"); 
-state->u.f0.fld.iohcr.g1_io2= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO2"); 
-state->u.f0.fld.iohcr.g1_io3= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO3"); 
-state->u.f0.fld.iohcr.g1_io4= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO4"); 
-state->u.f0.fld.iohcr.g2_io1= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO1"); 
-state->u.f0.fld.iohcr.g2_io2= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO2"); 
-state->u.f0.fld.iohcr.g2_io3= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO3"); 
-state->u.f0.fld.iohcr.g2_io4= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO4"); 
-state->u.f0.fld.iohcr.g3_io1= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO1"); 
-state->u.f0.fld.iohcr.g3_io2= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO2"); 
-state->u.f0.fld.iohcr.g3_io3= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO3"); 
-state->u.f0.fld.iohcr.g3_io4= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO4"); 
-state->u.f0.fld.iohcr.g4_io1= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO1"); 
-state->u.f0.fld.iohcr.g4_io2= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO2"); 
-state->u.f0.fld.iohcr.g4_io3= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO3"); 
-state->u.f0.fld.iohcr.g4_io4= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO4"); 
-state->u.f0.fld.iohcr.g5_io1= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO1"); 
-state->u.f0.fld.iohcr.g5_io2= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO2"); 
-state->u.f0.fld.iohcr.g5_io3= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO3"); 
-state->u.f0.fld.iohcr.g5_io4= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO4"); 
-state->u.f0.fld.iohcr.g6_io1= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO1"); 
-state->u.f0.fld.iohcr.g6_io2= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO2"); 
-state->u.f0.fld.iohcr.g6_io3= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO3"); 
-state->u.f0.fld.iohcr.g6_io4= cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO4"); 
-// IOASCRbitfields.
-state->u.f0.fld.ioascr.g1_io1= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO1"); 
-state->u.f0.fld.ioascr.g1_io2= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO2"); 
-state->u.f0.fld.ioascr.g1_io3= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO3"); 
-state->u.f0.fld.ioascr.g1_io4= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO4"); 
-state->u.f0.fld.ioascr.g2_io1= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO1"); 
-state->u.f0.fld.ioascr.g2_io2= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO2"); 
-state->u.f0.fld.ioascr.g2_io3= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO3"); 
-state->u.f0.fld.ioascr.g2_io4= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO4"); 
-state->u.f0.fld.ioascr.g3_io1= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO1"); 
-state->u.f0.fld.ioascr.g3_io2= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO2"); 
-state->u.f0.fld.ioascr.g3_io3= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO3"); 
-state->u.f0.fld.ioascr.g3_io4= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO4"); 
-state->u.f0.fld.ioascr.g4_io1= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO1"); 
-state->u.f0.fld.ioascr.g4_io2= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO2"); 
-state->u.f0.fld.ioascr.g4_io3= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO3"); 
-state->u.f0.fld.ioascr.g4_io4= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO4"); 
-state->u.f0.fld.ioascr.g5_io1= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO1"); 
-state->u.f0.fld.ioascr.g5_io2= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO2"); 
-state->u.f0.fld.ioascr.g5_io3= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO3"); 
-state->u.f0.fld.ioascr.g5_io4= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO4"); 
-state->u.f0.fld.ioascr.g6_io1= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO1"); 
-state->u.f0.fld.ioascr.g6_io2= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO2"); 
-state->u.f0.fld.ioascr.g6_io3= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO3"); 
-state->u.f0.fld.ioascr.g6_io4= cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO4"); 
-// IOSCRbitfields.
-state->u.f0.fld.ioscr.g1_io1= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO1"); 
-state->u.f0.fld.ioscr.g1_io2= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO2"); 
-state->u.f0.fld.ioscr.g1_io3= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO3"); 
-state->u.f0.fld.ioscr.g1_io4= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO4"); 
-state->u.f0.fld.ioscr.g2_io1= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO1"); 
-state->u.f0.fld.ioscr.g2_io2= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO2"); 
-state->u.f0.fld.ioscr.g2_io3= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO3"); 
-state->u.f0.fld.ioscr.g2_io4= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO4"); 
-state->u.f0.fld.ioscr.g3_io1= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO1"); 
-state->u.f0.fld.ioscr.g3_io2= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO2"); 
-state->u.f0.fld.ioscr.g3_io3= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO3"); 
-state->u.f0.fld.ioscr.g3_io4= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO4"); 
-state->u.f0.fld.ioscr.g4_io1= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO1"); 
-state->u.f0.fld.ioscr.g4_io2= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO2"); 
-state->u.f0.fld.ioscr.g4_io3= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO3"); 
-state->u.f0.fld.ioscr.g4_io4= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO4"); 
-state->u.f0.fld.ioscr.g5_io1= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO1"); 
-state->u.f0.fld.ioscr.g5_io2= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO2"); 
-state->u.f0.fld.ioscr.g5_io3= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO3"); 
-state->u.f0.fld.ioscr.g5_io4= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO4"); 
-state->u.f0.fld.ioscr.g6_io1= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO1"); 
-state->u.f0.fld.ioscr.g6_io2= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO2"); 
-state->u.f0.fld.ioscr.g6_io3= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO3"); 
-state->u.f0.fld.ioscr.g6_io4= cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO4"); 
-// IOCCRbitfields.
-state->u.f0.fld.ioccr.g1_io1= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO1"); 
-state->u.f0.fld.ioccr.g1_io2= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO2"); 
-state->u.f0.fld.ioccr.g1_io3= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO3"); 
-state->u.f0.fld.ioccr.g1_io4= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO4"); 
-state->u.f0.fld.ioccr.g2_io1= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO1"); 
-state->u.f0.fld.ioccr.g2_io2= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO2"); 
-state->u.f0.fld.ioccr.g2_io3= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO3"); 
-state->u.f0.fld.ioccr.g2_io4= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO4"); 
-state->u.f0.fld.ioccr.g3_io1= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO1"); 
-state->u.f0.fld.ioccr.g3_io2= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO2"); 
-state->u.f0.fld.ioccr.g3_io3= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO3"); 
-state->u.f0.fld.ioccr.g3_io4= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO4"); 
-state->u.f0.fld.ioccr.g4_io1= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO1"); 
-state->u.f0.fld.ioccr.g4_io2= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO2"); 
-state->u.f0.fld.ioccr.g4_io3= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO3"); 
-state->u.f0.fld.ioccr.g4_io4= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO4"); 
-state->u.f0.fld.ioccr.g5_io1= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO1"); 
-state->u.f0.fld.ioccr.g5_io2= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO2"); 
-state->u.f0.fld.ioccr.g5_io3= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO3"); 
-state->u.f0.fld.ioccr.g5_io4= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO4"); 
-state->u.f0.fld.ioccr.g6_io1= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO1"); 
-state->u.f0.fld.ioccr.g6_io2= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO2"); 
-state->u.f0.fld.ioccr.g6_io3= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO3"); 
-state->u.f0.fld.ioccr.g6_io4= cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO4"); 
-// IOGCSRbitfields.
-state->u.f0.fld.iogcsr.g1e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G1E"); 
-state->u.f0.fld.iogcsr.g2e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G2E"); 
-state->u.f0.fld.iogcsr.g3e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G3E"); 
-state->u.f0.fld.iogcsr.g4e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G4E"); 
-state->u.f0.fld.iogcsr.g5e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G5E"); 
-state->u.f0.fld.iogcsr.g6e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G6E"); 
-state->u.f0.fld.iogcsr.g7e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G7E"); 
-state->u.f0.fld.iogcsr.g8e= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G8E"); 
-state->u.f0.fld.iogcsr.g1s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G1S"); 
-state->u.f0.fld.iogcsr.g2s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G2S"); 
-state->u.f0.fld.iogcsr.g3s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G3S"); 
-state->u.f0.fld.iogcsr.g4s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G4S"); 
-state->u.f0.fld.iogcsr.g5s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G5S"); 
-state->u.f0.fld.iogcsr.g6s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G6S"); 
-state->u.f0.fld.iogcsr.g7s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G7S"); 
-state->u.f0.fld.iogcsr.g8s= cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G8S"); 
-// IOG1CRbitfields.
-state->u.f0.fld.iog1cr.cnt= cm_object_get_child_by_name(state->u.f0.reg.iog1cr, "CNT"); 
-// IOG2CRbitfields.
-state->u.f0.fld.iog2cr.cnt= cm_object_get_child_by_name(state->u.f0.reg.iog2cr, "CNT"); 
-// IOG3CRbitfields.
-state->u.f0.fld.iog3cr.cnt= cm_object_get_child_by_name(state->u.f0.reg.iog3cr, "CNT"); 
-// IOG4CRbitfields.
-state->u.f0.fld.iog4cr.cnt= cm_object_get_child_by_name(state->u.f0.reg.iog4cr, "CNT"); 
-// IOG5CRbitfields.
-state->u.f0.fld.iog5cr.cnt= cm_object_get_child_by_name(state->u.f0.reg.iog5cr, "CNT"); 
-// IOG6CRbitfields.
-state->u.f0.fld.iog6cr.cnt= cm_object_get_child_by_name(state->u.f0.reg.iog6cr, "CNT"); 
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.ier = cm_object_get_child_by_name(obj, "IER");
+    state->u.f0.reg.icr = cm_object_get_child_by_name(obj, "ICR");
+    state->u.f0.reg.isr = cm_object_get_child_by_name(obj, "ISR");
+    state->u.f0.reg.iohcr = cm_object_get_child_by_name(obj, "IOHCR");
+    state->u.f0.reg.ioascr = cm_object_get_child_by_name(obj, "IOASCR");
+    state->u.f0.reg.ioscr = cm_object_get_child_by_name(obj, "IOSCR");
+    state->u.f0.reg.ioccr = cm_object_get_child_by_name(obj, "IOCCR");
+    state->u.f0.reg.iogcsr = cm_object_get_child_by_name(obj, "IOGCSR");
+    state->u.f0.reg.iog1cr = cm_object_get_child_by_name(obj, "IOG1CR");
+    state->u.f0.reg.iog2cr = cm_object_get_child_by_name(obj, "IOG2CR");
+    state->u.f0.reg.iog3cr = cm_object_get_child_by_name(obj, "IOG3CR");
+    state->u.f0.reg.iog4cr = cm_object_get_child_by_name(obj, "IOG4CR");
+    state->u.f0.reg.iog5cr = cm_object_get_child_by_name(obj, "IOG5CR");
+    state->u.f0.reg.iog6cr = cm_object_get_child_by_name(obj, "IOG6CR");
+    
+    
+    // CR bitfields.
+    state->u.f0.fld.cr.tsce = cm_object_get_child_by_name(state->u.f0.reg.cr, "TSCE"); 
+    state->u.f0.fld.cr.start = cm_object_get_child_by_name(state->u.f0.reg.cr, "START"); 
+    state->u.f0.fld.cr.am = cm_object_get_child_by_name(state->u.f0.reg.cr, "AM"); 
+    state->u.f0.fld.cr.syncpol = cm_object_get_child_by_name(state->u.f0.reg.cr, "SYNCPOL"); 
+    state->u.f0.fld.cr.iodef = cm_object_get_child_by_name(state->u.f0.reg.cr, "IODEF"); 
+    state->u.f0.fld.cr.mcv = cm_object_get_child_by_name(state->u.f0.reg.cr, "MCV"); 
+    state->u.f0.fld.cr.pgpsc = cm_object_get_child_by_name(state->u.f0.reg.cr, "PGPSC"); 
+    state->u.f0.fld.cr.sspsc = cm_object_get_child_by_name(state->u.f0.reg.cr, "SSPSC"); 
+    state->u.f0.fld.cr.sse = cm_object_get_child_by_name(state->u.f0.reg.cr, "SSE"); 
+    state->u.f0.fld.cr.ssd = cm_object_get_child_by_name(state->u.f0.reg.cr, "SSD"); 
+    state->u.f0.fld.cr.ctpl = cm_object_get_child_by_name(state->u.f0.reg.cr, "CTPL"); 
+    state->u.f0.fld.cr.ctph = cm_object_get_child_by_name(state->u.f0.reg.cr, "CTPH");  
+    
+    // IER bitfields.
+    state->u.f0.fld.ier.eoaie = cm_object_get_child_by_name(state->u.f0.reg.ier, "EOAIE"); 
+    state->u.f0.fld.ier.mceie = cm_object_get_child_by_name(state->u.f0.reg.ier, "MCEIE");  
+    
+    // ICR bitfields.
+    state->u.f0.fld.icr.eoaic = cm_object_get_child_by_name(state->u.f0.reg.icr, "EOAIC"); 
+    state->u.f0.fld.icr.mceic = cm_object_get_child_by_name(state->u.f0.reg.icr, "MCEIC");  
+    
+    // ISR bitfields.
+    state->u.f0.fld.isr.eoaf = cm_object_get_child_by_name(state->u.f0.reg.isr, "EOAF"); 
+    state->u.f0.fld.isr.mcef = cm_object_get_child_by_name(state->u.f0.reg.isr, "MCEF");  
+    
+    // IOHCR bitfields.
+    state->u.f0.fld.iohcr.g1_io1 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO1"); 
+    state->u.f0.fld.iohcr.g1_io2 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO2"); 
+    state->u.f0.fld.iohcr.g1_io3 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO3"); 
+    state->u.f0.fld.iohcr.g1_io4 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G1_IO4"); 
+    state->u.f0.fld.iohcr.g2_io1 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO1"); 
+    state->u.f0.fld.iohcr.g2_io2 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO2"); 
+    state->u.f0.fld.iohcr.g2_io3 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO3"); 
+    state->u.f0.fld.iohcr.g2_io4 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G2_IO4"); 
+    state->u.f0.fld.iohcr.g3_io1 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO1"); 
+    state->u.f0.fld.iohcr.g3_io2 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO2"); 
+    state->u.f0.fld.iohcr.g3_io3 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO3"); 
+    state->u.f0.fld.iohcr.g3_io4 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G3_IO4"); 
+    state->u.f0.fld.iohcr.g4_io1 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO1"); 
+    state->u.f0.fld.iohcr.g4_io2 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO2"); 
+    state->u.f0.fld.iohcr.g4_io3 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO3"); 
+    state->u.f0.fld.iohcr.g4_io4 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G4_IO4"); 
+    state->u.f0.fld.iohcr.g5_io1 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO1"); 
+    state->u.f0.fld.iohcr.g5_io2 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO2"); 
+    state->u.f0.fld.iohcr.g5_io3 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO3"); 
+    state->u.f0.fld.iohcr.g5_io4 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G5_IO4"); 
+    state->u.f0.fld.iohcr.g6_io1 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO1"); 
+    state->u.f0.fld.iohcr.g6_io2 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO2"); 
+    state->u.f0.fld.iohcr.g6_io3 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO3"); 
+    state->u.f0.fld.iohcr.g6_io4 = cm_object_get_child_by_name(state->u.f0.reg.iohcr, "G6_IO4");  
+    
+    // IOASCR bitfields.
+    state->u.f0.fld.ioascr.g1_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO1"); 
+    state->u.f0.fld.ioascr.g1_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO2"); 
+    state->u.f0.fld.ioascr.g1_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO3"); 
+    state->u.f0.fld.ioascr.g1_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G1_IO4"); 
+    state->u.f0.fld.ioascr.g2_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO1"); 
+    state->u.f0.fld.ioascr.g2_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO2"); 
+    state->u.f0.fld.ioascr.g2_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO3"); 
+    state->u.f0.fld.ioascr.g2_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G2_IO4"); 
+    state->u.f0.fld.ioascr.g3_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO1"); 
+    state->u.f0.fld.ioascr.g3_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO2"); 
+    state->u.f0.fld.ioascr.g3_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO3"); 
+    state->u.f0.fld.ioascr.g3_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G3_IO4"); 
+    state->u.f0.fld.ioascr.g4_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO1"); 
+    state->u.f0.fld.ioascr.g4_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO2"); 
+    state->u.f0.fld.ioascr.g4_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO3"); 
+    state->u.f0.fld.ioascr.g4_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G4_IO4"); 
+    state->u.f0.fld.ioascr.g5_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO1"); 
+    state->u.f0.fld.ioascr.g5_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO2"); 
+    state->u.f0.fld.ioascr.g5_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO3"); 
+    state->u.f0.fld.ioascr.g5_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G5_IO4"); 
+    state->u.f0.fld.ioascr.g6_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO1"); 
+    state->u.f0.fld.ioascr.g6_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO2"); 
+    state->u.f0.fld.ioascr.g6_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO3"); 
+    state->u.f0.fld.ioascr.g6_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioascr, "G6_IO4");  
+    
+    // IOSCR bitfields.
+    state->u.f0.fld.ioscr.g1_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO1"); 
+    state->u.f0.fld.ioscr.g1_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO2"); 
+    state->u.f0.fld.ioscr.g1_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO3"); 
+    state->u.f0.fld.ioscr.g1_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G1_IO4"); 
+    state->u.f0.fld.ioscr.g2_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO1"); 
+    state->u.f0.fld.ioscr.g2_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO2"); 
+    state->u.f0.fld.ioscr.g2_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO3"); 
+    state->u.f0.fld.ioscr.g2_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G2_IO4"); 
+    state->u.f0.fld.ioscr.g3_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO1"); 
+    state->u.f0.fld.ioscr.g3_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO2"); 
+    state->u.f0.fld.ioscr.g3_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO3"); 
+    state->u.f0.fld.ioscr.g3_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G3_IO4"); 
+    state->u.f0.fld.ioscr.g4_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO1"); 
+    state->u.f0.fld.ioscr.g4_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO2"); 
+    state->u.f0.fld.ioscr.g4_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO3"); 
+    state->u.f0.fld.ioscr.g4_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G4_IO4"); 
+    state->u.f0.fld.ioscr.g5_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO1"); 
+    state->u.f0.fld.ioscr.g5_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO2"); 
+    state->u.f0.fld.ioscr.g5_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO3"); 
+    state->u.f0.fld.ioscr.g5_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G5_IO4"); 
+    state->u.f0.fld.ioscr.g6_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO1"); 
+    state->u.f0.fld.ioscr.g6_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO2"); 
+    state->u.f0.fld.ioscr.g6_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO3"); 
+    state->u.f0.fld.ioscr.g6_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioscr, "G6_IO4");  
+    
+    // IOCCR bitfields.
+    state->u.f0.fld.ioccr.g1_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO1"); 
+    state->u.f0.fld.ioccr.g1_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO2"); 
+    state->u.f0.fld.ioccr.g1_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO3"); 
+    state->u.f0.fld.ioccr.g1_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G1_IO4"); 
+    state->u.f0.fld.ioccr.g2_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO1"); 
+    state->u.f0.fld.ioccr.g2_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO2"); 
+    state->u.f0.fld.ioccr.g2_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO3"); 
+    state->u.f0.fld.ioccr.g2_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G2_IO4"); 
+    state->u.f0.fld.ioccr.g3_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO1"); 
+    state->u.f0.fld.ioccr.g3_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO2"); 
+    state->u.f0.fld.ioccr.g3_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO3"); 
+    state->u.f0.fld.ioccr.g3_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G3_IO4"); 
+    state->u.f0.fld.ioccr.g4_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO1"); 
+    state->u.f0.fld.ioccr.g4_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO2"); 
+    state->u.f0.fld.ioccr.g4_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO3"); 
+    state->u.f0.fld.ioccr.g4_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G4_IO4"); 
+    state->u.f0.fld.ioccr.g5_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO1"); 
+    state->u.f0.fld.ioccr.g5_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO2"); 
+    state->u.f0.fld.ioccr.g5_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO3"); 
+    state->u.f0.fld.ioccr.g5_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G5_IO4"); 
+    state->u.f0.fld.ioccr.g6_io1 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO1"); 
+    state->u.f0.fld.ioccr.g6_io2 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO2"); 
+    state->u.f0.fld.ioccr.g6_io3 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO3"); 
+    state->u.f0.fld.ioccr.g6_io4 = cm_object_get_child_by_name(state->u.f0.reg.ioccr, "G6_IO4");  
+    
+    // IOGCSR bitfields.
+    state->u.f0.fld.iogcsr.g1e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G1E"); 
+    state->u.f0.fld.iogcsr.g2e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G2E"); 
+    state->u.f0.fld.iogcsr.g3e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G3E"); 
+    state->u.f0.fld.iogcsr.g4e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G4E"); 
+    state->u.f0.fld.iogcsr.g5e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G5E"); 
+    state->u.f0.fld.iogcsr.g6e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G6E"); 
+    state->u.f0.fld.iogcsr.g7e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G7E"); 
+    state->u.f0.fld.iogcsr.g8e = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G8E"); 
+    state->u.f0.fld.iogcsr.g1s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G1S"); 
+    state->u.f0.fld.iogcsr.g2s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G2S"); 
+    state->u.f0.fld.iogcsr.g3s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G3S"); 
+    state->u.f0.fld.iogcsr.g4s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G4S"); 
+    state->u.f0.fld.iogcsr.g5s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G5S"); 
+    state->u.f0.fld.iogcsr.g6s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G6S"); 
+    state->u.f0.fld.iogcsr.g7s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G7S"); 
+    state->u.f0.fld.iogcsr.g8s = cm_object_get_child_by_name(state->u.f0.reg.iogcsr, "G8S");  
+    
+    // IOG1CR bitfields.
+    state->u.f0.fld.iog1cr.cnt = cm_object_get_child_by_name(state->u.f0.reg.iog1cr, "CNT");  
+    
+    // IOG2CR bitfields.
+    state->u.f0.fld.iog2cr.cnt = cm_object_get_child_by_name(state->u.f0.reg.iog2cr, "CNT");  
+    
+    // IOG3CR bitfields.
+    state->u.f0.fld.iog3cr.cnt = cm_object_get_child_by_name(state->u.f0.reg.iog3cr, "CNT");  
+    
+    // IOG4CR bitfields.
+    state->u.f0.fld.iog4cr.cnt = cm_object_get_child_by_name(state->u.f0.reg.iog4cr, "CNT");  
+    
+    // IOG5CR bitfields.
+    state->u.f0.fld.iog5cr.cnt = cm_object_get_child_by_name(state->u.f0.reg.iog5cr, "CNT");  
+    
+    // IOG6CR bitfields.
+    state->u.f0.fld.iog6cr.cnt = cm_object_get_child_by_name(state->u.f0.reg.iog6cr, "CNT");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -284,7 +300,7 @@ static void stm32_tsc_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -323,7 +339,7 @@ static void stm32_tsc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_tsc_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -339,10 +355,12 @@ static void stm32_tsc_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/TSCEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

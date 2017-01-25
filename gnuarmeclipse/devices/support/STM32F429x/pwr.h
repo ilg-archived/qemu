@@ -1,5 +1,5 @@
 /*
- * STM32- PWR(Power control) emulation.
+ * STM32 - PWR (Power control) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_PWRDEVICE_PATH_STM32"PWR"
+#define DEVICE_PATH_STM32_PWR DEVICE_PATH_STM32 "PWR"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_PWRTYPE_STM32_PREFIX "pwr" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_PWR TYPE_STM32_PREFIX "pwr" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,26 +75,53 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4PWR(Power control) registers.
+        // F4 PWR (Power control) registers.
         struct { 
-Object *cr; // 0x0(Power control register) 
-Object *csr; // 0x4(Power control/status register) 
-} reg;
+          Object *cr; // 0x0 (Power control register) 
+          Object *csr; // 0x4 (Power control/status register) 
+        } reg;
 
         struct { 
-// CR(Power control register) bitfields.
+          
+          // CR (Power control register) bitfields.
           struct { 
-Object *lpds; // [0:0] Low-power deep sleepObject *pdds; // [1:1] Power down deepsleepObject *cwuf; // [2:2] Clear wakeup flagObject *csbf; // [3:3] Clear standby flagObject *pvde; // [4:4] Power voltage detector enableObject *pls; // [5:7] PVD level selectionObject *dbp; // [8:8] Disable backup domain write protectionObject *fpds; // [9:9] Flash power down in Stop modeObject *lpuds; // [10:10] Low-Power Regulator Low Voltage in deepsleepObject *mruds; // [11:11] Main regulator low voltage in deepsleep modeObject *adcdc1; // [13:13] ADCDC1Object *vos; // [14:15] Regulator voltage scaling output selectionObject *oden; // [16:16] Over-drive enableObject *odswen; // [17:17] Over-drive switching enabledObject *uden; // [18:19] Under-drive enable in stop mode} cr; 
-// CSR(Power control/status register) bitfields.
+            Object *lpds; // [0:0] Low-power deep sleep 
+            Object *pdds; // [1:1] Power down deepsleep 
+            Object *cwuf; // [2:2] Clear wakeup flag 
+            Object *csbf; // [3:3] Clear standby flag 
+            Object *pvde; // [4:4] Power voltage detector enable 
+            Object *pls; // [5:7] PVD level selection 
+            Object *dbp; // [8:8] Disable backup domain write protection 
+            Object *fpds; // [9:9] Flash power down in Stop mode 
+            Object *lpuds; // [10:10] Low-Power Regulator Low Voltage in deepsleep 
+            Object *mruds; // [11:11] Main regulator low voltage in deepsleep mode 
+            Object *adcdc1; // [13:13] ADCDC1 
+            Object *vos; // [14:15] Regulator voltage scaling output selection 
+            Object *oden; // [16:16] Over-drive enable 
+            Object *odswen; // [17:17] Over-drive switching enabled 
+            Object *uden; // [18:19] Under-drive enable in stop mode  
+          } cr; 
+          
+          // CSR (Power control/status register) bitfields.
           struct { 
-Object *wuf; // [0:0] Wakeup flagObject *sbf; // [1:1] Standby flagObject *pvdo; // [2:2] PVD outputObject *brr; // [3:3] Backup regulator readyObject *ewup; // [8:8] Enable WKUP pinObject *bre; // [9:9] Backup regulator enableObject *vosrdy; // [14:14] Regulator voltage scaling output selection ready bitObject *odrdy; // [16:16] Over-drive mode readyObject *odswrdy; // [17:17] Over-drive mode switching readyObject *udrdy; // [18:19] Under-drive ready flag} csr; 
-} fld;
+            Object *wuf; // [0:0] Wakeup flag 
+            Object *sbf; // [1:1] Standby flag 
+            Object *pvdo; // [2:2] PVD output 
+            Object *brr; // [3:3] Backup regulator ready 
+            Object *ewup; // [8:8] Enable WKUP pin 
+            Object *bre; // [9:9] Backup regulator enable 
+            Object *vosrdy; // [14:14] Regulator voltage scaling output selection ready bit 
+            Object *odrdy; // [16:16] Over-drive mode ready 
+            Object *odswrdy; // [17:17] Over-drive mode switching ready 
+            Object *udrdy; // [18:19] Under-drive ready flag  
+          } csr; 
+        } fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

@@ -1,5 +1,5 @@
 /*
- * STM32- CEC(HDMI-CEC controller) emulation.
+ * STM32 - CEC (HDMI-CEC controller) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_CECDEVICE_PATH_STM32"CEC"
+#define DEVICE_PATH_STM32_CEC DEVICE_PATH_STM32 "CEC"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_CECTYPE_STM32_PREFIX "cec" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_CEC TYPE_STM32_PREFIX "cec" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,42 +75,86 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0CEC(HDMI-CEC controller) registers.
+        // F0 CEC (HDMI-CEC controller) registers.
         struct { 
-Object *cr; // 0x0(Control register) 
-Object *cfgr; // 0x4(Configuration register) 
-Object *txdr; // 0x8(Tx data register) 
-Object *rxdr; // 0xC(Rx Data Register) 
-Object *isr; // 0x10(Interrupt and Status Register) 
-Object *ier; // 0x14(Interrupt enable register) 
-} reg;
+          Object *cr; // 0x0 (Control register) 
+          Object *cfgr; // 0x4 (Configuration register) 
+          Object *txdr; // 0x8 (Tx data register) 
+          Object *rxdr; // 0xC (Rx Data Register) 
+          Object *isr; // 0x10 (Interrupt and Status Register) 
+          Object *ier; // 0x14 (Interrupt enable register) 
+        } reg;
 
         struct { 
-// CR(Control register) bitfields.
+          
+          // CR (Control register) bitfields.
           struct { 
-Object *cecen; // [0:0] CEC EnableObject *txsom; // [1:1] Tx start of messageObject *txeom; // [2:2] Tx End Of Message} cr; 
-// CFGR(Configuration register) bitfields.
+            Object *cecen; // [0:0] CEC Enable 
+            Object *txsom; // [1:1] Tx start of message 
+            Object *txeom; // [2:2] Tx End Of Message  
+          } cr; 
+          
+          // CFGR (Configuration register) bitfields.
           struct { 
-Object *oar; // [0:3] Own AddressObject *lstn; // [4:4] Listen modeObject *sft; // [5:7] Signal Free TimeObject *rxtol; // [8:8] Rx-ToleranceObject *brestp; // [9:9] Rx-stop on bit rising errorObject *bregen; // [10:10] Generate error-bit on bit rising errorObject *lbpegen; // [11:11] Generate Error-Bit on Long Bit Period Error} cfgr; 
-// TXDR(Tx data register) bitfields.
+            Object *oar; // [0:3] Own Address 
+            Object *lstn; // [4:4] Listen mode 
+            Object *sft; // [5:7] Signal Free Time 
+            Object *rxtol; // [8:8] Rx-Tolerance 
+            Object *brestp; // [9:9] Rx-stop on bit rising error 
+            Object *bregen; // [10:10] Generate error-bit on bit rising error 
+            Object *lbpegen; // [11:11] Generate Error-Bit on Long Bit Period Error  
+          } cfgr; 
+          
+          // TXDR (Tx data register) bitfields.
           struct { 
-Object *txd; // [0:7] Tx Data register} txdr; 
-// RXDR(Rx Data Register) bitfields.
+            Object *txd; // [0:7] Tx Data register  
+          } txdr; 
+          
+          // RXDR (Rx Data Register) bitfields.
           struct { 
-Object *rxdr; // [0:7] CEC Rx Data Register} rxdr; 
-// ISR(Interrupt and Status Register) bitfields.
+            Object *rxdr; // [0:7] CEC Rx Data Register  
+          } rxdr; 
+          
+          // ISR (Interrupt and Status Register) bitfields.
           struct { 
-Object *rxbr; // [0:0] Rx-Byte ReceivedObject *rxend; // [1:1] End Of ReceptionObject *rxovr; // [2:2] Rx-OverrunObject *bre; // [3:3] Rx-Bit rising errorObject *sbpe; // [4:4] Rx-Short Bit period errorObject *lbpe; // [5:5] Rx-Long Bit Period ErrorObject *rxacke; // [6:6] Rx-Missing AcknowledgeObject *arblst; // [7:7] Arbitration LostObject *txbr; // [8:8] Tx-Byte RequestObject *txend; // [9:9] End of TransmissionObject *txudr; // [10:10] Tx-Buffer UnderrunObject *txerr; // [11:11] Tx-ErrorObject *txacke; // [12:12] Tx-Missing acknowledge error} isr; 
-// IER(Interrupt enable register) bitfields.
+            Object *rxbr; // [0:0] Rx-Byte Received 
+            Object *rxend; // [1:1] End Of Reception 
+            Object *rxovr; // [2:2] Rx-Overrun 
+            Object *bre; // [3:3] Rx-Bit rising error 
+            Object *sbpe; // [4:4] Rx-Short Bit period error 
+            Object *lbpe; // [5:5] Rx-Long Bit Period Error 
+            Object *rxacke; // [6:6] Rx-Missing Acknowledge 
+            Object *arblst; // [7:7] Arbitration Lost 
+            Object *txbr; // [8:8] Tx-Byte Request 
+            Object *txend; // [9:9] End of Transmission 
+            Object *txudr; // [10:10] Tx-Buffer Underrun 
+            Object *txerr; // [11:11] Tx-Error 
+            Object *txacke; // [12:12] Tx-Missing acknowledge error  
+          } isr; 
+          
+          // IER (Interrupt enable register) bitfields.
           struct { 
-Object *rxbrie; // [0:0] Rx-Byte Received Interrupt EnableObject *rxendie; // [1:1] End Of Reception Interrupt EnableObject *rxovrie; // [2:2] Rx-Buffer Overrun Interrupt EnableObject *breie; // [3:3] Bit Rising Error Interrupt EnableObject *sbpeie; // [4:4] Short Bit Period Error Interrupt EnableObject *lbpeie; // [5:5] Long Bit Period Error Interrupt EnableObject *rxackie; // [6:6] Rx-Missing Acknowledge Error Interrupt EnableObject *arblstie; // [7:7] Arbitration Lost Interrupt EnableObject *txbrie; // [8:8] Tx-Byte Request Interrupt EnableObject *txendie; // [9:9] Tx-End of message interrupt enableObject *txudrie; // [10:10] Tx-Underrun interrupt enableObject *txerrie; // [11:11] Tx-Error Interrupt EnableObject *txackie; // [12:12] Tx-Missing Acknowledge Error Interrupt Enable} ier; 
-} fld;
+            Object *rxbrie; // [0:0] Rx-Byte Received Interrupt Enable 
+            Object *rxendie; // [1:1] End Of Reception Interrupt Enable 
+            Object *rxovrie; // [2:2] Rx-Buffer Overrun Interrupt Enable 
+            Object *breie; // [3:3] Bit Rising Error Interrupt Enable 
+            Object *sbpeie; // [4:4] Short Bit Period Error Interrupt Enable 
+            Object *lbpeie; // [5:5] Long Bit Period Error Interrupt Enable 
+            Object *rxackie; // [6:6] Rx-Missing Acknowledge Error Interrupt Enable 
+            Object *arblstie; // [7:7] Arbitration Lost Interrupt Enable 
+            Object *txbrie; // [8:8] Tx-Byte Request Interrupt Enable 
+            Object *txendie; // [9:9] Tx-End of message interrupt enable 
+            Object *txudrie; // [10:10] Tx-Underrun interrupt enable 
+            Object *txerrie; // [11:11] Tx-Error Interrupt Enable 
+            Object *txackie; // [12:12] Tx-Missing Acknowledge Error Interrupt Enable  
+          } ier; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

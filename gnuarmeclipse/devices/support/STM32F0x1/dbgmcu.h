@@ -1,5 +1,5 @@
 /*
- * STM32- DBGMCU(Debug support) emulation.
+ * STM32 - DBGMCU (Debug support) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_DBGMCUDEVICE_PATH_STM32"DBGMCU"
+#define DEVICE_PATH_STM32_DBGMCU DEVICE_PATH_STM32 "DBGMCU"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_DBGMCUTYPE_STM32_PREFIX "dbgmcu" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_DBGMCU TYPE_STM32_PREFIX "dbgmcu" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,34 +75,55 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0DBGMCU(Debug support) registers.
+        // F0 DBGMCU (Debug support) registers.
         struct { 
-Object *idcode; // 0x0(MCU Device ID Code Register) 
-Object *cr; // 0x4(Debug MCU Configuration Register) 
-Object *apblfz; // 0x8(APB Low Freeze Register) 
-Object *apbhfz; // 0xC(APB High Freeze Register) 
-} reg;
+          Object *idcode; // 0x0 (MCU Device ID Code Register) 
+          Object *cr; // 0x4 (Debug MCU Configuration Register) 
+          Object *apblfz; // 0x8 (APB Low Freeze Register) 
+          Object *apbhfz; // 0xC (APB High Freeze Register) 
+        } reg;
 
         struct { 
-// IDCODE(MCU Device ID Code Register) bitfields.
+          
+          // IDCODE (MCU Device ID Code Register) bitfields.
           struct { 
-Object *dev_id; // [0:11] Device IdentifierObject *div_id; // [12:15] Division IdentifierObject *rev_id; // [16:31] Revision Identifier} idcode; 
-// CR(Debug MCU Configuration Register) bitfields.
+            Object *dev_id; // [0:11] Device Identifier 
+            Object *div_id; // [12:15] Division Identifier 
+            Object *rev_id; // [16:31] Revision Identifier  
+          } idcode; 
+          
+          // CR (Debug MCU Configuration Register) bitfields.
           struct { 
-Object *dbg_stop; // [1:1] Debug Stop ModeObject *dbg_standby; // [2:2] Debug Standby Mode} cr; 
-// APBLFZ(APB Low Freeze Register) bitfields.
+            Object *dbg_stop; // [1:1] Debug Stop Mode 
+            Object *dbg_standby; // [2:2] Debug Standby Mode  
+          } cr; 
+          
+          // APBLFZ (APB Low Freeze Register) bitfields.
           struct { 
-Object *dbg_timer2_stop; // [0:0] Debug Timer 2 stopped when Core is haltedObject *dbg_timer3_stop; // [1:1] Debug Timer 3 stopped when Core is haltedObject *dbg_timer6_stop; // [4:4] Debug Timer 6 stopped when Core is haltedObject *dbg_timer14_stop; // [8:8] Debug Timer 14 stopped when Core is haltedObject *dbg_rtc_stop; // [10:10] Debug RTC stopped when Core is haltedObject *dbg_wwdg_stop; // [11:11] Debug Window Wachdog stopped when Core is haltedObject *dbg_iwdg_stop; // [12:12] Debug Independent Wachdog stopped when Core is haltedObject *i2c1_smbus_timeout; // [21:21] SMBUS timeout mode stopped when Core is halted} apblfz; 
-// APBHFZ(APB High Freeze Register) bitfields.
+            Object *dbg_timer2_stop; // [0:0] Debug Timer 2 stopped when Core is halted 
+            Object *dbg_timer3_stop; // [1:1] Debug Timer 3 stopped when Core is halted 
+            Object *dbg_timer6_stop; // [4:4] Debug Timer 6 stopped when Core is halted 
+            Object *dbg_timer14_stop; // [8:8] Debug Timer 14 stopped when Core is halted 
+            Object *dbg_rtc_stop; // [10:10] Debug RTC stopped when Core is halted 
+            Object *dbg_wwdg_stop; // [11:11] Debug Window Wachdog stopped when Core is halted 
+            Object *dbg_iwdg_stop; // [12:12] Debug Independent Wachdog stopped when Core is halted 
+            Object *i2c1_smbus_timeout; // [21:21] SMBUS timeout mode stopped when Core is halted  
+          } apblfz; 
+          
+          // APBHFZ (APB High Freeze Register) bitfields.
           struct { 
-Object *dbg_timer1_stop; // [11:11] Debug Timer 1 stopped when Core is haltedObject *dbg_timer15_sto; // [16:16] Debug Timer 15 stopped when Core is haltedObject *dbg_timer16_sto; // [17:17] Debug Timer 16 stopped when Core is haltedObject *dbg_timer17_sto; // [18:18] Debug Timer 17 stopped when Core is halted} apbhfz; 
-} fld;
+            Object *dbg_timer1_stop; // [11:11] Debug Timer 1 stopped when Core is halted 
+            Object *dbg_timer15_sto; // [16:16] Debug Timer 15 stopped when Core is halted 
+            Object *dbg_timer16_sto; // [17:17] Debug Timer 16 stopped when Core is halted 
+            Object *dbg_timer17_sto; // [18:18] Debug Timer 17 stopped when Core is halted  
+          } apbhfz; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

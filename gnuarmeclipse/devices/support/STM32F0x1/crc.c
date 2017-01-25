@@ -1,5 +1,5 @@
 /*
- * STM32- CRC(Cyclic redundancy check calculation unit) emulation.
+ * STM32 - CRC (Cyclic redundancy check calculation unit) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,21 +35,26 @@ static void stm32f0x1_crc_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-state->u.f0.reg.dr= cm_object_get_child_by_name(obj, "DR");
-state->u.f0.reg.idr= cm_object_get_child_by_name(obj, "IDR");
-state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-state->u.f0.reg.init= cm_object_get_child_by_name(obj, "INIT");
-// DRbitfields.
-state->u.f0.fld.dr.dr= cm_object_get_child_by_name(state->u.f0.reg.dr, "DR"); 
-// IDRbitfields.
-state->u.f0.fld.idr.idr= cm_object_get_child_by_name(state->u.f0.reg.idr, "IDR"); 
-// CRbitfields.
-state->u.f0.fld.cr.reset= cm_object_get_child_by_name(state->u.f0.reg.cr, "RESET"); 
-state->u.f0.fld.cr.polysize= cm_object_get_child_by_name(state->u.f0.reg.cr, "POLYSIZE"); 
-state->u.f0.fld.cr.rev_in= cm_object_get_child_by_name(state->u.f0.reg.cr, "REV_IN"); 
-state->u.f0.fld.cr.rev_out= cm_object_get_child_by_name(state->u.f0.reg.cr, "REV_OUT"); 
-// INITbitfields.
-state->u.f0.fld.init.init= cm_object_get_child_by_name(state->u.f0.reg.init, "INIT"); 
+    state->u.f0.reg.dr = cm_object_get_child_by_name(obj, "DR");
+    state->u.f0.reg.idr = cm_object_get_child_by_name(obj, "IDR");
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.init = cm_object_get_child_by_name(obj, "INIT");
+    
+    
+    // DR bitfields.
+    state->u.f0.fld.dr.dr = cm_object_get_child_by_name(state->u.f0.reg.dr, "DR");  
+    
+    // IDR bitfields.
+    state->u.f0.fld.idr.idr = cm_object_get_child_by_name(state->u.f0.reg.idr, "IDR");  
+    
+    // CR bitfields.
+    state->u.f0.fld.cr.reset = cm_object_get_child_by_name(state->u.f0.reg.cr, "RESET"); 
+    state->u.f0.fld.cr.polysize = cm_object_get_child_by_name(state->u.f0.reg.cr, "POLYSIZE"); 
+    state->u.f0.fld.cr.rev_in = cm_object_get_child_by_name(state->u.f0.reg.cr, "REV_IN"); 
+    state->u.f0.fld.cr.rev_out = cm_object_get_child_by_name(state->u.f0.reg.cr, "REV_OUT");  
+    
+    // INIT bitfields.
+    state->u.f0.fld.init.init = cm_object_get_child_by_name(state->u.f0.reg.init, "INIT");  
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -133,7 +138,7 @@ static void stm32_crc_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-// TODO: remove this if the peripheral is always enabled.
+    // TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -172,7 +177,7 @@ static void stm32_crc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 ) {
 
             stm32f0x1_crc_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -188,10 +193,12 @@ static void stm32_crc_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-// TODO: remove this if the peripheral is always enabled.
+            // TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/CRCEN");
-} else {
+
+
+        } else {
             assert(false);
         }
 

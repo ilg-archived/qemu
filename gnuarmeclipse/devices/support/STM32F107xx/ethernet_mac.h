@@ -1,5 +1,5 @@
 /*
- * STM32- ETHERNET_MAC(Ethernet: media access control) emulation.
+ * STM32 - ETHERNET_MAC (Ethernet: media access control) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_ETHERNET_MACDEVICE_PATH_STM32"ETHERNET_MAC"
+#define DEVICE_PATH_STM32_ETHERNET_MAC DEVICE_PATH_STM32 "ETHERNET_MAC"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_ETHERNET_MACTYPE_STM32_PREFIX "ethernet_mac" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_ETHERNET_MAC TYPE_STM32_PREFIX "ethernet_mac" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,98 +75,193 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1ETHERNET_MAC(Ethernet: media access control) registers.
+        // F1 ETHERNET_MAC (Ethernet: media access control) registers.
         struct { 
-Object *maccr; // 0x0(Ethernet MAC configuration register (ETH_MACCR)) 
-Object *macffr; // 0x4(Ethernet MAC frame filter register (ETH_MACCFFR)) 
-Object *machthr; // 0x8(Ethernet MAC hash table high register) 
-Object *machtlr; // 0xC(Ethernet MAC hash table low register) 
-Object *macmiiar; // 0x10(Ethernet MAC MII address register (ETH_MACMIIAR)) 
-Object *macmiidr; // 0x14(Ethernet MAC MII data register (ETH_MACMIIDR)) 
-Object *macfcr; // 0x18(Ethernet MAC flow control register (ETH_MACFCR)) 
-Object *macvlantr; // 0x1C(Ethernet MAC VLAN tag register (ETH_MACVLANTR)) 
-Object *macrwuffr; // 0x28(Ethernet MAC remote wakeup frame filter register (ETH_MACRWUFFR)) 
-Object *macpmtcsr; // 0x2C(Ethernet MAC PMT control and status register (ETH_MACPMTCSR)) 
-Object *macsr; // 0x38(Ethernet MAC interrupt status register (ETH_MACSR)) 
-Object *macimr; // 0x3C(Ethernet MAC interrupt mask register (ETH_MACIMR)) 
-Object *maca0hr; // 0x40(Ethernet MAC address 0 high register (ETH_MACA0HR)) 
-Object *maca0lr; // 0x44(Ethernet MAC address 0 low register) 
-Object *maca1hr; // 0x48(Ethernet MAC address 1 high register (ETH_MACA1HR)) 
-Object *maca1lr; // 0x4C(Ethernet MAC address1 low register) 
-Object *maca2hr; // 0x50(Ethernet MAC address 2 high register (ETH_MACA2HR)) 
-Object *maca2lr; // 0x54(Ethernet MAC address 2 low register) 
-Object *maca3hr; // 0x58(Ethernet MAC address 3 high register (ETH_MACA3HR)) 
-Object *maca3lr; // 0x5C(Ethernet MAC address 3 low register) 
-} reg;
+          Object *maccr; // 0x0 (Ethernet MAC configuration register (ETH_MACCR)) 
+          Object *macffr; // 0x4 (Ethernet MAC frame filter register (ETH_MACCFFR)) 
+          Object *machthr; // 0x8 (Ethernet MAC hash table high register) 
+          Object *machtlr; // 0xC (Ethernet MAC hash table low register) 
+          Object *macmiiar; // 0x10 (Ethernet MAC MII address register (ETH_MACMIIAR)) 
+          Object *macmiidr; // 0x14 (Ethernet MAC MII data register (ETH_MACMIIDR)) 
+          Object *macfcr; // 0x18 (Ethernet MAC flow control register (ETH_MACFCR)) 
+          Object *macvlantr; // 0x1C (Ethernet MAC VLAN tag register (ETH_MACVLANTR)) 
+          Object *macrwuffr; // 0x28 (Ethernet MAC remote wakeup frame filter register (ETH_MACRWUFFR)) 
+          Object *macpmtcsr; // 0x2C (Ethernet MAC PMT control and status register (ETH_MACPMTCSR)) 
+          Object *macsr; // 0x38 (Ethernet MAC interrupt status register (ETH_MACSR)) 
+          Object *macimr; // 0x3C (Ethernet MAC interrupt mask register (ETH_MACIMR)) 
+          Object *maca0hr; // 0x40 (Ethernet MAC address 0 high register (ETH_MACA0HR)) 
+          Object *maca0lr; // 0x44 (Ethernet MAC address 0 low register) 
+          Object *maca1hr; // 0x48 (Ethernet MAC address 1 high register (ETH_MACA1HR)) 
+          Object *maca1lr; // 0x4C (Ethernet MAC address1 low register) 
+          Object *maca2hr; // 0x50 (Ethernet MAC address 2 high register (ETH_MACA2HR)) 
+          Object *maca2lr; // 0x54 (Ethernet MAC address 2 low register) 
+          Object *maca3hr; // 0x58 (Ethernet MAC address 3 high register (ETH_MACA3HR)) 
+          Object *maca3lr; // 0x5C (Ethernet MAC address 3 low register) 
+        } reg;
 
         struct { 
-// MACCR(Ethernet MAC configuration register (ETH_MACCR)) bitfields.
+          
+          // MACCR (Ethernet MAC configuration register (ETH_MACCR)) bitfields.
           struct { 
-Object *re; // [2:2] Receiver enableObject *te; // [3:3] Transmitter enableObject *dc; // [4:4] Deferral checkObject *bl; // [5:6] Back-off limitObject *apcs; // [7:7] Automatic pad/CRC strippingObject *rd; // [9:9] Retry disableObject *ipco; // [10:10] IPv4 checksum offloadObject *dm; // [11:11] Duplex modeObject *lm; // [12:12] Loopback modeObject *rod; // [13:13] Receive own disableObject *fes; // [14:14] Fast Ethernet speedObject *csd; // [16:16] Carrier sense disableObject *ifg; // [17:19] Interframe gapObject *jd; // [22:22] Jabber disableObject *wd; // [23:23] Watchdog disable} maccr; 
-// MACFFR(Ethernet MAC frame filter register (ETH_MACCFFR)) bitfields.
+            Object *re; // [2:2] Receiver enable 
+            Object *te; // [3:3] Transmitter enable 
+            Object *dc; // [4:4] Deferral check 
+            Object *bl; // [5:6] Back-off limit 
+            Object *apcs; // [7:7] Automatic pad/CRC stripping 
+            Object *rd; // [9:9] Retry disable 
+            Object *ipco; // [10:10] IPv4 checksum offload 
+            Object *dm; // [11:11] Duplex mode 
+            Object *lm; // [12:12] Loopback mode 
+            Object *rod; // [13:13] Receive own disable 
+            Object *fes; // [14:14] Fast Ethernet speed 
+            Object *csd; // [16:16] Carrier sense disable 
+            Object *ifg; // [17:19] Interframe gap 
+            Object *jd; // [22:22] Jabber disable 
+            Object *wd; // [23:23] Watchdog disable  
+          } maccr; 
+          
+          // MACFFR (Ethernet MAC frame filter register (ETH_MACCFFR)) bitfields.
           struct { 
-Object *pm; // [0:0] Promiscuous modeObject *hu; // [1:1] Hash unicastObject *hm; // [2:2] Hash multicastObject *daif; // [3:3] Destination address inverse filteringObject *pam; // [4:4] Pass all multicastObject *bfd; // [5:5] Broadcast frames disableObject *pcf; // [6:7] Pass control framesObject *saif; // [8:8] Source address inverse filteringObject *saf; // [9:9] Source address filterObject *hpf; // [10:10] Hash or perfect filterObject *ra; // [31:31] Receive all} macffr; 
-// MACHTHR(Ethernet MAC hash table high register) bitfields.
+            Object *pm; // [0:0] Promiscuous mode 
+            Object *hu; // [1:1] Hash unicast 
+            Object *hm; // [2:2] Hash multicast 
+            Object *daif; // [3:3] Destination address inverse filtering 
+            Object *pam; // [4:4] Pass all multicast 
+            Object *bfd; // [5:5] Broadcast frames disable 
+            Object *pcf; // [6:7] Pass control frames 
+            Object *saif; // [8:8] Source address inverse filtering 
+            Object *saf; // [9:9] Source address filter 
+            Object *hpf; // [10:10] Hash or perfect filter 
+            Object *ra; // [31:31] Receive all  
+          } macffr; 
+          
+          // MACHTHR (Ethernet MAC hash table high register) bitfields.
           struct { 
-Object *hth; // [0:31] Hash table high} machthr; 
-// MACHTLR(Ethernet MAC hash table low register) bitfields.
+            Object *hth; // [0:31] Hash table high  
+          } machthr; 
+          
+          // MACHTLR (Ethernet MAC hash table low register) bitfields.
           struct { 
-Object *htl; // [0:31] Hash table low} machtlr; 
-// MACMIIAR(Ethernet MAC MII address register (ETH_MACMIIAR)) bitfields.
+            Object *htl; // [0:31] Hash table low  
+          } machtlr; 
+          
+          // MACMIIAR (Ethernet MAC MII address register (ETH_MACMIIAR)) bitfields.
           struct { 
-Object *mb; // [0:0] MII busyObject *mw; // [1:1] MII writeObject *cr; // [2:4] Clock rangeObject *mr; // [6:10] MII registerObject *pa; // [11:15] PHY address} macmiiar; 
-// MACMIIDR(Ethernet MAC MII data register (ETH_MACMIIDR)) bitfields.
+            Object *mb; // [0:0] MII busy 
+            Object *mw; // [1:1] MII write 
+            Object *cr; // [2:4] Clock range 
+            Object *mr; // [6:10] MII register 
+            Object *pa; // [11:15] PHY address  
+          } macmiiar; 
+          
+          // MACMIIDR (Ethernet MAC MII data register (ETH_MACMIIDR)) bitfields.
           struct { 
-Object *md; // [0:15] MII data} macmiidr; 
-// MACFCR(Ethernet MAC flow control register (ETH_MACFCR)) bitfields.
+            Object *md; // [0:15] MII data  
+          } macmiidr; 
+          
+          // MACFCR (Ethernet MAC flow control register (ETH_MACFCR)) bitfields.
           struct { 
-Object *fcb_bpa; // [0:0] Flow control busy/back pressure activateObject *tfce; // [1:1] Transmit flow control enableObject *rfce; // [2:2] Receive flow control enableObject *upfd; // [3:3] Unicast pause frame detectObject *plt; // [4:5] Pause low thresholdObject *zqpd; // [7:7] Zero-quanta pause disableObject *pt; // [16:31] Pass control frames} macfcr; 
-// MACVLANTR(Ethernet MAC VLAN tag register (ETH_MACVLANTR)) bitfields.
+            Object *fcb_bpa; // [0:0] Flow control busy/back pressure activate 
+            Object *tfce; // [1:1] Transmit flow control enable 
+            Object *rfce; // [2:2] Receive flow control enable 
+            Object *upfd; // [3:3] Unicast pause frame detect 
+            Object *plt; // [4:5] Pause low threshold 
+            Object *zqpd; // [7:7] Zero-quanta pause disable 
+            Object *pt; // [16:31] Pass control frames  
+          } macfcr; 
+          
+          // MACVLANTR (Ethernet MAC VLAN tag register (ETH_MACVLANTR)) bitfields.
           struct { 
-Object *vlanti; // [0:15] VLAN tag identifier (for receive frames)Object *vlantc; // [16:16] 12-bit VLAN tag comparison} macvlantr; 
-// MACRWUFFR(Ethernet MAC remote wakeup frame filter register (ETH_MACRWUFFR)) bitfields.
+            Object *vlanti; // [0:15] VLAN tag identifier (for receive frames) 
+            Object *vlantc; // [16:16] 12-bit VLAN tag comparison  
+          } macvlantr; 
+          
+          // MACRWUFFR (Ethernet MAC remote wakeup frame filter register (ETH_MACRWUFFR)) bitfields.
           struct { 
-} macrwuffr; 
-// MACPMTCSR(Ethernet MAC PMT control and status register (ETH_MACPMTCSR)) bitfields.
+          } macrwuffr; 
+          
+          // MACPMTCSR (Ethernet MAC PMT control and status register (ETH_MACPMTCSR)) bitfields.
           struct { 
-Object *pd; // [0:0] Power downObject *mpe; // [1:1] Magic Packet enableObject *wfe; // [2:2] Wakeup frame enableObject *mpr; // [5:5] Magic packet receivedObject *wfr; // [6:6] Wakeup frame receivedObject *gu; // [9:9] Global unicastObject *wffrpr; // [31:31] Wakeup frame filter register pointer reset} macpmtcsr; 
-// MACSR(Ethernet MAC interrupt status register (ETH_MACSR)) bitfields.
+            Object *pd; // [0:0] Power down 
+            Object *mpe; // [1:1] Magic Packet enable 
+            Object *wfe; // [2:2] Wakeup frame enable 
+            Object *mpr; // [5:5] Magic packet received 
+            Object *wfr; // [6:6] Wakeup frame received 
+            Object *gu; // [9:9] Global unicast 
+            Object *wffrpr; // [31:31] Wakeup frame filter register pointer reset  
+          } macpmtcsr; 
+          
+          // MACSR (Ethernet MAC interrupt status register (ETH_MACSR)) bitfields.
           struct { 
-Object *pmts; // [3:3] PMT statusObject *mmcs; // [4:4] MMC statusObject *mmcrs; // [5:5] MMC receive statusObject *mmcts; // [6:6] MMC transmit statusObject *tsts; // [9:9] Time stamp trigger status} macsr; 
-// MACIMR(Ethernet MAC interrupt mask register (ETH_MACIMR)) bitfields.
+            Object *pmts; // [3:3] PMT status 
+            Object *mmcs; // [4:4] MMC status 
+            Object *mmcrs; // [5:5] MMC receive status 
+            Object *mmcts; // [6:6] MMC transmit status 
+            Object *tsts; // [9:9] Time stamp trigger status  
+          } macsr; 
+          
+          // MACIMR (Ethernet MAC interrupt mask register (ETH_MACIMR)) bitfields.
           struct { 
-Object *pmtim; // [3:3] PMT interrupt maskObject *tstim; // [9:9] Time stamp trigger interrupt mask} macimr; 
-// MACA0HR(Ethernet MAC address 0 high register (ETH_MACA0HR)) bitfields.
+            Object *pmtim; // [3:3] PMT interrupt mask 
+            Object *tstim; // [9:9] Time stamp trigger interrupt mask  
+          } macimr; 
+          
+          // MACA0HR (Ethernet MAC address 0 high register (ETH_MACA0HR)) bitfields.
           struct { 
-Object *maca0h; // [0:15] MAC address0 highObject *mo; // [31:31] Always 1} maca0hr; 
-// MACA0LR(Ethernet MAC address 0 low register) bitfields.
+            Object *maca0h; // [0:15] MAC address0 high 
+            Object *mo; // [31:31] Always 1  
+          } maca0hr; 
+          
+          // MACA0LR (Ethernet MAC address 0 low register) bitfields.
           struct { 
-Object *maca0l; // [0:31] MAC address0 low} maca0lr; 
-// MACA1HR(Ethernet MAC address 1 high register (ETH_MACA1HR)) bitfields.
+            Object *maca0l; // [0:31] MAC address0 low  
+          } maca0lr; 
+          
+          // MACA1HR (Ethernet MAC address 1 high register (ETH_MACA1HR)) bitfields.
           struct { 
-Object *maca1h; // [0:15] MAC address1 highObject *mbc; // [24:29] Mask byte controlObject *sa; // [30:30] Source addressObject *ae; // [31:31] Address enable} maca1hr; 
-// MACA1LR(Ethernet MAC address1 low register) bitfields.
+            Object *maca1h; // [0:15] MAC address1 high 
+            Object *mbc; // [24:29] Mask byte control 
+            Object *sa; // [30:30] Source address 
+            Object *ae; // [31:31] Address enable  
+          } maca1hr; 
+          
+          // MACA1LR (Ethernet MAC address1 low register) bitfields.
           struct { 
-Object *maca1l; // [0:31] MAC address1 low} maca1lr; 
-// MACA2HR(Ethernet MAC address 2 high register (ETH_MACA2HR)) bitfields.
+            Object *maca1l; // [0:31] MAC address1 low  
+          } maca1lr; 
+          
+          // MACA2HR (Ethernet MAC address 2 high register (ETH_MACA2HR)) bitfields.
           struct { 
-Object *eth_maca2hr; // [0:15] Ethernet MAC address 2 high registerObject *mbc; // [24:29] Mask byte controlObject *sa; // [30:30] Source addressObject *ae; // [31:31] Address enable} maca2hr; 
-// MACA2LR(Ethernet MAC address 2 low register) bitfields.
+            Object *eth_maca2hr; // [0:15] Ethernet MAC address 2 high register 
+            Object *mbc; // [24:29] Mask byte control 
+            Object *sa; // [30:30] Source address 
+            Object *ae; // [31:31] Address enable  
+          } maca2hr; 
+          
+          // MACA2LR (Ethernet MAC address 2 low register) bitfields.
           struct { 
-Object *maca2l; // [0:30] MAC address2 low} maca2lr; 
-// MACA3HR(Ethernet MAC address 3 high register (ETH_MACA3HR)) bitfields.
+            Object *maca2l; // [0:30] MAC address2 low  
+          } maca2lr; 
+          
+          // MACA3HR (Ethernet MAC address 3 high register (ETH_MACA3HR)) bitfields.
           struct { 
-Object *maca3h; // [0:15] MAC address3 highObject *mbc; // [24:29] Mask byte controlObject *sa; // [30:30] Source addressObject *ae; // [31:31] Address enable} maca3hr; 
-// MACA3LR(Ethernet MAC address 3 low register) bitfields.
+            Object *maca3h; // [0:15] MAC address3 high 
+            Object *mbc; // [24:29] Mask byte control 
+            Object *sa; // [30:30] Source address 
+            Object *ae; // [31:31] Address enable  
+          } maca3hr; 
+          
+          // MACA3LR (Ethernet MAC address 3 low register) bitfields.
           struct { 
-Object *mbca3l; // [0:31] MAC address3 low} maca3lr; 
-} fld;
+            Object *mbca3l; // [0:31] MAC address3 low  
+          } maca3lr; 
+        } fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

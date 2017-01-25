@@ -1,5 +1,5 @@
 /*
- * STM32- CRS(Clock recovery system) emulation.
+ * STM32 - CRS (Clock recovery system) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,11 +27,13 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_CRSDEVICE_PATH_STM32"CRS"
+#define DEVICE_PATH_STM32_CRS DEVICE_PATH_STM32 "CRS"
+
+
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_CRSTYPE_STM32_PREFIX "crs" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_CRS TYPE_STM32_PREFIX "crs" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -73,34 +75,64 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-union {
+    union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F0CRS(Clock recovery system) registers.
+        // F0 CRS (Clock recovery system) registers.
         struct { 
-Object *cr; // 0x0(Control register) 
-Object *cfgr; // 0x4(Configuration register) 
-Object *isr; // 0x8(Interrupt and status register) 
-Object *icr; // 0xC(Interrupt flag clear register) 
-} reg;
+          Object *cr; // 0x0 (Control register) 
+          Object *cfgr; // 0x4 (Configuration register) 
+          Object *isr; // 0x8 (Interrupt and status register) 
+          Object *icr; // 0xC (Interrupt flag clear register) 
+        } reg;
 
         struct { 
-// CR(Control register) bitfields.
+          
+          // CR (Control register) bitfields.
           struct { 
-Object *syncokie; // [0:0] SYNC event OK interrupt enableObject *syncwarnie; // [1:1] SYNC warning interrupt enableObject *errie; // [2:2] Synchronization or trimming error interrupt enableObject *esyncie; // [3:3] Expected SYNC interrupt enableObject *cen; // [5:5] Frequency error counter enableObject *autotrimen; // [6:6] Automatic trimming enableObject *swsync; // [7:7] Generate software SYNC eventObject *trim; // [8:13] HSI48 oscillator smooth trimming} cr; 
-// CFGR(Configuration register) bitfields.
+            Object *syncokie; // [0:0] SYNC event OK interrupt enable 
+            Object *syncwarnie; // [1:1] SYNC warning interrupt enable 
+            Object *errie; // [2:2] Synchronization or trimming error interrupt enable 
+            Object *esyncie; // [3:3] Expected SYNC interrupt enable 
+            Object *cen; // [5:5] Frequency error counter enable 
+            Object *autotrimen; // [6:6] Automatic trimming enable 
+            Object *swsync; // [7:7] Generate software SYNC event 
+            Object *trim; // [8:13] HSI48 oscillator smooth trimming  
+          } cr; 
+          
+          // CFGR (Configuration register) bitfields.
           struct { 
-Object *reload; // [0:15] Counter reload valueObject *felim; // [16:23] Frequency error limitObject *syncdiv; // [24:26] SYNC dividerObject *syncsrc; // [28:29] SYNC signal source selectionObject *syncpol; // [31:31] SYNC polarity selection} cfgr; 
-// ISR(Interrupt and status register) bitfields.
+            Object *reload; // [0:15] Counter reload value 
+            Object *felim; // [16:23] Frequency error limit 
+            Object *syncdiv; // [24:26] SYNC divider 
+            Object *syncsrc; // [28:29] SYNC signal source selection 
+            Object *syncpol; // [31:31] SYNC polarity selection  
+          } cfgr; 
+          
+          // ISR (Interrupt and status register) bitfields.
           struct { 
-Object *syncokf; // [0:0] SYNC event OK flagObject *syncwarnf; // [1:1] SYNC warning flagObject *errf; // [2:2] Error flagObject *esyncf; // [3:3] Expected SYNC flagObject *syncerr; // [8:8] SYNC errorObject *syncmiss; // [9:9] SYNC missedObject *trimovf; // [10:10] Trimming overflow or underflowObject *fedir; // [15:15] Frequency error directionObject *fecap; // [16:31] Frequency error capture} isr; 
-// ICR(Interrupt flag clear register) bitfields.
+            Object *syncokf; // [0:0] SYNC event OK flag 
+            Object *syncwarnf; // [1:1] SYNC warning flag 
+            Object *errf; // [2:2] Error flag 
+            Object *esyncf; // [3:3] Expected SYNC flag 
+            Object *syncerr; // [8:8] SYNC error 
+            Object *syncmiss; // [9:9] SYNC missed 
+            Object *trimovf; // [10:10] Trimming overflow or underflow 
+            Object *fedir; // [15:15] Frequency error direction 
+            Object *fecap; // [16:31] Frequency error capture  
+          } isr; 
+          
+          // ICR (Interrupt flag clear register) bitfields.
           struct { 
-Object *syncokc; // [0:0] SYNC event OK clear flagObject *syncwarnc; // [1:1] SYNC warning clear flagObject *errc; // [2:2] Error clear flagObject *esyncc; // [3:3] Expected SYNC clear flag} icr; 
-} fld;
+            Object *syncokc; // [0:0] SYNC event OK clear flag 
+            Object *syncwarnc; // [1:1] SYNC warning clear flag 
+            Object *errc; // [2:2] Error clear flag 
+            Object *esyncc; // [3:3] Expected SYNC clear flag  
+          } icr; 
+        } fld;
       } f0;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
