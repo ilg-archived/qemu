@@ -139,7 +139,7 @@ static void stm32f0x1_flash_create_objects(Object *obj, JSON_Object *svd,
 static void stm32f0x2_flash_create_objects(Object *obj, JSON_Object *svd,
 		const char *name)
 {
-	STM32FLASHState *state = STM32_Flash_STATE(obj);
+	STM32FLASHState *state = STM32_FLASH_STATE(obj);
 
     JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
     svd_add_peripheral_properties_and_children(obj, periph, svd);

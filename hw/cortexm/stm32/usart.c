@@ -1351,7 +1351,7 @@ static void stm32_usart_realize_callback(DeviceState *dev, Error **errp)
 
         } else if (capabilities->f0.is_0x2) {
 
-            stm32f0x12usart_create_objects(obj, cm_state->svd_json,
+            stm32f0x2_usart_create_objects(obj, cm_state->svd_json,
                     periph_name);
 
             // TODO: add callbacks
