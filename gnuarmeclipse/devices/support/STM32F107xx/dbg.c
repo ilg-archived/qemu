@@ -1,5 +1,5 @@
 /*
- * STM32 - DBG (Debug support) emulation.
+ * STM32- DBG(Debug support) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,33 +35,30 @@ static void stm32f107xx_dbg_create_objects(Object *obj, JSON_Object *svd, const 
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f1.reg.idcode = cm_object_get_child_by_name(obj, "IDCODE");
-    state->u.f1.reg.cr = cm_object_get_child_by_name(obj, "CR");
-    
-    
-    // IDCODE bitfields.
-    state->u.f1.fld.idcode.dev_id = cm_object_get_child_by_name(state->u.f1.reg.idcode, "DEV_ID"); 
-    state->u.f1.fld.idcode.rev_id = cm_object_get_child_by_name(state->u.f1.reg.idcode, "REV_ID");  
-    
-    // CR bitfields.
-    state->u.f1.fld.cr.dbg_sleep = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_SLEEP"); 
-    state->u.f1.fld.cr.dbg_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_STOP"); 
-    state->u.f1.fld.cr.dbg_standby = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_STANDBY"); 
-    state->u.f1.fld.cr.trace_ioen = cm_object_get_child_by_name(state->u.f1.reg.cr, "TRACE_IOEN"); 
-    state->u.f1.fld.cr.trace_mode = cm_object_get_child_by_name(state->u.f1.reg.cr, "TRACE_MODE"); 
-    state->u.f1.fld.cr.dbg_iwdg_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_IWDG_STOP"); 
-    state->u.f1.fld.cr.dbg_wwdg_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_WWDG_STOP"); 
-    state->u.f1.fld.cr.dbg_tim1_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM1_STOP"); 
-    state->u.f1.fld.cr.dbg_tim2_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM2_STOP"); 
-    state->u.f1.fld.cr.dbg_tim3_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM3_STOP"); 
-    state->u.f1.fld.cr.dbg_tim4_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM4_STOP"); 
-    state->u.f1.fld.cr.dbg_can1_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_CAN1_STOP"); 
-    state->u.f1.fld.cr.dbg_i2c1_smbus_timeout = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_I2C1_SMBUS_TIMEOUT"); 
-    state->u.f1.fld.cr.dbg_i2c2_smbus_timeout = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_I2C2_SMBUS_TIMEOUT"); 
-    state->u.f1.fld.cr.dbg_tim5_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM5_STOP"); 
-    state->u.f1.fld.cr.dbg_tim6_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM6_STOP"); 
-    state->u.f1.fld.cr.dbg_tim7_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM7_STOP"); 
-    state->u.f1.fld.cr.dbg_can2_stop = cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_CAN2_STOP");  
+state->u.f1.reg.idcode= cm_object_get_child_by_name(obj, "IDCODE");
+state->u.f1.reg.cr= cm_object_get_child_by_name(obj, "CR");
+// IDCODEbitfields.
+state->u.f1.fld.idcode.dev_id= cm_object_get_child_by_name(state->u.f1.reg.idcode, "DEV_ID"); 
+state->u.f1.fld.idcode.rev_id= cm_object_get_child_by_name(state->u.f1.reg.idcode, "REV_ID"); 
+// CRbitfields.
+state->u.f1.fld.cr.dbg_sleep= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_SLEEP"); 
+state->u.f1.fld.cr.dbg_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_STOP"); 
+state->u.f1.fld.cr.dbg_standby= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_STANDBY"); 
+state->u.f1.fld.cr.trace_ioen= cm_object_get_child_by_name(state->u.f1.reg.cr, "TRACE_IOEN"); 
+state->u.f1.fld.cr.trace_mode= cm_object_get_child_by_name(state->u.f1.reg.cr, "TRACE_MODE"); 
+state->u.f1.fld.cr.dbg_iwdg_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_IWDG_STOP"); 
+state->u.f1.fld.cr.dbg_wwdg_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_WWDG_STOP"); 
+state->u.f1.fld.cr.dbg_tim1_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM1_STOP"); 
+state->u.f1.fld.cr.dbg_tim2_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM2_STOP"); 
+state->u.f1.fld.cr.dbg_tim3_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM3_STOP"); 
+state->u.f1.fld.cr.dbg_tim4_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM4_STOP"); 
+state->u.f1.fld.cr.dbg_can1_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_CAN1_STOP"); 
+state->u.f1.fld.cr.dbg_i2c1_smbus_timeout= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_I2C1_SMBUS_TIMEOUT"); 
+state->u.f1.fld.cr.dbg_i2c2_smbus_timeout= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_I2C2_SMBUS_TIMEOUT"); 
+state->u.f1.fld.cr.dbg_tim5_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM5_STOP"); 
+state->u.f1.fld.cr.dbg_tim6_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM6_STOP"); 
+state->u.f1.fld.cr.dbg_tim7_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_TIM7_STOP"); 
+state->u.f1.fld.cr.dbg_can2_stop= cm_object_get_child_by_name(state->u.f1.reg.cr, "DBG_CAN2_STOP"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -145,7 +142,7 @@ static void stm32_dbg_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -184,7 +181,7 @@ static void stm32_dbg_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_107xx ) {
+        if (capabilities->f1.is_107xx) {
 
             stm32f107xx_dbg_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -200,12 +197,10 @@ static void stm32_dbg_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/DBGEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

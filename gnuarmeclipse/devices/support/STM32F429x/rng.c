@@ -1,5 +1,5 @@
 /*
- * STM32 - RNG (Random number generator) emulation.
+ * STM32- RNG(Random number generator) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,24 +35,20 @@ static void stm32f429x_rng_create_objects(Object *obj, JSON_Object *svd, const c
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f4.reg.cr = cm_object_get_child_by_name(obj, "CR");
-    state->u.f4.reg.sr = cm_object_get_child_by_name(obj, "SR");
-    state->u.f4.reg.dr = cm_object_get_child_by_name(obj, "DR");
-    
-    
-    // CR bitfields.
-    state->u.f4.fld.cr.rngen = cm_object_get_child_by_name(state->u.f4.reg.cr, "RNGEN"); 
-    state->u.f4.fld.cr.ie = cm_object_get_child_by_name(state->u.f4.reg.cr, "IE");  
-    
-    // SR bitfields.
-    state->u.f4.fld.sr.drdy = cm_object_get_child_by_name(state->u.f4.reg.sr, "DRDY"); 
-    state->u.f4.fld.sr.cecs = cm_object_get_child_by_name(state->u.f4.reg.sr, "CECS"); 
-    state->u.f4.fld.sr.secs = cm_object_get_child_by_name(state->u.f4.reg.sr, "SECS"); 
-    state->u.f4.fld.sr.ceis = cm_object_get_child_by_name(state->u.f4.reg.sr, "CEIS"); 
-    state->u.f4.fld.sr.seis = cm_object_get_child_by_name(state->u.f4.reg.sr, "SEIS");  
-    
-    // DR bitfields.
-    state->u.f4.fld.dr.rndata = cm_object_get_child_by_name(state->u.f4.reg.dr, "RNDATA");  
+state->u.f4.reg.cr= cm_object_get_child_by_name(obj, "CR");
+state->u.f4.reg.sr= cm_object_get_child_by_name(obj, "SR");
+state->u.f4.reg.dr= cm_object_get_child_by_name(obj, "DR");
+// CRbitfields.
+state->u.f4.fld.cr.rngen= cm_object_get_child_by_name(state->u.f4.reg.cr, "RNGEN"); 
+state->u.f4.fld.cr.ie= cm_object_get_child_by_name(state->u.f4.reg.cr, "IE"); 
+// SRbitfields.
+state->u.f4.fld.sr.drdy= cm_object_get_child_by_name(state->u.f4.reg.sr, "DRDY"); 
+state->u.f4.fld.sr.cecs= cm_object_get_child_by_name(state->u.f4.reg.sr, "CECS"); 
+state->u.f4.fld.sr.secs= cm_object_get_child_by_name(state->u.f4.reg.sr, "SECS"); 
+state->u.f4.fld.sr.ceis= cm_object_get_child_by_name(state->u.f4.reg.sr, "CEIS"); 
+state->u.f4.fld.sr.seis= cm_object_get_child_by_name(state->u.f4.reg.sr, "SEIS"); 
+// DRbitfields.
+state->u.f4.fld.dr.rndata= cm_object_get_child_by_name(state->u.f4.reg.dr, "RNDATA"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -136,7 +132,7 @@ static void stm32_rng_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -175,7 +171,7 @@ static void stm32_rng_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_429x ) {
+        if (capabilities->f4.is_429x) {
 
             stm32f429x_rng_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -191,12 +187,10 @@ static void stm32_rng_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/RNGEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

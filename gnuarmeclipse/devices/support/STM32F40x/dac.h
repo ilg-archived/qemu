@@ -1,5 +1,5 @@
 /*
- * STM32 - DAC (Digital-to-analog converter) emulation.
+ * STM32- DAC(Digital-to-analog converter) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_DAC DEVICE_PATH_STM32 "DAC"
-
-
+#define DEVICE_PATH_STM32_DACDEVICE_PATH_STM32"DAC"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_DAC TYPE_STM32_PREFIX "dac" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_DACTYPE_STM32_PREFIX "dac" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,122 +73,74 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4 DAC (Digital-to-analog converter) registers.
+        // F4DAC(Digital-to-analog converter) registers.
         struct { 
-          Object *cr; // 0x0 (Control register) 
-          Object *swtrigr; // 0x4 (Software trigger register) 
-          Object *dhr12r1; // 0x8 (Channel1 12-bit right-aligned data holding register) 
-          Object *dhr12l1; // 0xC (Channel1 12-bit left aligned data holding register) 
-          Object *dhr8r1; // 0x10 (Channel1 8-bit right aligned data holding register) 
-          Object *dhr12r2; // 0x14 (Channel2 12-bit right aligned data holding register) 
-          Object *dhr12l2; // 0x18 (Channel2 12-bit left aligned data holding register) 
-          Object *dhr8r2; // 0x1C (Channel2 8-bit right-aligned data holding register) 
-          Object *dhr12rd; // 0x20 (Dual DAC 12-bit right-aligned data holding register) 
-          Object *dhr12ld; // 0x24 (DUAL DAC 12-bit left aligned data holding register) 
-          Object *dhr8rd; // 0x28 (DUAL DAC 8-bit right aligned data holding register) 
-          Object *dor1; // 0x2C (Channel1 data output register) 
-          Object *dor2; // 0x30 (Channel2 data output register) 
-          Object *sr; // 0x34 (Status register) 
-        } reg;
+Object *cr; // 0x0(Control register) 
+Object *swtrigr; // 0x4(Software trigger register) 
+Object *dhr12r1; // 0x8(Channel1 12-bit right-aligned data holding register) 
+Object *dhr12l1; // 0xC(Channel1 12-bit left aligned data holding register) 
+Object *dhr8r1; // 0x10(Channel1 8-bit right aligned data holding register) 
+Object *dhr12r2; // 0x14(Channel2 12-bit right aligned data holding register) 
+Object *dhr12l2; // 0x18(Channel2 12-bit left aligned data holding register) 
+Object *dhr8r2; // 0x1C(Channel2 8-bit right-aligned data holding register) 
+Object *dhr12rd; // 0x20(Dual DAC 12-bit right-aligned data holding register) 
+Object *dhr12ld; // 0x24(DUAL DAC 12-bit left aligned data holding register) 
+Object *dhr8rd; // 0x28(DUAL DAC 8-bit right aligned data holding register) 
+Object *dor1; // 0x2C(Channel1 data output register) 
+Object *dor2; // 0x30(Channel2 data output register) 
+Object *sr; // 0x34(Status register) 
+} reg;
 
         struct { 
-          
-          // CR (Control register) bitfields.
+// CR(Control register) bitfields.
           struct { 
-            Object *en1; // [0:0] DAC channel1 enable 
-            Object *boff1; // [1:1] DAC channel1 output buffer disable 
-            Object *ten1; // [2:2] DAC channel1 trigger enable 
-            Object *tsel1; // [3:5] DAC channel1 trigger selection 
-            Object *wave1; // [6:7] DAC channel1 noise/triangle wave generation enable 
-            Object *mamp1; // [8:11] DAC channel1 mask/amplitude selector 
-            Object *dmaen1; // [12:12] DAC channel1 DMA enable 
-            Object *dmaudrie1; // [13:13] DAC channel1 DMA Underrun Interrupt enable 
-            Object *en2; // [16:16] DAC channel2 enable 
-            Object *boff2; // [17:17] DAC channel2 output buffer disable 
-            Object *ten2; // [18:18] DAC channel2 trigger enable 
-            Object *tsel2; // [19:21] DAC channel2 trigger selection 
-            Object *wave2; // [22:23] DAC channel2 noise/triangle wave generation enable 
-            Object *mamp2; // [24:27] DAC channel2 mask/amplitude selector 
-            Object *dmaen2; // [28:28] DAC channel2 DMA enable 
-            Object *dmaudrie2; // [29:29] DAC channel2 DMA underrun interrupt enable  
-          } cr; 
-          
-          // SWTRIGR (Software trigger register) bitfields.
+Object *en1; // [0:0] DAC channel1 enableObject *boff1; // [1:1] DAC channel1 output buffer disableObject *ten1; // [2:2] DAC channel1 trigger enableObject *tsel1; // [3:5] DAC channel1 trigger selectionObject *wave1; // [6:7] DAC channel1 noise/triangle wave generation enableObject *mamp1; // [8:11] DAC channel1 mask/amplitude selectorObject *dmaen1; // [12:12] DAC channel1 DMA enableObject *dmaudrie1; // [13:13] DAC channel1 DMA Underrun Interrupt enableObject *en2; // [16:16] DAC channel2 enableObject *boff2; // [17:17] DAC channel2 output buffer disableObject *ten2; // [18:18] DAC channel2 trigger enableObject *tsel2; // [19:21] DAC channel2 trigger selectionObject *wave2; // [22:23] DAC channel2 noise/triangle wave generation enableObject *mamp2; // [24:27] DAC channel2 mask/amplitude selectorObject *dmaen2; // [28:28] DAC channel2 DMA enableObject *dmaudrie2; // [29:29] DAC channel2 DMA underrun interrupt enable} cr; 
+// SWTRIGR(Software trigger register) bitfields.
           struct { 
-            Object *swtrig1; // [0:0] DAC channel1 software trigger 
-            Object *swtrig2; // [1:1] DAC channel2 software trigger  
-          } swtrigr; 
-          
-          // DHR12R1 (Channel1 12-bit right-aligned data holding register) bitfields.
+Object *swtrig1; // [0:0] DAC channel1 software triggerObject *swtrig2; // [1:1] DAC channel2 software trigger} swtrigr; 
+// DHR12R1(Channel1 12-bit right-aligned data holding register) bitfields.
           struct { 
-            Object *dacc1dhr; // [0:11] DAC channel1 12-bit right-aligned data  
-          } dhr12r1; 
-          
-          // DHR12L1 (Channel1 12-bit left aligned data holding register) bitfields.
+Object *dacc1dhr; // [0:11] DAC channel1 12-bit right-aligned data} dhr12r1; 
+// DHR12L1(Channel1 12-bit left aligned data holding register) bitfields.
           struct { 
-            Object *dacc1dhr; // [4:15] DAC channel1 12-bit left-aligned data  
-          } dhr12l1; 
-          
-          // DHR8R1 (Channel1 8-bit right aligned data holding register) bitfields.
+Object *dacc1dhr; // [4:15] DAC channel1 12-bit left-aligned data} dhr12l1; 
+// DHR8R1(Channel1 8-bit right aligned data holding register) bitfields.
           struct { 
-            Object *dacc1dhr; // [0:7] DAC channel1 8-bit right-aligned data  
-          } dhr8r1; 
-          
-          // DHR12R2 (Channel2 12-bit right aligned data holding register) bitfields.
+Object *dacc1dhr; // [0:7] DAC channel1 8-bit right-aligned data} dhr8r1; 
+// DHR12R2(Channel2 12-bit right aligned data holding register) bitfields.
           struct { 
-            Object *dacc2dhr; // [0:11] DAC channel2 12-bit right-aligned data  
-          } dhr12r2; 
-          
-          // DHR12L2 (Channel2 12-bit left aligned data holding register) bitfields.
+Object *dacc2dhr; // [0:11] DAC channel2 12-bit right-aligned data} dhr12r2; 
+// DHR12L2(Channel2 12-bit left aligned data holding register) bitfields.
           struct { 
-            Object *dacc2dhr; // [4:15] DAC channel2 12-bit left-aligned data  
-          } dhr12l2; 
-          
-          // DHR8R2 (Channel2 8-bit right-aligned data holding register) bitfields.
+Object *dacc2dhr; // [4:15] DAC channel2 12-bit left-aligned data} dhr12l2; 
+// DHR8R2(Channel2 8-bit right-aligned data holding register) bitfields.
           struct { 
-            Object *dacc2dhr; // [0:7] DAC channel2 8-bit right-aligned data  
-          } dhr8r2; 
-          
-          // DHR12RD (Dual DAC 12-bit right-aligned data holding register) bitfields.
+Object *dacc2dhr; // [0:7] DAC channel2 8-bit right-aligned data} dhr8r2; 
+// DHR12RD(Dual DAC 12-bit right-aligned data holding register) bitfields.
           struct { 
-            Object *dacc1dhr; // [0:11] DAC channel1 12-bit right-aligned data 
-            Object *dacc2dhr; // [16:27] DAC channel2 12-bit right-aligned data  
-          } dhr12rd; 
-          
-          // DHR12LD (DUAL DAC 12-bit left aligned data holding register) bitfields.
+Object *dacc1dhr; // [0:11] DAC channel1 12-bit right-aligned dataObject *dacc2dhr; // [16:27] DAC channel2 12-bit right-aligned data} dhr12rd; 
+// DHR12LD(DUAL DAC 12-bit left aligned data holding register) bitfields.
           struct { 
-            Object *dacc1dhr; // [4:15] DAC channel1 12-bit left-aligned data 
-            Object *dacc2dhr; // [20:31] DAC channel2 12-bit left-aligned data  
-          } dhr12ld; 
-          
-          // DHR8RD (DUAL DAC 8-bit right aligned data holding register) bitfields.
+Object *dacc1dhr; // [4:15] DAC channel1 12-bit left-aligned dataObject *dacc2dhr; // [20:31] DAC channel2 12-bit left-aligned data} dhr12ld; 
+// DHR8RD(DUAL DAC 8-bit right aligned data holding register) bitfields.
           struct { 
-            Object *dacc1dhr; // [0:7] DAC channel1 8-bit right-aligned data 
-            Object *dacc2dhr; // [8:15] DAC channel2 8-bit right-aligned data  
-          } dhr8rd; 
-          
-          // DOR1 (Channel1 data output register) bitfields.
+Object *dacc1dhr; // [0:7] DAC channel1 8-bit right-aligned dataObject *dacc2dhr; // [8:15] DAC channel2 8-bit right-aligned data} dhr8rd; 
+// DOR1(Channel1 data output register) bitfields.
           struct { 
-            Object *dacc1dor; // [0:11] DAC channel1 data output  
-          } dor1; 
-          
-          // DOR2 (Channel2 data output register) bitfields.
+Object *dacc1dor; // [0:11] DAC channel1 data output} dor1; 
+// DOR2(Channel2 data output register) bitfields.
           struct { 
-            Object *dacc2dor; // [0:11] DAC channel2 data output  
-          } dor2; 
-          
-          // SR (Status register) bitfields.
+Object *dacc2dor; // [0:11] DAC channel2 data output} dor2; 
+// SR(Status register) bitfields.
           struct { 
-            Object *dmaudr1; // [13:13] DAC channel1 DMA underrun flag 
-            Object *dmaudr2; // [29:29] DAC channel2 DMA underrun flag  
-          } sr; 
-        } fld;
+Object *dmaudr1; // [13:13] DAC channel1 DMA underrun flagObject *dmaudr2; // [29:29] DAC channel2 DMA underrun flag} sr; 
+} fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

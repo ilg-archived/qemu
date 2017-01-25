@@ -1,5 +1,5 @@
 /*
- * STM32 - FLASH (FLASH) emulation.
+ * STM32- FLASH(FLASH) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_FLASH DEVICE_PATH_STM32 "FLASH"
-
-
+#define DEVICE_PATH_STM32_FLASHDEVICE_PATH_STM32"FLASH"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_FLASH TYPE_STM32_PREFIX "flash" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_FLASHTYPE_STM32_PREFIX "flash" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,80 +73,42 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4 FLASH (FLASH) registers.
+        // F4FLASH(FLASH) registers.
         struct { 
-          Object *acr; // 0x0 (Flash access control register) 
-          Object *keyr; // 0x4 (Flash key register) 
-          Object *optkeyr; // 0x8 (Flash option key register) 
-          Object *sr; // 0xC (Status register) 
-          Object *cr; // 0x10 (Control register) 
-          Object *optcr; // 0x14 (Flash option control register) 
-        } reg;
+Object *acr; // 0x0(Flash access control register) 
+Object *keyr; // 0x4(Flash key register) 
+Object *optkeyr; // 0x8(Flash option key register) 
+Object *sr; // 0xC(Status register) 
+Object *cr; // 0x10(Control register) 
+Object *optcr; // 0x14(Flash option control register) 
+} reg;
 
         struct { 
-          
-          // ACR (Flash access control register) bitfields.
+// ACR(Flash access control register) bitfields.
           struct { 
-            Object *latency; // [0:2] Latency 
-            Object *prften; // [8:8] Prefetch enable 
-            Object *icen; // [9:9] Instruction cache enable 
-            Object *dcen; // [10:10] Data cache enable 
-            Object *icrst; // [11:11] Instruction cache reset 
-            Object *dcrst; // [12:12] Data cache reset  
-          } acr; 
-          
-          // KEYR (Flash key register) bitfields.
+Object *latency; // [0:2] LatencyObject *prften; // [8:8] Prefetch enableObject *icen; // [9:9] Instruction cache enableObject *dcen; // [10:10] Data cache enableObject *icrst; // [11:11] Instruction cache resetObject *dcrst; // [12:12] Data cache reset} acr; 
+// KEYR(Flash key register) bitfields.
           struct { 
-            Object *key; // [0:31] FPEC key  
-          } keyr; 
-          
-          // OPTKEYR (Flash option key register) bitfields.
+Object *key; // [0:31] FPEC key} keyr; 
+// OPTKEYR(Flash option key register) bitfields.
           struct { 
-            Object *optkey; // [0:31] Option byte key  
-          } optkeyr; 
-          
-          // SR (Status register) bitfields.
+Object *optkey; // [0:31] Option byte key} optkeyr; 
+// SR(Status register) bitfields.
           struct { 
-            Object *eop; // [0:0] End of operation 
-            Object *operr; // [1:1] Operation error 
-            Object *wrperr; // [4:4] Write protection error 
-            Object *pgaerr; // [5:5] Programming alignment error 
-            Object *pgperr; // [6:6] Programming parallelism error 
-            Object *pgserr; // [7:7] Programming sequence error 
-            Object *bsy; // [16:16] Busy  
-          } sr; 
-          
-          // CR (Control register) bitfields.
+Object *eop; // [0:0] End of operationObject *operr; // [1:1] Operation errorObject *wrperr; // [4:4] Write protection errorObject *pgaerr; // [5:5] Programming alignment errorObject *pgperr; // [6:6] Programming parallelism errorObject *pgserr; // [7:7] Programming sequence errorObject *bsy; // [16:16] Busy} sr; 
+// CR(Control register) bitfields.
           struct { 
-            Object *pg; // [0:0] Programming 
-            Object *ser; // [1:1] Sector Erase 
-            Object *mer; // [2:2] Mass Erase 
-            Object *snb; // [3:6] Sector number 
-            Object *psize; // [8:9] Program size 
-            Object *strt; // [16:16] Start 
-            Object *eopie; // [24:24] End of operation interrupt enable 
-            Object *errie; // [25:25] Error interrupt enable 
-            Object *lock; // [31:31] Lock  
-          } cr; 
-          
-          // OPTCR (Flash option control register) bitfields.
+Object *pg; // [0:0] ProgrammingObject *ser; // [1:1] Sector EraseObject *mer; // [2:2] Mass EraseObject *snb; // [3:6] Sector numberObject *psize; // [8:9] Program sizeObject *strt; // [16:16] StartObject *eopie; // [24:24] End of operation interrupt enableObject *errie; // [25:25] Error interrupt enableObject *lock; // [31:31] Lock} cr; 
+// OPTCR(Flash option control register) bitfields.
           struct { 
-            Object *optlock; // [0:0] Option lock 
-            Object *optstrt; // [1:1] Option start 
-            Object *bor_lev; // [2:3] BOR reset Level 
-            Object *wdg_sw; // [5:5] WDG_SW User option bytes 
-            Object *nrst_stop; // [6:6] NRST_STOP User option bytes 
-            Object *nrst_stdby; // [7:7] NRST_STDBY User option bytes 
-            Object *rdp; // [8:15] Read protect 
-            Object *nwrp; // [16:27] Not write protect  
-          } optcr; 
-        } fld;
+Object *optlock; // [0:0] Option lockObject *optstrt; // [1:1] Option startObject *bor_lev; // [2:3] BOR reset LevelObject *wdg_sw; // [5:5] WDG_SW User option bytesObject *nrst_stop; // [6:6] NRST_STOP User option bytesObject *nrst_stdby; // [7:7] NRST_STDBY User option bytesObject *rdp; // [8:15] Read protectObject *nwrp; // [16:27] Not write protect} optcr; 
+} fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

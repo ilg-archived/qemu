@@ -1,5 +1,5 @@
 /*
- * STM32 - RNG (Random number generator) emulation.
+ * STM32- RNG(Random number generator) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_RNG DEVICE_PATH_STM32 "RNG"
-
-
+#define DEVICE_PATH_STM32_RNGDEVICE_PATH_STM32"RNG"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_RNG TYPE_STM32_PREFIX "rng" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_RNGTYPE_STM32_PREFIX "rng" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,41 +73,30 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4 RNG (Random number generator) registers.
+        // F4RNG(Random number generator) registers.
         struct { 
-          Object *cr; // 0x0 (Control register) 
-          Object *sr; // 0x4 (Status register) 
-          Object *dr; // 0x8 (Data register) 
-        } reg;
+Object *cr; // 0x0(Control register) 
+Object *sr; // 0x4(Status register) 
+Object *dr; // 0x8(Data register) 
+} reg;
 
         struct { 
-          
-          // CR (Control register) bitfields.
+// CR(Control register) bitfields.
           struct { 
-            Object *rngen; // [2:2] Random number generator enable 
-            Object *ie; // [3:3] Interrupt enable  
-          } cr; 
-          
-          // SR (Status register) bitfields.
+Object *rngen; // [2:2] Random number generator enableObject *ie; // [3:3] Interrupt enable} cr; 
+// SR(Status register) bitfields.
           struct { 
-            Object *drdy; // [0:0] Data ready 
-            Object *cecs; // [1:1] Clock error current status 
-            Object *secs; // [2:2] Seed error current status 
-            Object *ceis; // [5:5] Clock error interrupt status 
-            Object *seis; // [6:6] Seed error interrupt status  
-          } sr; 
-          
-          // DR (Data register) bitfields.
+Object *drdy; // [0:0] Data readyObject *cecs; // [1:1] Clock error current statusObject *secs; // [2:2] Seed error current statusObject *ceis; // [5:5] Clock error interrupt statusObject *seis; // [6:6] Seed error interrupt status} sr; 
+// DR(Data register) bitfields.
           struct { 
-            Object *rndata; // [0:31] Random data  
-          } dr; 
-        } fld;
+Object *rndata; // [0:31] Random data} dr; 
+} fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

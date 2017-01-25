@@ -1,5 +1,5 @@
 /*
- * STM32 - I2C (Inter-integrated circuit) emulation.
+ * STM32- I2C(Inter-integrated circuit) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,121 +35,109 @@ static void stm32f0x1_i2c_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f0.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-    state->u.f0.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-    state->u.f0.reg.oar1 = cm_object_get_child_by_name(obj, "OAR1");
-    state->u.f0.reg.oar2 = cm_object_get_child_by_name(obj, "OAR2");
-    state->u.f0.reg.timingr = cm_object_get_child_by_name(obj, "TIMINGR");
-    state->u.f0.reg.timeoutr = cm_object_get_child_by_name(obj, "TIMEOUTR");
-    state->u.f0.reg.isr = cm_object_get_child_by_name(obj, "ISR");
-    state->u.f0.reg.icr = cm_object_get_child_by_name(obj, "ICR");
-    state->u.f0.reg.pecr = cm_object_get_child_by_name(obj, "PECR");
-    state->u.f0.reg.rxdr = cm_object_get_child_by_name(obj, "RXDR");
-    state->u.f0.reg.txdr = cm_object_get_child_by_name(obj, "TXDR");
-    
-    
-    // CR1 bitfields.
-    state->u.f0.fld.cr1.pe = cm_object_get_child_by_name(state->u.f0.reg.cr1, "PE"); 
-    state->u.f0.fld.cr1.txie = cm_object_get_child_by_name(state->u.f0.reg.cr1, "TXIE"); 
-    state->u.f0.fld.cr1.rxie = cm_object_get_child_by_name(state->u.f0.reg.cr1, "RXIE"); 
-    state->u.f0.fld.cr1.addrie = cm_object_get_child_by_name(state->u.f0.reg.cr1, "ADDRIE"); 
-    state->u.f0.fld.cr1.nackie = cm_object_get_child_by_name(state->u.f0.reg.cr1, "NACKIE"); 
-    state->u.f0.fld.cr1.stopie = cm_object_get_child_by_name(state->u.f0.reg.cr1, "STOPIE"); 
-    state->u.f0.fld.cr1.tcie = cm_object_get_child_by_name(state->u.f0.reg.cr1, "TCIE"); 
-    state->u.f0.fld.cr1.errie = cm_object_get_child_by_name(state->u.f0.reg.cr1, "ERRIE"); 
-    state->u.f0.fld.cr1.dnf = cm_object_get_child_by_name(state->u.f0.reg.cr1, "DNF"); 
-    state->u.f0.fld.cr1.anfoff = cm_object_get_child_by_name(state->u.f0.reg.cr1, "ANFOFF"); 
-    state->u.f0.fld.cr1.swrst = cm_object_get_child_by_name(state->u.f0.reg.cr1, "SWRST"); 
-    state->u.f0.fld.cr1.txdmaen = cm_object_get_child_by_name(state->u.f0.reg.cr1, "TXDMAEN"); 
-    state->u.f0.fld.cr1.rxdmaen = cm_object_get_child_by_name(state->u.f0.reg.cr1, "RXDMAEN"); 
-    state->u.f0.fld.cr1.sbc = cm_object_get_child_by_name(state->u.f0.reg.cr1, "SBC"); 
-    state->u.f0.fld.cr1.nostretch = cm_object_get_child_by_name(state->u.f0.reg.cr1, "NOSTRETCH"); 
-    state->u.f0.fld.cr1.wupen = cm_object_get_child_by_name(state->u.f0.reg.cr1, "WUPEN"); 
-    state->u.f0.fld.cr1.gcen = cm_object_get_child_by_name(state->u.f0.reg.cr1, "GCEN"); 
-    state->u.f0.fld.cr1.smbhen = cm_object_get_child_by_name(state->u.f0.reg.cr1, "SMBHEN"); 
-    state->u.f0.fld.cr1.smbden = cm_object_get_child_by_name(state->u.f0.reg.cr1, "SMBDEN"); 
-    state->u.f0.fld.cr1.alerten = cm_object_get_child_by_name(state->u.f0.reg.cr1, "ALERTEN"); 
-    state->u.f0.fld.cr1.pecen = cm_object_get_child_by_name(state->u.f0.reg.cr1, "PECEN");  
-    
-    // CR2 bitfields.
-    state->u.f0.fld.cr2.sadd0 = cm_object_get_child_by_name(state->u.f0.reg.cr2, "SADD0"); 
-    state->u.f0.fld.cr2.sadd1 = cm_object_get_child_by_name(state->u.f0.reg.cr2, "SADD1"); 
-    state->u.f0.fld.cr2.sadd8 = cm_object_get_child_by_name(state->u.f0.reg.cr2, "SADD8"); 
-    state->u.f0.fld.cr2.rd_wrn = cm_object_get_child_by_name(state->u.f0.reg.cr2, "RD_WRN"); 
-    state->u.f0.fld.cr2.add10 = cm_object_get_child_by_name(state->u.f0.reg.cr2, "ADD10"); 
-    state->u.f0.fld.cr2.head10r = cm_object_get_child_by_name(state->u.f0.reg.cr2, "HEAD10R"); 
-    state->u.f0.fld.cr2.start = cm_object_get_child_by_name(state->u.f0.reg.cr2, "START"); 
-    state->u.f0.fld.cr2.stop = cm_object_get_child_by_name(state->u.f0.reg.cr2, "STOP"); 
-    state->u.f0.fld.cr2.nack = cm_object_get_child_by_name(state->u.f0.reg.cr2, "NACK"); 
-    state->u.f0.fld.cr2.nbytes = cm_object_get_child_by_name(state->u.f0.reg.cr2, "NBYTES"); 
-    state->u.f0.fld.cr2.reload = cm_object_get_child_by_name(state->u.f0.reg.cr2, "RELOAD"); 
-    state->u.f0.fld.cr2.autoend = cm_object_get_child_by_name(state->u.f0.reg.cr2, "AUTOEND"); 
-    state->u.f0.fld.cr2.pecbyte = cm_object_get_child_by_name(state->u.f0.reg.cr2, "PECBYTE");  
-    
-    // OAR1 bitfields.
-    state->u.f0.fld.oar1.oa1_0 = cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1_0"); 
-    state->u.f0.fld.oar1.oa1_1 = cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1_1"); 
-    state->u.f0.fld.oar1.oa1_8 = cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1_8"); 
-    state->u.f0.fld.oar1.oa1mode = cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1MODE"); 
-    state->u.f0.fld.oar1.oa1en = cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1EN");  
-    
-    // OAR2 bitfields.
-    state->u.f0.fld.oar2.oa2 = cm_object_get_child_by_name(state->u.f0.reg.oar2, "OA2"); 
-    state->u.f0.fld.oar2.oa2msk = cm_object_get_child_by_name(state->u.f0.reg.oar2, "OA2MSK"); 
-    state->u.f0.fld.oar2.oa2en = cm_object_get_child_by_name(state->u.f0.reg.oar2, "OA2EN");  
-    
-    // TIMINGR bitfields.
-    state->u.f0.fld.timingr.scll = cm_object_get_child_by_name(state->u.f0.reg.timingr, "SCLL"); 
-    state->u.f0.fld.timingr.sclh = cm_object_get_child_by_name(state->u.f0.reg.timingr, "SCLH"); 
-    state->u.f0.fld.timingr.sdadel = cm_object_get_child_by_name(state->u.f0.reg.timingr, "SDADEL"); 
-    state->u.f0.fld.timingr.scldel = cm_object_get_child_by_name(state->u.f0.reg.timingr, "SCLDEL"); 
-    state->u.f0.fld.timingr.presc = cm_object_get_child_by_name(state->u.f0.reg.timingr, "PRESC");  
-    
-    // TIMEOUTR bitfields.
-    state->u.f0.fld.timeoutr.timeouta = cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIMEOUTA"); 
-    state->u.f0.fld.timeoutr.tidle = cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIDLE"); 
-    state->u.f0.fld.timeoutr.timouten = cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIMOUTEN"); 
-    state->u.f0.fld.timeoutr.timeoutb = cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIMEOUTB"); 
-    state->u.f0.fld.timeoutr.texten = cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TEXTEN");  
-    
-    // ISR bitfields.
-    state->u.f0.fld.isr.txe = cm_object_get_child_by_name(state->u.f0.reg.isr, "TXE"); 
-    state->u.f0.fld.isr.txis = cm_object_get_child_by_name(state->u.f0.reg.isr, "TXIS"); 
-    state->u.f0.fld.isr.rxne = cm_object_get_child_by_name(state->u.f0.reg.isr, "RXNE"); 
-    state->u.f0.fld.isr.addr = cm_object_get_child_by_name(state->u.f0.reg.isr, "ADDR"); 
-    state->u.f0.fld.isr.nackf = cm_object_get_child_by_name(state->u.f0.reg.isr, "NACKF"); 
-    state->u.f0.fld.isr.stopf = cm_object_get_child_by_name(state->u.f0.reg.isr, "STOPF"); 
-    state->u.f0.fld.isr.tc = cm_object_get_child_by_name(state->u.f0.reg.isr, "TC"); 
-    state->u.f0.fld.isr.tcr = cm_object_get_child_by_name(state->u.f0.reg.isr, "TCR"); 
-    state->u.f0.fld.isr.berr = cm_object_get_child_by_name(state->u.f0.reg.isr, "BERR"); 
-    state->u.f0.fld.isr.arlo = cm_object_get_child_by_name(state->u.f0.reg.isr, "ARLO"); 
-    state->u.f0.fld.isr.ovr = cm_object_get_child_by_name(state->u.f0.reg.isr, "OVR"); 
-    state->u.f0.fld.isr.pecerr = cm_object_get_child_by_name(state->u.f0.reg.isr, "PECERR"); 
-    state->u.f0.fld.isr.timeout = cm_object_get_child_by_name(state->u.f0.reg.isr, "TIMEOUT"); 
-    state->u.f0.fld.isr.alert = cm_object_get_child_by_name(state->u.f0.reg.isr, "ALERT"); 
-    state->u.f0.fld.isr.busy = cm_object_get_child_by_name(state->u.f0.reg.isr, "BUSY"); 
-    state->u.f0.fld.isr.dir = cm_object_get_child_by_name(state->u.f0.reg.isr, "DIR"); 
-    state->u.f0.fld.isr.addcode = cm_object_get_child_by_name(state->u.f0.reg.isr, "ADDCODE");  
-    
-    // ICR bitfields.
-    state->u.f0.fld.icr.addrcf = cm_object_get_child_by_name(state->u.f0.reg.icr, "ADDRCF"); 
-    state->u.f0.fld.icr.nackcf = cm_object_get_child_by_name(state->u.f0.reg.icr, "NACKCF"); 
-    state->u.f0.fld.icr.stopcf = cm_object_get_child_by_name(state->u.f0.reg.icr, "STOPCF"); 
-    state->u.f0.fld.icr.berrcf = cm_object_get_child_by_name(state->u.f0.reg.icr, "BERRCF"); 
-    state->u.f0.fld.icr.arlocf = cm_object_get_child_by_name(state->u.f0.reg.icr, "ARLOCF"); 
-    state->u.f0.fld.icr.ovrcf = cm_object_get_child_by_name(state->u.f0.reg.icr, "OVRCF"); 
-    state->u.f0.fld.icr.peccf = cm_object_get_child_by_name(state->u.f0.reg.icr, "PECCF"); 
-    state->u.f0.fld.icr.timoutcf = cm_object_get_child_by_name(state->u.f0.reg.icr, "TIMOUTCF"); 
-    state->u.f0.fld.icr.alertcf = cm_object_get_child_by_name(state->u.f0.reg.icr, "ALERTCF");  
-    
-    // PECR bitfields.
-    state->u.f0.fld.pecr.pec = cm_object_get_child_by_name(state->u.f0.reg.pecr, "PEC");  
-    
-    // RXDR bitfields.
-    state->u.f0.fld.rxdr.rxdata = cm_object_get_child_by_name(state->u.f0.reg.rxdr, "RXDATA");  
-    
-    // TXDR bitfields.
-    state->u.f0.fld.txdr.txdata = cm_object_get_child_by_name(state->u.f0.reg.txdr, "TXDATA");  
+state->u.f0.reg.cr1= cm_object_get_child_by_name(obj, "CR1");
+state->u.f0.reg.cr2= cm_object_get_child_by_name(obj, "CR2");
+state->u.f0.reg.oar1= cm_object_get_child_by_name(obj, "OAR1");
+state->u.f0.reg.oar2= cm_object_get_child_by_name(obj, "OAR2");
+state->u.f0.reg.timingr= cm_object_get_child_by_name(obj, "TIMINGR");
+state->u.f0.reg.timeoutr= cm_object_get_child_by_name(obj, "TIMEOUTR");
+state->u.f0.reg.isr= cm_object_get_child_by_name(obj, "ISR");
+state->u.f0.reg.icr= cm_object_get_child_by_name(obj, "ICR");
+state->u.f0.reg.pecr= cm_object_get_child_by_name(obj, "PECR");
+state->u.f0.reg.rxdr= cm_object_get_child_by_name(obj, "RXDR");
+state->u.f0.reg.txdr= cm_object_get_child_by_name(obj, "TXDR");
+// CR1bitfields.
+state->u.f0.fld.cr1.pe= cm_object_get_child_by_name(state->u.f0.reg.cr1, "PE"); 
+state->u.f0.fld.cr1.txie= cm_object_get_child_by_name(state->u.f0.reg.cr1, "TXIE"); 
+state->u.f0.fld.cr1.rxie= cm_object_get_child_by_name(state->u.f0.reg.cr1, "RXIE"); 
+state->u.f0.fld.cr1.addrie= cm_object_get_child_by_name(state->u.f0.reg.cr1, "ADDRIE"); 
+state->u.f0.fld.cr1.nackie= cm_object_get_child_by_name(state->u.f0.reg.cr1, "NACKIE"); 
+state->u.f0.fld.cr1.stopie= cm_object_get_child_by_name(state->u.f0.reg.cr1, "STOPIE"); 
+state->u.f0.fld.cr1.tcie= cm_object_get_child_by_name(state->u.f0.reg.cr1, "TCIE"); 
+state->u.f0.fld.cr1.errie= cm_object_get_child_by_name(state->u.f0.reg.cr1, "ERRIE"); 
+state->u.f0.fld.cr1.dnf= cm_object_get_child_by_name(state->u.f0.reg.cr1, "DNF"); 
+state->u.f0.fld.cr1.anfoff= cm_object_get_child_by_name(state->u.f0.reg.cr1, "ANFOFF"); 
+state->u.f0.fld.cr1.swrst= cm_object_get_child_by_name(state->u.f0.reg.cr1, "SWRST"); 
+state->u.f0.fld.cr1.txdmaen= cm_object_get_child_by_name(state->u.f0.reg.cr1, "TXDMAEN"); 
+state->u.f0.fld.cr1.rxdmaen= cm_object_get_child_by_name(state->u.f0.reg.cr1, "RXDMAEN"); 
+state->u.f0.fld.cr1.sbc= cm_object_get_child_by_name(state->u.f0.reg.cr1, "SBC"); 
+state->u.f0.fld.cr1.nostretch= cm_object_get_child_by_name(state->u.f0.reg.cr1, "NOSTRETCH"); 
+state->u.f0.fld.cr1.wupen= cm_object_get_child_by_name(state->u.f0.reg.cr1, "WUPEN"); 
+state->u.f0.fld.cr1.gcen= cm_object_get_child_by_name(state->u.f0.reg.cr1, "GCEN"); 
+state->u.f0.fld.cr1.smbhen= cm_object_get_child_by_name(state->u.f0.reg.cr1, "SMBHEN"); 
+state->u.f0.fld.cr1.smbden= cm_object_get_child_by_name(state->u.f0.reg.cr1, "SMBDEN"); 
+state->u.f0.fld.cr1.alerten= cm_object_get_child_by_name(state->u.f0.reg.cr1, "ALERTEN"); 
+state->u.f0.fld.cr1.pecen= cm_object_get_child_by_name(state->u.f0.reg.cr1, "PECEN"); 
+// CR2bitfields.
+state->u.f0.fld.cr2.sadd0= cm_object_get_child_by_name(state->u.f0.reg.cr2, "SADD0"); 
+state->u.f0.fld.cr2.sadd1= cm_object_get_child_by_name(state->u.f0.reg.cr2, "SADD1"); 
+state->u.f0.fld.cr2.sadd8= cm_object_get_child_by_name(state->u.f0.reg.cr2, "SADD8"); 
+state->u.f0.fld.cr2.rd_wrn= cm_object_get_child_by_name(state->u.f0.reg.cr2, "RD_WRN"); 
+state->u.f0.fld.cr2.add10= cm_object_get_child_by_name(state->u.f0.reg.cr2, "ADD10"); 
+state->u.f0.fld.cr2.head10r= cm_object_get_child_by_name(state->u.f0.reg.cr2, "HEAD10R"); 
+state->u.f0.fld.cr2.start= cm_object_get_child_by_name(state->u.f0.reg.cr2, "START"); 
+state->u.f0.fld.cr2.stop= cm_object_get_child_by_name(state->u.f0.reg.cr2, "STOP"); 
+state->u.f0.fld.cr2.nack= cm_object_get_child_by_name(state->u.f0.reg.cr2, "NACK"); 
+state->u.f0.fld.cr2.nbytes= cm_object_get_child_by_name(state->u.f0.reg.cr2, "NBYTES"); 
+state->u.f0.fld.cr2.reload= cm_object_get_child_by_name(state->u.f0.reg.cr2, "RELOAD"); 
+state->u.f0.fld.cr2.autoend= cm_object_get_child_by_name(state->u.f0.reg.cr2, "AUTOEND"); 
+state->u.f0.fld.cr2.pecbyte= cm_object_get_child_by_name(state->u.f0.reg.cr2, "PECBYTE"); 
+// OAR1bitfields.
+state->u.f0.fld.oar1.oa1_0= cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1_0"); 
+state->u.f0.fld.oar1.oa1_1= cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1_1"); 
+state->u.f0.fld.oar1.oa1_8= cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1_8"); 
+state->u.f0.fld.oar1.oa1mode= cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1MODE"); 
+state->u.f0.fld.oar1.oa1en= cm_object_get_child_by_name(state->u.f0.reg.oar1, "OA1EN"); 
+// OAR2bitfields.
+state->u.f0.fld.oar2.oa2= cm_object_get_child_by_name(state->u.f0.reg.oar2, "OA2"); 
+state->u.f0.fld.oar2.oa2msk= cm_object_get_child_by_name(state->u.f0.reg.oar2, "OA2MSK"); 
+state->u.f0.fld.oar2.oa2en= cm_object_get_child_by_name(state->u.f0.reg.oar2, "OA2EN"); 
+// TIMINGRbitfields.
+state->u.f0.fld.timingr.scll= cm_object_get_child_by_name(state->u.f0.reg.timingr, "SCLL"); 
+state->u.f0.fld.timingr.sclh= cm_object_get_child_by_name(state->u.f0.reg.timingr, "SCLH"); 
+state->u.f0.fld.timingr.sdadel= cm_object_get_child_by_name(state->u.f0.reg.timingr, "SDADEL"); 
+state->u.f0.fld.timingr.scldel= cm_object_get_child_by_name(state->u.f0.reg.timingr, "SCLDEL"); 
+state->u.f0.fld.timingr.presc= cm_object_get_child_by_name(state->u.f0.reg.timingr, "PRESC"); 
+// TIMEOUTRbitfields.
+state->u.f0.fld.timeoutr.timeouta= cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIMEOUTA"); 
+state->u.f0.fld.timeoutr.tidle= cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIDLE"); 
+state->u.f0.fld.timeoutr.timouten= cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIMOUTEN"); 
+state->u.f0.fld.timeoutr.timeoutb= cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TIMEOUTB"); 
+state->u.f0.fld.timeoutr.texten= cm_object_get_child_by_name(state->u.f0.reg.timeoutr, "TEXTEN"); 
+// ISRbitfields.
+state->u.f0.fld.isr.txe= cm_object_get_child_by_name(state->u.f0.reg.isr, "TXE"); 
+state->u.f0.fld.isr.txis= cm_object_get_child_by_name(state->u.f0.reg.isr, "TXIS"); 
+state->u.f0.fld.isr.rxne= cm_object_get_child_by_name(state->u.f0.reg.isr, "RXNE"); 
+state->u.f0.fld.isr.addr= cm_object_get_child_by_name(state->u.f0.reg.isr, "ADDR"); 
+state->u.f0.fld.isr.nackf= cm_object_get_child_by_name(state->u.f0.reg.isr, "NACKF"); 
+state->u.f0.fld.isr.stopf= cm_object_get_child_by_name(state->u.f0.reg.isr, "STOPF"); 
+state->u.f0.fld.isr.tc= cm_object_get_child_by_name(state->u.f0.reg.isr, "TC"); 
+state->u.f0.fld.isr.tcr= cm_object_get_child_by_name(state->u.f0.reg.isr, "TCR"); 
+state->u.f0.fld.isr.berr= cm_object_get_child_by_name(state->u.f0.reg.isr, "BERR"); 
+state->u.f0.fld.isr.arlo= cm_object_get_child_by_name(state->u.f0.reg.isr, "ARLO"); 
+state->u.f0.fld.isr.ovr= cm_object_get_child_by_name(state->u.f0.reg.isr, "OVR"); 
+state->u.f0.fld.isr.pecerr= cm_object_get_child_by_name(state->u.f0.reg.isr, "PECERR"); 
+state->u.f0.fld.isr.timeout= cm_object_get_child_by_name(state->u.f0.reg.isr, "TIMEOUT"); 
+state->u.f0.fld.isr.alert= cm_object_get_child_by_name(state->u.f0.reg.isr, "ALERT"); 
+state->u.f0.fld.isr.busy= cm_object_get_child_by_name(state->u.f0.reg.isr, "BUSY"); 
+state->u.f0.fld.isr.dir= cm_object_get_child_by_name(state->u.f0.reg.isr, "DIR"); 
+state->u.f0.fld.isr.addcode= cm_object_get_child_by_name(state->u.f0.reg.isr, "ADDCODE"); 
+// ICRbitfields.
+state->u.f0.fld.icr.addrcf= cm_object_get_child_by_name(state->u.f0.reg.icr, "ADDRCF"); 
+state->u.f0.fld.icr.nackcf= cm_object_get_child_by_name(state->u.f0.reg.icr, "NACKCF"); 
+state->u.f0.fld.icr.stopcf= cm_object_get_child_by_name(state->u.f0.reg.icr, "STOPCF"); 
+state->u.f0.fld.icr.berrcf= cm_object_get_child_by_name(state->u.f0.reg.icr, "BERRCF"); 
+state->u.f0.fld.icr.arlocf= cm_object_get_child_by_name(state->u.f0.reg.icr, "ARLOCF"); 
+state->u.f0.fld.icr.ovrcf= cm_object_get_child_by_name(state->u.f0.reg.icr, "OVRCF"); 
+state->u.f0.fld.icr.peccf= cm_object_get_child_by_name(state->u.f0.reg.icr, "PECCF"); 
+state->u.f0.fld.icr.timoutcf= cm_object_get_child_by_name(state->u.f0.reg.icr, "TIMOUTCF"); 
+state->u.f0.fld.icr.alertcf= cm_object_get_child_by_name(state->u.f0.reg.icr, "ALERTCF"); 
+// PECRbitfields.
+state->u.f0.fld.pecr.pec= cm_object_get_child_by_name(state->u.f0.reg.pecr, "PEC"); 
+// RXDRbitfields.
+state->u.f0.fld.rxdr.rxdata= cm_object_get_child_by_name(state->u.f0.reg.rxdr, "RXDATA"); 
+// TXDRbitfields.
+state->u.f0.fld.txdr.txdata= cm_object_get_child_by_name(state->u.f0.reg.txdr, "TXDATA"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -233,11 +221,10 @@ static void stm32_i2c_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    cm_object_property_add_int(obj, "port-index",
+cm_object_property_add_int(obj, "port-index",
             (const int *) &state->port_index);
     state->port_index = STM32_PORT_I2C_UNDEFINED;
-
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -276,7 +263,7 @@ static void stm32_i2c_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1 ) {
+        if (capabilities->f0.is_0x1) {
 
             stm32f0x1_i2c_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -292,13 +279,11 @@ static void stm32_i2c_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-           // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/I2C%dEN",
                 1 + state->port_index - STM32_PORT_I2C1);
-
-
-        } else {
+} else {
             assert(false);
         }
 

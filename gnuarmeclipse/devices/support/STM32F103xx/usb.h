@@ -1,5 +1,5 @@
 /*
- * STM32 - USB (Universal serial bus full-speed device interface) emulation.
+ * STM32- USB(Universal serial bus full-speed device interface) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_USB DEVICE_PATH_STM32 "USB"
-
-
+#define DEVICE_PATH_STM32_USBDEVICE_PATH_STM32"USB"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_USB TYPE_STM32_PREFIX "usb" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_USBTYPE_STM32_PREFIX "usb" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,194 +73,70 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1 USB (Universal serial bus full-speed device interface) registers.
+        // F1USB(Universal serial bus full-speed device interface) registers.
         struct { 
-          Object *ep0r; // 0x0 (Endpoint 0 register) 
-          Object *ep1r; // 0x4 (Endpoint 1 register) 
-          Object *ep2r; // 0x8 (Endpoint 2 register) 
-          Object *ep3r; // 0xC (Endpoint 3 register) 
-          Object *ep4r; // 0x10 (Endpoint 4 register) 
-          Object *ep5r; // 0x14 (Endpoint 5 register) 
-          Object *ep6r; // 0x18 (Endpoint 6 register) 
-          Object *ep7r; // 0x1C (Endpoint 7 register) 
-          Object *cntr; // 0x40 (Control register) 
-          Object *istr; // 0x44 (Interrupt status register) 
-          Object *fnr; // 0x48 (Frame number register) 
-          Object *daddr; // 0x4C (Device address) 
-          Object *btable; // 0x50 (Buffer table address) 
-        } reg;
+Object *ep0r; // 0x0(Endpoint 0 register) 
+Object *ep1r; // 0x4(Endpoint 1 register) 
+Object *ep2r; // 0x8(Endpoint 2 register) 
+Object *ep3r; // 0xC(Endpoint 3 register) 
+Object *ep4r; // 0x10(Endpoint 4 register) 
+Object *ep5r; // 0x14(Endpoint 5 register) 
+Object *ep6r; // 0x18(Endpoint 6 register) 
+Object *ep7r; // 0x1C(Endpoint 7 register) 
+Object *cntr; // 0x40(Control register) 
+Object *istr; // 0x44(Interrupt status register) 
+Object *fnr; // 0x48(Frame number register) 
+Object *daddr; // 0x4C(Device address) 
+Object *btable; // 0x50(Buffer table address) 
+} reg;
 
         struct { 
-          
-          // EP0R (Endpoint 0 register) bitfields.
+// EP0R(Endpoint 0 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep0r; 
-          
-          // EP1R (Endpoint 1 register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep0r; 
+// EP1R(Endpoint 1 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep1r; 
-          
-          // EP2R (Endpoint 2 register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep1r; 
+// EP2R(Endpoint 2 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep2r; 
-          
-          // EP3R (Endpoint 3 register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep2r; 
+// EP3R(Endpoint 3 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep3r; 
-          
-          // EP4R (Endpoint 4 register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep3r; 
+// EP4R(Endpoint 4 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep4r; 
-          
-          // EP5R (Endpoint 5 register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep4r; 
+// EP5R(Endpoint 5 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep5r; 
-          
-          // EP6R (Endpoint 6 register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep5r; 
+// EP6R(Endpoint 6 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep6r; 
-          
-          // EP7R (Endpoint 7 register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep6r; 
+// EP7R(Endpoint 7 register) bitfields.
           struct { 
-            Object *ea; // [0:3] Endpoint address 
-            Object *stat_tx; // [4:5] Status bits, for transmission transfers 
-            Object *dtog_tx; // [6:6] Data Toggle, for transmission transfers 
-            Object *ctr_tx; // [7:7] Correct Transfer for transmission 
-            Object *ep_kind; // [8:8] Endpoint kind 
-            Object *ep_type; // [9:10] Endpoint type 
-            Object *setup; // [11:11] Setup transaction completed 
-            Object *stat_rx; // [12:13] Status bits, for reception transfers 
-            Object *dtog_rx; // [14:14] Data Toggle, for reception transfers 
-            Object *ctr_rx; // [15:15] Correct transfer for reception  
-          } ep7r; 
-          
-          // CNTR (Control register) bitfields.
+Object *ea; // [0:3] Endpoint addressObject *stat_tx; // [4:5] Status bits, for transmission transfersObject *dtog_tx; // [6:6] Data Toggle, for transmission transfersObject *ctr_tx; // [7:7] Correct Transfer for transmissionObject *ep_kind; // [8:8] Endpoint kindObject *ep_type; // [9:10] Endpoint typeObject *setup; // [11:11] Setup transaction completedObject *stat_rx; // [12:13] Status bits, for reception transfersObject *dtog_rx; // [14:14] Data Toggle, for reception transfersObject *ctr_rx; // [15:15] Correct transfer for reception} ep7r; 
+// CNTR(Control register) bitfields.
           struct { 
-            Object *fres; // [0:0] Force USB Reset 
-            Object *pdwn; // [1:1] Power down 
-            Object *lpmode; // [2:2] Low-power mode 
-            Object *fsusp; // [3:3] Force suspend 
-            Object *resume; // [4:4] Resume request 
-            Object *esofm; // [8:8] Expected start of frame interrupt mask 
-            Object *sofm; // [9:9] Start of frame interrupt mask 
-            Object *resetm; // [10:10] USB reset interrupt mask 
-            Object *suspm; // [11:11] Suspend mode interrupt mask 
-            Object *wkupm; // [12:12] Wakeup interrupt mask 
-            Object *errm; // [13:13] Error interrupt mask 
-            Object *pmaovrm; // [14:14] Packet memory area over / underrun interrupt mask 
-            Object *ctrm; // [15:15] Correct transfer interrupt mask  
-          } cntr; 
-          
-          // ISTR (Interrupt status register) bitfields.
+Object *fres; // [0:0] Force USB ResetObject *pdwn; // [1:1] Power downObject *lpmode; // [2:2] Low-power modeObject *fsusp; // [3:3] Force suspendObject *resume; // [4:4] Resume requestObject *esofm; // [8:8] Expected start of frame interrupt maskObject *sofm; // [9:9] Start of frame interrupt maskObject *resetm; // [10:10] USB reset interrupt maskObject *suspm; // [11:11] Suspend mode interrupt maskObject *wkupm; // [12:12] Wakeup interrupt maskObject *errm; // [13:13] Error interrupt maskObject *pmaovrm; // [14:14] Packet memory area over / underrun interrupt maskObject *ctrm; // [15:15] Correct transfer interrupt mask} cntr; 
+// ISTR(Interrupt status register) bitfields.
           struct { 
-            Object *ep_id; // [0:3] Endpoint Identifier 
-            Object *dir; // [4:4] Direction of transaction 
-            Object *esof; // [8:8] Expected start frame 
-            Object *sof; // [9:9] Start of frame 
-            Object *reset; // [10:10] Reset request 
-            Object *susp; // [11:11] Suspend mode request 
-            Object *wkup; // [12:12] Wakeup 
-            Object *err; // [13:13] Error 
-            Object *pmaovr; // [14:14] Packet memory area over / underrun 
-            Object *ctr; // [15:15] Correct transfer  
-          } istr; 
-          
-          // FNR (Frame number register) bitfields.
+Object *ep_id; // [0:3] Endpoint IdentifierObject *dir; // [4:4] Direction of transactionObject *esof; // [8:8] Expected start frameObject *sof; // [9:9] Start of frameObject *reset; // [10:10] Reset requestObject *susp; // [11:11] Suspend mode requestObject *wkup; // [12:12] WakeupObject *err; // [13:13] ErrorObject *pmaovr; // [14:14] Packet memory area over / underrunObject *ctr; // [15:15] Correct transfer} istr; 
+// FNR(Frame number register) bitfields.
           struct { 
-            Object *fn; // [0:10] Frame number 
-            Object *lsof; // [11:12] Lost SOF 
-            Object *lck; // [13:13] Locked 
-            Object *rxdm; // [14:14] Receive data - line status 
-            Object *rxdp; // [15:15] Receive data + line status  
-          } fnr; 
-          
-          // DADDR (Device address) bitfields.
+Object *fn; // [0:10] Frame numberObject *lsof; // [11:12] Lost SOFObject *lck; // [13:13] LockedObject *rxdm; // [14:14] Receive data - line statusObject *rxdp; // [15:15] Receive data + line status} fnr; 
+// DADDR(Device address) bitfields.
           struct { 
-            Object *add; // [0:6] Device address 
-            Object *ef; // [7:7] Enable function  
-          } daddr; 
-          
-          // BTABLE (Buffer table address) bitfields.
+Object *add; // [0:6] Device addressObject *ef; // [7:7] Enable function} daddr; 
+// BTABLE(Buffer table address) bitfields.
           struct { 
-            Object *btable; // [3:15] Buffer table  
-          } btable; 
-        } fld;
+Object *btable; // [3:15] Buffer table} btable; 
+} fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

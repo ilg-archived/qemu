@@ -1,5 +1,5 @@
 /*
- * STM32 - RTC (Real time clock) emulation.
+ * STM32- RTC(Real time clock) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_RTC DEVICE_PATH_STM32 "RTC"
-
-
+#define DEVICE_PATH_STM32_RTCDEVICE_PATH_STM32"RTC"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_RTC TYPE_STM32_PREFIX "rtc" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_RTCTYPE_STM32_PREFIX "rtc" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,85 +73,58 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1 RTC (Real time clock) registers.
+        // F1RTC(Real time clock) registers.
         struct { 
-          Object *crh; // 0x0 (RTC Control Register High) 
-          Object *crl; // 0x4 (RTC Control Register Low) 
-          Object *prlh; // 0x8 (RTC Prescaler Load Register High) 
-          Object *prll; // 0xC (RTC Prescaler Load Register Low) 
-          Object *divh; // 0x10 (RTC Prescaler Divider Register High) 
-          Object *divl; // 0x14 (RTC Prescaler Divider Register Low) 
-          Object *cnth; // 0x18 (RTC Counter Register High) 
-          Object *cntl; // 0x1C (RTC Counter Register Low) 
-          Object *alrh; // 0x20 (RTC Alarm Register High) 
-          Object *alrl; // 0x24 (RTC Alarm Register Low) 
-        } reg;
+Object *crh; // 0x0(RTC Control Register High) 
+Object *crl; // 0x4(RTC Control Register Low) 
+Object *prlh; // 0x8(RTC Prescaler Load Register High) 
+Object *prll; // 0xC(RTC Prescaler Load Register Low) 
+Object *divh; // 0x10(RTC Prescaler Divider Register High) 
+Object *divl; // 0x14(RTC Prescaler Divider Register Low) 
+Object *cnth; // 0x18(RTC Counter Register High) 
+Object *cntl; // 0x1C(RTC Counter Register Low) 
+Object *alrh; // 0x20(RTC Alarm Register High) 
+Object *alrl; // 0x24(RTC Alarm Register Low) 
+} reg;
 
         struct { 
-          
-          // CRH (RTC Control Register High) bitfields.
+// CRH(RTC Control Register High) bitfields.
           struct { 
-            Object *secie; // [0:0] Second interrupt Enable 
-            Object *alrie; // [1:1] Alarm interrupt Enable 
-            Object *owie; // [2:2] Overflow interrupt Enable  
-          } crh; 
-          
-          // CRL (RTC Control Register Low) bitfields.
+Object *secie; // [0:0] Second interrupt EnableObject *alrie; // [1:1] Alarm interrupt EnableObject *owie; // [2:2] Overflow interrupt Enable} crh; 
+// CRL(RTC Control Register Low) bitfields.
           struct { 
-            Object *secf; // [0:0] Second Flag 
-            Object *alrf; // [1:1] Alarm Flag 
-            Object *owf; // [2:2] Overflow Flag 
-            Object *rsf; // [3:3] Registers Synchronized Flag 
-            Object *cnf; // [4:4] Configuration Flag 
-            Object *rtoff; // [5:5] RTC operation OFF  
-          } crl; 
-          
-          // PRLH (RTC Prescaler Load Register High) bitfields.
+Object *secf; // [0:0] Second FlagObject *alrf; // [1:1] Alarm FlagObject *owf; // [2:2] Overflow FlagObject *rsf; // [3:3] Registers Synchronized FlagObject *cnf; // [4:4] Configuration FlagObject *rtoff; // [5:5] RTC operation OFF} crl; 
+// PRLH(RTC Prescaler Load Register High) bitfields.
           struct { 
-            Object *prlh; // [0:3] RTC Prescaler Load Register High  
-          } prlh; 
-          
-          // PRLL (RTC Prescaler Load Register Low) bitfields.
+Object *prlh; // [0:3] RTC Prescaler Load Register High} prlh; 
+// PRLL(RTC Prescaler Load Register Low) bitfields.
           struct { 
-            Object *prll; // [0:15] RTC Prescaler Divider Register Low  
-          } prll; 
-          
-          // DIVH (RTC Prescaler Divider Register High) bitfields.
+Object *prll; // [0:15] RTC Prescaler Divider Register Low} prll; 
+// DIVH(RTC Prescaler Divider Register High) bitfields.
           struct { 
-            Object *divh; // [0:3] RTC prescaler divider register high  
-          } divh; 
-          
-          // DIVL (RTC Prescaler Divider Register Low) bitfields.
+Object *divh; // [0:3] RTC prescaler divider register high} divh; 
+// DIVL(RTC Prescaler Divider Register Low) bitfields.
           struct { 
-            Object *divl; // [0:15] RTC prescaler divider register Low  
-          } divl; 
-          
-          // CNTH (RTC Counter Register High) bitfields.
+Object *divl; // [0:15] RTC prescaler divider register Low} divl; 
+// CNTH(RTC Counter Register High) bitfields.
           struct { 
-            Object *cnth; // [0:15] RTC counter register high  
-          } cnth; 
-          
-          // CNTL (RTC Counter Register Low) bitfields.
+Object *cnth; // [0:15] RTC counter register high} cnth; 
+// CNTL(RTC Counter Register Low) bitfields.
           struct { 
-            Object *cntl; // [0:15] RTC counter register Low  
-          } cntl; 
-          
-          // ALRH (RTC Alarm Register High) bitfields.
+Object *cntl; // [0:15] RTC counter register Low} cntl; 
+// ALRH(RTC Alarm Register High) bitfields.
           struct { 
-            Object *alrh; // [0:15] RTC alarm register high  
-          } alrh; 
-          
-          // ALRL (RTC Alarm Register Low) bitfields.
+Object *alrh; // [0:15] RTC alarm register high} alrh; 
+// ALRL(RTC Alarm Register Low) bitfields.
           struct { 
-            Object *alrl; // [0:15] RTC alarm register low  
-          } alrl; 
-        } fld;
+Object *alrl; // [0:15] RTC alarm register low} alrl; 
+} fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

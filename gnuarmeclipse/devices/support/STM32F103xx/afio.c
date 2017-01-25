@@ -1,5 +1,5 @@
 /*
- * STM32 - AFIO (Alternate function I/O) emulation.
+ * STM32- AFIO(Alternate function I/O) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,70 +35,62 @@ static void stm32f103xx_afio_create_objects(Object *obj, JSON_Object *svd, const
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f1.reg.evcr = cm_object_get_child_by_name(obj, "EVCR");
-    state->u.f1.reg.mapr = cm_object_get_child_by_name(obj, "MAPR");
-    state->u.f1.reg.exticr1 = cm_object_get_child_by_name(obj, "EXTICR1");
-    state->u.f1.reg.exticr2 = cm_object_get_child_by_name(obj, "EXTICR2");
-    state->u.f1.reg.exticr3 = cm_object_get_child_by_name(obj, "EXTICR3");
-    state->u.f1.reg.exticr4 = cm_object_get_child_by_name(obj, "EXTICR4");
-    state->u.f1.reg.mapr2 = cm_object_get_child_by_name(obj, "MAPR2");
-    
-    
-    // EVCR bitfields.
-    state->u.f1.fld.evcr.pin = cm_object_get_child_by_name(state->u.f1.reg.evcr, "PIN"); 
-    state->u.f1.fld.evcr.port = cm_object_get_child_by_name(state->u.f1.reg.evcr, "PORT"); 
-    state->u.f1.fld.evcr.evoe = cm_object_get_child_by_name(state->u.f1.reg.evcr, "EVOE");  
-    
-    // MAPR bitfields.
-    state->u.f1.fld.mapr.spi1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "SPI1_REMAP"); 
-    state->u.f1.fld.mapr.i2c1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "I2C1_REMAP"); 
-    state->u.f1.fld.mapr.usart1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART1_REMAP"); 
-    state->u.f1.fld.mapr.usart2_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART2_REMAP"); 
-    state->u.f1.fld.mapr.usart3_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART3_REMAP"); 
-    state->u.f1.fld.mapr.tim1_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM1_REMAP"); 
-    state->u.f1.fld.mapr.tim2_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM2_REMAP"); 
-    state->u.f1.fld.mapr.tim3_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM3_REMAP"); 
-    state->u.f1.fld.mapr.tim4_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM4_REMAP"); 
-    state->u.f1.fld.mapr.can_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "CAN_REMAP"); 
-    state->u.f1.fld.mapr.pd01_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "PD01_REMAP"); 
-    state->u.f1.fld.mapr.tim5ch4_iremap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM5CH4_IREMAP"); 
-    state->u.f1.fld.mapr.adc1_etrginj_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC1_ETRGINJ_REMAP"); 
-    state->u.f1.fld.mapr.adc1_etrgreg_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC1_ETRGREG_REMAP"); 
-    state->u.f1.fld.mapr.adc2_etrginj_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC2_ETRGINJ_REMAP"); 
-    state->u.f1.fld.mapr.adc2_etrgreg_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC2_ETRGREG_REMAP"); 
-    state->u.f1.fld.mapr.swj_cfg = cm_object_get_child_by_name(state->u.f1.reg.mapr, "SWJ_CFG");  
-    
-    // EXTICR1 bitfields.
-    state->u.f1.fld.exticr1.exti0 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI0"); 
-    state->u.f1.fld.exticr1.exti1 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI1"); 
-    state->u.f1.fld.exticr1.exti2 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI2"); 
-    state->u.f1.fld.exticr1.exti3 = cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI3");  
-    
-    // EXTICR2 bitfields.
-    state->u.f1.fld.exticr2.exti4 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI4"); 
-    state->u.f1.fld.exticr2.exti5 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI5"); 
-    state->u.f1.fld.exticr2.exti6 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI6"); 
-    state->u.f1.fld.exticr2.exti7 = cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI7");  
-    
-    // EXTICR3 bitfields.
-    state->u.f1.fld.exticr3.exti8 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI8"); 
-    state->u.f1.fld.exticr3.exti9 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI9"); 
-    state->u.f1.fld.exticr3.exti10 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI10"); 
-    state->u.f1.fld.exticr3.exti11 = cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI11");  
-    
-    // EXTICR4 bitfields.
-    state->u.f1.fld.exticr4.exti12 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI12"); 
-    state->u.f1.fld.exticr4.exti13 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI13"); 
-    state->u.f1.fld.exticr4.exti14 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI14"); 
-    state->u.f1.fld.exticr4.exti15 = cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI15");  
-    
-    // MAPR2 bitfields.
-    state->u.f1.fld.mapr2.tim9_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM9_REMAP"); 
-    state->u.f1.fld.mapr2.tim10_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM10_REMAP"); 
-    state->u.f1.fld.mapr2.tim11_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM11_REMAP"); 
-    state->u.f1.fld.mapr2.tim13_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM13_REMAP"); 
-    state->u.f1.fld.mapr2.tim14_remap = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM14_REMAP"); 
-    state->u.f1.fld.mapr2.fsmc_nadv = cm_object_get_child_by_name(state->u.f1.reg.mapr2, "FSMC_NADV");  
+state->u.f1.reg.evcr= cm_object_get_child_by_name(obj, "EVCR");
+state->u.f1.reg.mapr= cm_object_get_child_by_name(obj, "MAPR");
+state->u.f1.reg.exticr1= cm_object_get_child_by_name(obj, "EXTICR1");
+state->u.f1.reg.exticr2= cm_object_get_child_by_name(obj, "EXTICR2");
+state->u.f1.reg.exticr3= cm_object_get_child_by_name(obj, "EXTICR3");
+state->u.f1.reg.exticr4= cm_object_get_child_by_name(obj, "EXTICR4");
+state->u.f1.reg.mapr2= cm_object_get_child_by_name(obj, "MAPR2");
+// EVCRbitfields.
+state->u.f1.fld.evcr.pin= cm_object_get_child_by_name(state->u.f1.reg.evcr, "PIN"); 
+state->u.f1.fld.evcr.port= cm_object_get_child_by_name(state->u.f1.reg.evcr, "PORT"); 
+state->u.f1.fld.evcr.evoe= cm_object_get_child_by_name(state->u.f1.reg.evcr, "EVOE"); 
+// MAPRbitfields.
+state->u.f1.fld.mapr.spi1_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "SPI1_REMAP"); 
+state->u.f1.fld.mapr.i2c1_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "I2C1_REMAP"); 
+state->u.f1.fld.mapr.usart1_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART1_REMAP"); 
+state->u.f1.fld.mapr.usart2_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART2_REMAP"); 
+state->u.f1.fld.mapr.usart3_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "USART3_REMAP"); 
+state->u.f1.fld.mapr.tim1_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM1_REMAP"); 
+state->u.f1.fld.mapr.tim2_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM2_REMAP"); 
+state->u.f1.fld.mapr.tim3_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM3_REMAP"); 
+state->u.f1.fld.mapr.tim4_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM4_REMAP"); 
+state->u.f1.fld.mapr.can_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "CAN_REMAP"); 
+state->u.f1.fld.mapr.pd01_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "PD01_REMAP"); 
+state->u.f1.fld.mapr.tim5ch4_iremap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "TIM5CH4_IREMAP"); 
+state->u.f1.fld.mapr.adc1_etrginj_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC1_ETRGINJ_REMAP"); 
+state->u.f1.fld.mapr.adc1_etrgreg_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC1_ETRGREG_REMAP"); 
+state->u.f1.fld.mapr.adc2_etrginj_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC2_ETRGINJ_REMAP"); 
+state->u.f1.fld.mapr.adc2_etrgreg_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr, "ADC2_ETRGREG_REMAP"); 
+state->u.f1.fld.mapr.swj_cfg= cm_object_get_child_by_name(state->u.f1.reg.mapr, "SWJ_CFG"); 
+// EXTICR1bitfields.
+state->u.f1.fld.exticr1.exti0= cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI0"); 
+state->u.f1.fld.exticr1.exti1= cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI1"); 
+state->u.f1.fld.exticr1.exti2= cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI2"); 
+state->u.f1.fld.exticr1.exti3= cm_object_get_child_by_name(state->u.f1.reg.exticr1, "EXTI3"); 
+// EXTICR2bitfields.
+state->u.f1.fld.exticr2.exti4= cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI4"); 
+state->u.f1.fld.exticr2.exti5= cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI5"); 
+state->u.f1.fld.exticr2.exti6= cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI6"); 
+state->u.f1.fld.exticr2.exti7= cm_object_get_child_by_name(state->u.f1.reg.exticr2, "EXTI7"); 
+// EXTICR3bitfields.
+state->u.f1.fld.exticr3.exti8= cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI8"); 
+state->u.f1.fld.exticr3.exti9= cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI9"); 
+state->u.f1.fld.exticr3.exti10= cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI10"); 
+state->u.f1.fld.exticr3.exti11= cm_object_get_child_by_name(state->u.f1.reg.exticr3, "EXTI11"); 
+// EXTICR4bitfields.
+state->u.f1.fld.exticr4.exti12= cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI12"); 
+state->u.f1.fld.exticr4.exti13= cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI13"); 
+state->u.f1.fld.exticr4.exti14= cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI14"); 
+state->u.f1.fld.exticr4.exti15= cm_object_get_child_by_name(state->u.f1.reg.exticr4, "EXTI15"); 
+// MAPR2bitfields.
+state->u.f1.fld.mapr2.tim9_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM9_REMAP"); 
+state->u.f1.fld.mapr2.tim10_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM10_REMAP"); 
+state->u.f1.fld.mapr2.tim11_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM11_REMAP"); 
+state->u.f1.fld.mapr2.tim13_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM13_REMAP"); 
+state->u.f1.fld.mapr2.tim14_remap= cm_object_get_child_by_name(state->u.f1.reg.mapr2, "TIM14_REMAP"); 
+state->u.f1.fld.mapr2.fsmc_nadv= cm_object_get_child_by_name(state->u.f1.reg.mapr2, "FSMC_NADV"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -182,7 +174,7 @@ static void stm32_afio_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -221,7 +213,7 @@ static void stm32_afio_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F1:
 
-        if (capabilities->f1.is_103xx ) {
+        if (capabilities->f1.is_103xx) {
 
             stm32f103xx_afio_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -237,12 +229,10 @@ static void stm32_afio_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/AFIOEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

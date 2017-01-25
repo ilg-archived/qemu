@@ -1,5 +1,5 @@
 /*
- * STM32 - ADC (Analog-to-digital converter) emulation.
+ * STM32- ADC(Analog-to-digital converter) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,134 +35,113 @@ static void stm32f429x_adc_create_objects(Object *obj, JSON_Object *svd, const c
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f4.reg.sr = cm_object_get_child_by_name(obj, "SR");
-    state->u.f4.reg.cr1 = cm_object_get_child_by_name(obj, "CR1");
-    state->u.f4.reg.cr2 = cm_object_get_child_by_name(obj, "CR2");
-    state->u.f4.reg.smpr1 = cm_object_get_child_by_name(obj, "SMPR1");
-    state->u.f4.reg.smpr2 = cm_object_get_child_by_name(obj, "SMPR2");
-    state->u.f4.reg.jofr1 = cm_object_get_child_by_name(obj, "JOFR1");
-    state->u.f4.reg.jofr2 = cm_object_get_child_by_name(obj, "JOFR2");
-    state->u.f4.reg.jofr3 = cm_object_get_child_by_name(obj, "JOFR3");
-    state->u.f4.reg.jofr4 = cm_object_get_child_by_name(obj, "JOFR4");
-    state->u.f4.reg.htr = cm_object_get_child_by_name(obj, "HTR");
-    state->u.f4.reg.ltr = cm_object_get_child_by_name(obj, "LTR");
-    state->u.f4.reg.sqr1 = cm_object_get_child_by_name(obj, "SQR1");
-    state->u.f4.reg.sqr2 = cm_object_get_child_by_name(obj, "SQR2");
-    state->u.f4.reg.sqr3 = cm_object_get_child_by_name(obj, "SQR3");
-    state->u.f4.reg.jsqr = cm_object_get_child_by_name(obj, "JSQR");
-    state->u.f4.reg.jdr1 = cm_object_get_child_by_name(obj, "JDR1");
-    state->u.f4.reg.jdr2 = cm_object_get_child_by_name(obj, "JDR2");
-    state->u.f4.reg.jdr3 = cm_object_get_child_by_name(obj, "JDR3");
-    state->u.f4.reg.jdr4 = cm_object_get_child_by_name(obj, "JDR4");
-    state->u.f4.reg.dr = cm_object_get_child_by_name(obj, "DR");
-    
-    
-    // SR bitfields.
-    state->u.f4.fld.sr.awd = cm_object_get_child_by_name(state->u.f4.reg.sr, "AWD"); 
-    state->u.f4.fld.sr.eoc = cm_object_get_child_by_name(state->u.f4.reg.sr, "EOC"); 
-    state->u.f4.fld.sr.jeoc = cm_object_get_child_by_name(state->u.f4.reg.sr, "JEOC"); 
-    state->u.f4.fld.sr.jstrt = cm_object_get_child_by_name(state->u.f4.reg.sr, "JSTRT"); 
-    state->u.f4.fld.sr.strt = cm_object_get_child_by_name(state->u.f4.reg.sr, "STRT"); 
-    state->u.f4.fld.sr.ovr = cm_object_get_child_by_name(state->u.f4.reg.sr, "OVR");  
-    
-    // CR1 bitfields.
-    state->u.f4.fld.cr1.awdch = cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDCH"); 
-    state->u.f4.fld.cr1.eocie = cm_object_get_child_by_name(state->u.f4.reg.cr1, "EOCIE"); 
-    state->u.f4.fld.cr1.awdie = cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDIE"); 
-    state->u.f4.fld.cr1.jeocie = cm_object_get_child_by_name(state->u.f4.reg.cr1, "JEOCIE"); 
-    state->u.f4.fld.cr1.scan = cm_object_get_child_by_name(state->u.f4.reg.cr1, "SCAN"); 
-    state->u.f4.fld.cr1.awdsgl = cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDSGL"); 
-    state->u.f4.fld.cr1.jauto = cm_object_get_child_by_name(state->u.f4.reg.cr1, "JAUTO"); 
-    state->u.f4.fld.cr1.discen = cm_object_get_child_by_name(state->u.f4.reg.cr1, "DISCEN"); 
-    state->u.f4.fld.cr1.jdiscen = cm_object_get_child_by_name(state->u.f4.reg.cr1, "JDISCEN"); 
-    state->u.f4.fld.cr1.discnum = cm_object_get_child_by_name(state->u.f4.reg.cr1, "DISCNUM"); 
-    state->u.f4.fld.cr1.jawden = cm_object_get_child_by_name(state->u.f4.reg.cr1, "JAWDEN"); 
-    state->u.f4.fld.cr1.awden = cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDEN"); 
-    state->u.f4.fld.cr1.res = cm_object_get_child_by_name(state->u.f4.reg.cr1, "RES"); 
-    state->u.f4.fld.cr1.ovrie = cm_object_get_child_by_name(state->u.f4.reg.cr1, "OVRIE");  
-    
-    // CR2 bitfields.
-    state->u.f4.fld.cr2.adon = cm_object_get_child_by_name(state->u.f4.reg.cr2, "ADON"); 
-    state->u.f4.fld.cr2.cont = cm_object_get_child_by_name(state->u.f4.reg.cr2, "CONT"); 
-    state->u.f4.fld.cr2.dma = cm_object_get_child_by_name(state->u.f4.reg.cr2, "DMA"); 
-    state->u.f4.fld.cr2.dds = cm_object_get_child_by_name(state->u.f4.reg.cr2, "DDS"); 
-    state->u.f4.fld.cr2.eocs = cm_object_get_child_by_name(state->u.f4.reg.cr2, "EOCS"); 
-    state->u.f4.fld.cr2.align = cm_object_get_child_by_name(state->u.f4.reg.cr2, "ALIGN"); 
-    state->u.f4.fld.cr2.jextsel = cm_object_get_child_by_name(state->u.f4.reg.cr2, "JEXTSEL"); 
-    state->u.f4.fld.cr2.jexten = cm_object_get_child_by_name(state->u.f4.reg.cr2, "JEXTEN"); 
-    state->u.f4.fld.cr2.jswstart = cm_object_get_child_by_name(state->u.f4.reg.cr2, "JSWSTART"); 
-    state->u.f4.fld.cr2.extsel = cm_object_get_child_by_name(state->u.f4.reg.cr2, "EXTSEL"); 
-    state->u.f4.fld.cr2.exten = cm_object_get_child_by_name(state->u.f4.reg.cr2, "EXTEN"); 
-    state->u.f4.fld.cr2.swstart = cm_object_get_child_by_name(state->u.f4.reg.cr2, "SWSTART");  
-    
-    // SMPR1 bitfields.
-    state->u.f4.fld.smpr1.smpx_x = cm_object_get_child_by_name(state->u.f4.reg.smpr1, "SMPx_x");  
-    
-    // SMPR2 bitfields.
-    state->u.f4.fld.smpr2.smpx_x = cm_object_get_child_by_name(state->u.f4.reg.smpr2, "SMPx_x");  
-    
-    // JOFR1 bitfields.
-    state->u.f4.fld.jofr1.joffset1 = cm_object_get_child_by_name(state->u.f4.reg.jofr1, "JOFFSET1");  
-    
-    // JOFR2 bitfields.
-    state->u.f4.fld.jofr2.joffset2 = cm_object_get_child_by_name(state->u.f4.reg.jofr2, "JOFFSET2");  
-    
-    // JOFR3 bitfields.
-    state->u.f4.fld.jofr3.joffset3 = cm_object_get_child_by_name(state->u.f4.reg.jofr3, "JOFFSET3");  
-    
-    // JOFR4 bitfields.
-    state->u.f4.fld.jofr4.joffset4 = cm_object_get_child_by_name(state->u.f4.reg.jofr4, "JOFFSET4");  
-    
-    // HTR bitfields.
-    state->u.f4.fld.htr.ht = cm_object_get_child_by_name(state->u.f4.reg.htr, "HT");  
-    
-    // LTR bitfields.
-    state->u.f4.fld.ltr.lt = cm_object_get_child_by_name(state->u.f4.reg.ltr, "LT");  
-    
-    // SQR1 bitfields.
-    state->u.f4.fld.sqr1.sq13 = cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ13"); 
-    state->u.f4.fld.sqr1.sq14 = cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ14"); 
-    state->u.f4.fld.sqr1.sq15 = cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ15"); 
-    state->u.f4.fld.sqr1.sq16 = cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ16"); 
-    state->u.f4.fld.sqr1.l = cm_object_get_child_by_name(state->u.f4.reg.sqr1, "L");  
-    
-    // SQR2 bitfields.
-    state->u.f4.fld.sqr2.sq7 = cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ7"); 
-    state->u.f4.fld.sqr2.sq8 = cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ8"); 
-    state->u.f4.fld.sqr2.sq9 = cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ9"); 
-    state->u.f4.fld.sqr2.sq10 = cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ10"); 
-    state->u.f4.fld.sqr2.sq11 = cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ11"); 
-    state->u.f4.fld.sqr2.sq12 = cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ12");  
-    
-    // SQR3 bitfields.
-    state->u.f4.fld.sqr3.sq1 = cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ1"); 
-    state->u.f4.fld.sqr3.sq2 = cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ2"); 
-    state->u.f4.fld.sqr3.sq3 = cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ3"); 
-    state->u.f4.fld.sqr3.sq4 = cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ4"); 
-    state->u.f4.fld.sqr3.sq5 = cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ5"); 
-    state->u.f4.fld.sqr3.sq6 = cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ6");  
-    
-    // JSQR bitfields.
-    state->u.f4.fld.jsqr.jsq1 = cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ1"); 
-    state->u.f4.fld.jsqr.jsq2 = cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ2"); 
-    state->u.f4.fld.jsqr.jsq3 = cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ3"); 
-    state->u.f4.fld.jsqr.jsq4 = cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ4"); 
-    state->u.f4.fld.jsqr.jl = cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JL");  
-    
-    // JDR1 bitfields.
-    state->u.f4.fld.jdr1.jdata = cm_object_get_child_by_name(state->u.f4.reg.jdr1, "JDATA");  
-    
-    // JDR2 bitfields.
-    state->u.f4.fld.jdr2.jdata = cm_object_get_child_by_name(state->u.f4.reg.jdr2, "JDATA");  
-    
-    // JDR3 bitfields.
-    state->u.f4.fld.jdr3.jdata = cm_object_get_child_by_name(state->u.f4.reg.jdr3, "JDATA");  
-    
-    // JDR4 bitfields.
-    state->u.f4.fld.jdr4.jdata = cm_object_get_child_by_name(state->u.f4.reg.jdr4, "JDATA");  
-    
-    // DR bitfields.
-    state->u.f4.fld.dr.data = cm_object_get_child_by_name(state->u.f4.reg.dr, "DATA");  
+state->u.f4.reg.sr= cm_object_get_child_by_name(obj, "SR");
+state->u.f4.reg.cr1= cm_object_get_child_by_name(obj, "CR1");
+state->u.f4.reg.cr2= cm_object_get_child_by_name(obj, "CR2");
+state->u.f4.reg.smpr1= cm_object_get_child_by_name(obj, "SMPR1");
+state->u.f4.reg.smpr2= cm_object_get_child_by_name(obj, "SMPR2");
+state->u.f4.reg.jofr1= cm_object_get_child_by_name(obj, "JOFR1");
+state->u.f4.reg.jofr2= cm_object_get_child_by_name(obj, "JOFR2");
+state->u.f4.reg.jofr3= cm_object_get_child_by_name(obj, "JOFR3");
+state->u.f4.reg.jofr4= cm_object_get_child_by_name(obj, "JOFR4");
+state->u.f4.reg.htr= cm_object_get_child_by_name(obj, "HTR");
+state->u.f4.reg.ltr= cm_object_get_child_by_name(obj, "LTR");
+state->u.f4.reg.sqr1= cm_object_get_child_by_name(obj, "SQR1");
+state->u.f4.reg.sqr2= cm_object_get_child_by_name(obj, "SQR2");
+state->u.f4.reg.sqr3= cm_object_get_child_by_name(obj, "SQR3");
+state->u.f4.reg.jsqr= cm_object_get_child_by_name(obj, "JSQR");
+state->u.f4.reg.jdr1= cm_object_get_child_by_name(obj, "JDR1");
+state->u.f4.reg.jdr2= cm_object_get_child_by_name(obj, "JDR2");
+state->u.f4.reg.jdr3= cm_object_get_child_by_name(obj, "JDR3");
+state->u.f4.reg.jdr4= cm_object_get_child_by_name(obj, "JDR4");
+state->u.f4.reg.dr= cm_object_get_child_by_name(obj, "DR");
+// SRbitfields.
+state->u.f4.fld.sr.awd= cm_object_get_child_by_name(state->u.f4.reg.sr, "AWD"); 
+state->u.f4.fld.sr.eoc= cm_object_get_child_by_name(state->u.f4.reg.sr, "EOC"); 
+state->u.f4.fld.sr.jeoc= cm_object_get_child_by_name(state->u.f4.reg.sr, "JEOC"); 
+state->u.f4.fld.sr.jstrt= cm_object_get_child_by_name(state->u.f4.reg.sr, "JSTRT"); 
+state->u.f4.fld.sr.strt= cm_object_get_child_by_name(state->u.f4.reg.sr, "STRT"); 
+state->u.f4.fld.sr.ovr= cm_object_get_child_by_name(state->u.f4.reg.sr, "OVR"); 
+// CR1bitfields.
+state->u.f4.fld.cr1.awdch= cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDCH"); 
+state->u.f4.fld.cr1.eocie= cm_object_get_child_by_name(state->u.f4.reg.cr1, "EOCIE"); 
+state->u.f4.fld.cr1.awdie= cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDIE"); 
+state->u.f4.fld.cr1.jeocie= cm_object_get_child_by_name(state->u.f4.reg.cr1, "JEOCIE"); 
+state->u.f4.fld.cr1.scan= cm_object_get_child_by_name(state->u.f4.reg.cr1, "SCAN"); 
+state->u.f4.fld.cr1.awdsgl= cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDSGL"); 
+state->u.f4.fld.cr1.jauto= cm_object_get_child_by_name(state->u.f4.reg.cr1, "JAUTO"); 
+state->u.f4.fld.cr1.discen= cm_object_get_child_by_name(state->u.f4.reg.cr1, "DISCEN"); 
+state->u.f4.fld.cr1.jdiscen= cm_object_get_child_by_name(state->u.f4.reg.cr1, "JDISCEN"); 
+state->u.f4.fld.cr1.discnum= cm_object_get_child_by_name(state->u.f4.reg.cr1, "DISCNUM"); 
+state->u.f4.fld.cr1.jawden= cm_object_get_child_by_name(state->u.f4.reg.cr1, "JAWDEN"); 
+state->u.f4.fld.cr1.awden= cm_object_get_child_by_name(state->u.f4.reg.cr1, "AWDEN"); 
+state->u.f4.fld.cr1.res= cm_object_get_child_by_name(state->u.f4.reg.cr1, "RES"); 
+state->u.f4.fld.cr1.ovrie= cm_object_get_child_by_name(state->u.f4.reg.cr1, "OVRIE"); 
+// CR2bitfields.
+state->u.f4.fld.cr2.adon= cm_object_get_child_by_name(state->u.f4.reg.cr2, "ADON"); 
+state->u.f4.fld.cr2.cont= cm_object_get_child_by_name(state->u.f4.reg.cr2, "CONT"); 
+state->u.f4.fld.cr2.dma= cm_object_get_child_by_name(state->u.f4.reg.cr2, "DMA"); 
+state->u.f4.fld.cr2.dds= cm_object_get_child_by_name(state->u.f4.reg.cr2, "DDS"); 
+state->u.f4.fld.cr2.eocs= cm_object_get_child_by_name(state->u.f4.reg.cr2, "EOCS"); 
+state->u.f4.fld.cr2.align= cm_object_get_child_by_name(state->u.f4.reg.cr2, "ALIGN"); 
+state->u.f4.fld.cr2.jextsel= cm_object_get_child_by_name(state->u.f4.reg.cr2, "JEXTSEL"); 
+state->u.f4.fld.cr2.jexten= cm_object_get_child_by_name(state->u.f4.reg.cr2, "JEXTEN"); 
+state->u.f4.fld.cr2.jswstart= cm_object_get_child_by_name(state->u.f4.reg.cr2, "JSWSTART"); 
+state->u.f4.fld.cr2.extsel= cm_object_get_child_by_name(state->u.f4.reg.cr2, "EXTSEL"); 
+state->u.f4.fld.cr2.exten= cm_object_get_child_by_name(state->u.f4.reg.cr2, "EXTEN"); 
+state->u.f4.fld.cr2.swstart= cm_object_get_child_by_name(state->u.f4.reg.cr2, "SWSTART"); 
+// SMPR1bitfields.
+state->u.f4.fld.smpr1.smpx_x= cm_object_get_child_by_name(state->u.f4.reg.smpr1, "SMPx_x"); 
+// SMPR2bitfields.
+state->u.f4.fld.smpr2.smpx_x= cm_object_get_child_by_name(state->u.f4.reg.smpr2, "SMPx_x"); 
+// JOFR1bitfields.
+state->u.f4.fld.jofr1.joffset1= cm_object_get_child_by_name(state->u.f4.reg.jofr1, "JOFFSET1"); 
+// JOFR2bitfields.
+state->u.f4.fld.jofr2.joffset2= cm_object_get_child_by_name(state->u.f4.reg.jofr2, "JOFFSET2"); 
+// JOFR3bitfields.
+state->u.f4.fld.jofr3.joffset3= cm_object_get_child_by_name(state->u.f4.reg.jofr3, "JOFFSET3"); 
+// JOFR4bitfields.
+state->u.f4.fld.jofr4.joffset4= cm_object_get_child_by_name(state->u.f4.reg.jofr4, "JOFFSET4"); 
+// HTRbitfields.
+state->u.f4.fld.htr.ht= cm_object_get_child_by_name(state->u.f4.reg.htr, "HT"); 
+// LTRbitfields.
+state->u.f4.fld.ltr.lt= cm_object_get_child_by_name(state->u.f4.reg.ltr, "LT"); 
+// SQR1bitfields.
+state->u.f4.fld.sqr1.sq13= cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ13"); 
+state->u.f4.fld.sqr1.sq14= cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ14"); 
+state->u.f4.fld.sqr1.sq15= cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ15"); 
+state->u.f4.fld.sqr1.sq16= cm_object_get_child_by_name(state->u.f4.reg.sqr1, "SQ16"); 
+state->u.f4.fld.sqr1.l= cm_object_get_child_by_name(state->u.f4.reg.sqr1, "L"); 
+// SQR2bitfields.
+state->u.f4.fld.sqr2.sq7= cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ7"); 
+state->u.f4.fld.sqr2.sq8= cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ8"); 
+state->u.f4.fld.sqr2.sq9= cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ9"); 
+state->u.f4.fld.sqr2.sq10= cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ10"); 
+state->u.f4.fld.sqr2.sq11= cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ11"); 
+state->u.f4.fld.sqr2.sq12= cm_object_get_child_by_name(state->u.f4.reg.sqr2, "SQ12"); 
+// SQR3bitfields.
+state->u.f4.fld.sqr3.sq1= cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ1"); 
+state->u.f4.fld.sqr3.sq2= cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ2"); 
+state->u.f4.fld.sqr3.sq3= cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ3"); 
+state->u.f4.fld.sqr3.sq4= cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ4"); 
+state->u.f4.fld.sqr3.sq5= cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ5"); 
+state->u.f4.fld.sqr3.sq6= cm_object_get_child_by_name(state->u.f4.reg.sqr3, "SQ6"); 
+// JSQRbitfields.
+state->u.f4.fld.jsqr.jsq1= cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ1"); 
+state->u.f4.fld.jsqr.jsq2= cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ2"); 
+state->u.f4.fld.jsqr.jsq3= cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ3"); 
+state->u.f4.fld.jsqr.jsq4= cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JSQ4"); 
+state->u.f4.fld.jsqr.jl= cm_object_get_child_by_name(state->u.f4.reg.jsqr, "JL"); 
+// JDR1bitfields.
+state->u.f4.fld.jdr1.jdata= cm_object_get_child_by_name(state->u.f4.reg.jdr1, "JDATA"); 
+// JDR2bitfields.
+state->u.f4.fld.jdr2.jdata= cm_object_get_child_by_name(state->u.f4.reg.jdr2, "JDATA"); 
+// JDR3bitfields.
+state->u.f4.fld.jdr3.jdata= cm_object_get_child_by_name(state->u.f4.reg.jdr3, "JDATA"); 
+// JDR4bitfields.
+state->u.f4.fld.jdr4.jdata= cm_object_get_child_by_name(state->u.f4.reg.jdr4, "JDATA"); 
+// DRbitfields.
+state->u.f4.fld.dr.data= cm_object_get_child_by_name(state->u.f4.reg.dr, "DATA"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -246,11 +225,10 @@ static void stm32_adc_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    cm_object_property_add_int(obj, "port-index",
+cm_object_property_add_int(obj, "port-index",
             (const int *) &state->port_index);
     state->port_index = STM32_PORT_ADC_UNDEFINED;
-
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -289,7 +267,7 @@ static void stm32_adc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_429x ) {
+        if (capabilities->f4.is_429x) {
 
             stm32f429x_adc_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -305,13 +283,11 @@ static void stm32_adc_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-           // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/ADC%dEN",
                 1 + state->port_index - STM32_PORT_ADC1);
-
-
-        } else {
+} else {
             assert(false);
         }
 

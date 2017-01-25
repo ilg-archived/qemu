@@ -1,5 +1,5 @@
 /*
- * STM32 - C_ADC (Common ADC registers) emulation.
+ * STM32- C_ADC(Common ADC registers) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_C_ADC DEVICE_PATH_STM32 "C_ADC"
-
-
+#define DEVICE_PATH_STM32_C_ADCDEVICE_PATH_STM32"C_ADC"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_C_ADC TYPE_STM32_PREFIX "c_adc" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_C_ADCTYPE_STM32_PREFIX "c_adc" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,60 +73,30 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4 C_ADC (Common ADC registers) registers.
+        // F4C_ADC(Common ADC registers) registers.
         struct { 
-          Object *csr; // 0x0 (ADC Common status register) 
-          Object *ccr; // 0x4 (ADC common control register) 
-          Object *cdr; // 0x8 (ADC common regular data register for dual and triple modes) 
-        } reg;
+Object *csr; // 0x0(ADC Common status register) 
+Object *ccr; // 0x4(ADC common control register) 
+Object *cdr; // 0x8(ADC common regular data register for dual and triple modes) 
+} reg;
 
         struct { 
-          
-          // CSR (ADC Common status register) bitfields.
+// CSR(ADC Common status register) bitfields.
           struct { 
-            Object *awd1; // [0:0] Analog watchdog flag of ADC 1 
-            Object *eoc1; // [1:1] End of conversion of ADC 1 
-            Object *jeoc1; // [2:2] Injected channel end of conversion of ADC 1 
-            Object *jstrt1; // [3:3] Injected channel Start flag of ADC 1 
-            Object *strt1; // [4:4] Regular channel Start flag of ADC 1 
-            Object *ovr1; // [5:5] Overrun flag of ADC 1 
-            Object *awd2; // [8:8] Analog watchdog flag of ADC 2 
-            Object *eoc2; // [9:9] End of conversion of ADC 2 
-            Object *jeoc2; // [10:10] Injected channel end of conversion of ADC 2 
-            Object *jstrt2; // [11:11] Injected channel Start flag of ADC 2 
-            Object *strt2; // [12:12] Regular channel Start flag of ADC 2 
-            Object *ovr2; // [13:13] Overrun flag of ADC 2 
-            Object *awd3; // [16:16] Analog watchdog flag of ADC 3 
-            Object *eoc3; // [17:17] End of conversion of ADC 3 
-            Object *jeoc3; // [18:18] Injected channel end of conversion of ADC 3 
-            Object *jstrt3; // [19:19] Injected channel Start flag of ADC 3 
-            Object *strt3; // [20:20] Regular channel Start flag of ADC 3 
-            Object *ovr3; // [21:21] Overrun flag of ADC3  
-          } csr; 
-          
-          // CCR (ADC common control register) bitfields.
+Object *awd1; // [0:0] Analog watchdog flag of ADC 1Object *eoc1; // [1:1] End of conversion of ADC 1Object *jeoc1; // [2:2] Injected channel end of conversion of ADC 1Object *jstrt1; // [3:3] Injected channel Start flag of ADC 1Object *strt1; // [4:4] Regular channel Start flag of ADC 1Object *ovr1; // [5:5] Overrun flag of ADC 1Object *awd2; // [8:8] Analog watchdog flag of ADC 2Object *eoc2; // [9:9] End of conversion of ADC 2Object *jeoc2; // [10:10] Injected channel end of conversion of ADC 2Object *jstrt2; // [11:11] Injected channel Start flag of ADC 2Object *strt2; // [12:12] Regular channel Start flag of ADC 2Object *ovr2; // [13:13] Overrun flag of ADC 2Object *awd3; // [16:16] Analog watchdog flag of ADC 3Object *eoc3; // [17:17] End of conversion of ADC 3Object *jeoc3; // [18:18] Injected channel end of conversion of ADC 3Object *jstrt3; // [19:19] Injected channel Start flag of ADC 3Object *strt3; // [20:20] Regular channel Start flag of ADC 3Object *ovr3; // [21:21] Overrun flag of ADC3} csr; 
+// CCR(ADC common control register) bitfields.
           struct { 
-            Object *mult; // [0:4] Multi ADC mode selection 
-            Object *delay; // [8:11] Delay between 2 sampling phases 
-            Object *dds; // [13:13] DMA disable selection for multi-ADC mode 
-            Object *dma; // [14:15] Direct memory access mode for multi ADC mode 
-            Object *adcpre; // [16:17] ADC prescaler 
-            Object *vbate; // [22:22] VBAT enable 
-            Object *tsvrefe; // [23:23] Temperature sensor and VREFINT enable  
-          } ccr; 
-          
-          // CDR (ADC common regular data register for dual and triple modes) bitfields.
+Object *mult; // [0:4] Multi ADC mode selectionObject *delay; // [8:11] Delay between 2 sampling phasesObject *dds; // [13:13] DMA disable selection for multi-ADC modeObject *dma; // [14:15] Direct memory access mode for multi ADC modeObject *adcpre; // [16:17] ADC prescalerObject *vbate; // [22:22] VBAT enableObject *tsvrefe; // [23:23] Temperature sensor and VREFINT enable} ccr; 
+// CDR(ADC common regular data register for dual and triple modes) bitfields.
           struct { 
-            Object *data1; // [0:15] 1st data item of a pair of regular conversions 
-            Object *data2; // [16:31] 2nd data item of a pair of regular conversions  
-          } cdr; 
-        } fld;
+Object *data1; // [0:15] 1st data item of a pair of regular conversionsObject *data2; // [16:31] 2nd data item of a pair of regular conversions} cdr; 
+} fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

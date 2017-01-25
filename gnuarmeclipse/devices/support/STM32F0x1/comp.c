@@ -1,5 +1,5 @@
 /*
- * STM32 - COMP (Comparator) emulation.
+ * STM32- COMP(Comparator) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,28 +35,26 @@ static void stm32f0x1_comp_create_objects(Object *obj, JSON_Object *svd, const c
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f0.reg.csr = cm_object_get_child_by_name(obj, "CSR");
-    
-    
-    // CSR bitfields.
-    state->u.f0.fld.csr.comp1en = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1EN"); 
-    state->u.f0.fld.csr.comp1_inp_dac = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1_INP_DAC"); 
-    state->u.f0.fld.csr.comp1mode = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1MODE"); 
-    state->u.f0.fld.csr.comp1insel = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1INSEL"); 
-    state->u.f0.fld.csr.comp1outsel = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1OUTSEL"); 
-    state->u.f0.fld.csr.comp1pol = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1POL"); 
-    state->u.f0.fld.csr.comp1hyst = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1HYST"); 
-    state->u.f0.fld.csr.comp1out = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1OUT"); 
-    state->u.f0.fld.csr.comp1lock = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1LOCK"); 
-    state->u.f0.fld.csr.comp2en = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2EN"); 
-    state->u.f0.fld.csr.comp2mode = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2MODE"); 
-    state->u.f0.fld.csr.comp2insel = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2INSEL"); 
-    state->u.f0.fld.csr.wndwen = cm_object_get_child_by_name(state->u.f0.reg.csr, "WNDWEN"); 
-    state->u.f0.fld.csr.comp2outsel = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2OUTSEL"); 
-    state->u.f0.fld.csr.comp2pol = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2POL"); 
-    state->u.f0.fld.csr.comp2hyst = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2HYST"); 
-    state->u.f0.fld.csr.comp2out = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2OUT"); 
-    state->u.f0.fld.csr.comp2lock = cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2LOCK");  
+state->u.f0.reg.csr= cm_object_get_child_by_name(obj, "CSR");
+// CSRbitfields.
+state->u.f0.fld.csr.comp1en= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1EN"); 
+state->u.f0.fld.csr.comp1_inp_dac= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1_INP_DAC"); 
+state->u.f0.fld.csr.comp1mode= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1MODE"); 
+state->u.f0.fld.csr.comp1insel= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1INSEL"); 
+state->u.f0.fld.csr.comp1outsel= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1OUTSEL"); 
+state->u.f0.fld.csr.comp1pol= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1POL"); 
+state->u.f0.fld.csr.comp1hyst= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1HYST"); 
+state->u.f0.fld.csr.comp1out= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1OUT"); 
+state->u.f0.fld.csr.comp1lock= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP1LOCK"); 
+state->u.f0.fld.csr.comp2en= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2EN"); 
+state->u.f0.fld.csr.comp2mode= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2MODE"); 
+state->u.f0.fld.csr.comp2insel= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2INSEL"); 
+state->u.f0.fld.csr.wndwen= cm_object_get_child_by_name(state->u.f0.reg.csr, "WNDWEN"); 
+state->u.f0.fld.csr.comp2outsel= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2OUTSEL"); 
+state->u.f0.fld.csr.comp2pol= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2POL"); 
+state->u.f0.fld.csr.comp2hyst= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2HYST"); 
+state->u.f0.fld.csr.comp2out= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2OUT"); 
+state->u.f0.fld.csr.comp2lock= cm_object_get_child_by_name(state->u.f0.reg.csr, "COMP2LOCK"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -140,7 +138,7 @@ static void stm32_comp_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -179,7 +177,7 @@ static void stm32_comp_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1 ) {
+        if (capabilities->f0.is_0x1) {
 
             stm32f0x1_comp_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -195,12 +193,10 @@ static void stm32_comp_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/COMPEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 

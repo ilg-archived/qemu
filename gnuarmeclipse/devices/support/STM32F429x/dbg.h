@@ -1,5 +1,5 @@
 /*
- * STM32 - DBG (Debug support) emulation.
+ * STM32- DBG(Debug support) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_DBG DEVICE_PATH_STM32 "DBG"
-
-
+#define DEVICE_PATH_STM32_DBGDEVICE_PATH_STM32"DBG"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_DBG TYPE_STM32_PREFIX "dbg" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_DBGTYPE_STM32_PREFIX "dbg" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,66 +73,34 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F4 DBG (Debug support) registers.
+        // F4DBG(Debug support) registers.
         struct { 
-          Object *dbgmcu_idcode; // 0x0 (IDCODE) 
-          Object *dbgmcu_cr; // 0x4 (Control Register) 
-          Object *dbgmcu_apb1_fz; // 0x8 (Debug MCU APB1 Freeze registe) 
-          Object *dbgmcu_apb2_fz; // 0xC (Debug MCU APB2 Freeze registe) 
-        } reg;
+Object *dbgmcu_idcode; // 0x0(IDCODE) 
+Object *dbgmcu_cr; // 0x4(Control Register) 
+Object *dbgmcu_apb1_fz; // 0x8(Debug MCU APB1 Freeze registe) 
+Object *dbgmcu_apb2_fz; // 0xC(Debug MCU APB2 Freeze registe) 
+} reg;
 
         struct { 
-          
-          // DBGMCU_IDCODE (IDCODE) bitfields.
+// DBGMCU_IDCODE(IDCODE) bitfields.
           struct { 
-            Object *dev_id; // [0:11] DEV_ID 
-            Object *rev_id; // [16:31] REV_ID  
-          } dbgmcu_idcode; 
-          
-          // DBGMCU_CR (Control Register) bitfields.
+Object *dev_id; // [0:11] DEV_IDObject *rev_id; // [16:31] REV_ID} dbgmcu_idcode; 
+// DBGMCU_CR(Control Register) bitfields.
           struct { 
-            Object *dbg_sleep; // [0:0] DBG_SLEEP 
-            Object *dbg_stop; // [1:1] DBG_STOP 
-            Object *dbg_standby; // [2:2] DBG_STANDBY 
-            Object *trace_ioen; // [5:5] TRACE_IOEN 
-            Object *trace_mode; // [6:7] TRACE_MODE  
-          } dbgmcu_cr; 
-          
-          // DBGMCU_APB1_FZ (Debug MCU APB1 Freeze registe) bitfields.
+Object *dbg_sleep; // [0:0] DBG_SLEEPObject *dbg_stop; // [1:1] DBG_STOPObject *dbg_standby; // [2:2] DBG_STANDBYObject *trace_ioen; // [5:5] TRACE_IOENObject *trace_mode; // [6:7] TRACE_MODE} dbgmcu_cr; 
+// DBGMCU_APB1_FZ(Debug MCU APB1 Freeze registe) bitfields.
           struct { 
-            Object *dbg_tim2_stop; // [0:0] DBG_TIM2_STOP 
-            Object *dbg_tim3_stop; // [1:1] DBG_TIM3 _STOP 
-            Object *dbg_tim4_stop; // [2:2] DBG_TIM4_STOP 
-            Object *dbg_tim5_stop; // [3:3] DBG_TIM5_STOP 
-            Object *dbg_tim6_stop; // [4:4] DBG_TIM6_STOP 
-            Object *dbg_tim7_stop; // [5:5] DBG_TIM7_STOP 
-            Object *dbg_tim12_stop; // [6:6] DBG_TIM12_STOP 
-            Object *dbg_tim13_stop; // [7:7] DBG_TIM13_STOP 
-            Object *dbg_tim14_stop; // [8:8] DBG_TIM14_STOP 
-            Object *dbg_wwdg_stop; // [11:11] DBG_WWDG_STOP 
-            Object *dbg_iwdeg_stop; // [12:12] DBG_IWDEG_STOP 
-            Object *dbg_j2c1_smbus_timeout; // [21:21] DBG_J2C1_SMBUS_TIMEOUT 
-            Object *dbg_j2c2_smbus_timeout; // [22:22] DBG_J2C2_SMBUS_TIMEOUT 
-            Object *dbg_j2c3smbus_timeout; // [23:23] DBG_J2C3SMBUS_TIMEOUT 
-            Object *dbg_can1_stop; // [25:25] DBG_CAN1_STOP 
-            Object *dbg_can2_stop; // [26:26] DBG_CAN2_STOP  
-          } dbgmcu_apb1_fz; 
-          
-          // DBGMCU_APB2_FZ (Debug MCU APB2 Freeze registe) bitfields.
+Object *dbg_tim2_stop; // [0:0] DBG_TIM2_STOPObject *dbg_tim3_stop; // [1:1] DBG_TIM3 _STOPObject *dbg_tim4_stop; // [2:2] DBG_TIM4_STOPObject *dbg_tim5_stop; // [3:3] DBG_TIM5_STOPObject *dbg_tim6_stop; // [4:4] DBG_TIM6_STOPObject *dbg_tim7_stop; // [5:5] DBG_TIM7_STOPObject *dbg_tim12_stop; // [6:6] DBG_TIM12_STOPObject *dbg_tim13_stop; // [7:7] DBG_TIM13_STOPObject *dbg_tim14_stop; // [8:8] DBG_TIM14_STOPObject *dbg_wwdg_stop; // [11:11] DBG_WWDG_STOPObject *dbg_iwdeg_stop; // [12:12] DBG_IWDEG_STOPObject *dbg_j2c1_smbus_timeout; // [21:21] DBG_J2C1_SMBUS_TIMEOUTObject *dbg_j2c2_smbus_timeout; // [22:22] DBG_J2C2_SMBUS_TIMEOUTObject *dbg_j2c3smbus_timeout; // [23:23] DBG_J2C3SMBUS_TIMEOUTObject *dbg_can1_stop; // [25:25] DBG_CAN1_STOPObject *dbg_can2_stop; // [26:26] DBG_CAN2_STOP} dbgmcu_apb1_fz; 
+// DBGMCU_APB2_FZ(Debug MCU APB2 Freeze registe) bitfields.
           struct { 
-            Object *dbg_tim1_stop; // [0:0] TIM1 counter stopped when core is halted 
-            Object *dbg_tim8_stop; // [1:1] TIM8 counter stopped when core is halted 
-            Object *dbg_tim9_stop; // [16:16] TIM9 counter stopped when core is halted 
-            Object *dbg_tim10_stop; // [17:17] TIM10 counter stopped when core is halted 
-            Object *dbg_tim11_stop; // [18:18] TIM11 counter stopped when core is halted  
-          } dbgmcu_apb2_fz; 
-        } fld;
+Object *dbg_tim1_stop; // [0:0] TIM1 counter stopped when core is haltedObject *dbg_tim8_stop; // [1:1] TIM8 counter stopped when core is haltedObject *dbg_tim9_stop; // [16:16] TIM9 counter stopped when core is haltedObject *dbg_tim10_stop; // [17:17] TIM10 counter stopped when core is haltedObject *dbg_tim11_stop; // [18:18] TIM11 counter stopped when core is halted} dbgmcu_apb2_fz; 
+} fld;
       } f4;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

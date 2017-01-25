@@ -1,5 +1,5 @@
 /*
- * STM32 - ETHERNET_MMC (Ethernet: MAC management counters) emulation.
+ * STM32- ETHERNET_MMC(Ethernet: MAC management counters) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -27,13 +27,11 @@
 
 // ----------------------------------------------------------------------------
 
-#define DEVICE_PATH_STM32_ETHERNET_MMC DEVICE_PATH_STM32 "ETHERNET_MMC"
-
-
+#define DEVICE_PATH_STM32_ETHERNET_MMCDEVICE_PATH_STM32"ETHERNET_MMC"
 
 // ----------------------------------------------------------------------------
 
-#define TYPE_STM32_ETHERNET_MMC TYPE_STM32_PREFIX "ethernet_mmc" TYPE_PERIPHERAL_SUFFIX
+#define TYPE_STM32_ETHERNET_MMCTYPE_STM32_PREFIX "ethernet_mmc" TYPE_PERIPHERAL_SUFFIX
 
 // ----------------------------------------------------------------------------
 
@@ -75,95 +73,62 @@ typedef struct {
     // Points to the bitfield that enables the peripheral.
     Object *enabling_bit;
 
-    union {
+union {
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
 
       // DO NOT REMOVE FIELDS! Automatically generated!
       // Merge fields from different family members.
       struct {
-        // F1 ETHERNET_MMC (Ethernet: MAC management counters) registers.
+        // F1ETHERNET_MMC(Ethernet: MAC management counters) registers.
         struct { 
-          Object *mmccr; // 0x0 (Ethernet MMC control register (ETH_MMCCR)) 
-          Object *mmcrir; // 0x4 (Ethernet MMC receive interrupt register (ETH_MMCRIR)) 
-          Object *mmctir; // 0x8 (Ethernet MMC transmit interrupt register (ETH_MMCTIR)) 
-          Object *mmcrimr; // 0xC (Ethernet MMC receive interrupt mask register (ETH_MMCRIMR)) 
-          Object *mmctimr; // 0x10 (Ethernet MMC transmit interrupt mask register (ETH_MMCTIMR)) 
-          Object *mmctgfsccr; // 0x4C (Ethernet MMC transmitted good frames after a single collision counter) 
-          Object *mmctgfmsccr; // 0x50 (Ethernet MMC transmitted good frames after more than a single collision) 
-          Object *mmctgfcr; // 0x68 (Ethernet MMC transmitted good frames counter register) 
-          Object *mmcrfcecr; // 0x94 (Ethernet MMC received frames with CRC error counter register) 
-          Object *mmcrfaecr; // 0x98 (Ethernet MMC received frames with alignment error counter register) 
-          Object *mmcrgufcr; // 0xC4 (MMC received good unicast frames counter register) 
-        } reg;
+Object *mmccr; // 0x0(Ethernet MMC control register (ETH_MMCCR)) 
+Object *mmcrir; // 0x4(Ethernet MMC receive interrupt register (ETH_MMCRIR)) 
+Object *mmctir; // 0x8(Ethernet MMC transmit interrupt register (ETH_MMCTIR)) 
+Object *mmcrimr; // 0xC(Ethernet MMC receive interrupt mask register (ETH_MMCRIMR)) 
+Object *mmctimr; // 0x10(Ethernet MMC transmit interrupt mask register (ETH_MMCTIMR)) 
+Object *mmctgfsccr; // 0x4C(Ethernet MMC transmitted good frames after a single collision counter) 
+Object *mmctgfmsccr; // 0x50(Ethernet MMC transmitted good frames after more than a single collision) 
+Object *mmctgfcr; // 0x68(Ethernet MMC transmitted good frames counter register) 
+Object *mmcrfcecr; // 0x94(Ethernet MMC received frames with CRC error counter register) 
+Object *mmcrfaecr; // 0x98(Ethernet MMC received frames with alignment error counter register) 
+Object *mmcrgufcr; // 0xC4(MMC received good unicast frames counter register) 
+} reg;
 
         struct { 
-          
-          // MMCCR (Ethernet MMC control register (ETH_MMCCR)) bitfields.
+// MMCCR(Ethernet MMC control register (ETH_MMCCR)) bitfields.
           struct { 
-            Object *cr; // [0:0] Counter reset 
-            Object *csr; // [1:1] Counter stop rollover 
-            Object *ror; // [2:2] Reset on read 
-            Object *mcf; // [31:31] MMC counter freeze  
-          } mmccr; 
-          
-          // MMCRIR (Ethernet MMC receive interrupt register (ETH_MMCRIR)) bitfields.
+Object *cr; // [0:0] Counter resetObject *csr; // [1:1] Counter stop rolloverObject *ror; // [2:2] Reset on readObject *mcf; // [31:31] MMC counter freeze} mmccr; 
+// MMCRIR(Ethernet MMC receive interrupt register (ETH_MMCRIR)) bitfields.
           struct { 
-            Object *rfces; // [5:5] Received frames CRC error status 
-            Object *rfaes; // [6:6] Received frames alignment error status 
-            Object *rgufs; // [17:17] Received Good Unicast Frames Status  
-          } mmcrir; 
-          
-          // MMCTIR (Ethernet MMC transmit interrupt register (ETH_MMCTIR)) bitfields.
+Object *rfces; // [5:5] Received frames CRC error statusObject *rfaes; // [6:6] Received frames alignment error statusObject *rgufs; // [17:17] Received Good Unicast Frames Status} mmcrir; 
+// MMCTIR(Ethernet MMC transmit interrupt register (ETH_MMCTIR)) bitfields.
           struct { 
-            Object *tgfscs; // [14:14] Transmitted good frames single collision status 
-            Object *tgfmscs; // [15:15] Transmitted good frames more single collision status 
-            Object *tgfs; // [21:21] Transmitted good frames status  
-          } mmctir; 
-          
-          // MMCRIMR (Ethernet MMC receive interrupt mask register (ETH_MMCRIMR)) bitfields.
+Object *tgfscs; // [14:14] Transmitted good frames single collision statusObject *tgfmscs; // [15:15] Transmitted good frames more single collision statusObject *tgfs; // [21:21] Transmitted good frames status} mmctir; 
+// MMCRIMR(Ethernet MMC receive interrupt mask register (ETH_MMCRIMR)) bitfields.
           struct { 
-            Object *rfcem; // [5:5] Received frame CRC error mask 
-            Object *rfaem; // [6:6] Received frames alignment error mask 
-            Object *rgufm; // [17:17] Received good unicast frames mask  
-          } mmcrimr; 
-          
-          // MMCTIMR (Ethernet MMC transmit interrupt mask register (ETH_MMCTIMR)) bitfields.
+Object *rfcem; // [5:5] Received frame CRC error maskObject *rfaem; // [6:6] Received frames alignment error maskObject *rgufm; // [17:17] Received good unicast frames mask} mmcrimr; 
+// MMCTIMR(Ethernet MMC transmit interrupt mask register (ETH_MMCTIMR)) bitfields.
           struct { 
-            Object *tgfscm; // [14:14] Transmitted good frames single collision mask 
-            Object *tgfmscm; // [15:15] Transmitted good frames more single collision mask 
-            Object *tgfm; // [21:21] Transmitted good frames mask  
-          } mmctimr; 
-          
-          // MMCTGFSCCR (Ethernet MMC transmitted good frames after a single collision counter) bitfields.
+Object *tgfscm; // [14:14] Transmitted good frames single collision maskObject *tgfmscm; // [15:15] Transmitted good frames more single collision maskObject *tgfm; // [21:21] Transmitted good frames mask} mmctimr; 
+// MMCTGFSCCR(Ethernet MMC transmitted good frames after a single collision counter) bitfields.
           struct { 
-            Object *tgfscc; // [0:31] Transmitted good frames after a single collision counter  
-          } mmctgfsccr; 
-          
-          // MMCTGFMSCCR (Ethernet MMC transmitted good frames after more than a single collision) bitfields.
+Object *tgfscc; // [0:31] Transmitted good frames after a single collision counter} mmctgfsccr; 
+// MMCTGFMSCCR(Ethernet MMC transmitted good frames after more than a single collision) bitfields.
           struct { 
-            Object *tgfmscc; // [0:31] Transmitted good frames after more than a single collision counter  
-          } mmctgfmsccr; 
-          
-          // MMCTGFCR (Ethernet MMC transmitted good frames counter register) bitfields.
+Object *tgfmscc; // [0:31] Transmitted good frames after more than a single collision counter} mmctgfmsccr; 
+// MMCTGFCR(Ethernet MMC transmitted good frames counter register) bitfields.
           struct { 
-            Object *tgfc; // [0:31] Transmitted good frames counter  
-          } mmctgfcr; 
-          
-          // MMCRFCECR (Ethernet MMC received frames with CRC error counter register) bitfields.
+Object *tgfc; // [0:31] Transmitted good frames counter} mmctgfcr; 
+// MMCRFCECR(Ethernet MMC received frames with CRC error counter register) bitfields.
           struct { 
-            Object *rfcfc; // [0:31] Received frames with CRC error counter  
-          } mmcrfcecr; 
-          
-          // MMCRFAECR (Ethernet MMC received frames with alignment error counter register) bitfields.
+Object *rfcfc; // [0:31] Received frames with CRC error counter} mmcrfcecr; 
+// MMCRFAECR(Ethernet MMC received frames with alignment error counter register) bitfields.
           struct { 
-            Object *rfaec; // [0:31] Received frames with alignment error counter  
-          } mmcrfaecr; 
-          
-          // MMCRGUFCR (MMC received good unicast frames counter register) bitfields.
+Object *rfaec; // [0:31] Received frames with alignment error counter} mmcrfaecr; 
+// MMCRGUFCR(MMC received good unicast frames counter register) bitfields.
           struct { 
-            Object *rgufc; // [0:31] Received good unicast frames counter  
-          } mmcrgufcr; 
-        } fld;
+Object *rgufc; // [0:31] Received good unicast frames counter} mmcrgufcr; 
+} fld;
       } f1;
 
       // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----

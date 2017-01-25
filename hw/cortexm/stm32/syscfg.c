@@ -139,6 +139,71 @@ static void stm32f0x1_syscfg_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
+// STM32F051R8
+// DO NOT EDIT! Automatically generated!
+static void stm32f0x2_syscfg_create_objects(Object *obj, JSON_Object *svd, const char *name)
+{
+    STM32SYSCFGState *state = STM32_SYSCFG_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+	state->u.f0.reg.cfgr1= cm_object_get_child_by_name(obj, "CFGR1");
+	state->u.f0.reg.exticr1= cm_object_get_child_by_name(obj, "EXTICR1");
+	state->u.f0.reg.exticr2= cm_object_get_child_by_name(obj, "EXTICR2");
+	state->u.f0.reg.exticr3= cm_object_get_child_by_name(obj, "EXTICR3");
+	state->u.f0.reg.exticr4= cm_object_get_child_by_name(obj, "EXTICR4");
+	state->u.f0.reg.cfgr2= cm_object_get_child_by_name(obj, "CFGR2");
+	// CFGR1bitfields.
+	state->u.f0.fld.cfgr1.mem_mode= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "MEM_MODE");
+	state->u.f0.fld.cfgr1.adc_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "ADC_DMA_RMP");
+	state->u.f0.fld.cfgr1.usart1_tx_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "USART1_TX_DMA_RMP");
+	state->u.f0.fld.cfgr1.usart1_rx_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "USART1_RX_DMA_RMP");
+	state->u.f0.fld.cfgr1.tim16_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "TIM16_DMA_RMP");
+	state->u.f0.fld.cfgr1.tim17_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "TIM17_DMA_RMP");
+	state->u.f0.fld.cfgr1.i2c_pb6_fm= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "I2C_PB6_FM");
+	state->u.f0.fld.cfgr1.i2c_pb7_fm= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "I2C_PB7_FM");
+	state->u.f0.fld.cfgr1.i2c_pb8_fm= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "I2C_PB8_FM");
+	state->u.f0.fld.cfgr1.i2c_pb9_fm= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "I2C_PB9_FM");
+	state->u.f0.fld.cfgr1.i2c1_fm_plus= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "I2C1_FM_plus");
+	state->u.f0.fld.cfgr1.i2c2_fm_plus= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "I2C2_FM_plus");
+	state->u.f0.fld.cfgr1.spi2_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "SPI2_DMA_RMP");
+	state->u.f0.fld.cfgr1.usart2_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "USART2_DMA_RMP");
+	state->u.f0.fld.cfgr1.usart3_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "USART3_DMA_RMP");
+	state->u.f0.fld.cfgr1.i2c1_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "I2C1_DMA_RMP");
+	state->u.f0.fld.cfgr1.tim1_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "TIM1_DMA_RMP");
+	state->u.f0.fld.cfgr1.tim2_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "TIM2_DMA_RMP");
+	state->u.f0.fld.cfgr1.tim3_dma_rmp= cm_object_get_child_by_name(state->u.f0.reg.cfgr1, "TIM3_DMA_RMP");
+	// EXTICR1bitfields.
+	state->u.f0.fld.exticr1.exti0= cm_object_get_child_by_name(state->u.f0.reg.exticr1, "EXTI0");
+	state->u.f0.fld.exticr1.exti1= cm_object_get_child_by_name(state->u.f0.reg.exticr1, "EXTI1");
+	state->u.f0.fld.exticr1.exti2= cm_object_get_child_by_name(state->u.f0.reg.exticr1, "EXTI2");
+	state->u.f0.fld.exticr1.exti3= cm_object_get_child_by_name(state->u.f0.reg.exticr1, "EXTI3");
+	// EXTICR2bitfields.
+	state->u.f0.fld.exticr2.exti4= cm_object_get_child_by_name(state->u.f0.reg.exticr2, "EXTI4");
+	state->u.f0.fld.exticr2.exti5= cm_object_get_child_by_name(state->u.f0.reg.exticr2, "EXTI5");
+	state->u.f0.fld.exticr2.exti6= cm_object_get_child_by_name(state->u.f0.reg.exticr2, "EXTI6");
+	state->u.f0.fld.exticr2.exti7= cm_object_get_child_by_name(state->u.f0.reg.exticr2, "EXTI7");
+	// EXTICR3bitfields.
+	state->u.f0.fld.exticr3.exti8= cm_object_get_child_by_name(state->u.f0.reg.exticr3, "EXTI8");
+	state->u.f0.fld.exticr3.exti9= cm_object_get_child_by_name(state->u.f0.reg.exticr3, "EXTI9");
+	state->u.f0.fld.exticr3.exti10= cm_object_get_child_by_name(state->u.f0.reg.exticr3, "EXTI10");
+	state->u.f0.fld.exticr3.exti11= cm_object_get_child_by_name(state->u.f0.reg.exticr3, "EXTI11");
+	// EXTICR4bitfields.
+	state->u.f0.fld.exticr4.exti12= cm_object_get_child_by_name(state->u.f0.reg.exticr4, "EXTI12");
+	state->u.f0.fld.exticr4.exti13= cm_object_get_child_by_name(state->u.f0.reg.exticr4, "EXTI13");
+	state->u.f0.fld.exticr4.exti14= cm_object_get_child_by_name(state->u.f0.reg.exticr4, "EXTI14");
+	state->u.f0.fld.exticr4.exti15= cm_object_get_child_by_name(state->u.f0.reg.exticr4, "EXTI15");
+	// CFGR2bitfields.
+	state->u.f0.fld.cfgr2.locup_lock= cm_object_get_child_by_name(state->u.f0.reg.cfgr2, "LOCUP_LOCK");
+	state->u.f0.fld.cfgr2.sram_parity_lock= cm_object_get_child_by_name(state->u.f0.reg.cfgr2, "SRAM_PARITY_LOCK");
+	state->u.f0.fld.cfgr2.pvd_lock= cm_object_get_child_by_name(state->u.f0.reg.cfgr2, "PVD_LOCK");
+	state->u.f0.fld.cfgr2.sram_pef= cm_object_get_child_by_name(state->u.f0.reg.cfgr2, "SRAM_PEF");
+}
+
+// ----------------------------------------------------------------------------
+
 // STM32F407VG, STM32F407ZG, STM32F405RG
 // DO NOT EDIT! Automatically generated!
 static void stm32f40x_syscfg_create_objects(Object *obj, JSON_Object *svd,
@@ -439,11 +504,15 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1) {
+        if (capabilities->f0.is_0x1 || capabilities->f0.is_0x2) {
 
-            // stm32f051_syscfg_create_objects(obj, mcu->family_json);
-            stm32f0x1_syscfg_create_objects(obj, cm_state->svd_json,
-                    periph_name);
+            if (capabilities->f0.is_0x1) {
+				stm32f0x1_syscfg_create_objects(obj, cm_state->svd_json,
+						periph_name);
+            } else {
+				stm32f0x2_syscfg_create_objects(obj, cm_state->svd_json,
+						periph_name);
+            }
 
             // For easier access, also maintain an array.
             state->exticr.exti[0] = state->u.f0.fld.exticr1.exti0;

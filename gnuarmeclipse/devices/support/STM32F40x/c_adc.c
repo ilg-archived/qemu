@@ -1,5 +1,5 @@
 /*
- * STM32 - C_ADC (Common ADC registers) emulation.
+ * STM32- C_ADC(Common ADC registers) emulation.
  *
  * Copyright (c) 2016 Liviu Ionescu.
  *
@@ -35,43 +35,39 @@ static void stm32f40x_c_adc_create_objects(Object *obj, JSON_Object *svd, const 
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers. 
-    state->u.f4.reg.csr = cm_object_get_child_by_name(obj, "CSR");
-    state->u.f4.reg.ccr = cm_object_get_child_by_name(obj, "CCR");
-    state->u.f4.reg.cdr = cm_object_get_child_by_name(obj, "CDR");
-    
-    
-    // CSR bitfields.
-    state->u.f4.fld.csr.awd1 = cm_object_get_child_by_name(state->u.f4.reg.csr, "AWD1"); 
-    state->u.f4.fld.csr.eoc1 = cm_object_get_child_by_name(state->u.f4.reg.csr, "EOC1"); 
-    state->u.f4.fld.csr.jeoc1 = cm_object_get_child_by_name(state->u.f4.reg.csr, "JEOC1"); 
-    state->u.f4.fld.csr.jstrt1 = cm_object_get_child_by_name(state->u.f4.reg.csr, "JSTRT1"); 
-    state->u.f4.fld.csr.strt1 = cm_object_get_child_by_name(state->u.f4.reg.csr, "STRT1"); 
-    state->u.f4.fld.csr.ovr1 = cm_object_get_child_by_name(state->u.f4.reg.csr, "OVR1"); 
-    state->u.f4.fld.csr.awd2 = cm_object_get_child_by_name(state->u.f4.reg.csr, "AWD2"); 
-    state->u.f4.fld.csr.eoc2 = cm_object_get_child_by_name(state->u.f4.reg.csr, "EOC2"); 
-    state->u.f4.fld.csr.jeoc2 = cm_object_get_child_by_name(state->u.f4.reg.csr, "JEOC2"); 
-    state->u.f4.fld.csr.jstrt2 = cm_object_get_child_by_name(state->u.f4.reg.csr, "JSTRT2"); 
-    state->u.f4.fld.csr.strt2 = cm_object_get_child_by_name(state->u.f4.reg.csr, "STRT2"); 
-    state->u.f4.fld.csr.ovr2 = cm_object_get_child_by_name(state->u.f4.reg.csr, "OVR2"); 
-    state->u.f4.fld.csr.awd3 = cm_object_get_child_by_name(state->u.f4.reg.csr, "AWD3"); 
-    state->u.f4.fld.csr.eoc3 = cm_object_get_child_by_name(state->u.f4.reg.csr, "EOC3"); 
-    state->u.f4.fld.csr.jeoc3 = cm_object_get_child_by_name(state->u.f4.reg.csr, "JEOC3"); 
-    state->u.f4.fld.csr.jstrt3 = cm_object_get_child_by_name(state->u.f4.reg.csr, "JSTRT3"); 
-    state->u.f4.fld.csr.strt3 = cm_object_get_child_by_name(state->u.f4.reg.csr, "STRT3"); 
-    state->u.f4.fld.csr.ovr3 = cm_object_get_child_by_name(state->u.f4.reg.csr, "OVR3");  
-    
-    // CCR bitfields.
-    state->u.f4.fld.ccr.mult = cm_object_get_child_by_name(state->u.f4.reg.ccr, "MULT"); 
-    state->u.f4.fld.ccr.delay = cm_object_get_child_by_name(state->u.f4.reg.ccr, "DELAY"); 
-    state->u.f4.fld.ccr.dds = cm_object_get_child_by_name(state->u.f4.reg.ccr, "DDS"); 
-    state->u.f4.fld.ccr.dma = cm_object_get_child_by_name(state->u.f4.reg.ccr, "DMA"); 
-    state->u.f4.fld.ccr.adcpre = cm_object_get_child_by_name(state->u.f4.reg.ccr, "ADCPRE"); 
-    state->u.f4.fld.ccr.vbate = cm_object_get_child_by_name(state->u.f4.reg.ccr, "VBATE"); 
-    state->u.f4.fld.ccr.tsvrefe = cm_object_get_child_by_name(state->u.f4.reg.ccr, "TSVREFE");  
-    
-    // CDR bitfields.
-    state->u.f4.fld.cdr.data1 = cm_object_get_child_by_name(state->u.f4.reg.cdr, "DATA1"); 
-    state->u.f4.fld.cdr.data2 = cm_object_get_child_by_name(state->u.f4.reg.cdr, "DATA2");  
+state->u.f4.reg.csr= cm_object_get_child_by_name(obj, "CSR");
+state->u.f4.reg.ccr= cm_object_get_child_by_name(obj, "CCR");
+state->u.f4.reg.cdr= cm_object_get_child_by_name(obj, "CDR");
+// CSRbitfields.
+state->u.f4.fld.csr.awd1= cm_object_get_child_by_name(state->u.f4.reg.csr, "AWD1"); 
+state->u.f4.fld.csr.eoc1= cm_object_get_child_by_name(state->u.f4.reg.csr, "EOC1"); 
+state->u.f4.fld.csr.jeoc1= cm_object_get_child_by_name(state->u.f4.reg.csr, "JEOC1"); 
+state->u.f4.fld.csr.jstrt1= cm_object_get_child_by_name(state->u.f4.reg.csr, "JSTRT1"); 
+state->u.f4.fld.csr.strt1= cm_object_get_child_by_name(state->u.f4.reg.csr, "STRT1"); 
+state->u.f4.fld.csr.ovr1= cm_object_get_child_by_name(state->u.f4.reg.csr, "OVR1"); 
+state->u.f4.fld.csr.awd2= cm_object_get_child_by_name(state->u.f4.reg.csr, "AWD2"); 
+state->u.f4.fld.csr.eoc2= cm_object_get_child_by_name(state->u.f4.reg.csr, "EOC2"); 
+state->u.f4.fld.csr.jeoc2= cm_object_get_child_by_name(state->u.f4.reg.csr, "JEOC2"); 
+state->u.f4.fld.csr.jstrt2= cm_object_get_child_by_name(state->u.f4.reg.csr, "JSTRT2"); 
+state->u.f4.fld.csr.strt2= cm_object_get_child_by_name(state->u.f4.reg.csr, "STRT2"); 
+state->u.f4.fld.csr.ovr2= cm_object_get_child_by_name(state->u.f4.reg.csr, "OVR2"); 
+state->u.f4.fld.csr.awd3= cm_object_get_child_by_name(state->u.f4.reg.csr, "AWD3"); 
+state->u.f4.fld.csr.eoc3= cm_object_get_child_by_name(state->u.f4.reg.csr, "EOC3"); 
+state->u.f4.fld.csr.jeoc3= cm_object_get_child_by_name(state->u.f4.reg.csr, "JEOC3"); 
+state->u.f4.fld.csr.jstrt3= cm_object_get_child_by_name(state->u.f4.reg.csr, "JSTRT3"); 
+state->u.f4.fld.csr.strt3= cm_object_get_child_by_name(state->u.f4.reg.csr, "STRT3"); 
+state->u.f4.fld.csr.ovr3= cm_object_get_child_by_name(state->u.f4.reg.csr, "OVR3"); 
+// CCRbitfields.
+state->u.f4.fld.ccr.mult= cm_object_get_child_by_name(state->u.f4.reg.ccr, "MULT"); 
+state->u.f4.fld.ccr.delay= cm_object_get_child_by_name(state->u.f4.reg.ccr, "DELAY"); 
+state->u.f4.fld.ccr.dds= cm_object_get_child_by_name(state->u.f4.reg.ccr, "DDS"); 
+state->u.f4.fld.ccr.dma= cm_object_get_child_by_name(state->u.f4.reg.ccr, "DMA"); 
+state->u.f4.fld.ccr.adcpre= cm_object_get_child_by_name(state->u.f4.reg.ccr, "ADCPRE"); 
+state->u.f4.fld.ccr.vbate= cm_object_get_child_by_name(state->u.f4.reg.ccr, "VBATE"); 
+state->u.f4.fld.ccr.tsvrefe= cm_object_get_child_by_name(state->u.f4.reg.ccr, "TSVREFE"); 
+// CDRbitfields.
+state->u.f4.fld.cdr.data1= cm_object_get_child_by_name(state->u.f4.reg.cdr, "DATA1"); 
+state->u.f4.fld.cdr.data2= cm_object_get_child_by_name(state->u.f4.reg.cdr, "DATA2"); 
 }
 
 // ----- 8< ----- 8< -----  8< ----- 8< ----- 8< ----- 8< ----- 8< -----
@@ -155,7 +151,7 @@ static void stm32_c_adc_instance_init_callback(Object *obj)
 
     // Capabilities are not yet available.
 
-    // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
     state->enabling_bit = NULL;
     
     // TODO: Add code to initialise all members.
@@ -194,7 +190,7 @@ static void stm32_c_adc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F4:
 
-        if (capabilities->f4.is_40x ) {
+        if (capabilities->f4.is_40x) {
 
             stm32f40x_c_adc_create_objects(obj, cm_state->svd_json, periph_name);
 
@@ -210,12 +206,10 @@ static void stm32_c_adc_realize_callback(DeviceState *dev, Error **errp)
 
             // TODO: add interrupts.
 
-            // TODO: remove this if the peripheral is always enabled.
+// TODO: remove this if the peripheral is always enabled.
             snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
                 DEVICE_PATH_STM32_RCC "/AHB1ENR/C_ADCEN");
-
-
-        } else {
+} else {
             assert(false);
         }
 
