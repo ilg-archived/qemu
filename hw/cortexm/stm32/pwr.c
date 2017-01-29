@@ -91,7 +91,8 @@ static void stm32f0x1_pwr_create_objects(Object *obj, JSON_Object *svd,
 
 // STM32F072CB
 // DO NOT EDIT! Automatically generated!
-static void stm32f0x2_pwr_create_objects(Object *obj, JSON_Object *svd, const char *name)
+static void stm32f0x2_pwr_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
 {
     STM32PWRState *state = STM32_PWR_STATE(obj);
 
@@ -99,29 +100,48 @@ static void stm32f0x2_pwr_create_objects(Object *obj, JSON_Object *svd, const ch
     svd_add_peripheral_properties_and_children(obj, periph, svd);
 
     // Registers.
-	state->u.f0.reg.cr= cm_object_get_child_by_name(obj, "CR");
-	state->u.f0.reg.csr= cm_object_get_child_by_name(obj, "CSR");
-	// CRbitfields.
-	state->u.f0.fld.cr.lpds= cm_object_get_child_by_name(state->u.f0.reg.cr, "LPDS");
-	state->u.f0.fld.cr.pdds= cm_object_get_child_by_name(state->u.f0.reg.cr, "PDDS");
-	state->u.f0.fld.cr.cwuf= cm_object_get_child_by_name(state->u.f0.reg.cr, "CWUF");
-	state->u.f0.fld.cr.csbf= cm_object_get_child_by_name(state->u.f0.reg.cr, "CSBF");
-	state->u.f0.fld.cr.pvde= cm_object_get_child_by_name(state->u.f0.reg.cr, "PVDE");
-	state->u.f0.fld.cr.pls= cm_object_get_child_by_name(state->u.f0.reg.cr, "PLS");
-	state->u.f0.fld.cr.dbp= cm_object_get_child_by_name(state->u.f0.reg.cr, "DBP");
-	// CSRbitfields.
-	state->u.f0.fld.csr.wuf= cm_object_get_child_by_name(state->u.f0.reg.csr, "WUF");
-	state->u.f0.fld.csr.sbf= cm_object_get_child_by_name(state->u.f0.reg.csr, "SBF");
-	state->u.f0.fld.csr.pvdo= cm_object_get_child_by_name(state->u.f0.reg.csr, "PVDO");
-	state->u.f0.fld.csr.vrefintrdy= cm_object_get_child_by_name(state->u.f0.reg.csr, "VREFINTRDY");
-	state->u.f0.fld.csr.ewup1= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP1");
-	state->u.f0.fld.csr.ewup2= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP2");
-	state->u.f0.fld.csr.ewup3= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP3");
-	state->u.f0.fld.csr.ewup4= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP4");
-	state->u.f0.fld.csr.ewup5= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP5");
-	state->u.f0.fld.csr.ewup6= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP6");
-	state->u.f0.fld.csr.ewup7= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP7");
-	state->u.f0.fld.csr.ewup8= cm_object_get_child_by_name(state->u.f0.reg.csr, "EWUP8");
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.csr = cm_object_get_child_by_name(obj, "CSR");
+    // CRbitfields.
+    state->u.f0.fld.cr.lpds = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "LPDS");
+    state->u.f0.fld.cr.pdds = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "PDDS");
+    state->u.f0.fld.cr.cwuf = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "CWUF");
+    state->u.f0.fld.cr.csbf = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "CSBF");
+    state->u.f0.fld.cr.pvde = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "PVDE");
+    state->u.f0.fld.cr.pls = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "PLS");
+    state->u.f0.fld.cr.dbp = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "DBP");
+    // CSRbitfields.
+    state->u.f0.fld.csr.wuf = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "WUF");
+    state->u.f0.fld.csr.sbf = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "SBF");
+    state->u.f0.fld.csr.pvdo = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "PVDO");
+    state->u.f0.fld.csr.vrefintrdy = cm_object_get_child_by_name(
+            state->u.f0.reg.csr, "VREFINTRDY");
+    state->u.f0.fld.csr.ewup1 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP1");
+    state->u.f0.fld.csr.ewup2 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP2");
+    state->u.f0.fld.csr.ewup3 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP3");
+    state->u.f0.fld.csr.ewup4 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP4");
+    state->u.f0.fld.csr.ewup5 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP5");
+    state->u.f0.fld.csr.ewup6 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP6");
+    state->u.f0.fld.csr.ewup7 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP7");
+    state->u.f0.fld.csr.ewup8 = cm_object_get_child_by_name(state->u.f0.reg.csr,
+            "EWUP8");
 }
 
 // ----------------------------------------------------------------------------

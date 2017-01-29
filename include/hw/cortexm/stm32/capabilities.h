@@ -88,38 +88,38 @@ typedef enum {
 } STM32F051XX_IRQn_Type;
 
 typedef enum {
-	STM32F072XX_WWDG_IRQn = 0, /*!< Window WatchDog Interrupt                                     */
-	STM32F072XX_PVD_VDDIO2_IRQn = 1, /*!< PVD and VDDIO2 supply comparator through EXTI Line detect Interrupt */
-	STM32F072XX_RTC_IRQn = 2, /*!< RTC through EXTI Line Interrupt                               */
-	STM32F072XX_FLASH_IRQn = 3, /*!< FLASH Interrupt                                               */
-	STM32F072XX_RCC_CRS_IRQn = 4, /*!< RCC and CRS Interrupts                                        */
-	STM32F072XX_EXTI0_1_IRQn = 5, /*!< EXTI Line 0 and 1 Interrupts                                  */
-	STM32F072XX_EXTI2_3_IRQn = 6, /*!< EXTI Line 2 and 3 Interrupts                                  */
-	STM32F072XX_EXTI4_15_IRQn = 7, /*!< EXTI Line 4 to 15 Interrupts                                  */
-	STM32F072XX_TSC_IRQn = 8, /*!< TSC Interrupt                                                 */
-	STM32F072XX_DMA1_Channel1_IRQn = 9, /*!< DMA1 Channel 1 Interrupt                                      */
-	STM32F072XX_DMA1_Channel2_3_IRQn = 10, /*!< DMA1 Channel 2 and Channel 3 Interrupts                       */
-	STM32F072XX_DMA1_Channel4_5_6_7_IRQn = 11, /*!< DMA1 Channel 4, Channel 5, Channel 6 and Channel 7 Interrupts */
-	STM32F072XX_ADC1_COMP_IRQn = 12, /*!< ADC1, COMP1 and COMP2 Interrupts                              */
-	STM32F072XX_TIM1_BRK_UP_TRG_COM_IRQn = 13, /*!< TIM1 Break, Update, Trigger and Commutation Interrupts        */
-	STM32F072XX_TIM1_CC_IRQn = 14, /*!< TIM1 Capture Compare Interrupt                                */
-	STM32F072XX_TIM2_IRQn = 15, /*!< TIM2 Interrupt                                                */
-	STM32F072XX_TIM3_IRQn = 16, /*!< TIM3 Interrupt                                                */
-	STM32F072XX_TIM6_DAC_IRQn = 17, /*!< TIM6 and DAC Interrupts                                       */
-	STM32F072XX_TIM7_IRQn = 18, /*!< TIM7 Interrupts                                               */
-	STM32F072XX_TIM14_IRQn = 19, /*!< TIM14 Interrupt                                               */
-	STM32F072XX_TIM15_IRQn = 20, /*!< TIM15 Interrupt                                               */
-	STM32F072XX_TIM16_IRQn = 21, /*!< TIM16 Interrupt                                               */
-	STM32F072XX_TIM17_IRQn = 22, /*!< TIM17 Interrupt                                               */
-	STM32F072XX_I2C1_IRQn = 23, /*!< I2C1 Interrupt                                                */
-	STM32F072XX_I2C2_IRQn = 24, /*!< I2C2 Interrupt                                                */
-	STM32F072XX_SPI1_IRQn = 25, /*!< SPI1 Interrupt                                                */
-	STM32F072XX_SPI2_IRQn = 26, /*!< SPI2 Interrupt                                                */
-	STM32F072XX_USART1_IRQn = 27, /*!< USART1 Interrupt                                              */
-	STM32F072XX_USART2_IRQn = 28, /*!< USART2 Interrupt                                              */
-	STM32F072XX_USART3_4_IRQn = 29, /*!< USART3 and USART4 Interrupts                                  */
-	STM32F072XX_CEC_CAN_IRQn = 30, /*!< CEC and CAN Interrupts                                        */
-	STM32F072XX_USB_IRQn = 31 /*!< USB Low Priority global Interrupt                             */
+    STM32F072XX_WWDG_IRQn = 0, /*!< Window WatchDog Interrupt                                     */
+    STM32F072XX_PVD_VDDIO2_IRQn = 1, /*!< PVD and VDDIO2 supply comparator through EXTI Line detect Interrupt */
+    STM32F072XX_RTC_IRQn = 2, /*!< RTC through EXTI Line Interrupt                               */
+    STM32F072XX_FLASH_IRQn = 3, /*!< FLASH Interrupt                                               */
+    STM32F072XX_RCC_CRS_IRQn = 4, /*!< RCC and CRS Interrupts                                        */
+    STM32F072XX_EXTI0_1_IRQn = 5, /*!< EXTI Line 0 and 1 Interrupts                                  */
+    STM32F072XX_EXTI2_3_IRQn = 6, /*!< EXTI Line 2 and 3 Interrupts                                  */
+    STM32F072XX_EXTI4_15_IRQn = 7, /*!< EXTI Line 4 to 15 Interrupts                                  */
+    STM32F072XX_TSC_IRQn = 8, /*!< TSC Interrupt                                                 */
+    STM32F072XX_DMA1_Channel1_IRQn = 9, /*!< DMA1 Channel 1 Interrupt                                      */
+    STM32F072XX_DMA1_Channel2_3_IRQn = 10, /*!< DMA1 Channel 2 and Channel 3 Interrupts                       */
+    STM32F072XX_DMA1_Channel4_5_6_7_IRQn = 11, /*!< DMA1 Channel 4, Channel 5, Channel 6 and Channel 7 Interrupts */
+    STM32F072XX_ADC1_COMP_IRQn = 12, /*!< ADC1, COMP1 and COMP2 Interrupts                              */
+    STM32F072XX_TIM1_BRK_UP_TRG_COM_IRQn = 13, /*!< TIM1 Break, Update, Trigger and Commutation Interrupts        */
+    STM32F072XX_TIM1_CC_IRQn = 14, /*!< TIM1 Capture Compare Interrupt                                */
+    STM32F072XX_TIM2_IRQn = 15, /*!< TIM2 Interrupt                                                */
+    STM32F072XX_TIM3_IRQn = 16, /*!< TIM3 Interrupt                                                */
+    STM32F072XX_TIM6_DAC_IRQn = 17, /*!< TIM6 and DAC Interrupts                                       */
+    STM32F072XX_TIM7_IRQn = 18, /*!< TIM7 Interrupts                                               */
+    STM32F072XX_TIM14_IRQn = 19, /*!< TIM14 Interrupt                                               */
+    STM32F072XX_TIM15_IRQn = 20, /*!< TIM15 Interrupt                                               */
+    STM32F072XX_TIM16_IRQn = 21, /*!< TIM16 Interrupt                                               */
+    STM32F072XX_TIM17_IRQn = 22, /*!< TIM17 Interrupt                                               */
+    STM32F072XX_I2C1_IRQn = 23, /*!< I2C1 Interrupt                                                */
+    STM32F072XX_I2C2_IRQn = 24, /*!< I2C2 Interrupt                                                */
+    STM32F072XX_SPI1_IRQn = 25, /*!< SPI1 Interrupt                                                */
+    STM32F072XX_SPI2_IRQn = 26, /*!< SPI2 Interrupt                                                */
+    STM32F072XX_USART1_IRQn = 27, /*!< USART1 Interrupt                                              */
+    STM32F072XX_USART2_IRQn = 28, /*!< USART2 Interrupt                                              */
+    STM32F072XX_USART3_4_IRQn = 29, /*!< USART3 and USART4 Interrupts                                  */
+    STM32F072XX_CEC_CAN_IRQn = 30, /*!< CEC and CAN Interrupts                                        */
+    STM32F072XX_USB_IRQn = 31 /*!< USB Low Priority global Interrupt                             */
 } STM32F072XX_IRQn_Type;
 
 typedef enum {
@@ -797,7 +797,7 @@ typedef struct {
         unsigned int is_439x :1;
         unsigned int is_446x :1;
     } f4;
-    // TODO: add other families that have sub-families.
+// TODO: add other families that have sub-families.
 
 } STM32Capabilities;
 

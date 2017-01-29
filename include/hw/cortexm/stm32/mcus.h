@@ -88,7 +88,7 @@ typedef struct {
 typedef struct {
     // private:
     STM32DeviceParentState parent_class;
-    // public:
+// public:
 
 } STM32DeviceState;
 
