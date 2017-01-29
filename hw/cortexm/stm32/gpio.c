@@ -2890,41 +2890,37 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1 || capabilities->f0.is_0x2) {
+		if (capabilities->f0.is_0x1) {
+			stm32f0x1_gpio_create_objects(obj, cm_state->svd_json, periph_name);
+		} else if (capabilities->f0.is_0x2) {
+			stm32f0x2_gpio_create_objects(obj, cm_state->svd_json, periph_name);
+		} else {
+			assert(false);
+		}
 
-        	if (capabilities->f0.is_0x1) {
-        		stm32f0x1_gpio_create_objects(obj, cm_state->svd_json, periph_name);
-        	} else {
-        		stm32f0x2_gpio_create_objects(obj, cm_state->svd_json, periph_name);
-        	}
+		state->reg.moder = state->u.f0.reg.moder;
+		state->reg.otyper = state->u.f0.reg.otyper;
+		state->reg.ospeeder = state->u.f0.reg.ospeedr;
+		state->reg.pupdr = state->u.f0.reg.pupdr;
+		state->reg.idr = state->u.f0.reg.idr;
+		state->reg.odr = state->u.f0.reg.odr;
+		state->reg.bsrr = state->u.f0.reg.bsrr;
+		state->reg.lckr = state->u.f0.reg.lckr;
+		state->reg.afrl = state->u.f0.reg.afrl;
+		state->reg.afrh = state->u.f0.reg.afrh;
+		state->reg.brr = state->u.f0.reg.brr;
 
-            state->reg.moder = state->u.f0.reg.moder;
-            state->reg.otyper = state->u.f0.reg.otyper;
-            state->reg.ospeeder = state->u.f0.reg.ospeedr;
-            state->reg.pupdr = state->u.f0.reg.pupdr;
-            state->reg.idr = state->u.f0.reg.idr;
-            state->reg.odr = state->u.f0.reg.odr;
-            state->reg.bsrr = state->u.f0.reg.bsrr;
-            state->reg.lckr = state->u.f0.reg.lckr;
-            state->reg.afrl = state->u.f0.reg.afrl;
-            state->reg.afrh = state->u.f0.reg.afrh;
-            state->reg.brr = state->u.f0.reg.brr;
+		// Add callbacks. Use some of the F4 callbacks.
+		peripheral_register_set_post_write(state->reg.moder,
+				&stm32f4_gpio_moder_post_write_callback);
+		peripheral_register_set_post_write(state->reg.odr,
+				&stm32f4_gpio_odr_post_write_callback);
+		peripheral_register_set_post_write(state->reg.bsrr,
+				&stm32f4_gpio_bsrr_post_write_callback);
 
-            // Add callbacks. Use some of the F4 callbacks.
-            peripheral_register_set_post_write(state->reg.moder,
-                    &stm32f4_gpio_moder_post_write_callback);
-            peripheral_register_set_post_write(state->reg.odr,
-                    &stm32f4_gpio_odr_post_write_callback);
-            peripheral_register_set_post_write(state->reg.bsrr,
-                    &stm32f4_gpio_bsrr_post_write_callback);
-
-            // F0 specific.
-            peripheral_register_set_post_write(state->reg.brr,
-                    &stm32f0_gpio_brr_post_write_callback);
-
-        } else {
-            assert(false);
-        }
+		// F0 specific.
+		peripheral_register_set_post_write(state->reg.brr,
+				&stm32f0_gpio_brr_post_write_callback);
 
         state->syscfg = STM32_SYSCFG_STATE(
                 cm_device_by_name(DEVICE_PATH_STM32_SYSCFG));

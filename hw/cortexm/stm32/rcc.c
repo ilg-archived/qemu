@@ -3257,82 +3257,80 @@ static void stm32_rcc_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1 || capabilities->f0.is_0x2) {
+		if (capabilities->f0.is_0x1) {
+			stm32f0x1_rcc_create_objects(obj, cm_state->svd_json, periph_name);
+		} else if (capabilities->f0.is_0x2) {
+			stm32f0x2_rcc_create_objects(obj, cm_state->svd_json, periph_name);
+		} else {
+			assert(false);
+		}
 
-        	if (capabilities->f0.is_0x1) {
-        		stm32f0x1_rcc_create_objects(obj, cm_state->svd_json, periph_name);
-        	} else {
-        		stm32f0x2_rcc_create_objects(obj, cm_state->svd_json, periph_name);
-        	}
+		// Add callbacks.
+		peripheral_register_set_post_write(state->u.f0.reg.cr,
+				&stm32_rcc_post_write_callback);
+		peripheral_register_set_post_write(state->u.f0.reg.cfgr,
+				&stm32_rcc_post_write_callback);
+		peripheral_register_set_post_write(state->u.f0.reg.bdcr,
+				&stm32_rcc_post_write_callback);
+		peripheral_register_set_post_write(state->u.f0.reg.csr,
+				&stm32_rcc_post_write_callback);
+		peripheral_register_set_post_write(state->u.f0.reg.cfgr2,
+				&stm32_rcc_post_write_callback);
 
-            // Add callbacks.
-            peripheral_register_set_post_write(state->u.f0.reg.cr,
-                    &stm32_rcc_post_write_callback);
-            peripheral_register_set_post_write(state->u.f0.reg.cfgr,
-                    &stm32_rcc_post_write_callback);
-            peripheral_register_set_post_write(state->u.f0.reg.bdcr,
-                    &stm32_rcc_post_write_callback);
-            peripheral_register_set_post_write(state->u.f0.reg.csr,
-                    &stm32_rcc_post_write_callback);
-            peripheral_register_set_post_write(state->u.f0.reg.cfgr2,
-                    &stm32_rcc_post_write_callback);
+		// Auto bits.
+		cm_object_property_set_str(state->u.f0.fld.cr.hsirdy, "HSION",
+				"follows");
+		if (state->hse_freq_hz) {
+			cm_object_property_set_str(state->u.f0.fld.cr.hserdy, "HSEON",
+					"follows");
+		}
+		cm_object_property_set_str(state->u.f0.fld.cr.pllrdy, "PLLON",
+				"follows");
 
-            // Auto bits.
-            cm_object_property_set_str(state->u.f0.fld.cr.hsirdy, "HSION",
-                    "follows");
-            if (state->hse_freq_hz) {
-                cm_object_property_set_str(state->u.f0.fld.cr.hserdy, "HSEON",
-                        "follows");
-            }
-            cm_object_property_set_str(state->u.f0.fld.cr.pllrdy, "PLLON",
-                    "follows");
+		cm_object_property_set_str(state->u.f0.fld.cfgr.sws, "SW",
+				"follows");
 
-            cm_object_property_set_str(state->u.f0.fld.cfgr.sws, "SW",
-                    "follows");
+		cm_object_property_set_str(state->u.f0.fld.cir.lsirdyf, "LSIRDYC",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.cir.lserdyf, "LSERDYC",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.cir.hsirdyf, "HSIRDYC",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.cir.hserdyf, "HSERDYC",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.cir.pllrdyf, "PLLRDYC",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.cir.hsi14rdyf,
+				"HSI14RDYF", "cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.cir.hsi48rdyf,
+				"HSI48RDYF", "cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.cir.cssf, "CSSC",
+				"cleared-by");
 
-            cm_object_property_set_str(state->u.f0.fld.cir.lsirdyf, "LSIRDYC",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.cir.lserdyf, "LSERDYC",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.cir.hsirdyf, "HSIRDYC",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.cir.hserdyf, "HSERDYC",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.cir.pllrdyf, "PLLRDYC",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.cir.hsi14rdyf,
-                    "HSI14RDYF", "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.cir.hsi48rdyf,
-                    "HSI48RDYF", "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.cir.cssf, "CSSC",
-                    "cleared-by");
-
-            cm_object_property_set_str(state->u.f0.fld.bdcr.lserdy, "LSEON",
-                    "follows");
+		cm_object_property_set_str(state->u.f0.fld.bdcr.lserdy, "LSEON",
+				"follows");
 
 #if 1
-            cm_object_property_set_str(state->u.f0.fld.csr.lsirdy, "LSION",
-                    "follows");
+		cm_object_property_set_str(state->u.f0.fld.csr.lsirdy, "LSION",
+				"follows");
 //            cm_object_property_set_str(state->u.f0.fld.csr.v18pwrrstf, "RMVF",
 //                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.csr.oblrstf, "RMVF",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.csr.porrstf, "RMVF",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.csr.sftrstf, "RMVF",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.csr.iwdgrstf, "RMVF",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.csr.wwdgrstf, "RMVF",
-                    "cleared-by");
-            cm_object_property_set_str(state->u.f0.fld.csr.lpwrrstf, "RMVF",
-                    "cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.csr.oblrstf, "RMVF",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.csr.porrstf, "RMVF",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.csr.sftrstf, "RMVF",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.csr.iwdgrstf, "RMVF",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.csr.wwdgrstf, "RMVF",
+				"cleared-by");
+		cm_object_property_set_str(state->u.f0.fld.csr.lpwrrstf, "RMVF",
+				"cleared-by");
 #endif
-            // TODO: add CR2 actions
+		// TODO: add CR2 actions
 
-        } else {
-            assert(false);
-        }
+
         break;
 
     case STM32_FAMILY_F1:

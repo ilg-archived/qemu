@@ -504,40 +504,36 @@ static void stm32_syscfg_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1 || capabilities->f0.is_0x2) {
+		if (capabilities->f0.is_0x1) {
+			stm32f0x1_syscfg_create_objects(obj, cm_state->svd_json,
+					periph_name);
+		} else if (capabilities->f0.is_0x2) {
+			stm32f0x2_syscfg_create_objects(obj, cm_state->svd_json,
+					periph_name);
+		} else {
+			assert(false);
+		}
 
-            if (capabilities->f0.is_0x1) {
-				stm32f0x1_syscfg_create_objects(obj, cm_state->svd_json,
-						periph_name);
-            } else {
-				stm32f0x2_syscfg_create_objects(obj, cm_state->svd_json,
-						periph_name);
-            }
+		// For easier access, also maintain an array.
+		state->exticr.exti[0] = state->u.f0.fld.exticr1.exti0;
+		state->exticr.exti[1] = state->u.f0.fld.exticr1.exti1;
+		state->exticr.exti[2] = state->u.f0.fld.exticr1.exti2;
+		state->exticr.exti[3] = state->u.f0.fld.exticr1.exti3;
+		state->exticr.exti[4] = state->u.f0.fld.exticr2.exti4;
+		state->exticr.exti[5] = state->u.f0.fld.exticr2.exti5;
+		state->exticr.exti[6] = state->u.f0.fld.exticr2.exti6;
+		state->exticr.exti[7] = state->u.f0.fld.exticr2.exti7;
+		state->exticr.exti[8] = state->u.f0.fld.exticr3.exti8;
+		state->exticr.exti[9] = state->u.f0.fld.exticr3.exti9;
+		state->exticr.exti[10] = state->u.f0.fld.exticr3.exti10;
+		state->exticr.exti[11] = state->u.f0.fld.exticr3.exti11;
+		state->exticr.exti[12] = state->u.f0.fld.exticr4.exti12;
+		state->exticr.exti[13] = state->u.f0.fld.exticr4.exti13;
+		state->exticr.exti[14] = state->u.f0.fld.exticr4.exti14;
+		state->exticr.exti[15] = state->u.f0.fld.exticr4.exti15;
 
-            // For easier access, also maintain an array.
-            state->exticr.exti[0] = state->u.f0.fld.exticr1.exti0;
-            state->exticr.exti[1] = state->u.f0.fld.exticr1.exti1;
-            state->exticr.exti[2] = state->u.f0.fld.exticr1.exti2;
-            state->exticr.exti[3] = state->u.f0.fld.exticr1.exti3;
-            state->exticr.exti[4] = state->u.f0.fld.exticr2.exti4;
-            state->exticr.exti[5] = state->u.f0.fld.exticr2.exti5;
-            state->exticr.exti[6] = state->u.f0.fld.exticr2.exti6;
-            state->exticr.exti[7] = state->u.f0.fld.exticr2.exti7;
-            state->exticr.exti[8] = state->u.f0.fld.exticr3.exti8;
-            state->exticr.exti[9] = state->u.f0.fld.exticr3.exti9;
-            state->exticr.exti[10] = state->u.f0.fld.exticr3.exti10;
-            state->exticr.exti[11] = state->u.f0.fld.exticr3.exti11;
-            state->exticr.exti[12] = state->u.f0.fld.exticr4.exti12;
-            state->exticr.exti[13] = state->u.f0.fld.exticr4.exti13;
-            state->exticr.exti[14] = state->u.f0.fld.exticr4.exti14;
-            state->exticr.exti[15] = state->u.f0.fld.exticr4.exti15;
-
-            snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
-                    DEVICE_PATH_STM32_RCC "/APB2ENR/SYSCFGEN");
-
-        } else {
-            assert(false);
-        }
+		snprintf(enabling_bit_name, sizeof(enabling_bit_name) - 1,
+				DEVICE_PATH_STM32_RCC "/APB2ENR/SYSCFGEN");
 
         break;
 

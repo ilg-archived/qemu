@@ -2116,26 +2116,23 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     switch (capabilities->family) {
     case STM32_FAMILY_F0:
 
-        if (capabilities->f0.is_0x1 || capabilities->f0.is_0x2) {
+		if (capabilities->f0.is_0x1) {
+			stm32f0x1_exti_create_objects(obj, cm_state->svd_json,
+					periph_name);
+		} else if (capabilities->f0.is_0x2) {
+			stm32f0x2_exti_create_objects(obj, cm_state->svd_json,
+					periph_name);
+		} else {
+			assert(false);
+		}
 
-        	if (capabilities->f0.is_0x1) {
-        		stm32f0x1_exti_create_objects(obj, cm_state->svd_json,
-        				periph_name);
-        	} else {
-        		stm32f0x2_exti_create_objects(obj, cm_state->svd_json,
-        				periph_name);
-        	}
+		state->reg.imr = state->u.f0.reg.imr;
+		state->reg.emr = state->u.f0.reg.emr;
+		state->reg.rtsr = state->u.f0.reg.rtsr;
+		state->reg.ftsr = state->u.f0.reg.ftsr;
+		state->reg.swier = state->u.f0.reg.swier;
+		state->reg.pr = state->u.f0.reg.pr;
 
-            state->reg.imr = state->u.f0.reg.imr;
-            state->reg.emr = state->u.f0.reg.emr;
-            state->reg.rtsr = state->u.f0.reg.rtsr;
-            state->reg.ftsr = state->u.f0.reg.ftsr;
-            state->reg.swier = state->u.f0.reg.swier;
-            state->reg.pr = state->u.f0.reg.pr;
-
-        } else {
-            assert(false);
-        }
         break;
 
     case STM32_FAMILY_F1:
