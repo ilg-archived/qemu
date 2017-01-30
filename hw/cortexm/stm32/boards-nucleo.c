@@ -28,6 +28,99 @@
  * This file defines several STM32 Nucleo boards.
  */
 
+// ----- ST NUCLEO-F072RB -----------------------------------------------------
+static GPIOLEDInfo nucleo_f072rb_leds_info[] = {
+    {
+        .name = "led:green",
+        .active_low = false,
+        .colour_name = "green",
+        .x = 277,
+        .y = 268,
+        .w = 8,
+        .h = 6,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_A,
+        .irq_name = STM32_IRQ_GPIO_ODR_OUT,
+        .gpio_bit = 5,
+    /**/
+    },
+    { },
+/**/
+};
+
+static ButtonGPIOInfo nucleo_f072rb_buttons_user_info[] = {
+    {
+        .name = "button:user",
+        .x = 172,
+        .y = 183,
+        .w = 28,
+        .h = 28,
+
+        .active_low = true,
+        .gpio_path = DEVICE_PATH_STM32_GPIO_C,
+        .irq_name = STM32_IRQ_GPIO_IDR_IN,
+        .gpio_bit = 13,
+    /**/
+    },
+    { },
+/**/
+};
+
+static ButtonResetInfo nucleo_f072rb_button_reset_info = {
+    .x = 275,
+    .y = 184,
+    .w = 28,
+    .h = 28,
+/**/
+};
+
+static void nucleo_f072rb_board_init_callback(MachineState *machine)
+{
+    CortexMBoardState *board = CORTEXM_BOARD_STATE(machine);
+
+    cortexm_board_greeting(board);
+    BoardGraphicContext *board_graphic_context =
+            cortexm_board_init_graphic_image(board, "NUCLEO-F072RB.jpg");
+
+    {
+        // Create the MCU
+        Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F072RB);
+
+        // The board has no hihg speed oscillators.
+        cm_object_property_set_int(mcu, 0, "hse-freq-hz"); // N/A
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // N/A
+
+        cm_object_realize(mcu);
+    }
+
+    Object *peripheral = cm_container_get_peripheral();
+    // Create board LEDs.
+    gpio_led_create_from_info(peripheral, nucleo_f072rb_leds_info,
+            board_graphic_context);
+
+    if (board_graphic_context != NULL) {
+        // Create board buttons.
+        button_reset_create_from_info(peripheral,
+                &nucleo_f072rb_button_reset_info, board_graphic_context);
+        button_gpio_create_from_info(peripheral,
+                nucleo_f072rb_buttons_user_info, board_graphic_context);
+    }
+}
+
+static void nucleo_f072rb_board_class_init_callback(ObjectClass *oc, void *data)
+{
+    MachineClass *mc = MACHINE_CLASS(oc);
+
+    mc->desc = "ST Nucleo Development Board for STM32 F0 series";
+    mc->init = nucleo_f072rb_board_init_callback;
+}
+
+static const TypeInfo nucleo_f072rb_machine = {
+    .name = BOARD_TYPE_NAME("NUCLEO-F072RB"),
+    .parent = TYPE_CORTEXM_BOARD,
+    .class_init = nucleo_f072rb_board_class_init_callback
+/**/
+};
+
 // ----- ST NUCLEO-F103RB -----------------------------------------------------
 static GPIOLEDInfo nucleo_f103rb_leds_info[] = {
     {
@@ -256,6 +349,7 @@ static void nucleo_f334r8_board_init_callback(MachineState *machine)
 
 static void stm32_machines_init(void)
 {
+    type_register_static(&nucleo_f072rb_machine);
     type_register_static(&nucleo_f103rb_machine);
     type_register_static(&nucleo_f411re_machine);
 #if 0

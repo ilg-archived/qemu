@@ -24,7 +24,12 @@ cd "$(dirname "$0")"
 echo
 xcdl \
 svd-code \
---file "../STM32F0x1-qemu.json" 
+--file "../STM32F0x1-qemu.json"
+
+echo
+xcdl \
+svd-code \
+--file "../STM32F0x2-qemu.json" 
 
 echo
 xcdl \

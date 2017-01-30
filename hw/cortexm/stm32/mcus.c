@@ -187,6 +187,83 @@ static const STM32Capabilities stm32f051x8 = {
 /**/
 };
 
+static const STM32Capabilities stm32f072rb = {
+    .family = STM32_FAMILY_F0,
+    .f0 = {
+        .is_0x2 = true,
+        .is_072x = true
+    /**/
+    },
+
+    .hsi_freq_hz = 8000000,
+    .lsi_freq_hz = 40000,
+
+    .has_periph_bitband = false,
+
+#if 0
+    .has_rcc = true,
+    .has_flash = true,
+    .has_pwr = true,
+    .has_syscfg = true,
+
+    .has_exti = true,
+#endif
+    .num_exti = 23,
+
+    .has_crc = true,
+
+    .has_gpioa = true,
+    .has_gpiob = true,
+    .has_gpioc = true,
+    .has_gpiod = true,
+    .has_gpiof = true,
+
+    .has_dma = true,
+    .num_dma = 7,
+
+    .has_adc = true, // 12-bits, 10+3 channels, Vref = ADC_IN17
+
+    .has_ts = 1, // ADC12_IN16
+
+    .has_dac = true, // 12-bits, 5 channels
+
+    .has_comp = true,
+    .num_comp = 2,
+
+    .has_tsc = true,
+
+    .has_ac_tim1 = true,
+    .has_gp_tim2 = true,
+    .has_gp_tim3 = true,
+    .has_gp_tim14 = true,
+    .has_gp_tim15 = true,
+    .has_gp_tim16 = true,
+    .has_gp_tim17 = true,
+    .has_bc_tim6 = true,
+    .has_bc_tim7 = true,
+
+    .has_iwdg = true,
+    .has_wwdg = true,
+
+    .has_rtc = true,
+    .num_back_bytes = 20,
+
+    .has_i2c1 = true,
+    .has_i2c2 = true,
+
+    .has_usart1 = true, // 6 Mb/s
+    .has_usart2 = true, // 6 Mb/s
+    .has_usart3 = true, // 6 Mb/s
+    .has_usart4 = true, // 6 Mb/s
+
+    .has_spi1 = true,
+    .has_spi2 = true,
+
+    .has_hdmi_cec = true,
+
+/**/
+};
+
 static const STM32Capabilities stm32f103x8b = {
 
     .family = STM32_FAMILY_F1,
@@ -837,6 +914,20 @@ static const STM32PartInfo stm32_mcus[] = {
         },
 
         .stm32 = &stm32f051x8,
+    /**/
+    },
+    {
+        .name = TYPE_STM32F072RB,
+        .cortexm = {
+            .flash_size_kb = 128,
+            .sram_size_kb = 16,
+
+            .svd_file_name = "STM32F0x2-qemu.json",
+            .svd_device_name = "STM32F0x2",
+        /**/
+        },
+
+        .stm32 = &stm32f072rb,
     /**/
     },
 #if 0

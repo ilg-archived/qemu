@@ -134,6 +134,101 @@ static void stm32f0x1_flash_create_objects(Object *obj, JSON_Object *svd,
 
 // ----------------------------------------------------------------------------
 
+// STM32F072CB
+// DO NOT EDIT! Automatically generated!
+static void stm32f0x2_flash_create_objects(Object *obj, JSON_Object *svd,
+        const char *name)
+{
+    STM32FLASHState *state = STM32_FLASH_STATE(obj);
+
+    JSON_Object *periph = svd_get_peripheral_by_name(svd, name);
+    svd_add_peripheral_properties_and_children(obj, periph, svd);
+
+    // Registers.
+    state->u.f0.reg.acr = cm_object_get_child_by_name(obj, "ACR");
+    state->u.f0.reg.keyr = cm_object_get_child_by_name(obj, "KEYR");
+    state->u.f0.reg.optkeyr = cm_object_get_child_by_name(obj, "OPTKEYR");
+    state->u.f0.reg.sr = cm_object_get_child_by_name(obj, "SR");
+    state->u.f0.reg.cr = cm_object_get_child_by_name(obj, "CR");
+    state->u.f0.reg.ar = cm_object_get_child_by_name(obj, "AR");
+    state->u.f0.reg.obr = cm_object_get_child_by_name(obj, "OBR");
+    state->u.f0.reg.wrpr = cm_object_get_child_by_name(obj, "WRPR");
+    // ACRbitfields.
+    state->u.f0.fld.acr.latency = cm_object_get_child_by_name(
+            state->u.f0.reg.acr, "LATENCY");
+    state->u.f0.fld.acr.prftbe = cm_object_get_child_by_name(
+            state->u.f0.reg.acr, "PRFTBE");
+    state->u.f0.fld.acr.prftbs = cm_object_get_child_by_name(
+            state->u.f0.reg.acr, "PRFTBS");
+    // KEYRbitfields.
+    state->u.f0.fld.keyr.fkeyr = cm_object_get_child_by_name(
+            state->u.f0.reg.keyr, "FKEYR");
+    // OPTKEYRbitfields.
+    state->u.f0.fld.optkeyr.optkeyr = cm_object_get_child_by_name(
+            state->u.f0.reg.optkeyr, "OPTKEYR");
+    // SRbitfields.
+    state->u.f0.fld.sr.bsy = cm_object_get_child_by_name(state->u.f0.reg.sr,
+            "BSY");
+    state->u.f0.fld.sr.pgerr = cm_object_get_child_by_name(state->u.f0.reg.sr,
+            "PGERR");
+    state->u.f0.fld.sr.wrprt = cm_object_get_child_by_name(state->u.f0.reg.sr,
+            "WRPRT");
+    state->u.f0.fld.sr.eop = cm_object_get_child_by_name(state->u.f0.reg.sr,
+            "EOP");
+    // CRbitfields.
+    state->u.f0.fld.cr.pg = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "PG");
+    state->u.f0.fld.cr.per = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "PER");
+    state->u.f0.fld.cr.mer = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "MER");
+    state->u.f0.fld.cr.optpg = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "OPTPG");
+    state->u.f0.fld.cr.opter = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "OPTER");
+    state->u.f0.fld.cr.strt = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "STRT");
+    state->u.f0.fld.cr.lock = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "LOCK");
+    state->u.f0.fld.cr.optwre = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "OPTWRE");
+    state->u.f0.fld.cr.errie = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "ERRIE");
+    state->u.f0.fld.cr.eopie = cm_object_get_child_by_name(state->u.f0.reg.cr,
+            "EOPIE");
+    state->u.f0.fld.cr.force_optload = cm_object_get_child_by_name(
+            state->u.f0.reg.cr, "FORCE_OPTLOAD");
+    // ARbitfields.
+    state->u.f0.fld.ar.far_ = cm_object_get_child_by_name(state->u.f0.reg.ar,
+            "FAR");
+    // OBRbitfields.
+    state->u.f0.fld.obr.opterr = cm_object_get_child_by_name(
+            state->u.f0.reg.obr, "OPTERR");
+    state->u.f0.fld.obr.level1_prot = cm_object_get_child_by_name(
+            state->u.f0.reg.obr, "LEVEL1_PROT");
+    state->u.f0.fld.obr.level2_prot = cm_object_get_child_by_name(
+            state->u.f0.reg.obr, "LEVEL2_PROT");
+    state->u.f0.fld.obr.wdg_sw = cm_object_get_child_by_name(
+            state->u.f0.reg.obr, "WDG_SW");
+    state->u.f0.fld.obr.nrst_stop = cm_object_get_child_by_name(
+            state->u.f0.reg.obr, "nRST_STOP");
+    state->u.f0.fld.obr.nrst_stdby = cm_object_get_child_by_name(
+            state->u.f0.reg.obr, "nRST_STDBY");
+    state->u.f0.fld.obr.boot1 = cm_object_get_child_by_name(state->u.f0.reg.obr,
+            "BOOT1");
+    state->u.f0.fld.obr.vdda_monitor = cm_object_get_child_by_name(
+            state->u.f0.reg.obr, "VDDA_MONITOR");
+    state->u.f0.fld.obr.data0 = cm_object_get_child_by_name(state->u.f0.reg.obr,
+            "Data0");
+    state->u.f0.fld.obr.data1 = cm_object_get_child_by_name(state->u.f0.reg.obr,
+            "Data1");
+    // WRPRbitfields.
+    state->u.f0.fld.wrpr.wrp = cm_object_get_child_by_name(state->u.f0.reg.wrpr,
+            "WRP");
+}
+
+// ----------------------------------------------------------------------------
+
 // STM32F103RB
 // DO NOT EDIT! Automatically generated!
 static void stm32f103xx_flash_create_objects(Object *obj, JSON_Object *svd,
@@ -667,6 +762,9 @@ static void stm32_flash_realize_callback(DeviceState *dev, Error **errp)
 
         if (capabilities->f0.is_0x1) {
             stm32f0x1_flash_create_objects(obj, cm_state->svd_json,
+                    periph_name);
+        } else if (capabilities->f0.is_0x2) {
+            stm32f0x2_flash_create_objects(obj, cm_state->svd_json,
                     periph_name);
         } else {
             assert(false);
