@@ -187,7 +187,7 @@ static const STM32Capabilities stm32f051x8 = {
 /**/
 };
 
-static const STM32Capabilities stm32f072cb = {
+static const STM32Capabilities stm32f072rb = {
     .family = STM32_FAMILY_F0,
     .f0 = {
         .is_0x2 = true,
@@ -215,6 +215,7 @@ static const STM32Capabilities stm32f072cb = {
     .has_gpioa = true,
     .has_gpiob = true,
     .has_gpioc = true,
+    .has_gpiod = true,
     .has_gpiof = true,
 
     .has_dma = true,
@@ -916,7 +917,7 @@ static const STM32PartInfo stm32_mcus[] = {
     /**/
     },
     {
-        .name = TYPE_STM32F072CB,
+        .name = TYPE_STM32F072RB,
         .cortexm = {
             .flash_size_kb = 128,
             .sram_size_kb = 16,
@@ -926,7 +927,7 @@ static const STM32PartInfo stm32_mcus[] = {
         /**/
         },
 
-        .stm32 = &stm32f072cb,
+        .stm32 = &stm32f072rb,
     /**/
     },
 #if 0
