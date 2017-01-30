@@ -2250,9 +2250,13 @@ static void stm32_exti_realize_callback(DeviceState *dev, Error **errp)
     case STM32_FAMILY_F0:
 
         if (capabilities->f0.is_0x1) {
+
             stm32f0x1_exti_create_objects(obj, cm_state->svd_json, periph_name);
+
         } else if (capabilities->f0.is_0x2) {
+
             stm32f0x2_exti_create_objects(obj, cm_state->svd_json, periph_name);
+
         } else {
             assert(false);
         }

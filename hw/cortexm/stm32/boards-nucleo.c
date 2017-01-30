@@ -85,9 +85,9 @@ static void nucleo_f072rb_board_init_callback(MachineState *machine)
         // Create the MCU
         Object *mcu = cm_object_new_mcu(machine, TYPE_STM32F072RB);
 
-        // The board has no hihg speed oscillators.
+        // The board has no high speed oscillator.
         cm_object_property_set_int(mcu, 0, "hse-freq-hz"); // N/A
-        cm_object_property_set_int(mcu, 32768, "lse-freq-hz"); // N/A
+        cm_object_property_set_int(mcu, 32768, "lse-freq-hz");
 
         cm_object_realize(mcu);
     }
@@ -110,7 +110,7 @@ static void nucleo_f072rb_board_class_init_callback(ObjectClass *oc, void *data)
 {
     MachineClass *mc = MACHINE_CLASS(oc);
 
-    mc->desc = "ST Nucleo Development Board for STM32 F0 series";
+    mc->desc = "ST Nucleo Development Board for STM32 F072 devices";
     mc->init = nucleo_f072rb_board_init_callback;
 }
 
