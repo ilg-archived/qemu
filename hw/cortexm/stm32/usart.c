@@ -1274,7 +1274,7 @@ static bool stm32_usart_is_enabled(Object *obj)
 
 // ----------------------------------------------------------------------------
 
-static int smt32f4_usart_get_irq_vector(STM32USARTState *state)
+static int stm32f4_usart_get_irq_vector(STM32USARTState *state)
 {
     // TODO: use capabilities to select interrupt numbers
     // for different variants.
@@ -1327,7 +1327,7 @@ static void stm32f4_usart_receive(void *obj, const uint8_t *buf, int size)
 
     if (cr1 & USART_CR1_RXNEIE) {
         cortexm_nvic_set_pending_interrupt(state->nvic,
-                smt32f4_usart_get_irq_vector(state));
+                stm32f4_usart_get_irq_vector(state));
     }
 }
 #endif
@@ -1367,7 +1367,7 @@ static void stm32f4_usart_dr_post_write_callback(Object *reg, Object *periph,
         USART_SR_TC | USART_SR_TXE);
         if ((cr1 & USART_CR1_TXEIE) || (cr1 & USART_CR1_TCIE)) {
             cortexm_nvic_set_pending_interrupt(state->nvic,
-                    smt32f4_usart_get_irq_vector(state));
+                    stm32f4_usart_get_irq_vector(state));
         }
     }
 }
@@ -1385,7 +1385,7 @@ static void stm32f4_usart_cr1_post_write_callback(Object *reg, Object *periph,
             || ((full_value & USART_CR1_TXEIE) && (sr & USART_SR_TXE))
             || ((full_value & USART_CR1_TCIE) && (sr & USART_SR_TC))) {
         cortexm_nvic_set_pending_interrupt(state->nvic,
-                smt32f4_usart_get_irq_vector(state));
+                stm32f4_usart_get_irq_vector(state));
     }
 }
 
