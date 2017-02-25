@@ -234,6 +234,7 @@ The location of the folder:
 
 ```
 cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
+cd /Users/ilg/My\ Files/MacBookPro\ Projects/GNU\ ARM\ Eclipse/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
 ```
 
 Before installing a new `xcdl` version, run the development version with:
