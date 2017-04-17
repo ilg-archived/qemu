@@ -22,39 +22,39 @@ IFS=$'\n\t'
 cd "$(dirname "$0")"
 
 echo
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F0x1-xsvd.json" \
 --patch "STM32F0x1-patch.json" \
 --output "../STM32F0x1-qemu.json" \
---remove "NVIC"
+--remove "NVIC" \
+--verbose
 
 echo
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F0x2-xsvd.json" \
 --patch "STM32F0x2-patch.json" \
 --output "../STM32F0x2-qemu.json" \
---remove "NVIC"
+--remove "NVIC" \
+--verbose
 
 echo
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F103xx-xsvd.json" \
 --patch "STM32F103xx-patch.json" \
 --output "../STM32F103xx-qemu.json" \
---remove "NVIC" 
+--remove "NVIC" \
+--verbose
 
-xcdl \
-svd-patch \
+echo
+xsvd patch \
 --file "STM32F107xx-xsvd.json" \
 --patch "STM32F107xx-patch.json" \
 --output "../STM32F107xx-qemu.json" \
---remove "NVIC" 
+--remove "NVIC" \
+--verbose
 
 echo
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F40x-xsvd.json" \
 --patch "STM32F40x-patch.json" \
 --output "../STM32F40x-qemu.json" \
@@ -65,11 +65,11 @@ svd-patch \
 --group-bitfield "RCC/PLLCFGR/PLLM" \
 --group-bitfield "RCC/CFGR/SWS" \
 --group-bitfield "RCC/CFGR/SW" \
---group-bitfield "RCC/BDCR/RTCSEL" 
+--group-bitfield "RCC/BDCR/RTCSEL" \
+--verbose
 
 echo
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F429x-xsvd.json" \
 --patch "STM32F429x-patch.json" \
 --output "../STM32F429x-qemu.json" \
@@ -80,7 +80,8 @@ svd-patch \
 --group-bitfield "RCC/PLLCFGR/PLLM" \
 --group-bitfield "RCC/CFGR/SWS" \
 --group-bitfield "RCC/CFGR/SW" \
---group-bitfield "RCC/BDCR/RTCSEL" 
+--group-bitfield "RCC/BDCR/RTCSEL" \
+--verbose
 
 echo
 

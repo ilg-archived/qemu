@@ -22,33 +22,34 @@ IFS=$'\n\t'
 cd "$(dirname "$0")"
 
 echo
-xcdl \
-svd-code \
---file "../STM32F0x1-qemu.json"
+xsvd code \
+--file "../STM32F0x1-qemu.json" \
+--verbose
 
 echo
-xcdl \
-svd-code \
---file "../STM32F0x2-qemu.json" 
+xsvd code \
+--file "../STM32F0x2-qemu.json" \
+--verbose
 
 echo
-xcdl \
-svd-code \
---file "../STM32F103xx-qemu.json" 
-
-xcdl \
-svd-code \
---file "../STM32F107xx-qemu.json" 
+xsvd code \
+--file "../STM32F103xx-qemu.json" \
+--verbose
 
 echo
-xcdl \
-svd-code \
---file "../STM32F40x-qemu.json" 
+xsvd code \
+--file "../STM32F107xx-qemu.json" \
+--verbose
 
 echo
-xcdl \
-svd-code \
---file "../STM32F429x-qemu.json" 
+xsvd code \
+--file "../STM32F40x-qemu.json" \
+--verbose
+
+echo
+xsvd code \
+--file "../STM32F429x-qemu.json" \
+--verbose
 
 echo
 

@@ -24,39 +24,39 @@ cd "$(dirname "$0")"
 XPACKS_FOLDER=${XPACKS_FOLDER:-"$HOME/Library/xPacks"}
 
 echo
-xcdl \
-svd-convert \
+xsvd convert \
 --file "${XPACKS_FOLDER}/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd" \
---output "STM32F0x1-xsvd.json"
+--output "STM32F0x1-xsvd.json" \
+--verbose
 
 echo
-xcdl \
-svd-convert \
+xsvd convert \
 --file "${XPACKS_FOLDER}/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x2.svd" \
---output "STM32F0x2-xsvd.json"
+--output "STM32F0x2-xsvd.json" \
+--verbose
 
 echo
-xcdl \
-svd-convert \
+xsvd convert \
 --file "${XPACKS_FOLDER}/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd" \
---output "STM32F103xx-xsvd.json"
+--output "STM32F103xx-xsvd.json" \
+--verbose
 
 echo
-xcdl \
-svd-convert \
+xsvd convert \
 --file "${XPACKS_FOLDER}/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F107xx.svd" \
---output "STM32F107xx-xsvd.json"
+--output "STM32F107xx-xsvd.json" \
+--verbose
 
 echo
-xcdl \
-svd-convert \
+xsvd convert \
 --file "${XPACKS_FOLDER}/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd" \
---output "STM32F40x-xsvd.json"
+--output "STM32F40x-xsvd.json" \
+--verbose
 
 echo
-xcdl \
-svd-convert \
+xsvd convert \
 --file "${XPACKS_FOLDER}/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F429x.svd" \
---output "STM32F429x-xsvd.json"
+--output "STM32F429x-xsvd.json" \
+--verbose
 
 echo

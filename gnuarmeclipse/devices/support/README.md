@@ -48,6 +48,10 @@ This property is added to peripherals that have multiple instances, like GPIOA, 
 
 It is used to correctly generate the support code.
 
+## xsvd
+
+The external tool used to process the SVD files is [`xsvd`](https://www.npmjs.com/package/xsvd).
+
 ## Devices
 
 The commands used to generate the specifc xsvd files are:
@@ -55,97 +59,96 @@ The commands used to generate the specifc xsvd files are:
 ### STM32F0x1
 
 ```
-xcdl \
-svd-convert \
+xsvd convert \
 --file "/Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x1.svd" \
---output "STM32F0x1-xsvd.json"
+--output "STM32F0x1-xsvd.json" \
+--verbose
 
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F0x1-xsvd.json" \
 --patch "STM32F0x1-patch.json" \
 --output "../STM32F0x1-qemu.json" \
---remove "NVIC" 
+--remove "NVIC" \
+--verbose
 
-xcdl \
-svd-code \
---file "../STM32F0x1-qemu.json" 
+xsvd code \
+--file "../STM32F0x1-qemu.json" \
+--verbose
 
 ```
 
 ### STM32F0x2
 
 ```
-xcdl \
-svd-convert \
+xsvd convert \
 --file "/Users/ilg/Library/xPacks/Keil/STM32F0xx_DFP/1.5.0/SVD/STM32F0x2.svd" \
---output "STM32F0x2-xsvd.json"
+--output "STM32F0x2-xsvd.json" \
+--verbose
 
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F0x2-xsvd.json" \
 --patch "STM32F0x2-patch.json" \
 --output "../STM32F0x2-qemu.json" \
---remove "NVIC" 
+--remove "NVIC" \
+--verbose
 
-xcdl \
-svd-code \
---file "../STM32F0x2-qemu.json" 
+xsvd code \
+--file "../STM32F0x2-qemu.json" \
+--verbose
 
 ```
 
 ### STM32F103xx
 
 ```
-xcdl \
-svd-convert \
+xsvd convert \
 --file "/Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F103xx.svd" \
---output "STM32F103xx-xsvd.json"
+--output "STM32F103xx-xsvd.json" \
+--verbose
 
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F103xx-xsvd.json" \
 --patch "STM32F103xx-patch.json" \
 --output "../STM32F103xx-qemu.json" \
---remove "NVIC" 
+--remove "NVIC" \
+--verbose
 
-xcdl \
-svd-code \
---file "../STM32F103xx-qemu.json" 
+xsvd code \
+--file "../STM32F103xx-qemu.json" \
+--verbose
 
 ```
 
 ### STM32F107xx
 
 ```
-xcdl \
-svd-convert \
+xsvd convert \
 --file "/Users/ilg/Library/xPacks/Keil/STM32F1xx_DFP/2.1.0/SVD/STM32F107xx.svd" \
---output "STM32F107xx-xsvd.json"
+--output "STM32F107xx-xsvd.json" \
+--verbose
 
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F107xx-xsvd.json" \
 --patch "STM32F107xx-patch.json" \
 --output "../STM32F107xx-qemu.json" \
---remove "NVIC" 
+--remove "NVIC" \
+--verbose
 
-xcdl \
-svd-code \
---file "../STM32F107xx-qemu.json" 
+xsvd code \
+--file "../STM32F107xx-qemu.json" \
+--verbose
 
 ```
 
 ### STM32F40x
 
 ```
-xcdl \
-svd-convert \
+xsvd convert \
 --file "/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F40x.svd" \
---output "STM32F40x-xsvd.json"
+--output "STM32F40x-xsvd.json" \
+--verbose
 
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F40x-xsvd.json" \
 --patch "STM32F40x-patch.json" \
 --output "../STM32F40x-qemu.json" \
@@ -156,24 +159,24 @@ svd-patch \
 --group-bitfield "RCC/PLLCFGR/PLLM" \
 --group-bitfield "RCC/CFGR/SWS" \
 --group-bitfield "RCC/CFGR/SW" \
---group-bitfield "RCC/BDCR/RTCSEL" 
+--group-bitfield "RCC/BDCR/RTCSEL" \
+--verbose
 
-xcdl \
-svd-code \
---file "../STM32F40x-qemu.json" 
+xsvd code \
+--file "../STM32F40x-qemu.json" \
+--verbose
 
 ```
 
 ### STM32F411xx
 
 ```
-xcdl \
-svd-convert \
+xsvd convert \
 --file "/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F411xx.svd" \
---output "STM32F411xx-xsvd.json"
+--output "STM32F411xx-xsvd.json" \
+--verbose
 
-xcdl \
-svd-patch \
+xsvd patch \
 --file "STM32F411xx-xsvd.json" \
 --patch "STM32F411xx-patch.json" \
 --output "../STM32F411xx-qemu.json" \
@@ -184,23 +187,24 @@ svd-patch \
 --group-bitfield "RCC/PLLCFGR/PLLM" \
 --group-bitfield "RCC/CFGR/SWS" \
 --group-bitfield "RCC/CFGR/SW" \
---group-bitfield "RCC/BDCR/RTCSEL" 
+--group-bitfield "RCC/BDCR/RTCSEL" \
+--verbose
 
-xcdl \
-svd-code \
---file "../STM32F411xx-qemu.json" 
+xsvd code \
+--file "../STM32F411xx-qemu.json" \
+--verbose
 
 ```
 
 ### STM32F429x
 
 ```
-xcdl \
+xsvd \
 svd-convert \
 --file "/Users/ilg/Library/xPacks/Keil/STM32F4xx_DFP/2.9.0/CMSIS/SVD/STM32F429x.svd" \
 --output "STM32F429x-xsvd.json"
 
-xcdl \
+xsvd \
 svd-patch \
 --file "STM32F429x-xsvd.json" \
 --patch "STM32F429x-patch.json" \
@@ -213,7 +217,7 @@ svd-patch \
 --group-bitfield "RCC/CFGR/SW" \
 --group-bitfield "RCC/BDCR/RTCSEL" 
 
-xcdl \
+xsvd \
 svd-code \
 --file "../STM32F429x-qemu.json" 
 
@@ -236,10 +240,3 @@ The location of the folder:
 cd /Users/ilg/Work/qemu/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
 cd /Users/ilg/My\ Files/MacBookPro\ Projects/GNU\ ARM\ Eclipse/gnuarmeclipse-qemu.git/gnuarmeclipse/devices/support
 ```
-
-Before installing a new `xcdl` version, run the development version with:
-
-```
-/Users/ilg/My\ Files/MacBookPro\ Projects/XCDL/xcdl-js.git/bin/xcdl \
-```
-
