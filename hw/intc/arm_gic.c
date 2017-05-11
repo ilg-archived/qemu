@@ -99,7 +99,7 @@ void gic_update(GICState *s)
 #if defined(CONFIG_GNU_ARM_ECLIPSE)
                 int prio = GIC_GET_PRIORITY(irq, cpu);
                 uint32_t basepri = *(s->basepri_ptr);
-                if ((basepri == 0) || (prio <= basepri)) {
+                if ((basepri == 0) || (prio < basepri)) {
                     if (prio < best_prio) {
                         best_prio = prio;
                         best_irq = irq;
