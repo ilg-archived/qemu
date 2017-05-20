@@ -1068,6 +1068,7 @@ static void arm_v7m_class_init(ObjectClass *oc, void *data)
     cc->cpu_exec_interrupt = arm_v7m_cpu_exec_interrupt;
 }
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 static const ARMCPRegInfo cortexr5_cp_reginfo[] = {
     /* Dummy the TCM region regs for the moment */
     { .name = "ATCM", .cp = 15, .opc1 = 0, .crn = 9, .crm = 1, .opc2 = 0,
@@ -1223,8 +1224,9 @@ static void cortex_a9_initfn(Object *obj)
     cpu->ccsidr[1] = 0x200fe019; /* 16k L1 icache. */
     define_arm_cp_regs(cpu, cortexa9_cp_reginfo);
 }
+#endif /* CONFIG_GNU_ARM_ECLIPSE */
 
-#ifndef CONFIG_USER_ONLY
+#if !defined(CONFIG_USER_ONLY) && defined(CONFIG_GNU_ARM_ECLIPSE)
 static uint64_t a15_l2ctlr_read(CPUARMState *env, const ARMCPRegInfo *ri)
 {
     /* Linux wants the number of processors from here.
@@ -1234,6 +1236,7 @@ static uint64_t a15_l2ctlr_read(CPUARMState *env, const ARMCPRegInfo *ri)
 }
 #endif
 
+#if defined(CONFIG_GNU_ARM_ECLIPSE)
 static const ARMCPRegInfo cortexa15_cp_reginfo[] = {
 #ifndef CONFIG_USER_ONLY
     { .name = "L2CTLR", .cp = 15, .crn = 9, .crm = 0, .opc1 = 1, .opc2 = 2,
@@ -1502,6 +1505,7 @@ static void pxa270c5_initfn(Object *obj)
     cpu->ctr = 0xd172172;
     cpu->reset_sctlr = 0x00000078;
 }
+#endif
 
 #ifdef CONFIG_USER_ONLY
 static void arm_any_initfn(Object *obj)
