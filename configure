@@ -323,12 +323,12 @@ tcmalloc="no"
 jemalloc="no"
 replication="yes"
 
-# --- [GNU ARM Eclipse] ---
+# --- [GNU MCU Eclipse] ---
 gnuarmeclipse="no"
 branding_message=""
 semihosting_native="no"
 verbose="no"
-# --- [GNU ARM Eclipse] ---
+# --- [GNU MCU Eclipse] ---
 
 # parse CC options first
 for opt do
@@ -744,13 +744,13 @@ case $opt in
 esac
 done
 
-# --- [GNU ARM Eclipse] ---
+# --- [GNU MCU Eclipse] ---
 case $target_list in
   gnuarmeclipse-softmmu)
     gnuarmeclipse="yes"
     semihosting_native="yes"
     verbose="yes"
-    branding_message="GNU ARM Eclipse"
+    branding_message="GNU MCU Eclipse"
     # convenience defs
     debug_tcg="yes"
     debug="yes"
@@ -778,7 +778,7 @@ case $target_list in
     # fdt="no" # it fails
     ;;
 esac
-# --- [GNU ARM Eclipse] ---
+# --- [GNU MCU Eclipse] ---
 
 for opt do
   optarg=`expr "x$opt" : 'x[^=]*=\(.*\)'`
@@ -2664,21 +2664,21 @@ if test "$sdl" = "yes" ; then
 #endif
 int main(void) { return 0; }
 EOF
-  # --- [GNU ARM Eclipse] ---
+  # --- [GNU MCU Eclipse] ---
   echo "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs"
-  # --- [GNU ARM Eclipse] ---
+  # --- [GNU MCU Eclipse] ---
   if compile_prog "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs" ; then
     sdl_cflags="$sdl_cflags $x11_cflags"
     sdl_libs="$sdl_libs $x11_libs"
   fi
-  # --- [GNU ARM Eclipse] ---
+  # --- [GNU MCU Eclipse] ---
   if test $sdlabi = "2.0"; then
     sdl_libs="$sdl_libs -lSDL2_image"
   elif test $sdlabi = "1.2"; then
     sdl_libs="$sdl_libs -lSDL_image"
   fi
   echo "$sdl_cflags $x11_cflags" "$sdl_libs $x11_libs"
-  # --- [GNU ARM Eclipse] ---
+  # --- [GNU MCU Eclipse] ---
   libs_softmmu="$sdl_libs $libs_softmmu"
 fi
 
@@ -6253,9 +6253,9 @@ if test "$ccache_cpp2" = "yes"; then
   echo "export CCACHE_CPP2=y" >> $config_host_mak
 fi
 
-# --- [GNU ARM Eclipse] ---
+# --- [GNU MCU Eclipse] ---
 if test "$gnuarmeclipse" = "yes"; then
-echo "CONFIG_GNU_ARM_ECLIPSE=y" >> $config_host_mak
+echo "CONFIG_GNU_MCU_ECLIPSE=y" >> $config_host_mak
 fi
 
 if test "$verbose" = "yes"; then
@@ -6269,7 +6269,7 @@ fi
 if test ! -z "$branding_message"; then
   echo "CONFIG_BRANDING_MESSAGE=\"$branding_message\"" >> $config_host_mak
 fi
-# --- [GNU ARM Eclipse] ---
+# --- [GNU MCU Eclipse] ---
 
 # build tree in object directory in case the source is not in the current directory
 DIRS="tests tests/tcg tests/tcg/cris tests/tcg/lm32 tests/libqos tests/qapi-schema tests/tcg/xtensa tests/qemu-iotests"

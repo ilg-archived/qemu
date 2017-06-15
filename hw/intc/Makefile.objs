@@ -24,7 +24,7 @@ obj-$(CONFIG_APIC) += apic.o apic_common.o
 obj-$(CONFIG_ARM_GIC_KVM) += arm_gic_kvm.o
 obj-$(call land,$(CONFIG_ARM_GIC_KVM),$(TARGET_AARCH64)) += arm_gicv3_kvm.o
 obj-$(call land,$(CONFIG_ARM_GIC_KVM),$(TARGET_AARCH64)) += arm_gicv3_its_kvm.o
-ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+ifeq ($(CONFIG_GNU_MCU_ECLIPSE),n)
 obj-$(CONFIG_STELLARIS) += armv7m_nvic.o
 endif
 obj-$(CONFIG_EXYNOS4) += exynos4210_gic.o exynos4210_combiner.o

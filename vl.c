@@ -35,7 +35,7 @@
 #include <libvdeplug.h>
 #endif
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
 #include "qemu/thread.h"
 #include "qemu/log.h"
@@ -124,7 +124,7 @@ int main(int argc, char **argv)
 #endif
 #endif /* CONFIG_SDL */
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #ifdef CONFIG_COCOA
 #undef main
@@ -200,10 +200,10 @@ int main(int argc, char **argv)
 #include "qapi/qmp/qerror.h"
 #include "sysemu/iothread.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #include <strings.h>
 #include <hw/cortexm/helper.h>
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
@@ -228,10 +228,10 @@ int nb_nics;
 NICInfo nd_table[MAX_NICS];
 int autostart;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 int with_gdb;
 const char *mcu_device = NULL;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #if defined(CONFIG_VERBOSE)
 /**
@@ -250,7 +250,7 @@ int vga_interface_type = VGA_NONE;
 static int full_screen = 0;
 static int no_frame = 0;
 int no_quit = 0;
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 static bool grab_on_hover;
 #endif
 CharDriverState *serial_hds[MAX_SERIAL_PORTS];
@@ -1042,7 +1042,7 @@ static void configure_rtc(QemuOpts *opts)
     }
 }
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 /***********************************************************/
 /* Bluetooth support */
 static int nb_hcis;
@@ -1119,7 +1119,7 @@ static struct bt_device_s *bt_device_add(const char *opt)
         error_report("warning: adding a slave device to an empty scatternet %i",
                      vlan_id);
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     if (!strcmp(devname, "keyboard"))
         return bt_keyboard_init(vlan);
 #endif
@@ -1514,7 +1514,7 @@ static void igd_gfx_passthru(void)
     has_igd_gfx_passthru = current_machine->igd_gfx_passthru;
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
 static char *semihosting_concatenate_cmdline(int argc, const char **argv)
 {
@@ -1560,7 +1560,7 @@ static char *semihosting_concatenate_cmdline(int argc, const char **argv)
     return cmdline;
 }
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 /***********************************************************/
 /* USB devices */
@@ -1724,7 +1724,7 @@ MachineInfoList *qmp_query_machines(Error **errp)
     return mach_list;
 }
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 
 static int machine_help_func(QemuOpts *opts, MachineState *machine)
 {
@@ -1753,7 +1753,7 @@ static int machine_help_func(QemuOpts *opts, MachineState *machine)
     return 1;
 }
 
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 
 /***********************************************************/
@@ -2069,7 +2069,7 @@ void qemu_system_debug_request(void)
     qemu_notify_event();
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
 // These functions are used in the graphical reset button implementation.
 
@@ -2110,7 +2110,7 @@ static int qemu_resume_requested(void)
     return r;
 }
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 static bool main_loop_should_exit(void)
 {
@@ -2154,7 +2154,7 @@ static bool main_loop_should_exit(void)
         vm_stop(r);
     }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
     if (qemu_reset_halt_requested()) {
         pause_all_vcpus();
@@ -2169,7 +2169,7 @@ static bool main_loop_should_exit(void)
         }
     }
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     return false;
 }
@@ -2193,7 +2193,7 @@ static void main_loop(void)
     } while (!main_loop_should_exit());
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE) || defined(CONFIG_VERBOSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE) || defined(CONFIG_VERBOSE)
 
 #if INTPTR_MAX == INT32_MAX
 #define QEMU_WORDSIZE "32-bits "
@@ -2203,11 +2203,11 @@ static void main_loop(void)
 #define QEMU_WORDSIZE ""
 #endif
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) || defined(CONFIG_VERBOSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) || defined(CONFIG_VERBOSE) */
 
 static void version(void)
 {
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     printf(
 #if defined(CONFIG_BRANDING_MESSAGE)
            CONFIG_BRANDING_MESSAGE " "
@@ -2217,12 +2217,12 @@ static void version(void)
            QEMU_VERSION QEMU_PKGVERSION "\n"
            QEMU_COPYRIGHT "\n");   
     
-#else /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#else /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 	printf("QEMU emulator version " QEMU_VERSION QEMU_PKGVERSION "\n"
            QEMU_COPYRIGHT "\n");   
  
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 }
 
 static void help(int exitcode)
@@ -2363,7 +2363,7 @@ static void select_vgahw(const char *p)
     }
 }
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 
 typedef enum DisplayType {
     DT_DEFAULT,
@@ -2500,7 +2500,7 @@ static DisplayType select_display(const char *p)
     return display;
 }
 
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 static int balloon_parse(const char *arg)
 {
@@ -2549,7 +2549,7 @@ char *qemu_find_file(int type, const char *name)
         subdir = "keymaps/";
         break;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
     case QEMU_FILE_TYPE_GRAPHICS:
 #if defined(CONFIG_WIN32)
@@ -2567,7 +2567,7 @@ char *qemu_find_file(int type, const char *name)
 #endif
         break;
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         default:
         abort();
@@ -2575,7 +2575,7 @@ char *qemu_find_file(int type, const char *name)
 
     for (i = 0; i < data_dir_idx; i++) {
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #if defined(CONFIG_WIN32)
         buf = g_strdup_printf("%s\\%s%s", data_dir[i], subdir, name);
 #else
@@ -2583,7 +2583,7 @@ char *qemu_find_file(int type, const char *name)
 #endif
 #else
         buf = g_strdup_printf("%s/%s%s", data_dir[i], subdir, name);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         if (access(buf, R_OK) == 0) {
             trace_load_file(name, buf);
@@ -2924,7 +2924,7 @@ static int debugcon_parse(const char *devname)
     return 0;
 }
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 
 static gint machine_class_cmp(gconstpointer a, gconstpointer b)
 {
@@ -2992,7 +2992,7 @@ static gint machine_class_cmp(gconstpointer a, gconstpointer b)
     exit(!name || !is_help_option(name));
 }
 
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 void qemu_add_exit_notifier(Notifier *notify)
 {
@@ -3074,7 +3074,7 @@ static MachineClass *select_machine(void)
 {
     MachineClass *machine_class = find_default_machine();
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     const char *optarg;
 #endif
 
@@ -3086,7 +3086,7 @@ static MachineClass *select_machine(void)
     opts = qemu_get_machine_opts();
     qemu_opts_loc_restore(opts);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
     const char *board_name;
     board_name = qemu_opt_get(opts, "type");
@@ -3130,7 +3130,7 @@ static MachineClass *select_machine(void)
         exit(1);
     }
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     loc_pop(&loc);
     return machine_class;
@@ -3332,7 +3332,7 @@ int main(int argc, char **argv, char **envp)
     const char *kernel_filename, *kernel_cmdline;
     const char *boot_order = NULL;
     const char *boot_once = NULL;
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     DisplayState *ds;
 #endif
     int cyls, heads, secs, translation;
@@ -3352,11 +3352,11 @@ int main(int argc, char **argv, char **envp)
     bool userconfig = true;
     bool nographic = false;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     // DisplayType display_type = DT_NONE;
 #else
     DisplayType display_type = DT_DEFAULT;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     int display_remote = 0;
     const char *log_mask = NULL;
@@ -3369,7 +3369,7 @@ int main(int argc, char **argv, char **envp)
     Error *err = NULL;
     bool list_data_dirs = false;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     const char *image_filename = NULL;
     int actual_argc = argc;
     with_gdb = false;
@@ -3377,7 +3377,7 @@ int main(int argc, char **argv, char **envp)
     /* Most emulated applications need semihosting, so start with it enabled. */
     semihosting.enabled = true;
     semihosting.target = SEMIHOSTING_TARGET_NATIVE;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     module_call_init(MODULE_INIT_TRACE);
 
@@ -3483,7 +3483,7 @@ int main(int argc, char **argv, char **envp)
                 break;
             }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
             if (popt->index == QEMU_OPTION_semihosting_cmdline) {
                 /* no HAS_ARGS, optind set to next option */
                 semihosting.argc = argc - optind;
@@ -3495,7 +3495,7 @@ int main(int argc, char **argv, char **envp)
 
                 break;
             };
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         }
     }
@@ -3512,24 +3512,24 @@ int main(int argc, char **argv, char **envp)
     optind = 1;
     for(;;) {
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         if (optind >= actual_argc)
             break;
 #else
         if (optind >= argc)
             break;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         if (argv[optind][0] != '-') {
             hda_opts = drive_add(IF_DEFAULT, 0, argv[optind++], HD_OPTS);
         } else {
             const QEMUOption *popt;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
             popt = lookup_opt(actual_argc, argv, &optarg, &optind);
 #else
             popt = lookup_opt(argc, argv, &optarg, &optind);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
             if (!(popt->arch_mask & arch_type)) {
                 error_report("Option not supported for this target");
@@ -3546,11 +3546,11 @@ int main(int argc, char **argv, char **envp)
                 cpu_model = optarg;
                 break;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
             case QEMU_OPTION_mcu:
                 mcu_device = optarg;
                 break;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
             case QEMU_OPTION_hda:
                 {
@@ -3669,7 +3669,7 @@ int main(int argc, char **argv, char **envp)
                 }
                 break;
             case QEMU_OPTION_display:
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
                 display_type = select_display(optarg);
 #endif
                 break;
@@ -3677,7 +3677,7 @@ int main(int argc, char **argv, char **envp)
                 olist = qemu_find_opts("machine");
                 qemu_opts_parse_noisily(olist, "graphics=off", false);
                 nographic = true;
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
                 display_type = DT_NONE;
 #endif
                 break;
@@ -3701,12 +3701,12 @@ int main(int argc, char **argv, char **envp)
                 }
                 break;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
             case QEMU_OPTION_image:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "image", optarg,
                               &error_abort);
                 break;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
             case QEMU_OPTION_kernel:
                 qemu_opts_set(qemu_find_opts("machine"), 0, "kernel", optarg,
@@ -3784,7 +3784,7 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_bt:
                 add_device_config(DEV_BT, optarg);
                 break;
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
             case QEMU_OPTION_audio_help:
                 AUD_help ();
                 exit (0);
@@ -3832,17 +3832,17 @@ int main(int argc, char **argv, char **envp)
             case QEMU_OPTION_s:
                 add_device_config(DEV_GDB, "tcp::" DEFAULT_GDBSTUB_PORT);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
                 with_gdb = true;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
                 break;
             case QEMU_OPTION_gdb:
                 add_device_config(DEV_GDB, optarg);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
                 with_gdb = true;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
                 break;
             case QEMU_OPTION_L:
@@ -4097,7 +4097,7 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_sdl:
 #ifdef CONFIG_SDL
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
                 display_type = DT_SDL;
 #endif
                 break;
@@ -4150,7 +4150,7 @@ int main(int argc, char **argv, char **envp)
                 break;
             case QEMU_OPTION_M:
             case QEMU_OPTION_machine:
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
             case QEMU_OPTION_board:
 #endif
                 olist = qemu_find_opts("machine");
@@ -4477,7 +4477,7 @@ int main(int argc, char **argv, char **envp)
         }
     }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
     // Initialise tracing as soon as possible.
 
@@ -4504,7 +4504,7 @@ int main(int argc, char **argv, char **envp)
         qemu_set_log(0);
     }
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     /*
      * Clear error location left behind by the loop.
@@ -4552,22 +4552,22 @@ int main(int argc, char **argv, char **envp)
     }
 #endif
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     if (machine_class == NULL) {
         error_report("No machine specified, and there is no default.\n"
                 "Use -machine help to list supported machines!\n");
         exit(1);
     }
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     current_machine = MACHINE(object_new(object_class_get_name(
                           OBJECT_CLASS(machine_class))));
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     if (machine_help_func(qemu_get_machine_opts(), current_machine)) {
          exit(0);
     }
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     object_property_add_child(object_get_root(), "machine",
                               OBJECT(current_machine), &error_abort);
@@ -4592,7 +4592,7 @@ int main(int argc, char **argv, char **envp)
         exit(0);
     }
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 
     // Moved up, right after the args loop.
 
@@ -4619,7 +4619,7 @@ int main(int argc, char **argv, char **envp)
         qemu_set_log(0);
     }
 
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     /* If no data_dir is specified then try to find it relative to the
        executable path.  */
@@ -4754,7 +4754,7 @@ int main(int argc, char **argv, char **envp)
         }
     }
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 
 #if defined(CONFIG_VNC)
     if (!QTAILQ_EMPTY(&(qemu_find_opts("vnc")->head))) {
@@ -4805,7 +4805,7 @@ int main(int argc, char **argv, char **envp)
 
     cortexm_graphic_start(nographic);
 
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     page_size_init();
     socket_init();
@@ -4852,9 +4852,9 @@ int main(int argc, char **argv, char **envp)
     kernel_cmdline = qemu_opt_get(machine_opts, "append");
     bios_name = qemu_opt_get(machine_opts, "firmware");
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     image_filename = qemu_opt_get(machine_opts, "image");
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     opts = qemu_opts_find(qemu_find_opts("boot-opts"), NULL);
     if (opts) {
@@ -4939,7 +4939,7 @@ int main(int argc, char **argv, char **envp)
     }
 #endif
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     /* init the bluetooth world */
     if (foreach_device_config(DEV_BT, bt_parse))
         exit(1);
@@ -5034,15 +5034,15 @@ int main(int argc, char **argv, char **envp)
     current_machine->boot_order = boot_order;
     current_machine->cpu_model = cpu_model;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     current_machine->mcu_device = mcu_device;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     machine_class->init(current_machine);
 
     realtime_init();
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     audio_init();
 #endif
     
@@ -5093,7 +5093,7 @@ int main(int argc, char **argv, char **envp)
         qemu_register_reset(restore_boot_order, g_strdup(boot_order));
     }
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 
     ds = init_displaystate();
 
@@ -5115,7 +5115,7 @@ int main(int argc, char **argv, char **envp)
         break;
     }
 
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     /* must be after terminal init, SDL library changes signal handlers */
     os_setup_signal_handling();
@@ -5175,12 +5175,12 @@ int main(int argc, char **argv, char **envp)
             exit(1);
         }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     } else if (autostart && (kernel_filename || image_filename)) {
         /* If an image is defined and no -S is requested, start it. */
 #else
     } else if (autostart) {
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         vm_start();
     }
@@ -5197,7 +5197,7 @@ int main(int argc, char **argv, char **envp)
 
     /* vhost-user must be cleaned up before chardevs.  */
     net_cleanup();
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     audio_cleanup();
 #endif
     monitor_cleanup();

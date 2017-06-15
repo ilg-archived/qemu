@@ -310,9 +310,9 @@ static void type_initialize(TypeImpl *ti)
                 continue;
             }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
             g_assert(t);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
             type_initialize_interface(ti, t, t);
         }

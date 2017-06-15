@@ -30,13 +30,13 @@
 
 #ifdef DEBUG_GIC
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #define DPRINTF(fmt, ...) \
 do { fprintf(stdout, "arm_gic: " fmt , ## __VA_ARGS__); } while (0)
 #else
 #define DPRINTF(fmt, ...) \
 do { fprintf(stderr, "arm_gic: " fmt , ## __VA_ARGS__); } while (0)
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #else
 #define DPRINTF(fmt, ...) do {} while(0)
@@ -96,7 +96,7 @@ void gic_update(GICState *s)
             if (GIC_TEST_ENABLED(irq, cm) && gic_test_pending(s, irq, cm) &&
                 (irq < GIC_INTERNAL || GIC_TARGET(irq) & cm)) {
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
                 int prio = GIC_GET_PRIORITY(irq, cpu);
                 uint32_t basepri = *(s->basepri_ptr);
                 if ((basepri == 0) || (prio < basepri)) {
@@ -110,7 +110,7 @@ void gic_update(GICState *s)
                     best_prio = GIC_GET_PRIORITY(irq, cpu);
                     best_irq = irq;
                 }
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
             }
         }
 
@@ -986,10 +986,10 @@ static void gic_dist_writeb(void *opaque, hwaddr offset,
 
                 GIC_SET_PENDING(irq + i, GIC_TARGET(irq + i));
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
                 DPRINTF("GIC_SET_PENDING s->irq_state[%d].pending is %d\n",
                         irq + i, s->irq_state[irq + i].pending);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
             }
         }
     } else if (offset < 0x300) {

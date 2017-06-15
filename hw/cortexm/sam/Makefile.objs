@@ -1,5 +1,5 @@
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]
 
 obj-$(CONFIG_SAM) += mcus.o boards.o
 
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]

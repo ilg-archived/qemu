@@ -18,10 +18,10 @@
 #include "exec/semihost.h"
 #include "sysemu/kvm.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #include "hw/intc/gic_internal.h"
 #include <hw/cortexm/nvic.h>
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #define ARM_CPU_FREQ 1000000000 /* FIXME: 1 GHz, should be configurable */
 
@@ -5962,7 +5962,7 @@ static void do_v7m_exception_exit(CPUARMState *env)
 
     type = env->regs[15];
     if (env->v7m.exception != 0)
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         cortexm_nvic_complete_irq(env->nvic, env->v7m.exception);
 #else
         armv7m_nvic_complete_irq(env->nvic, env->v7m.exception);
@@ -6015,13 +6015,13 @@ static void arm_log_exception(int idx)
     }
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 void arm_v6m_cpu_do_interrupt(CPUState *cs)
 {
     /* TODO: Rewrite for v6m */
     return arm_v7m_cpu_do_interrupt(cs);
 }
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 void arm_v7m_cpu_do_interrupt(CPUState *cs)
 {
@@ -6045,7 +6045,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
        one we're raising.  */
     switch (cs->exception_index) {
     case EXCP_UDEF:
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_USAGE);
 #else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_USAGE);
@@ -6053,7 +6053,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
         return;
     case EXCP_SWI:
         /* The PC already points to the next instruction.  */
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_SVC);
 #else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_SVC);
@@ -6064,7 +6064,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
         /* TODO: if we implemented the MPU registers, this is where we
          * should set the MMFAR, etc from exception.fsr and exception.vaddress.
          */
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_MEM);
 #else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_MEM);
@@ -6072,7 +6072,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
         return;
     case EXCP_BKPT:
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         /*
          * The Breakpoint (BKPT) instruction provides for software
          * breakpoints. It can generate a DebugMonitor exception or
@@ -6106,7 +6106,7 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
          * priority is lower than or equal to the execution priority.
          * The exception escalates to a HardFault.
          */
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         if (semihosting_enabled()) {
             int nr;
@@ -6121,23 +6121,23 @@ void arm_v7m_cpu_do_interrupt(CPUState *cs)
             }
         }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         CortexMNVICState* nvic = CORTEXM_NVIC_STATE(env->nvic);
         // Check DHCSR.C_DEBUGEN
         if (nvic->dcb.dhcsr & 1) {
             cpu_interrupt(cs, CPU_INTERRUPT_DEBUG);
             return;
         }
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         cortexm_nvic_set_pending_exception(env->nvic, ARMV7M_EXCP_DEBUG);
 #else
         armv7m_nvic_set_pending(env->nvic, ARMV7M_EXCP_DEBUG);
 #endif
         return;
     case EXCP_IRQ:
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         env->v7m.exception = cortexm_nvic_acknowledge_irq(env->nvic);
 #else
         env->v7m.exception = armv7m_nvic_acknowledge_irq(env->nvic);
@@ -8391,20 +8391,20 @@ void HELPER(v7m_msr)(CPUARMState *env, uint32_t reg, uint32_t val)
     case 17: /* BASEPRI */
         env->v7m.basepri = val & 0xff;
 
- #if defined(CONFIG_GNU_ARM_ECLIPSE)
+ #if defined(CONFIG_GNU_MCU_ECLIPSE)
 
         void* nvic = env->nvic;
         GICState* gic = ARM_GIC_COMMON(nvic);
         gic_update(gic);
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         break;
 
     case 18: /* BASEPRI_MAX */
         val &= 0xff;
 
- #if defined(CONFIG_GNU_ARM_ECLIPSE)
+ #if defined(CONFIG_GNU_MCU_ECLIPSE)
 
         if (val != 0 && (val < env->v7m.basepri || env->v7m.basepri == 0)) {
             env->v7m.basepri = val;
@@ -8419,7 +8419,7 @@ void HELPER(v7m_msr)(CPUARMState *env, uint32_t reg, uint32_t val)
         if (val != 0 && (val < env->v7m.basepri || env->v7m.basepri == 0))
             env->v7m.basepri = val;
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         break;
 

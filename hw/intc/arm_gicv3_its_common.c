@@ -107,7 +107,7 @@ void gicv3_its_init_mmio(GICv3ITSState *s, const MemoryRegionOps *ops)
                                 &s->iomem_its_translation);
     sysbus_init_mmio(sbd, &s->iomem_main);
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     msi_nonbroken = true;
 #endif
 }

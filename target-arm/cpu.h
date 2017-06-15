@@ -676,7 +676,7 @@ extern const struct VMStateDescription vmstate_arm_cpu;
 
 void arm_cpu_do_interrupt(CPUState *cpu);
 void arm_v7m_cpu_do_interrupt(CPUState *cpu);
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 void arm_v6m_cpu_do_interrupt(CPUState *cpu);
 #endif
 bool arm_cpu_exec_interrupt(CPUState *cpu, int int_req);

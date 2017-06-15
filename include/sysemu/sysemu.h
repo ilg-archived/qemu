@@ -4,9 +4,9 @@
 
 #include "config-host.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #include "qemu/typedefs.h"
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #include "qemu/option.h"
 #include "qemu/queue.h"
@@ -72,10 +72,10 @@ void qemu_system_killed(int signal, pid_t pid);
 void qemu_devices_reset(void);
 void qemu_system_reset(bool report);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 void qemu_reset_halt_request(void);
 void qemu_resume_request(void);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 void qemu_system_guest_panicked(void);
 size_t qemu_target_page_bits(void);
@@ -143,9 +143,9 @@ int qemu_loadvm_state(QEMUFile *f);
 
 extern int autostart;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 extern int with_gdb;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 typedef enum {
     VGA_NONE, VGA_STD, VGA_CIRRUS, VGA_VMWARE, VGA_XENFB, VGA_QXL,
@@ -211,11 +211,11 @@ void hmp_pcie_aer_inject_error(Monitor *mon, const QDict *qdict);
 
 /* serial ports */
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #define MAX_SERIAL_PORTS 10
 #else
 #define MAX_SERIAL_PORTS 4
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 extern CharDriverState *serial_hds[MAX_SERIAL_PORTS];
 

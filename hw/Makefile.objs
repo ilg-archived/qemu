@@ -1,7 +1,7 @@
 devices-dirs-$(call land, $(CONFIG_VIRTIO),$(call land,$(CONFIG_VIRTFS),$(CONFIG_PCI))) += 9pfs/
 devices-dirs-$(CONFIG_ACPI) += acpi/
-# [GNU ARM Eclipse]
-ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+# [GNU MCU Eclipse]
+ifeq ($(CONFIG_GNU_MCU_ECLIPSE),n)
 devices-dirs-$(CONFIG_SOFTMMU) += adc/
 devices-dirs-$(CONFIG_SOFTMMU) += audio/
 devices-dirs-$(CONFIG_SOFTMMU) += block/
@@ -13,8 +13,8 @@ devices-dirs-$(CONFIG_SOFTMMU) += display/
 devices-dirs-$(CONFIG_SOFTMMU) += dma/
 devices-dirs-$(CONFIG_SOFTMMU) += gpio/
 devices-dirs-$(CONFIG_SOFTMMU) += i2c/
-# [GNU ARM Eclipse]
-ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+# [GNU MCU Eclipse]
+ifeq ($(CONFIG_GNU_MCU_ECLIPSE),n)
 devices-dirs-$(CONFIG_SOFTMMU) += ide/
 endif
 devices-dirs-$(CONFIG_SOFTMMU) += input/
@@ -26,8 +26,8 @@ devices-dirs-$(CONFIG_SOFTMMU) += misc/
 devices-dirs-$(CONFIG_SOFTMMU) += net/
 devices-dirs-$(CONFIG_SOFTMMU) += nvram/
 devices-dirs-$(CONFIG_SOFTMMU) += pci/
-# [GNU ARM Eclipse]
-ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+# [GNU MCU Eclipse]
+ifeq ($(CONFIG_GNU_MCU_ECLIPSE),n)
 devices-dirs-$(CONFIG_PCI) += pci-bridge/ pci-host/
 devices-dirs-$(CONFIG_SOFTMMU) += pcmcia/
 devices-dirs-$(CONFIG_SOFTMMU) += scsi/
@@ -40,17 +40,17 @@ devices-dirs-$(CONFIG_SOFTMMU) += usb/
 devices-dirs-$(CONFIG_SOFTMMU) += vfio/
 devices-dirs-$(CONFIG_VIRTIO) += virtio/
 devices-dirs-$(CONFIG_SOFTMMU) += watchdog/
-# [GNU ARM Eclipse]
-ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+# [GNU MCU Eclipse]
+ifeq ($(CONFIG_GNU_MCU_ECLIPSE),n)
 devices-dirs-$(CONFIG_SOFTMMU) += xen/
 endif
 devices-dirs-$(CONFIG_MEM_HOTPLUG) += mem/
 devices-dirs-$(CONFIG_SMBIOS) += smbios/
 devices-dirs-y += core/
 
-# [GNU ARM Eclipse]
-devices-dirs-$(CONFIG_GNU_ARM_ECLIPSE) += cortexm/
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]
+devices-dirs-$(CONFIG_GNU_MCU_ECLIPSE) += cortexm/
+# [GNU MCU Eclipse]
 
 common-obj-y += $(devices-dirs-y)
 obj-y += $(devices-dirs-y)

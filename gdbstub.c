@@ -1255,11 +1255,11 @@ static void gdb_vm_state_change(void *opaque, int running, RunState state)
     const char *type;
     int ret;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #if defined(DEBUG_GDB)
     printf("vm_state %d, %d\n", running, state);
 #endif
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     if (running || s->state == RS_INACTIVE) {
         return;
@@ -1513,7 +1513,7 @@ void gdb_exit(CPUArchState *env, int code)
   qemu_chr_delete(chr);
 #endif
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
   gdbserver_state = NULL;
 #endif
 }
@@ -1815,9 +1815,9 @@ int gdbserver_start(const char *device)
 }
 #endif
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 int gdbserver_is_started(void)
 {
     return (gdbserver_state != NULL);
 }
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */

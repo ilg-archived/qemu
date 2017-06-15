@@ -275,12 +275,12 @@ const QEMULogItem qemu_log_items[] = {
       "do not chain compiled TBs so that \"exec\" and \"cpu\" show\n"
       "complete traces" },
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     { LOG_FUNC, "func",
       "log functions entry" },
     { LOG_MR, "mr",
       "log trace messages for memory regions read/writes" },
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     { 0, NULL, NULL },
 };

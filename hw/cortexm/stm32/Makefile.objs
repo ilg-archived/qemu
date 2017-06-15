@@ -1,4 +1,4 @@
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]
 
 obj-$(CONFIG_STM32) += boards-discovery.o boards-olimex.o boards-duino.o boards-nucleo.o
 obj-$(CONFIG_STM32) += mcu.o mcus.o 
@@ -13,4 +13,4 @@ obj-$(CONFIG_STM32) += exti.o
 obj-$(CONFIG_STM32) += syscfg.o
 obj-$(CONFIG_STM32) += afio.o
 
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]

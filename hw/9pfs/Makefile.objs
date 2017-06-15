@@ -1,7 +1,7 @@
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]
 # Disable all.
 
-ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+ifeq ($(CONFIG_GNU_MCU_ECLIPSE),n)
 common-obj-y  = 9p.o
 common-obj-y += 9p-local.o 9p-xattr.o
 common-obj-y += 9p-xattr-user.o 9p-posix-acl.o

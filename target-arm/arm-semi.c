@@ -34,13 +34,13 @@
 #include "hw/arm/arm.h"
 #include "qemu/cutils.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #include "qemu/option.h"
 #include "qemu/config-file.h"
 #include "sysemu/sysemu.h"
 #include <hw/cortexm/graphic.h>
 #include <hw/cortexm/board.h>
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #endif
 
@@ -296,12 +296,12 @@ target_ulong do_arm_semihosting(CPUARMState *env)
         }
         if (strcmp(s, ":tt") == 0) {
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
             /* Mode is 0="r" for stdin, 4="w" for stdout, 8="a" for stderr */
             int result_fileno = arg1 < 4 ? STDIN_FILENO : (arg1 < 8 ? STDOUT_FILENO : STDERR_FILENO);
 #else
             int result_fileno = arg1 < 4 ? STDIN_FILENO : STDOUT_FILENO;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
             unlock_user(s, arg0, 0);
             return result_fileno;
@@ -669,7 +669,7 @@ target_ulong do_arm_semihosting(CPUARMState *env)
         }
 #endif
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
         CortexMBoardState *board = cortexm_board_get();
         if (board != NULL) {

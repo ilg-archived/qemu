@@ -44,11 +44,11 @@ static inline bool qemu_log_separate(void)
 #define LOG_TRACE          (1 << 15)
 #define CPU_LOG_TB_OP_IND  (1 << 16)
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 // Leave some space to avoid overlapping.
 #define LOG_FUNC          (1 << 20)
 #define LOG_MR            (1 << 21)
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 /* Returns true if a bit is set in the current loglevel mask
  */
@@ -144,9 +144,9 @@ void qemu_log_flush(void);
 /* Close the log file */
 void qemu_log_close(void);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #define qemu_log_function_name() \
     qemu_log_mask(LOG_FUNC, "%s()\n", __FUNCTION__)
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #endif

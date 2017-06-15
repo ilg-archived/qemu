@@ -151,7 +151,7 @@ static void gicv2m_realize(DeviceState *dev, Error **errp)
         sysbus_init_irq(SYS_BUS_DEVICE(dev), &s->spi[i]);
     }
 
-// [GNU ARM Eclipse]
+// [GNU MCU Eclipse]
 #if defined(CONFIG_PCI)
     msi_nonbroken = true;
 #endif

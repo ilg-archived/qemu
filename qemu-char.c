@@ -3405,11 +3405,11 @@ static gboolean tcp_chr_accept(GIOChannel *channel, GIOCondition cond, void *opa
     CharDriverState *chr = opaque;
     TCPCharDriver *s = chr->opaque;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     struct sockaddr_in6 saddr;
 #else
     struct sockaddr_in saddr;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #ifndef _WIN32
     struct sockaddr_un uaddr;
@@ -3480,7 +3480,7 @@ static gboolean tcp_chr_accept(QIOChannel *channel,
     sioc = qio_channel_socket_accept(QIO_CHANNEL_SOCKET(channel),
                                      NULL);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
 #if defined(CONFIG_VERBOSE)
 
@@ -3504,7 +3504,7 @@ static gboolean tcp_chr_accept(QIOChannel *channel,
 
 #endif /* defined(CONFIG_VERBOSE) */
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     if (!sioc) {
         return TRUE;

@@ -11,9 +11,9 @@
 #include "qapi/visitor.h"
 #include "sysemu/char.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #include "qemu/log.h"
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 void qdev_prop_set_after_realize(DeviceState *dev, const char *name,
                                   Error **errp)
@@ -1037,10 +1037,10 @@ void qdev_prop_set_ptr(DeviceState *dev, const char *name, void *value)
     Property *prop;
     void **ptr;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         qemu_log_mask(LOG_FUNC, "%s('%s', '%s')\n", __FUNCTION__,
                 object_get_typename(OBJECT(dev)), name);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     prop = qdev_prop_find(dev, name);
     assert(prop && prop->info == &qdev_prop_ptr);

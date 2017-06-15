@@ -210,10 +210,10 @@ static void arm_cpu_reset(CPUState *s)
         env->regs[15] = initial_pc & ~1;
         env->thumb = initial_pc & 1;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         qemu_log_mask(LOG_FUNC, "MSP=0x%08X, PC=0x%08X\n", env->regs[13],
                 env->regs[15]);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
     }
 
     /* AArch32 has a hard highvec setting of 0xFFFF0000.  If we are currently
@@ -334,13 +334,13 @@ static bool arm_v7m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
     return ret;
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 static bool arm_v6m_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
 {
     /* TODO: check v6m differences. */
     return arm_v7m_cpu_exec_interrupt(cs, interrupt_request);
 }
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #endif
 
@@ -796,7 +796,7 @@ static ObjectClass *arm_cpu_class_by_name(const char *cpu_model)
 /* CPU models. These are not needed for the AArch64 linux-user build. */
 #if !defined(CONFIG_USER_ONLY) || !defined(TARGET_AARCH64)
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
 
 static void arm926_initfn(Object *obj)
 {
@@ -986,9 +986,9 @@ static void arm11mpcore_initfn(Object *obj)
     cpu->reset_auxcr = 1;
 }
 
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
 static void arm_v6m_class_init(ObjectClass *oc, void *data)
 {
@@ -1038,7 +1038,7 @@ static void cortex_m7_initfn(Object *obj)
     cpu->midr = 0x410FC270; /* M7, r0p0, TODO: check, when manual available */
 }
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 static void cortex_m3_initfn(Object *obj)
 {
@@ -1531,7 +1531,7 @@ typedef struct ARMCPUInfo {
 static const ARMCPUInfo arm_cpus[] = {
 #if !defined(CONFIG_USER_ONLY) || !defined(TARGET_AARCH64)
 
-#if !defined(CONFIG_GNU_ARM_ECLIPSE)
+#if !defined(CONFIG_GNU_MCU_ECLIPSE)
     { .name = "arm926",      .initfn = arm926_initfn },
     { .name = "arm946",      .initfn = arm946_initfn },
     { .name = "arm1026",     .initfn = arm1026_initfn },
@@ -1543,9 +1543,9 @@ static const ARMCPUInfo arm_cpus[] = {
     { .name = "arm1136",     .initfn = arm1136_initfn },
     { .name = "arm1176",     .initfn = arm1176_initfn },
     { .name = "arm11mpcore", .initfn = arm11mpcore_initfn },
-#endif /* !defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* !defined(CONFIG_GNU_MCU_ECLIPSE) */
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     /* Cortex-M cores - experimental support.  */
     { .name = "cortex-m0",   .initfn = cortex_m0_initfn,
                              .class_init = arm_v6m_class_init },
@@ -1555,14 +1555,14 @@ static const ARMCPUInfo arm_cpus[] = {
                              .class_init = arm_v6m_class_init },
     { .name = "cortex-m7",   .initfn = cortex_m7_initfn,
                              .class_init = arm_v7m_class_init },
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     { .name = "cortex-m3",   .initfn = cortex_m3_initfn,
                              .class_init = arm_v7m_class_init },
     { .name = "cortex-m4",   .initfn = cortex_m4_initfn,
                              .class_init = arm_v7m_class_init },
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     { .name = "cortex-r5",   .initfn = cortex_r5_initfn },
     { .name = "cortex-a7",   .initfn = cortex_a7_initfn },
     { .name = "cortex-a8",   .initfn = cortex_a8_initfn },
@@ -1587,7 +1587,7 @@ static const ARMCPUInfo arm_cpus[] = {
 #ifdef CONFIG_USER_ONLY
     { .name = "any",         .initfn = arm_any_initfn },
 #endif
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 #endif
     { .name = NULL }
 };
@@ -1662,13 +1662,13 @@ static void arm_cpu_class_init(ObjectClass *oc, void *data)
     cc->write_elf32_note = arm_cpu_write_elf32_note;
 #endif
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     cc->gdb_num_core_regs = 32;
     cc->gdb_core_xml_file = "arm-cortexm.xml";
 #else
     cc->gdb_num_core_regs = 26;
     cc->gdb_core_xml_file = "arm-core.xml";
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     cc->gdb_arch_name = arm_gdb_arch_name;
     cc->gdb_stop_before_watchpoint = true;

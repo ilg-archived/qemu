@@ -1,25 +1,25 @@
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]
 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += mcu.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += helper.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += parson.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += json-parser.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += svd.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += mcu.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += helper.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += parson.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += json-parser.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += svd.o
 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += register-bitfield.o 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += peripheral-register.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += peripheral.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += register-bitfield.o 
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += peripheral-register.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += peripheral.o
 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += nvic.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += itm.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += bitband.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += nvic.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += itm.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += bitband.o
 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += board.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += graphic.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += gpio-led.o
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += button.o 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += button-gpio.o 
-obj-$(CONFIG_GNU_ARM_ECLIPSE) += button-reset.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += board.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += graphic.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += gpio-led.o
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += button.o 
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += button-gpio.o 
+obj-$(CONFIG_GNU_MCU_ECLIPSE) += button-reset.o
 
 obj-$(CONFIG_STM32) += stm32/
 obj-$(CONFIG_KINETIS) += kinetis/
@@ -28,4 +28,4 @@ obj-$(CONFIG_TIVA) += tiva/
 obj-$(CONFIG_XMC) += xmc/
 obj-$(CONFIG_SAM) += sam/
 
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]

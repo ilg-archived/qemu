@@ -317,13 +317,13 @@ void qemu_init_exec_dir(const char *argv0)
         p--;
     }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     /* Eat-up \bin too */
     --p;
     while (p != buf && *p != '\\') {
         p--;
     }
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     *p = 0;
     if (access(buf, R_OK) == 0) {

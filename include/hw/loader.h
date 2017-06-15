@@ -213,8 +213,8 @@ void hmp_info_roms(Monitor *mon, const QDict *qdict);
 int rom_add_vga(const char *file);
 int rom_add_option(const char *file, int32_t bootindex);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 void rom_reset(void *unused);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 #endif

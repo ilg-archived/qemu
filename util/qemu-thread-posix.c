@@ -43,7 +43,7 @@ void qemu_mutex_init(QemuMutex *mutex)
 {
     int err;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     pthread_mutexattr_t mxattr;
     pthread_mutexattr_init(&mxattr);
     pthread_mutexattr_settype(&mxattr, PTHREAD_MUTEX_ERRORCHECK);
@@ -51,7 +51,7 @@ void qemu_mutex_init(QemuMutex *mutex)
     err = pthread_mutex_init(&mutex->lock, &mxattr);
 #else
     err = pthread_mutex_init(&mutex->lock, NULL);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
     if (err)
         error_exit(err, __func__);
 }

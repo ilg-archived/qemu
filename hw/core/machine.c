@@ -115,7 +115,7 @@ static void machine_set_kernel(Object *obj, const char *value, Error **errp)
     ms->kernel_filename = g_strdup(value);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 
 static char *machine_get_image(Object *obj, Error **errp)
 {
@@ -132,7 +132,7 @@ static void machine_set_image(Object *obj, const char *value, Error **errp)
     ms->image_filename = g_strdup(value);
 }
 
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 static char *machine_get_initrd(Object *obj, Error **errp)
 {
@@ -504,13 +504,13 @@ static void machine_initfn(Object *obj)
     ms->mem_merge = true;
     ms->enable_graphics = true;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     object_property_add_str(obj, "image",
                             machine_get_image, machine_set_image, NULL);
     object_property_set_description(obj, "image",
                                     "Bare-bone image file",
                                     NULL);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     /* Register notifier when init is done for sysbus sanity checks */
     ms->sysbus_notifier.notify = machine_init_notify;
@@ -526,9 +526,9 @@ static void machine_finalize(Object *obj)
     g_free(ms->initrd_filename);
     g_free(ms->kernel_cmdline);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     g_free((void*)ms->image_filename);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     g_free(ms->dtb);
     g_free(ms->dumpdtb);

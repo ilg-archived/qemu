@@ -59,7 +59,7 @@
 #if defined(CONFIG_VERBOSE)
 #include "verbosity.h"
 #endif
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #include "qemu/log.h"
 #endif
 
@@ -1058,15 +1058,15 @@ int rom_add_option(const char *file, int32_t bootindex)
     return rom_add_file(file, "genroms", 0, bootindex, true, NULL, NULL);
 }
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 void rom_reset(void *unused)
 #else
 static void rom_reset(void *unused)
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 {
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     qemu_log_function_name();
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     Rom *rom;
 

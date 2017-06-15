@@ -22,10 +22,10 @@
 #include "cpu.h"
 #include "exec/gdbstub.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 uint32_t helper_v7m_mrs(CPUARMState *env, uint32_t reg);
 void helper_v7m_msr(CPUARMState *env, uint32_t reg, uint32_t val);
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 /* Old gdb always expect FPA registers.  Newer (xml-aware) gdb only expect
    whatever the target description contains.  Due to a historical mishap
@@ -61,7 +61,7 @@ int arm_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
         /* CPSR */
         return gdb_get_reg32(mem_buf, cpsr_read(env));
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     case 26:
         /* MSP */
         return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 8));
@@ -80,7 +80,7 @@ int arm_cpu_gdb_read_register(CPUState *cs, uint8_t *mem_buf, int n)
     case 31:
         /* CONTROL */
         return gdb_get_reg32(mem_buf, helper_v7m_mrs(env, 20));
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     }
     /* Unknown register.  */
@@ -125,7 +125,7 @@ int arm_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
         cpsr_write(env, tmp, 0xffffffff, CPSRWriteByGDBStub);
         return 4;
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
     case 26:
         /* MSP */
         helper_v7m_msr(env, 8, tmp);
@@ -150,7 +150,7 @@ int arm_cpu_gdb_write_register(CPUState *cs, uint8_t *mem_buf, int n)
         /* CONTROL */
         helper_v7m_msr(env, 20, tmp);
         return 4;
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
         }
     /* Unknown register.  */

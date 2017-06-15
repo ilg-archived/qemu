@@ -34,14 +34,14 @@
 #endif
 #include "sysemu/replay.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #if defined(_WIN64)
 #ifdef sigsetjmp
 #undef sigsetjmp
 #endif
 #define sigsetjmp(env, savesigs) _setjmp(env, NULL)
 #endif
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
 /* -icount align implementation. */
 

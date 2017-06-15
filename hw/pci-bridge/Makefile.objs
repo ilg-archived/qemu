@@ -1,7 +1,7 @@
-# [GNU ARM Eclipse]
+# [GNU MCU Eclipse]
 # Disable some.
 
-ifeq ($(CONFIG_GNU_ARM_ECLIPSE),n)
+ifeq ($(CONFIG_GNU_MCU_ECLIPSE),n)
 common-obj-y += pci_bridge_dev.o
 common-obj-y += pci_expander_bridge.o
 endif

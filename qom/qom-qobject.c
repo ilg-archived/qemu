@@ -18,12 +18,12 @@
 #include "qapi/qobject-input-visitor.h"
 #include "qapi/qobject-output-visitor.h"
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
 #include "qapi/qmp/types.h"
 #include "qemu/log.h"
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE__)
+#if defined(CONFIG_GNU_MCU_ECLIPSE__)
 static char *dump_value(QObject *value, char *buf, size_t siz)
 {
     if (value->type->code == QTYPE_QINT) {

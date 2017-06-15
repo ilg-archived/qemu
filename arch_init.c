@@ -104,7 +104,7 @@ int qemu_read_default_config_files(bool userconfig)
         }
         ret = qemu_read_config_file(f->filename);
 
-#if defined(CONFIG_GNU_ARM_ECLIPSE)
+#if defined(CONFIG_GNU_MCU_ECLIPSE)
         if (ret < 0 && ret != -ENOENT && ret != -EACCES) {
             return ret;
         }
@@ -112,7 +112,7 @@ int qemu_read_default_config_files(bool userconfig)
         if (ret < 0 && ret != -ENOENT) {
             return ret;
         }
-#endif /* defined(CONFIG_GNU_ARM_ECLIPSE) */
+#endif /* defined(CONFIG_GNU_MCU_ECLIPSE) */
 
     }
 
