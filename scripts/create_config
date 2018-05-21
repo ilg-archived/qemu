@@ -9,7 +9,7 @@ case $line in
     version=${line#*=}
     major=$(echo "$version" | cut -d. -f1)
     minor=$(echo "$version" | cut -d. -f2)
-    micro=$(echo "$version" | cut -d. -f3)
+    micro=$(echo "$version" | cut -d. -f3 | sed 's/^\([0-9]*\).*$/\1/')
     echo "#define QEMU_VERSION \"$version\""
     echo "#define QEMU_VERSION_MAJOR $major"
     echo "#define QEMU_VERSION_MINOR $minor"
