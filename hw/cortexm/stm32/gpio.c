@@ -2590,6 +2590,15 @@ static bool stm32_gpio_is_enabled(Object *obj)
     return false;
 }
 
+static void stm32f0_gpio_brr_pre_write_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value, peripheral_register_t full_value)
+{
+    // None of the register bits are persistent, only the side effects
+    // (setting odr and triggering irqs) are relevant here.
+    return 0;
+}
+
 static void stm32f0_gpio_brr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
@@ -2649,6 +2658,15 @@ static void stm32f1_gpio_odr_post_write_callback(Object *reg, Object *periph,
     stm32_gpio_update_idr(state, state->u.f1.reg.idr, full_value);
 }
 
+static void stm32f1_gpio_bsrr_pre_write_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value, peripheral_register_t full_value)
+{
+    // None of the register bits are persistent, only the side effects
+    // (setting odr and triggering irqs) are relevant here.
+    return 0;
+}
+
 static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
         uint32_t addr, uint32_t offset, unsigned size,
         peripheral_register_t value, peripheral_register_t full_value)
@@ -2666,6 +2684,15 @@ static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     uint32_t new_value = (peripheral_register_get_raw_value(odr)
             & (~bits_to_reset)) | bits_to_set;
     stm32_gpio_update_odr_and_idr(state, odr, state->u.f1.reg.idr, new_value);
+}
+
+static void stm32f1_gpio_brr_pre_write_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value, peripheral_register_t full_value)
+{
+    // None of the register bits are persistent, only the side effects
+    // (setting odr and triggering irqs) are relevant here.
+    return 0;
 }
 
 static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
@@ -2792,6 +2819,15 @@ static void stm32f4_gpio_odr_post_write_callback(Object *reg, Object *periph,
     // 'value' may be have any size, use full_word.
     stm32_gpio_set_odr_irqs(state, prev_value, full_value);
     stm32_gpio_update_idr(state, state->reg.idr, full_value);
+}
+
+static void stm32f4_gpio_bsrr_pre_write_callback(Object *reg, Object *periph,
+        uint32_t addr, uint32_t offset, unsigned size,
+        peripheral_register_t value, peripheral_register_t full_value)
+{
+    // None of the register bits are persistent, only the side effects
+    // (setting odr and triggering irqs) are relevant here.
+    return 0;
 }
 
 static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
@@ -3095,12 +3131,18 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         // Add callbacks. Use some of the F4 callbacks.
         peripheral_register_set_post_write(state->reg.moder,
                 &stm32f4_gpio_moder_post_write_callback);
+
         peripheral_register_set_post_write(state->reg.odr,
                 &stm32f4_gpio_odr_post_write_callback);
+
+        peripheral_register_set_pre_write(state->reg.bsrr,
+                &stm32f4_gpio_bsrr_pre_write_callback);
         peripheral_register_set_post_write(state->reg.bsrr,
                 &stm32f4_gpio_bsrr_post_write_callback);
 
         // F0 specific.
+        peripheral_register_set_pre_write(state->reg.brr,
+                &stm32f0_gpio_brr_pre_write_callback);
         peripheral_register_set_post_write(state->reg.brr,
                 &stm32f0_gpio_brr_post_write_callback);
 
@@ -3132,12 +3174,20 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         // Add callbacks.
         peripheral_register_set_post_write(state->u.f1.reg.crl,
                 &stm32f1_gpio_crl_post_write_callback);
+
         peripheral_register_set_post_write(state->u.f1.reg.crh,
                 &stm32f1_gpio_crh_post_write_callback);
+
         peripheral_register_set_post_write(state->u.f1.reg.odr,
                 &stm32f1_gpio_odr_post_write_callback);
+
+        peripheral_register_set_pre_write(state->u.f1.reg.bsrr,
+                &stm32f1_gpio_bsrr_pre_write_callback);
         peripheral_register_set_post_write(state->u.f1.reg.bsrr,
                 &stm32f1_gpio_bsrr_post_write_callback);
+
+        peripheral_register_set_pre_write(state->u.f1.reg.brr,
+                &stm32f1_gpio_brr_pre_write_callback);
         peripheral_register_set_post_write(state->u.f1.reg.brr,
                 &stm32f1_gpio_brr_post_write_callback);
 
@@ -3184,8 +3234,12 @@ static void stm32_gpio_realize_callback(DeviceState *dev, Error **errp)
         // Add callbacks.
         peripheral_register_set_post_write(state->reg.moder,
                 &stm32f4_gpio_moder_post_write_callback);
+
         peripheral_register_set_post_write(state->reg.odr,
                 &stm32f4_gpio_odr_post_write_callback);
+
+        peripheral_register_set_pre_write(state->reg.bsrr,
+                &stm32f4_gpio_bsrr_pre_write_callback);
         peripheral_register_set_post_write(state->reg.bsrr,
                 &stm32f4_gpio_bsrr_post_write_callback);
 
