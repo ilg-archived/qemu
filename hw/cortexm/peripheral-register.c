@@ -573,14 +573,13 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
 
     state->prev_value = state->value;
 
-    peripheral_register_t tmp_value;
     if (state->pre_write) {
-        tmp_value = state->pre_write(reg, periph, addr, offset, size, value,
+        state->value = state->pre_write(reg, periph, addr, offset, size, value,
                 full_value);
     } else {
-        tmp_value = full_value;
+        state->value = full_value;
     }
-    state->value = tmp_value & state->persistent_bits;
+    state->value &= state->persistent_bits;
 
     // Actions associated with registers are implemented with post write
     // callbacks. The original value, possibly short and unaligned, is
