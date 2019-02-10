@@ -625,7 +625,7 @@ static void peripheral_register_instance_init_callback(Object *obj)
 
     cm_object_property_add_uint64_callback(obj, "persistent-bits",
             &state->persistent_bits);
-    state->writable_bits = 0xFFFFFFFFFFFFFFFF;
+    state->persistent_bits = 0xFFFFFFFFFFFFFFFF;
 
     cm_object_property_add_uint64_callback(obj, "access-flags",
             &state->access_flags);
