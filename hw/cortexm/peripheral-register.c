@@ -66,6 +66,9 @@ Object *peripheral_register_add_properties_and_children(Object *obj,
     if (info->writable_bits != 0) {
         cm_object_property_set_int(obj, info->writable_bits, "writable-bits");
     }
+    if (info->persistent_bits != 0) {
+        cm_object_property_set_int(obj, info->persistent_bits, "persistent-bits");
+    }
     uint64_t access_flags = 0;
     if (info->access_flags != 0) {
         access_flags = info->access_flags;
@@ -570,12 +573,14 @@ static void peripheral_register_write_callback(Object *reg, Object *periph,
 
     state->prev_value = state->value;
 
+    peripheral_register_t tmp_value;
     if (state->pre_write) {
-        state->value = state->pre_write(reg, periph, addr, offset, size, value,
+        tmp_value = state->pre_write(reg, periph, addr, offset, size, value,
                 full_value);
     } else {
-        state->value = full_value;
+        tmp_value = full_value;
     }
+    state->value = tmp_value & state->persistent_bits;
 
     // Actions associated with registers are implemented with post write
     // callbacks. The original value, possibly short and unaligned, is
@@ -617,6 +622,10 @@ static void peripheral_register_instance_init_callback(Object *obj)
     cm_object_property_add_uint64_callback(obj, "writable-bits",
             &state->writable_bits);
     state->writable_bits = 0x0000000000000000;
+
+    cm_object_property_add_uint64_callback(obj, "persistent-bits",
+            &state->persistent_bits);
+    state->writable_bits = 0xFFFFFFFFFFFFFFFF;
 
     cm_object_property_add_uint64_callback(obj, "access-flags",
             &state->access_flags);

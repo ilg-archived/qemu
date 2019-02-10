@@ -123,6 +123,8 @@ typedef struct {
     peripheral_register_t readable_bits;
     // mask with the bits that can be written; the other are unchanged.
     peripheral_register_t writable_bits;
+    // mask with the bits that must be stored between accesses.
+    peripheral_register_t persistent_bits;
 
     // Each byte encodes which accesses are allowed, for different alignments.
     uint64_t access_flags;
@@ -214,6 +216,8 @@ typedef struct {
     peripheral_register_t reset_mask;
     peripheral_register_t readable_bits;
     peripheral_register_t writable_bits;
+    peripheral_register_t persistent_bits;
+
     uint64_t access_flags;
 
     uint32_t size_bits;
