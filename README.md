@@ -1,10 +1,10 @@
-[![GitHub release](https://img.shields.io/github/release/gnuarmeclipse/qemu.svg)](https://github.com/gnu-mcu-eclipse/qemu/releases/latest) [![Github Releases](https://img.shields.io/github/downloads/gnuarmeclipse/qemu/latest/total.svg)](https://github.com/gnu-mcu-eclipse/qemu/releases/latest) [![Github All Releases](https://img.shields.io/github/downloads/gnuarmeclipse/qemu/total.svg)](https://github.com/gnu-mcu-eclipse/qemu/releases/latest)
+[![GitHub release](https://img.shields.io/github/release/gnumcueclipse/qemu.svg)](https://github.com/gnu-mcu-eclipse/qemu/releases/latest) [![Github Releases](https://img.shields.io/github/downloads/gnumcueclipse/qemu/latest/total.svg)](https://github.com/gnu-mcu-eclipse/qemu/releases/latest) [![Github All Releases](https://img.shields.io/github/downloads/gnumcueclipse/qemu/total.svg)](https://github.com/gnu-mcu-eclipse/qemu/releases/latest)
 
 # GNU MCU Eclipse QEMU
 
 ## Rationale
 
-The [GNU MCU Eclipse QEMU](http://gnuarmeclipse.github.io/qemu) subproject 
+The [GNU MCU Eclipse QEMU](http://gnumcueclipse.github.io/qemu) subproject 
 is a fork of [QEMU](http://wiki.qemu.org/Main_Page) (an open source machine 
 emulator), intended to provide support for Cortex-M emulation in GNU MCU 
 Eclipse.
