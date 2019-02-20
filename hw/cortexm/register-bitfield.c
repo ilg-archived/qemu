@@ -24,7 +24,7 @@
 
 /*
  * This file implements a register bitfield.
- * Up to 64-bits registers are supported.
+ * Up to 64 bits registers are supported.
  * Bitfield objects are always children of register objects.
  * Bitfields do not keep a separate value, but get it from the
  * parent register, by masking and shifting

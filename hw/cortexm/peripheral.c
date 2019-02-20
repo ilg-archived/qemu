@@ -1,5 +1,5 @@
 /*
- * 32-bits peripheral emulation.
+ * 32-bit peripheral emulation.
  *
  * Copyright (c) 2015 Liviu Ionescu.
  *

@@ -2196,9 +2196,9 @@ static void main_loop(void)
 #if defined(CONFIG_GNU_MCU_ECLIPSE) || defined(CONFIG_VERBOSE)
 
 #if INTPTR_MAX == INT32_MAX
-#define QEMU_WORDSIZE "32-bits "
+#define QEMU_WORDSIZE "32-bit "
 #elif INTPTR_MAX == INT64_MAX
-#define QEMU_WORDSIZE "64-bits "
+#define QEMU_WORDSIZE "64-bit "
 #else
 #define QEMU_WORDSIZE ""
 #endif

@@ -147,11 +147,11 @@ static const STM32Capabilities stm32f051x8 = {
     .has_dma = true,
     .num_dma = 5,
 
-    .has_adc = true, // 12-bits, 16+3 channels, Vref = ADC_IN17
+    .has_adc = true, // 12-bit, 16+3 channels, Vref = ADC_IN17
 
     .has_ts = 1, // ADC12_IN16
 
-    .has_dac = true, // 12-bits, 5 channels
+    .has_dac = true, // 12-bit, 5 channels
 
     .has_comp = true,
     .num_comp = 2,
@@ -221,11 +221,11 @@ static const STM32Capabilities stm32f072rb = {
     .has_dma = true,
     .num_dma = 7,
 
-    .has_adc = true, // 12-bits, 10+3 channels, Vref = ADC_IN17
+    .has_adc = true, // 12-bit, 10+3 channels, Vref = ADC_IN17
 
     .has_ts = 1, // ADC12_IN16
 
-    .has_dac = true, // 12-bits, 5 channels
+    .has_dac = true, // 12-bit, 5 channels
 
     .has_comp = true,
     .num_comp = 2,
@@ -318,8 +318,8 @@ static const STM32Capabilities stm32f103x8b = {
     .has_gpiod = true,
     .has_gpioe = true,
 
-    .has_adc1 = true, // 12-bits, 16-ch
-    .has_adc2 = true, // 12-bits, 16-ch
+    .has_adc1 = true, // 12-bit, 16-ch
+    .has_adc2 = true, // 12-bit, 16-ch
 
     .has_ts = 1, // ADC12_IN16
         };
@@ -421,7 +421,7 @@ static const STM32Capabilities stm32l15_12_xd = {
     .has_fsmc = true,
     .has_dma = true,
     .num_dma = 12,
-    .has_adc = true, /* 12-bits, 40-ch */
+    .has_adc = true, /* 12-bit, 40-ch */
     .has_ts = true, /* ADC_IN16 */
     .has_dac1 = true,
     .has_dac2 = true,
@@ -547,12 +547,12 @@ static const STM32Capabilities stm32f405xx = {
     .has_gpioh = true,
     .has_gpioi = true,
 
-    .has_adc1 = true, /* 12-bits, 16 channels */
+    .has_adc1 = true, /* 12-bit, 16 channels */
     .has_adc2 = true,
     .has_adc3 = true,
     .has_ts = true, /* ADC1_IN16 */
 
-    .has_dac1 = true, /* 12-bits */
+    .has_dac1 = true, /* 12-bit */
     .has_dac2 = true,
 /**/
 };
@@ -643,12 +643,12 @@ static const STM32Capabilities stm32f407xx = {
     .has_gpioh = true,
     .has_gpioi = true,
 
-    .has_adc1 = true, // 12-bits, 16 channels
+    .has_adc1 = true, // 12-bit, 16 channels
     .has_adc2 = true,
     .has_adc3 = true,
     .has_ts = true, // ADC1_IN16
 
-    .has_dac1 = true, // 12-bits
+    .has_dac1 = true, // 12-bit
     .has_dac2 = true,
 /**/
 };
@@ -722,7 +722,7 @@ static const STM32Capabilities stm32f411xx = {
 
     .has_gpioh = true, // TODO: only H0 & H1 are present
 
-    .has_adc1 = true, /* 12-bits, 16 channels */
+    .has_adc1 = true, /* 12-bit, 16 channels */
     .has_ts = true, /* ADC1_IN16 */
 
 };
@@ -812,12 +812,12 @@ static const STM32Capabilities stm32f429xx = {
     .has_gpioh = true,
     .has_gpioi = true,
 
-    .has_adc1 = true, /* 12-bits, 16 channels */
+    .has_adc1 = true, /* 12-bit, 16 channels */
     .has_adc2 = true,
     .has_adc3 = true,
     .has_ts = true, /* ADC1_IN16 */
 
-    .has_dac1 = true, /* 12-bits */
+    .has_dac1 = true, /* 12-bit */
     .has_dac2 = true,
 /**/
 };

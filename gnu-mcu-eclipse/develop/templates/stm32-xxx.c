@@ -43,7 +43,7 @@
 /* STM32F1[LMHX]D, STM32F1CL */
 
 /**
- * STM32F1 read 32-bits.
+ * STM32F1 read 32 bits.
  */
 static uint32_t stm32f1_xxx_read32(STM32XxxState *state, uint32_t offset,
         unsigned size)
@@ -66,7 +66,7 @@ static uint32_t stm32f1_xxx_read32(STM32XxxState *state, uint32_t offset,
 }
 
 /**
- * STM32F1 write 32-bits.
+ * STM32F1 write 32 bits.
  */
 static void stm32f1_xxx_write32(STM32XxxState *state, uint32_t offset,
         uint32_t value, unsigned size)

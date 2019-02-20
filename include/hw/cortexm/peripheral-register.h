@@ -30,7 +30,7 @@
 
 /*
  * Emulates the behaviour of a peripheral register.
- * Up to 64-bits are supported.
+ * Up to 64 bits are supported.
  *
  * Register are defined in terms of offset inside the MMIO area,
  * read/write masks, reset value.

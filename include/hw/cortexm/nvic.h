@@ -122,7 +122,7 @@ typedef struct {
     } scb;
 
     // Debug Control Block 0xE000EDF0 - 0xE000EEFF
-    // All registers are 32-bits wide.
+    // All registers are 32-bit wide.
     struct {
         uint32_t dhcsr; // 0xE000EDF0, RW, Debug Halting Control and Status Register,
         uint32_t dcrsr; // 0xE000EDF4, WO, Debug Core Register Selector Register

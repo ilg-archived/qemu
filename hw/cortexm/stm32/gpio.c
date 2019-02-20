@@ -2658,7 +2658,7 @@ static void stm32f1_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
     Object *odr = state->u.f1.reg.odr;
     assert(odr);
 
-    // Although 'value' is known to be 32-bits, for consistency use full_value
+    // Although 'value' is known to be 32-bit, for consistency use full_value
     uint32_t bits_to_set = (full_value & 0x0000FFFF);
     uint32_t bits_to_reset = ((full_value >> 16) & 0x0000FFFF);
 
@@ -2677,7 +2677,7 @@ static void stm32f1_gpio_brr_post_write_callback(Object *reg, Object *periph,
     Object *odr = state->u.f1.reg.odr;
     assert(odr);
 
-    // Although 'value' is known to be 32-bits, for consistency use full_value
+    // Although 'value' is known to be 32-bit, for consistency use full_value
     uint32_t bits_to_reset = (full_value & 0x0000FFFF);
 
     // Clear the BR bits.
@@ -2816,7 +2816,7 @@ static void stm32f4_gpio_bsrr_post_write_callback(Object *reg, Object *periph,
 // ----------------------------------------------------------------------------
 
 // The F4 family has more uniform configuration registers, each
-// register bit has a 2-bits slice in a register.
+// register bit has a 2-bit slice in a register.
 static uint32_t stm32f4_gpio_get_config_bits(uint32_t value, uint32_t bit)
 {
     assert(bit < 16);

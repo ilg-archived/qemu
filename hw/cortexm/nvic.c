@@ -490,7 +490,7 @@ static void nvic_writel(CortexMNVICState *s, uint32_t offset, uint32_t value)
         break;
 
         // Debug Control Block 0xE000EDF0 - 0xE000EEFF
-        // All registers are 32-bits wide.
+        // All registers are 32-bit wide.
         // See also SCB.DFSR 0xE000ED30
 
     case 0xDF0: /* DHCSR.  */
