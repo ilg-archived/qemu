@@ -497,6 +497,14 @@ endif
 	$(MAKE) $(SUBDIR_MAKEFLAGS) TARGET_DIR=$$d/ -C $$d $@ || exit 1 ; \
         done
 
+install-gme:
+	@echo "Installing GME specific files..."
+	$(INSTALL_DIR) "$(DESTDIR)$(qemu_datadir)"/devices
+	$(INSTALL_DATA) "$(SRC_PATH)"/gnu-mcu-eclipse/devices/*.json "$(DESTDIR)$(qemu_datadir)"/devices
+	$(INSTALL_DATA) "$(SRC_PATH)"/gnu-mcu-eclipse/devices/README.md "$(DESTDIR)$(qemu_datadir)"/devices
+	$(INSTALL_DIR) "$(DESTDIR)$(qemu_datadir)"/graphics
+	$(INSTALL_DATA) "$(SRC_PATH)"/gnu-mcu-eclipse/graphics/*.jpg "$(DESTDIR)$(qemu_datadir)"/graphics
+
 # various test targets
 test speed: all
 	$(MAKE) -C tests/tcg $@
