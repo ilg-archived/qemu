@@ -63,6 +63,11 @@ are available from the
 [gnu-mcu-eclipse/qemu-xpack](https://github.com/gnu-mcu-eclipse/qemu-xpack)
 project.
 
+## Development
+
+Details on the development environment are provided in the separate
+[DEVELOP.md](DEVELOP.md) page in this project.
+
 ## Download analytics
 
 * GitHub [gnu-mcu-eclipse/qemu.git](https://github.com/gnu-mcu-eclipse/qemu/)
