@@ -1,0 +1,100 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "(gdb) Launch qemu --help",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "args": [
+        "--help"
+      ],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "(gdb) Launch qemu f4b-sh --nographic",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "args": [
+        "--verbose",
+        "--verbose",
+        "--board",
+        "STM32F4-Discovery",
+        "--mcu",
+        "STM32F407VG",
+        "-d",
+        "unimp,guest_errors",
+        "--nographic",
+        "--image",
+        "${HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
+        "--semihosting-config",
+        "enable=on,target=native",
+        "--semihosting-cmdline",
+        "f4b",
+        "20"
+      ],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "(gdb) Launch qemu f4b-sh (graphic)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "args": [
+        "--verbose",
+        "--verbose",
+        "--board",
+        "STM32F4-Discovery",
+        "--mcu",
+        "STM32F407VG",
+        "-d",
+        "unimp,guest_errors",
+        "--image",
+        "${HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
+        "--semihosting-config",
+        "enable=on,target=native",
+        "--semihosting-cmdline",
+        "f4b",
+        "20"
+      ],
+      "stopAtEntry": true,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    }
+  ]
+}
