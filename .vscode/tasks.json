@@ -1,3 +1,4 @@
+
 {
   // See https://go.microsoft.com/fwlink/?LinkId=733558
   // for the documentation about the tasks.json format
@@ -14,7 +15,8 @@
       "command": "bash",
       "args": [
         "${HOME}/Downloads/qemu-build.git/scripts/build-native.sh",
-        "--debug"
+        "--debug",
+        "--develop"
       ],
       "group": "build",
       "problemMatcher": [],
