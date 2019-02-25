@@ -13,7 +13,8 @@
       "type": "shell",
       "command": "bash",
       "args": [
-        "${HOME}/Downloads/qemu-build.git/scripts/build-native.sh"
+        "${HOME}/Downloads/qemu-build.git/scripts/build-native.sh",
+        "--debug"
       ],
       "group": "build",
       "problemMatcher": [],
