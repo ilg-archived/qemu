@@ -34,7 +34,7 @@
         "unimp,guest_errors",
         "--nographic",
         "--image",
-        "/Users/ilg/Work/f4b-sh/Debug/f4b-sh.elf",
+        "${env:HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
         "--semihosting-config",
         "enable=on,target=native",
         "--semihosting-cmdline",
@@ -62,7 +62,7 @@
         "-d",
         "unimp,guest_errors",
         "--image",
-        "/Users/ilg/Work/f4b-sh/Debug/f4b-sh.elf",
+        "${env:HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
         "--semihosting-config",
         "enable=on,target=native",
         "--semihosting-cmdline",
@@ -75,9 +75,6 @@
       "externalConsole": false,
       "MIMode": "lldb"
     },
-
-
-
     {
       "name": "(gdb) Launch qemu --help",
       "type": "cppdbg",
@@ -97,7 +94,7 @@
           "text": "-enable-pretty-printing",
           "ignoreFailures": true
         }
-      ],
+      ]
     },
     {
       "name": "(gdb) Launch qemu f4b-sh --nographic",
@@ -115,7 +112,7 @@
         "unimp,guest_errors",
         "--nographic",
         "--image",
-        "${HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
+        "${env:HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
         "--semihosting-config",
         "enable=on,target=native",
         "--semihosting-cmdline",
@@ -150,7 +147,7 @@
         "-d",
         "unimp,guest_errors",
         "--image",
-        "${HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
+        "${env:HOME}/Work/f4b-sh/Debug/f4b-sh.elf",
         "--semihosting-config",
         "enable=on,target=native",
         "--semihosting-cmdline",
