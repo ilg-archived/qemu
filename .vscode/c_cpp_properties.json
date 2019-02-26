@@ -3,12 +3,16 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/**",
-                "${workspaceFolder}/../build",
+                "${workspaceFolder}",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/tcg/arm",
+                "${env:HOME}/Work/qemu-dev/build",
+                "${env:HOME}/Work/qemu-dev/build/gnuarmeclipse-softmmu",
+                "${env:HOME}/opt/homebrew/xbb/include",
                 "${env:HOME}/opt/homebrew/xbb/include/glib-2.0",
+                "${env:HOME}/opt/homebrew/xbb/Cellar/glib/2.58.3/lib/glib-2.0/include",
                 "/usr/include/glib-2.0",
-                "/usr/lib/x86_64-linux-gnu/glib-2.0/include",
-                "${workspaceFolder}/../build/gnuarmeclipse-softmm"
+                "/usr/lib/x86_64-linux-gnu/glib-2.0/include"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

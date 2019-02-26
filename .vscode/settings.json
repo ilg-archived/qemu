@@ -1,6 +1,7 @@
 {
   "files.associations": {
     "osdep.h": "c",
-    "glib-compat.h": "c"
+    "glib-compat.h": "c",
+    "arm.h": "c"
   }
 }
