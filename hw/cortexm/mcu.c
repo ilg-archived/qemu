@@ -249,6 +249,11 @@ static void cortexm_mcu_realize_callback(DeviceState *dev, Error **errp)
     // The cm_state value might have been set by --global
     int sram_size_kb = cm_state->sram_size_kb;
     if (sram_size_kb == 0) {
+        /* First try the board definition */
+        /* To be noted, setting -m affects this value. */
+        sram_size_kb = machine->ram_size / (1024 * 1024);
+    }
+    if (sram_size_kb == 0) {
         /* Otherwise use the MCU value */
         sram_size_kb = capabilities->sram_size_kb;
     }
