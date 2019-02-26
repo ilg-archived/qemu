@@ -3092,8 +3092,8 @@ static MachineClass *select_machine(void)
     board_name = qemu_opt_get(opts, "type");
     if (board_name == NULL && mcu_device == NULL) {
         error_report(
-                "Neither board nor mcu specified, and there is no default.\n"
-                        "Use -board help or -mcu help to list supported boards or devices!\n");
+            "\nError: Neither board nor mcu specified, and there is no default.\n"
+            "Use -board help or -mcu help to list supported boards or devices!\n");
         exit(1);
     }
 
@@ -3112,7 +3112,9 @@ static MachineClass *select_machine(void)
 
     MachineClass *mc = find_machine(board_name);
     if (mc == NULL) {
+        error_printf("\nError: Board '%s' is not supported.\n", board_name);
         cm_board_help_func("?");
+        exit(1);
     } else {
         machine_class = mc;
     }
