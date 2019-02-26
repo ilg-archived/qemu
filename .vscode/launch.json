@@ -8,7 +8,7 @@
       "name": "(lldb) Launch qemu --help",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "program": "${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse",
       "args": [
         "--help"
       ],
@@ -22,7 +22,7 @@
       "name": "(lldb) Launch qemu f4b-sh --nographic",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "program": "${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse",
       "args": [
         "--verbose",
         "--verbose",
@@ -51,7 +51,7 @@
       "name": "(lldb) Launch qemu f4b-sh (graphic)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "program": "${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse",
       "args": [
         "--verbose",
         "--verbose",
@@ -79,7 +79,7 @@
       "name": "(gdb) Launch qemu --help",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "program": "${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse",
       "args": [
         "--help"
       ],
@@ -100,7 +100,7 @@
       "name": "(gdb) Launch qemu f4b-sh --nographic",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "program": "${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse",
       "args": [
         "--verbose",
         "--verbose",
@@ -136,7 +136,7 @@
       "name": "(gdb) Launch qemu f4b-sh (graphic)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/../install/bin/qemu-system-gnuarmeclipse",
+      "program": "${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse",
       "args": [
         "--verbose",
         "--verbose",
