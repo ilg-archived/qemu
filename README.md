@@ -5,15 +5,14 @@
 ## Rationale
 
 The [GNU MCU Eclipse QEMU](http://gnumcueclipse.github.io/qemu) subproject 
-is a fork of [QEMU](http://wiki.qemu.org/Main_Page) (an open source machine 
+is a fork of [QEMU](https://www.qemu.org) (an open source machine 
 emulator), intended to provide support for Cortex-M emulation in GNU MCU 
 Eclipse.
 
 ## Changes
 
 Compared to the original QEMU release, there are many functional changes,
-including a simplified command line interface.
-
+including a graphical view of the emulated boards, with animated LEDs.
 
 ## Releases
 
@@ -53,10 +52,14 @@ The build scripts are part of the separate
 [gnu-mcu-eclipse/qemu-build](https://github.com/gnu-mcu-eclipse/qemu-build)
 project.
 
+There are separate scripts to build either a local/native version that can run
+on the local machine, or multi-platform distribution builds, that can
+run on most recent systems.
+
 ## Publish
 
 The procedure used to publish the binaries is documented in the separate
-[PUBLISH](PUBLISH.md) page.
+[PUBLISH](PUBLISH.md) page in this project.
 
 The metadata files used to publish the xPacks on the `npmjs.com` server 
 are available from the 
