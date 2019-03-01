@@ -3,7 +3,7 @@
 ## Prerequisites
 
 For active development of QEMU, the supported environments are macOS and 
-Ubuntu 18LTS.
+Ubuntu 18 LTS.
 
 To create these environments, use the scripts provided in the separate
 [xpack/xpack-build-box](https://github.com/xpack/xpack-build-box) project.
@@ -135,13 +135,25 @@ The build options are:
 
 ### Clean
 
-The `clean` task removes the `build` and `install` folders, in preparation for
-a new build.
+The `clean` task removes the `build/qemu` and `install/qemu` folders, in 
+preparation for a new build.
 
 The operation can also be performed manually:
 
 ```console
 $ bash ~/Downloads/qemu-build.git/scripts/build-native.sh clean
+```
+
+To remove the library folders, use:
+
+```console
+$ bash ~/Downloads/qemu-build.git/scripts/build-native.sh cleanlibs
+```
+
+To remove all:
+
+```console
+$ bash ~/Downloads/qemu-build.git/scripts/build-native.sh cleanall
 ```
 
 ### Edit & IntelliSense
@@ -173,7 +185,7 @@ $ git clone https://github.com/gnu-mcu-eclipse/qemu-eclipse-test-projects.git qe
 VSC also provides decent debugging features. The launchers are
 defined in `.vscode/launch.json`.
 
-The executable is started from `${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse`.
+The executable is started from `${env:HOME}/Work/qemu-dev/${platform}-${arch}/install/qemu//bin/qemu-system-gnuarmeclipse`.
 
 In addition to a test showing the help message, two more launchers
 are defined, to start the classical STM32F4DISCOVERY blinky project
