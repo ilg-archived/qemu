@@ -36,29 +36,86 @@ page.
 
 ### Windows
 
-There is currently no functional development environment for Windows.
+The Windows development environment is based on Windows 10 and the new
+[WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+subsistem, which allows to install a traditional Linux distribution on WIndows.
 
-The QEMU build scripts use mingw-w64 and POSIX tools, so building with
-the legacy Microsoft tools alone might not be realistic.
+#### Install WSL
 
-There are good chances that the new 
-[Windows Subsystem for Linux ](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-might be used, but this was not yet tested. If you manage to install
-Ubuntu packages on WSL and pass the build, please contribute back the 
-changes to the scripts.
+To install WSL, open a PowerShell console (mandatory, old CMD consoles do not work)
+and issue:
 
-A second choice would be [MSYS2](https://www.msys2.org), but neither it
-was yet tested. 
+```console
+PS> Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Windows-Subsystem-Linux
+```
 
-The venerable Cygwin might also be considered, but generally it is no longer
-recommended for new designs.
+#### Install Ubuntu
+
+Then follow the instruction in the [WSL](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
+page and install Ubuntu.
+
+Start the new `ubuntu.exe` (there is also a graphical shortcut).
+
+This step should [initialise the new distro](https://docs.microsoft.com/en-us/windows/wsl/initialize-distro), and when completed, ask for the separate UNIX name.
+Any name is accepted, but to keep things consistent, preferably ue the same name
+as for Windows.
+
+When running on a VirtualBox VM, this step may apparently hang, so if the _Installation successful_ message does not arrive after a few minutes and the 
+process uses almost no CPU, it probably did hang. In my case it helped to
+enter a space.
+
+After installation is completed, it is recommended to update Ubuntu:
+
+```console
+$ sudo apt --yes update && sudo apt --yes upgrade
+```
+
+#### Install the Ubuntu XBB
+
+The next step is to install
+[The Ubuntu XBB](https://github.com/xpack/xpack-build-box/tree/master/ubuntu).
+
+#### Create links 
+
+The Ubuntu file system is mapped to a folder deep down in the `AppData` folder,
+and [its content should not be changed from Windows](https://blogs.msdn.microsoft.com/commandline/2016/11/17/do-not-change-linux-files-using-windows-apps-and-tools/)
+
+However, it is possible for the WSL processes to acces the entire Windows
+file system, mounted as `/mnt/c`.
+
+For a convenient access, make soft links from the Ubuntu account back to the
+Windows account
+
+```console
+$ mkdir -p /mnt/c/Users/ilg/Work
+$ ln -s /mnt/c/Users/ilg/Work Work
+$ ln -s /mnt/c/Users/ilg/Downloads Downloads
+```
+
+#### Install git
+
+Although git comes in the Ubuntu distribution, it is useful to have it 
+available in Windows too. 
+
+It is available from [git-scm.com](https://git-scm.com/download/win).
+
+#### Install GDB
+
+To run debug session on Windows, the tools available in Ubuntu cannot be used, 
+a Windows gdb.exe is needed.
+
+A good candidate is the one packed in the [MinGW Distro](https://nuwen.net/mingw.html). Get the package without Git, since you already installed the 
+most recent Git in the previous step.
+
+Prefer to install in user space, and the default location used in the provided
+launchers is `${env:USERPROFILE}/Downloads/MinGW/bin/gdb.exe`.
 
 ### Visual Studio Code
 
 The recommended development tool is Visual Studio Code, and for it
 there are already build tasks and debug launchers available.
 
-Install VSC as recommended by Microsoft, and add the C/C++ extension.
+Install VSC as recommended by Microsoft, and add the **C/C++ extension**.
 
 Obviously any other editor can be used, but you'll need to recreate 
 the details of the configuration. Probably a good strategy would be
@@ -66,6 +123,8 @@ to first use VSC to get a functional environment, and later migrate
 it to your favourite tools.
 
 ### Git client
+
+For macOS and Windows, the recommended Git client is [Sourcetree](https://www.sourcetreeapp.com/).
 
 Since SourceTree is not available for GNU/Linux, the second choice is
 Git Kraken, which can be downloaded for free from 
@@ -106,7 +165,13 @@ To build a binary which is suitable for debug sessions, run the
 $ bash ~/Downloads/qemu-build.git/scripts/build-native.sh --debug --develop
 ```
 
-The result is the `${HOME}/Work/qemu-dev/` folder. The build 
+To build the Windows binaries, use:
+
+```console
+$ bash ~/Downloads/qemu-build.git/scripts/build-native.sh --debug --develop --win
+```
+
+The result is the `${HOME}/Work/qemu-dev/${platform}-${arch}` folder. The build 
 is performed in the separate `build` folder, and the result is installed 
 in `install`, with the executable in `install/bin`.
 
@@ -123,7 +188,7 @@ If you used the `--develop` option, the development branch is checked out.
 
 There are two build tasks, one to build and one to clean.
 To start these tasks, use **Terminal** -> **Run Build Task**, or 
-**Ctrl+Shift+B**, adn select the desired task.
+**Ctrl+Shift+B**, and select the desired task.
 
 The actual task definitions are in `.vscode/tasks.json`. Both tasks run the 
 `build-native.sh` script, with different options.
@@ -156,12 +221,20 @@ To remove all:
 $ bash ~/Downloads/qemu-build.git/scripts/build-native.sh cleanall
 ```
 
+To clean the Windows build, the commands are similar:
+
+```console
+$ bash ~/Downloads/qemu-build.git/scripts/build-native.sh --win clean
+$ bash ~/Downloads/qemu-build.git/scripts/build-native.sh --win cleanlibs
+$ bash ~/Downloads/qemu-build.git/scripts/build-native.sh --win cleanall
+```
+
 ### Edit & IntelliSense
 
 VSC is quite convenient for editing the project source files.
 
-For advanced browsing, the include folders are already configured
-in `c_cpp_properties.json`, so all definitions should be already
+For advanced browsing, the `#include` folders are already configured
+in `c_cpp_properties.json`, so most definitions should be already
 available via IntelliSense.
 
 ### The emulated images
@@ -185,18 +258,69 @@ $ git clone https://github.com/gnu-mcu-eclipse/qemu-eclipse-test-projects.git qe
 VSC also provides decent debugging features. The launchers are
 defined in `.vscode/launch.json`.
 
-The executable is started from `${env:HOME}/Work/qemu-dev/${platform}-${arch}/install/qemu//bin/qemu-system-gnuarmeclipse`.
+The executable is started from `${env:HOME}/Work/qemu-dev/${platform}-${arch}/install/qemu/bin/qemu-system-gnuarmeclipse`, or `${env:USERPROFILE}/Work/qemu-dev/win32-x64/install/qemu/bin/qemu-system-gnuarmeclipse.exe` on Windows.
 
 In addition to a test showing the help message, two more launchers
-are defined, to start the classical STM32F4DISCOVERY blinky project
+are defined for each platform, to start the classical STM32F4DISCOVERY 
+blinky project
 created with the GNU MCU Eclipse plug-ins.
 
 To start the debug sessions, switch to the debug view (using the debug
 icon in the left bar), and select the launcher in the top combo.
 
-There are separate launchers using LLDB (for macOS) and GDB (for Ubuntu);
+There are separate launchers using LLDB (for macOS) and GDB (for Ubuntu and Windows);
 both start the Debug elf from the `f407-disc-blink-tutorial` project,
 described above.
+
+#### `HOME` vs `USERPROFILE`
+
+The environment variables used to define the user home folder
+are different, on macOS and Linux it is `${env:HOME}`, while on
+Windows it is `${env:USERPROFILE}`.
+
+This genrally makes sharing launcher configurations between
+platforms more difficult.
+
+#### `sourceFileMap`
+
+For Windows, since the build was performed in the Ubuntu WSL
+environment, where paths are below `/home`, it is necessary to
+map them back to the `/Users` folder.
+
+Add the following to the lauch configurations:
+
+```json
+      "sourceFileMap": {
+        "/home": "/Users"
+      },
+```
+
+#### `miDebuggerPath`
+
+Also on Windows, since usually the GDB executable is not in the
+system path, it must be explicitly defined, for example as:
+
+```json
+      "miDebuggerPath": "${env:USERPROFILE}/Downloads/MinGW/bin/gdb.exe",
+```
+
+#### `stopAtEntry`
+
+This option should place a breakpoint in `main()`, but due to the
+comlex startup sequence used by QEMU, it does not work on macOS
+and Windows, so it is disabled, and you should place a manual
+breakpoint in `vl.c: main()`.
+
+#### `externalConsole`
+
+This option is set differently on each platform. On macOS, the
+LLDB plug-in does not interpret properly the process output and
+the external console must be enabled to see it.
+
+On Windows the external console is automatically closed when the
+debug session is terminated, so it is more convenient to use
+the internal console, which remains visible.
+
 
 ## Contributing back to the project
 
