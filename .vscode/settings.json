@@ -2,6 +2,8 @@
   "files.associations": {
     "osdep.h": "c",
     "glib-compat.h": "c",
-    "arm.h": "c"
+    "arm.h": "c",
+    "svd.h": "c",
+    "cpu.h": "c"
   }
 }
