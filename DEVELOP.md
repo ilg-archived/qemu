@@ -38,7 +38,7 @@ page.
 
 The Windows development environment is based on Windows 10 and the new
 [WSL (Windows Subsystem for Linux)](https://docs.microsoft.com/en-us/windows/wsl/install-win10)
-subsistem, which allows to install a traditional Linux distribution on WIndows.
+subsistem, which allows to install a traditional GNU/Linux distribution on WIndows.
 
 #### Install WSL
 
@@ -92,12 +92,12 @@ $ ln -s /mnt/c/Users/ilg/Work Work
 $ ln -s /mnt/c/Users/ilg/Downloads Downloads
 ```
 
-#### Install git
+#### Install Git
 
-Although git comes in the Ubuntu distribution, it is useful to have it 
+Although Git comes in the Ubuntu distribution, it is useful to have it 
 available in Windows too. 
 
-It is available from [git-scm.com](https://git-scm.com/download/win).
+It can be downloaded from [git-scm.com](https://git-scm.com/download/win).
 
 #### Install GDB
 
@@ -112,10 +112,12 @@ launchers is `${env:USERPROFILE}/Downloads/MinGW/bin/gdb.exe`.
 
 ### Visual Studio Code
 
-The recommended development tool is Visual Studio Code, and for it
-there are already build tasks and debug launchers available.
+The recommended development tool is [Visual Studio Code](https://code.visualstudio.com), 
+and for it there are already build tasks and debug launchers available.
 
-Install VSC as recommended by Microsoft, and add the **C/C++ extension**.
+[Download](https://code.visualstudio.com/Download) and install the
+user installer as recommended by Microsoft, and add the
+[C/C++ extension](https://code.visualstudio.com/docs/languages/cpp).
 
 Obviously any other editor can be used, but you'll need to recreate 
 the details of the configuration. Probably a good strategy would be
@@ -124,9 +126,10 @@ it to your favourite tools.
 
 ### Git client
 
-For macOS and Windows, the recommended Git client is [Sourcetree](https://www.sourcetreeapp.com/).
+For macOS and Windows, the recommended Git client is 
+[Sourcetree](https://www.sourcetreeapp.com/).
 
-Since SourceTree is not available for GNU/Linux, the second choice is
+Since Sourcetree is not available for GNU/Linux, the second choice is
 Git Kraken, which can be downloaded for free from 
 [gitkraken.com](https://www.gitkraken.com/download).
 
@@ -275,7 +278,7 @@ described above.
 #### `HOME` vs `USERPROFILE`
 
 The environment variables used to define the user home folder
-are different, on macOS and Linux it is `${env:HOME}`, while on
+are different, on macOS and GNU/Linux it is `${env:HOME}`, while on
 Windows it is `${env:USERPROFILE}`.
 
 This genrally makes sharing launcher configurations between
