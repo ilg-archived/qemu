@@ -18,6 +18,23 @@
             "compilerPath": "/usr/bin/gcc",
             "cStandard": "c11",
             "intelliSenseMode": "clang-x64"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}",
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/tcg/arm",
+                "${env:USERPROFILE}/Work/qemu-dev/win32-x64/build/qemu",
+                "${env:USERPROFILE}/Work/qemu-dev/win32-x64/build/qemu/gnuarmeclipse-softmmu",
+                "${env:USERPROFILE}/Work/qemu-dev/win32-x64/install/libs/include/glib-2.0",
+                "${env:USERPROFILE}/Work/qemu-dev/win32-x64/install/libs/lib/glib-2.0/include",
+                "${env:USERPROFILE}/Work/qemu-dev/win32-x64/install/libs/include/SDL2",
+                "${env:USERPROFILE}/Work/qemu-dev/win32-x64/install/libs/include/pixman-1"
+            ],
+            "defines": [],
+            "cStandard": "c11",
+            "intelliSenseMode": "clang-x64"
         }
     ],
     "version": 4
