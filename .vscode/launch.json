@@ -4,6 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+    // macOS LLDB configurations
     {
       "name": "(lldb) Launch qemu --help",
       "type": "cppdbg",
@@ -75,6 +76,7 @@
       "externalConsole": true,
       "MIMode": "lldb"
     },
+    // Linux GDB configurations
     {
       "name": "(gdb) Launch qemu --help",
       "type": "cppdbg",
@@ -83,7 +85,7 @@
       "args": [
         "--help"
       ],
-      "stopAtEntry": true,
+      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
@@ -119,7 +121,7 @@
         "f4b",
         "20"
       ],
-      "stopAtEntry": true,
+      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
@@ -154,7 +156,7 @@
         "f4b",
         "20"
       ],
-      "stopAtEntry": true,
+      "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
