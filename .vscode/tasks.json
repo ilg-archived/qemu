@@ -37,6 +37,39 @@
       "presentation": {
         "showReuseMessage": false
       }
-    }
-  ]
+    },
+    {
+      "label": "qemu: wsl build",
+      "type": "shell",
+      "command": "wsl",
+      "args": [
+        "bash",
+        "~/Downloads/qemu-build.git/scripts/build-native.sh",
+        "--debug",
+        "--develop",
+        "--win"
+      ],
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "showReuseMessage": false
+      }
+    },
+    {
+      "label": "qemu: wsl clean",
+      "type": "shell",
+      "command": "wsl",
+      "args": [
+        "bash",
+        "~/Downloads/qemu-build.git/scripts/build-native.sh",
+        "--win",
+        "clean"
+      ],
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "showReuseMessage": false
+      }
+    },
+ ]
 }
