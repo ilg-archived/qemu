@@ -52,7 +52,7 @@
       "name": "(lldb) Launch qemu f4b-sh (graphic)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${env:HOME}/Work/qemu-dev/install/bin/qemu-system-gnuarmeclipse",
+      "program": "${env:HOME}/Work/qemu-dev/darwin-x64/install/qemu/bin/qemu-system-gnuarmeclipse",
       "args": [
         "--verbose",
         "--verbose",
