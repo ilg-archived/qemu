@@ -240,6 +240,12 @@ For advanced browsing, the `#include` folders are already configured
 in `c_cpp_properties.json`, so most definitions should be already
 available via IntelliSense.
 
+There are 3 configurations available, for each platform.
+
+To select the one appropriate for your environment, open a C/C++ file and
+click the bottom right **C/C++ Configuration** selector; in the
+selection window that appears on top, select the desired configuration.
+
 ### The emulated images
 
 There are multiple Cortex-M test projects in the separate GitHub project 
@@ -323,7 +329,6 @@ the external console must be enabled to see it.
 On Windows the external console is automatically closed when the
 debug session is terminated, so it is more convenient to use
 the internal console, which remains visible.
-
 
 ## Contributing back to the project
 
