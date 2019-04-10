@@ -50135,7 +50135,7 @@
 						"description": "Status register",
 						"addressOffset": "0x0",
 						"size": "0x20",
-						"resetValue": "0x00C00000",
+						"resetValue": "0x000000C0",
 						"fields": [
 							{
 								"name": "PE",
@@ -50523,7 +50523,7 @@
 						"description": "Status register",
 						"addressOffset": "0x0",
 						"size": "0x20",
-						"resetValue": "0x00C00000",
+						"resetValue": "0x000000C0",
 						"fields": [
 							{
 								"name": "PE",
