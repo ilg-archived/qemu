@@ -1,47 +1,57 @@
 # How to publish the GNU MCU Eclipse QEMU binaries?
 
+## Build
+
+Before starting the build, perform some checks.
+
+### Check the CHANGELOG file
+
+
 ## Update the Change log
 
-Open the `CHANGELOG.txt` file from  
-`gnu-mcu-eclipse/qemu-build.git` project git, and copy 
-entries to the web git.
-
-In the web git, add new entries to the 
-[Change log](https://gnu-mcu-eclipse.github.io/qemu/change-log/) 
-(`pages/qemu/change-log.md`), grouped by days.
+Open the `CHANGELOG.txt` file from `gnu-mcu-eclipse/qemu-build.git` 
+and check if all new entries are in.
 
 Note: if you missed to update the `CHANGELOG.txt` before starting the build, 
 edit the file and rerun the build, it should take only a few minutes to 
 recreate the archives with the correct file.
 
-## Edit the build script
+### Check the version
 
-Edit the `VERSION` file to refer to the actual release.
+The `VERSION` file should refer to the actual release.
 
 ## Push the build script git
 
-Push `gnu-mcu-eclipse/qemu-build.git` to GitHub.
+In `gnu-mcu-eclipse/qemu-build.git`, if necessary, merge 
+the `develop` branch into `master`.
+
+Push it to GitHub.
 
 Possibly push the helper project too.
 
-## Build
+### Run the build scripts
 
-Follow the instructions on the 
+When everything is ready, follow the instructions on the 
 [build](https://github.com/gnu-mcu-eclipse/qemu-build/blob/master/README.md) 
 page.
+
+## Test
+
+Install the binaries on all supported platforms and check if they are 
+functional.
 
 ## Create a new GitHub pre-release
 
 - go to the [GitHub Releases](https://github.com/gnu-mcu-eclipse/qemu/releases) page
 - click **Draft a new release**
 - name the tag like **v2.8.0-3-20180523** (mind the dashes in the middle!)
-- name the release like **GNU MCU Eclipse QEMU v2.8.0-3-20180523** 
+- name the release like **GNU MCU Eclipse QEMU v2.8.0-3 20180523** 
 (mind the dashes)
 - as description
   - add a downloads badge like `[![Github Releases (by Release)](https://img.shields.io/github/downloads/gnu-mcu-eclipse/qemu/v2.8.0-3-20180523/total.svg)]()`; use empty URL for now
   - draft a short paragraph explaining what are the main changes
 - **attach binaries** and SHA (drag and drop from the archives folder will do it)
-- enable the pre-release button
+- **enable** the pre-release button
 - click the **Publish Release** button
 
 Note: at this moment the system should send a notification to all clients watching this project.
@@ -53,7 +63,7 @@ In the `gnu-mcu-eclipse.github.io-source.git` web git:
 
 - add a new file to `_posts/qemu/releases`
 - name the file like `2018-05-23-qemu-v2-8-0-3-20180523-released.md`
-- name the post like: **GNU MCU Eclipse QEMU v2.8.0-3-20180523 released**.
+- name the post like: **GNU MCU Eclipse QEMU v2.8.0-3 20180523 released**.
 - as `download_url` use the tagged URL like `https://github.com/gnu-mcu-eclipse/qemu/releases/tag/v2.8.0-3-20180523/` 
 - update the `date:` field with the current date
 
@@ -89,7 +99,7 @@ gnu-mcu-eclipse-qemu-2.8.0-3-20180523-0703-win64.zip
 ## Update the Web
 
 - commit the `gnu-mcu-eclipse.github.io-source` project; use a message 
-like **GNU MCU Eclipse QEMU v2.8.0-3 released**
+like **GNU MCU Eclipse QEMU v2.8.0-3 20180523 released**
 - wait for the Travis build to complete; occasionally links to not work,
  and might need to restart the build.
 - remember the post URL, since it must be updated in the release page
