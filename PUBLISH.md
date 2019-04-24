@@ -48,7 +48,7 @@ functional.
   - add a downloads badge like `[![Github Releases (by Release)](https://img.shields.io/github/downloads/gnu-mcu-eclipse/qemu/v2.8.0-3-20180523/total.svg)]()`; use empty URL for now
   - draft a short paragraph explaining what are the main changes
 - **attach binaries** and SHA (drag and drop from the archives folder will do it)
-- **enable** the pre-release button
+- **enable** the **pre-release** button
 - click the **Publish Release** button
 
 Note: at this moment the system should send a notification to all clients watching this project.
@@ -77,19 +77,19 @@ Copy/paste the build report at the end of the post as:
 ## Checksums
 The SHA-256 hashes for the files are:
 
-1e93a4fe2c661cace1b28fb633a9e7eb2c20f352b717205ac22cd338fcee101b ?
+1e93a4fe2c661cace1b28fb633a9e7eb2c20f352b717205ac22cd338fcee101b 
 gnu-mcu-eclipse-qemu-2.8.0-3-20180523-0703-centos32.tgz
 
-d4260a47b3322bce6d8d74feb2409b04c45f0b18a2958bb04ed2c802abf60793 ?
+d4260a47b3322bce6d8d74feb2409b04c45f0b18a2958bb04ed2c802abf60793 
 gnu-mcu-eclipse-qemu-2.8.0-3-20180523-0703-centos64.tgz
 
-0a910c2548513cbbead6f4dd3366ccd72ecc1d75a6aee65e40fd92bdc1e5587e ?
+0a910c2548513cbbead6f4dd3366ccd72ecc1d75a6aee65e40fd92bdc1e5587e 
 gnu-mcu-eclipse-qemu-2.8.0-3-20180523-0703-macos.tgz
 
-065bac74d9d70ae240167936f155abb43097e29b7a4d14c53e473e2d76aa7cb9 ?
+065bac74d9d70ae240167936f155abb43097e29b7a4d14c53e473e2d76aa7cb9 
 gnu-mcu-eclipse-qemu-2.8.0-3-20180523-0703-win32.zip
 
-7b90e76a0705e9c15fe80373f9028934f179b5c75ea3d2f60dc709adc280e021 ?
+7b90e76a0705e9c15fe80373f9028934f179b5c75ea3d2f60dc709adc280e021 
 gnu-mcu-eclipse-qemu-2.8.0-3-20180523-0703-win64.zip
 ```
 
@@ -116,7 +116,7 @@ page.
 - update the current release version
 - copy/paste the **Download analytics** section
 - update the current release version
-- disable the pre-release button
+- **disable** the **pre-release** button
 - click the **Update Release** button
 
 ## Tag the build commit
