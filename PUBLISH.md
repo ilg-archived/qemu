@@ -6,9 +6,6 @@ Before starting the build, perform some checks.
 
 ### Check the CHANGELOG file
 
-
-## Update the Change log
-
 Open the `CHANGELOG.txt` file from `gnu-mcu-eclipse/qemu-build.git` 
 and check if all new entries are in.
 
