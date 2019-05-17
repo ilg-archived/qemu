@@ -19,6 +19,11 @@ including a graphical view of the emulated boards, with animated LEDs.
 The **GNU MCU Eclipse QEMU** releases are planned to follow the original
 QEMU releases, but there are no guarantees for any specific schedule.
 
+### 2.8.0-6 (2019-05-17)
+
+Version 2.8.0-6 20190517 is a maintenance release, to fix the bug 
+affecting the graphical mode in GNU/Linux, introduced in the previous release.
+
 ### 2.8.0-5 (2019-04-24)
 
 Version 2.8.0-5 20190424 is a maintenance release, to fix several bugs.
